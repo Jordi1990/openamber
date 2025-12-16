@@ -1,0 +1,33 @@
+name: Build release
+
+on:
+  push:
+    tags:
+      - "*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compile with ESPHome build action
+        id: build
+        uses: esphome/build-action@v7
+        with:
+          yaml-file: src/openamber.yaml
+          version: "2025.11.5"
+          complete-manifest: true
+
+      - name: Upload manifest
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ steps.build.outputs.name }}/manifest.json
+            ${{ steps.build.outputs.name }}/*.bin
+          fail_on_unmatched_files: true
