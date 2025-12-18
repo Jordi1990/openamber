@@ -75,8 +75,7 @@ class OpenAmberController {
  public:
   AmberState state;
   select::Select *compressor_control = nullptr;
-  select::Select *working_mode_inside = nullptr;
-  select::Select *working_mode_outside = nullptr;
+  select::Select *working_mode = nullptr;
   sensor::Sensor *temp_tc = nullptr;
   sensor::Sensor *temp_tui = nullptr;
   sensor::Sensor *temp_outside = nullptr;
@@ -98,8 +97,7 @@ class OpenAmberController {
   binary_sensor::BinarySensor *oil_return_cycle_active = nullptr;
 
   void init(
-      select::Select *working_mode_inside,
-      select::Select *working_mode_outside,
+      select::Select *working_mode,
       select::Select *compressor_control,
       sensor::Sensor *tc,
       sensor::Sensor *tui,
@@ -121,8 +119,7 @@ class OpenAmberController {
       text_sensor::TextSensor *hp_state_text_sensor,
       binary_sensor::BinarySensor *oil_return_cycle_active) {
     this->compressor_control = compressor_control;
-    this->working_mode_inside = working_mode_inside;
-    this->working_mode_outside = working_mode_outside;
+    this->working_mode = working_mode;
 
     temp_tc = tc;
     temp_tui = tui;
@@ -457,12 +454,9 @@ class OpenAmberController {
 
   void SetWorkingMode(int workingMode)
   {
-    auto working_mode_inside_call = working_mode_inside->make_call();
-    working_mode_inside_call.set_index(workingMode);
-    working_mode_inside_call.perform();
-    auto working_mode_outside_call = working_mode_outside->make_call();
-    working_mode_outside_call.set_index(workingMode);
-    working_mode_outside_call.perform();
+    auto working_mode_call = working_mode->make_call();
+    working_mode_call.set_index(workingMode);
+    working_mode_call.perform();
   }
 
   void SetNextState(HPState new_state)

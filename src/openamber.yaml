@@ -17,8 +17,7 @@ esphome:
       # Initialize amber controller
       - lambda: |-
           AMBER.init(
-            id(working_mode_inside),
-            id(working_mode_outside),
+            id(working_mode_switch),
             id(compressor_control),
             id(heat_cool_temperature_tc),
             id(inlet_temperature_tui),
@@ -1219,22 +1218,10 @@ select:
       "High": 0
     web_server: 
      sorting_group_id: control_inside
-
-  - platform: modbus_controller
-    modbus_controller_id: modbus_inside_unit
-    id: working_mode_inside
-    name: "Werkmodus (Binnen)"
-    address: 3999
     on_value: 
       then:
         - lambda: 
             id(modbus_inside_is_online) = true;
-    optionsmap:
-      "Standby": 0
-      "Koelen": 1
-      "Verwarmen": 2
-    web_server: 
-     sorting_group_id: control_inside
 
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
@@ -1259,7 +1246,7 @@ select:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
-    id: working_mode_outside
+    id: working_mode_switch
     name: "Werkmodus (Buiten)"
     address: 3999
     on_value: 
