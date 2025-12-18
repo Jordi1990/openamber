@@ -1009,8 +1009,10 @@ number:
   step: 1
   restore_value: true
   optimistic: true
-  entity_category: config
   unit_of_measurement: pulses/l
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
 
 - platform: template
   name: "Vorstbescherming 1e trap buiten temperatuur(Ta)"
@@ -1023,6 +1025,9 @@ number:
   device_class: "temperature"
   initial_value: 8.0
   restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
 
 - platform: template
   name: "Vorstbescherming 2e trap buiten temperatuur(Ta)"
@@ -1035,6 +1040,9 @@ number:
   device_class: "temperature"
   initial_value: 6.0
   restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
 
 - platform: template
   name: "Vorstbescherming 2e trap water temperatuur (Tui)"
@@ -1047,6 +1055,9 @@ number:
   device_class: "temperature"
   initial_value: 7.0
   restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
 
 - platform: template
   name: "Compressor start delta"
@@ -1059,6 +1070,9 @@ number:
   device_class: "temperature"
   initial_value: 3.0
   restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
 
 - platform: template
   name: "Compressor stop delta"
@@ -1071,6 +1085,9 @@ number:
   device_class: "temperature"
   initial_value: 5.0
   restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -1095,6 +1112,7 @@ number:
   unit_of_measurement: "min"
   icon: "mdi:timer-outline"
   initial_value: 15
+  entity_category: config
   web_server: 
       sorting_group_id: settings
 
@@ -1109,6 +1127,7 @@ number:
   unit_of_measurement: "min"
   icon: "mdi:clock-outline"
   initial_value: 2
+  entity_category: config
   web_server: 
       sorting_group_id: settings
 
