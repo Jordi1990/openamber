@@ -11,34 +11,6 @@ esphome:
     version: 0.0.1
   includes: 
     - openamber.h
-  on_boot:
-    priority: -100 # Start after everything is initialized
-    then:          
-      # Initialize amber controller
-      - lambda: |-
-          AMBER.init(
-            id(working_mode_switch),
-            id(compressor_control),
-            id(heat_cool_temperature_tc),
-            id(inlet_temperature_tui),
-            id(temperature_outside_ta),
-            id(room_temperature),
-            id(pump_interval),
-            id(pump_duration),
-            id(compressor_current_setpoint),
-            id(compressor_pid_climate),
-            id(pid_heat_output),
-            id(pid_cool_output),
-            id(climate_controller),
-            id(pump_state),
-            id(internal_pump_active),
-            id(frost_protection_stage1_active),
-            id(frost_protection_stage2_active),
-            id(compressor_start_delta),
-            id(compressor_stop_delta),
-            id(state_machine_state),
-            id(oil_return_cycle_active)
-          );
 
 interval:
   - interval: 10s
@@ -153,7 +125,6 @@ climate:
     sensor: room_temperature
     set_point_minimum_differential: 4.0
 
-    startup_delay: true # Wait 15min after power cycle
     min_cooling_off_time: 15min
     min_cooling_run_time: 1h # Min 1h run
     min_heating_off_time: 15min
@@ -446,7 +417,7 @@ sensor:
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
-  id: compressor_current_setpoint
+  id: current_compressor_frequency
   name: "Compressor frequentie"
   address: 2103
   register_type: holding
@@ -1155,9 +1126,6 @@ switch:
       - switch.turn_on: pump_p0_relay
       - switch.turn_on: pump_p1_relay
       - switch.turn_on: pump_p2_relay
-      - select.set: 
-          id: pump_state
-          option: "Off"
       - switch.turn_on: initialize_step_4
 
  - platform: modbus_controller
@@ -1206,7 +1174,7 @@ switch:
 
 select:
   - platform: modbus_controller
-    id: pump_state
+    id: pump_control_select
     modbus_controller_id: modbus_inside_unit
     name: "Pomp stand"
     address: 1103
@@ -1225,7 +1193,7 @@ select:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
-    id: compressor_control
+    id: compressor_control_select
     name: "Compressor stand (Buiten)"
     address: 1999
     value_type: S_WORD

@@ -84,8 +84,6 @@ class OpenAmberController {
   number::Number *pump_duration_min = nullptr;
   sensor::Sensor *compressor_current_frequency = nullptr;
   pid::PIDClimate *pid_climate = nullptr;
-  output::FloatOutput *pid_heat_output = nullptr;
-  output::FloatOutput *pid_cool_output = nullptr;
   climate::Climate *thermostat_climate = nullptr;
   select::Select *pump_control = nullptr;
   binary_sensor::BinarySensor *pump_active = nullptr;
@@ -94,64 +92,17 @@ class OpenAmberController {
   number::Number *start_compressor_delta = nullptr;
   number::Number *stop_compressor_delta = nullptr;
   text_sensor::TextSensor *hp_state_text_sensor = nullptr;
-  binary_sensor::BinarySensor *oil_return_cycle_active = nullptr;
-
-  void init(
-      select::Select *working_mode,
-      select::Select *compressor_control,
-      sensor::Sensor *tc,
-      sensor::Sensor *tui,
-      sensor::Sensor *ta,
-      sensor::Sensor *room,
-      number::Number *pump_interval,
-      number::Number *pump_duration,
-      sensor::Sensor *compressor_current_frequency,
-      pid::PIDClimate *pid,
-      output::FloatOutput *pid_heat_output,
-      output::FloatOutput *pid_cool_output,
-      climate::Climate *thermo,
-      select::Select *pump_control,
-      binary_sensor::BinarySensor *pump_active,
-      binary_sensor::BinarySensor *frost_protection_stage1,
-      binary_sensor::BinarySensor *frost_protection_stage2,
-      number::Number *start_compressor_delta,
-      number::Number *stop_compressor_delta,
-      text_sensor::TextSensor *hp_state_text_sensor,
-      binary_sensor::BinarySensor *oil_return_cycle_active) {
-    this->compressor_control = compressor_control;
-    this->working_mode = working_mode;
-
-    temp_tc = tc;
-    temp_tui = tui;
-    temp_outside = ta;
-    room_temp = room;
-
-    pump_interval_min = pump_interval;
-    pump_duration_min = pump_duration;
-
-    this->compressor_current_frequency = compressor_current_frequency;
-    pid_climate = pid;
-    this->pid_heat_output = pid_heat_output;
-    this->pid_cool_output = pid_cool_output;
-    thermostat_climate = thermo;
-
-    this->pump_control = pump_control;
-    this->pump_active = pump_active;
-    this->frost_protection_stage1 = frost_protection_stage1;
-    this->frost_protection_stage2 = frost_protection_stage2;
-	
-	this->start_compressor_delta = start_compressor_delta;
-    this->stop_compressor_delta = stop_compressor_delta;
-
-    this->hp_state_text_sensor = hp_state_text_sensor;
-    this->oil_return_cycle_active = oil_return_cycle_active;
-
-    SetNextState(HPState::IDLE);
-    ESP_LOGI("amber", "OpenAmberController initialized");
-  }
+  binary_sensor::BinarySensor *oil_return_cycle = nullptr;
 
   void loop() {
-    UpdateStateMachine();
+    if(this->initialized)
+    {
+      UpdateStateMachine();
+    }
+    else
+    {
+      Initialize();
+    }
   }
 
   void WritePIDValue(float pid_value) {
@@ -165,6 +116,56 @@ class OpenAmberController {
   }
 
  private:
+  bool initialized = false;
+
+  void Initialize()
+  {
+    this->compressor_control = &id(compressor_control_select);
+    this->working_mode = &id(working_mode_switch);
+
+    this->temp_tc = &id(heat_cool_temperature_tc);
+    this->temp_tui = &id(inlet_temperature_tui);
+    this->temp_outside = &id(temperature_outside_ta);
+    this->room_temp = &id(room_temperature);
+
+    this->pump_interval_min = &id(pump_interval);
+    this->pump_duration_min = &id(pump_duration);
+
+    this->compressor_current_frequency = &id(current_compressor_frequency);
+    this->pid_climate = &id(compressor_pid_climate);
+    this->thermostat_climate = &id(climate_controller);
+
+    this->pump_control = &id(pump_control_select);
+    this->pump_active = &id(internal_pump_active);
+    this->frost_protection_stage1 = &id(frost_protection_stage1_active);
+    this->frost_protection_stage2 = &id(frost_protection_stage2_active);
+	
+	  this->start_compressor_delta = &id(compressor_start_delta);
+    this->stop_compressor_delta = &id(compressor_stop_delta);
+
+    this->hp_state_text_sensor = &id(state_machine_state);
+    this->oil_return_cycle = &id(oil_return_cycle_active);
+
+    // Restore state whenever initialized while compressor is running.
+    if(this->compressor_current_frequency->state > 0) {
+      state.last_compressor_start_ms = millis();
+      SetNextState(HPState::COMPRESSOR_RUNNING);
+    }
+    else if(this->pump_active->state)
+    {
+      state.pump_start_time = millis();
+      SetNextState(HPState::PUMP_INTERVAL_RUNNING);
+    }
+    else
+    {
+      // Initalize pump to Off, it starts on 950 mode.
+      StopPump();
+      SetNextState(HPState::IDLE);
+    }
+    ESP_LOGI("amber", "OpenAmberController initialized");
+    this->initialized = true;
+  }
+
   void UpdateStateMachine()
   {
       const uint32_t now = millis();
@@ -397,6 +398,7 @@ class OpenAmberController {
     else start_compressor_frequency_index = 5;
     return start_compressor_frequency_index;
   }
+
   /// @brief Map the PID output value to a discrete compressor frequency index.
   /// Limits the frequency change to a single step per update.
   int MapPIDToCompressorFrequencyIndex(float pid) {
