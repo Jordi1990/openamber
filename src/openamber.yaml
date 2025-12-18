@@ -1134,7 +1134,9 @@ switch:
    on_turn_on: 
      then:
       # Initialize board relays
-      - switch.turn_on: initialize_step_1
+      - switch.turn_on: pump_p0_relay
+      - switch.turn_on: pump_p1_relay
+      - switch.turn_on: pump_p2_relay
       - select.set: 
           id: pump_state
           option: "Off"
@@ -1142,21 +1144,31 @@ switch:
 
  - platform: modbus_controller
    modbus_controller_id: modbus_inside_unit
-   id: initialize_step_1
-   name: "Binnen unit #1 onbekend"
+   id: pump_p0_relay
+   name: "Pump P0 relay"
    address: 1099
+   register_type: holding
+   web_server: 
+     sorting_group_id: control_inside
+     
+ - platform: modbus_controller
+   modbus_controller_id: modbus_inside_unit
+   id: pump_p1_relay
+   name: "Pump P1 relay"
+   address: 1100
    register_type: holding
    web_server: 
      sorting_group_id: control_inside
 
  - platform: modbus_controller
    modbus_controller_id: modbus_inside_unit
-   name: "Three way valve?"
-   address: 1112
+   id: pump_p2_relay
+   name: "Pump P2 relay"
+   address: 1101
    register_type: holding
    web_server: 
      sorting_group_id: control_inside
-
+     
  - platform: modbus_controller
    modbus_controller_id: modbus_inside_unit
    id: initialize_step_4
@@ -1165,6 +1177,14 @@ switch:
    register_type: holding
    web_server: 
     sorting_group_id: control_inside
+
+ - platform: modbus_controller
+   modbus_controller_id: modbus_inside_unit
+   name: "Three way valve?"
+   address: 1112
+   register_type: holding
+   web_server: 
+     sorting_group_id: control_inside
 
 select:
   - platform: modbus_controller
