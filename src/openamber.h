@@ -247,6 +247,7 @@ class OpenAmberController {
           {
             if (compressor_running)
             {
+              state.last_compressor_start = now;
               SetNextState(HPState::COMPRESSOR_SOFTSTART);
             }
             // TODO: Implement timeout for when compressor does not start.
@@ -378,7 +379,6 @@ class OpenAmberController {
 
   void StartCompressor(float supply_temperature_delta) {
     ESP_LOGI("amber", "Starting compressor (ΔT=%.2f°C)", supply_temperature_delta);
-    state.last_compressor_start = millis();
     int compressor_frequency_index = DetermineSoftStartFrequencyIndex(supply_temperature_delta);
     float start_compressor_frequency = SUPPORTED_FREQUENCIES[compressor_frequency_index];
     ESP_LOGI("amber", "Soft start frequency: %.1f Hz (ΔT=%.1f°C)", start_compressor_frequency, supply_temperature_delta);
