@@ -20,7 +20,7 @@
 #pragma once
 
 #include "esphome.h"
-
+  
 using namespace esphome;
 
 // Frequency cannot change faster than given amount of seconds.
@@ -45,10 +45,6 @@ static const uint32_t WORKING_MODE_HEATING = 2;
 /// Deadband on Tc to avoid too frequent changes around setpoint
 static const float DEAD_BAND_DT = 0.5f;
 
-// Supported discrete compressor frequencies
-static const float SUPPORTED_FREQUENCIES[] = {36, 43, 49, 55, 61, 67, 72, 79, 85, 90};
-static const int FREQUENCY_COUNT = sizeof(SUPPORTED_FREQUENCIES) / sizeof(SUPPORTED_FREQUENCIES[0]);
-
 enum class HPState {
     IDLE,
     WAIT_PUMP_RUNNING,
@@ -62,9 +58,8 @@ enum class HPState {
 struct AmberState {
   uint32_t last_compressor_start = 0;
   uint32_t last_compressor_stop = 0;
-  uint32_t last_compressor_freq_change = 0;
+  uint32_t last_compressor_mode_change = 0;
   float compressor_pid = 0.0;
-  int commanded_freq_index = -1;
   uint32_t next_pump_cycle = 0;
   uint32_t pump_start_time = 0;
 
@@ -350,12 +345,10 @@ class OpenAmberController {
 
   void ManageCompressorModulation() {
     const uint32_t now = millis();
-    float current_compressor_frequency = SUPPORTED_FREQUENCIES[state.commanded_freq_index];
-    int desired_compressor_index = MapPIDToCompressorFrequencyIndex(state.compressor_pid);
-    float desired_compressor_frequency = SUPPORTED_FREQUENCIES[desired_compressor_index];
-    
-    const uint32_t min_interval = (current_compressor_frequency > desired_compressor_frequency ? FREQUENCY_CHANGE_INTERVAL_DOWN_S : FREQUENCY_CHANGE_INTERVAL_UP_S) * 1000;
-    if ((now - state.last_compressor_freq_change) < min_interval) {
+    int desired_compressor_index = MapPIDToCompressorMode(state.compressor_pid);
+    auto current_compressor_mode = this->compressor_control->active_index().value();
+    const uint32_t min_interval = (current_compressor_mode > desired_compressor_index ? FREQUENCY_CHANGE_INTERVAL_DOWN_S : FREQUENCY_CHANGE_INTERVAL_UP_S) * 1000;
+    if ((now - state.last_compressor_mode_change_ms) < min_interval) {
       ESP_LOGI("amber", "Frequency change skipped (interval not elapsed)");
       return;
     }
@@ -366,16 +359,16 @@ class OpenAmberController {
     float dt = tc - target;
 
     if (fabsf(dt) < DEAD_BAND_DT) {
-      ESP_LOGD("amber", "ΔT=%.2f°C within deadband, frequency remains at %.1f Hz",
-              dt, current_compressor_frequency);
+      ESP_LOGD("amber", "ΔT=%.2f°C within deadband, compressor mode remains at %d",
+              dt, current_compressor_mode);
       return;
     }
     
-    ESP_LOGI("amber", "PID %.2f -> %.1f Hz (previous %.1f Hz)", state.compressor_pid, desired_compressor_frequency, current_compressor_frequency);
+    ESP_LOGI("amber", "PID %.2f -> mode %d (previous mode %d)", state.compressor_pid, desired_compressor_index, current_compressor_mode);
 
-    if (desired_compressor_index != state.commanded_freq_index) {
-      SetCompressorFrequency(desired_compressor_index);
-      ESP_LOGI("amber", "Compressor frequency updated to %.1f Hz", desired_compressor_frequency);
+    if (desired_compressor_index != current_compressor_mode) {
+      SetCompressorMode(desired_compressor_index);
+      ESP_LOGI("amber", "Compressor mode updated to %d", desired_compressor_index);
     }
   }
 
@@ -386,7 +379,6 @@ class OpenAmberController {
 
     state.last_compressor_start = 0;
     state.last_compressor_stop = millis();
-    state.commanded_freq_index = -1;
     auto compressor_set_call = compressor_control->make_call();
     compressor_set_call.select_first();
     compressor_set_call.perform();
@@ -396,52 +388,52 @@ class OpenAmberController {
 
   void StartCompressor(float supply_temperature_delta) {
     ESP_LOGI("amber", "Starting compressor (ΔT=%.2f°C)", supply_temperature_delta);
-    int compressor_frequency_index = DetermineSoftStartFrequencyIndex(supply_temperature_delta);
-    float start_compressor_frequency = SUPPORTED_FREQUENCIES[compressor_frequency_index];
-    ESP_LOGI("amber", "Soft start frequency: %.1f Hz (ΔT=%.1f°C)", start_compressor_frequency, supply_temperature_delta);
+    int compressor_frequency_mode = DetermineSoftStartMode(supply_temperature_delta);
+    ESP_LOGI("amber", "Soft start mode: %d (ΔT=%.1f°C)", compressor_frequency_mode, supply_temperature_delta);
 
     pid_climate->reset_integral_term();
-    SetCompressorFrequency(compressor_frequency_index);
+    SetCompressorMode(compressor_frequency_mode);
   }
 
-  /// @brief Determine the frequency at which to start the compressor.
+  /// @brief Determine the compressor mode at which to start the compressor.
   /// In this soft start period the PID loop can act on karakteristics of the measured supply temperature(Tc).
   /// @param supply_temperature_delta Temperature delta between Tc and target temperature.
-  /// @return Compressor frequency index.
-  int DetermineSoftStartFrequencyIndex(float supply_temperature_delta) {
-    int start_compressor_frequency_index;
+  /// @return Compressor mode.
+  int DetermineSoftStartMode(float supply_temperature_delta) {
+    int start_compressor_frequency_mode;
     float delta = fabs(supply_temperature_delta);
-    if (delta < 2.0f) start_compressor_frequency_index = 1;
-    else if (delta < 5.0f) start_compressor_frequency_index = 3;
-    else if (delta < 8.0f) start_compressor_frequency_index = 4;
-    else start_compressor_frequency_index = 5;
-    return start_compressor_frequency_index;
+    if (delta < 2.0f) start_compressor_frequency_mode = 1;
+    else if (delta < 5.0f) start_compressor_frequency_mode = 3;
+    else if (delta < 8.0f) start_compressor_frequency_mode = 4;
+    else start_compressor_frequency_mode = 5;
+    return start_compressor_frequency_mode;
   }
 
-  /// @brief Map the PID output value to a discrete compressor frequency index.
-  /// Limits the frequency change to a single step per update.
-  int MapPIDToCompressorFrequencyIndex(float pid) {
+  /// @brief Map the PID output value to a discrete compressor mode.
+  /// Limits the mode change to a single step per update.
+  int MapPIDToCompressorMode(float pid) {
     float raw = fabsf(pid);
     if (raw > 1.0f) raw = 1.0f;
 
-    int desired_index = (int) roundf(raw * (FREQUENCY_COUNT - 1));
-    desired_index = std::max(0, std::min(desired_index, FREQUENCY_COUNT - 1));
+    auto amount_of_modes = this->compressor_control->size() - 1;
+    int desired_mode = (int) roundf(raw * amount_of_modes);
+    desired_mode = std::max(0, std::min(desired_mode, (int)amount_of_modes));
 
+    auto current_mode = this->compressor_control->active_index().value();
     // Limit to a single frequency step per update
-    int new_index = desired_index;
-    if (desired_index > state.commanded_freq_index + 1) new_index = state.commanded_freq_index + 1;
-    if (desired_index < state.commanded_freq_index - 1) new_index = state.commanded_freq_index - 1;
+    int new_mode = desired_mode;
+    if (desired_mode > current_mode + 1) new_mode = current_mode + 1;
+    if (desired_mode < current_mode - 1) new_mode = current_mode - 1;
 
-    return new_index;
+    return new_mode;
   }
 
-  void SetCompressorFrequency(int frequency_index)
+  void SetCompressorMode(int mode_index)
   {
     auto compressor_set_call = compressor_control->make_call();
-    compressor_set_call.set_index(frequency_index + 1);
-    state.commanded_freq_index = frequency_index;
+    compressor_set_call.set_index(mode_index + 1);
     compressor_set_call.perform();
-    state.last_compressor_freq_change = millis();
+    state.last_compressor_mode_change_ms = millis();
   }
 
   void StartPump() {
