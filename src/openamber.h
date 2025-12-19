@@ -43,7 +43,7 @@ static const uint32_t WORKING_MODE_COOLING = 1;
 // Working mode heating.
 static const uint32_t WORKING_MODE_HEATING = 2;
 /// Deadband on Tc to avoid too frequent changes around setpoint
-static const float DEAD_BAND_DT = 0.5f;
+static const float DEAD_BAND_DT = 1.0f;
 
 enum class HPState {
     IDLE,
@@ -402,9 +402,9 @@ class OpenAmberController {
   int DetermineSoftStartMode(float supply_temperature_delta) {
     int start_compressor_frequency_mode;
     float delta = fabs(supply_temperature_delta);
-    if (delta < 2.0f) start_compressor_frequency_mode = 1;
-    else if (delta < 5.0f) start_compressor_frequency_mode = 3;
-    else if (delta < 8.0f) start_compressor_frequency_mode = 4;
+    if (delta < 5.0f) start_compressor_frequency_mode = 1;
+    else if (delta < 7.0f) start_compressor_frequency_mode = 3;
+    else if (delta < 10.0f) start_compressor_frequency_mode = 4;
     else start_compressor_frequency_mode = 5;
     return start_compressor_frequency_mode;
   }
