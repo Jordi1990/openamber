@@ -598,9 +598,8 @@ sensor:
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
-  id: outside_unit_version_1
+  id: outside_unit_program_version
   internal: True
-  name: "Buiten unit firmware versie 1"
   skip_updates: 10
   address: 2122
   register_type: holding
@@ -652,9 +651,8 @@ sensor:
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
-  id: outside_unit_version_2
+  id: outside_unit_eeprom_version_part2
   internal: True
-  name: "Buiten unit firmware versie 2"
   skip_updates: 10
   address: 3509
   register_type: holding
@@ -665,9 +663,8 @@ sensor:
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
-  id: outside_unit_version_3
+  id: outside_unit_eeprom_version_part1
   internal: True
-  name: "Buiten unit firmware versie 3"
   skip_updates: 10
   address: 3510
   register_type: holding
@@ -683,15 +680,15 @@ text_sensor:
     web_server: 
      sorting_group_id: sensors_outside
     lambda: |-
-      if (!id(outside_unit_version_1).has_state() ||
-          !id(outside_unit_version_2).has_state() ||
-          !id(outside_unit_version_3).has_state()) {
+      if (!id(outside_unit_program_version).has_state() ||
+          !id(outside_unit_eeprom_version_part1).has_state() ||
+          !id(outside_unit_eeprom_version_part2).has_state()) {
         return {};
       }
 
-      int v1 = (int)id(outside_unit_version_1).state;
-      int v2 = (int)id(outside_unit_version_2).state;
-      int v3 = (int)id(outside_unit_version_3).state;
+      int v1 = (int)id(outside_unit_program_version).state;
+      int v2 = (int)id(outside_unit_eeprom_version_part1).state;
+      int v3 = (int)id(outside_unit_eeprom_version_part2).state;
 
       char buffer[20];
       snprintf(buffer, sizeof(buffer), "V%04X,%d%d", v1, v2, v3);
