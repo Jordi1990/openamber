@@ -275,7 +275,7 @@ class OpenAmberController {
 
               // Stop when we are close enough to target
               if (supply_temperature_delta >= stop_compressor_delta->state) {
-                if(!this->oil_return_cycle_active->state)
+                if(this->oil_return_cycle_active->state)
                 {
                   // Every 2 hours of compressor running in low frequency it will do an oil return cycle, this will mess up the delta T based stopping.
                   // TODO: Improve this if needed by adding a timer do make sure Tc is stable before checking the delta again.
