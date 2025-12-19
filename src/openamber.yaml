@@ -1211,18 +1211,17 @@ select:
     web_server: 
      sorting_group_id: control_outside
     optionsmap:
-      "0Hz": 0
-      "36Hz": 1
-      "43Hz": 2
-      "49Hz": 3
-      "55Hz": 4
-      "61Hz": 5
-      "67Hz": 6
-      "72Hz": 7
-      "79Hz": 8
-      "85Hz": 9
-      "90Hz": 10
-
+      "0": 0
+      "1": 1
+      "2": 2
+      "3": 3
+      "4": 4
+      "5": 5
+      "6": 6
+      "7": 7
+      "8": 8
+      "9": 9
+      "10": 10
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
     id: working_mode_switch
