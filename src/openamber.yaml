@@ -1170,17 +1170,31 @@ switch:
      sorting_group_id: control_inside
 
 select:
+  - platform: template
+    id: pump_speed_select
+    name: "Pomp snelheid"
+    optimistic: True
+    options:
+      - "Laag"
+      - "Middel"
+      - "Hoog"
+    initial_option: "Hoog"
+    restore_value: True
+    entity_category: config
+    web_server: 
+      sorting_group_id: settings
+
   - platform: modbus_controller
     id: pump_control_select
     modbus_controller_id: modbus_inside_unit
     name: "Pomp stand"
     address: 1103
     optionsmap:
-      "Off": 1000
-      "Unknown": 950
-      "Low": 500
-      "Medium": 250
-      "High": 0
+      "Uit": 1000
+      "Onbekend": 950
+      "Laag": 500
+      "Middel": 250
+      "Hoog": 0
     web_server: 
      sorting_group_id: control_inside
     on_value: 

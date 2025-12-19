@@ -93,10 +93,12 @@ class OpenAmberController {
   number::Number *stop_compressor_delta = nullptr;
   text_sensor::TextSensor *hp_state_text_sensor = nullptr;
   binary_sensor::BinarySensor *oil_return_cycle = nullptr;
+  select::Select *pump_speed = nullptr;
 
   void loop() {
     if(this->initialized)
     {
+      ApplyPumpSpeedChangeIfNeeded();
       UpdateStateMachine();
     }
     else
@@ -136,6 +138,7 @@ class OpenAmberController {
     this->thermostat_climate = &id(climate_controller);
 
     this->pump_control = &id(pump_control_select);
+    this->pump_speed = &id(pump_speed_select);
     this->pump_active = &id(internal_pump_active);
     this->frost_protection_stage1 = &id(frost_protection_stage1_active);
     this->frost_protection_stage2 = &id(frost_protection_stage2_active);
@@ -304,6 +307,22 @@ class OpenAmberController {
       }
   }
 
+  void ApplyPumpSpeedChangeIfNeeded()
+  {
+    if(!this->pump_active->state)
+    {
+      return;
+    }
+
+    if(this->pump_control->current_option() != this->pump_speed->current_option())
+    {
+      ESP_LOGI("amber", "Applying pump speed change to %s", this->pump_speed->current_option());
+      auto pump_call = pump_control->make_call();
+      pump_call.set_option(this->pump_speed->current_option());
+      pump_call.perform();
+    }
+  }
+
   bool ShouldStartCompressor(bool compressor_demand)
   {
     float tc = temp_tc->state;
@@ -428,7 +447,7 @@ class OpenAmberController {
   void StartPump() {
     ESP_LOGI("amber", "Starting pump (interval cycle)");
     auto pump_call = pump_control->make_call();
-    pump_call.set_index(4);
+    pump_call.set_option(this->pump_speed->current_option());
     pump_call.perform();
     state.pump_start_time = millis();
   }
