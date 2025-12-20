@@ -738,6 +738,7 @@ binary_sensor:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_inside_unit
+    id: external_cool_demand
     name: "Externe koudevraag"
     address: 1213
     register_type: holding
@@ -747,6 +748,7 @@ binary_sensor:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_inside_unit
+    id: external_heat_demand
     name: "Externe warmtevraag"
     address: 1214
     register_type: holding
@@ -1163,6 +1165,19 @@ switch:
      sorting_group_id: control_inside
 
 select:
+  - platform: template
+    id: thermostat_mode_select
+    name: "Thermostaat keuze"
+    optimistic: True
+    options:
+      - "Intern"
+      - "Extern"
+    initial_option: "Intern"
+    restore_value: True
+    entity_category: config
+    web_server: 
+      sorting_group_id: settings
+
   - platform: template
     id: pump_speed_select
     name: "Pomp snelheid"

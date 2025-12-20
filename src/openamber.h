@@ -80,6 +80,9 @@ class OpenAmberController {
   sensor::Sensor *compressor_current_frequency = nullptr;
   pid::PIDClimate *pid_climate = nullptr;
   climate::Climate *thermostat_climate = nullptr;
+  binary_sensor::BinarySensor *external_heat_demand = nullptr;
+  binary_sensor::BinarySensor *external_cool_demand = nullptr;
+  select::Select *thermostat_mode = nullptr;
   select::Select *pump_control = nullptr;
   binary_sensor::BinarySensor *pump_active = nullptr;
   binary_sensor::BinarySensor *frost_protection_stage1 = nullptr;
@@ -131,6 +134,9 @@ class OpenAmberController {
     this->compressor_current_frequency = &id(current_compressor_frequency);
     this->pid_climate = &id(compressor_pid_climate);
     this->thermostat_climate = &id(climate_controller);
+    this->thermostat_mode = &id(thermostat_mode_select);
+    this->external_heat_demand = &id(external_heat_demand_sensor);
+    this->external_cool_demand = &id(external_cool_demand_sensor);
 
     this->pump_control = &id(pump_control_select);
     this->pump_speed = &id(pump_speed_select);
@@ -172,13 +178,10 @@ class OpenAmberController {
       float target_temperature = pid_climate->target_temperature;
       float supply_temperature_delta = tc - target_temperature;
 
-      climate::ClimateAction action = thermostat_climate->action;
       bool frost_protection_stage2_active = frost_protection_stage2->state;
       bool frost_protection_stage1_active = frost_protection_stage1->state;
 
-      bool heating_or_cooling_demand =
-          (action == climate::CLIMATE_ACTION_HEATING ||
-          action == climate::CLIMATE_ACTION_COOLING);
+      bool heating_or_cooling_demand = IsThermostatCooling() || IsThermostatHeating();
 
       bool pump_demand = heating_or_cooling_demand || frost_protection_stage1_active || frost_protection_stage2_active;
       bool compressor_demand = heating_or_cooling_demand || frost_protection_stage2_active;
@@ -451,15 +454,39 @@ class OpenAmberController {
     pump_call.perform();
   }
 
+  bool IsThermostatHeating()
+  {
+    if (this->thermostat_mode->current_option() == "Intern")
+    {
+      climate::ClimateAction action = thermostat_climate->action;
+      return action == climate::CLIMATE_ACTION_HEATING;
+    }
+    else if (this->thermostat_mode->current_option() == "Extern")
+    {
+      return this->external_heat_demand->state;
+    }
+  }
+
+  bool IsThermostatCooling()
+  {
+    if (this->thermostat_mode->current_option() == "Intern")
+    {
+      climate::ClimateAction action = thermostat_climate->action;
+      return action == climate::CLIMATE_ACTION_COOLING;
+    }
+    else if (this->thermostat_mode->current_option() == "Extern")
+    {
+      return this->external_cool_demand->state;
+    }
+  }
+
   void SetWorkingModeFromClimate()
   {
-      climate::ClimateAction action = thermostat_climate->action;
-
-      if (action == climate::CLIMATE_ACTION_HEATING)
+      if (IsThermostatHeating())
       {
           SetWorkingMode(WORKING_MODE_HEATING);
       }
-      else if (action == climate::CLIMATE_ACTION_COOLING)
+      else if (IsThermostatCooling())
       {
           SetWorkingMode(WORKING_MODE_COOLING);
       }
