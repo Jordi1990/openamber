@@ -461,7 +461,7 @@ class OpenAmberController {
       climate::ClimateAction action = thermostat_climate->action;
       return action == climate::CLIMATE_ACTION_HEATING;
     }
-    else if (this->thermostat_mode->current_option() == "Extern")
+    else
     {
       return this->external_heat_demand->state;
     }
@@ -474,7 +474,7 @@ class OpenAmberController {
       climate::ClimateAction action = thermostat_climate->action;
       return action == climate::CLIMATE_ACTION_COOLING;
     }
-    else if (this->thermostat_mode->current_option() == "Extern")
+    else
     {
       return this->external_cool_demand->state;
     }
