@@ -260,7 +260,7 @@ sensor:
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
   id: heat_cool_temperature_tc
-  name: "CV-aanvoertemperatuur verwarmen/koelen (Tc)"
+  name: "CV-aanvoertemperatuur (Tc)"
   address: 1201
   register_type: holding
   value_type: S_WORD
@@ -332,7 +332,7 @@ sensor:
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
-  name: "Heating/Cooling zone 1 watertemp (Tv1)"
+  name: "Cv-aanvoertemperatuur zone 1 (Tv1)"
   address: 1207
   register_type: holding
   value_type: S_WORD
@@ -348,7 +348,7 @@ sensor:
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
-  name: "Heating/Cooling zone 2 watertemp (Tv2)"
+  name: "Cv-aanvoertemperatuur zone 2 (Tv2)"
   address: 1208
   register_type: holding
   value_type: S_WORD
@@ -455,7 +455,7 @@ sensor:
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
-  name: "Expansion valve"
+  name: "Expansieklep"
   address: 2107
   register_type: holding
   value_type: S_WORD
@@ -572,7 +572,6 @@ sensor:
   address: 2119
   register_type: holding
   value_type: S_WORD
-  state_class: "measurement"
   web_server: 
     sorting_group_id: sensors_outside
 
@@ -582,7 +581,6 @@ sensor:
   address: 2120
   register_type: holding
   value_type: S_WORD
-  state_class: "measurement"
   web_server: 
     sorting_group_id: sensors_outside
 
@@ -592,7 +590,6 @@ sensor:
   address: 2121
   register_type: holding
   value_type: S_WORD
-  state_class: "measurement"
   web_server: 
     sorting_group_id: sensors_outside
 
@@ -604,7 +601,6 @@ sensor:
   address: 2122
   register_type: holding
   value_type: S_WORD
-  state_class: "measurement"
   web_server: 
     sorting_group_id: sensors_outside
 
@@ -615,7 +611,6 @@ sensor:
   address: 2123
   register_type: holding
   value_type: S_WORD
-  state_class: "measurement"
   web_server: 
     sorting_group_id: sensors_outside
 
@@ -657,7 +652,6 @@ sensor:
   address: 3509
   register_type: holding
   value_type: S_WORD
-  state_class: "measurement"
   web_server: 
     sorting_group_id: sensors_outside
 
@@ -669,7 +663,6 @@ sensor:
   address: 3510
   register_type: holding
   value_type: S_WORD
-  state_class: "measurement"
   web_server: 
     sorting_group_id: sensors_outside
 
@@ -736,7 +729,7 @@ binary_sensor:
   - platform: modbus_controller
     modbus_controller_id: modbus_inside_unit
     id: internal_pump_active
-    name: "Pomp P0 actief"
+    name: "Pomp P0"
     address: 1212
     register_type: holding
     device_class: running
@@ -745,7 +738,7 @@ binary_sensor:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_inside_unit
-    name: "Koel relais"
+    name: "Externe koudevraag"
     address: 1213
     register_type: holding
     device_class: running
@@ -754,7 +747,7 @@ binary_sensor:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_inside_unit
-    name: "Warmtevraag relais"
+    name: "Externe warmtevraag"
     address: 1214
     register_type: holding
     device_class: running
@@ -763,7 +756,7 @@ binary_sensor:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_inside_unit
-    name: "Pomp P1 actief"
+    name: "Pomp P1"
     address: 1300
     register_type: holding
     device_class: running
@@ -772,7 +765,7 @@ binary_sensor:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_inside_unit
-    name: "Pomp P2 actief"
+    name: "Pomp P2"
     address: 1301
     register_type: holding
     device_class: running
@@ -781,7 +774,7 @@ binary_sensor:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_inside_unit
-    name: "Tapwater pomp actief"
+    name: "Tapwater pomp"
     address: 1302
     register_type: holding
     device_class: running
@@ -790,7 +783,7 @@ binary_sensor:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_inside_unit
-    name: "Drieweg klep"
+    name: "3-weg klep"
     address: 1305
     register_type: holding
     device_class: running
@@ -799,7 +792,7 @@ binary_sensor:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_inside_unit
-    name: "Backup element"
+    name: "Verwarmingselement"
     address: 1309
     register_type: holding
     device_class: running
@@ -817,7 +810,7 @@ binary_sensor:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
-    name: "Bottom Heater"
+    name: "Bodemplaat verwarming"
     register_type: holding
     address: 2108
     bitmask: 0x4
@@ -826,7 +819,7 @@ binary_sensor:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
-    name: "Crankcase Heater"
+    name: "Carterverwarming"
     register_type: holding
     address: 2108
     bitmask: 0x8
@@ -853,7 +846,7 @@ binary_sensor:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
-    name: "4-way Valve switching"
+    name: "4-weg klep switching"
     register_type: holding
     address: 2108
     bitmask: 0x40
@@ -1101,14 +1094,14 @@ number:
 switch:
  - platform: gpio
    pin: GPIO22
-   name: Relay heating
+   name: "Relais verwarming"
    id: relay_heating
    icon: mdi:electric-switch
    restore_mode: RESTORE_DEFAULT_OFF
 
  - platform: gpio
    pin: GPIO23
-   name: Relay cooling
+   name: "Relais koelen"
    id: relay_cooling
    icon: mdi:electric-switch
    restore_mode: RESTORE_DEFAULT_OFF
@@ -1128,7 +1121,7 @@ switch:
  - platform: modbus_controller
    modbus_controller_id: modbus_inside_unit
    id: pump_p0_relay
-   name: "Pump P0 relay"
+   name: "Pump P0 relais"
    address: 1099
    register_type: holding
    web_server: 
@@ -1137,7 +1130,7 @@ switch:
  - platform: modbus_controller
    modbus_controller_id: modbus_inside_unit
    id: pump_p1_relay
-   name: "Pump P1 relay"
+   name: "Pump P1 relais"
    address: 1100
    register_type: holding
    web_server: 
@@ -1146,7 +1139,7 @@ switch:
  - platform: modbus_controller
    modbus_controller_id: modbus_inside_unit
    id: pump_p2_relay
-   name: "Pump P2 relay"
+   name: "Pump P2 relais"
    address: 1101
    register_type: holding
    web_server: 
@@ -1163,7 +1156,7 @@ switch:
 
  - platform: modbus_controller
    modbus_controller_id: modbus_inside_unit
-   name: "Three way valve?"
+   name: "3-weg klep Koelen/Verwarmen"
    address: 1112
    register_type: holding
    web_server: 
@@ -1225,7 +1218,7 @@ select:
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
     id: working_mode_switch
-    name: "Werkmodus (Buiten)"
+    name: "Bedrijfsmodus"
     address: 3999
     on_value: 
       then:

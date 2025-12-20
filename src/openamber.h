@@ -273,7 +273,7 @@ class OpenAmberController {
 
               // Stop when we are close enough to target
               if (supply_temperature_delta >= stop_compressor_delta->state) {
-                if(this->oil_return_cycle_active->state)
+                if(this->oil_return_cycle->state)
                 {
                   // Every 2 hours of compressor running in low frequency it will do an oil return cycle, this will mess up the delta T based stopping.
                   // TODO: Improve this if needed by adding a timer do make sure Tc is stable before checking the delta again.
@@ -415,9 +415,9 @@ class OpenAmberController {
     float raw = fabsf(pid);
     if (raw > 1.0f) raw = 1.0f;
 
-    auto amount_of_modes = this->compressor_control->size() - 1;
-    int desired_mode = (int) roundf(raw * amount_of_modes);
-    desired_mode = std::max(0, std::min(desired_mode, (int)amount_of_modes));
+    auto amount_of_modes = this->compressor_control->size();
+    int desired_mode = (int) roundf(raw * (amount_of_modes - 1)) + 1;
+    desired_mode = std::max(1, std::min(desired_mode, (int)amount_of_modes));
 
     auto current_mode = this->compressor_control->active_index().value();
     // Limit to a single frequency step per update
@@ -431,7 +431,7 @@ class OpenAmberController {
   void SetCompressorMode(int mode_index)
   {
     auto compressor_set_call = compressor_control->make_call();
-    compressor_set_call.set_index(mode_index + 1);
+    compressor_set_call.set_index(mode_index);
     compressor_set_call.perform();
     state.last_compressor_mode_change_ms = millis();
   }
