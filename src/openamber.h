@@ -44,6 +44,8 @@ static const uint32_t WORKING_MODE_COOLING = 1;
 static const uint32_t WORKING_MODE_HEATING = 2;
 /// Deadband on Tc to avoid too frequent changes around setpoint
 static const float DEAD_BAND_DT = 1.0f;
+// Settle time after a defrost before allowing compressor modulation and stop checks.
+static const uint32_t COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 2 * 60;
 
 enum class HPState {
     IDLE,
@@ -52,18 +54,22 @@ enum class HPState {
     WAIT_COMPRESSOR_RUNNING,
     COMPRESSOR_SOFTSTART,
     COMPRESSOR_RUNNING,
-    COMPRESSOR_STOP
+    DEFROSTING,
+    COMPRESSOR_STOP,
+    WAIT_FOR_TEMPERATURE_SETTLE,
 };
 
 struct AmberState {
-  uint32_t last_compressor_start = 0;
-  uint32_t last_compressor_stop = 0;
-  uint32_t last_compressor_mode_change = 0;
+  uint32_t last_compressor_start_ms = 0;
+  uint32_t last_compressor_stop_ms = 0;
+  uint32_t last_compressor_mode_change_ms = 0;
   float compressor_pid = 0.0;
   uint32_t next_pump_cycle = 0;
   uint32_t pump_start_time = 0;
 
   HPState hp_state = HPState::IDLE;
+  HPState deferred_hp_state = HPState::UNKNOWN;
+  uint32_t defer_state_change_until_ms = 0;
 };
 
 class OpenAmberController {
@@ -91,6 +97,7 @@ class OpenAmberController {
   select::Select *pump_speed = nullptr;
   binary_sensor::BinarySensor *heat_demand = nullptr;
   binary_sensor::BinarySensor *cool_demand = nullptr;
+  binary_sensor::BinarySensor *defrost_active = nullptr;
 
   void loop() {
     if(this->initialized)
@@ -147,6 +154,7 @@ class OpenAmberController {
 
     this->hp_state_text_sensor = &id(state_machine_state);
     this->oil_return_cycle = &id(oil_return_cycle_active);
+    this->defrost_active = &id(defrost_active_sensor);
 
     // Restore state whenever initialized while compressor is running.
     if(this->compressor_current_frequency->state > 0) {
@@ -190,116 +198,146 @@ class OpenAmberController {
 
       switch (state.hp_state)
       {
-          case HPState::IDLE:
+        case HPState::WAIT_FOR_TEMPERATURE_SETTLE:
+        {
+          if(state.defer_state_change_until_ms > now)
           {
-              if (!pump_demand) break;
+            ESP_LOGD("amber", "Waiting for temperature to settle, transitioning to next state in %lu ms", now - state.defer_state_change_until_ms);
+            break;
+          }
+          else
+          {
+            SetNextState(state.deferred_hp_state);
+            state.deferred_hp_state = HPState::UNKNOWN;
+            state.defer_state_change_until_ms = 0;
+            break;
+          }
+        }
+        case HPState::IDLE:
+        {
+            if (!pump_demand) break;
 
-              if (now >= state.next_pump_cycle)
+            if (now >= state.next_pump_cycle)
+            {
+                StartPump();
+                SetNextState(HPState::WAIT_PUMP_RUNNING);
+            }
+            break;
+        }
+        case HPState::WAIT_PUMP_RUNNING:
+        {
+          if(pump_running)
+          {
+            SetNextState(HPState::PUMP_INTERVAL_RUNNING);
+          }
+          // TODO: Implement timeout for when pump does not start.
+          break;
+        }
+        case HPState::PUMP_INTERVAL_RUNNING:
+        {
+          bool should_start_compressor = ShouldStartCompressor(compressor_demand);
+
+          // Stop pump when duration expired.
+          uint32_t duration_ms = (uint32_t) pump_duration_min->state * 60000UL;  
+          if (now >= state.pump_start_time + duration_ms && !should_start_compressor) {
+            ESP_LOGI("amber", "Stopping pump (interval cycle finished)");
+            StopPump();
+            uint32_t interval_ms = (uint32_t) pump_interval_min->state * 60000UL;
+            state.next_pump_cycle = now + interval_ms;
+            SetNextState(HPState::IDLE);
+            break;
+          }
+
+          if(!should_start_compressor) {
+            break;
+          }
+
+          bool pump_on_long_enough = millis() - state.pump_start_time >= (COMPRESSOR_MIN_TIME_PUMP_ON * 1000UL);
+          if(!pump_on_long_enough) {
+            ESP_LOGI("amber", "Not starting compressor because Tc needs to stabilize (pump on time too short)");
+            break;
+          }
+
+          SetWorkingMode(this->heat_demand->state ? WORKING_MODE_HEATING : WORKING_MODE_COOLING);
+          StartCompressor(supply_temperature_delta);
+          SetNextState(HPState::WAIT_COMPRESSOR_RUNNING);
+          break;
+        }
+        case HPState::WAIT_COMPRESSOR_RUNNING:
+        {
+          if (compressor_running)
+          {
+            state.last_compressor_start = now;
+            SetNextState(HPState::COMPRESSOR_SOFTSTART);
+          }
+          // TODO: Implement timeout for when compressor does not start.
+          break;
+        }
+        case HPState::COMPRESSOR_SOFTSTART:
+        {
+          if (now - state.last_compressor_start >= COMPRESSOR_SOFT_START_DURATION_S * 1000UL)
+          {
+              SetNextState(HPState::COMPRESSOR_RUNNING);
+          }
+
+          break;
+        }
+        case HPState::COMPRESSOR_RUNNING:
+        {
+          if (this->defrost_active->state) {
+            SetNextState(HPState::DEFROSTING);
+            break;
+          }
+
+          bool hasPassedMinOnTime = (now - state.last_compressor_start_ms) > min_on_ms;
+
+          // Only check for stop conditions when min on time is passed.
+          if (hasPassedMinOnTime)
+          {
+            if (!compressor_demand) {
+              ESP_LOGI("amber", "Stopping compressor because there is no demand.");
+              SetNextState(HPState::COMPRESSOR_STOP);
+              break;
+            }
+
+            // Stop when we are close enough to target
+            if (supply_temperature_delta >= stop_compressor_delta->state) {
+              if(this->oil_return_cycle->state)
               {
-                  StartPump();
-                  SetNextState(HPState::WAIT_PUMP_RUNNING);
-              }
-              break;
-          }
-          case HPState::WAIT_PUMP_RUNNING:
-          {
-            if(pump_running)
-            {
-              SetNextState(HPState::PUMP_INTERVAL_RUNNING);
-            }
-            // TODO: Implement timeout for when pump does not start.
-            break;
-          }
-          case HPState::PUMP_INTERVAL_RUNNING:
-          {
-            bool should_start_compressor = ShouldStartCompressor(compressor_demand);
-
-            // Stop pump when duration expired.
-            uint32_t duration_ms = (uint32_t) pump_duration_min->state * 60000UL;  
-            if (now >= state.pump_start_time + duration_ms && !should_start_compressor) {
-              ESP_LOGI("amber", "Stopping pump (interval cycle finished)");
-              StopPump();
-              uint32_t interval_ms = (uint32_t) pump_interval_min->state * 60000UL;
-              state.next_pump_cycle = now + interval_ms;
-              SetNextState(HPState::IDLE);
-              break;
-            }
-
-            if(!should_start_compressor) {
-              break;
-            }
-
-            bool pump_on_long_enough = millis() - state.pump_start_time >= (COMPRESSOR_MIN_TIME_PUMP_ON * 1000UL);
-            if(!pump_on_long_enough) {
-              ESP_LOGI("amber", "Not starting compressor because Tc needs to stabilize (pump on time too short)");
-              break;
-            }
-
-            SetWorkingMode(this->heat_demand->state ? WORKING_MODE_HEATING : WORKING_MODE_COOLING);
-            StartCompressor(supply_temperature_delta);
-            SetNextState(HPState::WAIT_COMPRESSOR_RUNNING);
-            break;
-          }
-          case HPState::WAIT_COMPRESSOR_RUNNING:
-          {
-            if (compressor_running)
-            {
-              state.last_compressor_start = now;
-              SetNextState(HPState::COMPRESSOR_SOFTSTART);
-            }
-            // TODO: Implement timeout for when compressor does not start.
-            break;
-          }
-          case HPState::COMPRESSOR_SOFTSTART:
-          {
-            if (now - state.last_compressor_start >= COMPRESSOR_SOFT_START_DURATION_S * 1000UL)
-            {
-                SetNextState(HPState::COMPRESSOR_RUNNING);
-            }
-
-            break;
-          }
-          case HPState::COMPRESSOR_RUNNING:
-          {
-            bool hasPassedMinOnTime = (now - state.last_compressor_start) > min_on_ms;
-
-            // Only check for stop conditions when min on time is passed.
-            if (hasPassedMinOnTime)
-            {
-              if (!compressor_demand) {
-                ESP_LOGI("amber", "Stopping compressor because there is no demand.");
-                SetNextState(HPState::COMPRESSOR_STOP);
+                // Every 2 hours of compressor running in low frequency it will do an oil return cycle, this will mess up the delta T based stopping.
+                // TODO: Improve this if needed by adding a timer do make sure Tc is stable before checking the delta again.
+                ESP_LOGI("amber", "Not stopping compressor because oil return cycle is active.");
                 break;
               }
 
-              // Stop when we are close enough to target
-              if (supply_temperature_delta >= stop_compressor_delta->state) {
-                if(this->oil_return_cycle->state)
-                {
-                  // Every 2 hours of compressor running in low frequency it will do an oil return cycle, this will mess up the delta T based stopping.
-                  // TODO: Improve this if needed by adding a timer do make sure Tc is stable before checking the delta again.
-                  ESP_LOGI("amber", "Not stopping compressor because oil return cycle is active.");
-                  break;
-                }
-
-                ESP_LOGI("amber", "Stopping compressor because it reached delta %.2f°C (ΔT=%.2f°C).", stop_compressor_delta->state, supply_temperature_delta);
-                SetNextState(HPState::COMPRESSOR_STOP);
-                break;
-              }
+              ESP_LOGI("amber", "Stopping compressor because it reached delta %.2f°C (ΔT=%.2f°C).", stop_compressor_delta->state, supply_temperature_delta);
+              SetNextState(HPState::COMPRESSOR_STOP);
+              break;
             }
+          }
 
-            ManageCompressorModulation();
+          ManageCompressorModulation();
+          break;
+        }
+        case HPState::DEFROSTING:
+        {
+          if (!this->defrost_active->state) {
+            SetNextStateAfterSettleTime(HPState::COMPRESSOR_RUNNING, COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
             break;
           }
-          case HPState::COMPRESSOR_STOP:
-          {
-              StopCompressor();
-              SetWorkingMode(WORKING_MODE_STANDBY);
-              // Let pump run for another 60 seconds.
-              state.next_pump_cycle = now + (uint32_t)pump_interval_min->state * 60000UL;
-              SetNextState(HPState::PUMP_INTERVAL_RUNNING);
-              break;
-          }
+
+          ESP_LOGI("amber", "Defrost recently ended, waiting before making changes to compressor.");
+          break;
+        }
+        case HPState::COMPRESSOR_STOP:
+        {
+            StopCompressor();
+            SetWorkingMode(WORKING_MODE_STANDBY);
+            // Let pump run for another 60 seconds.
+            state.next_pump_cycle = now + (uint32_t)pump_interval_min->state * 60000UL;
+            SetNextState(HPState::PUMP_INTERVAL_RUNNING);
+            break;
+        }
       }
   }
 
@@ -336,7 +374,7 @@ class OpenAmberController {
       return false;
     }
 
-    if (millis() - state.last_compressor_stop < min_off_ms) {
+    if (millis() - state.last_compressor_stop_ms < min_off_ms) {
       ESP_LOGI("amber", "Not starting compressor because minimum compressor time off is not reached.");
       return false;
     }
@@ -378,8 +416,8 @@ class OpenAmberController {
     // Let pump run for another interval cycle seconds after stopping the compressor.
     state.pump_start_time = millis();
 
-    state.last_compressor_start = 0;
-    state.last_compressor_stop = millis();
+    state.last_compressor_start_ms = 0;
+    state.last_compressor_stop_ms = millis();
     auto compressor_set_call = compressor_control->make_call();
     compressor_set_call.select_first();
     compressor_set_call.perform();
@@ -459,6 +497,13 @@ class OpenAmberController {
     working_mode_call.perform();
   }
 
+  void SetNextStateAfterSettleTime(HPState new_state, uint32_t defer_ms)
+  {
+      state.deferred_hp_state = new_state;
+      state.defer_state_change_until_ms = millis() + defer_ms;
+      SetNextState(HPState::WAIT_FOR_TEMPERATURE_SETTLE);
+  }
+
   void SetNextState(HPState new_state)
   {
       const char *txt = "Unknown";
@@ -484,6 +529,12 @@ class OpenAmberController {
           break;
         case HPState::COMPRESSOR_STOP:
           txt = "Compressor stopping";
+          break;
+        case HPState::DEFROSTING:
+          txt = "Defrosting";
+          break;
+        case HPState::WAIT_FOR_TEMPERATURE_SETTLE:
+          txt = "Waiting for temperature to settle";
           break;
       }
 
