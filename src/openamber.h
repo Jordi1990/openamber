@@ -80,9 +80,6 @@ class OpenAmberController {
   sensor::Sensor *compressor_current_frequency = nullptr;
   pid::PIDClimate *pid_climate = nullptr;
   climate::Climate *thermostat_climate = nullptr;
-  binary_sensor::BinarySensor *external_heat_demand = nullptr;
-  binary_sensor::BinarySensor *external_cool_demand = nullptr;
-  select::Select *thermostat_mode = nullptr;
   select::Select *pump_control = nullptr;
   binary_sensor::BinarySensor *pump_active = nullptr;
   binary_sensor::BinarySensor *frost_protection_stage1 = nullptr;
@@ -92,6 +89,8 @@ class OpenAmberController {
   text_sensor::TextSensor *hp_state_text_sensor = nullptr;
   binary_sensor::BinarySensor *oil_return_cycle = nullptr;
   select::Select *pump_speed = nullptr;
+  binary_sensor::BinarySensor *heat_demand = nullptr;
+  binary_sensor::BinarySensor *cool_demand = nullptr;
 
   void loop() {
     if(this->initialized)
@@ -134,9 +133,8 @@ class OpenAmberController {
     this->compressor_current_frequency = &id(current_compressor_frequency);
     this->pid_climate = &id(compressor_pid_climate);
     this->thermostat_climate = &id(climate_controller);
-    this->thermostat_mode = &id(thermostat_mode_select);
-    this->external_heat_demand = &id(external_heat_demand_sensor);
-    this->external_cool_demand = &id(external_cool_demand_sensor);
+    this->heat_demand = &id(heat_demand_active_sensor);
+    this->cool_demand = &id(cool_demand_active_sensor);
 
     this->pump_control = &id(pump_control_select);
     this->pump_speed = &id(pump_speed_select);
@@ -181,7 +179,7 @@ class OpenAmberController {
       bool frost_protection_stage2_active = frost_protection_stage2->state;
       bool frost_protection_stage1_active = frost_protection_stage1->state;
 
-      bool heating_or_cooling_demand = IsThermostatCooling() || IsThermostatHeating();
+      bool heating_or_cooling_demand = heat_demand->state || cool_demand->state;
 
       bool pump_demand = heating_or_cooling_demand || frost_protection_stage1_active || frost_protection_stage2_active;
       bool compressor_demand = heating_or_cooling_demand || frost_protection_stage2_active;
@@ -237,7 +235,7 @@ class OpenAmberController {
               break;
             }
 
-            SetWorkingModeFromClimate();
+            SetWorkingMode(this->heat_demand->state ? WORKING_MODE_HEATING : WORKING_MODE_COOLING);
             StartCompressor(supply_temperature_delta);
             SetNextState(HPState::WAIT_COMPRESSOR_RUNNING);
             break;
@@ -452,44 +450,6 @@ class OpenAmberController {
     auto pump_call = pump_control->make_call();
     pump_call.set_index(0);
     pump_call.perform();
-  }
-
-  bool IsThermostatHeating()
-  {
-    if (this->thermostat_mode->current_option() == "Intern")
-    {
-      climate::ClimateAction action = thermostat_climate->action;
-      return action == climate::CLIMATE_ACTION_HEATING;
-    }
-    else
-    {
-      return this->external_heat_demand->state;
-    }
-  }
-
-  bool IsThermostatCooling()
-  {
-    if (this->thermostat_mode->current_option() == "Intern")
-    {
-      climate::ClimateAction action = thermostat_climate->action;
-      return action == climate::CLIMATE_ACTION_COOLING;
-    }
-    else
-    {
-      return this->external_cool_demand->state;
-    }
-  }
-
-  void SetWorkingModeFromClimate()
-  {
-      if (IsThermostatHeating())
-      {
-          SetWorkingMode(WORKING_MODE_HEATING);
-      }
-      else if (IsThermostatCooling())
-      {
-          SetWorkingMode(WORKING_MODE_COOLING);
-      }
   }
 
   void SetWorkingMode(int workingMode)
