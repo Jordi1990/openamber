@@ -46,6 +46,10 @@ static const uint32_t WORKING_MODE_HEATING = 2;
 static const float DEAD_BAND_DT = 1.0f;
 // Settle time after a defrost before allowing compressor modulation and stop checks.
 static const uint32_t COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 2 * 60;
+// Lookahead time for backup heater to calculate when to stop based on degree/minute rate.
+static const uint32_t BACKUP_HEATER_LOOKAHEAD_S = 2 * 60;
+// Settle time after backup heater is turned off before compressor PID loop starts again.
+static const uint32_t BACKUP_HEATER_OFF_SETTLE_TIME_S = 2 * 60;
 
 enum class HPState {
     IDLE,
@@ -54,6 +58,8 @@ enum class HPState {
     WAIT_COMPRESSOR_RUNNING,
     COMPRESSOR_SOFTSTART,
     COMPRESSOR_RUNNING,
+    WAIT_BACKUP_HEATER_RUNNING,
+    BACKUP_HEATER_RUNNING,
     DEFROSTING,
     COMPRESSOR_STOP,
     WAIT_FOR_TEMPERATURE_SETTLE,
@@ -66,6 +72,12 @@ struct AmberState {
   float compressor_pid = 0.0;
   uint32_t next_pump_cycle = 0;
   uint32_t pump_start_time = 0;
+
+  // Backup heater degree / minute tracking.
+  uint32_t backup_degmin_last_ms = 0;
+  float accumulated_backup_degmin = 0.0;
+  float tc_rate_c_per_min = 0.0;
+  float last_tc_for_rate = 0.0;
 
   HPState hp_state = HPState::IDLE;
   HPState deferred_hp_state = HPState::UNKNOWN;
@@ -98,6 +110,10 @@ class OpenAmberController {
   binary_sensor::BinarySensor *heat_demand = nullptr;
   binary_sensor::BinarySensor *cool_demand = nullptr;
   binary_sensor::BinarySensor *defrost_active = nullptr;
+  switch_::Switch *backup_heater = nullptr;
+  binary_sensor::BinarySensor *backup_heater_active = nullptr;
+  number::Number *backup_heater_degmin_limit = nullptr;
+  sensor::Sensor *backup_heater_degmin_current = nullptr;
 
   void loop() {
     if(this->initialized)
@@ -155,6 +171,11 @@ class OpenAmberController {
     this->hp_state_text_sensor = &id(state_machine_state);
     this->oil_return_cycle = &id(oil_return_cycle_active);
     this->defrost_active = &id(defrost_active_sensor);
+
+    this->backup_heater = &id(backup_heater_relay);
+    this->backup_heater_degmin_limit = &id(backup_heater_degmin_threshold);
+    this->backup_heater_active = &id(backup_heater_active_sensor);
+    this->backup_heater_degmin_current = &id(backup_heater_degmin_current_sensor);
 
     // Restore state whenever initialized while compressor is running.
     if(this->compressor_current_frequency->state > 0) {
@@ -275,9 +296,10 @@ class OpenAmberController {
         }
         case HPState::COMPRESSOR_SOFTSTART:
         {
-          if (now - state.last_compressor_start >= COMPRESSOR_SOFT_START_DURATION_S * 1000UL)
+          if (now - state.last_compressor_start_ms >= COMPRESSOR_SOFT_START_DURATION_S * 1000UL)
           {
-              SetNextState(HPState::COMPRESSOR_RUNNING);
+            state.backup_degmin_last_ms = now;
+            SetNextState(HPState::COMPRESSOR_RUNNING);
           }
 
           break;
@@ -286,6 +308,15 @@ class OpenAmberController {
         {
           if (this->defrost_active->state) {
             SetNextState(HPState::DEFROSTING);
+            break;
+          }
+
+          CalculateAccumulatedBackupHeaterDegreeMinutes();
+
+          if(state.accumulated_backup_degmin >= backup_heater_degmin_limit->state) {
+            ESP_LOGI("amber", "Enabling backup heater (degree/min limit reached: %.2f)", state.accumulated_backup_degmin);
+            backup_heater->turn_on();
+            SetNextState(HPState::WAIT_BACKUP_HEATER_RUNNING);
             break;
           }
 
@@ -317,6 +348,26 @@ class OpenAmberController {
           }
 
           ManageCompressorModulation();
+          break;
+        }
+        case HPState::WAIT_BACKUP_HEATER_RUNNING:
+        {
+          if (this->backup_heater_active->state) {
+            SetNextState(HPState::BACKUP_HEATER_RUNNING);
+          }
+          // TODO: Implement timeout for when backup heater does not start.
+          break;
+        }
+        case HPState::BACKUP_HEATER_RUNNING:
+        {
+          float predicted_tc = CalculateBackupHeaterPredictedTc();
+          // Disable backup heater if predicted Tc is above target.
+          if(predicted_tc >= target_temperature) {
+            ESP_LOGI("amber", "Disabling backup heater (predicted Tc %.2fÂ°C above target %.2fÂ°C)", predicted_tc, target_temperature);
+            backup_heater->turn_off();
+            SetNextStateAfterSettleTime(HPState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
+            return;
+          }
           break;
         }
         case HPState::DEFROSTING:
@@ -355,6 +406,55 @@ class OpenAmberController {
       pump_call.set_option(this->pump_speed->current_option());
       pump_call.perform();
     }
+  }
+
+  void CalculateAccumulatedBackupHeaterDegreeMinutes()
+  {
+    float tc = temp_tc->state;
+    float target = pid_climate->target_temperature;
+    const float diff = std::max(0.0f, target - tc);
+    uint32_t dt_ms = millis() - state.backup_degmin_last_ms;
+    state.backup_degmin_last_ms = millis();
+    const float dt_min = (float)dt_ms / 60000.0f;
+    if (dt_min <= 0.0f)
+    {
+      ESP_LOGW("amber", "Delta time for backup heater degree/min calculation is zero or negative, skipping update.");
+      return;
+    }
+    state.accumulated_backup_degmin += diff * dt_min;
+
+    if (diff <= 0.0f)
+    {
+      state.accumulated_backup_degmin = 0.0f;
+    }
+    this->backup_heater_degmin_current->publish_state(state.accumulated_backup_degmin);
+    ESP_LOGD("amber", "Backup heater degree/minutes updated: +%.2f -> %.2f", diff * dt_min, state.accumulated_backup_degmin);
+  }
+
+  float CalculateBackupHeaterPredictedTc()
+  {
+    float tc = temp_tc->state;
+    float target = pid_climate->target_temperature;
+
+    uint32_t dt_ms = millis() - state.backup_degmin_last_ms;
+    const float dt_min = (float)dt_ms / 60000.0f;
+    if (dt_min <= 0.0f)
+    {
+      ESP_LOGW("amber", "Delta time for backup heater degree/min rate calculation is zero or negative, skipping update.");
+      return 0.0f;
+    }
+    // Calculate degree/minute rate.
+    float rate = (tc - state.last_tc_for_rate) / dt_min;
+    // Low-pass filter the rate to avoid spikes.
+    double a = 0.2f;
+    state.tc_rate_c_per_min = (1-a) * state.tc_rate_c_per_min + a * rate;
+    state.last_tc_for_rate = tc;
+
+    // Predict future Tc based on current rate.
+    float predicted_tc = tc + state.tc_rate_c_per_min * ((float)BACKUP_HEATER_LOOKAHEAD_S / 60.0f);
+    state.backup_degmin_last_ms = millis();
+    ESP_LOGI("amber", "Backup heater tc rate/min updated: %.2f (Predicted Tc: %.2fÂ°C)", state.tc_rate_c_per_min, predicted_tc);
+    return predicted_tc;
   }
 
   bool ShouldStartCompressor(bool compressor_demand)
@@ -529,6 +629,12 @@ class OpenAmberController {
           break;
         case HPState::COMPRESSOR_STOP:
           txt = "Compressor stopping";
+          break;
+        case HPState::WAIT_BACKUP_HEATER_RUNNING:
+          txt = "Wait for backup heater running";
+          break;
+        case HPState::BACKUP_HEATER_RUNNING:
+          txt = "Backup heater running";
           break;
         case HPState::DEFROSTING:
           txt = "Defrosting";
