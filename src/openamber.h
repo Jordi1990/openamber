@@ -45,13 +45,14 @@ static const uint32_t WORKING_MODE_HEATING = 2;
 /// Deadband on Tc to avoid too frequent changes around setpoint
 static const float DEAD_BAND_DT = 1.0f;
 // Settle time after a defrost before allowing compressor modulation and stop checks.
-static const uint32_t COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 2 * 60;
+static const uint32_t COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 5 * 60;
 // Lookahead time for backup heater to calculate when to stop based on degree/minute rate.
 static const uint32_t BACKUP_HEATER_LOOKAHEAD_S = 2 * 60;
 // Settle time after backup heater is turned off before compressor PID loop starts again.
 static const uint32_t BACKUP_HEATER_OFF_SETTLE_TIME_S = 2 * 60;
 
 enum class HPState {
+    UNKNOWN,
     IDLE,
     WAIT_PUMP_RUNNING,
     PUMP_INTERVAL_RUNNING,
@@ -228,9 +229,11 @@ class OpenAmberController {
           }
           else
           {
+            // Reset I-term to avoid sudden jumps after temperature settle period.
+            pid_climate->reset_integral_term();            
+            state.defer_state_change_until_ms = 0;
             SetNextState(state.deferred_hp_state);
             state.deferred_hp_state = HPState::UNKNOWN;
-            state.defer_state_change_until_ms = 0;
             break;
           }
         }
@@ -288,7 +291,7 @@ class OpenAmberController {
         {
           if (compressor_running)
           {
-            state.last_compressor_start = now;
+            state.last_compressor_start_ms = now;
             SetNextState(HPState::COMPRESSOR_SOFTSTART);
           }
           // TODO: Implement timeout for when compressor does not start.
@@ -373,11 +376,12 @@ class OpenAmberController {
         case HPState::DEFROSTING:
         {
           if (!this->defrost_active->state) {
+            ESP_LOGI("amber", "Defrost recently ended, waiting before making changes to compressor.");
             SetNextStateAfterSettleTime(HPState::COMPRESSOR_RUNNING, COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
             break;
           }
 
-          ESP_LOGI("amber", "Defrost recently ended, waiting before making changes to compressor.");
+          ESP_LOGI("amber", "Defrost busy, waiting before making changes to compressor.");
           break;
         }
         case HPState::COMPRESSOR_STOP:
@@ -484,9 +488,9 @@ class OpenAmberController {
 
   void ManageCompressorModulation() {
     const uint32_t now = millis();
-    int desired_compressor_index = MapPIDToCompressorMode(state.compressor_pid);
+    int desired_compressor_mode = MapPIDToCompressorMode(state.compressor_pid);
     auto current_compressor_mode = this->compressor_control->active_index().value();
-    const uint32_t min_interval = (current_compressor_mode > desired_compressor_index ? FREQUENCY_CHANGE_INTERVAL_DOWN_S : FREQUENCY_CHANGE_INTERVAL_UP_S) * 1000;
+    const uint32_t min_interval = (current_compressor_mode > desired_compressor_mode ? FREQUENCY_CHANGE_INTERVAL_DOWN_S : FREQUENCY_CHANGE_INTERVAL_UP_S) * 1000;
     if ((now - state.last_compressor_mode_change_ms) < min_interval) {
       ESP_LOGI("amber", "Frequency change skipped (interval not elapsed)");
       return;
@@ -502,12 +506,19 @@ class OpenAmberController {
               dt, current_compressor_mode);
       return;
     }
-    
-    ESP_LOGI("amber", "PID %.2f -> mode %d (previous mode %d)", state.compressor_pid, desired_compressor_index, current_compressor_mode);
 
-    if (desired_compressor_index != current_compressor_mode) {
-      SetCompressorMode(desired_compressor_index);
-      ESP_LOGI("amber", "Compressor mode updated to %d", desired_compressor_index);
+    // If Tc is above setpoint, then never modulate up.
+    const float TEMP_MARGIN = 0.3f; // Minor margin to reduce noise
+    if (tc > (target + TEMP_MARGIN) && desired_compressor_mode > current_compressor_mode) {
+        ESP_LOGW("amber", "Tc is above target and PID controller wanted to move to a higher compressor mode.");
+        return;
+    }
+    
+    ESP_LOGI("amber", "PID %.2f -> mode %d (previous mode %d)", state.compressor_pid, desired_compressor_mode, current_compressor_mode);
+
+    if (desired_compressor_mode != current_compressor_mode) {
+      SetCompressorMode(desired_compressor_mode);
+      ESP_LOGI("amber", "Compressor mode updated to %d", desired_compressor_mode);
     }
   }
 
