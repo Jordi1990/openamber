@@ -14,21 +14,22 @@ Supply temperature regulation with PID-based compressor Hz modulation
 
 ## Features
 - Heating
-- Pump running on customizable interval/duration.
+- Pump running on customizable interval/duration/speed.
 - Compressor modulation based on PID controller.
 - Frost protection in 2 stages (similair to original software).
 - Software thermostat based on Tr sensor.
+- Heat curve(5-points).
+- Backup heater
+- Support external thermostats (Heating/Cooling input)
 
 ## Todo
 - Support cooling
 - Domestic Hot Water/Three way valve control
 - Tv1/Tv2 buffer support
-- Heating curve
-- Backup heater
-- Support external thermostats (Heating/Cooling input)
 - Extend configuration options
   - Enable specific compressor frequencies (silent mode)
 - Error handling
+- Support OpenTherm thermostats
 - .. More
 
 ## Hardware
@@ -93,11 +94,15 @@ Connect wires to your hardware RS485 port (Itho Daalderop Amber Control Module u
 #### Write
 | Address    | Function                                           |
 |:----------:|:--------------------------------------------------:|
-| 1099       | Unknown(pump relay?), needed for initialization    |
-| 1104       | Unknown, needed for initialization                 |
-| 1112       | Three-way valve?                                   |
+| 1099       | Pump P0 relay                                      |
+| 1100       | Pump P1 relay                                      |
+| 1101       | Pump P2 relay                                      |
 | 1103       | Pump P0 state (1000=OFF, 500=LOW, 250=MED, 0=HIGH) |
-| 3999       | Working mode(0=OFF,1=COOL,2=HEAT)                  |
+| 1104       | Unknown, needed for initialization                 |
+| 1105       | 3-way valve DHW                                    |
+| 1109       | Backup heater stage 1 relay                        |
+| 1110       | Backup heater stage 2 relay                        |
+| 1112       | 3-way valve SWW                                    |
 
 ### Outside unit (Address 2)
 #### Read
