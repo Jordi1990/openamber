@@ -92,6 +92,7 @@ class OpenAmberController {
   select::Select *working_mode = nullptr;
   sensor::Sensor *temp_tc = nullptr;
   sensor::Sensor *temp_tui = nullptr;
+  sensor::Sensor *temp_tuo = nullptr;
   sensor::Sensor *temp_outside = nullptr;
   sensor::Sensor *room_temp = nullptr;
   number::Number *pump_interval_min = nullptr;
@@ -115,11 +116,13 @@ class OpenAmberController {
   binary_sensor::BinarySensor *backup_heater_active = nullptr;
   number::Number *backup_heater_degmin_limit = nullptr;
   sensor::Sensor *backup_heater_degmin_current = nullptr;
+  switch_::Switch *pump_p0_relay = nullptr;
 
   void loop() {
     if(this->initialized)
     {
-      ApplyPumpSpeedChangeIfNeeded();
+      DoSafetyChecks();
+
       UpdateStateMachine();
     }
     else
@@ -148,6 +151,7 @@ class OpenAmberController {
 
     this->temp_tc = &id(heat_cool_temperature_tc);
     this->temp_tui = &id(inlet_temperature_tui);
+    this->temp_tuo = &id(outlet_temperature_tuo);
     this->temp_outside = &id(temperature_outside_ta);
     this->room_temp = &id(room_temperature);
 
@@ -177,6 +181,7 @@ class OpenAmberController {
     this->backup_heater_degmin_limit = &id(backup_heater_degmin_threshold);
     this->backup_heater_active = &id(backup_heater_active_sensor);
     this->backup_heater_degmin_current = &id(backup_heater_degmin_current_sensor);
+    this->pump_p0_relay = &id(pump_p0_relay_switch);
 
     // Restore state whenever initialized while compressor is running.
     if(this->compressor_current_frequency->state > 0) {
@@ -196,6 +201,25 @@ class OpenAmberController {
     }
     ESP_LOGI("amber", "OpenAmberController initialized");
     this->initialized = true;
+  }
+
+  void DoSafetyChecks()
+  {
+    // If pump is not active while compressor is running, stop compressor to avoid damage.
+    if(this->compressor_current_frequency->state > 0 && !this->pump_active->state)
+    {
+      ESP_LOGW("amber", "Safety check: Pump is not active while compressor is running, stopping compressor to avoid damage.");
+      SetNextState(HPState::COMPRESSOR_STOP);
+      return;
+    }
+
+    // If Tuo - Tui is above 8 degrees while compressor is running, stop compressor to avoid damage.
+    if (this->temp_tuo->state - this->temp_tui->state > 8.0f && this->compressor_current_frequency->state > 0)
+    {
+      ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 15 degrees while compressor is running, stopping compressor to avoid damage.");
+      SetNextState(HPState::COMPRESSOR_STOP);
+      return;
+    }
   }
 
   void UpdateStateMachine()
@@ -260,6 +284,7 @@ class OpenAmberController {
         case HPState::PUMP_INTERVAL_RUNNING:
         {
           bool should_start_compressor = ShouldStartCompressor(compressor_demand);
+          ApplyPumpSpeedChangeIfNeeded();
 
           // Stop pump when duration expired.
           uint32_t duration_ms = (uint32_t) pump_duration_min->state * 60000UL;  
@@ -309,6 +334,8 @@ class OpenAmberController {
         }
         case HPState::COMPRESSOR_RUNNING:
         {
+          ApplyPumpSpeedChangeIfNeeded();
+
           if (this->defrost_active->state) {
             SetNextState(HPState::DEFROSTING);
             break;
@@ -376,7 +403,6 @@ class OpenAmberController {
         case HPState::DEFROSTING:
         {
           if (!this->defrost_active->state) {
-            ESP_LOGI("amber", "Defrost recently ended, waiting before making changes to compressor.");
             SetNextStateAfterSettleTime(HPState::COMPRESSOR_RUNNING, COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
             break;
           }
@@ -588,6 +614,11 @@ class OpenAmberController {
 
   void StartPump() {
     ESP_LOGI("amber", "Starting pump (interval cycle)");
+    if(!this->pump_p0_relay->state) {
+      ESP_LOGW("amber", "Pump P0 relay is not active, activating it now.");
+      this->pump_p0_relay->turn_on();
+    }
+
     auto pump_call = pump_control->make_call();
     pump_call.set_option(this->pump_speed->current_option());
     pump_call.perform();
