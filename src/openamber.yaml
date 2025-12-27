@@ -87,10 +87,9 @@ modbus:
 modbus_controller:
 - id: modbus_outside_unit
   address: 0x2
-  update_interval: 15s
-  command_throttle: 250ms
+  update_interval: 30s
+  command_throttle: 500ms
   max_cmd_retries: 3
-  offline_skip_updates: 10
   on_offline:
     then:
       - lambda: |-
@@ -103,10 +102,9 @@ modbus_controller:
       - logger.log: "Modbus outside unit ONLINE"
 - id: modbus_inside_unit
   address: 0x0B
-  update_interval: 15s
-  command_throttle: 250ms
+  update_interval: 30s
+  command_throttle: 500ms
   max_cmd_retries: 3
-  offline_skip_updates: 10
   on_offline:
     then:
       - lambda: |-
@@ -1313,14 +1311,14 @@ switch:
    on_turn_on: 
      then:
       # Initialize board relays
-      - switch.turn_on: pump_p0_relay
-      - switch.turn_on: pump_p1_relay
-      - switch.turn_on: pump_p2_relay
+      - switch.turn_on: pump_p0_relay_switch
+      - switch.turn_on: pump_p1_relay_switch
+      - switch.turn_on: pump_p2_relay_switch
       - switch.turn_on: initialize_step_4
 
  - platform: modbus_controller
    modbus_controller_id: modbus_inside_unit
-   id: pump_p0_relay
+   id: pump_p0_relay_switch
    name: "Pomp P0 relais"
    address: 1099
    register_type: holding
@@ -1329,7 +1327,7 @@ switch:
      
  - platform: modbus_controller
    modbus_controller_id: modbus_inside_unit
-   id: pump_p1_relay
+   id: pump_p1_relay_switch
    name: "Pomp P1 relais"
    address: 1100
    register_type: holding
@@ -1338,7 +1336,7 @@ switch:
 
  - platform: modbus_controller
    modbus_controller_id: modbus_inside_unit
-   id: pump_p2_relay
+   id: pump_p2_relay_switch
    name: "Pomp P2 relais"
    address: 1101
    register_type: holding
