@@ -117,6 +117,8 @@ class OpenAmberController {
   number::Number *backup_heater_degmin_limit = nullptr;
   sensor::Sensor *backup_heater_degmin_current = nullptr;
   switch_::Switch *pump_p0_relay = nullptr;
+  select::Select *heat_compressor_max_mode = nullptr;
+  int mode_offset = 0;
 
   void loop() {
     if(this->initialized)
@@ -182,6 +184,9 @@ class OpenAmberController {
     this->backup_heater_active = &id(backup_heater_active_sensor);
     this->backup_heater_degmin_current = &id(backup_heater_degmin_current_sensor);
     this->pump_p0_relay = &id(pump_p0_relay_switch);
+    this->heat_compressor_max_mode = &id(heat_compressor_mode);
+
+    this->mode_offset = this->compressor_control->size() - this->heat_compressor_max_mode->size();
 
     // Restore state whenever initialized while compressor is running.
     if(this->compressor_current_frequency->state > 0) {
@@ -582,7 +587,9 @@ class OpenAmberController {
     else if (delta < 7.0f) start_compressor_frequency_mode = 3;
     else if (delta < 10.0f) start_compressor_frequency_mode = 4;
     else start_compressor_frequency_mode = 5;
-    return start_compressor_frequency_mode;
+
+    // Limit to max configured mode.
+    return std::min(start_compressor_frequency_mode, (int)this->heat_compressor_max_mode->active_index().value() + this->mode_offset - 1);
   }
 
   /// @brief Map the PID output value to a discrete compressor mode.
@@ -591,7 +598,7 @@ class OpenAmberController {
     float raw = fabsf(pid);
     if (raw > 1.0f) raw = 1.0f;
 
-    auto amount_of_modes = this->compressor_control->size();
+    int amount_of_modes = this->heat_compressor_max_mode->active_index().value() + this->mode_offset; 
     int desired_mode = (int) roundf(raw * (amount_of_modes - 1)) + 1;
     desired_mode = std::max(1, std::min(desired_mode, (int)amount_of_modes));
 

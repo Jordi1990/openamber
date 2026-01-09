@@ -1639,6 +1639,23 @@ switch:
 
 select:
   - platform: template
+    id: heat_compressor_mode
+    name: "Verwarmen vermogen"
+    optimistic: True
+    options:
+      - "Beperkt"
+      - "Zeer laag"
+      - "Laag"
+      - "Gemiddeld"
+      - "Verhoogd"
+      - "Hoog"
+      - "Maximaal"
+    initial_option: "Maximaal"
+    entity_category: config
+    web_server: 
+        sorting_group_id: settings
+
+  - platform: template
     id: heat_mode_select
     name: "Verwarmingsmodus"
     optimistic: True
