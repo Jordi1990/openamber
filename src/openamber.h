@@ -458,7 +458,11 @@ class OpenAmberController {
     }
     state.accumulated_backup_degmin += diff * dt_min;
 
-    if (diff <= 0.0f)
+    int max_compressor_mode = this->heat_compressor_max_mode->active_index().value() + this->mode_offset - 1;
+    bool is_at_max_mode = this->compressor_control->active_index().value() >= max_compressor_mode;
+
+    // Reset accumulated degmin if there is no difference or we are not at max compressor mode.
+    if (diff <= 0.0f || !is_at_max_mode)
     {
       state.accumulated_backup_degmin = 0.0f;
     }
