@@ -55,6 +55,7 @@ enum class HPState {
     UNKNOWN,
     IDLE,
     WAIT_PUMP_RUNNING,
+    WAIT_PUMP_STOP,
     PUMP_INTERVAL_RUNNING,
     WAIT_COMPRESSOR_RUNNING,
     COMPRESSOR_SOFTSTART,
@@ -62,8 +63,8 @@ enum class HPState {
     WAIT_BACKUP_HEATER_RUNNING,
     BACKUP_HEATER_RUNNING,
     DEFROSTING,
-    COMPRESSOR_STOP,
-    WAIT_FOR_TEMPERATURE_SETTLE,
+    WAIT_COMPRESSOR_STOP,
+    WAIT_FOR_STATE_SWITCH,
 };
 
 struct AmberState {
@@ -214,7 +215,8 @@ class OpenAmberController {
     if(this->compressor_current_frequency->state > 0 && !this->pump_active->state)
     {
       ESP_LOGW("amber", "Safety check: Pump is not active while compressor is running, stopping compressor to avoid damage.");
-      SetNextState(HPState::COMPRESSOR_STOP);
+      StopCompressor(false);
+      SetNextState(HPState::IDLE);
       return;
     }
 
@@ -222,7 +224,8 @@ class OpenAmberController {
     if (this->temp_tuo->state - this->temp_tui->state > 8.0f && this->compressor_current_frequency->state > 0)
     {
       ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 15 degrees while compressor is running, stopping compressor to avoid damage.");
-      SetNextState(HPState::COMPRESSOR_STOP);
+      StopCompressor(false);
+      SetNextState(HPState::IDLE);
       return;
     }
   }
@@ -296,7 +299,7 @@ class OpenAmberController {
             StopPump();
             uint32_t interval_ms = (uint32_t) pump_interval_min->state * 60000UL;
             state.next_pump_cycle = now + interval_ms;
-            SetNextState(HPState::IDLE);
+            SetNextState(HPState::WAIT_PUMP_STOP);
             break;
           }
 
@@ -360,7 +363,8 @@ class OpenAmberController {
           {
             if (!compressor_demand) {
               ESP_LOGI("amber", "Stopping compressor because there is no demand.");
-              SetNextState(HPState::COMPRESSOR_STOP);
+              StopCompressor();
+              SetNextState(HPState::WAIT_COMPRESSOR_STOP);
               break;
             }
 
@@ -375,12 +379,25 @@ class OpenAmberController {
               }
 
               ESP_LOGI("amber", "Stopping compressor because it reached delta %.2f°C (ΔT=%.2f°C).", stop_compressor_delta->state, supply_temperature_delta);
-              SetNextState(HPState::COMPRESSOR_STOP);
+              StopCompressor();
+              SetNextState(HPState::WAIT_COMPRESSOR_STOP);
               break;
             }
           }
 
           ManageCompressorModulation();
+          break;
+        }
+        case HPState::WAIT_COMPRESSOR_STOP:
+        {
+          if (compressor_current_frequency->state == 0)
+          {
+            SetNextState(HPState::PUMP_INTERVAL_RUNNING);
+          }
+          else 
+          {
+            // TODO: Implement timeout for when compressor does not stop.
+          }
           break;
         }
         case HPState::WAIT_BACKUP_HEATER_RUNNING:
@@ -412,15 +429,6 @@ class OpenAmberController {
 
           ESP_LOGI("amber", "Defrost busy, waiting before making changes to compressor.");
           break;
-        }
-        case HPState::COMPRESSOR_STOP:
-        {
-            StopCompressor();
-            SetWorkingMode(WORKING_MODE_STANDBY);
-            // Let pump run for another 60 seconds.
-            state.next_pump_cycle = now + (uint32_t)pump_interval_min->state * 60000UL;
-            SetNextState(HPState::PUMP_INTERVAL_RUNNING);
-            break;
         }
       }
   }
@@ -511,7 +519,7 @@ class OpenAmberController {
       return false;
     }
 
-    if (millis() - state.last_compressor_stop_ms < min_off_ms) {
+    if (millis() < state.last_compressor_stop_ms + min_off_ms) {
       ESP_LOGI("amber", "Not starting compressor because minimum compressor time off is not reached.");
       return false;
     }
@@ -555,7 +563,7 @@ class OpenAmberController {
     }
   }
 
-  void StopCompressor()
+  void StopCompressor(bool run_pump_interval = true)
   {
     // Let pump run for another interval cycle seconds after stopping the compressor.
     state.pump_start_time = millis();
@@ -566,7 +574,13 @@ class OpenAmberController {
     compressor_set_call.select_first();
     compressor_set_call.perform();
 
-    pid_climate->reset_integral_term();
+    SetWorkingMode(WORKING_MODE_STANDBY);
+
+    if (run_pump_interval)
+    {
+      // Let pump run for another 60 seconds.
+      state.next_pump_cycle = millis() + (uint32_t)pump_interval_min->state * 60000UL;
+    }
   }
 
   void StartCompressor(float supply_temperature_delta) {
@@ -678,8 +692,8 @@ class OpenAmberController {
         case HPState::COMPRESSOR_RUNNING:
           txt = "Compressor running";
           break;
-        case HPState::COMPRESSOR_STOP:
-          txt = "Compressor stopping";
+        case HPState::WAIT_COMPRESSOR_STOP:
+          txt = "Waiting for compressor to stop";
           break;
         case HPState::WAIT_BACKUP_HEATER_RUNNING:
           txt = "Wait for backup heater running";
@@ -692,6 +706,9 @@ class OpenAmberController {
           break;
         case HPState::WAIT_FOR_STATE_SWITCH:
           txt = "Waiting for wait time to elapse";
+          break;
+        case HPState::WAIT_PUMP_STOP:
+          txt = "Waiting for pump to stop";
           break;
       }
 
