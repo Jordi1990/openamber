@@ -253,13 +253,11 @@ class OpenAmberController {
         {
           if(state.defer_state_change_until_ms > now)
           {
-            ESP_LOGD("amber", "Waiting for temperature to settle, transitioning to next state in %lu ms", now - state.defer_state_change_until_ms);
+            ESP_LOGD("amber", "Waiting for state switch, transitioning to next state in %lu ms", now - state.defer_state_change_until_ms);
             break;
           }
           else
-          {
-            // Reset I-term to avoid sudden jumps after temperature settle period.
-            pid_climate->reset_integral_term();            
+          {     
             state.defer_state_change_until_ms = 0;
             SetNextState(state.deferred_hp_state);
             state.deferred_hp_state = HPState::UNKNOWN;
@@ -398,9 +396,9 @@ class OpenAmberController {
           float predicted_tc = CalculateBackupHeaterPredictedTc();
           // Disable backup heater if predicted Tc is above target.
           if(predicted_tc >= target_temperature) {
-            ESP_LOGI("amber", "Disabling backup heater (predicted Tc %.2fÂ°C above target %.2fÂ°C)", predicted_tc, target_temperature);
+            ESP_LOGI("amber", "Disabling backup heater (predicted Tc %.2f°C above target %.2f°C)", predicted_tc, target_temperature);
             backup_heater->turn_off();
-            SetNextStateAfterSettleTime(HPState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
+            LeaveStateAndSetNextStateAfterWaitTime(HPState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
             return;
           }
           break;
@@ -408,7 +406,7 @@ class OpenAmberController {
         case HPState::DEFROSTING:
         {
           if (!this->defrost_active->state) {
-            SetNextStateAfterSettleTime(HPState::COMPRESSOR_RUNNING, COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
+            LeaveStateAndSetNextStateAfterWaitTime(HPState::COMPRESSOR_RUNNING, COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
             break;
           }
 
@@ -650,11 +648,11 @@ class OpenAmberController {
     working_mode_call.perform();
   }
 
-  void SetNextStateAfterSettleTime(HPState new_state, uint32_t defer_ms)
+  void LeaveStateAndSetNextStateAfterWaitTime(HPState new_state, uint32_t defer_ms)
   {
-      state.deferred_hp_state = new_state;
-      state.defer_state_change_until_ms = millis() + defer_ms;
-      SetNextState(HPState::WAIT_FOR_TEMPERATURE_SETTLE);
+    state.deferred_hp_state = new_state;
+    state.defer_state_change_until_ms = millis() + defer_ms;
+    SetNextState(HPState::WAIT_FOR_STATE_SWITCH);
   }
 
   void SetNextState(HPState new_state)
@@ -692,8 +690,8 @@ class OpenAmberController {
         case HPState::DEFROSTING:
           txt = "Defrosting";
           break;
-        case HPState::WAIT_FOR_TEMPERATURE_SETTLE:
-          txt = "Waiting for temperature to settle";
+        case HPState::WAIT_FOR_STATE_SWITCH:
+          txt = "Waiting for wait time to elapse";
           break;
       }
 
