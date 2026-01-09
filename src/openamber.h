@@ -270,7 +270,7 @@ class OpenAmberController {
         {
             if (!pump_demand) break;
 
-            if (now >= state.next_pump_cycle || compressor_demand)
+            if (now >= state.next_pump_cycle || ShouldStartCompressor(compressor_demand))
             {
                 StartPump();
                 SetNextState(HPState::WAIT_PUMP_RUNNING);
