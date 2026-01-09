@@ -164,11 +164,12 @@ climate:
     cool_output: pid_cool_output
     control_parameters:
       kp: 0.6
-      ki: 0.003
+      ki: 0.002
       kd: 0.7
     deadband_parameters:
       threshold_low: -1
       threshold_high: 1
+      deadband_output_averaging_samples: 6
     visual:
       min_temperature: 10
       max_temperature: 45
