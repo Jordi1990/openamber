@@ -633,33 +633,6 @@ sensor:
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
-  name: "Alarm codes"
-  address: 2119
-  register_type: holding
-  value_type: S_WORD
-  web_server: 
-    sorting_group_id: sensors_outside
-
-- platform: modbus_controller
-  modbus_controller_id: modbus_outside_unit
-  name: "Status 1?"
-  address: 2120
-  register_type: holding
-  value_type: S_WORD
-  web_server: 
-    sorting_group_id: sensors_outside
-
-- platform: modbus_controller
-  modbus_controller_id: modbus_outside_unit
-  name: "Status 2?"
-  address: 2121
-  register_type: holding
-  value_type: S_WORD
-  web_server: 
-    sorting_group_id: sensors_outside
-
-- platform: modbus_controller
-  modbus_controller_id: modbus_outside_unit
   id: outside_unit_program_version
   internal: True
   skip_updates: 10
@@ -979,68 +952,335 @@ binary_sensor:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
-    name: "Alarm - Main Line Current"
-    icon: mdi:message-alert
+    name: "Bedrijfstroom warmtepomp (P01)"
     register_type: holding
     address: 2119
-    bitmask: 0x1
-    web_server: 
-      sorting_group_id: sensors_outside
+    value_type: U_WORD
+    bitmask: 0x0001
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Bedrijfstroom warmtepomp (P02)"
+    register_type: holding
+    address: 2119
+    value_type: U_WORD
+    bitmask: 0x0002
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing compressorstart (P03)"
+    register_type: holding
+    address: 2119
+    value_type: U_WORD
+    bitmask: 0x0004
+    device_class: problem
+    entity_category: diagnostic
+
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
     id: oil_return_cycle_active
-    name: "Olie-terugloop cyclus actief (P04)"
+    name: "Olie-terugloopcyclus (P04)"
     icon: mdi:autorenew
     register_type: holding
     address: 2119
-    bitmask: 0x8
-    web_server: 
-      sorting_group_id: sensors_outside
+    value_type: U_WORD
+    bitmask: 0x0008
+    device_class: running
+    entity_category: diagnostic
+
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
-    name: "Alarm - High Pressure Switch"
-    icon: mdi:message-alert
+    name: "Hogedrukbeveiliging (P05)"
     register_type: holding
     address: 2119
-    bitmask: 0x10
-    web_server: 
-      sorting_group_id: sensors_outside
+    value_type: U_WORD
+    bitmask: 0x0010
+    device_class: problem
+    entity_category: diagnostic
+
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
-    name: "Alarm - 1st Start Pre-heat"
-    icon: mdi:message-alert
+    name: "Laag drukverschil (P06)"
     register_type: holding
     address: 2119
-    bitmask: 0x40
-    web_server: 
-      sorting_group_id: sensors_outside
+    value_type: U_WORD
+    bitmask: 0x0020
+    device_class: problem
+    entity_category: diagnostic
+
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
-    name: "Alarm - AC High/Low Voltage"
-    icon: mdi:message-alert
+    name: "Compressor voorverwarming (P07)"
     register_type: holding
     address: 2119
-    bitmask: 0x200
-    web_server: 
-      sorting_group_id: sensors_outside
+    value_type: U_WORD
+    bitmask: 0x0040
+    device_class: running
+    entity_category: diagnostic
+
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
-    name: "Alarm - Defrosting?"
-    icon: mdi:message-alert
+    name: "Storing sensor persgasdruk (P08)"
     register_type: holding
     address: 2119
-    bitmask: 0x800
-    web_server: 
-      sorting_group_id: sensors_outside
+    value_type: U_WORD
+    bitmask: 0x0080
+    device_class: problem
+    entity_category: diagnostic
+
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
-    name: "Alarm - Low Pressure Switch"
-    icon: mdi:message-alert
+    name: "Storing sensor verdamper/condensor (P09)"
     register_type: holding
     address: 2119
+    value_type: U_WORD
+    bitmask: 0x0100
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Voedingsspanning (P10)"
+    register_type: holding
+    address: 2119
+    value_type: U_WORD
+    bitmask: 0x0200
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Compressor begrenzing (P11)"
+    register_type: holding
+    address: 2119
+    value_type: U_WORD
+    bitmask: 0x0400
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Compressor begrenzing (P12)"
+    register_type: holding
+    address: 2119
+    value_type: U_WORD
+    bitmask: 0x0800
+    device_class: running
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Laag drukverschil (P13)"
+    register_type: holding
+    address: 2119
+    value_type: U_WORD
     bitmask: 0x1000
-    web_server: 
-      sorting_group_id: sensors_outside
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing buitentemperatuursensor (F01)"
+    register_type: holding
+    address: 2120
+    value_type: U_WORD
+    bitmask: 0x0001
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing sensor verdamper/condensor (F02)"
+    register_type: holding
+    address: 2120
+    value_type: U_WORD
+    bitmask: 0x0002
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing persgas temperatuursensor (F03)"
+    register_type: holding
+    address: 2120
+    value_type: U_WORD
+    bitmask: 0x0004
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing zuigas temperatuursensor (F04)"
+    register_type: holding
+    address: 2120
+    value_type: U_WORD
+    bitmask: 0x0008
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing zuiggas druk sensor (F05)"
+    register_type: holding
+    address: 2120
+    value_type: U_WORD
+    bitmask: 0x0010
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing persgas druk sensor (F06)"
+    register_type: holding
+    address: 2120
+    value_type: U_WORD
+    bitmask: 0x0020
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing hogedrukbeveiliging (F07)"
+    register_type: holding
+    address: 2120
+    value_type: U_WORD
+    bitmask: 0x0040
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing ventilatormotor DC (F09)"
+    register_type: holding
+    address: 2120
+    value_type: U_WORD
+    bitmask: 0x0100
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Communicatiefout PCB (E01)"
+    register_type: holding
+    address: 2121
+    value_type: U_WORD
+    bitmask: 0x0001
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing inverter communicatie (E02)"
+    register_type: holding
+    address: 2121
+    value_type: U_WORD
+    bitmask: 0x0002
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Bedrijfsstroom warmtepomp (E03)"
+    register_type: holding
+    address: 2121
+    value_type: U_WORD
+    bitmask: 0x0004
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Bedrijfsstroom warmtepomp (E04)"
+    register_type: holding
+    address: 2121
+    value_type: U_WORD
+    bitmask: 0x0008
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing inverter (E05)"
+    register_type: holding
+    address: 2121
+    value_type: U_WORD
+    bitmask: 0x0010
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing VCD-module (E06)"
+    register_type: holding
+    address: 2121
+    value_type: U_WORD
+    bitmask: 0x0020
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing voedingsspanning (E07)"
+    register_type: holding
+    address: 2121
+    value_type: U_WORD
+    bitmask: 0x0040
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing EEPROM warmtepomp (E08)"
+    register_type: holding
+    address: 2121
+    value_type: U_WORD
+    bitmask: 0x0080
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing ventilatormotor DC (F10)"
+    register_type: holding
+    address: 2121
+    value_type: U_WORD
+    bitmask: 0x0100
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing sensor aanvoertemperatuur Tuo (F16)"
+    register_type: holding
+    address: 2121
+    value_type: U_WORD
+    bitmask: 0x0200
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing sensor retourtemperatuur Tui (F17)"
+    register_type: holding
+    address: 2121
+    value_type: U_WORD
+    bitmask: 0x0400
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing sensor condensortemperatuur Tup (F18)"
+    register_type: holding
+    address: 2121
+    value_type: U_WORD
+    bitmask: 0x0800
+    device_class: problem
+    entity_category: diagnostic
 
   - platform: template
     id: modbus_inside_online
