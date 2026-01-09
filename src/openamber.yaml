@@ -1151,6 +1151,7 @@ number:
   name: "Stooklijn @ +15°C"
   optimistic: True
   unit_of_measurement: "°C"
+  device_class: "temperature"
   min_value: 15
   max_value: 45
   step: 1
@@ -1165,6 +1166,7 @@ number:
   name: "Stooklijn @ +10°C"
   optimistic: True
   unit_of_measurement: "°C"
+  device_class: "temperature"
   min_value: 15
   max_value: 45
   step: 1
@@ -1179,6 +1181,7 @@ number:
   name: "Stooklijn Tc @ +5°C"
   optimistic: True
   unit_of_measurement: "°C"
+  device_class: "temperature"
   min_value: 15
   max_value: 45
   step: 1
@@ -1193,6 +1196,7 @@ number:
   name: "Stooklijn Tc  0°C"
   optimistic: True
   unit_of_measurement: "°C"
+  device_class: "temperature"
   min_value: 15
   max_value: 45
   step: 1
@@ -1207,6 +1211,7 @@ number:
   name: "Stooklijn Tc @ -10°C"
   optimistic: True
   unit_of_measurement: "°C"
+  device_class: "temperature"
   min_value: 15
   max_value: 45
   step: 1
@@ -1221,6 +1226,7 @@ number:
   name: "Handmatig setpoint Cv-aanvoertemperatuur"
   optimistic: True
   unit_of_measurement: "°C"
+  device_class: "temperature"
   min_value: 15
   max_value: 45
   step: 1
