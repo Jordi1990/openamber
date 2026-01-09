@@ -1312,8 +1312,6 @@ switch:
      then:
       # Initialize board relays
       - switch.turn_on: pump_p0_relay_switch
-      - switch.turn_on: pump_p1_relay_switch
-      - switch.turn_on: pump_p2_relay_switch
       - switch.turn_on: initialize_step_4
 
  - platform: modbus_controller
