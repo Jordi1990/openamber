@@ -120,6 +120,7 @@ class OpenAmberController {
   switch_::Switch *pump_p0_relay = nullptr;
   select::Select *heat_compressor_max_mode = nullptr;
   sensor::Sensor *pump_p0_current_pwm = nullptr;
+  number::Number *defrost_backup_heater_boost_temperature = nullptr;
   int mode_offset = 0;
 
   void loop() {
@@ -168,7 +169,7 @@ class OpenAmberController {
     this->heat_demand = &id(heat_demand_active_sensor);
     this->cool_demand = &id(cool_demand_active_sensor);
 
-    this->pump_control = &id(pump_control_number);
+    this->pump_control = &id(pump_control_pwm_number);
     this->pump_speed_heating = &id(pump_speed_heating_number);
     this->pump_active = &id(internal_pump_active);
     this->frost_protection_stage1 = &id(frost_protection_stage1_active);
@@ -188,6 +189,8 @@ class OpenAmberController {
     this->pump_p0_relay = &id(pump_p0_relay_switch);
     this->heat_compressor_max_mode = &id(heat_compressor_mode);
     this->pump_p0_current_pwm = &id(pump_p0_current_pwm_sensor);
+
+    this->defrost_backup_heater_boost_temperature = &id(defrost_backup_heater_boost_temperature_sensor);
 
     this->mode_offset = this->compressor_control->size() - this->heat_compressor_max_mode->size();
 
@@ -254,7 +257,7 @@ class OpenAmberController {
 
       switch (state.hp_state)
       {
-        case HPState::WAIT_FOR_TEMPERATURE_SETTLE:
+        case HPState::WAIT_FOR_STATE_SWITCH:
         {
           if(state.defer_state_change_until_ms > now)
           {
@@ -414,7 +417,7 @@ class OpenAmberController {
         {
           float predicted_tc = CalculateBackupHeaterPredictedTc();
           // Disable backup heater if predicted Tc is above target.
-          if(predicted_tc >= target_temperature) {
+          if(predicted_tc >= target_temperature + 2.0f) { // Margin to buffer some heat to reduce undershoot.
             ESP_LOGI("amber", "Disabling backup heater (predicted Tc %.2f°C above target %.2f°C)", predicted_tc, target_temperature);
             backup_heater->turn_off();
             LeaveStateAndSetNextStateAfterWaitTime(HPState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
@@ -424,13 +427,26 @@ class OpenAmberController {
         }
         case HPState::DEFROSTING:
         {
-          if (!this->defrost_active->state) {
-            LeaveStateAndSetNextStateAfterWaitTime(HPState::COMPRESSOR_RUNNING, COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
+          if(this->defrost_active->state)
+          {
+            ESP_LOGI("amber", "Defrost busy, waiting before making changes to compressor.");
             break;
           }
 
-          ESP_LOGI("amber", "Defrost busy, waiting before making changes to compressor.");
-          break;
+          // Defrost is no longer active
+          if(this->temp_outside->state <= this->defrost_backup_heater_boost_temperature->state) {
+            ESP_LOGI("amber", "Defrost ended, enabling backup heater as configured for outside temperature %.2f°C to boost temperature back to setpoint.", this->temp_outside->state);
+            backup_heater->turn_on();
+            SetNextState(HPState::WAIT_BACKUP_HEATER_RUNNING);
+          }
+          else {
+            auto current_compressor_mode = this->compressor_control->active_index().value();
+            // Increase compressor mode by 3 steps to speed up recovery after defrost.
+            int defrost_recovery_mode = current_compressor_mode + 3; // Max step will be limited in SetCompressorMode.
+            SetCompressorMode(defrost_recovery_mode);
+            LeaveStateAndSetNextStateAfterWaitTime(HPState::COMPRESSOR_RUNNING, COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
+          }
+          pid_climate->reset_integral_term();
         }
       }
   }
@@ -600,8 +616,7 @@ class OpenAmberController {
     else if (delta < 10.0f) start_compressor_frequency_mode = 4;
     else start_compressor_frequency_mode = 5;
 
-    // Limit to max configured mode.
-    return std::min(start_compressor_frequency_mode, (int)this->heat_compressor_max_mode->active_index().value() + this->mode_offset - 1);
+    return start_compressor_frequency_mode;
   }
 
   /// @brief Map the PID output value to a discrete compressor mode.
@@ -625,8 +640,9 @@ class OpenAmberController {
 
   void SetCompressorMode(int mode_index)
   {
+    int capped_mode_index = std::min(mode_index, (int)this->heat_compressor_max_mode->active_index().value() + this->mode_offset - 1);
     auto compressor_set_call = compressor_control->make_call();
-    compressor_set_call.set_index(mode_index);
+    compressor_set_call.set_index(capped_mode_index);
     compressor_set_call.perform();
     state.last_compressor_mode_change_ms = millis();
   }
