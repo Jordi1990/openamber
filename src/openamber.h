@@ -101,7 +101,7 @@ class OpenAmberController {
   sensor::Sensor *compressor_current_frequency = nullptr;
   pid::PIDClimate *pid_climate = nullptr;
   climate::Climate *thermostat_climate = nullptr;
-  select::Select *pump_control = nullptr;
+  number::Number *pump_control = nullptr;
   binary_sensor::BinarySensor *pump_active = nullptr;
   binary_sensor::BinarySensor *frost_protection_stage1 = nullptr;
   binary_sensor::BinarySensor *frost_protection_stage2 = nullptr;  
@@ -109,7 +109,7 @@ class OpenAmberController {
   number::Number *stop_compressor_delta = nullptr;
   text_sensor::TextSensor *hp_state_text_sensor = nullptr;
   binary_sensor::BinarySensor *oil_return_cycle = nullptr;
-  select::Select *pump_speed = nullptr;
+  number::Number *pump_speed_heating = nullptr;
   binary_sensor::BinarySensor *heat_demand = nullptr;
   binary_sensor::BinarySensor *cool_demand = nullptr;
   binary_sensor::BinarySensor *defrost_active = nullptr;
@@ -119,6 +119,7 @@ class OpenAmberController {
   sensor::Sensor *backup_heater_degmin_current = nullptr;
   switch_::Switch *pump_p0_relay = nullptr;
   select::Select *heat_compressor_max_mode = nullptr;
+  sensor::Sensor *pump_p0_current_pwm = nullptr;
   int mode_offset = 0;
 
   void loop() {
@@ -167,8 +168,8 @@ class OpenAmberController {
     this->heat_demand = &id(heat_demand_active_sensor);
     this->cool_demand = &id(cool_demand_active_sensor);
 
-    this->pump_control = &id(pump_control_select);
-    this->pump_speed = &id(pump_speed_select);
+    this->pump_control = &id(pump_control_number);
+    this->pump_speed_heating = &id(pump_speed_heating_number);
     this->pump_active = &id(internal_pump_active);
     this->frost_protection_stage1 = &id(frost_protection_stage1_active);
     this->frost_protection_stage2 = &id(frost_protection_stage2_active);
@@ -186,6 +187,7 @@ class OpenAmberController {
     this->backup_heater_degmin_current = &id(backup_heater_degmin_current_sensor);
     this->pump_p0_relay = &id(pump_p0_relay_switch);
     this->heat_compressor_max_mode = &id(heat_compressor_mode);
+    this->pump_p0_current_pwm = &id(pump_p0_current_pwm_sensor);
 
     this->mode_offset = this->compressor_control->size() - this->heat_compressor_max_mode->size();
 
@@ -440,13 +442,7 @@ class OpenAmberController {
       return;
     }
 
-    if(this->pump_control->current_option() != this->pump_speed->current_option())
-    {
-      ESP_LOGI("amber", "Applying pump speed change to %s", this->pump_speed->current_option());
-      auto pump_call = pump_control->make_call();
-      pump_call.set_option(this->pump_speed->current_option());
-      pump_call.perform();
-    }
+    SetPumpPwmDutyCycle(this->pump_speed_heating->state);
   }
 
   void CalculateAccumulatedBackupHeaterDegreeMinutes()
@@ -642,17 +638,13 @@ class OpenAmberController {
       this->pump_p0_relay->turn_on();
     }
 
-    auto pump_call = pump_control->make_call();
-    pump_call.set_option(this->pump_speed->current_option());
-    pump_call.perform();
+    SetPumpPwmDutyCycle(this->pump_speed_heating->state);
     state.pump_start_time = millis();
   }
 
   void StopPump()
   {
-    auto pump_call = pump_control->make_call();
-    pump_call.set_index(0);
-    pump_call.perform();
+    SetPumpPwmDutyCycle(0);
   }
 
   void SetWorkingMode(int workingMode)
@@ -667,6 +659,17 @@ class OpenAmberController {
     state.deferred_hp_state = new_state;
     state.defer_state_change_until_ms = millis() + defer_ms;
     SetNextState(HPState::WAIT_FOR_STATE_SWITCH);
+  }
+
+  void SetPumpPwmDutyCycle(float duty_cycle)
+  {
+    float control_speed = ((duty_cycle*10)*-1)+1000;
+    ESP_LOGI("amber", "Applying pump speed change to %.0f (Duty cycle: %.0f)", control_speed, duty_cycle);
+
+    if(this->pump_p0_current_pwm->state != control_speed)
+    {
+      this->pump_control->publish_state(control_speed);
+    }
   }
 
   void SetNextState(HPState new_state)

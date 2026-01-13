@@ -430,13 +430,19 @@ sensor:
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
-  name: "Interne pomp stand"
+  id: pump_p0_current_pwm_sensor
+  name: "Pomp P0 PWM"
   address: 1303
   register_type: holding
   value_type: S_WORD
+  unit_of_measurement: "%"
   state_class: "measurement"
   web_server: 
     sorting_group_id: sensors_inside
+  on_value: 
+    then:
+      - lambda: 
+          id(modbus_inside_is_online) = true;
 
 # Outside unit
 - platform: modbus_controller
@@ -1494,6 +1500,28 @@ number:
   web_server: 
       sorting_group_id: settings
 
+- platform: template
+  id: pump_speed_heating_number
+  name: "Pomp snelheid verwarmen"
+  optimistic: True
+  min_value: 0
+  max_value: 100
+  initial_value: 100
+  restore_value: True
+  entity_category: config
+  web_server: 
+    sorting_group_id: settings
+
+- platform: modbus_controller
+  id: pump_control_pwm_number
+  modbus_controller_id: modbus_inside_unit
+  name: "Pomp PWM"
+  address: 1103
+  min_value: 0
+  max_value: 1000
+  web_server: 
+    sorting_group_id: control_inside
+
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outlet_temperature_outside
@@ -1684,38 +1712,6 @@ select:
     entity_category: config
     web_server: 
       sorting_group_id: settings
-
-  - platform: template
-    id: pump_speed_select
-    name: "Pomp snelheid"
-    optimistic: True
-    options:
-      - "Laag"
-      - "Middel"
-      - "Hoog"
-    initial_option: "Hoog"
-    restore_value: True
-    entity_category: config
-    web_server: 
-      sorting_group_id: settings
-
-  - platform: modbus_controller
-    id: pump_control_select
-    modbus_controller_id: modbus_inside_unit
-    name: "Pomp stand"
-    address: 1103
-    optionsmap:
-      "Uit": 1000
-      "Onbekend": 950
-      "Laag": 500
-      "Middel": 250
-      "Hoog": 0
-    web_server: 
-     sorting_group_id: control_inside
-    on_value: 
-      then:
-        - lambda: 
-            id(modbus_inside_is_online) = true;
 
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
