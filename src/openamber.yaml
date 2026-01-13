@@ -976,7 +976,6 @@ binary_sensor:
     name: "Bedrijfstroom warmtepomp (P01)"
     register_type: holding
     address: 2119
-    value_type: U_WORD
     bitmask: 0x0001
     device_class: problem
     entity_category: diagnostic
@@ -986,7 +985,6 @@ binary_sensor:
     name: "Bedrijfstroom warmtepomp (P02)"
     register_type: holding
     address: 2119
-    value_type: U_WORD
     bitmask: 0x0002
     device_class: problem
     entity_category: diagnostic
@@ -996,7 +994,6 @@ binary_sensor:
     name: "Storing compressorstart (P03)"
     register_type: holding
     address: 2119
-    value_type: U_WORD
     bitmask: 0x0004
     device_class: problem
     entity_category: diagnostic
@@ -1008,7 +1005,6 @@ binary_sensor:
     icon: mdi:autorenew
     register_type: holding
     address: 2119
-    value_type: U_WORD
     bitmask: 0x0008
     device_class: running
     entity_category: diagnostic
@@ -1018,7 +1014,6 @@ binary_sensor:
     name: "Hogedrukbeveiliging (P05)"
     register_type: holding
     address: 2119
-    value_type: U_WORD
     bitmask: 0x0010
     device_class: problem
     entity_category: diagnostic
@@ -1028,7 +1023,6 @@ binary_sensor:
     name: "Laag drukverschil (P06)"
     register_type: holding
     address: 2119
-    value_type: U_WORD
     bitmask: 0x0020
     device_class: problem
     entity_category: diagnostic
@@ -1038,7 +1032,6 @@ binary_sensor:
     name: "Compressor voorverwarming (P07)"
     register_type: holding
     address: 2119
-    value_type: U_WORD
     bitmask: 0x0040
     device_class: running
     entity_category: diagnostic
@@ -1048,7 +1041,6 @@ binary_sensor:
     name: "Storing sensor persgasdruk (P08)"
     register_type: holding
     address: 2119
-    value_type: U_WORD
     bitmask: 0x0080
     device_class: problem
     entity_category: diagnostic
@@ -1058,7 +1050,6 @@ binary_sensor:
     name: "Storing sensor verdamper/condensor (P09)"
     register_type: holding
     address: 2119
-    value_type: U_WORD
     bitmask: 0x0100
     device_class: problem
     entity_category: diagnostic
@@ -1068,7 +1059,6 @@ binary_sensor:
     name: "Voedingsspanning (P10)"
     register_type: holding
     address: 2119
-    value_type: U_WORD
     bitmask: 0x0200
     device_class: problem
     entity_category: diagnostic
@@ -1078,7 +1068,6 @@ binary_sensor:
     name: "Compressor begrenzing (P11)"
     register_type: holding
     address: 2119
-    value_type: U_WORD
     bitmask: 0x0400
     device_class: problem
     entity_category: diagnostic
@@ -1088,7 +1077,6 @@ binary_sensor:
     name: "Compressor begrenzing (P12)"
     register_type: holding
     address: 2119
-    value_type: U_WORD
     bitmask: 0x0800
     device_class: running
     entity_category: diagnostic
@@ -1098,7 +1086,6 @@ binary_sensor:
     name: "Laag drukverschil (P13)"
     register_type: holding
     address: 2119
-    value_type: U_WORD
     bitmask: 0x1000
     device_class: problem
     entity_category: diagnostic
@@ -1108,7 +1095,6 @@ binary_sensor:
     name: "Storing buitentemperatuursensor (F01)"
     register_type: holding
     address: 2120
-    value_type: U_WORD
     bitmask: 0x0001
     device_class: problem
     entity_category: diagnostic
@@ -1118,7 +1104,6 @@ binary_sensor:
     name: "Storing sensor verdamper/condensor (F02)"
     register_type: holding
     address: 2120
-    value_type: U_WORD
     bitmask: 0x0002
     device_class: problem
     entity_category: diagnostic
@@ -1128,7 +1113,6 @@ binary_sensor:
     name: "Storing persgas temperatuursensor (F03)"
     register_type: holding
     address: 2120
-    value_type: U_WORD
     bitmask: 0x0004
     device_class: problem
     entity_category: diagnostic
@@ -1138,7 +1122,6 @@ binary_sensor:
     name: "Storing zuigas temperatuursensor (F04)"
     register_type: holding
     address: 2120
-    value_type: U_WORD
     bitmask: 0x0008
     device_class: problem
     entity_category: diagnostic
@@ -1148,7 +1131,6 @@ binary_sensor:
     name: "Storing zuiggas druk sensor (F05)"
     register_type: holding
     address: 2120
-    value_type: U_WORD
     bitmask: 0x0010
     device_class: problem
     entity_category: diagnostic
@@ -1158,7 +1140,6 @@ binary_sensor:
     name: "Storing persgas druk sensor (F06)"
     register_type: holding
     address: 2120
-    value_type: U_WORD
     bitmask: 0x0020
     device_class: problem
     entity_category: diagnostic
@@ -1168,7 +1149,6 @@ binary_sensor:
     name: "Storing hogedrukbeveiliging (F07)"
     register_type: holding
     address: 2120
-    value_type: U_WORD
     bitmask: 0x0040
     device_class: problem
     entity_category: diagnostic
@@ -1178,7 +1158,6 @@ binary_sensor:
     name: "Storing ventilatormotor DC (F09)"
     register_type: holding
     address: 2120
-    value_type: U_WORD
     bitmask: 0x0100
     device_class: problem
     entity_category: diagnostic
@@ -1188,7 +1167,6 @@ binary_sensor:
     name: "Communicatiefout PCB (E01)"
     register_type: holding
     address: 2121
-    value_type: U_WORD
     bitmask: 0x0001
     device_class: problem
     entity_category: diagnostic
@@ -1198,7 +1176,6 @@ binary_sensor:
     name: "Storing inverter communicatie (E02)"
     register_type: holding
     address: 2121
-    value_type: U_WORD
     bitmask: 0x0002
     device_class: problem
     entity_category: diagnostic
@@ -1208,7 +1185,6 @@ binary_sensor:
     name: "Bedrijfsstroom warmtepomp (E03)"
     register_type: holding
     address: 2121
-    value_type: U_WORD
     bitmask: 0x0004
     device_class: problem
     entity_category: diagnostic
@@ -1218,7 +1194,6 @@ binary_sensor:
     name: "Bedrijfsstroom warmtepomp (E04)"
     register_type: holding
     address: 2121
-    value_type: U_WORD
     bitmask: 0x0008
     device_class: problem
     entity_category: diagnostic
@@ -1228,7 +1203,6 @@ binary_sensor:
     name: "Storing inverter (E05)"
     register_type: holding
     address: 2121
-    value_type: U_WORD
     bitmask: 0x0010
     device_class: problem
     entity_category: diagnostic
@@ -1238,7 +1212,6 @@ binary_sensor:
     name: "Storing VCD-module (E06)"
     register_type: holding
     address: 2121
-    value_type: U_WORD
     bitmask: 0x0020
     device_class: problem
     entity_category: diagnostic
@@ -1248,7 +1221,6 @@ binary_sensor:
     name: "Storing voedingsspanning (E07)"
     register_type: holding
     address: 2121
-    value_type: U_WORD
     bitmask: 0x0040
     device_class: problem
     entity_category: diagnostic
@@ -1258,7 +1230,6 @@ binary_sensor:
     name: "Storing EEPROM warmtepomp (E08)"
     register_type: holding
     address: 2121
-    value_type: U_WORD
     bitmask: 0x0080
     device_class: problem
     entity_category: diagnostic
@@ -1268,7 +1239,6 @@ binary_sensor:
     name: "Storing ventilatormotor DC (F10)"
     register_type: holding
     address: 2121
-    value_type: U_WORD
     bitmask: 0x0100
     device_class: problem
     entity_category: diagnostic
@@ -1278,7 +1248,6 @@ binary_sensor:
     name: "Storing sensor aanvoertemperatuur Tuo (F16)"
     register_type: holding
     address: 2121
-    value_type: U_WORD
     bitmask: 0x0200
     device_class: problem
     entity_category: diagnostic
@@ -1288,7 +1257,6 @@ binary_sensor:
     name: "Storing sensor retourtemperatuur Tui (F17)"
     register_type: holding
     address: 2121
-    value_type: U_WORD
     bitmask: 0x0400
     device_class: problem
     entity_category: diagnostic
@@ -1298,7 +1266,6 @@ binary_sensor:
     name: "Storing sensor condensortemperatuur Tup (F18)"
     register_type: holding
     address: 2121
-    value_type: U_WORD
     bitmask: 0x0800
     device_class: problem
     entity_category: diagnostic
@@ -1520,6 +1487,8 @@ number:
   optimistic: True
   min_value: 0
   max_value: 100
+  step: 1
+  unit_of_measurement: "%"
   initial_value: 100
   restore_value: True
   entity_category: config
@@ -1577,6 +1546,21 @@ number:
   entity_category: config
   web_server: 
       sorting_group_id: settings
+
+- platform: template
+  id: defrost_backup_heater_boost_temperature_sensor
+  name: "Defrost boost buitentemperatuur"
+  optimistic: True
+  restore_value: True
+  initial_value: -3
+  step: 1
+  min_value: -15
+  max_value: 15
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  entity_category: config
+  web_server: 
+    sorting_group_id: settings
 
 switch:
  - platform: gpio
