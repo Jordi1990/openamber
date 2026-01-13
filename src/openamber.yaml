@@ -230,6 +230,23 @@ sensor:
   update_interval: 20s
 
 - platform: template
+  id: temperature_outside_ta_avg_1h
+  name: "Buiten temperatuur (1h gemiddelde)"
+  internal: true
+  unit_of_measurement: "°C"
+  accuracy_decimals: 1
+  update_interval: 15s
+  lambda: |-
+    return id(temperature_outside_ta).state;
+  filters:
+    - median:
+        window_size: 5
+        send_every: 1
+    - sliding_window_moving_average:
+        window_size: 240
+        send_every: 1
+
+- platform: template
   id: current_setpoint
   name: "Huidig setpoint"
   unit_of_measurement: "°C"
@@ -258,7 +275,7 @@ sensor:
   accuracy_decimals: 0
   update_interval: 15s
   lambda: |-
-    const float Ta = id(temperature_outside_ta).state;
+    const float Ta = id(temperature_outside_ta_avg_1h).state;
 
     const float tc15  = id(heat_curve_p15).state;
     const float tc10  = id(heat_curve_p10).state;
@@ -283,11 +300,8 @@ sensor:
     then:
       - component.update: current_setpoint
   filters:
-    - exponential_moving_average:
-        alpha: 0.06
-        send_every: 1
     - round_to_multiple_of: 1
-    - delta: 0.5
+    - delta: 1
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
