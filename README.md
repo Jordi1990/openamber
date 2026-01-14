@@ -13,23 +13,26 @@ Supply temperature regulation with PID-based compressor Hz modulation
 ![Supply temperature regulation with PID-based compressor Hz modulation](/docs/images/openamber-pid.png)
 
 ## Features
+- Domestic Hot Water/Three way valve control
 - Heating
-- Pump running on customizable interval/duration/speed.
+- Pump P0 full PWM control on customizable interval/duration/speed.
 - Compressor modulation based on PID controller.
+- Configure maximum power modes
 - Frost protection in 2 stages (similair to original software).
 - Software thermostat based on Tr sensor.
 - Heat curve(5-points).
 - Backup heater
+- Boost after defrost using backup heater.
+- Sensors for error codes
 - Support external thermostats (Heating/Cooling input)
 
 ## Todo
 - Support cooling
-- Domestic Hot Water/Three way valve control
 - Tv1/Tv2 buffer support
 - Extend configuration options
-  - Enable specific compressor frequencies (silent mode)
 - Error handling
 - Support OpenTherm thermostats
+- EEPROM updates
 - .. More
 
 ## Hardware
@@ -41,7 +44,6 @@ The firmware in this repository targets this module, I currently use this as wel
 
 #### Waveshare ESP32-S3 Touch LCD 5'' (https://www.waveshare.com/wiki/ESP32-S3-Touch-LCD-5)
 This is the best replacement for the WinCE controller as there is a touchscreen, RS485 and 24V input available.
-But I haven't been able to get the RS485 working on my unit so far.
 We would also need a 3D printed bracket to mount it properly.
 
 ## Installation
@@ -97,7 +99,7 @@ Connect wires to your hardware RS485 port (Itho Daalderop Amber Control Module u
 | 1099       | Pump P0 relay                                      |
 | 1100       | Pump P1 relay                                      |
 | 1101       | Pump P2 relay                                      |
-| 1103       | Pump P0 state (1000=OFF, 500=LOW, 250=MED, 0=HIGH) |
+| 1103       | Pump P0 duty cycle (1000=OFF, 0=HIGH)              |
 | 1104       | Unknown, needed for initialization                 |
 | 1105       | 3-way valve DHW                                    |
 | 1109       | Backup heater stage 1 relay                        |
@@ -124,6 +126,8 @@ Connect wires to your hardware RS485 port (Itho Daalderop Amber Control Module u
 | 2117       | High pressure (Pd)                  |
 | 2118       | Defrost active                      |
 | 2119       | Alarm codes (see below)             |
+| 2220       | Alarm codes (see below)             |
+| 2221       | Alarm codes (see below)             |
 | 2122       | Firmware version part 1             |
 | 2123       | EEPROM version                      |
 | 2131       | Temperature?                        |
@@ -133,16 +137,16 @@ Connect wires to your hardware RS485 port (Itho Daalderop Amber Control Module u
 
 #### Write
 | Address    | Function                            |
-|:----------:|:-----------------------------------:|
-| 1999       | Compressor mode(0-10)               |
-| 3999       | Working mode(0=OFF,1=COOL,3=HEAT)   |
+|:----------:|:-----------------------------------------------------------------:|
+| 1999       | Compressor mode(0-10)                                             |
+| 3999       | Working mode(0=OFF,1=COOL,3=HEAT,5=EEPROM UPDATE,6=MAINTENANCE)   |
 
 #### State (Address 2108)
-Not all bits are known, so the ones we know of are listed here.
 
 | Bitmask    | Function                            |
 |:----------:|:-----------------------------------:|
 | 0x01       | Fan low speed mode                  |
+| 0x02       | Compressor crankcase heater         |
 | 0x04       | Bottom heater active                |
 | 0x10       | Fan defrost speed mode              |
 | 0x20       | Fan high speed mode                 |
@@ -150,8 +154,50 @@ Not all bits are known, so the ones we know of are listed here.
 | 0x80       | Expansion valve lock active         |
 
 #### Alarm codes (Address 2119)
-Not all bits are known, so the ones we know of are listed here.
 
-| Bitmask    | Function                            |
-|:----------:|:-----------------------------------:|
-| 0x04       | Oil return cycle (P04)              |
+| Bitmask    | Function |
+|:----------:|:--------:|
+| 0x01       | P01      |
+| 0x02       | P02      |
+| 0x04       | P03      |
+| 0x08       | P04      |
+| 0x10       | P05      |
+| 0x20       | P06      |
+| 0x40       | P07      |
+| 0x80       | P08      |
+| 0x100      | P09      |
+| 0x200      | P10      |
+| 0x400      | P11      |
+| 0x800      | P12      |
+| 0x1000     | P13      |
+
+#### Alarm codes (Address 2220)
+
+| Bitmask    | Function |
+|:----------:|:--------:|
+| 0x01       | F01      |
+| 0x02       | F02      |
+| 0x04       | F03      |
+| 0x08       | F04      |
+| 0x10       | F05      |
+| 0x20       | F06      |
+| 0x40       | F07      |
+| 0x80       | F08      |
+| 0x100      | F09      |
+
+#### Alarm codes (Address 2221)
+
+| Bitmask    | Function |
+|:----------:|:--------:|
+| 0x01       | E01      |
+| 0x02       | E02      |
+| 0x04       | E03      |
+| 0x08       | E04      |
+| 0x10       | E05      |
+| 0x20       | E06      |
+| 0x40       | E07      |
+| 0x80       | E08      |
+| 0x100      | F10      |
+| 0x200      | F16      |
+| 0x400      | F17      |
+| 0x800      | F18      |
