@@ -230,6 +230,10 @@ class OpenAmberController {
 
     this->mode_offset = this->compressor_control->size() - this->heat_compressor_max_mode->size();
 
+    // Initialize relays
+    id(initialize_relay_switch).turn_on();
+    this->pump_p0_relay->turn_on();
+
     // Restore 3-way valve state based on relay position.
     bool is_valve_in_dhw_position = this->three_way_valve_dhw->state;
     SetThreeWayValve(is_valve_in_dhw_position ? ThreeWayValvePosition::DHW : ThreeWayValvePosition::HEATING_COOLING);
@@ -337,7 +341,7 @@ class OpenAmberController {
             }
 
             // If interval is elapsed or there is compressor demand, start pump immediately.
-            if (now >= state.next_pump_cycle || ShouldStartCompressor(compressor_demand))
+            if (now >= state.next_pump_cycle || ShouldStartCompressor())
             {
                 StartPump();
                 SetNextState(HPState::WAIT_PUMP_RUNNING);
@@ -383,7 +387,7 @@ class OpenAmberController {
           const uint32_t min_off_ms = COMPRESSOR_MIN_OFF_S * 1000UL;
           if (millis() < state.last_compressor_stop_ms + min_off_ms && !state.is_switching_modes) {
             ESP_LOGI("amber", "Not starting compressor because minimum compressor time off is not reached.");
-            return false;
+            break;
           }
 
           int workingMode = IsInDhwMode() ? WORKING_MODE_HEATING :
@@ -549,7 +553,7 @@ class OpenAmberController {
             SetCompressorMode(defrost_recovery_mode);
             LeaveStateAndSetNextStateAfterWaitTime(HPState::COMPRESSOR_RUNNING, COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
           }
-          pid_climate->reset_integral_term();
+          pid_heat_cool->reset_integral_term();
         }
       }
   }
@@ -572,9 +576,9 @@ class OpenAmberController {
       ESP_LOGI("amber", "Setting 3-way valve to %s.", this->three_way_valve_position->current_option());
   }
 
-  select::Select *GetCurrentPumpSpeedSettingSelect()
+  float GetCurrentPumpSpeedSetting()
   {
-    return IsInDhwMode() ? this->pump_speed_dhw : this->pump_speed_heating;
+    return (IsInDhwMode() ? this->pump_speed_dhw : this->pump_speed_heating)->state;
   }
 
   void ApplyPumpSpeedChangeIfNeeded()
@@ -584,7 +588,7 @@ class OpenAmberController {
       return;
     }
 
-    SetPumpPwmDutyCycle(this->pump_speed_heating->state);
+    SetPumpPwmDutyCycle(GetCurrentPumpSpeedSetting());
   }
 
   /// @brief Calculate and update the accumulated backup heater degree/minutes.
@@ -727,15 +731,8 @@ class OpenAmberController {
     int compressor_frequency_mode = DetermineSoftStartMode(supply_temperature_delta);
     ESP_LOGI("amber", "Soft start mode: %d (ΔT=%.1f°C)", compressor_frequency_mode, supply_temperature_delta);
 
-    pid_climate->reset_integral_term();
+    pid_heat_cool->reset_integral_term();
     SetCompressorMode(compressor_frequency_mode);
-    SetWorkingMode(WORKING_MODE_STANDBY);
-
-    if (run_pump_interval)
-    {
-      // Let pump run for another 60 seconds.
-      state.next_pump_cycle = millis() + (uint32_t)pump_interval_min->state * 60000UL;
-    }
   }
 
   void StartCompressor() {
@@ -814,7 +811,7 @@ class OpenAmberController {
       this->pump_p0_relay->turn_on();
     }
 
-    SetPumpPwmDutyCycle(GetCurrentPumpSpeedSettingSelect());
+    SetPumpPwmDutyCycle(GetCurrentPumpSpeedSetting());
 
     if(IsInDhwMode()) {
       ESP_LOGI("amber", "Starting DHW pump.");
