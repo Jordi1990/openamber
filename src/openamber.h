@@ -884,7 +884,7 @@ class OpenAmberController {
   void SetPumpPwmDutyCycle(float duty_cycle)
   {
     float control_speed = ((duty_cycle*10)*-1)+1000;
-    if(this->pump_p0_current_pwm->state != control_speed)
+    if(this->pump_p0_current_pwm->raw_state != control_speed)
     {
       ESP_LOGI("amber", "Applying pump speed change to %.0f (Duty cycle: %.0f)", control_speed, duty_cycle);
       auto pump_call = this->pump_control->make_call();
