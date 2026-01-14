@@ -1715,6 +1715,16 @@ switch:
 
  - platform: modbus_controller
    modbus_controller_id: modbus_inside_unit
+   internal: True
+   id: three_way_valve_heat_cool_switch
+   name: "3-weg klep Koelen/Verwarmen"
+   address: 1105
+   register_type: holding
+   web_server: 
+     sorting_group_id: control_inside
+
+ - platform: modbus_controller
+   modbus_controller_id: modbus_inside_unit
    id: backup_heater_stage_1
    internal: True
    name: "Backup heater stage 1"
@@ -1738,16 +1748,6 @@ switch:
    internal: True
    id: three_way_valve_dhw_switch
    name: "3-weg klep SWW"
-   address: 1112
-   register_type: holding
-   web_server: 
-     sorting_group_id: control_inside
-
- - platform: modbus_controller
-   modbus_controller_id: modbus_inside_unit
-   internal: True
-   id: three_way_valve_heat_cool_switch
-   name: "3-weg klep Koelen/Verwarmen"
    address: 1112
    register_type: holding
    web_server: 

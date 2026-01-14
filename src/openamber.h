@@ -235,8 +235,15 @@ class OpenAmberController {
     this->pump_p0_relay->turn_on();
 
     // Restore 3-way valve state based on relay position.
-    bool is_valve_in_dhw_position = this->three_way_valve_dhw->state;
-    SetThreeWayValve(is_valve_in_dhw_position ? ThreeWayValvePosition::DHW : ThreeWayValvePosition::HEATING_COOLING);
+    if (this->dhw_enabled->state)
+    {
+      bool is_valve_in_dhw_position = this->three_way_valve_dhw->state;
+      SetThreeWayValve(is_valve_in_dhw_position ? ThreeWayValvePosition::DHW : ThreeWayValvePosition::HEATING_COOLING);
+    }
+    else 
+    {
+      SetThreeWayValve(ThreeWayValvePosition::HEATING_COOLING);
+    }
 
     // Restore state whenever initialized while compressor is running.
     if(this->compressor_current_frequency->state > 0) {
