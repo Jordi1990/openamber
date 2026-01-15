@@ -50,6 +50,8 @@ static const uint32_t COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 5 * 60;
 static const uint32_t BACKUP_HEATER_LOOKAHEAD_S = 2 * 60;
 // Settle time after backup heater is turned off before compressor PID loop starts again.
 static const uint32_t BACKUP_HEATER_OFF_SETTLE_TIME_S = 2 * 60;
+// Time required to switch the 3-way valve position.
+static const uint32_t THREE_WAY_VALVE_SWITCH_TIME_S = 1 * 60;
 
 enum class HPState {
     UNKNOWN,
@@ -58,13 +60,20 @@ enum class HPState {
     WAIT_PUMP_STOP,
     PUMP_INTERVAL_RUNNING,
     WAIT_COMPRESSOR_RUNNING,
-    COMPRESSOR_SOFTSTART,
+    HEAT_COOL_COMPRESSOR_SOFTSTART,
     COMPRESSOR_RUNNING,
     WAIT_BACKUP_HEATER_RUNNING,
     BACKUP_HEATER_RUNNING,
     DEFROSTING,
-    WAIT_COMPRESSOR_STOP,
     WAIT_FOR_STATE_SWITCH,
+    SWITCH_TO_DHW,
+    WAIT_COMPRESSOR_STOP,
+    WAIT_3WAY_VALVE_SWITCH,
+};
+
+enum ThreeWayValvePosition {
+    HEATING_COOLING,
+    DHW,
 };
 
 struct AmberState {
@@ -78,12 +87,13 @@ struct AmberState {
   // Backup heater degree / minute tracking.
   uint32_t backup_degmin_last_ms = 0;
   float accumulated_backup_degmin = 0.0;
-  float tc_rate_c_per_min = 0.0;
-  float last_tc_for_rate = 0.0;
+  float temperature_rate_c_per_min = 0.0;
+  float last_temperature_for_rate = 0.0;
 
   HPState hp_state = HPState::IDLE;
   HPState deferred_hp_state = HPState::UNKNOWN;
   uint32_t defer_state_change_until_ms = 0;
+  bool is_switching_modes = false;
 };
 
 class OpenAmberController {
@@ -96,10 +106,11 @@ class OpenAmberController {
   sensor::Sensor *temp_tuo = nullptr;
   sensor::Sensor *temp_outside = nullptr;
   sensor::Sensor *room_temp = nullptr;
+  sensor::Sensor *dhw_temperature_tw = nullptr;
   number::Number *pump_interval_min = nullptr;
   number::Number *pump_duration_min = nullptr;
   sensor::Sensor *compressor_current_frequency = nullptr;
-  pid::PIDClimate *pid_climate = nullptr;
+  pid::PIDClimate *pid_heat_cool = nullptr;
   climate::Climate *thermostat_climate = nullptr;
   number::Number *pump_control = nullptr;
   binary_sensor::BinarySensor *pump_active = nullptr;
@@ -110,6 +121,7 @@ class OpenAmberController {
   text_sensor::TextSensor *hp_state_text_sensor = nullptr;
   binary_sensor::BinarySensor *oil_return_cycle = nullptr;
   number::Number *pump_speed_heating = nullptr;
+  number::Number *pump_speed_dhw = nullptr;
   binary_sensor::BinarySensor *heat_demand = nullptr;
   binary_sensor::BinarySensor *cool_demand = nullptr;
   binary_sensor::BinarySensor *defrost_active = nullptr;
@@ -121,7 +133,19 @@ class OpenAmberController {
   select::Select *heat_compressor_max_mode = nullptr;
   sensor::Sensor *pump_p0_current_pwm = nullptr;
   number::Number *defrost_backup_heater_boost_temperature = nullptr;
+
+  select::Select *three_way_valve_position = nullptr;
+  switch_::Switch *three_way_valve_dhw = nullptr;
+  number::Number *dhw_setpoint = nullptr;
+  binary_sensor::BinarySensor *dhw_demand = nullptr;
+  select::Select *dhw_compressor = nullptr;
+  select::Select *dhw_compressor_max = nullptr;
+  number::Number *dhw_ta_temperature_compressor_max = nullptr;
+  switch_::Switch *dhw_enabled = nullptr;
+  switch_::Switch *dhw_pump = nullptr;  
   int mode_offset = 0;
+  int dhw_mode_offset = 0;
+  int dhw_mode_max_offset = 0;
 
   void loop() {
     if(this->initialized)
@@ -136,7 +160,7 @@ class OpenAmberController {
     }
   }
 
-  void WritePIDValue(float pid_value) {
+  void WriteHeatPIDValue(float pid_value) {
     ESP_LOGD("amber", "Writing PID value: %.2f", pid_value);
     state.compressor_pid = pid_value;
   }
@@ -164,13 +188,15 @@ class OpenAmberController {
     this->pump_duration_min = &id(pump_duration);
 
     this->compressor_current_frequency = &id(current_compressor_frequency);
-    this->pid_climate = &id(compressor_pid_climate);
+    this->pid_heat_cool = &id(pid_heat_cool_temperature_control);
+    this->dhw_temperature_tw = &id(dhw_temperature_tw_sensor);
     this->thermostat_climate = &id(climate_controller);
     this->heat_demand = &id(heat_demand_active_sensor);
     this->cool_demand = &id(cool_demand_active_sensor);
 
     this->pump_control = &id(pump_control_pwm_number);
     this->pump_speed_heating = &id(pump_speed_heating_number);
+    this->pump_speed_dhw = &id(pump_speed_dhw_number);
     this->pump_active = &id(internal_pump_active);
     this->frost_protection_stage1 = &id(frost_protection_stage1_active);
     this->frost_protection_stage2 = &id(frost_protection_stage2_active);
@@ -192,7 +218,32 @@ class OpenAmberController {
 
     this->defrost_backup_heater_boost_temperature = &id(defrost_backup_heater_boost_temperature_sensor);
 
+    this->three_way_valve_position = &id(three_way_valve_select);
+    this->dhw_demand = &id(dhw_demand_active_sensor);
+    this->dhw_setpoint = &id(dhw_setpoint_temperature);
+    this->dhw_compressor = &id(dhw_compressor_mode);
+    this->dhw_compressor_max = &id(dhw_compressor_mode_max);
+    this->dhw_ta_temperature_compressor_max = &id(dhw_temperature_threshold_max_compressor_mode);
+    this->dhw_enabled = &id(dhw_enabled_switch);
+    this->dhw_pump = &id(dhw_pump_relay_switch);
+    this->three_way_valve_dhw = &id(three_way_valve_dhw_switch);
+
     this->mode_offset = this->compressor_control->size() - this->heat_compressor_max_mode->size();
+
+    // Initialize relays
+    id(initialize_relay_switch).turn_on();
+    this->pump_p0_relay->turn_on();
+
+    // Restore 3-way valve state based on relay position.
+    if (this->dhw_enabled->state)
+    {
+      bool is_valve_in_dhw_position = this->three_way_valve_dhw->state;
+      SetThreeWayValve(is_valve_in_dhw_position ? ThreeWayValvePosition::DHW : ThreeWayValvePosition::HEATING_COOLING);
+    }
+    else 
+    {
+      SetThreeWayValve(ThreeWayValvePosition::HEATING_COOLING);
+    }
 
     // Restore state whenever initialized while compressor is running.
     if(this->compressor_current_frequency->state > 0) {
@@ -203,6 +254,10 @@ class OpenAmberController {
     {
       state.pump_start_time = millis();
       SetNextState(HPState::PUMP_INTERVAL_RUNNING);
+    }
+    else if (this->backup_heater_active->state)
+    {
+      SetNextState(HPState::BACKUP_HEATER_RUNNING);
     }
     else
     {
@@ -239,21 +294,23 @@ class OpenAmberController {
   {
       const uint32_t now = millis();
 
-      float tc = temp_tc->state;
-      float target_temperature = pid_climate->target_temperature;
-      float supply_temperature_delta = tc - target_temperature;
+       // TODO: This probably needs more logic around priorities and heating time on or post defrost.
+      bool dhw_demand = this->dhw_demand->state && this->dhw_enabled->state;
+
+      float current_temperature = GetCurrentTemperature();
+      float target_temperature = GetTargetTemperature();
+      float supply_temperature_delta = GetTemperatureDelta();
 
       bool frost_protection_stage2_active = frost_protection_stage2->state;
       bool frost_protection_stage1_active = frost_protection_stage1->state;
 
       bool heating_or_cooling_demand = heat_demand->state || cool_demand->state;
 
-      bool pump_demand = heating_or_cooling_demand || frost_protection_stage1_active || frost_protection_stage2_active;
-      bool compressor_demand = heating_or_cooling_demand || frost_protection_stage2_active;
+      bool pump_demand = dhw_demand || heating_or_cooling_demand || frost_protection_stage1_active || frost_protection_stage2_active;
       bool pump_running = pump_active->state;
       bool compressor_running = compressor_current_frequency->state > 0;
 
-      const uint32_t min_on_ms  = COMPRESSOR_MIN_ON_S  * 1000UL;
+      const uint32_t min_on_ms = COMPRESSOR_MIN_ON_S  * 1000UL;
 
       switch (state.hp_state)
       {
@@ -265,7 +322,7 @@ class OpenAmberController {
             break;
           }
           else
-          {     
+          {
             state.defer_state_change_until_ms = 0;
             SetNextState(state.deferred_hp_state);
             state.deferred_hp_state = HPState::UNKNOWN;
@@ -276,7 +333,22 @@ class OpenAmberController {
         {
             if (!pump_demand) break;
 
-            if (now >= state.next_pump_cycle || ShouldStartCompressor(compressor_demand))
+            if (dhw_demand && !IsThreeWayValveInPosition(ThreeWayValvePosition::DHW))
+            {
+              SetThreeWayValve(ThreeWayValvePosition::DHW);
+              state.is_switching_modes = true;
+              LeaveStateAndSetNextStateAfterWaitTime(HPState::IDLE, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);
+              break;
+            }
+            else if (!dhw_demand && !IsThreeWayValveInPosition(ThreeWayValvePosition::HEATING_COOLING))
+            {
+              state.is_switching_modes = true;
+              LeaveStateAndSetNextStateAfterWaitTime(HPState::IDLE, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);
+              break;   
+            }
+
+            // If interval is elapsed or there is compressor demand, start pump immediately.
+            if (now >= state.next_pump_cycle || ShouldStartCompressor())
             {
                 StartPump();
                 SetNextState(HPState::WAIT_PUMP_RUNNING);
@@ -294,7 +366,7 @@ class OpenAmberController {
         }
         case HPState::PUMP_INTERVAL_RUNNING:
         {
-          bool should_start_compressor = ShouldStartCompressor(compressor_demand);
+          bool should_start_compressor = ShouldStartCompressor();
           ApplyPumpSpeedChangeIfNeeded();
 
           // Stop pump when duration expired.
@@ -313,14 +385,41 @@ class OpenAmberController {
           }
 
           bool pump_on_long_enough = millis() - state.pump_start_time >= (COMPRESSOR_MIN_TIME_PUMP_ON * 1000UL);
-          if(!pump_on_long_enough) {
+          if(!pump_on_long_enough && !IsInDhwMode()) {
             ESP_LOGI("amber", "Not starting compressor because Tc needs to stabilize (pump on time too short)");
             break;
           }
 
-          SetWorkingMode(this->heat_demand->state ? WORKING_MODE_HEATING : WORKING_MODE_COOLING);
-          StartCompressor(supply_temperature_delta);
+          // After mode switch, always start when there is demand.
+          const uint32_t min_off_ms = COMPRESSOR_MIN_OFF_S * 1000UL;
+          if (millis() < state.last_compressor_stop_ms + min_off_ms && !state.is_switching_modes) {
+            ESP_LOGI("amber", "Not starting compressor because minimum compressor time off is not reached.");
+            break;
+          }
+
+          int workingMode = IsInDhwMode() ? WORKING_MODE_HEATING :
+                            this->heat_demand->state ? WORKING_MODE_HEATING : WORKING_MODE_COOLING;
+
+          SetWorkingMode(workingMode);
+          StartCompressor();
           SetNextState(HPState::WAIT_COMPRESSOR_RUNNING);
+          break;
+        }
+        case HPState::WAIT_PUMP_STOP:
+        {
+          if (!pump_running)
+          {
+            if(IsInDhwMode())
+            {
+              // If we are in DHW mode, always switch back to heating/cooling after pump is stopped.
+              SetThreeWayValve(ThreeWayValvePosition::HEATING_COOLING);
+            }
+
+            SetNextState(HPState::IDLE);
+          }
+          else {
+            // TODO: Implement timeout for when pump does not stop.
+          }
           break;
         }
         case HPState::WAIT_COMPRESSOR_RUNNING:
@@ -328,12 +427,12 @@ class OpenAmberController {
           if (compressor_running)
           {
             state.last_compressor_start_ms = now;
-            SetNextState(HPState::COMPRESSOR_SOFTSTART);
+            SetNextState(IsInDhwMode() ? HPState::COMPRESSOR_RUNNING : HPState::HEAT_COOL_COMPRESSOR_SOFTSTART);
           }
           // TODO: Implement timeout for when compressor does not start.
           break;
         }
-        case HPState::COMPRESSOR_SOFTSTART:
+        case HPState::HEAT_COOL_COMPRESSOR_SOFTSTART:
         {
           if (now - state.last_compressor_start_ms >= COMPRESSOR_SOFT_START_DURATION_S * 1000UL)
           {
@@ -366,15 +465,23 @@ class OpenAmberController {
           // Only check for stop conditions when min on time is passed.
           if (hasPassedMinOnTime)
           {
-            if (!compressor_demand) {
+            if (!IsCompressorDemandForCurrentMode()) {
               ESP_LOGI("amber", "Stopping compressor because there is no demand.");
               StopCompressor();
               SetNextState(HPState::WAIT_COMPRESSOR_STOP);
               break;
             }
 
-            // Stop when we are close enough to target
-            if (supply_temperature_delta >= stop_compressor_delta->state) {
+            if (dhw_demand && !IsInDhwMode())
+            {
+                ESP_LOGI("amber", "Stopping compressor because there is demand for DHW.");
+                StopCompressor();
+                SetNextState(HPState::WAIT_COMPRESSOR_STOP);
+                break;
+            }
+
+            // Stop when we overshoot above target + delta.
+            if (supply_temperature_delta >= stop_compressor_delta->state && !IsInDhwMode()) {
               if(this->oil_return_cycle->state)
               {
                 // Every 2 hours of compressor running in low frequency it will do an oil return cycle, this will mess up the delta T based stopping.
@@ -390,7 +497,14 @@ class OpenAmberController {
             }
           }
 
-          ManageCompressorModulation();
+          if(IsInDhwMode())
+          {
+            // TODO: Implement go to max configured frequency when Ta is below specified setting.
+          }
+          else 
+          {
+            ManageCompressorModulation();
+          }
           break;
         }
         case HPState::WAIT_COMPRESSOR_STOP:
@@ -415,10 +529,10 @@ class OpenAmberController {
         }
         case HPState::BACKUP_HEATER_RUNNING:
         {
-          float predicted_tc = CalculateBackupHeaterPredictedTc();
-          // Disable backup heater if predicted Tc is above target.
-          if(predicted_tc >= target_temperature + 2.0f) { // Margin to buffer some heat to reduce undershoot.
-            ESP_LOGI("amber", "Disabling backup heater (predicted Tc %.2f°C above target %.2f°C)", predicted_tc, target_temperature);
+          float predicted_temperature = CalculateBackupHeaterPredictedTemperature();
+          // Disable backup heater if predicted Temperature is above target.
+          if(predicted_temperature >= target_temperature + 2.0f) { // Margin to buffer some heat to reduce undershoot.
+            ESP_LOGI("amber", "Disabling backup heater (predicted Temperature %.2f°C above target %.2f°C)", predicted_temperature, target_temperature);
             backup_heater->turn_off();
             LeaveStateAndSetNextStateAfterWaitTime(HPState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
             return;
@@ -446,9 +560,32 @@ class OpenAmberController {
             SetCompressorMode(defrost_recovery_mode);
             LeaveStateAndSetNextStateAfterWaitTime(HPState::COMPRESSOR_RUNNING, COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
           }
-          pid_climate->reset_integral_term();
+          pid_heat_cool->reset_integral_term();
         }
       }
+  }
+
+  bool IsInDhwMode()
+  {
+    return IsThreeWayValveInPosition(ThreeWayValvePosition::DHW);
+  }
+
+  bool IsThreeWayValveInPosition(ThreeWayValvePosition position)
+  {
+    return this->three_way_valve_position->active_index() == (int)position;
+  }
+
+  void SetThreeWayValve(ThreeWayValvePosition position)
+  {
+      auto three_way_valve_call = this->three_way_valve_position->make_call();
+      three_way_valve_call.set_index((int)position);
+      three_way_valve_call.perform();
+      ESP_LOGI("amber", "Setting 3-way valve to %s.", this->three_way_valve_position->current_option());
+  }
+
+  float GetCurrentPumpSpeedSetting()
+  {
+    return (IsInDhwMode() ? this->pump_speed_dhw : this->pump_speed_heating)->state;
   }
 
   void ApplyPumpSpeedChangeIfNeeded()
@@ -458,13 +595,15 @@ class OpenAmberController {
       return;
     }
 
-    SetPumpPwmDutyCycle(this->pump_speed_heating->state);
+    SetPumpPwmDutyCycle(GetCurrentPumpSpeedSetting());
   }
 
+  /// @brief Calculate and update the accumulated backup heater degree/minutes.
+  /// Will not accumulate if not at max compressor mode.
   void CalculateAccumulatedBackupHeaterDegreeMinutes()
   {
     float tc = temp_tc->state;
-    float target = pid_climate->target_temperature;
+    float target = pid_heat_cool->target_temperature;
     const float diff = std::max(0.0f, target - tc);
     uint32_t dt_ms = millis() - state.backup_degmin_last_ms;
     state.backup_degmin_last_ms = millis();
@@ -488,10 +627,10 @@ class OpenAmberController {
     ESP_LOGD("amber", "Backup heater degree/minutes updated: +%.2f -> %.2f", diff * dt_min, state.accumulated_backup_degmin);
   }
 
-  float CalculateBackupHeaterPredictedTc()
+  float CalculateBackupHeaterPredictedTemperature()
   {
-    float tc = temp_tc->state;
-    float target = pid_climate->target_temperature;
+    float current_temperature = GetCurrentTemperature();
+    float target = GetTargetTemperature();
 
     uint32_t dt_ms = millis() - state.backup_degmin_last_ms;
     const float dt_min = (float)dt_ms / 60000.0f;
@@ -501,38 +640,37 @@ class OpenAmberController {
       return 0.0f;
     }
     // Calculate degree/minute rate.
-    float rate = (tc - state.last_tc_for_rate) / dt_min;
+    float rate = (current_temperature - state.last_temperature_for_rate) / dt_min;
     // Low-pass filter the rate to avoid spikes.
     double a = 0.2f;
-    state.tc_rate_c_per_min = (1-a) * state.tc_rate_c_per_min + a * rate;
-    state.last_tc_for_rate = tc;
-
+    state.temperature_rate_c_per_min = (1-a) * state.temperature_rate_c_per_min + a * rate;
+    state.last_temperature_for_rate = current_temperature;
     // Predict future Tc based on current rate.
-    float predicted_tc = tc + state.tc_rate_c_per_min * ((float)BACKUP_HEATER_LOOKAHEAD_S / 60.0f);
+    float predicted_temperature = current_temperature + state.temperature_rate_c_per_min * ((float)BACKUP_HEATER_LOOKAHEAD_S / 60.0f);
     state.backup_degmin_last_ms = millis();
-    ESP_LOGI("amber", "Backup heater tc rate/min updated: %.2f (Predicted Tc: %.2fÂ°C)", state.tc_rate_c_per_min, predicted_tc);
-    return predicted_tc;
+    ESP_LOGI("amber", "Backup heater temperature rate/min updated: %.2f (Predicted Temperature: %.2fÂ°C)", state.temperature_rate_c_per_min, predicted_temperature);
+    return predicted_temperature;
   }
 
-  bool ShouldStartCompressor(bool compressor_demand)
+  bool ShouldStartCompressor()
   {
-    float tc = temp_tc->state;
-    const uint32_t min_off_ms = COMPRESSOR_MIN_OFF_S * 1000UL;
+    if(IsInDhwMode())
+    {
+      return this->dhw_demand->state;
+    }
+
+    float current_temperature = GetCurrentTemperature();
+    float target_temperature = GetTargetTemperature();
   
-    if (!compressor_demand) {
+    if (!IsCompressorDemandForCurrentMode()) {
       ESP_LOGI("amber", "Not starting compressor because there is no demand.");
       return false;
     }
 
-    // Start condition based on Tc and start_compressor_delta.
-    float start_temperature = pid_climate->target_temperature - start_compressor_delta->state;
-    if (tc >= start_temperature && !frost_protection_stage2->state) {
-      ESP_LOGI("amber", "Not starting compressor because Tc(%.2f) is higher than the start temperature(%.2f)", tc, start_temperature);
-      return false;
-    }
-
-    if (millis() < state.last_compressor_stop_ms + min_off_ms) {
-      ESP_LOGI("amber", "Not starting compressor because minimum compressor time off is not reached.");
+    // Start condition based on target temperature and start_compressor_delta.
+    float start_temperature = target_temperature - start_compressor_delta->state;
+    if (current_temperature >= start_temperature && !frost_protection_stage2->state) {
+      ESP_LOGI("amber", "Not starting compressor because target temperature (%.2f) is higher than the start temperature(%.2f)", current_temperature, start_temperature);
       return false;
     }
 
@@ -550,9 +688,9 @@ class OpenAmberController {
     }
 
     // Deadband on Tc to avoid too frequent changes around setpoint
-    float tc = temp_tc->state;
-    float target = pid_climate->target_temperature;
-    float dt = tc - target;
+    float current_temperature = GetCurrentTemperature();
+    float target = GetTargetTemperature();
+    float dt = GetTemperatureDelta();
 
     if (fabsf(dt) < DEAD_BAND_DT) {
       ESP_LOGD("amber", "ΔT=%.2f°C within deadband, compressor mode remains at %d",
@@ -562,8 +700,8 @@ class OpenAmberController {
 
     // If Tc is above setpoint, then never modulate up.
     const float TEMP_MARGIN = 0.3f; // Minor margin to reduce noise
-    if (tc > (target + TEMP_MARGIN) && desired_compressor_mode > current_compressor_mode) {
-        ESP_LOGW("amber", "Tc is above target and PID controller wanted to move to a higher compressor mode.");
+    if (current_temperature > (target + TEMP_MARGIN) && desired_compressor_mode > current_compressor_mode) {
+        ESP_LOGW("amber", "Temperature is above target and PID controller wanted to move to a higher compressor mode.");
         return;
     }
     
@@ -600,8 +738,34 @@ class OpenAmberController {
     int compressor_frequency_mode = DetermineSoftStartMode(supply_temperature_delta);
     ESP_LOGI("amber", "Soft start mode: %d (ΔT=%.1f°C)", compressor_frequency_mode, supply_temperature_delta);
 
-    pid_climate->reset_integral_term();
+    pid_heat_cool->reset_integral_term();
     SetCompressorMode(compressor_frequency_mode);
+  }
+
+  void StartCompressor() {
+    state.is_switching_modes = false;
+    if(IsInDhwMode())
+    { 
+      float temperature_ta = temp_outside->state;
+      float ta_threshold = dhw_ta_temperature_compressor_max->state;
+      int dhw_compressor_mode = this->dhw_compressor->active_index().value() + this->dhw_mode_offset;
+      if(temperature_ta <= ta_threshold)
+      {
+          dhw_compressor_mode = this->dhw_compressor_max->active_index().value() + this->dhw_mode_max_offset;
+          ESP_LOGI("amber", "Outside temperature (Ta=%.2f°C) is below threshold (%.2f°C), setting DHW compressor to max mode", temperature_ta, ta_threshold);
+      }
+      ESP_LOGI("amber", "Starting compressor in DHW mode, setting compressor to mode %d", dhw_compressor_mode);
+      SetCompressorMode(dhw_compressor_mode);
+    }
+    else
+    {
+      float supply_temperature_delta = GetTemperatureDelta();
+      ESP_LOGI("amber", "Starting compressor (ΔT=%.2f°C)", supply_temperature_delta);
+      int compressor_frequency_mode = DetermineSoftStartMode(supply_temperature_delta);
+      ESP_LOGI("amber", "Soft start mode: %d (ΔT=%.1f°C)", compressor_frequency_mode, supply_temperature_delta);
+      pid_heat_cool->reset_integral_term();
+      SetCompressorMode(compressor_frequency_mode);
+    }
   }
 
   /// @brief Determine the compressor mode at which to start the compressor.
@@ -654,12 +818,23 @@ class OpenAmberController {
       this->pump_p0_relay->turn_on();
     }
 
-    SetPumpPwmDutyCycle(this->pump_speed_heating->state);
+    SetPumpPwmDutyCycle(GetCurrentPumpSpeedSetting());
+
+    if(IsInDhwMode()) {
+      ESP_LOGI("amber", "Starting DHW pump.");
+      this->dhw_pump->turn_on();
+    }
+
     state.pump_start_time = millis();
   }
 
   void StopPump()
   {
+    if(IsInDhwMode()) {
+      ESP_LOGI("amber", "Starting DHW pump.");
+      this->dhw_pump->turn_off();
+    }
+
     SetPumpPwmDutyCycle(0);
   }
 
@@ -668,6 +843,35 @@ class OpenAmberController {
     auto working_mode_call = working_mode->make_call();
     working_mode_call.set_index(workingMode);
     working_mode_call.perform();
+  }
+
+  float GetTargetTemperature()
+  {
+    bool is_dhw_mode = IsThreeWayValveInPosition(ThreeWayValvePosition::DHW);
+    return is_dhw_mode ? this->dhw_setpoint->state : this->pid_heat_cool->target_temperature;
+  }
+
+  float GetCurrentTemperature()
+  {
+    bool is_dhw_mode = IsThreeWayValveInPosition(ThreeWayValvePosition::DHW);
+    return is_dhw_mode ? this->dhw_temperature_tw->state : this->temp_tc->state;
+  }
+
+  float GetTemperatureDelta()
+  {
+    return GetCurrentTemperature() - GetTargetTemperature();
+  }
+
+  bool IsCompressorDemandForCurrentMode()
+  {
+    if(IsInDhwMode())
+    {
+        return this->dhw_demand->state;
+    }
+    else
+    {
+        return this->heat_demand->state || this->cool_demand->state || frost_protection_stage2->state;
+    }
   }
 
   void LeaveStateAndSetNextStateAfterWaitTime(HPState new_state, uint32_t defer_ms)
@@ -680,56 +884,58 @@ class OpenAmberController {
   void SetPumpPwmDutyCycle(float duty_cycle)
   {
     float control_speed = ((duty_cycle*10)*-1)+1000;
-    ESP_LOGI("amber", "Applying pump speed change to %.0f (Duty cycle: %.0f)", control_speed, duty_cycle);
-
-    if(this->pump_p0_current_pwm->state != control_speed)
+    if(this->pump_p0_current_pwm->raw_state != control_speed)
     {
-      this->pump_control->publish_state(control_speed);
+      ESP_LOGI("amber", "Applying pump speed change to %.0f (Duty cycle: %.0f)", control_speed, duty_cycle);
+      auto pump_call = this->pump_control->make_call();
+      pump_call.set_value(control_speed);
+      pump_call.perform();
     }
   }
 
   void SetNextState(HPState new_state)
   {
-      const char *txt = "Unknown";
-      state.hp_state = new_state;
-      switch (new_state) {
-        case HPState::IDLE:
-          txt = "Idle";
-          break;
-        case HPState::PUMP_INTERVAL_RUNNING:
-          txt = "Pump interval running";
-          break;
-        case HPState::WAIT_PUMP_RUNNING:
-          txt = "Wait for pump running";
-          break;
-        case HPState::WAIT_COMPRESSOR_RUNNING:
-          txt = "Wait for compressor running";
-          break;
-        case HPState::COMPRESSOR_SOFTSTART:
-          txt = "Compressor soft start";
-          break;
-        case HPState::COMPRESSOR_RUNNING:
-          txt = "Compressor running";
-          break;
-        case HPState::WAIT_COMPRESSOR_STOP:
-          txt = "Waiting for compressor to stop";
-          break;
-        case HPState::WAIT_BACKUP_HEATER_RUNNING:
-          txt = "Wait for backup heater running";
-          break;
-        case HPState::BACKUP_HEATER_RUNNING:
-          txt = "Backup heater running";
-          break;
-        case HPState::DEFROSTING:
-          txt = "Defrosting";
-          break;
-        case HPState::WAIT_FOR_STATE_SWITCH:
-          txt = "Waiting for wait time to elapse";
-          break;
-        case HPState::WAIT_PUMP_STOP:
-          txt = "Waiting for pump to stop";
-          break;
-      }
+    const char *txt = "Unknown";
+    state.hp_state = new_state;
+
+    switch (new_state) {
+      case HPState::IDLE:
+        txt = "Idle";
+        break;
+      case HPState::PUMP_INTERVAL_RUNNING:
+        txt = "Pump interval running";
+        break;
+      case HPState::WAIT_PUMP_RUNNING:
+        txt = "Wait for pump running";
+        break;
+      case HPState::WAIT_COMPRESSOR_RUNNING:
+        txt = "Wait for compressor running";
+        break;
+      case HPState::HEAT_COOL_COMPRESSOR_SOFTSTART:
+        txt = "Compressor soft start";
+        break;
+      case HPState::COMPRESSOR_RUNNING:
+        txt = "Compressor running";
+        break;
+      case HPState::WAIT_COMPRESSOR_STOP:
+        txt = "Waiting for compressor to stop";
+        break;
+      case HPState::WAIT_BACKUP_HEATER_RUNNING:
+        txt = "Wait for backup heater running";
+        break;
+      case HPState::BACKUP_HEATER_RUNNING:
+        txt = "Backup heater running";
+        break;
+      case HPState::DEFROSTING:
+        txt = "Defrosting";
+        break;
+      case HPState::WAIT_FOR_STATE_SWITCH:
+        txt = "Waiting for wait time to elapse";
+        break;
+      case HPState::WAIT_PUMP_STOP:
+        txt = "Waiting for pump to stop";
+        break;
+    }
 
     hp_state_text_sensor->publish_state(txt);
     ESP_LOGI("amber", "HP state changed: %s", txt);
