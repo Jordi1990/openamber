@@ -21,7 +21,7 @@ jobs:
         uses: esphome/build-action@v7
         with:
           yaml-file: src/openamber.yaml
-          version: "2025.12.0"
+          version: "2025.12.6"
           complete-manifest: true
 
       - name: Upload manifest
