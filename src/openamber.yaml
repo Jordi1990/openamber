@@ -8,7 +8,7 @@ esphome:
   friendly_name: OpenAmber
   project:
     name: jordi.openamber
-    version: 0.0.2
+    version: 0.0.3
   includes: 
     - openamber.h
 
@@ -155,20 +155,20 @@ climate:
 
   # TODO: Find a way to set PID values from settings and maybe different profiles for heating/cooling/dhw.
   - platform: pid
-    id: compressor_pid_climate
+    id: pid_heat_cool_temperature_control
     internal: True
-    name: "Compressor PID Climate"
     sensor: heat_cool_temperature_tc
     default_target_temperature: 30°C
     heat_output: pid_heat_output
     cool_output: pid_cool_output
     control_parameters:
       kp: 0.6
-      ki: 0.003
+      ki: 0.002
       kd: 0.7
     deadband_parameters:
       threshold_low: -1
       threshold_high: 1
+      deadband_output_averaging_samples: 6
     visual:
       min_temperature: 10
       max_temperature: 45
@@ -179,7 +179,7 @@ output:
     type: float
     write_action:
       - lambda: |-
-          AMBER.WritePIDValue(state);
+          AMBER.WriteHeatPIDValue(state);
 
   - platform: template
     id: pid_cool_output
@@ -229,6 +229,23 @@ sensor:
   update_interval: 20s
 
 - platform: template
+  id: temperature_outside_ta_avg_1h
+  name: "Buiten temperatuur (1h gemiddelde)"
+  internal: true
+  unit_of_measurement: "°C"
+  accuracy_decimals: 1
+  update_interval: 15s
+  lambda: |-
+    return id(temperature_outside_ta).state;
+  filters:
+    - median:
+        window_size: 5
+        send_every: 1
+    - sliding_window_moving_average:
+        window_size: 240
+        send_every: 1
+
+- platform: template
   id: current_setpoint
   name: "Huidig setpoint"
   unit_of_measurement: "°C"
@@ -245,7 +262,7 @@ sensor:
     }
   on_value:
     - lambda: |-
-        auto call = id(compressor_pid_climate).make_call();
+        auto call = id(pid_heat_cool_temperature_control).make_call();
         call.set_target_temperature(x);
         call.perform();
 
@@ -257,7 +274,7 @@ sensor:
   accuracy_decimals: 0
   update_interval: 15s
   lambda: |-
-    const float Ta = id(temperature_outside_ta).state;
+    const float Ta = id(temperature_outside_ta_avg_1h).state;
 
     const float tc15  = id(heat_curve_p15).state;
     const float tc10  = id(heat_curve_p10).state;
@@ -282,11 +299,8 @@ sensor:
     then:
       - component.update: current_setpoint
   filters:
-    - exponential_moving_average:
-        alpha: 0.06
-        send_every: 1
     - round_to_multiple_of: 1
-    - delta: 0.5
+    - delta: 1
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -308,6 +322,7 @@ sensor:
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
+  id: dhw_temperature_tw_sensor
   name: "Tapwatertemperatuur (Tw)"
   address: 1200
   register_type: holding
@@ -429,13 +444,22 @@ sensor:
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
-  name: "Interne pomp stand"
+  id: pump_p0_current_pwm_sensor
+  name: "Pomp P0 PWM"
   address: 1303
   register_type: holding
   value_type: S_WORD
+  unit_of_measurement: "%"
   state_class: "measurement"
+  filters:
+    - lambda: |-
+        return ((x * -1) + 1000) / 10;
   web_server: 
     sorting_group_id: sensors_inside
+  on_value: 
+    then:
+      - lambda: 
+          id(modbus_inside_is_online) = true;
 
 # Outside unit
 - platform: modbus_controller
@@ -633,33 +657,6 @@ sensor:
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
-  name: "Alarm codes"
-  address: 2119
-  register_type: holding
-  value_type: S_WORD
-  web_server: 
-    sorting_group_id: sensors_outside
-
-- platform: modbus_controller
-  modbus_controller_id: modbus_outside_unit
-  name: "Status 1?"
-  address: 2120
-  register_type: holding
-  value_type: S_WORD
-  web_server: 
-    sorting_group_id: sensors_outside
-
-- platform: modbus_controller
-  modbus_controller_id: modbus_outside_unit
-  name: "Status 2?"
-  address: 2121
-  register_type: holding
-  value_type: S_WORD
-  web_server: 
-    sorting_group_id: sensors_outside
-
-- platform: modbus_controller
-  modbus_controller_id: modbus_outside_unit
   id: outside_unit_program_version
   internal: True
   skip_updates: 10
@@ -760,6 +757,17 @@ text_sensor:
     update_interval: never
 
 binary_sensor:
+  - platform: template
+    name: "Tapwater vraag"
+    id: dhw_demand_active_sensor
+    device_class: running
+    lambda: |-
+        float restart_delta = id(dhw_restart_dhw_delta).state;
+        float tw = id(dhw_temperature_tw_sensor).state;
+        float setpoint = id(dhw_setpoint_temperature).state;
+
+        return (setpoint - tw) >= restart_delta;
+
   - platform: template
     name: "Warmtevraag"
     id: heat_demand_active_sensor
@@ -869,6 +877,7 @@ binary_sensor:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_inside_unit
+    id: dhw_pump_active_sensor
     name: "Tapwater pomp"
     address: 1302
     register_type: holding
@@ -979,68 +988,302 @@ binary_sensor:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
-    name: "Alarm - Main Line Current"
-    icon: mdi:message-alert
+    name: "Bedrijfstroom warmtepomp (P01)"
     register_type: holding
     address: 2119
-    bitmask: 0x1
-    web_server: 
-      sorting_group_id: sensors_outside
+    bitmask: 0x0001
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Bedrijfstroom warmtepomp (P02)"
+    register_type: holding
+    address: 2119
+    bitmask: 0x0002
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing compressorstart (P03)"
+    register_type: holding
+    address: 2119
+    bitmask: 0x0004
+    device_class: problem
+    entity_category: diagnostic
+
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
     id: oil_return_cycle_active
-    name: "Olie-terugloop cyclus actief (P04)"
+    name: "Olie-terugloopcyclus (P04)"
     icon: mdi:autorenew
     register_type: holding
     address: 2119
-    bitmask: 0x8
-    web_server: 
-      sorting_group_id: sensors_outside
+    bitmask: 0x0008
+    device_class: running
+    entity_category: diagnostic
+
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
-    name: "Alarm - High Pressure Switch"
-    icon: mdi:message-alert
+    name: "Hogedrukbeveiliging (P05)"
     register_type: holding
     address: 2119
-    bitmask: 0x10
-    web_server: 
-      sorting_group_id: sensors_outside
+    bitmask: 0x0010
+    device_class: problem
+    entity_category: diagnostic
+
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
-    name: "Alarm - 1st Start Pre-heat"
-    icon: mdi:message-alert
+    name: "Laag drukverschil (P06)"
     register_type: holding
     address: 2119
-    bitmask: 0x40
-    web_server: 
-      sorting_group_id: sensors_outside
+    bitmask: 0x0020
+    device_class: problem
+    entity_category: diagnostic
+
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
-    name: "Alarm - AC High/Low Voltage"
-    icon: mdi:message-alert
+    name: "Compressor voorverwarming (P07)"
     register_type: holding
     address: 2119
-    bitmask: 0x200
-    web_server: 
-      sorting_group_id: sensors_outside
+    bitmask: 0x0040
+    device_class: running
+    entity_category: diagnostic
+
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
-    name: "Alarm - Defrosting?"
-    icon: mdi:message-alert
+    name: "Storing sensor persgasdruk (P08)"
     register_type: holding
     address: 2119
-    bitmask: 0x800
-    web_server: 
-      sorting_group_id: sensors_outside
+    bitmask: 0x0080
+    device_class: problem
+    entity_category: diagnostic
+
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
-    name: "Alarm - Low Pressure Switch"
-    icon: mdi:message-alert
+    name: "Storing sensor verdamper/condensor (P09)"
+    register_type: holding
+    address: 2119
+    bitmask: 0x0100
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Voedingsspanning (P10)"
+    register_type: holding
+    address: 2119
+    bitmask: 0x0200
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Compressor begrenzing (P11)"
+    register_type: holding
+    address: 2119
+    bitmask: 0x0400
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Compressor begrenzing (P12)"
+    register_type: holding
+    address: 2119
+    bitmask: 0x0800
+    device_class: running
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Laag drukverschil (P13)"
     register_type: holding
     address: 2119
     bitmask: 0x1000
-    web_server: 
-      sorting_group_id: sensors_outside
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing buitentemperatuursensor (F01)"
+    register_type: holding
+    address: 2120
+    bitmask: 0x0001
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing sensor verdamper/condensor (F02)"
+    register_type: holding
+    address: 2120
+    bitmask: 0x0002
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing persgas temperatuursensor (F03)"
+    register_type: holding
+    address: 2120
+    bitmask: 0x0004
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing zuigas temperatuursensor (F04)"
+    register_type: holding
+    address: 2120
+    bitmask: 0x0008
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing zuiggas druk sensor (F05)"
+    register_type: holding
+    address: 2120
+    bitmask: 0x0010
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing persgas druk sensor (F06)"
+    register_type: holding
+    address: 2120
+    bitmask: 0x0020
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing hogedrukbeveiliging (F07)"
+    register_type: holding
+    address: 2120
+    bitmask: 0x0040
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing ventilatormotor DC (F09)"
+    register_type: holding
+    address: 2120
+    bitmask: 0x0100
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Communicatiefout PCB (E01)"
+    register_type: holding
+    address: 2121
+    bitmask: 0x0001
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing inverter communicatie (E02)"
+    register_type: holding
+    address: 2121
+    bitmask: 0x0002
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Bedrijfsstroom warmtepomp (E03)"
+    register_type: holding
+    address: 2121
+    bitmask: 0x0004
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Bedrijfsstroom warmtepomp (E04)"
+    register_type: holding
+    address: 2121
+    bitmask: 0x0008
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing inverter (E05)"
+    register_type: holding
+    address: 2121
+    bitmask: 0x0010
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing VCD-module (E06)"
+    register_type: holding
+    address: 2121
+    bitmask: 0x0020
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing voedingsspanning (E07)"
+    register_type: holding
+    address: 2121
+    bitmask: 0x0040
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing EEPROM warmtepomp (E08)"
+    register_type: holding
+    address: 2121
+    bitmask: 0x0080
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing ventilatormotor DC (F10)"
+    register_type: holding
+    address: 2121
+    bitmask: 0x0100
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing sensor aanvoertemperatuur Tuo (F16)"
+    register_type: holding
+    address: 2121
+    bitmask: 0x0200
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing sensor retourtemperatuur Tui (F17)"
+    register_type: holding
+    address: 2121
+    bitmask: 0x0400
+    device_class: problem
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: modbus_outside_unit
+    name: "Storing sensor condensortemperatuur Tup (F18)"
+    register_type: holding
+    address: 2121
+    bitmask: 0x0800
+    device_class: problem
+    entity_category: diagnostic
 
   - platform: template
     id: modbus_inside_online
@@ -1151,6 +1394,7 @@ number:
   name: "Stooklijn @ +15°C"
   optimistic: True
   unit_of_measurement: "°C"
+  device_class: "temperature"
   min_value: 15
   max_value: 45
   step: 1
@@ -1165,6 +1409,7 @@ number:
   name: "Stooklijn @ +10°C"
   optimistic: True
   unit_of_measurement: "°C"
+  device_class: "temperature"
   min_value: 15
   max_value: 45
   step: 1
@@ -1179,6 +1424,7 @@ number:
   name: "Stooklijn Tc @ +5°C"
   optimistic: True
   unit_of_measurement: "°C"
+  device_class: "temperature"
   min_value: 15
   max_value: 45
   step: 1
@@ -1193,6 +1439,7 @@ number:
   name: "Stooklijn Tc  0°C"
   optimistic: True
   unit_of_measurement: "°C"
+  device_class: "temperature"
   min_value: 15
   max_value: 45
   step: 1
@@ -1207,6 +1454,7 @@ number:
   name: "Stooklijn Tc @ -10°C"
   optimistic: True
   unit_of_measurement: "°C"
+  device_class: "temperature"
   min_value: 15
   max_value: 45
   step: 1
@@ -1221,6 +1469,7 @@ number:
   name: "Handmatig setpoint Cv-aanvoertemperatuur"
   optimistic: True
   unit_of_measurement: "°C"
+  device_class: "temperature"
   min_value: 15
   max_value: 45
   step: 1
@@ -1229,6 +1478,48 @@ number:
   on_value: 
     then:
       - component.update: current_setpoint
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  id: dhw_setpoint_temperature
+  name: "Tapwater temperatuur setpoint"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 25
+  max_value: 75
+  step: 1
+  initial_value: 55
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  id: dhw_restart_dhw_delta
+  name: "∆T herstart tapwater verwarmen"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 2
+  max_value: 25
+  step: 1
+  initial_value: 5
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  id: dhw_temperature_threshold_max_compressor_mode
+  name: "Buitentemperatuur Tapwater winter vermogen"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: -20
+  max_value: 10
+  step: 1
+  initial_value: 5
+  entity_category: config
   web_server: 
       sorting_group_id: settings
 
@@ -1246,6 +1537,44 @@ number:
   icon: mdi:heat-wave
   web_server: 
       sorting_group_id: settings
+
+- platform: template
+  id: pump_speed_heating_number
+  name: "Pomp snelheid verwarmen"
+  optimistic: True
+  min_value: 0
+  max_value: 100
+  step: 1
+  unit_of_measurement: "%"
+  initial_value: 100
+  restore_value: True
+  entity_category: config
+  web_server: 
+    sorting_group_id: settings
+
+- platform: template
+  id: pump_speed_dhw_number
+  name: "Pomp snelheid tapwater"
+  optimistic: True
+  min_value: 0
+  max_value: 100
+  step: 1
+  unit_of_measurement: "%"
+  initial_value: 100
+  restore_value: True
+  entity_category: config
+  web_server: 
+    sorting_group_id: settings
+
+- platform: modbus_controller
+  id: pump_control_pwm_number
+  modbus_controller_id: modbus_inside_unit
+  name: "Pomp PWM"
+  address: 1103
+  min_value: 0
+  max_value: 1000
+  web_server: 
+    sorting_group_id: control_inside
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -1289,6 +1618,21 @@ number:
   web_server: 
       sorting_group_id: settings
 
+- platform: template
+  id: defrost_backup_heater_boost_temperature_sensor
+  name: "Defrost boost buitentemperatuur"
+  optimistic: True
+  restore_value: True
+  initial_value: -3
+  step: 1
+  min_value: -15
+  max_value: 15
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  entity_category: config
+  web_server: 
+    sorting_group_id: settings
+
 switch:
  - platform: gpio
    pin: GPIO22
@@ -1305,20 +1649,24 @@ switch:
    restore_mode: RESTORE_DEFAULT_OFF
 
  - platform: template
+   id: dhw_enabled_switch
+   name: "Tapwater aanwezig"
+   optimistic: True
+   restore_mode: RESTORE_DEFAULT_OFF
+   entity_category: config
+   web_server: 
+    sorting_group_id: settings
+
+ - platform: template
    id: amber_controller_active
    name: "Amber controller actief"
    optimistic: True
-   on_turn_on: 
-     then:
-      # Initialize board relays
-      - switch.turn_on: pump_p0_relay_switch
-      - switch.turn_on: pump_p1_relay_switch
-      - switch.turn_on: pump_p2_relay_switch
-      - switch.turn_on: initialize_step_4
+   restore_mode: ALWAYS_ON
 
  - platform: modbus_controller
    modbus_controller_id: modbus_inside_unit
    id: pump_p0_relay_switch
+   internal: True
    name: "Pomp P0 relais"
    address: 1099
    register_type: holding
@@ -1328,6 +1676,7 @@ switch:
  - platform: modbus_controller
    modbus_controller_id: modbus_inside_unit
    id: pump_p1_relay_switch
+   internal: True
    name: "Pomp P1 relais"
    address: 1100
    register_type: holding
@@ -1337,20 +1686,42 @@ switch:
  - platform: modbus_controller
    modbus_controller_id: modbus_inside_unit
    id: pump_p2_relay_switch
+   internal: True
    name: "Pomp P2 relais"
    address: 1101
+   register_type: holding
+   web_server: 
+     sorting_group_id: control_inside
+
+ - platform: modbus_controller
+   modbus_controller_id: modbus_inside_unit
+   id: dhw_pump_relay_switch
+   internal: True
+   name: "Tapwater pomp relais"
+   address: 1102
    register_type: holding
    web_server: 
      sorting_group_id: control_inside
      
  - platform: modbus_controller
    modbus_controller_id: modbus_inside_unit
-   id: initialize_step_4
-   name: "Binnen unit Onbekend #4"
+   id: initialize_relay_switch
+   internal: True
+   name: "Binnen unit relais onbekend"
    address: 1104
    register_type: holding
    web_server: 
     sorting_group_id: control_inside
+
+ - platform: modbus_controller
+   modbus_controller_id: modbus_inside_unit
+   internal: True
+   id: three_way_valve_heat_cool_switch
+   name: "3-weg klep Koelen/Verwarmen"
+   address: 1105
+   register_type: holding
+   web_server: 
+     sorting_group_id: control_inside
 
  - platform: modbus_controller
    modbus_controller_id: modbus_inside_unit
@@ -1374,7 +1745,9 @@ switch:
 
  - platform: modbus_controller
    modbus_controller_id: modbus_inside_unit
-   name: "3-weg klep Koelen/Verwarmen"
+   internal: True
+   id: three_way_valve_dhw_switch
+   name: "3-weg klep SWW"
    address: 1112
    register_type: holding
    web_server: 
@@ -1394,6 +1767,77 @@ switch:
           state: !lambda return x;
 
 select:
+  - platform: template
+    id: heat_compressor_mode
+    name: "Verwarmen vermogen"
+    optimistic: True
+    options:
+      - "Beperkt"
+      - "Zeer laag"
+      - "Laag"
+      - "Gemiddeld"
+      - "Verhoogd"
+      - "Hoog"
+      - "Maximaal"
+    initial_option: "Maximaal"
+    entity_category: config
+    web_server: 
+        sorting_group_id: settings
+
+  - platform: template
+    id: dhw_compressor_mode
+    name: "Tapwater basisvermogen"
+    optimistic: True
+    options:
+      - "Beperkt"
+      - "Zeer laag"
+      - "Laag"
+      - "Gemiddeld"
+      - "Verhoogd"
+      - "Hoog"
+      - "Maximaal"
+    initial_option: "Beperkt"
+    entity_category: config
+    web_server: 
+        sorting_group_id: settings
+
+  - platform: template
+    id: dhw_compressor_mode_max
+    name: "Tapwater wintervermogen"
+    optimistic: True
+    options:
+      - "Gemiddeld"
+      - "Verhoogd"
+      - "Hoog"
+      - "Maximaal"
+    initial_option: "Gemiddeld"
+    entity_category: config
+    web_server: 
+        sorting_group_id: settings
+
+  - platform: template
+    id: three_way_valve_select
+    name: "3-weg klep stand"
+    optimistic: True
+    options:
+      - "Verwarmen/Koelen"
+      - "Tapwater"
+    initial_option: "Verwarmen/Koelen"
+    entity_category: config
+    web_server: 
+      sorting_group_id: control_inside
+    on_value: 
+      then:
+       - if:
+           condition:
+             lambda: 'return id(three_way_valve_select).current_option() == "Verwarmen/Koelen";'
+           then:
+             - switch.turn_off: three_way_valve_dhw_switch
+             - switch.turn_on: three_way_valve_heat_cool_switch
+           else:
+             - switch.turn_on: three_way_valve_dhw_switch
+             - switch.turn_off: three_way_valve_heat_cool_switch
+
   - platform: template
     id: heat_mode_select
     name: "Verwarmingsmodus"
@@ -1422,38 +1866,6 @@ select:
     entity_category: config
     web_server: 
       sorting_group_id: settings
-
-  - platform: template
-    id: pump_speed_select
-    name: "Pomp snelheid"
-    optimistic: True
-    options:
-      - "Laag"
-      - "Middel"
-      - "Hoog"
-    initial_option: "Hoog"
-    restore_value: True
-    entity_category: config
-    web_server: 
-      sorting_group_id: settings
-
-  - platform: modbus_controller
-    id: pump_control_select
-    modbus_controller_id: modbus_inside_unit
-    name: "Pomp stand"
-    address: 1103
-    optionsmap:
-      "Uit": 1000
-      "Onbekend": 950
-      "Laag": 500
-      "Middel": 250
-      "Hoog": 0
-    web_server: 
-     sorting_group_id: control_inside
-    on_value: 
-      then:
-        - lambda: 
-            id(modbus_inside_is_online) = true;
 
   - platform: modbus_controller
     modbus_controller_id: modbus_outside_unit
