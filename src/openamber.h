@@ -229,7 +229,9 @@ class OpenAmberController {
     this->three_way_valve_dhw = &id(three_way_valve_dhw_switch);
 
     this->mode_offset = this->compressor_control->size() - this->heat_compressor_max_mode->size();
-
+    this->dhw_mode_offset = this->compressor_control->size() - this->dhw_compressor->size();
+    this->dhw_mode_max_offset = this->compressor_control->size() - this->dhw_compressor_max->size();
+    
     // Initialize relays
     id(initialize_relay_switch).turn_on();
     this->pump_p0_relay->turn_on();

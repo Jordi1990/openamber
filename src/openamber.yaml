@@ -1501,10 +1501,10 @@ number:
   optimistic: True
   unit_of_measurement: "°C"
   device_class: "temperature"
-  min_value: 2
+  min_value: 5
   max_value: 25
   step: 1
-  initial_value: 5
+  initial_value: 15
   entity_category: config
   web_server: 
       sorting_group_id: settings
