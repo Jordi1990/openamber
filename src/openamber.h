@@ -550,6 +550,14 @@ class OpenAmberController {
           }
 
           // Defrost is no longer active
+
+          // No need to boost in DHW mode.
+          if(IsInDhwMode())
+          {
+            LeaveStateAndSetNextStateAfterWaitTime(HPState::COMPRESSOR_RUNNING, COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
+            break;
+          }
+
           if(this->temp_outside->state <= this->defrost_backup_heater_boost_temperature->state) {
             ESP_LOGI("amber", "Defrost ended, enabling backup heater as configured for outside temperature %.2f°C to boost temperature back to setpoint.", this->temp_outside->state);
             backup_heater->turn_on();
