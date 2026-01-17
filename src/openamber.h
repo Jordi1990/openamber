@@ -501,7 +501,13 @@ class OpenAmberController {
 
           if(IsInDhwMode())
           {
-            // TODO: Implement go to max configured frequency when Ta is below specified setting.
+            int dhw_compressor_mode = GetDhwCompressorMode();
+            auto current_compressor_mode = this->compressor_control->active_index().value();
+            if(current_compressor_mode != dhw_compressor_mode)
+            {
+              ESP_LOGI("amber", "Applying compressor mode change for DHW to %d", dhw_compressor_mode);
+              SetCompressorMode(dhw_compressor_mode);
+			}
           }
           else 
           {
@@ -743,27 +749,11 @@ class OpenAmberController {
     }
   }
 
-  void StartCompressor(float supply_temperature_delta) {
-    ESP_LOGI("amber", "Starting compressor (ΔT=%.2f°C)", supply_temperature_delta);
-    int compressor_frequency_mode = DetermineSoftStartMode(supply_temperature_delta);
-    ESP_LOGI("amber", "Soft start mode: %d (ΔT=%.1f°C)", compressor_frequency_mode, supply_temperature_delta);
-
-    pid_heat_cool->reset_integral_term();
-    SetCompressorMode(compressor_frequency_mode);
-  }
-
   void StartCompressor() {
     state.is_switching_modes = false;
     if(IsInDhwMode())
     { 
-      float temperature_ta = temp_outside->state;
-      float ta_threshold = dhw_ta_temperature_compressor_max->state;
-      int dhw_compressor_mode = this->dhw_compressor->active_index().value() + this->dhw_mode_offset;
-      if(temperature_ta <= ta_threshold)
-      {
-          dhw_compressor_mode = this->dhw_compressor_max->active_index().value() + this->dhw_mode_max_offset;
-          ESP_LOGI("amber", "Outside temperature (Ta=%.2f°C) is below threshold (%.2f°C), setting DHW compressor to max mode", temperature_ta, ta_threshold);
-      }
+      int dhw_compressor_mode = GetDhwCompressorMode();
       ESP_LOGI("amber", "Starting compressor in DHW mode, setting compressor to mode %d", dhw_compressor_mode);
       SetCompressorMode(dhw_compressor_mode);
     }
@@ -776,6 +766,19 @@ class OpenAmberController {
       pid_heat_cool->reset_integral_term();
       SetCompressorMode(compressor_frequency_mode);
     }
+  }
+
+  int GetDhwCompressorMode()
+  {
+    float temperature_ta = temp_outside->state;
+    float ta_threshold = dhw_ta_temperature_compressor_max->state;
+    int dhw_compressor_mode = this->dhw_compressor->active_index().value() + this->dhw_mode_offset;
+    state.dhw_cycle_start_temp = this->dhw_temperature_tw->state;
+    if(temperature_ta <= ta_threshold)
+    {
+        dhw_compressor_mode = this->dhw_compressor_max->active_index().value() + this->dhw_mode_max_offset;
+    }
+    return dhw_compressor_mode;
   }
 
   /// @brief Determine the compressor mode at which to start the compressor.
@@ -841,7 +844,7 @@ class OpenAmberController {
   void StopPump()
   {
     if(IsInDhwMode()) {
-      ESP_LOGI("amber", "Starting DHW pump.");
+      ESP_LOGI("amber", "Stopping DHW pump.");
       this->dhw_pump->turn_off();
     }
 
