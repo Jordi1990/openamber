@@ -8,7 +8,7 @@ esphome:
   friendly_name: OpenAmber
   project:
     name: jordi.openamber
-    version: 0.0.3
+    version: 0.0.4
   includes: 
     - openamber.h
 
