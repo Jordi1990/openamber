@@ -106,7 +106,7 @@ class OpenAmberController {
   sensor::Sensor *temp_tuo = nullptr;
   sensor::Sensor *temp_outside = nullptr;
   sensor::Sensor *room_temp = nullptr;
-  sensor::Sensor *dhw_temperature_tw = nullptr;
+  sensor::Sensor *temperature_tw = nullptr;
   number::Number *pump_interval_min = nullptr;
   number::Number *pump_duration_min = nullptr;
   sensor::Sensor *compressor_current_frequency = nullptr;
@@ -136,8 +136,8 @@ class OpenAmberController {
 
   select::Select *three_way_valve_position = nullptr;
   switch_::Switch *three_way_valve_dhw = nullptr;
-  number::Number *dhw_setpoint = nullptr;
-  binary_sensor::BinarySensor *dhw_demand = nullptr;
+  number::Number *setpoint = nullptr;
+  binary_sensor::BinarySensor *demand = nullptr;
   select::Select *dhw_compressor = nullptr;
   select::Select *dhw_compressor_max = nullptr;
   number::Number *dhw_ta_temperature_compressor_max = nullptr;
@@ -774,7 +774,6 @@ class OpenAmberController {
     float temperature_ta = temp_outside->state;
     float ta_threshold = dhw_ta_temperature_compressor_max->state;
     int dhw_compressor_mode = this->dhw_compressor->active_index().value() + this->dhw_mode_offset;
-    state.dhw_cycle_start_temp = this->dhw_temperature_tw->state;
     if(temperature_ta <= ta_threshold)
     {
         dhw_compressor_mode = this->dhw_compressor_max->active_index().value() + this->dhw_mode_max_offset;
