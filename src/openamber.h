@@ -344,6 +344,7 @@ class OpenAmberController {
             }
             else if (!dhw_demand && !IsThreeWayValveInPosition(ThreeWayValvePosition::HEATING_COOLING))
             {
+			  SetThreeWayValve(ThreeWayValvePosition::HEATING_COOLING);
               state.is_switching_modes = true;
               LeaveStateAndSetNextStateAfterWaitTime(HPState::IDLE, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);
               break;   
