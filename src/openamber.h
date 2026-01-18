@@ -106,7 +106,7 @@ class OpenAmberController {
   sensor::Sensor *temp_tuo = nullptr;
   sensor::Sensor *temp_outside = nullptr;
   sensor::Sensor *room_temp = nullptr;
-  sensor::Sensor *temperature_tw = nullptr;
+  sensor::Sensor *dhw_temperature_tw = nullptr;
   number::Number *pump_interval_min = nullptr;
   number::Number *pump_duration_min = nullptr;
   sensor::Sensor *compressor_current_frequency = nullptr;
@@ -136,8 +136,8 @@ class OpenAmberController {
 
   select::Select *three_way_valve_position = nullptr;
   switch_::Switch *three_way_valve_dhw = nullptr;
-  number::Number *setpoint = nullptr;
-  binary_sensor::BinarySensor *demand = nullptr;
+  number::Number *dhw_setpoint = nullptr;
+  binary_sensor::BinarySensor *dhw_demand = nullptr;
   select::Select *dhw_compressor = nullptr;
   select::Select *dhw_compressor_max = nullptr;
   number::Number *dhw_ta_temperature_compressor_max = nullptr;
