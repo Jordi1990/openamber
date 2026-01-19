@@ -200,6 +200,13 @@ sensor:
   accuracy_decimals: 1
   state_class: measurement
 
+- platform: template
+  id: dhw_backup_current_avg_rate_sensor
+  name: "DHW current avg rate"
+  unit_of_measurement: "°C/min"
+  accuracy_decimals: 2
+  state_class: measurement
+
 - platform: pulse_counter
   pin: GPIO35
   name: Pulse meter
@@ -1522,6 +1529,20 @@ number:
   entity_category: config
   web_server: 
       sorting_group_id: settings
+
+- platform: template
+  id: dhw_backup_min_avg_rate
+  name: "Tapwater backup heater min verwarmsnelheid"
+  unit_of_measurement: "°C/min"
+  min_value: 0
+  max_value: 2
+  step: 0.01
+  initial_value: 0.12
+  optimistic: true
+  restore_value: true
+  entity_category: config
+  web_server:
+    sorting_group_id: settings
 
 - platform: template
   id: backup_heater_degmin_threshold
