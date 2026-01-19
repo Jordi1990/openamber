@@ -7,6 +7,10 @@ esphome:
   includes: 
     - common/openamber.h
 
+esp32:
+  framework:
+    type: esp-idf
+
 interval:
   - interval: 10s
     then:
