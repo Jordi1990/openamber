@@ -1,33 +1,29 @@
-name: Build release
+name: Publish release
 
 on:
-  push:
-    tags:
-      - "*.*.*"
+  release:
+    types: [published]
 
 permissions:
   contents: write
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
+  build-firmware:
+    name: Build Firmware
+    uses: esphome/workflows/.github/workflows/build.yml@2025.10.0
+    with:
+      files: |
+        src/openamber.yaml
+      esphome-version: 2025.12.6
+      combined-name: project-template
+      release-summary: ${{ github.event.release.body }}
+      release-url: ${{ github.event.release.html_url }}
+      release-version: ${{ github.event.release.tag_name }}
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Compile with ESPHome build action
-        id: build
-        uses: esphome/build-action@v7
-        with:
-          yaml-file: src/openamber.yaml
-          version: "2025.12.6"
-          complete-manifest: true
-
-      - name: Upload manifest
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            ${{ steps.build.outputs.name }}/manifest.json
-            ${{ steps.build.outputs.name }}/*.bin
-          fail_on_unmatched_files: true
+  upload-to-release:
+    name: Upload to Release
+    uses: esphome/workflows/.github/workflows/upload-to-gh-release.yml@2025.10.0
+    needs:
+      - build-firmware
+    with:
+      version: ${{ github.event.release.tag_name }}
