@@ -1,0 +1,135 @@
+- platform: template
+  id: heat_compressor_mode
+  name: "Verwarmen vermogen"
+  optimistic: True
+  options:
+    - "Beperkt"
+    - "Zeer laag"
+    - "Laag"
+    - "Gemiddeld"
+    - "Verhoogd"
+    - "Hoog"
+    - "Maximaal"
+  initial_option: "Maximaal"
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  id: dhw_compressor_mode
+  name: "Tapwater basisvermogen"
+  optimistic: True
+  options:
+    - "Beperkt"
+    - "Zeer laag"
+    - "Laag"
+    - "Gemiddeld"
+    - "Verhoogd"
+    - "Hoog"
+    - "Maximaal"
+  initial_option: "Beperkt"
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  id: dhw_compressor_mode_max
+  name: "Tapwater wintervermogen"
+  optimistic: True
+  options:
+    - "Gemiddeld"
+    - "Verhoogd"
+    - "Hoog"
+    - "Maximaal"
+  initial_option: "Gemiddeld"
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  id: three_way_valve_select
+  name: "3-weg klep stand"
+  optimistic: True
+  options:
+    - "Verwarmen/Koelen"
+    - "Tapwater"
+  initial_option: "Verwarmen/Koelen"
+  entity_category: config
+  web_server: 
+    sorting_group_id: control_inside
+  on_value: 
+    then:
+      - if:
+          condition:
+            lambda: 'return id(three_way_valve_select).current_option() == "Verwarmen/Koelen";'
+          then:
+            - switch.turn_off: three_way_valve_dhw_switch
+            - switch.turn_on: three_way_valve_heat_cool_switch
+          else:
+            - switch.turn_on: three_way_valve_dhw_switch
+            - switch.turn_off: three_way_valve_heat_cool_switch
+
+- platform: template
+  id: heat_mode_select
+  name: "Verwarmingsmodus"
+  optimistic: True
+  options:
+    - "Stooklijn"
+    - "Extern setpoint"
+  initial_option: "Stooklijn"
+  restore_value: True
+  entity_category: config
+  web_server: 
+    sorting_group_id: settings
+  on_value: 
+    then:
+      - component.update: current_setpoint
+
+- platform: template
+  id: thermostat_mode_select
+  name: "Thermostaat keuze"
+  optimistic: True
+  options:
+    - "Intern"
+    - "Extern"
+  initial_option: "Intern"
+  restore_value: True
+  entity_category: config
+  web_server: 
+    sorting_group_id: settings
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: compressor_control_select
+  name: "Compressor stand (Buiten)"
+  address: 1999
+  value_type: S_WORD
+  web_server: 
+    sorting_group_id: control_outside
+  optionsmap:
+    "0": 0
+    "1": 1
+    "2": 2
+    "3": 3
+    "4": 4
+    "5": 5
+    "6": 6
+    "7": 7
+    "8": 8
+    "9": 9
+    "10": 10
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: working_mode_switch
+  name: "Bedrijfsmodus"
+  address: 3999
+  on_value: 
+    then:
+      - lambda: 
+          id(modbus_outside_is_online) = true;
+  web_server: 
+    sorting_group_id: control_outside
+  optionsmap:
+    "Standby": 0
+    "Koelen": 1
+    "Verwarmen": 2

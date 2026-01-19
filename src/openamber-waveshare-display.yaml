@@ -1,0 +1,29 @@
+packages:
+ - !include common/openamber.yaml
+
+esp32:
+  variant: esp32s3
+  framework:
+    sdkconfig_options:
+      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: y
+      CONFIG_ESP32S3_DATA_CACHE_64KB: y
+      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
+      CONFIG_SPIRAM_RODATA: y
+
+esphome:
+  platformio_options:
+    build_flags: "-DBOARD_HAS_PSRAM"
+    board_build.arduino.memory_type: qio_opi
+    board_build.flash_mode: dio
+    board_upload.maximum_ram_size: 524288
+    
+uart:
+  rx_pin:
+    number: GPIO43
+    inverted: False
+  tx_pin:
+    number: GPIO44
+    inverted: False
+
+modbus:
+  flow_control_pin: GPIO14

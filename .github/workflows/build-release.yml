@@ -13,7 +13,8 @@ jobs:
     uses: esphome/workflows/.github/workflows/build.yml@2025.10.0
     with:
       files: |
-        src/openamber.yaml
+        src/openamber-leejow.yaml
+        src/openamber-waveshare-display.yaml
       esphome-version: 2025.12.6
       combined-name: openamber
       release-summary: ${{ github.event.release.body }}

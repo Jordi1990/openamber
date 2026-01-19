@@ -1,0 +1,541 @@
+- platform: template
+  name: "Tapwater vraag"
+  id: dhw_demand_active_sensor
+  device_class: running
+  lambda: |-
+      float restart_delta = id(dhw_restart_dhw_delta).state;
+      float tw = id(dhw_temperature_tw_sensor).state;
+      float setpoint = id(dhw_setpoint_temperature).state;
+
+      return (setpoint - tw) >= restart_delta;
+
+- platform: template
+  name: "Warmtevraag"
+  id: heat_demand_active_sensor
+  device_class: running
+  lambda: |-
+    if (id(thermostat_mode_select).current_option() == "Intern")
+    {
+      return id(climate_controller).action == climate::CLIMATE_ACTION_HEATING;
+    }
+    else
+    {
+      return id(external_heat_demand).state;
+    }
+
+- platform: template
+  name: "Koudevraag"
+  id: cool_demand_active_sensor
+  device_class: running
+  lambda: |-
+    if (id(thermostat_mode_select).current_option() == "Intern")
+    {
+      return id(climate_controller).action == climate::CLIMATE_ACTION_COOLING;
+    }
+    else
+    {
+      return id(external_cool_demand).state;
+    }
+
+- platform: template
+  name: "Vorstbescherming 1e trap"
+  id: frost_protection_stage1_active
+  filters:
+    - delayed_on_off: 300s
+  lambda: |-
+    return id(temperature_outside_ta).state < id(frost_protection_stage_1_temp_ta).state;
+  on_press: 
+    then:
+      - logger.log:
+          format: "Pump interval reset due to pump required for frost protection."
+          level: INFO
+      - lambda: |-
+          AMBER.ResetPumpInterval();  
+
+- platform: template
+  name: "Vorstbescherming 2e trap"
+  id: frost_protection_stage2_active
+  filters:
+    - delayed_on_off: 300s
+  lambda: |-
+    return id(temperature_outside_ta).state < id(frost_protection_stage_2_temp_ta).state &&
+            id(inlet_temperature_tui).state < id(frost_protection_stage_2_temp_tui).state;
+  on_press: 
+    then:
+      - logger.log:
+          format: "Pump interval reset due to pump required for frost protection."
+          level: INFO
+      - lambda: |-
+          AMBER.ResetPumpInterval();
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: internal_pump_active
+  name: "Pomp P0"
+  address: 1212
+  register_type: holding
+  device_class: running
+  web_server: 
+    sorting_group_id: sensors_inside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: external_cool_demand
+  name: "Externe koudevraag"
+  address: 1213
+  register_type: holding
+  device_class: running
+  web_server: 
+    sorting_group_id: sensors_inside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: external_heat_demand
+  name: "Externe warmtevraag"
+  address: 1214
+  register_type: holding
+  device_class: running
+  web_server: 
+    sorting_group_id: sensors_inside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  name: "Pomp P1"
+  address: 1300
+  register_type: holding
+  device_class: running
+  web_server: 
+    sorting_group_id: sensors_inside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  name: "Pomp P2"
+  address: 1301
+  register_type: holding
+  device_class: running
+  web_server: 
+    sorting_group_id: sensors_inside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: dhw_pump_active_sensor
+  name: "Tapwater pomp"
+  address: 1302
+  register_type: holding
+  device_class: running
+  web_server: 
+    sorting_group_id: sensors_inside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  name: "3-weg klep"
+  address: 1305
+  register_type: holding
+  device_class: running
+  web_server: 
+    sorting_group_id: sensors_inside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: backup_heater_active_sensor
+  name: "Verwarmingselement"
+  address: 1309
+  register_type: holding
+  device_class: running
+  web_server: 
+    sorting_group_id: sensors_inside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Fan Low Speed Mode"
+  register_type: holding
+  address: 2108
+  bitmask: 0x1
+  web_server: 
+    sorting_group_id: sensors_outside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Bodemplaat verwarming"
+  register_type: holding
+  address: 2108
+  bitmask: 0x4
+  web_server: 
+    sorting_group_id: sensors_outside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Carterverwarming"
+  register_type: holding
+  address: 2108
+  bitmask: 0x8
+  web_server: 
+    sorting_group_id: sensors_outside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Fan Defrost Speed Mode"
+  register_type: holding
+  address: 2108
+  bitmask: 0x10
+  web_server: 
+    sorting_group_id: sensors_outside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Fan High Speed Mode"
+  register_type: holding
+  address: 2108
+  bitmask: 0x20
+  web_server: 
+    sorting_group_id: sensors_outside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "4-weg klep switching"
+  register_type: holding
+  address: 2108
+  bitmask: 0x40
+  web_server: 
+    sorting_group_id: sensors_outside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Expansion Valve Lock"
+  register_type: holding
+  address: 2108
+  bitmask: 0x80
+  web_server: 
+    sorting_group_id: sensors_outside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Pump Relay"
+  register_type: holding
+  address: 2108
+  bitmask: 0x800
+  web_server: 
+    sorting_group_id: sensors_outside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Defrost"
+  id: defrost_active_sensor
+  icon: mdi:snowflake
+  register_type: holding
+  address: 2118
+  web_server: 
+    sorting_group_id: sensors_outside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Bedrijfstroom warmtepomp (P01)"
+  register_type: holding
+  address: 2119
+  bitmask: 0x0001
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Bedrijfstroom warmtepomp (P02)"
+  register_type: holding
+  address: 2119
+  bitmask: 0x0002
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Storing compressorstart (P03)"
+  register_type: holding
+  address: 2119
+  bitmask: 0x0004
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: oil_return_cycle_active
+  name: "Olie-terugloopcyclus (P04)"
+  icon: mdi:autorenew
+  register_type: holding
+  address: 2119
+  bitmask: 0x0008
+  device_class: running
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Hogedrukbeveiliging (P05)"
+  register_type: holding
+  address: 2119
+  bitmask: 0x0010
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Laag drukverschil (P06)"
+  register_type: holding
+  address: 2119
+  bitmask: 0x0020
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Compressor voorverwarming (P07)"
+  register_type: holding
+  address: 2119
+  bitmask: 0x0040
+  device_class: running
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Storing sensor persgasdruk (P08)"
+  register_type: holding
+  address: 2119
+  bitmask: 0x0080
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Storing sensor verdamper/condensor (P09)"
+  register_type: holding
+  address: 2119
+  bitmask: 0x0100
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Voedingsspanning (P10)"
+  register_type: holding
+  address: 2119
+  bitmask: 0x0200
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Compressor begrenzing (P11)"
+  register_type: holding
+  address: 2119
+  bitmask: 0x0400
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Compressor begrenzing (P12)"
+  register_type: holding
+  address: 2119
+  bitmask: 0x0800
+  device_class: running
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Laag drukverschil (P13)"
+  register_type: holding
+  address: 2119
+  bitmask: 0x1000
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Storing buitentemperatuursensor (F01)"
+  register_type: holding
+  address: 2120
+  bitmask: 0x0001
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Storing sensor verdamper/condensor (F02)"
+  register_type: holding
+  address: 2120
+  bitmask: 0x0002
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Storing persgas temperatuursensor (F03)"
+  register_type: holding
+  address: 2120
+  bitmask: 0x0004
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Storing zuigas temperatuursensor (F04)"
+  register_type: holding
+  address: 2120
+  bitmask: 0x0008
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Storing zuiggas druk sensor (F05)"
+  register_type: holding
+  address: 2120
+  bitmask: 0x0010
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Storing persgas druk sensor (F06)"
+  register_type: holding
+  address: 2120
+  bitmask: 0x0020
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Storing hogedrukbeveiliging (F07)"
+  register_type: holding
+  address: 2120
+  bitmask: 0x0040
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Storing ventilatormotor DC (F09)"
+  register_type: holding
+  address: 2120
+  bitmask: 0x0100
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Communicatiefout PCB (E01)"
+  register_type: holding
+  address: 2121
+  bitmask: 0x0001
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Storing inverter communicatie (E02)"
+  register_type: holding
+  address: 2121
+  bitmask: 0x0002
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Bedrijfsstroom warmtepomp (E03)"
+  register_type: holding
+  address: 2121
+  bitmask: 0x0004
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Bedrijfsstroom warmtepomp (E04)"
+  register_type: holding
+  address: 2121
+  bitmask: 0x0008
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Storing inverter (E05)"
+  register_type: holding
+  address: 2121
+  bitmask: 0x0010
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Storing VCD-module (E06)"
+  register_type: holding
+  address: 2121
+  bitmask: 0x0020
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Storing voedingsspanning (E07)"
+  register_type: holding
+  address: 2121
+  bitmask: 0x0040
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Storing EEPROM warmtepomp (E08)"
+  register_type: holding
+  address: 2121
+  bitmask: 0x0080
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Storing ventilatormotor DC (F10)"
+  register_type: holding
+  address: 2121
+  bitmask: 0x0100
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Storing sensor aanvoertemperatuur Tuo (F16)"
+  register_type: holding
+  address: 2121
+  bitmask: 0x0200
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Storing sensor retourtemperatuur Tui (F17)"
+  register_type: holding
+  address: 2121
+  bitmask: 0x0400
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Storing sensor condensortemperatuur Tup (F18)"
+  register_type: holding
+  address: 2121
+  bitmask: 0x0800
+  device_class: problem
+  entity_category: diagnostic
+
+- platform: template
+  id: modbus_inside_online
+  name: "Modbus binnenunit"
+  device_class: connectivity
+  lambda: |-
+    return id(modbus_inside_is_online);
+
+- platform: template
+  id: modbus_outside_online
+  name: "Modbus buitenunit"
+  device_class: connectivity
+  lambda: |-
+    return id(modbus_outside_is_online);

@@ -1,0 +1,140 @@
+esphome:
+  name: openamber
+  friendly_name: OpenAmber
+  project:
+    name: jordi.openamber
+    version: 0.0.5
+  includes: 
+    - openamber.h
+
+interval:
+  - interval: 10s
+    then:
+      - if:
+         condition:
+          - switch.is_on: amber_controller_active
+          - binary_sensor.is_on: modbus_inside_online
+          - binary_sensor.is_on: modbus_outside_online
+         then:
+          - lambda: |-
+              AMBER.loop();
+
+logger:
+  level: INFO
+  baud_rate: 0
+
+api:
+
+ota:
+  - platform: esphome
+  - platform: http_request
+
+http_request:
+  buffer_size_tx: 1024
+
+update:
+  - platform: http_request
+    name: Firmware Update
+    source: https://github.com/Jordi1990/openamber/releases/latest/download/manifest.json
+
+web_server:
+  port: 80
+  version: 3
+  sorting_groups:
+    - id: control_inside
+      name: "Bediening binnen unit"
+    - id: control_outside
+      name: "Bediening buiten unit"
+    - id: sensors_inside
+      name: "Sensoren binnen unit"
+    - id: sensors_outside
+      name: "Sensoren buiten unit"
+    - id: settings
+      name: "Settings"
+
+wifi:
+  ap:
+    ssid: "OpenAmber"
+    password: "openamber"
+
+captive_portal:    
+
+uart:
+  baud_rate: 19200
+  parity: EVEN
+
+globals:
+  - id: modbus_inside_is_online
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: modbus_outside_is_online
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
+modbus:
+  send_wait_time: 500ms
+
+modbus_controller:
+- id: modbus_outside_unit
+  address: 0x2
+  update_interval: 30s
+  command_throttle: 500ms
+  max_cmd_retries: 3
+  on_offline:
+    then:
+      - lambda: |-
+          id(modbus_outside_is_online) = false;
+      - logger.log: "Modbus outside unit OFFLINE"
+  on_online:
+    then:
+      - lambda: |-
+          id(modbus_outside_is_online) = true;
+      - logger.log: "Modbus outside unit ONLINE"
+- id: modbus_inside_unit
+  address: 0x0B
+  update_interval: 30s
+  command_throttle: 500ms
+  max_cmd_retries: 3
+  on_offline:
+    then:
+      - lambda: |-
+          id(modbus_inside_is_online) = false;
+      - logger.log: "Modbus inside unit OFFLINE"
+  on_online:
+    then:
+      - lambda: |-
+          id(modbus_inside_is_online) = true;
+      - logger.log: "Modbus inside unit ONLINE"
+
+climate: !include climates.yaml
+sensor: !include sensors.yaml
+text_sensor: !include text_sensors.yaml
+binary_sensor: !include binary_sensors.yaml
+number: !include numbers.yaml
+switch: !include switches.yaml
+select: !include selects.yaml
+
+output:
+  - platform: template
+    id: pid_heat_output
+    type: float
+    write_action:
+      - lambda: |-
+          AMBER.WriteHeatPIDValue(state);
+
+  - platform: template
+    id: pid_cool_output
+    type: float
+    write_action:
+      - logger.log:
+          format: "Write cool pids"
+          level: DEBUG
+      # TODO: Store in seperate pid field
+      # - lambda: |-
+      #     AMBER.WritePIDValue(state);
+
+button:
+  - platform: factory_reset
+    name: Restart with Factory Default Settings
