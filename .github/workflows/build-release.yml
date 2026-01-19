@@ -15,7 +15,7 @@ jobs:
       files: |
         src/openamber.yaml
       esphome-version: 2025.12.6
-      combined-name: project-template
+      combined-name: openamber
       release-summary: ${{ github.event.release.body }}
       release-url: ${{ github.event.release.html_url }}
       release-version: ${{ github.event.release.tag_name }}
