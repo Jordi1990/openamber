@@ -1,18 +1,4 @@
 - platform: template
-  name: Flow sensor calibration
-  id: flow_sensor_calibration
-  min_value: 1
-  max_value: 1000
-  mode: box
-  step: 1
-  restore_value: true
-  optimistic: true
-  unit_of_measurement: pulses/l
-  entity_category: config
-  web_server: 
-      sorting_group_id: settings
-
-- platform: template
   name: "Vorstbescherming 1e trap buiten temperatuur(Ta)"
   id: frost_protection_stage_1_temp_ta
   optimistic: true

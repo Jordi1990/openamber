@@ -1,17 +1,3 @@
-- platform: gpio
-  pin: GPIO22
-  name: "Relais verwarming"
-  id: relay_heating
-  icon: mdi:electric-switch
-  restore_mode: RESTORE_DEFAULT_OFF
-
-- platform: gpio
-  pin: GPIO23
-  name: "Relais koelen"
-  id: relay_cooling
-  icon: mdi:electric-switch
-  restore_mode: RESTORE_DEFAULT_OFF
-
 - platform: template
   id: dhw_enabled_switch
   name: "Tapwater aanwezig"

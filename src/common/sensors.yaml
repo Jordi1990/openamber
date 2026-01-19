@@ -11,21 +11,6 @@
   unit_of_measurement: "°C/min"
   accuracy_decimals: 2
   state_class: measurement
-
-- platform: pulse_counter
-  pin: GPIO35
-  name: Pulse meter
-  id: water_flow_rate
-  device_class: volume_flow_rate
-  unit_of_measurement: L/min
-  filters:
-    - lambda: return (x / id(flow_sensor_calibration).state);
-  total:
-    name: Total pulses
-    unit_of_measurement: l
-    filters:
-      - lambda: return x / id(flow_sensor_calibration).state;
-      - delta: 1
           
 - platform: uptime
   name: "Uptime"
