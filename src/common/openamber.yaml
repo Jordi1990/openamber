@@ -39,7 +39,7 @@ http_request:
 update:
   - platform: http_request
     name: Firmware Update
-    source: https://github.com/Jordi1990/openamber/releases/latest/download/manifest.json
+    source: https://github.com/Jordi1990/openamber/releases/latest/download/openamber.manifest.json
 
 web_server:
   port: 80
