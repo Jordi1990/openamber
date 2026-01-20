@@ -1,0 +1,332 @@
+- platform: template
+  name: "Vorstbescherming 1e trap buiten temperatuur(Ta)"
+  id: frost_protection_stage_1_temp_ta
+  optimistic: true
+  min_value: 0
+  max_value: 10
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 8.0
+  restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  name: "Vorstbescherming 2e trap buiten temperatuur(Ta)"
+  id: frost_protection_stage_2_temp_ta
+  optimistic: true
+  min_value: 0
+  max_value: 10
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 6.0
+  restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  name: "Vorstbescherming 2e trap water temperatuur (Tui)"
+  id: frost_protection_stage_2_temp_tui
+  optimistic: true
+  min_value: 0
+  max_value: 10
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 7.0
+  restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  name: "Compressor start delta"
+  id: compressor_start_delta
+  optimistic: true
+  min_value: 0.1
+  max_value: 10
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 3.0
+  restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  name: "Compressor stop delta"
+  id: compressor_stop_delta
+  optimistic: true
+  min_value: 0.1
+  max_value: 10
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 5.0
+  restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  id: heat_curve_p15
+  name: "Stooklijn @ +15°C"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 15
+  max_value: 45
+  step: 1
+  restore_value: true
+  initial_value: 25
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  id: heat_curve_p10
+  name: "Stooklijn @ +10°C"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 15
+  max_value: 45
+  step: 1
+  restore_value: true
+  initial_value: 27
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  id: heat_curve_p5
+  name: "Stooklijn Tc @ +5°C"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 15
+  max_value: 45
+  step: 1
+  restore_value: true
+  initial_value: 28
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  id: heat_curve_0
+  name: "Stooklijn Tc  0°C"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 15
+  max_value: 45
+  step: 1
+  restore_value: true
+  initial_value: 30
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  id: heat_curve_m10
+  name: "Stooklijn Tc @ -10°C"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 15
+  max_value: 45
+  step: 1
+  restore_value: true
+  initial_value: 32
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  id: manual_setpoint
+  name: "Handmatig setpoint Cv-aanvoertemperatuur"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 15
+  max_value: 45
+  step: 1
+  initial_value: 30
+  entity_category: config
+  on_value: 
+    then:
+      - component.update: current_setpoint
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  id: dhw_setpoint_temperature
+  name: "Tapwater temperatuur setpoint"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 25
+  max_value: 75
+  step: 1
+  initial_value: 55
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  id: dhw_restart_dhw_delta
+  name: "∆T herstart tapwater verwarmen"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 5
+  max_value: 25
+  step: 1
+  initial_value: 15
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  id: dhw_temperature_threshold_max_compressor_mode
+  name: "Buitentemperatuur Tapwater winter vermogen"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: -20
+  max_value: 10
+  step: 1
+  initial_value: 5
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  id: dhw_backup_min_avg_rate
+  name: "Tapwater backup heater min verwarmsnelheid"
+  unit_of_measurement: "°C/min"
+  min_value: 0
+  max_value: 2
+  step: 0.01
+  initial_value: 0.12
+  optimistic: true
+  restore_value: true
+  entity_category: config
+  web_server:
+    sorting_group_id: settings
+
+- platform: template
+  id: backup_heater_degmin_threshold
+  name: "Backup element graadminuten"
+  unit_of_measurement: "°C·min"
+  min_value: 0
+  max_value: 800
+  initial_value: 240
+  step: 5
+  optimistic: true
+  restore_value: true
+  entity_category: config
+  icon: mdi:heat-wave
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  id: pump_speed_heating_number
+  name: "Pomp snelheid verwarmen"
+  optimistic: True
+  min_value: 0
+  max_value: 100
+  step: 1
+  unit_of_measurement: "%"
+  initial_value: 100
+  restore_value: True
+  entity_category: config
+  web_server: 
+    sorting_group_id: settings
+
+- platform: template
+  id: pump_speed_dhw_number
+  name: "Pomp snelheid tapwater"
+  optimistic: True
+  min_value: 0
+  max_value: 100
+  step: 1
+  unit_of_measurement: "%"
+  initial_value: 100
+  restore_value: True
+  entity_category: config
+  web_server: 
+    sorting_group_id: settings
+
+- platform: modbus_controller
+  id: pump_control_pwm_number
+  modbus_controller_id: modbus_inside_unit
+  name: "Pomp PWM"
+  address: 1103
+  min_value: 0
+  max_value: 1000
+  web_server: 
+    sorting_group_id: control_inside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outlet_temperature_outside
+  name: "CV-aanvoertemperatuur - Buiten"
+  address: 2005
+  register_type: holding
+  value_type: S_WORD
+  internal: True
+  mode: box
+  web_server: 
+      sorting_group_id: control_outside
+
+- platform: template
+  name: "Pomp interval (minuten)"
+  id: pump_interval
+  optimistic: True
+  restore_value: True
+  min_value: 5
+  max_value: 60
+  step: 1
+  unit_of_measurement: "min"
+  icon: "mdi:timer-outline"
+  initial_value: 15
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  name: "Pomp duur (minuten)"
+  id: pump_duration
+  optimistic: True
+  restore_value: True
+  min_value: 2
+  max_value: 10
+  step: 1
+  unit_of_measurement: "min"
+  icon: "mdi:clock-outline"
+  initial_value: 2
+  entity_category: config
+  web_server: 
+      sorting_group_id: settings
+
+- platform: template
+  id: defrost_backup_heater_boost_temperature_sensor
+  name: "Defrost boost buitentemperatuur"
+  optimistic: True
+  restore_value: True
+  initial_value: -3
+  step: 1
+  min_value: -15
+  max_value: 15
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  entity_category: config
+  web_server: 
+    sorting_group_id: settings

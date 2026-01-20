@@ -1,0 +1,125 @@
+packages:
+ - !include common/openamber.yaml
+
+esp32:
+  variant: esp32s3
+  framework:
+    sdkconfig_options:
+      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: y
+      CONFIG_ESP32S3_DATA_CACHE_64KB: y
+      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
+      CONFIG_SPIRAM_RODATA: y
+
+esphome:
+  platformio_options:
+    build_flags: "-DBOARD_HAS_PSRAM"
+    board_build.arduino.memory_type: qio_opi
+    board_build.flash_mode: dio
+    board_upload.maximum_ram_size: 524288
+
+uart:
+  rx_pin:
+    number: GPIO43
+    inverted: False
+  tx_pin:
+    number: GPIO44
+    inverted: False
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+ch422g:
+  - id: ch422g_hub
+
+i2c:
+  sda: GPIO08
+  scl: GPIO09
+  scan: True
+  id: i2_bus_a
+
+display:
+  - platform: mipi_rgb
+    model: RPI
+    id: my_display
+    auto_clear_enabled: false
+    update_interval: never
+    color_order: RGB
+    pclk_frequency: 21MHz
+    dimensions:
+      width: 1024
+      height: 600
+    reset_pin:
+      ch422g: ch422g_hub
+      number: 3
+    de_pin:
+      number: 5
+    hsync_pin:
+      number: 46
+      ignore_strapping_warning: true
+    vsync_pin:
+      number: 3
+      ignore_strapping_warning: true
+    pclk_pin: 7
+    pclk_inverted: false
+    hsync_back_porch: 145
+    hsync_front_porch: 170
+    hsync_pulse_width: 30
+    vsync_back_porch: 23
+    vsync_front_porch: 12
+    vsync_pulse_width: 2
+    data_pins:
+      red:
+        - 1
+        - 2
+        - 42
+        - 41
+        - 40
+      blue:
+        - 14
+        - 38
+        - 18
+        - 17
+        - 10
+      green:
+        - 39
+        - 0
+        - 45
+        - 48
+        - 47
+        - 21
+
+switch:
+ - platform: gpio
+   name: backlight_pin
+   restore_mode: ALWAYS_ON
+   pin:
+     ch422g: ch422g_hub
+     number: 2
+     mode:
+       output: true
+     inverted: false
+
+touchscreen:
+  - platform: gt911
+    address: 0x5D
+    id: my_touchscreen
+    update_interval: 16ms
+    interrupt_pin: 4
+    reset_pin:
+      ch422g: ch422g_hub
+      number: 1
+
+font:
+  - file:
+      type: gfonts
+      family: "Roboto"
+      weight: 700
+    id: font_header_title
+    size: 32
+    bpp: 4
+
+lvgl:
+  disp_bg_color: 0x0A2747
+  widgets:
+   - !include lvgl/temp_screen.yaml

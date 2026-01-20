@@ -1,0 +1,58 @@
+packages:
+ - !include common/openamber.yaml
+
+esp32:
+  board: esp32dev
+    
+modbus:
+  flow_control_pin: GPIO14
+
+uart:
+  rx_pin: GPIO32
+  tx_pin: GPIO33
+
+switch:
+ - platform: gpio
+   pin: GPIO22
+   name: "Relais verwarming"
+   id: relay_heating
+   icon: mdi:electric-switch
+   restore_mode: RESTORE_DEFAULT_OFF
+
+ - platform: gpio
+   pin: GPIO23
+   name: "Relais koelen"
+   id: relay_cooling
+   icon: mdi:electric-switch
+   restore_mode: RESTORE_DEFAULT_OFF
+
+sensor:
+  - platform: pulse_counter
+    pin: GPIO35
+    name: Pulse meter
+    id: water_flow_rate
+    device_class: volume_flow_rate
+    unit_of_measurement: L/min
+    filters:
+      - lambda: return (x / id(flow_sensor_calibration).state);
+    total:
+      name: Total pulses
+      unit_of_measurement: l
+      filters:
+        - lambda: return x / id(flow_sensor_calibration).state;
+        - delta: 1
+
+number:
+  - platform: template
+    name: Flow sensor calibration
+    id: flow_sensor_calibration
+    min_value: 1
+    max_value: 1000
+    mode: box
+    step: 1
+    restore_value: true
+    optimistic: true
+    unit_of_measurement: pulses/l
+    entity_category: config
+    web_server: 
+        sorting_group_id: settings

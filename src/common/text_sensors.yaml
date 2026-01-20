@@ -1,0 +1,26 @@
+  - platform: template
+    name: "Buiten unit EEPROM versie"
+    update_interval: 60s
+    web_server: 
+     sorting_group_id: sensors_outside
+    lambda: |-
+      if (!id(outside_unit_program_version).has_state() ||
+          !id(outside_unit_eeprom_version_part1).has_state() ||
+          !id(outside_unit_eeprom_version_part2).has_state()) {
+        return {};
+      }
+
+      int v1 = (int)id(outside_unit_program_version).state;
+      int v2 = (int)id(outside_unit_eeprom_version_part1).state;
+      int v3 = (int)id(outside_unit_eeprom_version_part2).state;
+
+      char buffer[20];
+      snprintf(buffer, sizeof(buffer), "V%04X,%d%d", v1, v2, v3);
+      return std::string(buffer);
+    icon: "mdi:chip"
+
+  - platform: template
+    id: state_machine_state
+    name: "Control loop state"
+    icon: "mdi:state-machine"
+    update_interval: never

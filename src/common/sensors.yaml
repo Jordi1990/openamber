@@ -1,0 +1,526 @@
+- platform: template
+  id: backup_heater_degmin_current_sensor
+  name: "Backup heater degree/min current"
+  unit_of_measurement: "°C·min"
+  accuracy_decimals: 1
+  state_class: measurement
+
+- platform: template
+  id: dhw_backup_current_avg_rate_sensor
+  name: "DHW current avg rate"
+  unit_of_measurement: "°C/min"
+  accuracy_decimals: 2
+  state_class: measurement
+          
+- platform: uptime
+  name: "Uptime"
+  id: sensor_uptime
+  update_interval: 60s
+  device_class: duration
+  unit_of_measurement: s
+  state_class: total_increasing
+
+- platform: wifi_signal
+  name: WiFi signal dB
+  id: wifi_signal_db
+  update_interval: 20s
+
+- platform: template
+  id: temperature_outside_ta_avg_1h
+  name: "Buiten temperatuur (1h gemiddelde)"
+  internal: true
+  unit_of_measurement: "°C"
+  accuracy_decimals: 1
+  update_interval: 15s
+  lambda: |-
+    return id(temperature_outside_ta).state;
+  filters:
+    - median:
+        window_size: 5
+        send_every: 1
+    - sliding_window_moving_average:
+        window_size: 240
+        send_every: 1
+
+- platform: template
+  id: current_setpoint
+  name: "Huidig setpoint"
+  unit_of_measurement: "°C"
+  accuracy_decimals: 0
+  update_interval: never
+  lambda: |-
+    if (id(heat_mode_select).current_option() == "Stooklijn")
+    {
+      return id(heat_curve_calculated_setpoint).state;
+    }
+    else
+    {
+      return id(manual_setpoint).state;
+    }
+  on_value:
+    - lambda: |-
+        auto call = id(pid_heat_cool_temperature_control).make_call();
+        call.set_target_temperature(x);
+        call.perform();
+
+- platform: template
+  id: heat_curve_calculated_setpoint
+  name: "Stooklijn berekend setpoint"
+  internal: True
+  unit_of_measurement: "°C"
+  accuracy_decimals: 0
+  update_interval: 15s
+  lambda: |-
+    const float Ta = id(temperature_outside_ta_avg_1h).state;
+
+    const float tc15  = id(heat_curve_p15).state;
+    const float tc10  = id(heat_curve_p10).state;
+    const float tc5   = id(heat_curve_p5).state;
+    const float tc0   = id(heat_curve_0).state;
+    const float tc_m10 = id(heat_curve_m10).state;
+    auto lerp = [](float x, float x0, float y0, float x1, float y1) -> float {
+      const float t = (x - x0) / (x1 - x0);
+      return y0 + t * (y1 - y0);
+    };
+
+    float tc;
+    if (Ta >= 15.0f)       tc = tc15;
+    else if (Ta >= 10.0f)  tc = lerp(Ta, 15.0f, tc15, 10.0f, tc10);
+    else if (Ta >= 5.0f)   tc = lerp(Ta, 10.0f, tc10, 5.0f, tc5);
+    else if (Ta >= 0.0f)   tc = lerp(Ta, 5.0f, tc5, 0.0f, tc0);
+    else if (Ta >= -10.0f) tc = lerp(Ta, 0.0f, tc0, -10.0f, tc_m10);
+    else                   tc = tc_m10;
+
+    return tc;
+  on_value: 
+    then:
+      - component.update: current_setpoint
+  filters:
+    - round_to_multiple_of: 1
+    - delta: 1
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: room_temperature
+  name: "Ruimte temperatuur (Tr)"
+  address: 1199
+  register_type: holding
+  value_type: S_WORD
+  device_class: temperature
+  state_class: measurement
+  unit_of_measurement: °C   
+  accuracy_decimals: 1
+  register_count: 16 # 1199 - 1214
+  web_server: 
+    sorting_group_id: sensors_inside
+  filters:
+    - offset: -3000
+    - multiply: 0.01
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: dhw_temperature_tw_sensor
+  name: "Tapwatertemperatuur (Tw)"
+  address: 1200
+  register_type: holding
+  value_type: S_WORD
+  device_class: temperature
+  state_class: measurement
+  unit_of_measurement: °C   
+  accuracy_decimals: 1
+  web_server: 
+    sorting_group_id: sensors_inside
+  filters:
+    - offset: -3000
+    - multiply: 0.01
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: heat_cool_temperature_tc
+  name: "CV-aanvoertemperatuur (Tc)"
+  address: 1201
+  register_type: holding
+  value_type: S_WORD
+  device_class: temperature
+  state_class: measurement
+  unit_of_measurement: °C   
+  accuracy_decimals: 1
+  web_server: 
+    sorting_group_id: sensors_inside
+  filters:
+    - offset: -3000
+    - multiply: 0.01
+    - throttle: 30s # Throttle because PID loop depends on this
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: outlet_temperature_tuo
+  name: "CV-aanvoertemperatuur (Tuo)"
+  address: 1202
+  register_type: holding
+  value_type: S_WORD
+  device_class: temperature
+  state_class: measurement
+  unit_of_measurement: °C   
+  accuracy_decimals: 1
+  web_server: 
+    sorting_group_id: sensors_inside
+  filters:
+    - offset: -3000
+    - multiply: 0.01
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: inlet_temperature_tui
+  name: "CV-retourtemperatuur (Tui)"
+  address: 1203
+  register_type: holding
+  value_type: S_WORD
+  device_class: temperature
+  state_class: measurement
+  unit_of_measurement: °C   
+  accuracy_decimals: 1
+  web_server: 
+    sorting_group_id: sensors_inside
+  filters:
+    - offset: -3000
+    - multiply: 0.01
+  on_raw_value: 
+    then:
+      - number.set: 
+          id: outlet_temperature_outside
+          value: !lambda "return x;"
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  name: "Condensatietemperatuur (Tup)"
+  address: 1204
+  register_type: holding
+  value_type: S_WORD
+  device_class: temperature
+  state_class: measurement
+  unit_of_measurement: °C   
+  accuracy_decimals: 1
+  web_server: 
+    sorting_group_id: sensors_inside
+  filters:
+    - offset: -3000
+    - multiply: 0.01
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  name: "Cv-aanvoertemperatuur zone 1 (Tv1)"
+  address: 1207
+  register_type: holding
+  value_type: S_WORD
+  device_class: temperature
+  state_class: measurement
+  unit_of_measurement: °C   
+  accuracy_decimals: 1
+  web_server: 
+    sorting_group_id: sensors_inside
+  filters:
+    - offset: -3000
+    - multiply: 0.01
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  name: "Cv-aanvoertemperatuur zone 2 (Tv2)"
+  address: 1208
+  register_type: holding
+  value_type: S_WORD
+  device_class: temperature
+  state_class: measurement
+  unit_of_measurement: °C   
+  accuracy_decimals: 1
+  web_server: 
+    sorting_group_id: sensors_inside
+  filters:
+    - offset: -3000
+    - multiply: 0.01
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: pump_p0_current_pwm_sensor
+  name: "Pomp P0 PWM"
+  address: 1303
+  register_type: holding
+  value_type: S_WORD
+  unit_of_measurement: "%"
+  state_class: "measurement"
+  filters:
+    - lambda: |-
+        return ((x * -1) + 1000) / 10;
+  web_server: 
+    sorting_group_id: sensors_inside
+  on_value: 
+    then:
+      - lambda: 
+          id(modbus_inside_is_online) = true;
+
+# Outside unit
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Voltage buitenunit"
+  address: 2100
+  register_type: holding
+  value_type: S_WORD
+  device_class: "voltage"
+  unit_of_measurement: "V"
+  accuracy_decimals: 0
+  state_class: "measurement"
+  register_count: 33 # 2100-2132
+  web_server: 
+    sorting_group_id: sensors_outside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Stroom buitenunit"
+  address: 2101
+  register_type: holding
+  value_type: S_WORD
+  device_class: "current"
+  accuracy_decimals: 1
+  unit_of_measurement: "A"
+  state_class: "measurement"
+  web_server: 
+    sorting_group_id: sensors_outside
+  filters:
+    - multiply: 0.1
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Compressor setpoint frequentie"
+  address: 2102
+  register_type: holding
+  value_type: S_WORD
+  device_class: frequency
+  accuracy_decimals: 0
+  state_class: measurement
+  unit_of_measurement: Hz
+  web_server: 
+    sorting_group_id: sensors_outside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: current_compressor_frequency
+  name: "Compressor frequentie"
+  address: 2103
+  register_type: holding
+  value_type: S_WORD
+  device_class: frequency
+  accuracy_decimals: 0
+  state_class: measurement
+  unit_of_measurement: Hz
+  web_server: 
+    sorting_group_id: sensors_outside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Fan RPM setpoint"
+  address: 2104
+  register_type: holding
+  value_type: S_WORD
+  accuracy_decimals: 0
+  state_class: measurement
+  unit_of_measurement: rpm
+  web_server: 
+    sorting_group_id: sensors_outside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Fan RPM"
+  address: 2105
+  register_type: holding
+  value_type: S_WORD
+  accuracy_decimals: 0
+  state_class: measurement
+  unit_of_measurement: rpm
+  web_server: 
+    sorting_group_id: sensors_outside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Expansieklep"
+  address: 2107
+  register_type: holding
+  value_type: S_WORD
+  state_class: "measurement"
+  web_server: 
+    sorting_group_id: sensors_outside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Buiten unit state"
+  register_type: holding
+  address: 2108
+  web_server: 
+    sorting_group_id: sensors_outside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: temperature_outside_ta
+  name: "Buitentemperatuur (Ta)"
+  address: 2110
+  register_type: holding
+  value_type: S_WORD
+  device_class: temperature
+  state_class: measurement
+  unit_of_measurement: °C   
+  accuracy_decimals: 1
+  web_server: 
+    sorting_group_id: sensors_outside
+  filters:
+    - offset: -3000
+    - multiply: 0.01
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Verdampingstemperatuur (Tp)"
+  address: 2111
+  register_type: holding
+  value_type: S_WORD
+  device_class: temperature
+  state_class: measurement
+  unit_of_measurement: °C   
+  accuracy_decimals: 1
+  web_server: 
+    sorting_group_id: sensors_outside
+  filters:
+    - offset: -3000
+    - multiply: 0.01
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Persgastemperatuur (Td)"
+  address: 2112
+  register_type: holding
+  value_type: S_WORD
+  device_class: temperature
+  state_class: measurement
+  unit_of_measurement: °C   
+  accuracy_decimals: 1
+  web_server: 
+    sorting_group_id: sensors_outside
+  filters:
+    - offset: -3000
+    - multiply: 0.01
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Zuigastemperatuur (Ts)"
+  address: 2113
+  register_type: holding
+  value_type: S_WORD
+  device_class: temperature
+  state_class: measurement
+  unit_of_measurement: °C     
+  accuracy_decimals: 1
+  web_server: 
+    sorting_group_id: sensors_outside
+  filters:
+    - offset: -3000
+    - multiply: 0.01
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Zuiggasdruk (Ps)"
+  address: 2116
+  register_type: holding
+  value_type: S_WORD
+  device_class: pressure
+  accuracy_decimals: 1
+  state_class: measurement
+  unit_of_measurement: bar
+  web_server: 
+    sorting_group_id: sensors_outside
+  filters:
+    - multiply: 0.1
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Persgasdruk (Pd)"
+  address: 2117
+  register_type: holding
+  value_type: S_WORD
+  device_class: pressure
+  accuracy_decimals: 1
+  state_class: measurement
+  unit_of_measurement: bar
+  web_server: 
+    sorting_group_id: sensors_outside
+  filters:
+    - multiply: 0.1
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outside_unit_program_version
+  internal: True
+  skip_updates: 10
+  address: 2122
+  register_type: holding
+  value_type: S_WORD
+  web_server: 
+    sorting_group_id: sensors_outside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "EEPROM"
+  skip_updates: 10
+  address: 2123
+  register_type: holding
+  value_type: S_WORD
+  web_server: 
+    sorting_group_id: sensors_outside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Condensing Temperature"
+  register_type: holding
+  address: 2131
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  state_class: "measurement"
+  accuracy_decimals: 2
+  web_server: 
+    sorting_group_id: sensors_outside
+  filters:
+    - offset: -3000
+    - multiply: 0.01
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Evaporating Temperature"
+  register_type: holding
+  address: 2132
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  state_class: "measurement"
+  accuracy_decimals: 2
+  web_server: 
+    sorting_group_id: sensors_outside
+  filters:
+    - offset: -3000
+    - multiply: 0.01
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outside_unit_eeprom_version_part2
+  internal: True
+  skip_updates: 10
+  address: 3509
+  register_type: holding
+  value_type: S_WORD
+  web_server: 
+    sorting_group_id: sensors_outside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outside_unit_eeprom_version_part1
+  internal: True
+  skip_updates: 10
+  address: 3510
+  register_type: holding
+  value_type: S_WORD
+  web_server: 
+    sorting_group_id: sensors_outside

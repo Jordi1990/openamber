@@ -1,0 +1,117 @@
+- platform: template
+  id: dhw_enabled_switch
+  name: "Tapwater aanwezig"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: settings
+
+- platform: template
+  id: amber_controller_active
+  name: "Amber controller actief"
+  optimistic: True
+  restore_mode: ALWAYS_ON
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: pump_p0_relay_switch
+  internal: True
+  name: "Pomp P0 relais"
+  address: 1099
+  register_type: holding
+  web_server: 
+    sorting_group_id: control_inside
+    
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: pump_p1_relay_switch
+  internal: True
+  name: "Pomp P1 relais"
+  address: 1100
+  register_type: holding
+  web_server: 
+    sorting_group_id: control_inside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: pump_p2_relay_switch
+  internal: True
+  name: "Pomp P2 relais"
+  address: 1101
+  register_type: holding
+  web_server: 
+    sorting_group_id: control_inside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: dhw_pump_relay_switch
+  internal: True
+  name: "Tapwater pomp relais"
+  address: 1102
+  register_type: holding
+  web_server: 
+    sorting_group_id: control_inside
+    
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: initialize_relay_switch
+  internal: True
+  name: "Binnen unit relais onbekend"
+  address: 1104
+  register_type: holding
+  web_server: 
+    sorting_group_id: control_inside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  internal: True
+  id: three_way_valve_heat_cool_switch
+  name: "3-weg klep Koelen/Verwarmen"
+  address: 1105
+  register_type: holding
+  web_server: 
+    sorting_group_id: control_inside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: backup_heater_stage_1
+  internal: True
+  name: "Backup heater stage 1"
+  address: 1109
+  register_type: holding
+  web_server: 
+    sorting_group_id: control_inside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: backup_heater_stage_2
+  internal: True
+  name: "Backup heater stage 2"
+  address: 1110
+  register_type: holding
+  web_server: 
+    sorting_group_id: control_inside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  internal: True
+  id: three_way_valve_dhw_switch
+  name: "3-weg klep SWW"
+  address: 1112
+  register_type: holding
+  web_server: 
+    sorting_group_id: control_inside
+
+- platform: template
+  optimistic: True
+  id: backup_heater_relay
+  name: "Backup verwarmingselement"
+  on_state: 
+    then:
+    - switch.control:
+        id: backup_heater_stage_1
+        state: !lambda return x;
+    - switch.control:
+        id: backup_heater_stage_2
+        state: !lambda return x;
