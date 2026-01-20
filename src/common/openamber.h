@@ -495,9 +495,9 @@ private:
         const float gained = GetCurrentTemperature() - state.dhw_cycle_start_temp;
         const float avg_rate = (elapsed_min > 0.1f) ? (gained / elapsed_min) : 0.0f;
         this->dhw_backup_current_avg_rate->publish_state(avg_rate);
-        if (avg_rate < this->dhw_backup_min_avg_rate->state && elapsed_min >= DHW_BACKUP_HEATER_GRACE_PERIOD_S / 60.0f)
+        if (avg_rate < this->dhw_backup_min_avg->state && elapsed_min >= DHW_BACKUP_HEATER_GRACE_PERIOD_S / 60.0f)
         {
-          ESP_LOGI("amber", "DHW backup enable: avg_rate=%.3f°C/min < min=%.3f°C/min", avg_rate, this->dhw_backup_min_avg_rate->state);
+          ESP_LOGI("amber", "DHW backup enable: avg_rate=%.3f°C/min < min=%.3f°C/min", avg_rate, this->dhw_backup_min_avg->state);
           backup_heater->turn_on();
           SetNextState(HPState::WAIT_BACKUP_HEATER_RUNNING);
           break;
