@@ -4,6 +4,9 @@ packages:
 esp32:
   board: esp32dev
     
+modbus:
+  flow_control_pin: GPIO14
+
 uart:
   rx_pin: GPIO32
   tx_pin: GPIO33
