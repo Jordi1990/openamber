@@ -5,7 +5,7 @@
   restore_mode: RESTORE_DEFAULT_OFF
   entity_category: config
   web_server: 
-  sorting_group_id: settings
+    sorting_group_id: settings
 
 - platform: template
   id: amber_controller_active
