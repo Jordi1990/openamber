@@ -330,3 +330,27 @@
   entity_category: config
   web_server: 
     sorting_group_id: settings
+
+- platform: template
+  id: legio_repeat_days_number
+  name: "Legionellapreventie herhaling (dagen)"
+  unit_of_measurement: "d"
+  min_value: 7
+  max_value: 60
+  step: 1
+  restore_value: True
+  initial_value: 7
+  optimistic: True
+  mode: box
+
+- platform: template
+  id: legio_target_temperature_number
+  name: "Legionellapreventie doeltemperatuur"
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 55
+  max_value: 65
+  step: 1
+  initial_value: 60
+  restore_value: True
+  optimistic: True

@@ -1,4 +1,13 @@
 - platform: template
+  id: legio_enabled_switch
+  name: "Legionellapreventie"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: settings
+
+- platform: template
   id: dhw_enabled_switch
   name: "Tapwater aanwezig"
   optimistic: True
@@ -67,7 +76,7 @@
   modbus_controller_id: modbus_inside_unit
   internal: True
   id: three_way_valve_heat_cool_switch
-  name: "3-weg klep Koelen/Verwarmen"
+  name: "3-weg klep Koelen⁄Verwarmen"
   address: 1105
   register_type: holding
   web_server: 
