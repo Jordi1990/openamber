@@ -88,6 +88,7 @@ struct AmberState
   float compressor_pid = 0.0;
   uint32_t next_pump_cycle = 0;
   uint32_t pump_start_time = 0;
+  bool legionella_run_active = false;
 
   // Backup heater degree / minute tracking.
   uint32_t backup_degmin_last_ms = 0;
@@ -95,8 +96,7 @@ struct AmberState
   float temperature_rate_c_per_min = 0.0;
   float last_temperature_for_rate = 0.0;
 
-  // Backup heater DHW temperature tracking
-  float dhw_cycle_start_temp = 0.0f;
+  float start_target_temp = 0.0f;
 
   HPState hp_state = HPState::IDLE;
   HPState deferred_hp_state = HPState::UNKNOWN;
@@ -154,6 +154,12 @@ public:
   switch_::Switch *dhw_pump = nullptr;
   sensor::Sensor *dhw_backup_current_avg_rate = nullptr;
   number::Number *dhw_backup_min_avg = nullptr;
+  
+  switch_::Switch *legio_enabled = nullptr;
+  number::Number *legio_repeat_days = nullptr;
+  datetime::DateTimeEntity *legio_start_time = nullptr;
+  esphome::time::RealTimeClock *time = nullptr;
+  number::Number *legio_target_temperature = nullptr;
   int mode_offset = 0;
   int dhw_mode_offset = 0;
   int dhw_mode_max_offset = 0;
@@ -163,6 +169,8 @@ public:
     if (this->initialized)
     {
       DoSafetyChecks();
+
+      CheckLegionellaCycle();
 
       UpdateStateMachine();
     }
@@ -243,6 +251,12 @@ private:
     this->dhw_backup_current_avg_rate = &id(dhw_backup_current_avg_rate_sensor);
     this->dhw_backup_min_avg = &id(dhw_backup_min_avg_rate);
 
+    this->legio_enabled = &id(legio_enabled_switch);
+    this->legio_repeat_days = &id(legio_repeat_days_number);
+    this->legio_start_time = &id(next_legionella_run);
+    this->legio_target_temperature = &id(legio_target_temperature_number);
+    this->time = &id(my_time);
+
     this->mode_offset = this->compressor_control->size() - this->heat_compressor_max_mode->size();
     this->dhw_mode_offset = this->compressor_control->size() - this->dhw_compressor->size();
     this->dhw_mode_max_offset = this->compressor_control->size() - this->dhw_compressor_max->size();
@@ -287,6 +301,37 @@ private:
     this->initialized = true;
   }
 
+  void CheckLegionellaCycle()
+  {
+    if(!this->legio_enabled->state
+    || !this->dhw_enabled->state)
+    {
+      return;
+    }
+
+    auto now = time->now();
+    auto legionella_time = legio_start_time->state_as_esptime();
+    if(!state.legionella_run_active && now >= legionella_time)
+    {
+        ESP_LOGI("amber", "Starting legionella cycle.");
+        state.legionella_run_active = true;
+        auto next_run = legio_start_time->state_as_esptime();
+        for(int i=1;i<=this->legio_repeat_days->state;i++)
+        {
+          next_run.increment_day();
+        }
+        auto legio_start_call = legio_start_time->make_call();
+        legio_start_call.set_datetime(next_run);
+        legio_start_call.perform();
+        ESP_LOGI("amber", "Next legionella cycle scheduled at %04d-%02d-%02d %02d:%02d", legio_start_time->year, legio_start_time->month, legio_start_time->day, legio_start_time->hour, legio_start_time->minute);
+    }
+    else if(state.legionella_run_active && !IsDemandForDhw())
+    {
+      ESP_LOGI("amber", "Legionella cycle completed, target temperature %.2f°C reached.", this->dhw_temperature_tw->state);
+      state.legionella_run_active = false;
+    }
+  }
+
   void DoSafetyChecks()
   {
     // If pump is not active while compressor is running, stop compressor to avoid damage.
@@ -306,6 +351,9 @@ private:
       SetNextState(HPState::IDLE);
       return;
     }
+
+    // TODO: Implement check for when Tc is rising while in Dhw mode and Tw rising in heating mode.
+    // So we can stop the compressor because the three way valve is in the wrong position.
   }
 
   void UpdateStateMachine()
@@ -313,7 +361,7 @@ private:
     const uint32_t now = millis();
 
     // TODO: This probably needs more logic around priorities and heating time on or post defrost.
-    bool dhw_demand = this->dhw_demand->state && this->dhw_enabled->state;
+    bool dhw_demand = IsDemandForDhw();
 
     float current_temperature = GetCurrentTemperature();
     float target_temperature = GetTargetTemperature();
@@ -492,7 +540,7 @@ private:
       else
       {
         const float elapsed_min = (float)(now - state.last_compressor_start_ms) / 60000.0f;
-        const float gained = GetCurrentTemperature() - state.dhw_cycle_start_temp;
+        const float gained = GetCurrentTemperature() - state.start_target_temp;
         const float avg_rate = (elapsed_min > 0.1f) ? (gained / elapsed_min) : 0.0f;
         this->dhw_backup_current_avg_rate->publish_state(avg_rate);
         if (avg_rate < this->dhw_backup_min_avg->state && elapsed_min >= DHW_BACKUP_HEATER_GRACE_PERIOD_S / 60.0f)
@@ -808,6 +856,7 @@ private:
   void StartCompressor()
   {
     state.is_switching_modes = false;
+    state.start_target_temp = GetTargetTemperature();
     if (IsInDhwMode())
     {
       int dhw_compressor_mode = GetDhwCompressorMode();
@@ -829,8 +878,7 @@ private:
   {
     float temperature_ta = temp_outside->state;
     float ta_threshold = dhw_ta_temperature_compressor_max->state;
-    int dhw_compressor_mode = this->dhw_compressor->active_index().value() + this->dhw_mode_offset;
-    state.dhw_cycle_start_temp = this->dhw_temperature_tw->state;
+    int dhw_compressor_mode = this->dhw_compressor->active_index().value() + this->dhw_mode_offset;    
     if (temperature_ta <= ta_threshold)
     {
       dhw_compressor_mode = this->dhw_compressor_max->active_index().value() + this->dhw_mode_max_offset;
@@ -930,19 +978,29 @@ private:
 
   float GetTargetTemperature()
   {
-    bool is_dhw_mode = IsThreeWayValveInPosition(ThreeWayValvePosition::DHW);
-    return is_dhw_mode ? this->dhw_setpoint->state : this->pid_heat_cool->target_temperature;
+    if(IsInDhwMode())
+    {
+      return state.legionella_run_active ? this->legio_target_temperature->state : this->dhw_setpoint->state;
+    }
+    else
+    {
+      return this->pid_heat_cool->target_temperature;
+    }
   }
 
   float GetCurrentTemperature()
   {
-    bool is_dhw_mode = IsThreeWayValveInPosition(ThreeWayValvePosition::DHW);
-    return is_dhw_mode ? this->dhw_temperature_tw->state : this->temp_tc->state;
+    return IsInDhwMode() ? this->dhw_temperature_tw->state : this->temp_tc->state;
   }
 
   float GetTemperatureDelta()
   {
     return GetCurrentTemperature() - GetTargetTemperature();
+  }
+
+  bool IsDemandForDhw()
+  {
+    return this->dhw_demand->state && this->dhw_enabled->state;
   }
 
   bool IsCompressorDemandForCurrentMode()

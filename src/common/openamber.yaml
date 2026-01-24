@@ -77,6 +77,20 @@ globals:
     restore_value: no
     initial_value: 'false'
 
+datetime:
+ - platform: template
+   id: next_legionella_run
+   name: "Volgende legionellapreventie"
+   type: datetime
+   restore_value: true
+   optimistic: true
+   initial_value: "2026-01-01 10:00:00"
+
+# Use SNTP for time so we also have time when not connected to Home Assistant.
+time:
+  - platform: sntp
+    id: my_time
+
 modbus:
   send_wait_time: 500ms
 

@@ -51,9 +51,9 @@
   name: "3-weg klep stand"
   optimistic: True
   options:
-    - "Verwarmen/Koelen"
+    - "Verwarmen⁄Koelen"
     - "Tapwater"
-  initial_option: "Verwarmen/Koelen"
+  initial_option: "Verwarmen⁄Koelen"
   entity_category: config
   web_server: 
     sorting_group_id: control_inside
@@ -61,7 +61,7 @@
     then:
       - if:
           condition:
-            lambda: 'return id(three_way_valve_select).current_option() == "Verwarmen/Koelen";'
+            lambda: 'return id(three_way_valve_select).current_option() == "Verwarmen⁄Koelen";'
           then:
             - switch.turn_off: three_way_valve_dhw_switch
             - switch.turn_on: three_way_valve_heat_cool_switch

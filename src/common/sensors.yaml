@@ -1,6 +1,6 @@
 - platform: template
   id: backup_heater_degmin_current_sensor
-  name: "Backup heater degree/min current"
+  name: "Backup heater degree⁄min current"
   unit_of_measurement: "°C·min"
   accuracy_decimals: 1
   state_class: measurement
