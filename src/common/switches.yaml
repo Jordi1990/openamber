@@ -142,3 +142,13 @@
     - switch.control:
         id: backup_heater_stage_2
         state: !lambda return x;
+
+- platform: template
+  id: heat_demand_switch
+  name: "Externe verwarmingsvraag"
+  optimistic: True
+
+- platform: template
+  id: cool_demand_switch
+  name: "Externe koudevraag"
+  optimistic: True
