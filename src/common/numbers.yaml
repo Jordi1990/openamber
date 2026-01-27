@@ -343,6 +343,9 @@
   initial_value: 7
   optimistic: True
   mode: box
+  entity_category: config
+  web_server: 
+    sorting_group_id: settings
 
 - platform: template
   id: legio_target_temperature_number
@@ -355,3 +358,6 @@
   initial_value: 60
   restore_value: True
   optimistic: True
+  entity_category: config
+  web_server: 
+    sorting_group_id: settings

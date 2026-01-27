@@ -88,7 +88,6 @@ struct AmberState
   float compressor_pid = 0.0;
   uint32_t next_pump_cycle = 0;
   uint32_t pump_start_time = 0;
-  bool legionella_run_active = false;
 
   // Backup heater degree / minute tracking.
   uint32_t backup_degmin_last_ms = 0;
@@ -160,6 +159,7 @@ public:
   datetime::DateTimeEntity *legio_start_time = nullptr;
   esphome::time::RealTimeClock *time = nullptr;
   number::Number *legio_target_temperature = nullptr;
+  binary_sensor::BinarySensor *dhw_legionella_run_active = nullptr;
   int mode_offset = 0;
   int dhw_mode_offset = 0;
   int dhw_mode_max_offset = 0;
@@ -255,6 +255,7 @@ private:
     this->legio_repeat_days = &id(legio_repeat_days_number);
     this->legio_start_time = &id(next_legionella_run);
     this->legio_target_temperature = &id(legio_target_temperature_number);
+    this->dhw_legionella_run_active = &id(dhw_legionella_run_active_sensor);
     this->time = &id(my_time);
 
     this->mode_offset = this->compressor_control->size() - this->heat_compressor_max_mode->size();
@@ -311,10 +312,10 @@ private:
 
     auto now = time->now();
     auto legionella_time = legio_start_time->state_as_esptime();
-    if(!state.legionella_run_active && now >= legionella_time)
+    if(!this->dhw_legionella_run_active->state && now >= legionella_time)
     {
         ESP_LOGI("amber", "Starting legionella cycle.");
-        state.legionella_run_active = true;
+        this->dhw_legionella_run_active->publish_state(true);
         auto next_run = legio_start_time->state_as_esptime();
         for(int i=1;i<=this->legio_repeat_days->state;i++)
         {
@@ -325,10 +326,10 @@ private:
         legio_start_call.perform();
         ESP_LOGI("amber", "Next legionella cycle scheduled at %04d-%02d-%02d %02d:%02d", legio_start_time->year, legio_start_time->month, legio_start_time->day, legio_start_time->hour, legio_start_time->minute);
     }
-    else if(state.legionella_run_active && !IsDemandForDhw())
+    else if(this->dhw_legionella_run_active->state && !IsDemandForDhw())
     {
-      ESP_LOGI("amber", "Legionella cycle completed, target temperature %.2f°C reached.", this->dhw_temperature_tw->state);
-      state.legionella_run_active = false;
+      ESP_LOGI("amber", "Legionella cycle completed, target temperature %.2f°C reached.", this->legio_target_temperature->state);
+      this->dhw_legionella_run_active->publish_state(false);
     }
   }
 
@@ -980,7 +981,7 @@ private:
   {
     if(IsInDhwMode())
     {
-      return state.legionella_run_active ? this->legio_target_temperature->state : this->dhw_setpoint->state;
+      return this->dhw_legionella_run_active->state ? this->legio_target_temperature->state : this->dhw_setpoint->state;
     }
     else
     {
@@ -1007,7 +1008,7 @@ private:
   {
     if (IsInDhwMode())
     {
-      return this->dhw_demand->state;
+      return IsDemandForDhw();
     }
     else
     {

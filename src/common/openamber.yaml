@@ -21,8 +21,6 @@ esphome:
 esp32:
   framework:
     type: esp-idf
-    advanced:
-      minimum_chip_revision: "3.1"
 
 interval:
   - interval: 5min
@@ -52,7 +50,7 @@ api:
 # Broker used to push analytics data (Opt-In)
 mqtt:
   broker: mqtt.openamber.nl
-  enabled_on_boot: false
+  enable_on_boot: false
   username: openamber_write
   password: openamber
   discovery: false
@@ -166,6 +164,7 @@ binary_sensor: !include binary_sensors.yaml
 number: !include numbers.yaml
 switch: !include switches.yaml
 select: !include selects.yaml
+script: !include scripts.yaml
 
 output:
   - platform: template
