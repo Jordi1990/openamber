@@ -17,6 +17,24 @@
     sorting_group_id: settings
 
 - platform: template
+  id: analytics_enabled_switch
+  name: "Analytics versturen"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: settings
+  on_state:
+    then:
+      - if:
+          condition:
+            - switch.is_on: analytics_enabled_switch
+          then:
+            - mqtt.enable:
+          else:
+            - mqtt.disable:
+
+- platform: template
   id: amber_controller_active
   name: "Amber controller actief"
   optimistic: True
