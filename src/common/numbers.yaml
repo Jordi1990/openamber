@@ -120,7 +120,7 @@
 
 - platform: template
   id: heat_curve_0
-  name: "Stooklijn Tc  0°C"
+  name: "Stooklijn Tc @ 0°C"
   optimistic: True
   unit_of_measurement: "°C"
   device_class: "temperature"
@@ -175,6 +175,7 @@
   max_value: 75
   step: 1
   initial_value: 55
+  restore_value: True
   entity_category: config
   web_server: 
       sorting_group_id: settings
@@ -342,6 +343,9 @@
   initial_value: 7
   optimistic: True
   mode: box
+  entity_category: config
+  web_server: 
+    sorting_group_id: settings
 
 - platform: template
   id: legio_target_temperature_number
@@ -354,3 +358,6 @@
   initial_value: 60
   restore_value: True
   optimistic: True
+  entity_category: config
+  web_server: 
+    sorting_group_id: settings

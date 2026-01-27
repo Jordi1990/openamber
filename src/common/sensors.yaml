@@ -7,7 +7,7 @@
 
 - platform: template
   id: dhw_backup_current_avg_rate_sensor
-  name: "DHW current avg rate"
+  name: "DHW verwarmsnelheid"
   unit_of_measurement: "°C/min"
   accuracy_decimals: 2
   state_class: measurement
@@ -193,6 +193,7 @@
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
+  id: condensate_temperature_tup
   name: "Condensatietemperatuur (Tup)"
   address: 1204
   register_type: holding
@@ -351,14 +352,6 @@
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
-  name: "Buiten unit state"
-  register_type: holding
-  address: 2108
-  web_server: 
-    sorting_group_id: sensors_outside
-
-- platform: modbus_controller
-  modbus_controller_id: modbus_outside_unit
   id: temperature_outside_ta
   name: "Buitentemperatuur (Ta)"
   address: 2110
@@ -376,6 +369,7 @@
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
+  id: evaporation_temperature_tp
   name: "Verdampingstemperatuur (Tp)"
   address: 2111
   register_type: holding
@@ -465,9 +459,22 @@
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
+  id: outside_unit_eeprom_version
   name: "EEPROM"
   skip_updates: 10
   address: 2123
+  register_type: holding
+  value_type: S_WORD
+  web_server: 
+    sorting_group_id: sensors_outside
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  name: "Hardware item nummer"
+  id: outside_unit_hardware_item_number
+  #internal: True
+  skip_updates: 10
+  address: 2127
   register_type: holding
   value_type: S_WORD
   web_server: 

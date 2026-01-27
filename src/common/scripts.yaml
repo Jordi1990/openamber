@@ -1,0 +1,65 @@
+- id: send_analytics
+  then:
+    - mqtt.publish_json:
+        topic: !lambda |-
+          return "openamber/" + id(mac_address).state;
+        qos: 1
+        retain: true
+        payload: |-
+          root["device_id"] = id(mac_address).state;
+          root["timestamp"] = id(my_time).timestamp_now();
+          root["firmware"] = "${device_version}";
+          root["hardware_item_number"] = id(outside_unit_hardware_item_number).state;
+          root["eeprom_version"] = id(outside_unit_eeprom_version).state;
+          root["outside_unit_eeprom_version_part1"] = id(outside_unit_eeprom_version_part1).state;
+          root["outside_unit_eeprom_version_part2"] = id(outside_unit_eeprom_version_part2).state;
+          root["program_version"] = id(outside_unit_program_version).state;
+          root["dhw_enabled"] = id(dhw_enabled_switch).state;
+          root["legio_enabled"] = id(legio_enabled_switch).state;
+          root["frost_protection_stage_1_temp_ta"] = id(frost_protection_stage_1_temp_ta).state;
+          root["frost_protection_stage_2_temp_ta"] = id(frost_protection_stage_2_temp_ta).state;
+          root["frost_protection_stage_2_temp_tui"] = id(frost_protection_stage_2_temp_tui).state;
+          root["compressor_start_delta"] = id(compressor_start_delta).state;
+          root["compressor_stop_delta"] = id(compressor_stop_delta).state;
+          root["heat_curve_p15"] = id(heat_curve_p15).state;
+          root["heat_curve_p10"] = id(heat_curve_p10).state;
+          root["heat_curve_p5"] = id(heat_curve_p5).state;
+          root["heat_curve_0"] = id(heat_curve_0).state;
+          root["heat_curve_m10"] = id(heat_curve_m10).state;
+          root["dhw_setpoint_temperature"] = id(dhw_setpoint_temperature).state;
+          root["dhw_restart_dhw_delta"] = id(dhw_restart_dhw_delta).state;
+          root["dhw_temperature_threshold_max_compressor_mode"] = id(dhw_temperature_threshold_max_compressor_mode).state;
+          root["dhw_backup_min_avg_rate"] = id(dhw_backup_min_avg_rate).state;
+          root["backup_heater_degmin_threshold"] = id(backup_heater_degmin_threshold).state;
+          root["pump_speed_heating"] = id(pump_speed_heating_number).state;
+          root["pump_speed_dhw"] = id(pump_speed_dhw_number).state;
+          root["pump_interval"] = id(pump_interval).state;
+          root["pump_duration"] = id(pump_duration).state;
+          root["defrost_backup_heater_boost_temperature"] = id(defrost_backup_heater_boost_temperature_sensor).state;
+          root["legio_repeat_days"] = id(legio_repeat_days_number).state;
+          root["legio_target_temperature"] = id(legio_target_temperature_number).state;
+          root["heat_compressor_mode"] = id(heat_compressor_mode).current_option();
+          root["dhw_compressor_mode"] = id(dhw_compressor_mode).current_option();
+          root["dhw_compressor_mode_max"] = id(dhw_compressor_mode_max).current_option();
+          root["heat_mode"] = id(heat_mode_select).current_option();
+          root["thermostat_mode"] = id(thermostat_mode_select).current_option();
+          root["heat_demand"] = id(heat_demand_active_sensor).state;
+          root["cool_demand"] = id(cool_demand_active_sensor).state;
+          root["dhw_demand"] = id(dhw_demand_active_sensor).state;
+          root["backup_heater_active"] = id(backup_heater_active_sensor).state;
+          root["internal_pump_active"] = id(internal_pump_active).state;
+          root["defrost_active"] = id(defrost_active_sensor).state;
+          root["backup_heater_degmin_current"] = id(backup_heater_degmin_current_sensor).state;
+          root["dhw_backup_current_avg_rate"] = id(dhw_backup_current_avg_rate_sensor).state;
+          root["state_machine_state"] = id(state_machine_state).state;
+          root["current_setpoint"] = id(current_setpoint).state;
+          root["room_temperature"] = id(room_temperature).state;
+          root["temperature_outside_ta"] = id(temperature_outside_ta).state;
+          root["dhw_temperature_tw"] = id(dhw_temperature_tw_sensor).state;
+          root["heat_cool_temperature_tc"] = id(heat_cool_temperature_tc).state;
+          root["outlet_temperature_tuo"] = id(outlet_temperature_tuo).state;
+          root["inlet_temperature_tui"] = id(inlet_temperature_tui).state;
+          root["pump_p0_current_pwm"] = id(pump_p0_current_pwm_sensor).state;
+          root["current_compressor_frequency"] = id(current_compressor_frequency).state;
+          root["condensate_temperature_tup"] = id(condensate_temperature_tup).state;
+          root["evaporation_temperature_tp"] = id(evaporation_temperature_tp).state;

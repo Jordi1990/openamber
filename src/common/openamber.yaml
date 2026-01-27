@@ -1,17 +1,35 @@
+substitutions:
+  device_name: openamber
+  device_friendly_name: OpenAmber
+  device_project_name: jordi.openamber
+  device_version: 0.0.6
+
 esphome:
-  name: openamber
-  friendly_name: OpenAmber
+  name: ${device_name}
+  friendly_name: ${device_friendly_name}
   project:
-    name: jordi.openamber
-    version: 0.0.5
+    name: ${device_project_name}
+    version: ${device_version}
   includes: 
     - common/openamber.h
-
+  on_boot:
+    if:
+      condition:
+        - switch.is_on: analytics_enabled_switch
+      then:
+        - mqtt.enable:
 esp32:
   framework:
     type: esp-idf
 
 interval:
+  - interval: 5min
+    then:
+      - if:
+         condition:
+          - switch.is_on: analytics_enabled_switch
+         then:
+          - script.execute: send_analytics
   - interval: 10s
     then:
       - if:
@@ -28,6 +46,19 @@ logger:
   baud_rate: 0
 
 api:
+
+# Broker used to push analytics data (Opt-In)
+mqtt:
+  broker: mqtt.openamber.nl
+  enable_on_boot: false
+  username: openamber_write
+  password: openamber
+  discovery: false
+  discover_ip: false
+  discovery_retain: false
+  idf_send_async: true
+  log_topic: null
+  topic_prefix: null
 
 ota:
   - platform: esphome
@@ -133,6 +164,7 @@ binary_sensor: !include binary_sensors.yaml
 number: !include numbers.yaml
 switch: !include switches.yaml
 select: !include selects.yaml
+script: !include scripts.yaml
 
 output:
   - platform: template

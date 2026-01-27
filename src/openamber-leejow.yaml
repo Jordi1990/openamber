@@ -3,6 +3,9 @@ packages:
 
 esp32:
   board: esp32dev
+  framework:
+    advanced:
+      minimum_chip_revision: "3.1"
     
 modbus:
   flow_control_pin: GPIO14

@@ -88,7 +88,6 @@ struct AmberState
   float compressor_pid = 0.0;
   uint32_t next_pump_cycle = 0;
   uint32_t pump_start_time = 0;
-  bool legionella_run_active = false;
 
   // Backup heater degree / minute tracking.
   uint32_t backup_degmin_last_ms = 0;
@@ -160,6 +159,7 @@ public:
   datetime::DateTimeEntity *legio_start_time = nullptr;
   esphome::time::RealTimeClock *time = nullptr;
   number::Number *legio_target_temperature = nullptr;
+  binary_sensor::BinarySensor *dhw_legionella_run_active = nullptr;
   int mode_offset = 0;
   int dhw_mode_offset = 0;
   int dhw_mode_max_offset = 0;
@@ -255,6 +255,7 @@ private:
     this->legio_repeat_days = &id(legio_repeat_days_number);
     this->legio_start_time = &id(next_legionella_run);
     this->legio_target_temperature = &id(legio_target_temperature_number);
+    this->dhw_legionella_run_active = &id(dhw_legionella_run_active_sensor);
     this->time = &id(my_time);
 
     this->mode_offset = this->compressor_control->size() - this->heat_compressor_max_mode->size();
@@ -311,10 +312,10 @@ private:
 
     auto now = time->now();
     auto legionella_time = legio_start_time->state_as_esptime();
-    if(!state.legionella_run_active && now >= legionella_time)
+    if(!this->dhw_legionella_run_active->state && now >= legionella_time)
     {
         ESP_LOGI("amber", "Starting legionella cycle.");
-        state.legionella_run_active = true;
+        this->dhw_legionella_run_active->publish_state(true);
         auto next_run = legio_start_time->state_as_esptime();
         for(int i=1;i<=this->legio_repeat_days->state;i++)
         {
@@ -325,10 +326,10 @@ private:
         legio_start_call.perform();
         ESP_LOGI("amber", "Next legionella cycle scheduled at %04d-%02d-%02d %02d:%02d", legio_start_time->year, legio_start_time->month, legio_start_time->day, legio_start_time->hour, legio_start_time->minute);
     }
-    else if(state.legionella_run_active && !IsDemandForDhw())
+    else if(this->dhw_legionella_run_active->state && !IsDemandForDhw())
     {
-      ESP_LOGI("amber", "Legionella cycle completed, target temperature %.2f°C reached.", this->dhw_temperature_tw->state);
-      state.legionella_run_active = false;
+      ESP_LOGI("amber", "Legionella cycle completed, target temperature %.2f°C reached.", this->legio_target_temperature->state);
+      this->dhw_legionella_run_active->publish_state(false);
     }
   }
 
@@ -525,33 +526,6 @@ private:
         break;
       }
 
-      if (!IsInDhwMode())
-      {
-        CalculateAccumulatedBackupHeaterDegreeMinutes();
-
-        if (state.accumulated_backup_degmin >= backup_heater_degmin_limit->state)
-        {
-          ESP_LOGI("amber", "Enabling backup heater (degree/min limit reached: %.2f)", state.accumulated_backup_degmin);
-          backup_heater->turn_on();
-          SetNextState(HPState::WAIT_BACKUP_HEATER_RUNNING);
-          break;
-        }
-      }
-      else
-      {
-        const float elapsed_min = (float)(now - state.last_compressor_start_ms) / 60000.0f;
-        const float gained = GetCurrentTemperature() - state.start_target_temp;
-        const float avg_rate = (elapsed_min > 0.1f) ? (gained / elapsed_min) : 0.0f;
-        this->dhw_backup_current_avg_rate->publish_state(avg_rate);
-        if (avg_rate < this->dhw_backup_min_avg->state && elapsed_min >= DHW_BACKUP_HEATER_GRACE_PERIOD_S / 60.0f)
-        {
-          ESP_LOGI("amber", "DHW backup enable: avg_rate=%.3f°C/min < min=%.3f°C/min", avg_rate, this->dhw_backup_min_avg->state);
-          backup_heater->turn_on();
-          SetNextState(HPState::WAIT_BACKUP_HEATER_RUNNING);
-          break;
-        }
-      }
-
       bool hasPassedMinOnTime = (now - state.last_compressor_start_ms) > min_on_ms;
 
       // Only check for stop conditions when min on time is passed.
@@ -587,6 +561,33 @@ private:
           ESP_LOGI("amber", "Stopping compressor because it reached delta %.2f°C (ΔT=%.2f°C).", stop_compressor_delta->state, supply_temperature_delta);
           StopCompressor();
           SetNextState(HPState::WAIT_COMPRESSOR_STOP);
+          break;
+        }
+      }
+
+      if (!IsInDhwMode())
+      {
+        CalculateAccumulatedBackupHeaterDegreeMinutes();
+
+        if (state.accumulated_backup_degmin >= backup_heater_degmin_limit->state)
+        {
+          ESP_LOGI("amber", "Enabling backup heater (degree/min limit reached: %.2f)", state.accumulated_backup_degmin);
+          backup_heater->turn_on();
+          SetNextState(HPState::WAIT_BACKUP_HEATER_RUNNING);
+          break;
+        }
+      }
+      else
+      {
+        const float elapsed_min = (float)(now - state.last_compressor_start_ms) / 60000.0f;
+        const float gained = GetCurrentTemperature() - state.start_target_temp;
+        const float avg_rate = (elapsed_min > 0.1f) ? (gained / elapsed_min) : 0.0f;
+        this->dhw_backup_current_avg_rate->publish_state(avg_rate);
+        if (avg_rate < this->dhw_backup_min_avg->state && elapsed_min >= DHW_BACKUP_HEATER_GRACE_PERIOD_S / 60.0f)
+        {
+          ESP_LOGI("amber", "DHW backup enable: avg_rate=%.3f°C/min < min=%.3f°C/min", avg_rate, this->dhw_backup_min_avg->state);
+          backup_heater->turn_on();
+          SetNextState(HPState::WAIT_BACKUP_HEATER_RUNNING);
           break;
         }
       }
@@ -980,7 +981,7 @@ private:
   {
     if(IsInDhwMode())
     {
-      return state.legionella_run_active ? this->legio_target_temperature->state : this->dhw_setpoint->state;
+      return this->dhw_legionella_run_active->state ? this->legio_target_temperature->state : this->dhw_setpoint->state;
     }
     else
     {
@@ -1007,7 +1008,7 @@ private:
   {
     if (IsInDhwMode())
     {
-      return this->dhw_demand->state;
+      return IsDemandForDhw();
     }
     else
     {
