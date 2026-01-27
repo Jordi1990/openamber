@@ -139,7 +139,7 @@ Connect wires to your hardware RS485 port (Itho Daalderop Amber Control Module u
 | Address    | Function                            |
 |:----------:|:-----------------------------------------------------------------:|
 | 1999       | Compressor mode(0-10)                                             |
-| 3999       | Working mode(0=OFF,1=COOL,3=HEAT,5=EEPROM UPDATE,6=MAINTENANCE)   |
+| 3999       | Working mode(0=OFF,1=COOL,2=HEAT,5=EEPROM UPDATE,6=MAINTENANCE)   |
 
 #### State (Address 2108)
 

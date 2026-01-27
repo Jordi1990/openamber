@@ -28,7 +28,7 @@
     }
     else
     {
-      return id(external_heat_demand).state;
+      return id(external_heat_demand_wired).state || id(external_heat_demand_switch).state;
     }
 
 - platform: template
@@ -42,7 +42,7 @@
     }
     else
     {
-      return id(external_cool_demand).state;
+      return id(external_cool_demand_wired).state || id(external_cool_demand_switch).state;
     }
 
 - platform: template
@@ -88,8 +88,8 @@
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
-  id: external_cool_demand
-  name: "Externe koudevraag"
+  id: external_cool_demand_wired
+  name: "Externe koudevraag (bedraad)"
   address: 1213
   register_type: holding
   device_class: running
@@ -98,8 +98,8 @@
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
-  id: external_heat_demand
-  name: "Externe warmtevraag"
+  id: external_heat_demand_wired
+  name: "Externe warmtevraag (bedraad)"
   address: 1214
   register_type: holding
   device_class: running
