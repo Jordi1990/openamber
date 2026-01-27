@@ -526,33 +526,6 @@ private:
         break;
       }
 
-      if (!IsInDhwMode())
-      {
-        CalculateAccumulatedBackupHeaterDegreeMinutes();
-
-        if (state.accumulated_backup_degmin >= backup_heater_degmin_limit->state)
-        {
-          ESP_LOGI("amber", "Enabling backup heater (degree/min limit reached: %.2f)", state.accumulated_backup_degmin);
-          backup_heater->turn_on();
-          SetNextState(HPState::WAIT_BACKUP_HEATER_RUNNING);
-          break;
-        }
-      }
-      else
-      {
-        const float elapsed_min = (float)(now - state.last_compressor_start_ms) / 60000.0f;
-        const float gained = GetCurrentTemperature() - state.start_target_temp;
-        const float avg_rate = (elapsed_min > 0.1f) ? (gained / elapsed_min) : 0.0f;
-        this->dhw_backup_current_avg_rate->publish_state(avg_rate);
-        if (avg_rate < this->dhw_backup_min_avg->state && elapsed_min >= DHW_BACKUP_HEATER_GRACE_PERIOD_S / 60.0f)
-        {
-          ESP_LOGI("amber", "DHW backup enable: avg_rate=%.3f°C/min < min=%.3f°C/min", avg_rate, this->dhw_backup_min_avg->state);
-          backup_heater->turn_on();
-          SetNextState(HPState::WAIT_BACKUP_HEATER_RUNNING);
-          break;
-        }
-      }
-
       bool hasPassedMinOnTime = (now - state.last_compressor_start_ms) > min_on_ms;
 
       // Only check for stop conditions when min on time is passed.
@@ -588,6 +561,33 @@ private:
           ESP_LOGI("amber", "Stopping compressor because it reached delta %.2f°C (ΔT=%.2f°C).", stop_compressor_delta->state, supply_temperature_delta);
           StopCompressor();
           SetNextState(HPState::WAIT_COMPRESSOR_STOP);
+          break;
+        }
+      }
+
+      if (!IsInDhwMode())
+      {
+        CalculateAccumulatedBackupHeaterDegreeMinutes();
+
+        if (state.accumulated_backup_degmin >= backup_heater_degmin_limit->state)
+        {
+          ESP_LOGI("amber", "Enabling backup heater (degree/min limit reached: %.2f)", state.accumulated_backup_degmin);
+          backup_heater->turn_on();
+          SetNextState(HPState::WAIT_BACKUP_HEATER_RUNNING);
+          break;
+        }
+      }
+      else
+      {
+        const float elapsed_min = (float)(now - state.last_compressor_start_ms) / 60000.0f;
+        const float gained = GetCurrentTemperature() - state.start_target_temp;
+        const float avg_rate = (elapsed_min > 0.1f) ? (gained / elapsed_min) : 0.0f;
+        this->dhw_backup_current_avg_rate->publish_state(avg_rate);
+        if (avg_rate < this->dhw_backup_min_avg->state && elapsed_min >= DHW_BACKUP_HEATER_GRACE_PERIOD_S / 60.0f)
+        {
+          ESP_LOGI("amber", "DHW backup enable: avg_rate=%.3f°C/min < min=%.3f°C/min", avg_rate, this->dhw_backup_min_avg->state);
+          backup_heater->turn_on();
+          SetNextState(HPState::WAIT_BACKUP_HEATER_RUNNING);
           break;
         }
       }
