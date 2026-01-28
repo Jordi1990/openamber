@@ -99,6 +99,15 @@
     - round_to_multiple_of: 1
     - delta: 1
 
+- platform: template
+  id: heat_exchanger_delta_t
+  name: "∆T Warmtewisselaar"
+  unit_of_measurement: "°C"
+  update_interval: never
+  accuracy_decimals: 1
+  lambda: |-
+    return id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state;
+
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
   id: room_temperature
@@ -168,6 +177,9 @@
   filters:
     - offset: -3000
     - multiply: 0.01
+  on_value: 
+    then:
+      - component.update: heat_exchanger_delta_t
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -190,6 +202,9 @@
       - number.set: 
           id: outlet_temperature_outside
           value: !lambda "return x;"
+  on_value: 
+    then:
+      - component.update: heat_exchanger_delta_t
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -319,6 +334,7 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   name: "Fan RPM setpoint"
+  id: fan_rpm_sensor
   address: 2104
   register_type: holding
   value_type: S_WORD

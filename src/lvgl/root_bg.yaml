@@ -1,0 +1,11 @@
+obj:
+  id: root_bg
+  width: 1024
+  height: 600
+  align: TOP_LEFT
+  bg_color: 0x0A2747
+  bg_opa: 100%
+  radius: 0
+  border_width: 0
+  border_opa: 0%
+  scrollbar_mode: "OFF"

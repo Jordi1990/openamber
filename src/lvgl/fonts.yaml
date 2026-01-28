@@ -1,0 +1,47 @@
+
+- file:
+    type: gfonts
+    family: "Roboto"
+    weight: 700
+  id: font_header_title
+  size: 32
+  bpp: 4
+
+- file:
+    type: gfonts
+    family: "Roboto"
+    weight: 500
+  id: font_mdi_24
+  size: 24
+  bpp: 4
+  extras: 
+    - file: "lvgl/fonts/materialdesignicons-webfont.ttf"
+      glyphs:
+        - "\U000F0238"  # mdi-flame
+        - "\U000F0717"  # mdi-snowflake
+        - "\U000F058F"  # mdi-water-pump
+        - "\U000F1AAF"  # mdi-heating-coil
+        - "\U000F01C2"  # mdi-delta
+        - "\U000F0210"  # mdi-fan
+        - "\U000F0438"  # mdi-radiator
+        - "\U000F050F"  # mdi-thermometer
+        - "\U000F06A1"  # mdi-home-outline
+        - "\U000F0906"  # mdi-power-standby
+        - "\U000F0902"  # mdi-power-off
+        - "\U000F08BB"  # mdi-cog-outline
+        - "\U000F08D4"  # mdi-chart-line
+        - "\U000F0BE0"  # mdi-wrench-outline
+        - "\U000F0F29"  # mdi-snowflake-alert
+        - "\U000F12CB"  # mdi-snowflake-melt
+        - "\U000F1A44"  # mdi-heat-pump-outline
+- file:
+    type: gfonts
+    family: "Roboto"
+    weight: 500
+  id: font_value_big
+  size: 32
+  bpp: 4
+  extras: 
+    - file: "lvgl/fonts/materialdesignicons-webfont.ttf"
+      glyphs:
+        - "\U000F01C2"  # mdi-delta

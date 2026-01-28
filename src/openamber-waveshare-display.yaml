@@ -3,9 +3,10 @@ packages:
 
 esp32:
   variant: esp32s3
+  flash_size: 16MB
+  cpu_frequency: 240MHZ
   framework:
     sdkconfig_options:
-      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: y
       CONFIG_ESP32S3_DATA_CACHE_64KB: y
       CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
       CONFIG_SPIRAM_RODATA: y
@@ -13,9 +14,6 @@ esp32:
 esphome:
   platformio_options:
     build_flags: "-DBOARD_HAS_PSRAM"
-    board_build.arduino.memory_type: qio_opi
-    board_build.flash_mode: dio
-    board_upload.maximum_ram_size: 524288
 
 uart:
   rx_pin:
@@ -110,16 +108,24 @@ touchscreen:
       ch422g: ch422g_hub
       number: 1
 
-font:
-  - file:
-      type: gfonts
-      family: "Roboto"
-      weight: 700
-    id: font_header_title
-    size: 32
-    bpp: 4
+interval:
+ - interval: 5s
+   then: !include lvgl/ui_update_loop.yaml
+
+image:
+  - file: "lvgl/images/water_circuit.png"
+    id: img_water_circuit
+    type: RGB565
+    transparency: alpha_channel
+    resize: 420x420
+
+font: !include lvgl/fonts.yaml
 
 lvgl:
   disp_bg_color: 0x0A2747
   widgets:
-   - !include lvgl/temp_screen.yaml
+    - !include lvgl/root_bg.yaml
+    - !include lvgl/header_bar.yaml
+    - !include lvgl/page_home.yaml
+    - !include lvgl/nav_bar.yaml
+    - !include lvgl/boot_screen.yaml

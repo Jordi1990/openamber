@@ -1,0 +1,206 @@
+  - if:
+      condition:
+        - binary_sensor.is_on: modbus_inside_online
+        - binary_sensor.is_on: modbus_outside_online
+      then:
+        - lvgl.widget.hide:
+            id: boot_screen
+        - lvgl.label.update:
+            id: header_title
+            text: OpenAmber ${device_version}
+  - lvgl.label.update:
+      id: water_mode_text
+      text: !lambda |-
+        switch (id(climate_controller).action) {
+          case CLIMATE_ACTION_OFF:
+            return (std::string) "Uit";
+          case CLIMATE_ACTION_COOLING:
+            return (std::string) "Koelen";
+          case CLIMATE_ACTION_HEATING:
+            return (std::string) "Verwarmen";
+          case CLIMATE_ACTION_IDLE:
+            return (std::string) "Standby";
+          default:
+            return (std::string) "Onbekend";
+        }
+  - lvgl.label.update:
+      id: water_mode_icon
+      text: !lambda |-
+        switch (id(climate_controller).action) {
+          case CLIMATE_ACTION_OFF:
+            return (std::string) "\U000F0902";
+          case CLIMATE_ACTION_COOLING:
+            return (std::string) "\U000F0759";
+          case CLIMATE_ACTION_HEATING:
+            return (std::string) "\U000F0238";
+          case CLIMATE_ACTION_IDLE:
+            return (std::string) "\U000F0906";
+          default:
+            return (std::string) "\U000F0906";
+        }
+  - lvgl.widget.update:
+      id: water_mode_chip
+      bg_color: !lambda |-
+        switch (id(climate_controller).action) {
+          case CLIMATE_ACTION_OFF:
+            return lv_color_hex(0xB0B3B8);
+          case CLIMATE_ACTION_COOLING:
+            return lv_color_hex(0x0072CE);
+          case CLIMATE_ACTION_HEATING:
+            return lv_color_hex(0xF97316);
+          case CLIMATE_ACTION_IDLE:
+            return lv_color_hex(0xE5E7EB);
+          default:
+            return lv_color_hex(0xE5E7EB);
+        }
+  - lvgl.label.update:
+      id: water_aanvoer_value
+      text: !lambda |-
+        float t = id(outlet_temperature_tuo).state;
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%.1f°C", t);
+        return std::string(buf);
+  - lvgl.label.update:
+      id: water_retour_value
+      text: !lambda |-
+        float t = id(inlet_temperature_tui).state;
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%.1f°C", t);
+        return std::string(buf);
+  - lvgl.label.update:
+      id: water_delta_value
+      text: !lambda |-
+        float t = id(heat_exchanger_delta_t).state;
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%.1f°C", t);
+        return std::string(buf);
+  - lvgl.widget.update:
+      id: tile_fan
+      bg_color: !lambda |-
+        if(id(fan_rpm_sensor).state > 0)
+          return lv_color_hex(0xF5F8FC);
+        else
+          return lv_color_hex(0x919191);
+  - lvgl.label.update:
+      id: tile_fan_value
+      text: !lambda |-
+        float t = id(fan_rpm_sensor).state;
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%.0f RPM", t);
+        return std::string(buf);
+  - lvgl.widget.update:
+      id: tile_pump
+      bg_color: !lambda |-
+        if(id(internal_pump_active).state)
+          return lv_color_hex(0xF5F8FC);
+        else
+          return lv_color_hex(0x919191);
+  - lvgl.label.update:
+      id: tile_pump_state
+      text: !lambda |-
+        bool state = id(internal_pump_active).state;
+        if(state)
+          return "AAN";
+        else
+          return "UIT";
+  - lvgl.widget.update:
+      id: tile_defrost
+      bg_color: !lambda |-
+        if(id(defrost_active_sensor).state)
+          return lv_color_hex(0xF5F8FC);
+        else
+          return lv_color_hex(0x919191);
+  - lvgl.label.update:
+      id: tile_defrost_state
+      text: !lambda |-
+        bool state = id(defrost_active_sensor).state;
+        if(state)
+          return "AAN";
+        else
+          return "UIT";
+  - lvgl.widget.update:
+      id: tile_compressor
+      bg_color: !lambda |-
+        if(id(current_compressor_frequency).state > 0)
+          return lv_color_hex(0xF5F8FC);
+        else
+          return lv_color_hex(0x919191);
+  - lvgl.label.update:
+      id: tile_compressor_value
+      text: !lambda |-
+        float t = id(current_compressor_frequency).state;
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%.0f Hz", t);
+        return std::string(buf);
+  - lvgl.widget.update:
+      id: tile_backup_heater
+      bg_color: !lambda |-
+        if(id(backup_heater_active_sensor).state)
+          return lv_color_hex(0xF5F8FC);
+        else
+          return lv_color_hex(0x919191);
+  - lvgl.label.update:
+      id: tile_backup_state
+      text: !lambda |-
+        bool state = id(backup_heater_active_sensor).state;
+        if(state)
+          return "AAN";
+        else
+          return "UIT";
+  - lvgl.widget.update:
+      id: tile_baseplate
+      bg_color: !lambda |-
+        if(id(bottom_heater_active_sensor).state)
+          return lv_color_hex(0xF5F8FC);
+        else
+          return lv_color_hex(0x919191);
+  - lvgl.label.update:
+      id: tile_baseplate_state
+      text: !lambda |-
+        bool state = id(bottom_heater_active_sensor).state;
+        if(state)
+          return "AAN";
+        else
+          return "UIT";
+  # - lvgl.label.update:
+  #     id: row_frost_1_outside_value
+  #     text: !lambda |-
+  #       float v = id(frost_protection_stage_1_temp_ta).state;
+  #       char buf[16];
+  #       snprintf(buf, sizeof(buf), "%.1f°C", v);
+  #       return std::string(buf);
+  # - lvgl.label.update:
+  #     id: row_comp_start_value
+  #     text: !lambda |-
+  #       float v = id(compressor_start_delta).state;
+  #       char buf[16];
+  #       snprintf(buf, sizeof(buf), "%.1f°C", v);
+  #       return std::string(buf);
+  # - lvgl.label.update:
+  #     id: row_comp_stop_value
+  #     text: !lambda |-
+  #       float v = id(compressor_stop_delta).state;
+  #       char buf[16];
+  #       snprintf(buf, sizeof(buf), "%.1f°C", v);
+  #       return std::string(buf);
+  # - lvgl.label.update:
+  #     id: row_frost_2_outside_value
+  #     text: !lambda |-
+  #       float v = id(frost_protection_stage_2_temp_ta).state;
+  #       char buf[16];
+  #       snprintf(buf, sizeof(buf), "%.1f°C", v);
+  #       return std::string(buf);
+  # - lvgl.label.update:
+  #     id: row_frost_2_return_value
+  #     text: !lambda |-
+  #       float v = id(frost_protection_stage_2_temp_tui).state;
+  #       char buf[16];
+  #       snprintf(buf, sizeof(buf), "%.1f°C", v);
+  #       return std::string(buf);
+  # - lvgl.label.update:
+  #     id: header_outdoor
+  #     text: !lambda |-
+  #       float v = id(temperature_outside_ta).state;
+  #       char buf[16];
+  #       snprintf(buf, sizeof(buf), "Buiten %.1f°C", v);
+  #       return std::string(buf);
