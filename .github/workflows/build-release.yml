@@ -15,7 +15,7 @@ jobs:
       files: |
         src/openamber-leejow.yaml
         src/openamber-waveshare-display.yaml
-      esphome-version: 2026.1.1
+      esphome-version: 2026.1.2
       combined-name: openamber
       release-summary: ${{ github.event.release.body }}
       release-url: ${{ github.event.release.html_url }}

@@ -29,6 +29,7 @@ Supply temperature regulation with PID-based compressor Hz modulation
 ## Todo
 - Support cooling
 - Tv1/Tv2 buffer support
+- Support Smart Grid inputs
 - Extend configuration options
 - Error handling
 - Support OpenTherm thermostats
@@ -45,6 +46,8 @@ The firmware in this repository targets this module, I currently use this as wel
 #### Waveshare ESP32-S3 Touch LCD 5'' (https://www.waveshare.com/wiki/ESP32-S3-Touch-LCD-5)
 This is the best replacement for the WinCE controller as there is a touchscreen, RS485 and 24V input available.
 We would also need a 3D printed bracket to mount it properly.
+
+![UI](/docs/images/openamber-waveshare-display-ui.png)
 
 ## Installation
 **Software**
@@ -63,6 +66,8 @@ Remove A and B modbus wires from WinCE Controller
 Connect wires to your hardware RS485 port (Itho Daalderop Amber Control Module used in picture
 
 ![Connect wires to your hardware RS485 port (Itho Daalderop Amber Control Module used in picture)](/docs/images/itho-module-install.png)
+
+When using the Waveshare ESP32-S3 Touch LCD 5'' you need to set the RS485 resistor dip switch to OFF state. Connect the modbus to RS485 A and B. For power move the 24V positive and ground of the WinCE to the VIN and GND pins of the display.
 
 ## How can I contribute?
 - Test and provide feedback/bugs/suggestions
