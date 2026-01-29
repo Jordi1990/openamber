@@ -28,7 +28,7 @@
     }
     else
     {
-      return id(external_heat_demand_wired).state || id(external_heat_demand_switch).state;
+      return id(external_heat_demand_wired).state || id(heat_demand_switch).state;
     }
 
 - platform: template
@@ -42,7 +42,7 @@
     }
     else
     {
-      return id(external_cool_demand_wired).state || id(external_cool_demand_switch).state;
+      return id(external_cool_demand_wired).state || id(cool_demand_switch).state;
     }
 
 - platform: template
