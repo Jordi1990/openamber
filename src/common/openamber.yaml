@@ -13,11 +13,12 @@ esphome:
   includes: 
     - common/openamber.h
   on_boot:
-    if:
-      condition:
-        - switch.is_on: analytics_enabled_switch
-      then:
-        - mqtt.enable:
+    then:
+      - if:
+          condition:
+            - switch.is_on: analytics_enabled_switch
+          then:
+            - mqtt.enable:
 esp32:
   framework:
     type: esp-idf

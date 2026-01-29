@@ -14,6 +14,9 @@ esp32:
 esphome:
   platformio_options:
     build_flags: "-DBOARD_HAS_PSRAM"
+  on_boot:
+    then:
+      - script.execute: backlight_script
 
 uart:
   rx_pin:
@@ -90,6 +93,7 @@ display:
 switch:
  - platform: gpio
    name: backlight_pin
+   id: backlight
    restore_mode: ALWAYS_ON
    pin:
      ch422g: ch422g_hub
@@ -107,6 +111,16 @@ touchscreen:
     reset_pin:
       ch422g: ch422g_hub
       number: 1
+    on_touch:
+      - script.execute: backlight_script
+
+script:
+  - id: backlight_script
+    mode: restart
+    then:
+      - switch.turn_on: backlight
+      - delay: 60s
+      - switch.turn_off: backlight
 
 interval:
  - interval: 5s
