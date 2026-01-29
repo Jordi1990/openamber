@@ -162,6 +162,13 @@
           return "AAN";
         else
           return "UIT";
+  - lvgl.label.update:
+      id: header_outdoor
+      text: !lambda |-
+        float v = id(temperature_outside_ta).state;
+        char buf[16];
+        snprintf(buf, sizeof(buf), "Buiten %.1f°C", v);
+        return std::string(buf);
   # - lvgl.label.update:
   #     id: row_frost_1_outside_value
   #     text: !lambda |-
@@ -196,11 +203,4 @@
   #       float v = id(frost_protection_stage_2_temp_tui).state;
   #       char buf[16];
   #       snprintf(buf, sizeof(buf), "%.1f°C", v);
-  #       return std::string(buf);
-  # - lvgl.label.update:
-  #     id: header_outdoor
-  #     text: !lambda |-
-  #       float v = id(temperature_outside_ta).state;
-  #       char buf[16];
-  #       snprintf(buf, sizeof(buf), "Buiten %.1f°C", v);
   #       return std::string(buf);
