@@ -13,7 +13,7 @@
   initial_option: "Maximaal"
   entity_category: config
   web_server: 
-      sorting_group_id: settings
+      sorting_group_id: heating_settings
 
 - platform: template
   id: dhw_compressor_mode
@@ -30,7 +30,7 @@
   initial_option: "Beperkt"
   entity_category: config
   web_server: 
-      sorting_group_id: settings
+      sorting_group_id: dhw_settings
 
 - platform: template
   id: dhw_compressor_mode_max
@@ -44,19 +44,18 @@
   initial_option: "Gemiddeld"
   entity_category: config
   web_server: 
-      sorting_group_id: settings
+      sorting_group_id: dhw_settings
 
 - platform: template
   id: three_way_valve_select
   name: "3-weg klep stand"
+  internal: True
   optimistic: True
   options:
     - "Verwarmen⁄Koelen"
     - "Tapwater"
   initial_option: "Verwarmen⁄Koelen"
   entity_category: config
-  web_server: 
-    sorting_group_id: control_inside
   on_value: 
     then:
       - if:
@@ -80,7 +79,7 @@
   restore_value: True
   entity_category: config
   web_server: 
-    sorting_group_id: settings
+    sorting_group_id: heating_settings
   on_value: 
     then:
       - component.update: current_setpoint
@@ -96,16 +95,15 @@
   restore_value: True
   entity_category: config
   web_server: 
-    sorting_group_id: settings
+    sorting_group_id: heating_settings
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: compressor_control_select
+  internal: True
   name: "Compressor stand (Buiten)"
   address: 1999
   value_type: S_WORD
-  web_server: 
-    sorting_group_id: control_outside
   optionsmap:
     "0": 0
     "1": 1
@@ -121,14 +119,13 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: working_mode_switch
+  internal: True
   name: "Bedrijfsmodus"
   address: 3999
   on_value: 
     then:
       - lambda: 
           id(modbus_outside_is_online) = true;
-  web_server: 
-    sorting_group_id: control_outside
   optionsmap:
     "Standby": 0
     "Koelen": 1

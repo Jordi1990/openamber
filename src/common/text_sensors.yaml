@@ -1,8 +1,7 @@
 - platform: template
   name: "Buiten unit EEPROM versie"
   update_interval: 60s
-  web_server: 
-    sorting_group_id: sensors_outside
+  entity_category: diagnostic
   lambda: |-
     if (!id(outside_unit_program_version).has_state() ||
         !id(outside_unit_eeprom_version_part1).has_state() ||
@@ -21,6 +20,8 @@
 
 - platform: template
   id: state_machine_state
+  entity_category: diagnostic
+  disabled_by_default: true
   name: "Control loop state"
   icon: "mdi:state-machine"
   update_interval: never
