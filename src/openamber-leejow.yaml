@@ -21,6 +21,8 @@ switch:
    id: relay_heating
    icon: mdi:electric-switch
    restore_mode: RESTORE_DEFAULT_OFF
+   web_server: 
+    sorting_group_id: manual_control
 
  - platform: gpio
    pin: GPIO23
@@ -28,6 +30,8 @@ switch:
    id: relay_cooling
    icon: mdi:electric-switch
    restore_mode: RESTORE_DEFAULT_OFF
+   web_server: 
+    sorting_group_id: manual_control
 
 sensor:
   - platform: pulse_counter
@@ -40,6 +44,7 @@ sensor:
       - lambda: return (x / id(flow_sensor_calibration).state);
     total:
       name: Total pulses
+      disabled_by_default: true
       unit_of_measurement: l
       filters:
         - lambda: return x / id(flow_sensor_calibration).state;
@@ -51,6 +56,7 @@ number:
     id: flow_sensor_calibration
     min_value: 1
     max_value: 1000
+    initial_value: 476
     mode: box
     step: 1
     restore_value: true
@@ -58,4 +64,4 @@ number:
     unit_of_measurement: pulses/l
     entity_category: config
     web_server: 
-        sorting_group_id: settings
+        sorting_group_id: general_settings

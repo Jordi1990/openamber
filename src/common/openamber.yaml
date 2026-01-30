@@ -77,17 +77,33 @@ web_server:
   port: 80
   version: 3
   sorting_groups:
-    - id: control_inside
-      name: "Bediening binnen unit"
-    - id: control_outside
-      name: "Bediening buiten unit"
-    - id: sensors_inside
-      name: "Sensoren binnen unit"
-    - id: sensors_outside
-      name: "Sensoren buiten unit"
-    - id: settings
-      name: "Settings"
-
+    - id: overview
+      name: "Overzicht"
+      sorting_weight: 0
+    - id: general_settings
+      name: "Algemene instellingen"
+      sorting_weight: 10
+    - id: dhw_settings
+      name: "Tapwater instellingen"
+      sorting_weight: 20
+    - id: heating_settings
+      name: "Verwarmingsinstellingen"
+      sorting_weight: 30
+    - id: temperature_sensors
+      name: "Temperatuursensoren"
+      sorting_weight: 40
+    - id: diagnostic
+      name: "Diagnostiek"
+      sorting_weight: 50
+    - id: error_codes
+      name: "Foutcodes"
+      sorting_weight: 60
+    - id: manual_control
+      name: "Handmatige bediening"
+      sorting_weight: 70
+    - id: config
+      name: "Config"
+      sorting_weight: 80
 wifi:
   ap:
     ssid: "OpenAmber"
@@ -116,7 +132,11 @@ datetime:
    type: datetime
    restore_value: true
    optimistic: true
-   initial_value: "2026-01-01 10:00:00"
+   initial_value: "2030-01-01 10:00:00"
+   entity_category: config
+   web_server: 
+    sorting_group_id: dhw_settings
+
 
 # Use SNTP for time so we also have time when not connected to Home Assistant.
 time:
@@ -188,4 +208,5 @@ output:
 
 button:
   - platform: factory_reset
+    disabled_by_default: true
     name: Restart with Factory Default Settings

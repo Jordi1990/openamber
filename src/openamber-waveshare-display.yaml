@@ -94,6 +94,7 @@ switch:
  - platform: gpio
    name: backlight_pin
    id: backlight
+   internal: True
    restore_mode: ALWAYS_ON
    pin:
      ch422g: ch422g_hub

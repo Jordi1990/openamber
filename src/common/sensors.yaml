@@ -4,6 +4,9 @@
   unit_of_measurement: "°C·min"
   accuracy_decimals: 1
   state_class: measurement
+  entity_category: diagnostic
+  web_server: 
+    sorting_group_id: diagnostic
 
 - platform: template
   id: dhw_backup_current_avg_rate_sensor
@@ -11,19 +14,30 @@
   unit_of_measurement: "°C/min"
   accuracy_decimals: 2
   state_class: measurement
+  entity_category: diagnostic
+  web_server: 
+    sorting_group_id: diagnostic
           
 - platform: uptime
   name: "Uptime"
   id: sensor_uptime
+  disabled_by_default: true
   update_interval: 60s
   device_class: duration
   unit_of_measurement: s
   state_class: total_increasing
+  entity_category: diagnostic
+  web_server: 
+    sorting_group_id: diagnostic
 
 - platform: wifi_signal
   name: WiFi signal dB
+  disabled_by_default: true
   id: wifi_signal_db
   update_interval: 20s
+  entity_category: diagnostic
+  web_server: 
+    sorting_group_id: diagnostic
 
 - platform: template
   id: temperature_outside_ta_avg_1h
@@ -62,6 +76,8 @@
         auto call = id(pid_heat_cool_temperature_control).make_call();
         call.set_target_temperature(x);
         call.perform();
+  web_server: 
+    sorting_group_id: overview
 
 - platform: template
   id: heat_curve_calculated_setpoint
@@ -102,15 +118,20 @@
 - platform: template
   id: heat_exchanger_delta_t
   name: "∆T Warmtewisselaar"
-  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  unit_of_measurement: °C
   update_interval: never
   accuracy_decimals: 1
   lambda: |-
     return id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state;
+  web_server: 
+    sorting_group_id: temperature_sensors
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
   id: room_temperature
+  internal: True # Already readable through thermostat
   name: "Ruimte temperatuur (Tr)"
   address: 1199
   register_type: holding
@@ -120,8 +141,6 @@
   unit_of_measurement: °C   
   accuracy_decimals: 1
   register_count: 16 # 1199 - 1214
-  web_server: 
-    sorting_group_id: sensors_inside
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -138,7 +157,7 @@
   unit_of_measurement: °C   
   accuracy_decimals: 1
   web_server: 
-    sorting_group_id: sensors_inside
+    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -155,7 +174,7 @@
   unit_of_measurement: °C   
   accuracy_decimals: 1
   web_server: 
-    sorting_group_id: sensors_inside
+    sorting_group_id: overview
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -173,7 +192,7 @@
   unit_of_measurement: °C   
   accuracy_decimals: 1
   web_server: 
-    sorting_group_id: sensors_inside
+    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -193,7 +212,7 @@
   unit_of_measurement: °C   
   accuracy_decimals: 1
   web_server: 
-    sorting_group_id: sensors_inside
+    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -210,6 +229,7 @@
   modbus_controller_id: modbus_inside_unit
   id: condensate_temperature_tup
   name: "Condensatietemperatuur (Tup)"
+  disabled_by_default: True
   address: 1204
   register_type: holding
   value_type: S_WORD
@@ -218,7 +238,7 @@
   unit_of_measurement: °C   
   accuracy_decimals: 1
   web_server: 
-    sorting_group_id: sensors_inside
+    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -234,7 +254,7 @@
   unit_of_measurement: °C   
   accuracy_decimals: 1
   web_server: 
-    sorting_group_id: sensors_inside
+    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -250,7 +270,7 @@
   unit_of_measurement: °C   
   accuracy_decimals: 1
   web_server: 
-    sorting_group_id: sensors_inside
+    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -268,7 +288,7 @@
     - lambda: |-
         return ((x * -1) + 1000) / 10;
   web_server: 
-    sorting_group_id: sensors_inside
+    sorting_group_id: overview
   on_value: 
     then:
       - lambda: 
@@ -278,6 +298,7 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   name: "Voltage buitenunit"
+  disabled_by_default: True
   address: 2100
   register_type: holding
   value_type: S_WORD
@@ -286,12 +307,14 @@
   accuracy_decimals: 0
   state_class: "measurement"
   register_count: 33 # 2100-2132
+  entity_category: diagnostic
   web_server: 
-    sorting_group_id: sensors_outside
+    sorting_group_id: diagnostic
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   name: "Stroom buitenunit"
+  disabled_by_default: True
   address: 2101
   register_type: holding
   value_type: S_WORD
@@ -299,14 +322,16 @@
   accuracy_decimals: 1
   unit_of_measurement: "A"
   state_class: "measurement"
-  web_server: 
-    sorting_group_id: sensors_outside
+  entity_category: diagnostic
   filters:
     - multiply: 0.1
+  web_server: 
+    sorting_group_id: diagnostic
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   name: "Compressor setpoint frequentie"
+  internal: True
   address: 2102
   register_type: holding
   value_type: S_WORD
@@ -314,8 +339,6 @@
   accuracy_decimals: 0
   state_class: measurement
   unit_of_measurement: Hz
-  web_server: 
-    sorting_group_id: sensors_outside
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -329,32 +352,32 @@
   state_class: measurement
   unit_of_measurement: Hz
   web_server: 
-    sorting_group_id: sensors_outside
+    sorting_group_id: overview
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   name: "Fan RPM setpoint"
-  id: fan_rpm_sensor
+  internal: True
   address: 2104
   register_type: holding
   value_type: S_WORD
   accuracy_decimals: 0
   state_class: measurement
   unit_of_measurement: rpm
-  web_server: 
-    sorting_group_id: sensors_outside
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   name: "Fan RPM"
+  id: fan_rpm_sensor
   address: 2105
   register_type: holding
   value_type: S_WORD
   accuracy_decimals: 0
   state_class: measurement
   unit_of_measurement: rpm
+  entity_category: diagnostic
   web_server: 
-    sorting_group_id: sensors_outside
+    sorting_group_id: diagnostic
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -363,8 +386,9 @@
   register_type: holding
   value_type: S_WORD
   state_class: "measurement"
+  entity_category: diagnostic
   web_server: 
-    sorting_group_id: sensors_outside
+    sorting_group_id: diagnostic
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -378,7 +402,7 @@
   unit_of_measurement: °C   
   accuracy_decimals: 1
   web_server: 
-    sorting_group_id: sensors_outside
+    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -387,6 +411,7 @@
   modbus_controller_id: modbus_outside_unit
   id: evaporation_temperature_tp
   name: "Verdampingstemperatuur (Tp)"
+  disabled_by_default: True
   address: 2111
   register_type: holding
   value_type: S_WORD
@@ -395,7 +420,7 @@
   unit_of_measurement: °C   
   accuracy_decimals: 1
   web_server: 
-    sorting_group_id: sensors_outside
+    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -403,6 +428,7 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   name: "Persgastemperatuur (Td)"
+  disabled_by_default: True
   address: 2112
   register_type: holding
   value_type: S_WORD
@@ -411,7 +437,7 @@
   unit_of_measurement: °C   
   accuracy_decimals: 1
   web_server: 
-    sorting_group_id: sensors_outside
+    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -419,6 +445,7 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   name: "Zuigastemperatuur (Ts)"
+  disabled_by_default: True
   address: 2113
   register_type: holding
   value_type: S_WORD
@@ -427,7 +454,7 @@
   unit_of_measurement: °C     
   accuracy_decimals: 1
   web_server: 
-    sorting_group_id: sensors_outside
+    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -435,6 +462,7 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   name: "Zuiggasdruk (Ps)"
+  disabled_by_default: True
   address: 2116
   register_type: holding
   value_type: S_WORD
@@ -442,14 +470,14 @@
   accuracy_decimals: 1
   state_class: measurement
   unit_of_measurement: bar
-  web_server: 
-    sorting_group_id: sensors_outside
+  entity_category: diagnostic
   filters:
     - multiply: 0.1
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   name: "Persgasdruk (Pd)"
+  disabled_by_default: True
   address: 2117
   register_type: holding
   value_type: S_WORD
@@ -457,8 +485,7 @@
   accuracy_decimals: 1
   state_class: measurement
   unit_of_measurement: bar
-  web_server: 
-    sorting_group_id: sensors_outside
+  entity_category: diagnostic
   filters:
     - multiply: 0.1
 
@@ -470,8 +497,6 @@
   address: 2122
   register_type: holding
   value_type: S_WORD
-  web_server: 
-    sorting_group_id: sensors_outside
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -481,24 +506,23 @@
   address: 2123
   register_type: holding
   value_type: S_WORD
-  web_server: 
-    sorting_group_id: sensors_outside
+  entity_category: diagnostic
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   name: "Hardware item nummer"
   id: outside_unit_hardware_item_number
-  #internal: True
+  disabled_by_default: true
   skip_updates: 10
   address: 2127
   register_type: holding
   value_type: S_WORD
-  web_server: 
-    sorting_group_id: sensors_outside
+  entity_category: diagnostic
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   name: "Condensing Temperature"
+  disabled_by_default: True
   register_type: holding
   address: 2131
   unit_of_measurement: "°C"
@@ -506,7 +530,7 @@
   state_class: "measurement"
   accuracy_decimals: 2
   web_server: 
-    sorting_group_id: sensors_outside
+    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -514,6 +538,7 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   name: "Evaporating Temperature"
+  disabled_by_default: True
   register_type: holding
   address: 2132
   unit_of_measurement: "°C"
@@ -521,7 +546,7 @@
   state_class: "measurement"
   accuracy_decimals: 2
   web_server: 
-    sorting_group_id: sensors_outside
+    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -534,8 +559,6 @@
   address: 3509
   register_type: holding
   value_type: S_WORD
-  web_server: 
-    sorting_group_id: sensors_outside
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -545,5 +568,3 @@
   address: 3510
   register_type: holding
   value_type: S_WORD
-  web_server: 
-    sorting_group_id: sensors_outside
