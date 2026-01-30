@@ -132,7 +132,8 @@
 
 - platform: template
   id: heat_demand_switch
-  name: "Externe verwarmingsvraag"
+  name: "Externe warmtevraag"
+  restore_mode: RESTORE_DEFAULT_OFF
   optimistic: True
   web_server: 
     sorting_group_id: manual_control
@@ -140,6 +141,7 @@
 - platform: template
   id: cool_demand_switch
   name: "Externe koudevraag"
+  restore_mode: RESTORE_DEFAULT_OFF
   optimistic: True
   web_server: 
     sorting_group_id: manual_control
