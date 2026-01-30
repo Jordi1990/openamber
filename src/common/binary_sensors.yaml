@@ -7,10 +7,11 @@
       float tw = id(dhw_temperature_tw_sensor).state;
       float setpoint = id(dhw_setpoint_temperature).state;
       bool legio_run_active = id(dhw_legionella_run_active_sensor).state;
-      float legio_target = id(legio_target_temperature_number).state;      
+      float legio_target = id(legio_target_temperature_number).state;
+      bool dhw_enabled = id(dhw_enabled_switch).state;
 
-      return (setpoint - tw) >= restart_delta ||
-             (legio_run_active && tw < legio_target);
+      return dhw_enabled && ((setpoint - tw) >= restart_delta ||
+             (legio_run_active && tw < legio_target));
 
 - platform: template
   name: "Legionellacyclus actief"

@@ -326,7 +326,7 @@ private:
         legio_start_call.perform();
         ESP_LOGI("amber", "Next legionella cycle scheduled at %04d-%02d-%02d %02d:%02d", legio_start_time->year, legio_start_time->month, legio_start_time->day, legio_start_time->hour, legio_start_time->minute);
     }
-    else if(this->dhw_legionella_run_active->state && !IsDemandForDhw())
+    else if(this->dhw_legionella_run_active->state && !this->dhw_demand->state)
     {
       ESP_LOGI("amber", "Legionella cycle completed, target temperature %.2f°C reached.", this->legio_target_temperature->state);
       this->dhw_legionella_run_active->publish_state(false);
@@ -362,7 +362,7 @@ private:
     const uint32_t now = millis();
 
     // TODO: This probably needs more logic around priorities and heating time on or post defrost.
-    bool dhw_demand = IsDemandForDhw();
+    bool dhw_demand = this->dhw_demand->state;
 
     float current_temperature = GetCurrentTemperature();
     float target_temperature = GetTargetTemperature();
@@ -999,16 +999,11 @@ private:
     return GetCurrentTemperature() - GetTargetTemperature();
   }
 
-  bool IsDemandForDhw()
-  {
-    return this->dhw_demand->state && this->dhw_enabled->state;
-  }
-
   bool IsCompressorDemandForCurrentMode()
   {
     if (IsInDhwMode())
     {
-      return IsDemandForDhw();
+      return this->dhw_demand->state;
     }
     else
     {
