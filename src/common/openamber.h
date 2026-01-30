@@ -932,7 +932,7 @@ private:
 
   void SetCompressorMode(int mode_index)
   {
-    int capped_mode_index = std::min(mode_index, (int)this->heat_compressor_max_mode->active_index().value() + this->mode_offset - 1);
+    int capped_mode_index = std::min(mode_index, (int)this->heat_compressor_max_mode->active_index().value() + this->mode_offset);
     auto compressor_set_call = compressor_control->make_call();
     compressor_set_call.set_index(capped_mode_index);
     compressor_set_call.perform();
