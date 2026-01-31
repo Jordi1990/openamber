@@ -109,6 +109,21 @@
   web_server: 
     sorting_group_id: heating_settings
 
+- platform: template
+  id: sg_ready_mode_select
+  name: "SG-Ready modus"
+  optimistic: True
+  options:
+    - "Normaal"
+    - "Blokkeren"
+    - "Boost"
+    - "Max boost"
+  initial_option: "Normaal"
+  restore_value: True
+  entity_category: config
+  web_server: 
+    sorting_group_id: manual_control
+
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: compressor_control_select

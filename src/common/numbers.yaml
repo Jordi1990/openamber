@@ -358,3 +358,33 @@
   entity_category: config
   web_server: 
     sorting_group_id: dhw_settings
+
+- platform: template
+  id: sg_ready_heating_boost_temperature_number
+  name: "SG-Ready verwarmingsboost setpoint"
+  optimistic: True
+  restore_value: True
+  initial_value: 5
+  step: 1
+  min_value: 0
+  max_value: 10
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  entity_category: config
+  web_server: 
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: sg_ready_dhw_boost_temperature_number
+  name: "SG-Ready tapwaterboost setpoint"
+  optimistic: True
+  restore_value: True
+  initial_value: 5
+  step: 1
+  min_value: 0
+  max_value: 10
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_settings
