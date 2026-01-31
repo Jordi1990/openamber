@@ -91,7 +91,7 @@
   options:
     - "Intern"
     - "Extern"
-  initial_option: "Intern"
+  initial_option: "Extern"
   restore_value: True
   entity_category: config
   web_server: 
