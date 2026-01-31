@@ -157,13 +157,15 @@ public:
   sensor::Sensor *dhw_backup_current_avg_rate = nullptr;
   number::Number *dhw_backup_min_avg = nullptr;
   select::Select *dhw_pump_start_mode = nullptr;
-  
+  sensor::Sensor *current_dhw_setpoint = nullptr;
+
   switch_::Switch *legio_enabled = nullptr;
   number::Number *legio_repeat_days = nullptr;
   datetime::DateTimeEntity *legio_start_time = nullptr;
   esphome::time::RealTimeClock *time = nullptr;
   number::Number *legio_target_temperature = nullptr;
   binary_sensor::BinarySensor *dhw_legionella_run_active = nullptr;
+  binary_sensor::BinarySensor *sg_ready_maxboost = nullptr;
   int mode_offset = 0;
   int dhw_mode_offset = 0;
   int dhw_mode_max_offset = 0;
@@ -261,7 +263,10 @@ private:
     this->legio_start_time = &id(next_legionella_run);
     this->legio_target_temperature = &id(legio_target_temperature_number);
     this->dhw_legionella_run_active = &id(dhw_legionella_run_active_sensor);
+    this->current_dhw_setpoint = &id(current_dhw_setpoint_sensor);
     this->time = &id(my_time);
+
+    this->sg_ready_maxboost = &id(sg_ready_max_boost_mode_active_sensor);
 
     this->mode_offset = this->compressor_control->size() - this->heat_compressor_max_mode->size();
     this->dhw_mode_offset = this->compressor_control->size() - this->dhw_compressor->size();
@@ -589,6 +594,14 @@ private:
           SetNextState(HPState::WAIT_COMPRESSOR_STOP);
           break;
         }
+      }
+
+      if(id(sg_ready_maxboost).state)
+      {
+        ESP_LOGI("amber", "Enabling backup heater (SG Ready max boost active)");
+        backup_heater->turn_on();
+        SetNextState(HPState::WAIT_BACKUP_HEATER_RUNNING);
+        break;
       }
 
       if (!IsInDhwMode())
@@ -1001,7 +1014,7 @@ private:
   {
     if(IsInDhwMode())
     {
-      return this->dhw_legionella_run_active->state ? this->legio_target_temperature->state : this->dhw_setpoint->state;
+      return this->current_dhw_setpoint->state;
     }
     else
     {

@@ -10,6 +10,11 @@
       float legio_target = id(legio_target_temperature_number).state;
       bool dhw_enabled = id(dhw_enabled_switch).state;
 
+      if(id(sg_ready_block_mode_active_sensor).state)
+      {
+        return false;
+      }
+
       return dhw_enabled && ((setpoint - tw) >= restart_delta ||
              (legio_run_active && tw < legio_target));
   web_server: 
@@ -27,6 +32,11 @@
   id: heat_demand_active_sensor
   device_class: running
   lambda: |-
+    if(id(sg_ready_block_mode_active_sensor).state)
+    {
+      return false;
+    }
+
     if (id(thermostat_mode_select).current_option() == "Intern")
     {
       return id(climate_controller).action == climate::CLIMATE_ACTION_HEATING;
@@ -43,6 +53,11 @@
   id: cool_demand_active_sensor
   device_class: running
   lambda: |-
+    if(id(sg_ready_block_mode_active_sensor).state)
+    {
+      return false;
+    }
+
     if (id(thermostat_mode_select).current_option() == "Intern")
     {
       return id(climate_controller).action == climate::CLIMATE_ACTION_COOLING;
@@ -89,6 +104,50 @@
   web_server: 
     sorting_group_id: overview
 
+- platform: template
+  name: "SG-Ready blokkeermodus"
+  id: sg_ready_block_mode_active_sensor
+  disabled_by_default: True
+  device_class: running
+  lambda: |-
+    return id(sg_ready_mode_select).current_option() == "Blokkeren" ||
+           (id(sg_ready_a_active_sensor).state && !id(sg_ready_b_active_sensor).state);
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
+  name: "SG-Ready boostmodus"
+  id: sg_ready_boost_mode_active_sensor
+  disabled_by_default: True
+  device_class: running
+  lambda: |-
+    return id(sg_ready_mode_select).current_option() == "Boost" ||
+           (!id(sg_ready_a_active_sensor).state && id(sg_ready_b_active_sensor).state);
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
+  name: "SG-Ready maxboostmodus"
+  id: sg_ready_max_boost_mode_active_sensor
+  disabled_by_default: True
+  device_class: running
+  lambda: |-
+    return id(sg_ready_mode_select).current_option() == "Max Boost" ||
+           (id(sg_ready_a_active_sensor).state && id(sg_ready_b_active_sensor).state);
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: sg_ready_a_active_sensor
+  internal: True
+  name: "SG-Ready A"
+  address: 1211
+  register_type: holding
+  device_class: running
+  web_server: 
+    sorting_group_id: diagnostic
+
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
   id: internal_pump_active
@@ -102,7 +161,7 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
   id: external_cool_demand_wired
-  disabled_by_default: true
+  internal: True
   name: "Externe koudevraag (bedraad)"
   address: 1213
   register_type: holding
@@ -113,9 +172,20 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
   id: external_heat_demand_wired
-  disabled_by_default: true
+  internal: True
   name: "Externe warmtevraag (bedraad)"
   address: 1214
+  register_type: holding
+  device_class: running
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: sg_ready_b_active_sensor
+  internal: True
+  name: "SG-Ready B"
+  address: 1220
   register_type: holding
   device_class: running
   web_server: 
