@@ -47,6 +47,18 @@
       sorting_group_id: dhw_settings
 
 - platform: template
+  id: dhw_pump_start_mode_select
+  name: "Tapwater pomp startmodus"
+  optimistic: True
+  options:
+    - "Aanvoer warmer dan vat (ΔT)"
+    - "Samen met compressor"
+  initial_option: "Aanvoer warmer dan vat (ΔT)"
+  entity_category: config
+  web_server: 
+      sorting_group_id: dhw_settings
+
+- platform: template
   id: three_way_valve_select
   name: "3-weg klep stand"
   internal: True
