@@ -55,6 +55,9 @@ static const uint32_t THREE_WAY_VALVE_SWITCH_TIME_S = 1 * 60;
 // Grace period after switching to DHW mode before allowing backup heater to turn on.
 static const uint32_t DHW_BACKUP_HEATER_GRACE_PERIOD_S = 10 * 60;
 
+static const uint32_t DHW_START_PUMP_MODE_DELTA_T = 0;
+static const uint32_t DHW_START_PUMP_MODE_DIRECT = 1;
+
 enum class HPState
 {
   UNKNOWN,
@@ -153,6 +156,7 @@ public:
   switch_::Switch *dhw_pump = nullptr;
   sensor::Sensor *dhw_backup_current_avg_rate = nullptr;
   number::Number *dhw_backup_min_avg = nullptr;
+  select::Select *dhw_pump_start_mode = nullptr;
   
   switch_::Switch *legio_enabled = nullptr;
   number::Number *legio_repeat_days = nullptr;
@@ -250,6 +254,7 @@ private:
     this->three_way_valve_dhw = &id(three_way_valve_dhw_switch);
     this->dhw_backup_current_avg_rate = &id(dhw_backup_current_avg_rate_sensor);
     this->dhw_backup_min_avg = &id(dhw_backup_min_avg_rate);
+    this->dhw_pump_start_mode = &id(dhw_pump_start_mode_select);
 
     this->legio_enabled = &id(legio_enabled_switch);
     this->legio_repeat_days = &id(legio_repeat_days_number);
@@ -524,6 +529,27 @@ private:
       {
         SetNextState(HPState::DEFROSTING);
         break;
+      }
+
+      // Determine if we need to start the DHW pump based on the configured mode.
+      if(!this->dhw_pump->state && IsInDhwMode())
+      {
+        int pump_start_mode = this->dhw_pump_start_mode->active_index().value();
+        if (pump_start_mode == DHW_START_PUMP_MODE_DIRECT)
+        {
+          ESP_LOGI("amber", "Starting DHW pump since compressor is running and DHW pump start mode is set to compressor active.");
+          this->dhw_pump->turn_on();
+        }
+        else if (pump_start_mode == DHW_START_PUMP_MODE_DELTA_T)
+        {
+          float dhw_temp = this->dhw_temperature_tw->state;
+          float temperature_output = this->temp_tuo->state;
+          if (temperature_output >= dhw_temp)
+          {
+            ESP_LOGI("amber", "Starting DHW pump since Tuo(%.2f°C) is higher than Tw(%.2f°C) and DHW pump start mode is set to ΔT.", temperature_output, dhw_temp);
+            this->dhw_pump->turn_on();
+          }
+        }
       }
 
       bool hasPassedMinOnTime = (now - state.last_compressor_start_ms) > min_on_ms;
@@ -949,12 +975,6 @@ private:
     }
 
     SetPumpPwmDutyCycle(GetCurrentPumpSpeedSetting());
-
-    if (IsInDhwMode())
-    {
-      ESP_LOGI("amber", "Starting DHW pump.");
-      this->dhw_pump->turn_on();
-    }
 
     state.pump_start_time = millis();
   }
