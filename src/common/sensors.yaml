@@ -61,7 +61,6 @@
   name: "Huidig setpoint"
   unit_of_measurement: "°C"
   accuracy_decimals: 0
-  update_interval: never
   lambda: |-
     float setpoint = 0.0;
     if (id(heat_mode_select).current_option() == "Stooklijn")
@@ -92,7 +91,6 @@
   name: "Huidig tapwater setpoint"
   unit_of_measurement: "°C"
   accuracy_decimals: 0
-  update_interval: never
   lambda: |-
     float setpoint = 0.0;
     if (id(dhw_legionella_run_active_sensor).state)
@@ -142,9 +140,6 @@
     else                   tc = tc_m10;
 
     return tc;
-  on_value: 
-    then:
-      - component.update: current_setpoint
   filters:
     - round_to_multiple_of: 1
     - delta: 1
