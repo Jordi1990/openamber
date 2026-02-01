@@ -359,6 +359,7 @@ private:
     {
       ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 15 degrees while compressor is running, stopping compressor to avoid damage.");
       StopCompressor(false);
+      StopPump();
       SetNextState(HPState::IDLE);
       return;
     }
@@ -454,8 +455,6 @@ private:
       {
         ESP_LOGI("amber", "Stopping pump (interval cycle finished)");
         StopPump();
-        uint32_t interval_ms = (uint32_t)pump_interval_min->state * 60000UL;
-        state.next_pump_cycle = now + interval_ms;
         SetNextState(HPState::WAIT_PUMP_STOP);
         break;
       }
@@ -562,7 +561,7 @@ private:
       // Only check for stop conditions when min on time is passed.
       if (hasPassedMinOnTime)
       {
-        if (!IsCompressorDemandForCurrentMode())
+        if (ShouldStopCompressor())
         {
           ESP_LOGI("amber", "Stopping compressor because there is no demand.");
           StopCompressor();
@@ -714,6 +713,21 @@ private:
       }
       pid_heat_cool->reset_integral_term();
     }
+    }
+  }
+
+  bool ShouldStopCompressor()
+  {
+    if(IsInDhwMode())
+    {
+      // In DHW mode, stop when target temperature is reached.
+      // Because demand stops when the target is within hysteresis, but we want to reach the target.
+      return GetCurrentTemperature() >= GetTargetTemperature();
+    }
+    else
+    {
+      // Stop when there's no demand.
+      return !IsCompressorDemandForCurrentMode();
     }
   }
 
@@ -1001,6 +1015,9 @@ private:
     }
 
     SetPumpPwmDutyCycle(0);
+
+    uint32_t interval_ms = (uint32_t)pump_interval_min->state * 60000UL;
+    state.next_pump_cycle = millis() + interval_ms;
   }
 
   void SetWorkingMode(int workingMode)
