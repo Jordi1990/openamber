@@ -25,11 +25,11 @@ Supply temperature regulation with PID-based compressor Hz modulation
 - Boost after defrost using backup heater.
 - Sensors for error codes
 - Support external thermostats (Heating/Cooling input)
+- Support SG-Ready
 
 ## Todo
 - Support cooling
 - Tv1/Tv2 buffer support
-- Support Smart Grid inputs
 - Extend configuration options
 - Error handling
 - Support OpenTherm thermostats
@@ -40,14 +40,20 @@ Supply temperature regulation with PID-based compressor Hz modulation
 The firmware can be used on any ESP32 with an RS485 board.
 
 ### Off-the-shelf boards:
-#### Itho Daalderop Amber Control Module (https://electropaultje.nl/product/itho-daalderop-amber-control-module/)
-The firmware in this repository targets this module, I currently use this as well.
 
-#### Waveshare ESP32-S3 Touch LCD 5'' (https://www.waveshare.com/wiki/ESP32-S3-Touch-LCD-5)
-This is the best replacement for the WinCE controller as there is a touchscreen, RS485 and 24V input available.
-We would also need a 3D printed bracket to mount it properly.
+#### Waveshare ESP32-S3 Touch LCD 5'' (https://www.waveshare.com/wiki/ESP32-S3-Touch-LCD-5) (1024x600 resolution is preferred)
+Binary: openamber-esp32s3
+
+This is the preferred replacement for the WinCE controller as there is a touchscreen, RS485 and 24V input available.
+So the controller can be powered by the same cables which are now powering the WinCE controller.
+A 3D printed bracket to mount it properly is required.
 
 ![UI](/docs/images/openamber-waveshare-display-ui.png)
+
+#### Itho Daalderop Amber Control Module (https://electropaultje.nl/product/itho-daalderop-amber-control-module/)
+Binary: openamber-esp32
+
+This can be used to run OpenAmber however it is not an ideal replacement of the WinCE Controller as there is no screen.
 
 ## Installation
 **Software**
@@ -87,9 +93,11 @@ When using the Waveshare ESP32-S3 Touch LCD 5'' you need to set the RS485 resist
 | 1203       | Inlet water temperature (Tui)       |
 | 1204       | Outdoor coil temperature (Tp)       |
 | 1207       | Outdoor coil temperature (Tv1)      |
+| 1211       | SmartGrid Ready SGA                 | 
 | 1212       | Pump P0 active                      |
 | 1213       | External cooling signal             |
 | 1214       | External heating signal             |
+| 1220       | SmartGrid Ready SGB                 | 
 | 1300       | Pump P1 active                      |
 | 1301       | Pump P2 active                      |
 | 1302       | DHW pump active                     |
