@@ -610,6 +610,7 @@ private:
         if (state.accumulated_backup_degmin >= backup_heater_degmin_limit->state)
         {
           ESP_LOGI("amber", "Enabling backup heater (degree/min limit reached: %.2f)", state.accumulated_backup_degmin);
+          state.accumulated_backup_degmin = 0.0f;
           backup_heater->turn_on();
           SetNextState(HPState::WAIT_BACKUP_HEATER_RUNNING);
           break;
@@ -722,6 +723,7 @@ private:
     {
       // In DHW mode, stop when target temperature is reached.
       // Because demand stops when the target is within hysteresis, but we want to reach the target.
+      ESP_LOGI("amber", "DHW mode: Checking if current temperature %.2f°C >= target temperature %.2f°C to stop compressor.", GetCurrentTemperature(), GetTargetTemperature());
       return GetCurrentTemperature() >= GetTargetTemperature();
     }
     else
@@ -774,14 +776,8 @@ private:
     uint32_t dt_ms = millis() - state.backup_degmin_last_ms;
     state.backup_degmin_last_ms = millis();
     const float dt_min = (float)dt_ms / 60000.0f;
-    if (dt_min <= 0.0f)
-    {
-      ESP_LOGW("amber", "Delta time for backup heater degree/min calculation is zero or negative, skipping update.");
-      return;
-    }
-    state.accumulated_backup_degmin += diff * dt_min;
 
-    int max_compressor_mode = this->heat_compressor_max_mode->active_index().value() + this->mode_offset - 1;
+    int max_compressor_mode = this->heat_compressor_max_mode->active_index().value() + this->mode_offset;
     bool is_at_max_mode = this->compressor_control->active_index().value() >= max_compressor_mode;
 
     // Reset accumulated degmin if there is no difference or we are not at max compressor mode.
@@ -789,6 +785,13 @@ private:
     {
       state.accumulated_backup_degmin = 0.0f;
     }
+
+    if (dt_min <= 0.0f)
+    {
+      return;
+    }
+
+    state.accumulated_backup_degmin += diff * dt_min;
     this->backup_heater_degmin_current->publish_state(state.accumulated_backup_degmin);
     ESP_LOGD("amber", "Backup heater degree/minutes updated: +%.2f -> %.2f", diff * dt_min, state.accumulated_backup_degmin);
   }
@@ -814,7 +817,7 @@ private:
     // Predict future Tc based on current rate.
     float predicted_temperature = current_temperature + state.temperature_rate_c_per_min * ((float)BACKUP_HEATER_LOOKAHEAD_S / 60.0f);
     state.backup_degmin_last_ms = millis();
-    ESP_LOGI("amber", "Backup heater temperature rate/min updated: %.2f (Predicted Temperature: %.2fÂ°C)", state.temperature_rate_c_per_min, predicted_temperature);
+    ESP_LOGI("amber", "Backup heater temperature rate/min updated: %.2f (Predicted Temperature: %.2f°C)", state.temperature_rate_c_per_min, predicted_temperature);
     return predicted_temperature;
   }
 
