@@ -7,13 +7,17 @@ esp32:
   cpu_frequency: 240MHZ
   framework:
     sdkconfig_options:
-      CONFIG_ESP32S3_DATA_CACHE_64KB: y
-      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
-      CONFIG_SPIRAM_RODATA: y
+      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: "y"
+      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
+      CONFIG_ESP32S3_DATA_CACHE_LINE_64B: "y"
+      CONFIG_SPIRAM_MODE_OCT: "y"
+      CONFIG_SPIRAM_SPEED_80M: "y"
+      CONFIG_ESP_MAIN_TASK_STACK_SIZE: "16384"
 
 esphome:
   platformio_options:
-    build_flags: "-DBOARD_HAS_PSRAM"
+    board_build.arduino.memory_type: qio_opi
+    board_build.flash_mode: dio
   on_boot:
     then:
       - script.execute: backlight_script
@@ -38,57 +42,35 @@ i2c:
   scl: GPIO09
   scan: True
   id: i2_bus_a
+  frequency: 400kHz
 
 display:
   - platform: mipi_rgb
-    model: RPI
+    model: WAVESHARE-5-1024X600
     id: my_display
-    auto_clear_enabled: false
-    update_interval: never
-    color_order: RGB
-    pclk_frequency: 21MHz
     dimensions:
       width: 1024
       height: 600
+    auto_clear_enabled: false
+    update_interval: 16ms
+    color_order: RGB
+    pclk_frequency: 16MHz
+    pclk_inverted: true
+    data_pins:
+      red: [GPIO1, GPIO2, GPIO42, GPIO41, GPIO40]
+      green: [GPIO39, GPIO0, GPIO45, GPIO48, GPIO47, GPIO21]
+      blue: [GPIO14, GPIO38, GPIO18, GPIO17, GPIO10]
+    pclk_pin: GPIO7
+    de_pin: GPIO5
+    hsync_pin: 
+      number: GPIO46
+      ignore_strapping_warning: true
+    vsync_pin: 
+      number: GPIO3
+      ignore_strapping_warning: true
     reset_pin:
       ch422g: ch422g_hub
       number: 3
-    de_pin:
-      number: 5
-    hsync_pin:
-      number: 46
-      ignore_strapping_warning: true
-    vsync_pin:
-      number: 3
-      ignore_strapping_warning: true
-    pclk_pin: 7
-    pclk_inverted: false
-    hsync_back_porch: 145
-    hsync_front_porch: 170
-    hsync_pulse_width: 30
-    vsync_back_porch: 23
-    vsync_front_porch: 12
-    vsync_pulse_width: 2
-    data_pins:
-      red:
-        - 1
-        - 2
-        - 42
-        - 41
-        - 40
-      blue:
-        - 14
-        - 38
-        - 18
-        - 17
-        - 10
-      green:
-        - 39
-        - 0
-        - 45
-        - 48
-        - 47
-        - 21
 
 switch:
  - platform: gpio
@@ -99,16 +81,13 @@ switch:
    pin:
      ch422g: ch422g_hub
      number: 2
-     mode:
-       output: true
      inverted: false
 
 touchscreen:
   - platform: gt911
     address: 0x5D
     id: my_touchscreen
-    update_interval: 16ms
-    interrupt_pin: 4
+    interrupt_pin: GPIO4
     reset_pin:
       ch422g: ch422g_hub
       number: 1

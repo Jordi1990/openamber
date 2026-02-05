@@ -61,6 +61,6 @@ obj:
               text_font: font_mdi_24
           - label:
               id: header_outdoor
-              text: "Buiten 7.3°C"
+              text: "Buiten -°C"
               text_color: 0xFFFFFF
               text_font: font_mdi_24
