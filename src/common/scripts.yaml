@@ -3,7 +3,7 @@
     - mqtt.publish_json:
         topic: !lambda |-
           return "openamber/" + id(mac_address).state;
-        qos: 1
+        qos: 0
         retain: true
         payload: |-
           root["device_id"] = id(mac_address).state;
@@ -38,17 +38,24 @@
           root["defrost_backup_heater_boost_temperature"] = id(defrost_backup_heater_boost_temperature_sensor).state;
           root["legio_repeat_days"] = id(legio_repeat_days_number).state;
           root["legio_target_temperature"] = id(legio_target_temperature_number).state;
+          root["manual_setpoint"] = id(manual_setpoint).state;
+          root["sg_ready_heating_boost_temperature"] = id(sg_ready_heating_boost_temperature_number).state;
+          root["sg_ready_dhw_boost_temperature"] = id(sg_ready_dhw_boost_temperature_number).state;
           root["heat_compressor_mode"] = id(heat_compressor_mode).current_option();
           root["dhw_compressor_mode"] = id(dhw_compressor_mode).current_option();
           root["dhw_compressor_mode_max"] = id(dhw_compressor_mode_max).current_option();
+          root["dhw_pump_start_mode"] = id(dhw_pump_start_mode_select).current_option();
           root["heat_mode"] = id(heat_mode_select).current_option();
           root["thermostat_mode"] = id(thermostat_mode_select).current_option();
+          root["sg_ready_mode"] = id(sg_ready_mode_select).current_option();
           root["heat_demand"] = id(heat_demand_active_sensor).state;
           root["cool_demand"] = id(cool_demand_active_sensor).state;
           root["dhw_demand"] = id(dhw_demand_active_sensor).state;
           root["backup_heater_active"] = id(backup_heater_active_sensor).state;
           root["internal_pump_active"] = id(internal_pump_active).state;
           root["defrost_active"] = id(defrost_active_sensor).state;
+          root["heat_demand_switch"] = id(heat_demand_switch).state;
+          root["cool_demand_switch"] = id(cool_demand_switch).state;
           root["backup_heater_degmin_current"] = id(backup_heater_degmin_current_sensor).state;
           root["dhw_backup_current_avg_rate"] = id(dhw_backup_current_avg_rate_sensor).state;
           root["state_machine_state"] = id(state_machine_state).state;

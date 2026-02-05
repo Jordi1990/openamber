@@ -57,7 +57,6 @@ mqtt:
   discovery: false
   discover_ip: false
   discovery_retain: false
-  idf_send_async: true
   log_topic: null
   topic_prefix: null
 
