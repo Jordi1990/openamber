@@ -22,6 +22,7 @@
   optimistic: True
   restore_mode: RESTORE_DEFAULT_OFF
   entity_category: config
+  setup_priority: 200
   web_server: 
     sorting_group_id: diagnostic
   on_state:
