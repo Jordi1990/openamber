@@ -2,7 +2,7 @@ substitutions:
   device_name: openamber
   device_friendly_name: OpenAmber
   device_project_name: jordi.openamber
-  device_version: 0.0.7
+  device_version: 0.0.8
 
 esphome:
   name: ${device_name}
