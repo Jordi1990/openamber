@@ -1,0 +1,12 @@
+obj:
+  id: idle_screen_overlay
+  hidden: true
+  x: 0
+  y: 0
+  width: 100%
+  height: 100%
+  bg_color: 0x000000
+  bg_opa: COVER
+  radius: 0
+  pad_all: 0
+  border_width: 0

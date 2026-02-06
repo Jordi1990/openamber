@@ -18,9 +18,6 @@ esphome:
   platformio_options:
     board_build.arduino.memory_type: qio_opi
     board_build.flash_mode: dio
-  on_boot:
-    then:
-      - script.execute: backlight_script
 
 uart:
   rx_pin:
@@ -40,48 +37,26 @@ ch422g:
 i2c:
   sda: GPIO08
   scl: GPIO09
-  scan: True
-  id: i2_bus_a
+  scan: False
   frequency: 400kHz
 
 display:
   - platform: mipi_rgb
     model: WAVESHARE-5-1024X600
     id: my_display
-    dimensions:
-      width: 1024
-      height: 600
-    auto_clear_enabled: false
-    update_interval: 16ms
-    color_order: RGB
-    pclk_frequency: 16MHz
-    pclk_inverted: true
-    data_pins:
-      red: [GPIO1, GPIO2, GPIO42, GPIO41, GPIO40]
-      green: [GPIO39, GPIO0, GPIO45, GPIO48, GPIO47, GPIO21]
-      blue: [GPIO14, GPIO38, GPIO18, GPIO17, GPIO10]
-    pclk_pin: GPIO7
-    de_pin: GPIO5
-    hsync_pin: 
-      number: GPIO46
-      ignore_strapping_warning: true
-    vsync_pin: 
-      number: GPIO3
-      ignore_strapping_warning: true
-    reset_pin:
-      ch422g: ch422g_hub
-      number: 3
 
 switch:
- - platform: gpio
-   name: backlight_pin
-   id: backlight
-   internal: True
-   restore_mode: ALWAYS_ON
-   pin:
-     ch422g: ch422g_hub
-     number: 2
-     inverted: false
+  - platform: gpio
+    name: backlight switch
+    pin:
+      ch422g: ch422g_hub
+      number: 2
+    restore_mode: ALWAYS_ON
+    internal: true
+
+globals:
+  - id: is_idled
+    type: bool
 
 touchscreen:
   - platform: gt911
@@ -91,16 +66,16 @@ touchscreen:
     reset_pin:
       ch422g: ch422g_hub
       number: 1
-    on_touch:
-      - script.execute: backlight_script
-
-script:
-  - id: backlight_script
-    mode: restart
-    then:
-      - switch.turn_on: backlight
-      - delay: 60s
-      - switch.turn_off: backlight
+    on_release:
+      - if:
+          condition:
+            lambda: 'return (id(is_idled) == true);'
+          then:
+            - globals.set:
+                id: is_idled
+                value: 'false'
+            - lvgl.widget.hide:
+                id: idle_screen_overlay
 
 interval:
  - interval: 5s
@@ -116,6 +91,14 @@ image:
 font: !include lvgl/fonts.yaml
 
 lvgl:
+  on_idle:
+    - timeout: 60s
+      then:
+        - globals.set:
+            id: is_idled
+            value: 'true'
+        - lvgl.widget.show:
+            id: idle_screen_overlay
   disp_bg_color: 0x0A2747
   widgets:
     - !include lvgl/root_bg.yaml
@@ -123,3 +106,4 @@ lvgl:
     - !include lvgl/page_home.yaml
     - !include lvgl/nav_bar.yaml
     - !include lvgl/boot_screen.yaml
+    - !include lvgl/idle_screen_overlay.yaml
