@@ -47,6 +47,7 @@ logger:
   baud_rate: 0
 
 api:
+  reboot_timeout: 0s
 
 # Broker used to push analytics data (Opt-In)
 mqtt:
