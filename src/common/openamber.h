@@ -450,8 +450,7 @@ private:
       ApplyPumpSpeedChangeIfNeeded();
 
       // Stop pump when duration expired.
-      uint32_t duration_ms = (uint32_t)pump_duration_min->state * 60000UL;
-      if (now >= state.pump_start_time + duration_ms && !should_start_compressor)
+      if (IsPumpIntervalCycleFinished() && !should_start_compressor)
       {
         ESP_LOGI("amber", "Stopping pump (interval cycle finished)");
         StopPump();
@@ -572,7 +571,7 @@ private:
         if (dhw_demand && !IsInDhwMode())
         {
           ESP_LOGI("amber", "Stopping compressor because there is demand for DHW.");
-          StopCompressor();
+          StopCompressor(false);
           SetNextState(HPState::WAIT_COMPRESSOR_STOP);
           break;
         }
@@ -651,6 +650,14 @@ private:
     {
       if (compressor_current_frequency->state == 0)
       {
+        // If we stopped the compressor without extending the pump cycle, immediatly stop before the logic to start compressor kicks in again.
+        if(IsPumpIntervalCycleFinished())
+        {
+          StopPump();
+          SetNextState(HPState::WAIT_PUMP_STOP);
+          break;
+        }
+        
         SetNextState(HPState::PUMP_INTERVAL_RUNNING);
       }
       else
@@ -715,6 +722,12 @@ private:
       pid_heat_cool->reset_integral_term();
     }
     }
+  }
+  
+  bool IsPumpIntervalCycleFinished()
+  {
+    uint32_t duration_ms = (uint32_t)pump_duration_min->state * 60000UL;
+    return millis() >= state.pump_start_time + duration_ms;
   }
 
   bool ShouldStopCompressor()
