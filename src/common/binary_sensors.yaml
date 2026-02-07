@@ -219,6 +219,7 @@
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
+  id: three_way_valve_active_sensor
   name: "3-weg klep"
   address: 1305
   register_type: holding
