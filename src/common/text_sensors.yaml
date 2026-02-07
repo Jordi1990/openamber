@@ -30,3 +30,9 @@
   mac_address:
     id: mac_address
     internal: True
+
+- platform: mqtt_subscribe
+  name: "Analytics Device ID"
+  id: device_id
+  entity_category: diagnostic
+  topic: openamber/" + id(mac_address).state + "/device_id"
