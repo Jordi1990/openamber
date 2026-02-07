@@ -70,3 +70,7 @@
           root["current_compressor_frequency"] = id(current_compressor_frequency).state;
           root["condensate_temperature_tup"] = id(condensate_temperature_tup).state;
           root["evaporation_temperature_tp"] = id(evaporation_temperature_tp).state;
+          root["uptime"] = id(sensor_uptime).state;
+          root["current_dhw_setpoint"] = id(current_dhw_setpoint_sensor).state;
+          root["dhw_legionella_run_active"] = id(dhw_legionella_run_active_sensor).state;
+          root["three_way_valve_active"] = id(three_way_valve_active_sensor).state;
