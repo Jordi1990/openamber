@@ -43,7 +43,6 @@
   sensor: heat_cool_temperature_tc
   default_target_temperature: 30°C
   heat_output: pid_heat_output
-  cool_output: pid_cool_output
   control_parameters:
     kp: 0.6
     ki: 0.002

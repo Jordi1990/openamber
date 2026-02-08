@@ -82,7 +82,7 @@
           format: "Pump interval reset due to pump required for frost protection."
           level: INFO
       - lambda: |-
-          AMBER.ResetPumpInterval();  
+          id(amber_ctrl).reset_pump_interval();
   web_server: 
     sorting_group_id: overview
 
@@ -100,7 +100,7 @@
           format: "Pump interval reset due to pump required for frost protection."
           level: INFO
       - lambda: |-
-          AMBER.ResetPumpInterval();
+          id(amber_ctrl).reset_pump_interval();
   web_server: 
     sorting_group_id: overview
 

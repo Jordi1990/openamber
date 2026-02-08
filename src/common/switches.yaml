@@ -35,16 +35,6 @@
           else:
             - mqtt.disable:
 
-- platform: template
-  id: amber_controller_active
-  name: "Amber controller actief"
-  optimistic: True
-  restore_mode: ALWAYS_ON
-  disabled_by_default: true
-  entity_category: diagnostic
-  web_server: 
-    sorting_group_id: manual_control
-
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
   id: pump_p0_relay_switch
