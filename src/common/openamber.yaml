@@ -27,6 +27,8 @@ esphome:
     - openamber/controllers/backup_heater_controller.h
     - openamber/controllers/dhw_controller.h
     - openamber/controllers/heat_pump_controller.h
+    - openamber/controllers/openamber_component.h
+    - openamber/controllers/heat_pump_controller.h
   on_boot:
     then:
       - if:

@@ -36,10 +36,17 @@ public:
   PumpController(const ThreeWayValveController& valve_controller) 
     : valve_controller_(valve_controller) {}
 
-  uint32_t GetPumpStartTime() const { return pump_start_time_; }
-  uint32_t GetNextPumpCycle() const { return next_pump_cycle_; }
+  bool ShouldStartNextPumpCycle()
+  {
+    return millis() >= next_pump_cycle_;
+  }
 
-  float GetCurrentSpeedSetting() const
+  bool IsPumpSettled() const
+  {
+    return millis() - pump_start_time_ >= COMPRESSOR_MIN_TIME_PUMP_ON * 1000UL;
+  }
+
+  float GetCurrentSpeedSetting()
   {
     return (valve_controller_.IsInDhwMode() ? id(pump_speed_dhw_number) : id(pump_speed_heating_number)).state;
   }
@@ -93,7 +100,7 @@ public:
     next_pump_cycle_ = millis() + interval_ms;
   }
 
-  bool IsIntervalCycleFinished() const
+  bool IsIntervalCycleFinished()
   {
     uint32_t duration_ms = (uint32_t)id(pump_duration).state * 60000UL;
     return millis() >= pump_start_time_ + duration_ms;
@@ -104,7 +111,7 @@ public:
     next_pump_cycle_ = 0;
   }
 
-  bool IsRunning() const
+  bool IsRunning()
   {
     return id(internal_pump_active).state;
   }

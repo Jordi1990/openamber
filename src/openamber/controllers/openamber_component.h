@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Open Amber - Itho Daalderop Amber heat pump controller for ESPHome
  *
  * Copyright (C) 2025 Jordi Epema
@@ -8,7 +8,7 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
+ * This program is distributed it in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
@@ -17,33 +17,42 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "heat_pump_controller.h"
 
-#include "esphome/core/component.h"
-
-// Forward declarations
-class HeatPumpController;
+using namespace esphome;
 
 namespace esphome {
 namespace openamber {
 
-/**
- * ESPHome Component wrapper for Open Amber heat pump controller.
- */
-class OpenAmberComponent : public Component {
-private:
-  HeatPumpController* heat_pump_controller_;
+OpenAmberComponent::OpenAmberComponent()
+{
+  heat_pump_controller_ = new HeatPumpController();
+}
 
-public:
-  OpenAmberComponent();
-  ~OpenAmberComponent();
-  
-  void setup() override;
-  void loop() override;
-  
-  void write_heat_pid_value(float value);
-  void reset_pump_interval();
-};
+OpenAmberComponent::~OpenAmberComponent()
+{
+  delete heat_pump_controller_;
+}
+
+void OpenAmberComponent::setup()
+{
+  ESP_LOGI("amber", "OpenAmberController initialized");
+}
+
+void OpenAmberComponent::loop()
+{
+  heat_pump_controller_->Loop();
+}
+
+void OpenAmberComponent::write_heat_pid_value(float value)
+{
+  heat_pump_controller_->SetPIDValue(value);
+}
+
+void OpenAmberComponent::reset_pump_interval()
+{
+  heat_pump_controller_->ResetPumpInterval();
+}
 
 }  // namespace openamber
 }  // namespace esphome

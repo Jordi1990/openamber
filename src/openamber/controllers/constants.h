@@ -28,6 +28,7 @@
 enum class HPState
 {
   UNKNOWN,
+  INITIALIZE,
   IDLE,
   WAIT_PUMP_RUNNING,
   WAIT_PUMP_STOP,

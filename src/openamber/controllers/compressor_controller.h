@@ -38,6 +38,11 @@ private:
 
   void SetWorkingMode(int workingMode)
   {
+    if(id(working_mode_switch).active_index().value() == workingMode)
+    {
+      return;
+    }
+
     auto working_mode_call = id(working_mode_switch).make_call();
     working_mode_call.set_index(workingMode);
     working_mode_call.perform();
@@ -107,18 +112,6 @@ private:
     return selected_dhw_compressor_mode;
   }
 
-  bool IsCompressorDemandForCurrentMode() const
-  {
-    if (valve_controller_.IsInDhwMode())
-    {
-      return id(dhw_demand_active_sensor).state;
-    }
-    else
-    {
-      return id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state || id(frost_protection_stage2_active).state;
-    }
-  }
-
 public:
   CompressorController(const ThreeWayValveController& valve_controller) 
     : valve_controller_(valve_controller) {}
@@ -174,8 +167,15 @@ public:
     }
   }
 
-  void Start(bool is_switching_modes)
+  bool Start(bool is_switching_modes = false)
   {
+    if (!HasPassedMinOffTime(is_switching_modes))
+    {
+      ESP_LOGI("amber", "Not starting compressor because minimum compressor time off is not reached.");
+      return false;
+    }
+
+    SetWorkingMode(DetermineWorkingMode());
     start_target_temp_ = GetTargetTemperature(valve_controller_);
     if (valve_controller_.IsInDhwMode())
     {
@@ -192,6 +192,8 @@ public:
       id(pid_heat_cool_temperature_control).reset_integral_term();
       SetCompressorMode(compressor_frequency_mode);
     }
+
+    return true;
   }
 
   void Stop(uint32_t pump_interval_ms)
@@ -205,7 +207,7 @@ public:
     SetWorkingMode(WORKING_MODE_STANDBY);
   }
 
-  bool ShouldStart(uint32_t pump_start_time) const
+  bool IsDemandForCompressor()
   {
     if (valve_controller_.IsInDhwMode())
     {
@@ -213,9 +215,10 @@ public:
     }
 
     float current_temperature = id(heat_cool_temperature_tc).state;
-    float target_temperature = GetTargetTemperature(valve_controller_);
+    float target_temperature = id(pid_heat_cool_temperature_control).target_temperature;
 
-    if (!IsCompressorDemandForCurrentMode())
+    bool has_active_demand = id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state || id(frost_protection_stage2_active).state;
+    if (!has_active_demand)
     {
       ESP_LOGI("amber", "Not starting compressor because there is no demand.");
       return false;
@@ -232,7 +235,7 @@ public:
     return true;
   }
 
-  bool ShouldStop() const
+  bool ShouldStop()
   {
     if(valve_controller_.IsInDhwMode())
     {
@@ -245,7 +248,16 @@ public:
     else
     {
       // Stop when there's no demand
-      return !IsCompressorDemandForCurrentMode();
+      // Determine based on working mode
+      int working_mode = DetermineWorkingMode();
+      if (working_mode == WORKING_MODE_HEATING)
+      {
+        return !id(heat_demand_active_sensor).state && !id(frost_protection_stage2_active).state;
+      }
+      else
+      {
+        return !id(cool_demand_active_sensor).state;
+      }
     }
   }
 
@@ -303,7 +315,7 @@ public:
     last_compressor_mode_change_ms_ = millis();
   }
 
-  int DetermineWorkingMode() const
+  int DetermineWorkingMode()
   {
     return valve_controller_.IsInDhwMode() ? WORKING_MODE_HEATING 
          : id(heat_demand_active_sensor).state ? WORKING_MODE_HEATING
