@@ -33,6 +33,7 @@ private:
   float temperature_rate_c_per_min_ = 0.0f;
   float last_temperature_for_rate_ = 0.0f;
   float compressor_pid_ = 0.0f;
+  float start_current_temperature = 0.0f;
 
   int MapPIDToCompressorMode(float pid) const
   {
@@ -85,8 +86,8 @@ public:
     return true;
   }
 
-  void OnCompressorRunning() override {
-    // Implement any actions needed when the compressor is running
+  void OnCompressorStarted() override {
+    start_current_temperature = id(heat_cool_temperature_tc).state;
   }
 
   float GetPreferredPumpSpeed() override {
