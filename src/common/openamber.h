@@ -926,7 +926,7 @@ private:
   void StartCompressor()
   {
     state.is_switching_modes = false;
-    state.start_target_temp = GetTargetTemperature();
+    state.start_target_temp = GetCurrentTemperature();
     if (IsInDhwMode())
     {
       int dhw_compressor_mode = GetDhwCompressorMode();
