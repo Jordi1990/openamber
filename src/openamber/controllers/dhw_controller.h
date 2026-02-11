@@ -20,19 +20,17 @@
 #pragma once
 
 #include "esphome.h"
+#include "controller.h"
 #include "constants.h"
-#include "three_way_valve_controller.h"
 
 using namespace esphome;
 
-class DHWController
+class DHWController : Controller
 {
 private:
-  const ThreeWayValveController& valve_controller_;
-
+  float start_current_temperature = 0.0f;
 public:
-  DHWController(const ThreeWayValveController& valve_controller) 
-    : valve_controller_(valve_controller) {}
+  DHWController() {}
 
   void HandlePumpStart()
   {
@@ -90,8 +88,50 @@ public:
     }
   }
 
-  bool HasDemand() const
+  bool HasDemand() override
   {
     return id(dhw_demand_active_sensor).state;
+  }
+
+  void OnCompressorStarted() override {
+    start_current_temperature = id(heat_cool_temperature_tc).state;
+    HandlePumpStart();
+  }
+
+  float GetPreferredPumpSpeed() override {
+    return id(pump_speed_dhw_number).state;
+  }
+
+  bool ShouldWaitForTemperatureStabilizationBeforeCompressorStart() override {
+    return false;
+  }
+
+  bool ShouldSoftStart() override {
+    return false;
+  }
+
+  int DetermineCompressorMode() override
+  {
+    float temperature_ta = id(temperature_outside_ta).state;
+    float ta_threshold = id(dhw_temperature_threshold_max_compressor_mode).state;
+    
+    int dhw_mode_offset = id(compressor_control_select).size() - id(dhw_compressor_mode).size();
+    int dhw_mode_max_offset = id(compressor_control_select).size() - id(dhw_compressor_mode_max).size();
+    
+    int selected_dhw_compressor_mode = id(dhw_compressor_mode).active_index().value() + dhw_mode_offset;    
+    if (temperature_ta <= ta_threshold)
+    {
+      selected_dhw_compressor_mode = id(dhw_compressor_mode_max).active_index().value() + dhw_mode_max_offset;
+    }
+    return selected_dhw_compressor_mode;
+  }
+
+  bool ShouldStopCompressor() override
+  {
+    // In DHW mode, stop when target temperature is reached
+    float current_temperature = id(dhw_temperature_tw_sensor).state;
+    float target_temperature = id(current_dhw_setpoint_sensor).state;
+    ESP_LOGI("amber", "DHW mode: Checking if current temperature %.2f°C >= target temperature %.2f°C to stop compressor.", current_temperature, target_temperature);
+    return current_temperature >= target_temperature;
   }
 };

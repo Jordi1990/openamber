@@ -46,6 +46,8 @@ private:
   CompressorController* compressor_controller_;
   BackupHeaterController* backup_heater_controller_;
   DHWController* dhw_controller_;
+  IModeController* active_mode_controller_;
+  IModeController* heat_cool_controller_;
 
   void SetNextState(HPState new_state);
   void LeaveStateAndSetNextStateAfterWaitTime(HPState new_state, uint32_t defer_ms);
@@ -69,7 +71,8 @@ HeatPumpController::HeatPumpController()
   compressor_controller_ = new CompressorController(*valve_controller_);
   backup_heater_controller_ = new BackupHeaterController(*valve_controller_);
   dhw_controller_ = new DHWController(*valve_controller_);
-  
+  heat_cool_controller_ = new HeatCoolController(*valve_controller_);
+  active_mode_controller_ = heat_cool_controller_;
   deferred_machine_state_ = HPState::UNKNOWN;
   defer_state_change_until_ms_ = 0;
   is_switching_modes_ = false;
@@ -90,6 +93,7 @@ void HeatPumpController::SetNextState(HPState new_state)
   const char* txt = HPStateToString(new_state);
   
   id(state_machine_state).publish_state(txt);
+  StateEntered(new_state);
   ESP_LOGI("amber", "HP state changed: %s", txt);
 }
 
@@ -124,6 +128,22 @@ void HeatPumpController::DoSafetyChecks()
   }
 }
 
+void HeatPumpController::StateEntered(HPState state)
+{
+  switch (state)
+  {
+    case HPState::WAIT_COMPRESSOR_STOP:
+      pump_controller_->RestartPumpInterval();
+      break;
+    case HPState::COMPRESSOR_RUNNING:
+      compressor_controller_->RecordStartTime();
+      active_mode_controller_->StartTrackingTemperatureChanges();
+
+      // Maybe move to heat_cool_controller if we have a compressor started method or something.
+      id(pid_heat_cool_temperature_control).reset_integral_term();
+      break;
+}
+
 void HeatPumpController::UpdateStateMachine()
 {
   const uint32_t now = millis();
@@ -148,7 +168,6 @@ void HeatPumpController::UpdateStateMachine()
       // Restore state whenever initialized while compressor is running
       if (compressor_controller_->IsRunning())
       {
-        compressor_controller_->RecordStartTime();
         SetNextState(HPState::COMPRESSOR_RUNNING);
       }
       else if (pump_controller_->IsRunning())
@@ -194,9 +213,9 @@ void HeatPumpController::UpdateStateMachine()
     }
 
     // If interval is elapsed or there is compressor demand, start pump immediately
-    if (pump_controller_->ShouldStartNextPumpCycle() || compressor_controller_->IsDemandForCompressor())
+    if (pump_controller_->ShouldStartNextPumpCycle() || active_mode_controller_->HasDemand())
     {
-      pump_controller_->Start();
+      pump_controller_->Start(active_mode_controller_->GetPreferredPumpSpeed());
       SetNextState(HPState::WAIT_PUMP_RUNNING);
     }
     break;
@@ -212,32 +231,35 @@ void HeatPumpController::UpdateStateMachine()
   }
   case HPState::PUMP_INTERVAL_RUNNING:
   {
-    pump_controller_->ApplySpeedChangeIfNeeded();
+    pump_controller_->ApplySpeedChangeIfNeeded(active_mode_controller_->GetPreferredPumpSpeed());
 
-    if (!compressor_controller_->IsDemandForCompressor())
+    // Stop if there is no demand and pump interval is finished.
+    if (!active_mode_controller_->HasDemand() && pump_controller_->IsIntervalCycleFinished())
     {
-      // Stop pump when duration expired
-      if(pump_controller_->IsIntervalCycleFinished())
-      {
-        ESP_LOGI("amber", "Stopping pump (interval cycle finished)");
-        pump_controller_->Stop();
-        SetNextState(HPState::WAIT_PUMP_STOP);
-      }
+      ESP_LOGI("amber", "Stopping pump (interval cycle finished)");
+      pump_controller_->Stop();
+      SetNextState(HPState::WAIT_PUMP_STOP);
       break;
     }
 
-    // Settle Tc temperature before starting compressor, not needed in DHW mode because we don't start based on temperature.
-    if (!pump_controller_->IsPumpSettled() && !valve_controller_->IsInDhwMode())
+    // Settle temperature before starting compressor.
+    if (!pump_controller_->IsPumpSettled() && active_mode_controller_->ShouldWaitForTemperatureStabilizationBeforeCompressorStart())
     {
-      ESP_LOGI("amber", "Not starting compressor because Tc needs to stabilize (pump on time too short)");
+      ESP_LOGI("amber", "Not starting compressor because temperature needs to stabilize (pump on time too short)");
       break;
     }
 
-    if(compressor_controller_->Start(is_switching_modes_))
+    // TODO: Not after switching
+    if (!compressor_controller_->HasPassedMinOffTime())
     {
-      is_switching_modes_ = false;
-      SetNextState(HPState::WAIT_COMPRESSOR_RUNNING);
+      ESP_LOGI("amber", "Not starting compressor because minimum compressor time off is not reached.");
+      return false;
     }
+
+    ApplyWorkingMode();
+    compressor_controller_->ApplyCompressorMode(active_mode_controller_->DetermineCompressorMode());
+    is_switching_modes_ = false;
+    SetNextState(HPState::WAIT_COMPRESSOR_RUNNING);
     break;
   }
   case HPState::WAIT_PUMP_STOP:
@@ -246,14 +268,21 @@ void HeatPumpController::UpdateStateMachine()
     {
       SetNextState(HPState::IDLE);
     }
+    else 
+    {
+      // TODO: Implement timeout for when pump does not stop.
+    }
     break;
   }
   case HPState::WAIT_COMPRESSOR_RUNNING:
   {
     if (compressor_controller_->IsRunning())
     {
-      compressor_controller_->RecordStartTime();
-      SetNextState(valve_controller_->IsInDhwMode() ? HPState::COMPRESSOR_RUNNING : HPState::HEAT_COOL_COMPRESSOR_SOFTSTART);
+      SetNextState(active_mode_controller_->ShouldSoftStart() ? HPState::HEAT_COOL_COMPRESSOR_SOFTSTART : HPState::COMPRESSOR_RUNNING);
+    }
+    else 
+    {
+      // TODO: Implement timeout for when compressor does not start.
     }
     break;
   }
@@ -261,14 +290,13 @@ void HeatPumpController::UpdateStateMachine()
   {
     if (compressor_controller_->HasPassedSoftStartDuration())
     {
-      backup_heater_controller_->InitializeBackupDegMinTracking();
       SetNextState(HPState::COMPRESSOR_RUNNING);
     }
     break;
   }
   case HPState::COMPRESSOR_RUNNING:
   {
-    pump_controller_->ApplySpeedChangeIfNeeded();
+    pump_controller_->ApplySpeedChangeIfNeeded(active_mode_controller_->GetPreferredPumpSpeed());
 
     if (id(defrost_active_sensor).state)
     {
@@ -281,45 +309,18 @@ void HeatPumpController::UpdateStateMachine()
     // Only check for stop conditions when min on time is passed
     if (compressor_controller_->HasPassedMinOnTime())
     {
-      if (compressor_controller_->ShouldStop())
+      if(active_mode_controller_->ShouldStopCompressor())
       {
-        ESP_LOGI("amber", "Stopping compressor because there is no demand.");
-        uint32_t pump_interval_ms = (uint32_t)id(pump_interval).state * 60000UL;
-        compressor_controller_->Stop(pump_interval_ms);
+        ESP_LOGI("amber", "Stopping compressor because controller has determined it should stop.");
         SetNextState(HPState::WAIT_COMPRESSOR_STOP);
         break;
       }
 
-      if (dhw_demand && !valve_controller_->IsInDhwMode())
+      // Check if we need to stop compressor because there is demand for the other mode that has priority (DHW > heating/cooling).
+      if (active_mode_controller != dhw_controller && dhw_controller->HasDemand())
       {
         ESP_LOGI("amber", "Stopping compressor because there is demand for DHW.");
-        uint32_t pump_interval_ms = (uint32_t)id(pump_interval).state * 60000UL;
-        compressor_controller_->Stop(pump_interval_ms);
-        SetNextState(HPState::WAIT_COMPRESSOR_STOP);
-        break;
-      }
-
-      // Stop when we overshoot above target + delta
-      float target_temperature = valve_controller_->IsInDhwMode() 
-        ? id(current_dhw_setpoint_sensor).state
-        : id(pid_heat_cool_temperature_control).target_temperature;
-      float current_temperature = valve_controller_->IsInDhwMode() 
-        ? id(dhw_temperature_tw_sensor).state
-        : id(heat_cool_temperature_tc).state;
-      float supply_temperature_delta = current_temperature - target_temperature;
-      
-      if (supply_temperature_delta >= id(compressor_stop_delta).state && !valve_controller_->IsInDhwMode())
-      {
-        if (id(oil_return_cycle_active).state)
-        {
-          ESP_LOGI("amber", "Not stopping compressor because oil return cycle is active.");
-          break;
-        }
-
-        ESP_LOGI("amber", "Stopping compressor because it reached delta %.2f°C (ΔT=%.2f°C).", 
-           id(compressor_stop_delta).state, supply_temperature_delta);
-        uint32_t pump_interval_ms = (uint32_t)id(pump_interval).state * 60000UL;
-        compressor_controller_->Stop(pump_interval_ms);
+        compressor_controller_->Stop();
         SetNextState(HPState::WAIT_COMPRESSOR_STOP);
         break;
       }
@@ -335,22 +336,15 @@ void HeatPumpController::UpdateStateMachine()
 
     backup_heater_controller_->CheckActivation(compressor_controller_->GetLastStartTime(), compressor_controller_->GetStartTargetTemp());
     
-    // Check if backup heater was actually activated by CheckActivation
-    if (backup_heater_controller_->IsActive())
+    if(active_mode_controller_->ShouldActivateBackupHeater())
     {
+      ESP_LOGI("amber", "Enabling backup heater (active mode controller requested activation)");
+      TurnOnBackupHeater();
       SetNextState(HPState::WAIT_BACKUP_HEATER_RUNNING);
       break;
     }
 
-    if (valve_controller_->IsInDhwMode())
-    {
-      compressor_controller_->ApplyDhwCompressorMode();
-    }
-    else
-    {
-      compressor_controller_->ManageModulation();
-    }
-    break;
+    compressor_controller_->ApplyCompressorMode(active_mode_controller_->DetermineCompressorMode());
   }
   case HPState::WAIT_COMPRESSOR_STOP:
   {
@@ -454,4 +448,35 @@ ThreeWayValvePosition HeatPumpController::GetDesiredThreeWayValvePosition()
   
   // Otherwise use heating/cooling position
   return ThreeWayValvePosition::HEATING_COOLING;
+}
+
+void HeatPumpController::ApplyWorkingMode()
+{
+  int workingMode = valve_controller_->IsInDhwMode() ? WORKING_MODE_HEATING 
+         : id(heat_demand_active_sensor).state ? WORKING_MODE_HEATING
+         : WORKING_MODE_COOLING;
+
+  if(id(working_mode_switch).active_index().value() == workingMode)
+  {
+    return;
+  }
+
+  auto working_mode_call = id(working_mode_switch).make_call();
+  working_mode_call.set_index(workingMode);
+  working_mode_call.perform();
+}
+
+bool HeatPumpController::IsBackupHeaterActive()
+{
+  return id(backup_heater_active_sensor).state;
+}
+
+void HeatPumpController::TurnOnBackupHeater()
+{
+  id(backup_heater_relay).turn_on();
+}
+
+void HeatPumpController::TurnOffBackupHeater()
+{
+  id(backup_heater_relay).turn_off();
 }

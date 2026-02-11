@@ -35,35 +35,6 @@ private:
   float last_temperature_for_rate_ = 0.0f;
   const ThreeWayValveController& valve_controller_;
 
-  void CalculateAccumulatedDegreeMinutes()
-  {
-    float tc = id(heat_cool_temperature_tc).state;
-    float target = id(pid_heat_cool_temperature_control).target_temperature;
-    const float diff = std::max(0.0f, target - tc);
-    uint32_t dt_ms = millis() - backup_degmin_last_ms_;
-    backup_degmin_last_ms_ = millis();
-    const float dt_min = (float)dt_ms / 60000.0f;
-
-    int mode_offset = id(compressor_control_select).size() - id(heat_compressor_mode).size();
-    int max_compressor_mode = id(heat_compressor_mode).active_index().value() + mode_offset;
-    bool is_at_max_mode = id(compressor_control_select).active_index().value() >= max_compressor_mode;
-
-    // Reset accumulated degmin if there is no difference or we are not at max compressor mode
-    if (diff <= 0.0f || !is_at_max_mode)
-    {
-      accumulated_backup_degmin_ = 0.0f;
-    }
-
-    if (dt_min <= 0.0f)
-    {
-      return;
-    }
-
-    accumulated_backup_degmin_ += diff * dt_min;
-    id(backup_heater_degmin_current_sensor).publish_state(accumulated_backup_degmin_);
-    ESP_LOGD("amber", "Backup heater degree/minutes updated: +%.2f -> %.2f", diff * dt_min, accumulated_backup_degmin_);
-  }
-
   float CalculatePredictedTemperature()
   {
     float current_temperature = GetCurrentTemperature(valve_controller_);
@@ -92,16 +63,6 @@ private:
 public:
   BackupHeaterController(const ThreeWayValveController& valve_controller) 
     : valve_controller_(valve_controller) {}
-
-  void ResetAccumulatedDegMin()
-  {
-    accumulated_backup_degmin_ = 0.0f;
-  }
-
-  void InitializeBackupDegMinTracking()
-  {
-    backup_degmin_last_ms_ = millis();
-  }
 
   void CheckActivation(uint32_t compressor_start_time, float start_target_temp)
   {
@@ -145,20 +106,5 @@ public:
       return true;
     }
     return false;
-  }
-
-  bool IsActive() const
-  {
-    return id(backup_heater_active_sensor).state;
-  }
-
-  void TurnOn()
-  {
-    id(backup_heater_relay).turn_on();
-  }
-
-  void TurnOff()
-  {
-    id(backup_heater_relay).turn_off();
   }
 };

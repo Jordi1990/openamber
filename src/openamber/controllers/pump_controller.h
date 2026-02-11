@@ -41,14 +41,9 @@ public:
     return millis() >= next_pump_cycle_;
   }
 
-  bool IsPumpSettled() const
+  bool IsPumpSettled()
   {
     return millis() - pump_start_time_ >= COMPRESSOR_MIN_TIME_PUMP_ON * 1000UL;
-  }
-
-  float GetCurrentSpeedSetting()
-  {
-    return (valve_controller_.IsInDhwMode() ? id(pump_speed_dhw_number) : id(pump_speed_heating_number)).state;
   }
 
   void SetPwmDutyCycle(float duty_cycle)
@@ -63,17 +58,17 @@ public:
     }
   }
 
-  void ApplySpeedChangeIfNeeded()
+  void ApplySpeedChangeIfNeeded(float pump_speed_preference)
   {
     if (!id(internal_pump_active).state)
     {
       return;
     }
 
-    SetPwmDutyCycle(GetCurrentSpeedSetting());
+    SetPwmDutyCycle(pump_speed_preference);
   }
 
-  void Start()
+  void Start(float pump_speed_preference)
   {
     ESP_LOGI("amber", "Starting pump (interval cycle)");
     if (!id(pump_p0_relay_switch).state)
@@ -82,7 +77,7 @@ public:
       id(pump_p0_relay_switch).turn_on();
     }
 
-    SetPwmDutyCycle(GetCurrentSpeedSetting());
+    SetPwmDutyCycle(pump_speed_preference);
     pump_start_time_ = millis();
   }
 
@@ -96,8 +91,7 @@ public:
 
     SetPwmDutyCycle(0);
 
-    uint32_t interval_ms = (uint32_t)id(pump_interval).state * 60000UL;
-    next_pump_cycle_ = millis() + interval_ms;
+    RestartPumpInterval();
   }
 
   bool IsIntervalCycleFinished()
@@ -109,6 +103,12 @@ public:
   void ResetInterval()
   {
     next_pump_cycle_ = 0;
+  }
+
+  void RestartPumpInterval()
+  {
+    uint32_t interval_ms = (uint32_t)id(pump_interval).state * 60000UL;
+    next_pump_cycle_ = millis() + interval_ms;
   }
 
   bool IsRunning()
