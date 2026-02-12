@@ -20,6 +20,7 @@ esphome:
     version: ${device_version}
   includes:
     - openamber/controllers/constants.h
+    - openamber/controllers/mode_controller.h
     - openamber/controllers/utility_functions.h
     - openamber/controllers/three_way_valve_controller.h
     - openamber/controllers/pump_controller.h
@@ -28,7 +29,7 @@ esphome:
     - openamber/controllers/dhw_controller.h
     - openamber/controllers/heat_pump_controller.h
     - openamber/controllers/openamber_component.h
-    - openamber/controllers/heat_pump_controller.h
+    - openamber/controllers/heat_cool_controller.h
   on_boot:
     then:
       - if:
