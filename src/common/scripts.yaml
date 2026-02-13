@@ -8,7 +8,7 @@
         payload: |-
           root["device_id"] = id(mac_address).state;
           root["timestamp"] = id(my_time).timestamp_now();
-          root["firmware"] = "${device_version}";
+          root["firmware"] = ESPHOME_PROJECT_VERSION;
           root["hardware_item_number"] = id(outside_unit_hardware_item_number).state;
           root["eeprom_version"] = id(outside_unit_eeprom_version).state;
           root["outside_unit_eeprom_version_part1"] = id(outside_unit_eeprom_version_part1).state;
