@@ -1,6 +1,10 @@
 packages:
  - !include common/openamber.yaml
 
+esphome:
+  project:
+    version: dev
+
 esp32:
   board: esp32dev
   framework:
