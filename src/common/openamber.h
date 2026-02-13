@@ -916,7 +916,7 @@ private:
     if (run_pump_interval)
     {
       // Let pump run for another 60 seconds.
-      state.next_pump_cycle = millis() + (uint32_t)pump_interval_min->state * 60000UL;
+      state.pump_start_time = millis();
     }
   }
 
