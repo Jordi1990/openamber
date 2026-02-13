@@ -59,28 +59,6 @@
       sorting_group_id: dhw_settings
 
 - platform: template
-  id: three_way_valve_select
-  name: "3-weg klep stand"
-  internal: True
-  optimistic: True
-  options:
-    - "Verwarmen⁄Koelen"
-    - "Tapwater"
-  initial_option: "Verwarmen⁄Koelen"
-  entity_category: config
-  on_value: 
-    then:
-      - if:
-          condition:
-            lambda: 'return id(three_way_valve_select).current_option() == "Verwarmen⁄Koelen";'
-          then:
-            - switch.turn_off: three_way_valve_dhw_switch
-            - switch.turn_on: three_way_valve_heat_cool_switch
-          else:
-            - switch.turn_on: three_way_valve_dhw_switch
-            - switch.turn_off: three_way_valve_heat_cool_switch
-
-- platform: template
   id: heat_mode_select
   name: "Verwarmingsmodus"
   optimistic: True

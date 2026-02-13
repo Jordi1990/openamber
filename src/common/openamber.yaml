@@ -2,7 +2,6 @@ substitutions:
   device_name: openamber
   device_friendly_name: OpenAmber
   device_project_name: jordi.openamber
-  device_version: 0.0.9
 
 external_components:
   - source:
@@ -17,17 +16,11 @@ esphome:
   friendly_name: ${device_friendly_name}
   project:
     name: ${device_project_name}
-    version: ${device_version}
   includes:
     - openamber/controllers/constants.h
-    - openamber/controllers/mode_controller.h
-    - openamber/controllers/utility_functions.h
-    - openamber/controllers/three_way_valve_controller.h
     - openamber/controllers/pump_controller.h
     - openamber/controllers/compressor_controller.h
-    - openamber/controllers/backup_heater_controller.h
     - openamber/controllers/dhw_controller.h
-    - openamber/controllers/heat_pump_controller.h
     - openamber/controllers/openamber_component.h
     - openamber/controllers/heat_cool_controller.h
   on_boot:

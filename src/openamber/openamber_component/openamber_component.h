@@ -22,8 +22,15 @@
 #include "esphome/core/component.h"
 
 // Forward declarations
-class HeatPumpController;
-
+class DHWController;
+class HeatCoolController;
+class PumpController;
+class CompressorController;
+enum ThreeWayValvePosition
+{
+  HEATING_COOLING,
+  DHW,
+};
 namespace esphome {
 namespace openamber {
 
@@ -32,8 +39,15 @@ namespace openamber {
  */
 class OpenAmberComponent : public Component {
 private:
-  HeatPumpController* heat_pump_controller_;
-
+  DHWController* dhw_controller_;
+  HeatCoolController* heat_cool_controller_;
+  PumpController *pump_controller_;
+  CompressorController *compressor_controller_;
+  bool initialized = false;
+  void SetThreeWayValve(ThreeWayValvePosition position);
+  ThreeWayValvePosition GetThreeWayValvePosition();
+  ThreeWayValvePosition GetDesiredThreeWayValvePosition();
+  void ApplyWorkingMode();
 public:
   OpenAmberComponent();
   ~OpenAmberComponent();

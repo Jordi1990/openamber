@@ -21,7 +21,6 @@
 
 #include "esphome.h"
 #include "constants.h"
-#include "three_way_valve_controller.h"
 
 using namespace esphome;
 
@@ -30,11 +29,9 @@ class PumpController
 private:
   uint32_t pump_start_time_ = 0;
   uint32_t next_pump_cycle_ = 0;
-  const ThreeWayValveController& valve_controller_;
 
 public:
-  PumpController(const ThreeWayValveController& valve_controller) 
-    : valve_controller_(valve_controller) {}
+  PumpController() {}
 
   bool ShouldStartNextPumpCycle()
   {
@@ -83,12 +80,6 @@ public:
 
   void Stop()
   {
-    if (valve_controller_.IsInDhwMode())
-    {
-      ESP_LOGI("amber", "Stopping DHW pump.");
-      id(dhw_pump_relay_switch).turn_off();
-    }
-
     SetPwmDutyCycle(0);
 
     RestartPumpInterval();

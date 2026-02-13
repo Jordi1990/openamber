@@ -7,7 +7,8 @@
             id: boot_screen
         - lvgl.label.update:
             id: header_title
-            text: OpenAmber ${device_version}
+            text: !lambda |-
+              return std::string("OpenAmber ") + ESPHOME_PROJECT_VERSION;
   - lvgl.label.update:
       id: water_mode_text
       text: !lambda |-

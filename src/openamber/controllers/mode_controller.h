@@ -4,10 +4,10 @@
 
 using namespace esphome;
 
-class Controller
+class ModeController
 {
 public:
-  virtual ~Controller() = default;
+  virtual ~ModeController() = default;
   virtual bool HasDemand() { return false; }
   virtual void OnCompressorStarted() {}
   virtual float GetPreferredPumpSpeed() { return 0.0f; }
@@ -17,4 +17,6 @@ public:
   virtual bool ShouldActivateBackupHeater() { return false; }
   virtual int DetermineCompressorMode() { return 0; }
   virtual bool ShouldStopCompressor() { return false; }
+  virtual void StartOtherPumpsIfNeeded() {}
+  virtual void StopOtherPumps() {}
 };

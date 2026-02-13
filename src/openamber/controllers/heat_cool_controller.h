@@ -20,22 +20,109 @@
 #pragma once
 
 #include "esphome.h"
-#include "controller.h"
 #include "constants.h"
+#include "pump_controller.h"
+#include "compressor_controller.h"
 
 using namespace esphome;
 
-class HeatCoolController : Controller
+enum class HeatCoolState
+{
+  UNKNOWN,
+  IDLE,
+  WAIT_PUMP_RUNNING,
+  PUMP_RUNNING,
+  WAIT_COMPRESSOR_RUNNING,
+  COMPRESSOR_SOFTSTART,
+  COMPRESSOR_RUNNING,
+  WAIT_BACKUP_HEATER_RUNNING,
+  BACKUP_HEATER_RUNNING,
+  WAIT_COMPRESSOR_STOP,
+  WAIT_PUMP_STOP,
+  DEFROSTING,
+  WAIT_FOR_STATE_SWITCH,
+};
+
+class HeatCoolController
 {
 private:
   uint32_t backup_degmin_last_ms_ = 0;
   float accumulated_backup_degmin_ = 0.0f;
-  float temperature_rate_c_per_min_ = 0.0f;
-  float last_temperature_for_rate_ = 0.0f;
   float compressor_pid_ = 0.0f;
   float start_current_temperature = 0.0f;
 
-  int MapPIDToCompressorMode(float pid) const
+  HeatCoolState state_ = HeatCoolState::IDLE;
+  HeatCoolState deferred_machine_state_;
+  uint32_t defer_state_change_until_ms_;
+
+  CompressorController* compressor_controller_;
+  PumpController* pump_controller_;
+
+  const char* StateToString(HeatCoolState state) const
+  {
+    switch (state)
+    {
+      case HeatCoolState::IDLE:
+        return "Idle";
+      case HeatCoolState::WAIT_PUMP_RUNNING:
+        return "Wait pump running";
+      case HeatCoolState::PUMP_RUNNING:
+        return "Pump running";
+      case HeatCoolState::WAIT_COMPRESSOR_RUNNING:
+        return "Wait compressor running";
+      case HeatCoolState::COMPRESSOR_RUNNING:
+        return "Compressor running";
+      case HeatCoolState::WAIT_BACKUP_HEATER_RUNNING:
+        return "Wait backup heater running";
+      case HeatCoolState::BACKUP_HEATER_RUNNING:
+        return "Backup heater running";
+      case HeatCoolState::DEFROSTING:
+        return "Defrosting";
+      case HeatCoolState::COMPRESSOR_SOFTSTART:
+        return "Compressor softstart";
+      case HeatCoolState::WAIT_COMPRESSOR_STOP:
+        return "Wait compressor stop";
+      case HeatCoolState::WAIT_PUMP_STOP:
+        return "Wait pump stop";
+      case HeatCoolState::WAIT_FOR_STATE_SWITCH:
+        return "Wait for state switch";
+      default:
+        return "Unknown";
+    }
+  }
+
+  void SetNextState(HeatCoolState new_state)
+  {
+    state_ = new_state;
+    const char* txt = StateToString(new_state);
+    
+    id(state_machine_state).publish_state(txt);
+    ESP_LOGI("amber", "HP state changed: %s", txt);
+  }
+
+  void LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState new_state, uint32_t defer_ms)
+  {
+    deferred_machine_state_ = new_state;
+    defer_state_change_until_ms_ = millis() + defer_ms;
+    SetNextState(HeatCoolState::WAIT_FOR_STATE_SWITCH);
+  }
+
+  bool IsBackupHeaterActive()
+  {
+    return id(backup_heater_active_sensor).state;
+  }
+
+  void TurnOnBackupHeater()
+  {
+    id(backup_heater_relay).turn_on();
+  }
+
+  void TurnOffBackupHeater()
+  {
+    id(backup_heater_relay).turn_off();
+  }
+
+  int MapPIDToCompressorMode(float pid)
   {
     float raw = fabsf(pid);
     if (raw > 1.0f)
@@ -47,8 +134,12 @@ private:
     return std::max(1, std::min(desired_mode, (int)amount_of_modes));
   }
 
-  int DetermineSoftStartMode(float supply_temperature_delta) const
+  int DetermineSoftStartMode()
   {
+    float current_temperature = id(heat_cool_temperature_tc).state;
+    float target = id(pid_heat_cool_temperature_control).target_temperature;
+    float supply_temperature_delta = current_temperature - target;
+
     int start_compressor_frequency_mode;
     float delta = fabs(supply_temperature_delta);
     if (delta < 5.0f)
@@ -62,35 +153,18 @@ private:
 
     return start_compressor_frequency_mode;
   }
-public:
-  HeatCoolController() {}
 
-  bool HasDemand() override {
-    float current_temperature = id(heat_cool_temperature_tc).state;
-    float target_temperature = id(pid_heat_cool_temperature_control).target_temperature;
-
-    bool has_active_demand = id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state || id(frost_protection_stage2_active).state;
-    if (!has_active_demand)
-    {
-      return false;
-    }
-
-    // Start condition based on target temperature and start_compressor_delta
-    float start_temperature = target_temperature - id(compressor_start_delta).state;
-    if (current_temperature >= start_temperature && !id(frost_protection_stage2_active).state)
-    {
-      ESP_LOGI("amber", "Not starting compressor because target temperature (%.2f) is higher than the start temperature(%.2f)", current_temperature, start_temperature);
-      return false;
-    }
-
-    return true;
+  bool IsAccumulatedDegreeMinutesReached()
+  {
+      if (accumulated_backup_degmin_ >= id(backup_heater_degmin_threshold).state)
+      {
+        ESP_LOGI("amber", "Enabling backup heater (degree/min limit reached: %.2f)", accumulated_backup_degmin_);
+        return true;
+      }
+      return false; 
   }
 
-  void OnCompressorStarted() override {
-    start_current_temperature = id(heat_cool_temperature_tc).state;
-  }
-
-  float GetPreferredPumpSpeed() override {
+  float GetPreferredPumpSpeed() {
     return id(pump_speed_heating_number).state;
   }
 
@@ -128,12 +202,77 @@ public:
     accumulated_backup_degmin_ = 0.0f;
   }
 
+  bool HasPumpDemand()
+  {
+      return id(heat_demand_active_sensor).state ||
+             id(cool_demand_active_sensor).state ||
+             id(frost_protection_stage1_active).state ||
+             id(frost_protection_stage2_active).state;
+  }
+
+  bool HasCompressorDemand()
+  {
+    return false;
+  }
+
+  void DoSafetyChecks()
+  {
+    // If pump is not active while compressor is running, stop compressor to avoid damage
+    if (compressor_controller_->IsRunning() && !pump_controller_->IsRunning())
+    {
+      ESP_LOGW("amber", "Safety check: Pump is not active while compressor is running, stopping compressor to avoid damage.");
+      compressor_controller_->Stop();
+      SetNextState(HeatCoolState::IDLE);
+      return;
+    }
+
+    // If Tuo - Tui is above 8 degrees while compressor is running, stop compressor to avoid damage
+    if (id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state > 8.0f && compressor_controller_->IsRunning())
+    {
+      ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stopping compressor to avoid damage.");
+      compressor_controller_->Stop();
+      pump_controller_->Stop();
+      SetNextState(HeatCoolState::IDLE);
+      return;
+    }
+  }
+public:
+  HeatCoolController(PumpController* pump_controller, CompressorController* compressor_controller)
+    : pump_controller_(pump_controller), compressor_controller_(compressor_controller) {}
+
+  void SetPIDValue(float pid_value)
+  {
+    ESP_LOGD("amber", "Writing PID value: %.2f", pid_value);
+    compressor_pid_ = pid_value;
+  }
+
+  bool HasDemand() {
+    float current_temperature = id(heat_cool_temperature_tc).state;
+    float target_temperature = id(pid_heat_cool_temperature_control).target_temperature;
+
+    bool has_active_demand = id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state || id(frost_protection_stage2_active).state;
+    if (!has_active_demand)
+    {
+      return false;
+    }
+
+    // Start condition based on target temperature and start_compressor_delta
+    float start_temperature = target_temperature - id(compressor_start_delta).state;
+    if (current_temperature >= start_temperature && !id(frost_protection_stage2_active).state)
+    {
+      ESP_LOGI("amber", "Not starting compressor because target temperature (%.2f) is higher than the start temperature(%.2f)", current_temperature, start_temperature);
+      return false;
+    }
+
+    return true;
+  }
+
   void InitializeBackupDegMinTracking()
   {
     backup_degmin_last_ms_ = millis();
   }
 
-  int DetermineCompressorMode() override
+  int DetermineCompressorMode()
   {
     const uint32_t now = millis();
     int desired_compressor_mode = MapPIDToCompressorMode(compressor_pid_);
@@ -145,7 +284,7 @@ public:
     // If compressor is not running use soft start mode based on ΔT.
     if (current_compressor_mode == 0)
     {
-      return DetermineSoftStartMode(dt);
+      return DetermineSoftStartMode();
     }
 
     // Deadband on Tc to avoid too frequent changes around setpoint
@@ -171,7 +310,7 @@ public:
     return capped_mode_index;
   }
 
-  bool ShouldStopCompressor() override
+  bool ShouldStopCompressor()
   {
     if(!HasDemand())
     {
@@ -193,6 +332,218 @@ public:
 
       ESP_LOGI("amber", "Stopping compressor because it reached delta %.2f°C (ΔT=%.2f°C).", id(compressor_stop_delta).state, supply_temperature_delta);
       return true;
+    }
+
+    return false;
+  }
+
+  void Stop()
+  {
+    ESP_LOGI("amber", "Stopping compressor as requested by controller.");
+    compressor_controller_->Stop();
+    SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
+  }
+
+  void UpdateStateMachine()
+  {
+    DoSafetyChecks();
+
+    switch (state_)
+    {
+      case HeatCoolState::IDLE:
+
+        if(!HasPumpDemand())
+        {
+          break;
+        }
+
+        // Start pump on interval or if there is compressor demand.
+        if (pump_controller_->ShouldStartNextPumpCycle() || HasCompressorDemand())
+        {
+          pump_controller_->Start(GetPreferredPumpSpeed());
+          SetNextState(HeatCoolState::WAIT_PUMP_RUNNING);
+        }
+        break;
+
+      case HeatCoolState::WAIT_PUMP_RUNNING:
+        if (pump_controller_->IsRunning())
+        {
+          SetNextState(HeatCoolState::PUMP_RUNNING);
+        }
+        else 
+        {
+          // TODO: Implement timeout for when pump does not start.
+        }
+        break;
+
+      case HeatCoolState::PUMP_RUNNING:
+        pump_controller_->ApplySpeedChangeIfNeeded(GetPreferredPumpSpeed());
+
+        // Stop if there is no demand and pump interval is finished.
+        if (!HasDemand() && pump_controller_->IsIntervalCycleFinished())
+        {
+          ESP_LOGI("amber", "Stopping pump (interval cycle finished)");
+          pump_controller_->Stop();
+          SetNextState(HeatCoolState::WAIT_PUMP_STOP);
+          break;
+        }
+
+        // Settle temperature before starting compressor.
+        if (!pump_controller_->IsPumpSettled())
+        {
+          ESP_LOGI("amber", "Not starting compressor because temperature needs to stabilize (pump on time too short)");
+          break;
+        }
+
+        // TODO: Not after switching
+        if (!compressor_controller_->HasPassedMinOffTime())
+        {
+          ESP_LOGI("amber", "Not starting compressor because minimum compressor time off is not reached.");
+          break;
+        }
+
+        compressor_controller_->ApplyCompressorMode(DetermineSoftStartMode());
+        SetNextState(HeatCoolState::WAIT_COMPRESSOR_RUNNING);
+        break;
+
+      case HeatCoolState::WAIT_COMPRESSOR_RUNNING:
+        if (compressor_controller_->IsRunning())
+        {
+          compressor_controller_->RecordStartTime();
+          SetNextState(HeatCoolState::COMPRESSOR_SOFTSTART);
+        }
+        else 
+        {
+          // TODO: Implement timeout for when compressor does not start.
+        }
+        break;
+
+      case HeatCoolState::COMPRESSOR_SOFTSTART:
+        if (compressor_controller_->HasPassedSoftStartDuration())
+        {
+          id(pid_heat_cool_temperature_control).reset_integral_term();
+          SetNextState(HeatCoolState::COMPRESSOR_RUNNING);
+        }
+        break;
+
+      case HeatCoolState::COMPRESSOR_RUNNING:
+        pump_controller_->ApplySpeedChangeIfNeeded(GetPreferredPumpSpeed());
+        if(start_current_temperature == 0.0f)
+        {
+          start_current_temperature = id(heat_cool_temperature_tc).state;
+        }
+
+        if (id(defrost_active_sensor).state)
+        {
+          SetNextState(HeatCoolState::DEFROSTING);
+          break;
+        }
+
+        if (compressor_controller_->HasPassedMinOnTime())
+        {
+          if(ShouldStopCompressor())
+          {
+            ESP_LOGI("amber", "Stopping compressor because there is no demand or a temperature overshoot.");
+            compressor_controller_->Stop();
+            SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
+            break;
+          }
+        }
+
+        if (id(sg_ready_max_boost_mode_active_sensor).state)
+        {
+          ESP_LOGI("amber", "Enabling backup heater (SG Ready max boost active)");
+          TurnOnBackupHeater();
+          SetNextState(HeatCoolState::WAIT_BACKUP_HEATER_RUNNING);
+          break;
+        }
+
+        CalculateAccumulatedDegreeMinutes();
+        if(IsAccumulatedDegreeMinutesReached())
+        {
+          ESP_LOGI("amber", "Enabling backup heater");
+          TurnOnBackupHeater();
+          ResetAccumulatedDegMin();
+          SetNextState(HeatCoolState::WAIT_BACKUP_HEATER_RUNNING);
+          break;
+        }
+        
+        compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
+        break;
+
+      case HeatCoolState::WAIT_COMPRESSOR_STOP:
+        if (!compressor_controller_->IsRunning())
+        {
+          start_current_temperature = 0;
+          pump_controller_->RestartPumpInterval();
+          SetNextState(HeatCoolState::PUMP_RUNNING);
+        }
+        break;
+
+      case HeatCoolState::WAIT_PUMP_STOP:
+        if (!pump_controller_->IsRunning())
+        {
+          SetNextState(HeatCoolState::IDLE);
+        }
+        else 
+        {
+          // TODO: Implement timeout for when pump does not stop.
+        }
+        break;
+
+      case HeatCoolState::WAIT_BACKUP_HEATER_RUNNING:
+        if (IsBackupHeaterActive())
+        {
+          SetNextState(HeatCoolState::BACKUP_HEATER_RUNNING);
+        }
+        break;
+
+      case HeatCoolState::BACKUP_HEATER_RUNNING:
+        if (IsAccumulatedDegreeMinutesReached())
+        {
+          ESP_LOGI("amber", "Disabling backup heater");
+          TurnOffBackupHeater();
+          LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
+          return;
+        }
+        break;
+
+      case HeatCoolState::DEFROSTING:
+        if (id(defrost_active_sensor).state)
+        {
+          ESP_LOGI("amber", "Defrost busy, waiting before making changes to compressor.");
+          break;
+        }
+
+        if (id(temperature_outside_ta).state <= id(defrost_backup_heater_boost_temperature_sensor).state)
+        {
+          ESP_LOGI("amber", "Defrost ended, enabling backup heater as configured for outside temperature %.2f°C to boost temperature back to setpoint.", 
+              id(temperature_outside_ta).state);
+          TurnOnBackupHeater();
+          SetNextState(HeatCoolState::WAIT_BACKUP_HEATER_RUNNING);
+        }
+        else
+        {
+          compressor_controller_->ApplyDefrostRecoveryMode();
+          LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState::COMPRESSOR_RUNNING, COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
+        }
+        id(pid_heat_cool_temperature_control).reset_integral_term();
+        break;
+
+      case HeatCoolState::WAIT_FOR_STATE_SWITCH:
+      {
+        if (defer_state_change_until_ms_ > millis())
+        {
+          ESP_LOGD("amber", "Waiting for state switch, transitioning to next state in %lu ms", defer_state_change_until_ms_ - millis());
+        }
+        else
+        {
+          defer_state_change_until_ms_ = 0;
+          SetNextState(deferred_machine_state_);
+          deferred_machine_state_ = HeatCoolState::UNKNOWN;
+        }
+        break;
+      }
     }
   }
 };

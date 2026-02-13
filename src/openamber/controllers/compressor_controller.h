@@ -21,8 +21,6 @@
 
 #include "esphome.h"
 #include "constants.h"
-#include "utility_functions.h"
-#include "three_way_valve_controller.h"
 
 using namespace esphome;
 
@@ -36,10 +34,9 @@ private:
 public:
   CompressorController() {}
 
-  void SetPIDValue(float pid_value)
+  uint32_t GetStartTime()
   {
-    ESP_LOGD("amber", "Writing PID value: %.2f", pid_value);
-    compressor_pid_ = pid_value;
+    return last_compressor_start_ms_;
   }
 
   void ApplyCompressorMode(int compressor_mode)
