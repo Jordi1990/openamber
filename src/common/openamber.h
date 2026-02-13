@@ -904,9 +904,6 @@ private:
 
   void StopCompressor(bool run_pump_interval = true)
   {
-    // Let pump run for another interval cycle seconds after stopping the compressor.
-    state.pump_start_time = millis();
-
     state.accumulated_backup_degmin = 0.0f;
     state.last_compressor_start_ms = 0;
     state.last_compressor_stop_ms = millis();
