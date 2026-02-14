@@ -46,13 +46,13 @@ class DHWController
 {
 private:
   float start_current_temperature = 0.0f;
-  DHWState state_ = DHWState::IDLE;
+  DHWState state_ = DHWState::UNKNOWN;
   DHWState deferred_machine_state_;
   uint32_t defer_state_change_until_ms_;
   uint32_t backup_degmin_last_ms_ = 0;
   float temperature_rate_c_per_min_ = 0.0f;
   float last_temperature_for_rate_ = 0.0f;
-
+  bool requested_to_stop_ = false;
   PumpController *pump_controller_;
   CompressorController *compressor_controller_;
 
@@ -286,9 +286,37 @@ private:
       return;
     }
   }
+
+  void SetWorkingMode(int working_mode)
+  {
+    if(id(working_mode_switch).active_index().value() == working_mode)
+    {
+      return;
+    }
+
+    auto working_mode_call = id(working_mode_switch).make_call();
+    working_mode_call.set_index(working_mode);
+    working_mode_call.perform();
+  }
 public:
     DHWController(PumpController *pump_controller, CompressorController *compressor_controller)
         : pump_controller_(pump_controller), compressor_controller_(compressor_controller) {}
+
+  void RequestToStop()
+  {
+    requested_to_stop_ = true;
+    ESP_LOGI("amber", "DHW controller requested to stop. Current state: %s", DHWStateToString(state_));
+  }
+
+  bool IsRequestedToStop()
+  {
+    return requested_to_stop_;
+  }
+
+  bool IsInIdleState()
+  {
+    return state_ == DHWState::IDLE;
+  }
 
   void UpdateStateMachine()
   {
@@ -298,21 +326,50 @@ public:
 
     switch (state_)
     {
+      case DHWState::UNKNOWN:
+        // Restore state based on current conditions on startup.
+        if (compressor_controller_->IsRunning())
+        {
+          SetNextState(DHWState::COMPRESSOR_RUNNING);
+        }
+        else if (pump_controller_->IsRunning())
+        {
+          SetNextState(DHWState::PUMP_RUNNING);
+        }
+        else if (IsBackupHeaterActive())
+        {
+          SetNextState(DHWState::BACKUP_HEATER_RUNNING);
+        }
+        else
+        {
+          // Initialize pump to Off
+          pump_controller_->Stop();
+          SetNextState(DHWState::IDLE);
+        }
+        break;
       case DHWState::IDLE:
+        requested_to_stop_ = false;
         pump_controller_->Start(GetPreferredPumpSpeed());
         SetNextState(DHWState::WAIT_PUMP_RUNNING);
         break;
 
-      case DHWState::PUMP_RUNNING:
+      case HeatCoolState::WAIT_PUMP_RUNNING:
+      {
         if (pump_controller_->IsRunning())
         {
-          compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
-          SetNextState(DHWState::COMPRESSOR_RUNNING);
+          SetNextState(HeatCoolState::PUMP_RUNNING);
         }
-        else
+        else 
         {
           // TODO: Implement timeout for when pump does not start.
         }
+        break;
+      }
+
+      case DHWState::PUMP_RUNNING:
+        SetWorkingMode(WORKING_MODE_HEATING);
+        compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
+        SetNextState(DHWState::WAIT_COMPRESSOR_RUNNING);
         break;
 
       case DHWState::WAIT_COMPRESSOR_RUNNING:
@@ -393,6 +450,7 @@ public:
       case DHWState::WAIT_PUMP_STOP:
         if (!pump_controller_->IsRunning())
         {
+          SetWorkingMode(WORKING_MODE_STANDBY);
           SetNextState(DHWState::IDLE);
         }
         else 

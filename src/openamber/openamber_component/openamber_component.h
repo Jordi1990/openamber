@@ -31,19 +31,26 @@ enum ThreeWayValvePosition
   HEATING_COOLING,
   DHW,
 };
+enum State {
+  INITIALIZING,
+  SWITCHING,
+  DHW_HEAT,
+  HEAT_COOL,
+};
 namespace esphome {
 namespace openamber {
 
 /**
  * ESPHome Component wrapper for Open Amber heat pump controller.
  */
-class OpenAmberComponent : public Component {
+class OpenAmberComponent : public PollingComponent {
 private:
   DHWController* dhw_controller_;
   HeatCoolController* heat_cool_controller_;
   PumpController *pump_controller_;
   CompressorController *compressor_controller_;
-  bool initialized = false;
+  uint32_t last_three_way_valve_switch_ms_ = 0;
+  State state_ = State::INITIALIZING;
   void SetThreeWayValve(ThreeWayValvePosition position);
   ThreeWayValvePosition GetThreeWayValvePosition();
   ThreeWayValvePosition GetDesiredThreeWayValvePosition();
@@ -54,6 +61,7 @@ public:
   
   void setup() override;
   void loop() override;
+  void update() override;
   
   void write_heat_pid_value(float value);
   void reset_pump_interval();

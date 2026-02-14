@@ -10,6 +10,7 @@ external_components:
 
 openamber_component:
   id: amber_ctrl
+  update_interval: 5s
 
 esphome:
   name: ${device_name}
@@ -46,7 +47,7 @@ interval:
 
 logger:
   level: INFO
-  baud_rate: 0
+  baud_rate: 115200
 
 api:
   reboot_timeout: 0s

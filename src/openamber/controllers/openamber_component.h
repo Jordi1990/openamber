@@ -44,29 +44,83 @@ OpenAmberComponent::~OpenAmberComponent()
 
 void OpenAmberComponent::setup()
 {
-  ESP_LOGI("amber", "OpenAmberController initialized");
+  ESP_LOGI("amber", "OpenAmberController initialized1");
+  int mode_offset = id(compressor_control_select).size() - id(heat_compressor_mode).size();
+  int max_compressor_mode = id(heat_compressor_mode).active_index().value() + mode_offset;
+  ESP_LOGI("amber", "Compressor control has %d modes, heat compressor mode max index is %d (max mode %d)", id(compressor_control_select).size(), id(heat_compressor_mode).active_index().value(), max_compressor_mode);
 }
 
 void OpenAmberComponent::loop()
 {
-  if(!initialized)
+
+}
+
+void OpenAmberComponent::update()
+{
+  if(!id(modbus_inside_online).state || !id(modbus_outside_online).state)
   {
-    id(initialize_relay_switch).turn_on();
-    id(pump_p0_relay_switch).turn_on();
-    initialized = true;
-    ESP_LOGI("amber", "Initialized heat pump controller");
     return;
   }
 
   ThreeWayValvePosition current_valve_position = GetThreeWayValvePosition();
-  
-  if(current_valve_position == ThreeWayValvePosition::DHW)
+  ThreeWayValvePosition desired_valve_position = GetDesiredThreeWayValvePosition();
+
+  switch(state_)
   {
-    dhw_controller_->UpdateStateMachine();
-  }
-  else
-  {
-    heat_cool_controller_->UpdateStateMachine();
+    case State::INITIALIZING:
+    {
+      id(initialize_relay_switch).turn_on();
+      id(pump_p0_relay_switch).turn_on();
+      ESP_LOGI("amber", "Initialized heat pump controller");
+      state_ = current_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL;
+      break;
+    }
+
+    case State::HEAT_COOL:
+    {
+      if(desired_valve_position == ThreeWayValvePosition::DHW && !heat_cool_controller_->IsRequestedToStop())
+      {
+        heat_cool_controller_->RequestToStop();
+      }
+
+      if(heat_cool_controller_->IsInIdleState() && desired_valve_position != current_valve_position)
+      {
+        SetThreeWayValve(desired_valve_position);
+        state_ = State::SWITCHING;
+        break;
+      }
+
+      heat_cool_controller_->UpdateStateMachine();
+      break;
+    }
+
+    case State::DHW_HEAT:
+    {
+      if(desired_valve_position == ThreeWayValvePosition::HEATING_COOLING && !dhw_controller_->IsRequestedToStop())
+      {
+        dhw_controller_->RequestToStop();
+      }
+
+      if(dhw_controller_->IsInIdleState() && desired_valve_position != current_valve_position)
+      {
+        SetThreeWayValve(desired_valve_position);
+        state_ = State::SWITCHING;
+        break;
+      }
+
+      dhw_controller_->UpdateStateMachine();
+      break;
+    }
+
+    case State::SWITCHING:
+    {
+      if(last_three_way_valve_switch_ms_ + THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL < millis())
+      {
+        state_ = desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL;
+        ESP_LOGI("amber", "3-way valve switch complete, new mode: %s", state_ == State::DHW_HEAT ? "DHW" : "HEAT/COOL");
+      }
+      break;
+    }
   }
 }
 
@@ -93,6 +147,8 @@ void OpenAmberComponent::SetThreeWayValve(ThreeWayValvePosition position)
     id(three_way_valve_dhw_switch).turn_off();
     id(three_way_valve_heat_cool_switch).turn_on();
   }
+
+  last_three_way_valve_switch_ms_ = millis();
   ESP_LOGI("amber", "Setting 3-way valve to %s.", position == ThreeWayValvePosition::DHW ? "DHW" : "Heating/Cooling");
 }
 
@@ -108,22 +164,6 @@ ThreeWayValvePosition OpenAmberComponent::GetThreeWayValvePosition()
   }
 }
 
-void OpenAmberComponent::ApplyWorkingMode()
-{
-  int workingMode = GetThreeWayValvePosition() == ThreeWayValvePosition::DHW ? WORKING_MODE_HEATING 
-         : id(heat_demand_active_sensor).state ? WORKING_MODE_HEATING
-         : WORKING_MODE_COOLING;
-
-  if(id(working_mode_switch).active_index().value() == workingMode)
-  {
-    return;
-  }
-
-  auto working_mode_call = id(working_mode_switch).make_call();
-  working_mode_call.set_index(workingMode);
-  working_mode_call.perform();
-}
-
 /// @brief Determines the desired position of the 3-way valve based on active demands. DHW has priority over heating/cooling.
 /// @return 
 ThreeWayValvePosition OpenAmberComponent::GetDesiredThreeWayValvePosition()
@@ -137,6 +177,5 @@ ThreeWayValvePosition OpenAmberComponent::GetDesiredThreeWayValvePosition()
   // Otherwise use heating/cooling position
   return ThreeWayValvePosition::HEATING_COOLING;
 }
-
 }  // namespace openamber
 }  // namespace esphome
