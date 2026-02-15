@@ -96,10 +96,7 @@ void OpenAmberComponent::update()
 
     case State::DHW_HEAT:
     {
-      if(desired_valve_position == ThreeWayValvePosition::HEATING_COOLING && !dhw_controller_->IsRequestedToStop())
-      {
-        dhw_controller_->RequestToStop();
-      }
+      // TODO: Potentially stop DHW when priority heating is required.
 
       if(dhw_controller_->IsInIdleState() && desired_valve_position != current_valve_position)
       {

@@ -349,15 +349,21 @@ public:
         break;
       case DHWState::IDLE:
         requested_to_stop_ = false;
+
+        if(!HasDemand())
+        {
+          break;
+        }
+
         pump_controller_->Start(GetPreferredPumpSpeed());
         SetNextState(DHWState::WAIT_PUMP_RUNNING);
         break;
 
-      case HeatCoolState::WAIT_PUMP_RUNNING:
+      case DHWState::WAIT_PUMP_RUNNING:
       {
         if (pump_controller_->IsRunning())
         {
-          SetNextState(HeatCoolState::PUMP_RUNNING);
+          SetNextState(DHWState::PUMP_RUNNING);
         }
         else 
         {
