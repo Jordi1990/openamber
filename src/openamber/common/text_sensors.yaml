@@ -21,7 +21,6 @@
 - platform: template
   id: state_machine_state_dhw
   entity_category: diagnostic
-  disabled_by_default: true
   name: "Control loop state DHW"
   icon: "mdi:state-machine"
   update_interval: never
@@ -29,7 +28,6 @@
 - platform: template
   id: state_machine_state_heat_cool
   entity_category: diagnostic
-  disabled_by_default: true
   name: "Control loop state HEAT_COOL"
   icon: "mdi:state-machine"
   update_interval: never
@@ -37,7 +35,6 @@
 - platform: template
   id: state_machine_state_main
   entity_category: diagnostic
-  disabled_by_default: true
   name: "Control loop state MAIN"
   icon: "mdi:state-machine"
   update_interval: never

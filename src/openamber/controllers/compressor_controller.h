@@ -60,7 +60,7 @@ public:
       const uint32_t min_interval = (current_compressor_mode > compressor_mode ? FREQUENCY_CHANGE_INTERVAL_DOWN_S : FREQUENCY_CHANGE_INTERVAL_UP_S) * 1000;
       if ((millis() - last_compressor_mode_change_ms_) < min_interval)
       {
-        //ESP_LOGI("amber", "Frequency change skipped (interval not elapsed)");
+        ESP_LOGI("amber", "Frequency change skipped (interval not elapsed)");
         return;
       }
     }

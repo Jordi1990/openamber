@@ -261,14 +261,6 @@ private:
       return false;
     }
 
-    // Start condition based on target temperature and start_compressor_delta
-    float start_temperature = target_temperature - id(compressor_start_delta).state;
-    if (current_temperature >= start_temperature && !id(frost_protection_stage2_active).state)
-    {
-      ESP_LOGI("amber", "Not starting compressor because target temperature (%.2f) is higher than the start temperature(%.2f)", current_temperature, start_temperature);
-      return false;
-    }
-
     return true;
   }
 
@@ -474,6 +466,16 @@ public:
 
         if(!HasCompressorDemand())
         {
+          break;
+        }
+
+        // Start condition based on target temperature and start_compressor_delta
+        float current_temperature = id(heat_cool_temperature_tc).state;
+        float target_temperature = id(pid_heat_cool_temperature_control).target_temperature;
+        float start_temperature = target_temperature - id(compressor_start_delta).state;
+        if (current_temperature >= start_temperature && !id(frost_protection_stage2_active).state)
+        {
+          ESP_LOGI("amber", "Not starting compressor because target temperature (%.2f) is higher than the start temperature(%.2f)", current_temperature, start_temperature);
           break;
         }
 
