@@ -99,8 +99,8 @@ private:
     state_ = new_state;
     const char* txt = StateToString(new_state);
     
-    id(state_machine_state).publish_state(txt);
-    ESP_LOGI("amber", "HP state changed: %s", txt);
+    id(state_machine_state_heat_cool).publish_state(txt);
+    ESP_LOGI("amber", "HEAT_COOL state changed: %s", txt);
   }
 
   void LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState new_state, uint32_t defer_ms)
@@ -534,7 +534,7 @@ public:
         }
         else 
         {
-          ESP_LOGI("amber", "Minimum compressor on time not reached, cannot stop compressor even if there is no demand or temperature overshoot.");
+          ESP_LOGI("amber", "Minimum compressor on time not reached, not checking for potential stop conditions yet.");
         }
 
         if (id(sg_ready_max_boost_mode_active_sensor).state)

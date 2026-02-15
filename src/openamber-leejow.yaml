@@ -1,5 +1,5 @@
 packages:
- - !include common/openamber.yaml
+ - !include openamber/common/openamber.yaml
 
 esphome:
   project:

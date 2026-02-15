@@ -44,10 +44,11 @@ OpenAmberComponent::~OpenAmberComponent()
 
 void OpenAmberComponent::setup()
 {
-  ESP_LOGI("amber", "OpenAmberController initialized1");
-  int mode_offset = id(compressor_control_select).size() - id(heat_compressor_mode).size();
-  int max_compressor_mode = id(heat_compressor_mode).active_index().value() + mode_offset;
-  ESP_LOGI("amber", "Compressor control has %d modes, heat compressor mode max index is %d (max mode %d)", id(compressor_control_select).size(), id(heat_compressor_mode).active_index().value(), max_compressor_mode);
+  // Always set PID controller to HEAT mode.
+  auto call = id(pid_heat_cool_temperature_control).make_call();
+  call.set_mode("HEAT");
+  call.perform();
+  ESP_LOGI("amber", "OpenAmberController initialized");
 }
 
 void OpenAmberComponent::loop()
@@ -72,7 +73,7 @@ void OpenAmberComponent::update()
       id(initialize_relay_switch).turn_on();
       id(pump_p0_relay_switch).turn_on();
       ESP_LOGI("amber", "Initialized heat pump controller");
-      state_ = current_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL;
+      SetNextState(current_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL);
       break;
     }
 
@@ -86,7 +87,7 @@ void OpenAmberComponent::update()
       if(heat_cool_controller_->IsInIdleState() && desired_valve_position != current_valve_position)
       {
         SetThreeWayValve(desired_valve_position);
-        state_ = State::SWITCHING;
+        SetNextState(State::SWITCHING);
         break;
       }
 
@@ -101,7 +102,7 @@ void OpenAmberComponent::update()
       if(dhw_controller_->IsInIdleState() && desired_valve_position != current_valve_position)
       {
         SetThreeWayValve(desired_valve_position);
-        state_ = State::SWITCHING;
+        SetNextState(State::SWITCHING);
         break;
       }
 
@@ -113,7 +114,7 @@ void OpenAmberComponent::update()
     {
       if(last_three_way_valve_switch_ms_ + THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL < millis())
       {
-        state_ = desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL;
+        SetNextState(desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL);
         ESP_LOGI("amber", "3-way valve switch complete, new mode: %s", state_ == State::DHW_HEAT ? "DHW" : "HEAT/COOL");
       }
       break;
@@ -132,6 +133,31 @@ void OpenAmberComponent::reset_pump_interval()
 }
 
 // Privates
+void OpenAmberComponent::SetNextState(State state)
+{
+  state_ = state;
+  const char* txt = StateToString(state);
+  id(state_machine_state_heat_cool).publish_state(txt);
+  ESP_LOGI("amber", "HEAT_COOL state changed: %s", txt);
+}
+
+const char* OpenAmberComponent::StateToString(State state)
+{
+  switch (state)
+  {
+    case State::INITIALIZING:
+      return "Initializing";
+    case State::SWITCHING:
+      return "Switching";
+    case State::DHW_HEAT:
+      return "DHW";
+    case State::HEAT_COOL:
+      return "Heat/Cool";
+    default:
+      return "Unknown";
+  }
+}
+
 void OpenAmberComponent::SetThreeWayValve(ThreeWayValvePosition position)
 {
   if(position == ThreeWayValvePosition::DHW)

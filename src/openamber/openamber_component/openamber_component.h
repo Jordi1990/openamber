@@ -55,6 +55,8 @@ private:
   ThreeWayValvePosition GetThreeWayValvePosition();
   ThreeWayValvePosition GetDesiredThreeWayValvePosition();
   void ApplyWorkingMode();
+  void SetNextState(State state);
+  const char* StateToString(State state);
 public:
   OpenAmberComponent();
   ~OpenAmberComponent();

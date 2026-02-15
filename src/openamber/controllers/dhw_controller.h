@@ -92,7 +92,7 @@ private:
     state_ = new_state;
     const char* txt = DHWStateToString(new_state);
     
-    id(state_machine_state).publish_state(txt);
+    id(state_machine_state_dhw).publish_state(txt);
     ESP_LOGI("amber", "DHW state changed: %s", txt);
   }
 

@@ -1,5 +1,5 @@
 packages:
- - !include common/openamber.yaml
+ - !include openamber/common/openamber.yaml
 
 esp32:
   variant: esp32s3
@@ -78,16 +78,16 @@ touchscreen:
 
 interval:
  - interval: 5s
-   then: !include lvgl/ui_update_loop.yaml
+   then: !include openamber/ui/ui_update_loop.yaml
 
 image:
-  - file: "lvgl/images/water_circuit.png"
+  - file: "openamber/ui/images/water_circuit.png"
     id: img_water_circuit
     type: RGB565
     transparency: alpha_channel
     resize: 420x420
 
-font: !include lvgl/fonts.yaml
+font: !include openamber/ui/fonts.yaml
 
 lvgl:
   on_idle:
@@ -100,9 +100,9 @@ lvgl:
             id: idle_screen_overlay
   disp_bg_color: 0x0A2747
   widgets:
-    - !include lvgl/root_bg.yaml
-    - !include lvgl/header_bar.yaml
-    - !include lvgl/page_home.yaml
-    - !include lvgl/nav_bar.yaml
-    - !include lvgl/boot_screen.yaml
-    - !include lvgl/idle_screen_overlay.yaml
+    - !include openamber/ui/root_bg.yaml
+    - !include openamber/ui/header_bar.yaml
+    - !include openamber/ui/page_home.yaml
+    - !include openamber/ui/nav_bar.yaml
+    - !include openamber/ui/boot_screen.yaml
+    - !include openamber/ui/idle_screen_overlay.yaml
