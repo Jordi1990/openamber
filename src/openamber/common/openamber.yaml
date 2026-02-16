@@ -90,24 +90,27 @@ web_server:
     - id: dhw_settings
       name: "Tapwater instellingen"
       sorting_weight: 20
+    - id: dhw_schedule_settings
+      name: "Tapwater schema instellingen"
+      sorting_weight: 30
     - id: heating_settings
       name: "Verwarmingsinstellingen"
-      sorting_weight: 30
+      sorting_weight: 40
     - id: temperature_sensors
       name: "Temperatuursensoren"
-      sorting_weight: 40
+      sorting_weight: 50
     - id: diagnostic
       name: "Diagnostiek"
-      sorting_weight: 50
+      sorting_weight: 60
     - id: error_codes
       name: "Foutcodes"
-      sorting_weight: 60
+      sorting_weight: 70
     - id: manual_control
       name: "Handmatige bediening"
-      sorting_weight: 70
+      sorting_weight: 80
     - id: config
       name: "Config"
-      sorting_weight: 80
+      sorting_weight: 90
 wifi:
   ap:
     ssid: "OpenAmber"
@@ -140,6 +143,28 @@ datetime:
    entity_category: config
    web_server: 
     sorting_group_id: dhw_settings
+
+ - platform: template
+   id: dhw_start_time
+   type: time
+   name: "Tapwater starttijd"
+   optimistic: true
+   initial_value: "10:00:00"
+   restore_value: true
+   entity_category: config
+   web_server: 
+    sorting_group_id: dhw_schedule_settings
+
+ - platform: template
+   id: dhw_end_time
+   type: time
+   name: "Tapwater eindtijd"
+   optimistic: true
+   initial_value: "17:00:00"
+   restore_value: true
+   entity_category: config
+   web_server: 
+    sorting_group_id: dhw_schedule_settings
 
 
 # Use SNTP for time so we also have time when not connected to Home Assistant.

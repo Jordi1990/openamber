@@ -217,39 +217,6 @@ private:
     return false;
   }
 
-  void CheckLegionellaCycle()
-  {
-    if(!id(legio_enabled_switch).state)
-    {
-      return;
-    }
-
-    auto now = id(my_time).now();
-    auto legionella_time = id(next_legionella_run).state_as_esptime();
-    if(!id(dhw_legionella_run_active_sensor).state && now >= legionella_time)
-    {
-      ESP_LOGI("amber", "Starting legionella cycle.");
-      id(dhw_legionella_run_active_sensor).publish_state(true);
-      auto next_run = id(next_legionella_run).state_as_esptime();
-      for(int i=1; i<=id(legio_repeat_days_number).state; i++)
-      {
-        next_run.increment_day();
-      }
-      auto legio_start_call = id(next_legionella_run).make_call();
-      legio_start_call.set_datetime(next_run);
-      legio_start_call.perform();
-      ESP_LOGI("amber", "Next legionella cycle scheduled at %04d-%02d-%02d %02d:%02d", 
-               id(next_legionella_run).year, id(next_legionella_run).month, 
-               id(next_legionella_run).day, id(next_legionella_run).hour, 
-               id(next_legionella_run).minute);
-    }
-    else if(id(dhw_legionella_run_active_sensor).state && !id(dhw_demand_active_sensor).state)
-    {
-      ESP_LOGI("amber", "Legionella cycle completed, target temperature %.2f°C reached.", id(legio_target_temperature_number).state);
-      id(dhw_legionella_run_active_sensor).publish_state(false);
-    }
-  }
-
   bool IsBackupHeaterActive()
   {
     return id(backup_heater_active_sensor).state;
@@ -326,8 +293,6 @@ public:
   void UpdateStateMachine()
   {
     DoSafetyChecks();
-
-    CheckLegionellaCycle();
 
     switch (state_)
     {
@@ -516,6 +481,12 @@ public:
       return false;
     }
 
+    if(id(dhw_legionella_run_active_sensor).state)
+    {
+      ESP_LOGI("amber", "DHW legionella run active, allowing DHW start regardless of current temperature.");
+      return true;
+    }
+
     float current_temperature = id(dhw_temperature_tw_sensor).state;
     float target_temperature = id(current_dhw_setpoint_sensor).state;
     float restart_delta = id(dhw_restart_dhw_delta).state;
@@ -527,5 +498,38 @@ public:
     }
 
     return true;
+  }
+
+  void CheckLegionellaCycle()
+  {
+    if(!id(legio_enabled_switch).state)
+    {
+      return;
+    }
+
+    auto now = id(my_time).now();
+    auto legionella_time = id(next_legionella_run).state_as_esptime();
+    if(!id(dhw_legionella_run_active_sensor).state && now >= legionella_time)
+    {
+      ESP_LOGI("amber", "Starting legionella cycle.");
+      id(dhw_legionella_run_active_sensor).publish_state(true);
+      auto next_run = id(next_legionella_run).state_as_esptime();
+      for(int i=1; i<=id(legio_repeat_days_number).state; i++)
+      {
+        next_run.increment_day();
+      }
+      auto legio_start_call = id(next_legionella_run).make_call();
+      legio_start_call.set_datetime(next_run);
+      legio_start_call.perform();
+      ESP_LOGI("amber", "Next legionella cycle scheduled at %04d-%02d-%02d %02d:%02d", 
+               id(next_legionella_run).year, id(next_legionella_run).month, 
+               id(next_legionella_run).day, id(next_legionella_run).hour, 
+               id(next_legionella_run).minute);
+    }
+    else if(id(dhw_legionella_run_active_sensor).state && !id(dhw_demand_active_sensor).state)
+    {
+      ESP_LOGI("amber", "Legionella cycle completed, target temperature %.2f°C reached.", id(legio_target_temperature_number).state);
+      id(dhw_legionella_run_active_sensor).publish_state(false);
+    }
   }
 };
