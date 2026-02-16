@@ -66,6 +66,8 @@ void OpenAmberComponent::update()
   ThreeWayValvePosition current_valve_position = GetThreeWayValvePosition();
   ThreeWayValvePosition desired_valve_position = GetDesiredThreeWayValvePosition();
 
+  dhw_controller_->CheckLegionellaCycle();
+
   switch(state_)
   {
     case State::INITIALIZING:

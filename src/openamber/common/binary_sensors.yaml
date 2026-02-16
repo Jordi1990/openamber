@@ -1,4 +1,50 @@
 - platform: template
+  id: dhw_schedule_active_sensor
+  internal: True
+  lambda: |-
+    if(!id(dhw_schedule_enabled_switch).state)
+    {
+      return true;
+    }
+
+    int weekday = id(my_time).now().day_of_week;
+    if(!((weekday == 2 && id(dhw_schedule_monday_enabled_switch).state) ||
+         (weekday == 3 && id(dhw_schedule_tuesday_enabled_switch).state) ||
+         (weekday == 4 && id(dhw_schedule_wednesday_enabled_switch).state) ||
+         (weekday == 5 && id(dhw_schedule_thursday_enabled_switch).state) ||
+         (weekday == 6 && id(dhw_schedule_friday_enabled_switch).state) ||
+         (weekday == 7 && id(dhw_schedule_saturday_enabled_switch).state) ||
+         (weekday == 1 && id(dhw_schedule_sunday_enabled_switch).state)))
+    {
+      return false;
+    }
+
+    auto now = id(my_time).now();
+    if(!id(dhw_start_time).has_state() || !id(dhw_end_time).has_state())
+    {
+      return false;
+    }
+
+    const int now_min   = now.hour * 60 + now.minute;
+    const int start_min = id(dhw_start_time).hour * 60 + id(dhw_start_time).minute;
+    const int end_min   = id(dhw_end_time).hour * 60 + id(dhw_end_time).minute;
+
+    bool in_window = false;
+    if (start_min <= end_min) {
+      // same day (e.g. 06:00-22:00)
+      in_window = (now_min >= start_min && now_min <= end_min);
+    } else {
+      // overnight (e.g. 22:00-06:00)
+      in_window = (now_min >= start_min || now_min <= end_min);
+    }
+
+    if (!in_window) {
+      return false;
+    }
+
+    return true;
+
+- platform: template
   name: "Tapwater vraag"
   id: dhw_demand_active_sensor
   device_class: running
@@ -9,6 +55,11 @@
 
       if(id(sg_ready_block_mode_active_sensor).state
       || !dhw_enabled)
+      {
+        return false;
+      }
+
+      if(!id(dhw_schedule_active_sensor).state)
       {
         return false;
       }

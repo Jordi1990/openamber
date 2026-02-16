@@ -17,6 +17,78 @@
     sorting_group_id: dhw_settings
 
 - platform: template
+  id: dhw_schedule_enabled_switch
+  name: "Tapwater schema actief"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
+
+- platform: template
+  id: dhw_schedule_monday_enabled_switch
+  name: "Tapwater schema Maandag"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
+
+- platform: template
+  id: dhw_schedule_tuesday_enabled_switch
+  name: "Tapwater schema Dinsdag"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
+
+- platform: template
+  id: dhw_schedule_wednesday_enabled_switch
+  name: "Tapwater schema Woensdag"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
+
+- platform: template
+  id: dhw_schedule_thursday_enabled_switch
+  name: "Tapwater schema Donderdag"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
+
+- platform: template
+  id: dhw_schedule_friday_enabled_switch
+  name: "Tapwater schema Vrijdag"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
+
+- platform: template
+  id: dhw_schedule_saturday_enabled_switch
+  name: "Tapwater schema Zaterdag"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
+
+- platform: template
+  id: dhw_schedule_sunday_enabled_switch
+  name: "Tapwater schema Zondag"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
+
+- platform: template
   id: analytics_enabled_switch
   name: "Analytics versturen"
   optimistic: True

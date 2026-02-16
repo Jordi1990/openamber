@@ -76,3 +76,5 @@
           root["current_dhw_setpoint"] = id(current_dhw_setpoint_sensor).state;
           root["dhw_legionella_run_active"] = id(dhw_legionella_run_active_sensor).state;
           root["three_way_valve_active"] = id(three_way_valve_active_sensor).state;
+          root["dhw_schedule_enabled"] = id(dhw_schedule_enabled_switch).state;
+          root["dhw_schedule_active"] = id(dhw_schedule_active_sensor).state;
