@@ -570,7 +570,12 @@ public:
         if (!compressor_controller_->IsRunning())
         {
           start_current_temperature_ = 0;
-          pump_controller_->RestartPumpInterval();
+
+          // When not requested to stop, let the pump run for another cycle.
+          if(!requested_to_stop_)
+          {
+            pump_controller_->RestartPumpInterval();
+          }
           SetNextState(HeatCoolState::PUMP_RUNNING);
         }
         break;
