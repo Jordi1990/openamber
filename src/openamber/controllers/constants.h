@@ -22,31 +22,6 @@
 #include <cstdint>
 
 // ============================================================================
-// HEAT PUMP STATE MACHINE STATES
-// ============================================================================
-
-enum class HPState
-{
-  UNKNOWN,
-  INITIALIZE,
-  IDLE,
-  WAIT_PUMP_RUNNING,
-  WAIT_PUMP_STOP,
-  PUMP_INTERVAL_RUNNING,
-  WAIT_COMPRESSOR_RUNNING,
-  HEAT_COOL_COMPRESSOR_SOFTSTART,
-  COMPRESSOR_RUNNING,
-  WAIT_BACKUP_HEATER_RUNNING,
-  BACKUP_HEATER_RUNNING,
-  DEFROSTING,
-  WAIT_FOR_STATE_SWITCH,
-  SWITCH_TO_DHW,
-  WAIT_COMPRESSOR_STOP,
-  WAIT_3WAY_VALVE_SWITCH,
-};
-
-
-// ============================================================================
 // TIMING CONSTANTS (in seconds)
 // ============================================================================
 
