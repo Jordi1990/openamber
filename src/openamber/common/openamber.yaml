@@ -17,6 +17,7 @@ esphome:
   friendly_name: ${device_friendly_name}
   project:
     name: ${device_project_name}
+    version: dev
   includes:
     - openamber/controllers/constants.h
     - openamber/controllers/pump_controller.h

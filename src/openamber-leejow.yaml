@@ -5,6 +5,10 @@ esphome:
   project:
     version: dev
 
+esphome:
+  project:
+    version: dev
+
 esp32:
   board: esp32dev
   framework:
