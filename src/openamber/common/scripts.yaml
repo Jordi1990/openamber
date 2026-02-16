@@ -58,7 +58,9 @@
           root["cool_demand_switch"] = id(cool_demand_switch).state;
           root["backup_heater_degmin_current"] = id(backup_heater_degmin_current_sensor).state;
           root["dhw_backup_current_avg_rate"] = id(dhw_backup_current_avg_rate_sensor).state;
-          root["state_machine_state"] = id(state_machine_state).state;
+          root["state_machine_state_dhw"] = id(state_machine_state_dhw).state;
+          root["state_machine_state_heat_cool"] = id(state_machine_state_heat_cool).state;
+          root["state_machine_state_main"] = id(state_machine_state_main).state;
           root["current_setpoint"] = id(current_setpoint).state;
           root["room_temperature"] = id(room_temperature).state;
           root["temperature_outside_ta"] = id(temperature_outside_ta).state;

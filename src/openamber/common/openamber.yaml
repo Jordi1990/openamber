@@ -3,14 +3,28 @@ substitutions:
   device_friendly_name: OpenAmber
   device_project_name: jordi.openamber
 
+external_components:
+  - source:
+      type: local
+      path: openamber
+
+openamber_component:
+  id: amber_ctrl
+  update_interval: 5s
+
 esphome:
   name: ${device_name}
   friendly_name: ${device_friendly_name}
   project:
     name: ${device_project_name}
     version: dev
-  includes: 
-    - common/openamber.h
+  includes:
+    - openamber/controllers/constants.h
+    - openamber/controllers/pump_controller.h
+    - openamber/controllers/compressor_controller.h
+    - openamber/controllers/dhw_controller.h
+    - openamber/controllers/openamber_component.h
+    - openamber/controllers/heat_cool_controller.h
   on_boot:
     then:
       - if:
@@ -18,6 +32,7 @@ esphome:
             - switch.is_on: analytics_enabled_switch
           then:
             - mqtt.enable:
+
 esp32:
   framework:
     type: esp-idf
@@ -30,16 +45,6 @@ interval:
           - switch.is_on: analytics_enabled_switch
          then:
           - script.execute: send_analytics
-  - interval: 10s
-    then:
-      - if:
-         condition:
-          - switch.is_on: amber_controller_active
-          - binary_sensor.is_on: modbus_inside_online
-          - binary_sensor.is_on: modbus_outside_online
-         then:
-          - lambda: |-
-              AMBER.loop();
 
 logger:
   level: INFO
@@ -192,18 +197,7 @@ output:
     type: float
     write_action:
       - lambda: |-
-          AMBER.WriteHeatPIDValue(state);
-
-  - platform: template
-    id: pid_cool_output
-    type: float
-    write_action:
-      - logger.log:
-          format: "Write cool pids"
-          level: DEBUG
-      # TODO: Store in seperate pid field
-      # - lambda: |-
-      #     AMBER.WritePIDValue(state);
+          id(amber_ctrl).write_heat_pid_value(state);
 
 button:
   - platform: factory_reset

@@ -14,15 +14,28 @@
     int v3 = (int)id(outside_unit_eeprom_version_part2).state;
 
     char buffer[20];
-    snprintf(buffer, sizeof(buffer), "V%04X,%d%d", v1, v2, v3);
+    snprintf(buffer, sizeof(buffer), "V%04X,%03d%03d", v1, v2, v3);
     return std::string(buffer);
   icon: "mdi:chip"
 
 - platform: template
-  id: state_machine_state
+  id: state_machine_state_dhw
   entity_category: diagnostic
-  disabled_by_default: true
-  name: "Control loop state"
+  name: "Control loop state DHW"
+  icon: "mdi:state-machine"
+  update_interval: never
+
+- platform: template
+  id: state_machine_state_heat_cool
+  entity_category: diagnostic
+  name: "Control loop state HEAT_COOL"
+  icon: "mdi:state-machine"
+  update_interval: never
+
+- platform: template
+  id: state_machine_state_main
+  entity_category: diagnostic
+  name: "Control loop state MAIN"
   icon: "mdi:state-machine"
   update_interval: never
 

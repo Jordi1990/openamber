@@ -1,9 +1,5 @@
 packages:
- - !include common/openamber.yaml
-
-esphome:
-  project:
-    version: dev
+ - !include openamber/common/openamber.yaml
 
 esp32:
   board: esp32dev

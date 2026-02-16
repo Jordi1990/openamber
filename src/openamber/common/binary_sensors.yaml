@@ -3,20 +3,17 @@
   id: dhw_demand_active_sensor
   device_class: running
   lambda: |-
-      float restart_delta = id(dhw_restart_dhw_delta).state;
       float tw = id(dhw_temperature_tw_sensor).state;
-      float setpoint = id(dhw_setpoint_temperature).state;
-      bool legio_run_active = id(dhw_legionella_run_active_sensor).state;
-      float legio_target = id(legio_target_temperature_number).state;
+      float setpoint = id(current_dhw_setpoint_sensor).state;
       bool dhw_enabled = id(dhw_enabled_switch).state;
 
-      if(id(sg_ready_block_mode_active_sensor).state)
+      if(id(sg_ready_block_mode_active_sensor).state
+      || !dhw_enabled)
       {
         return false;
       }
 
-      return dhw_enabled && ((setpoint - tw) >= restart_delta ||
-             (legio_run_active && tw < legio_target));
+      return tw < setpoint;
   web_server: 
     sorting_group_id: overview
 
@@ -82,7 +79,7 @@
           format: "Pump interval reset due to pump required for frost protection."
           level: INFO
       - lambda: |-
-          AMBER.ResetPumpInterval();  
+          id(amber_ctrl).reset_pump_interval();
   web_server: 
     sorting_group_id: overview
 
@@ -100,7 +97,7 @@
           format: "Pump interval reset due to pump required for frost protection."
           level: INFO
       - lambda: |-
-          AMBER.ResetPumpInterval();
+          id(amber_ctrl).reset_pump_interval();
   web_server: 
     sorting_group_id: overview
 
