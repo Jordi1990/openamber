@@ -29,6 +29,7 @@ class PumpController
 private:
   uint32_t pump_start_time_ = 0;
   uint32_t next_pump_cycle_ = 0;
+  bool initialized = false;
 
 public:
   PumpController() {}
@@ -80,6 +81,7 @@ public:
 
   void Stop()
   {
+    initialized = true;
     SetPwmDutyCycle(0);
 
     RestartPumpInterval();
@@ -105,5 +107,10 @@ public:
   bool IsRunning()
   {
     return id(internal_pump_active).state;
+  }
+
+  bool IsInitialized()
+  {
+    return initialized;
   }
 };

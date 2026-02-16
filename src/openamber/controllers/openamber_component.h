@@ -97,8 +97,6 @@ void OpenAmberComponent::update()
 
     case State::DHW_HEAT:
     {
-      // TODO: Potentially stop DHW when priority heating is required.
-
       if(dhw_controller_->IsInIdleState() && desired_valve_position != current_valve_position)
       {
         SetThreeWayValve(desired_valve_position);
@@ -137,7 +135,7 @@ void OpenAmberComponent::SetNextState(State state)
 {
   state_ = state;
   const char* txt = StateToString(state);
-  id(state_machine_state_heat_cool).publish_state(txt);
+  id(state_machine_state_main).publish_state(txt);
   ESP_LOGI("amber", "HEAT_COOL state changed: %s", txt);
 }
 
@@ -191,8 +189,10 @@ ThreeWayValvePosition OpenAmberComponent::GetThreeWayValvePosition()
 /// @return 
 ThreeWayValvePosition OpenAmberComponent::GetDesiredThreeWayValvePosition()
 {
+  // TODO: Potentially prioritize heating when in certain conditions.
+
   // DHW has priority
-  if (id(dhw_demand_active_sensor).state)
+  if (dhw_controller_->CanStartDhw())
   {
     return ThreeWayValvePosition::DHW;
   }

@@ -298,6 +298,11 @@ private:
     working_mode_call.set_index(working_mode);
     working_mode_call.perform();
   }
+
+  bool HasDemand()
+  {
+    return id(dhw_demand_active_sensor).state;
+  }
 public:
     DHWController(PumpController *pump_controller, CompressorController *compressor_controller)
         : pump_controller_(pump_controller), compressor_controller_(compressor_controller) {}
@@ -340,10 +345,15 @@ public:
         {
           SetNextState(DHWState::BACKUP_HEATER_RUNNING);
         }
-        else
+        else if(!pump_controller_->IsInitialized())
         {
           // Initialize pump to Off
           pump_controller_->Stop();
+          // Short settle time before we start logic.
+          LeaveStateAndSetNextStateAfterWaitTime(DHWState::IDLE, 60000);
+        }
+        else 
+        {
           SetNextState(DHWState::IDLE);
         }
         break;
@@ -415,6 +425,10 @@ public:
             SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
             break;
           }
+        }
+        else 
+        {
+          ESP_LOGI("amber", "Minimum compressor on time not reached, not checking for potential stop conditions yet.");
         }
 
         if (id(sg_ready_max_boost_mode_active_sensor).state)
@@ -495,8 +509,23 @@ public:
     }
   }
 
-  bool HasDemand()
+  bool CanStartDhw()
   {
-    return id(dhw_demand_active_sensor).state;
+    if(!HasDemand())
+    {
+      return false;
+    }
+
+    float current_temperature = id(dhw_temperature_tw_sensor).state;
+    float target_temperature = id(current_dhw_setpoint_sensor).state;
+    float restart_delta = id(dhw_restart_dhw_delta).state;
+
+    // Only start DHW when the current temperature is below the target temperature minus the restart delta.
+    if (current_temperature >= target_temperature - restart_delta)
+    {
+      return false;
+    }
+
+    return true;
   }
 };

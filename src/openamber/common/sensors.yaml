@@ -186,7 +186,7 @@
   unit_of_measurement: °C   
   accuracy_decimals: 1
   web_server: 
-    sorting_group_id: temperature_sensors
+    sorting_group_id: overview
   filters:
     - offset: -3000
     - multiply: 0.01

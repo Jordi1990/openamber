@@ -14,7 +14,7 @@
     int v3 = (int)id(outside_unit_eeprom_version_part2).state;
 
     char buffer[20];
-    snprintf(buffer, sizeof(buffer), "V%04X,%d%d", v1, v2, v3);
+    snprintf(buffer, sizeof(buffer), "V%04X,%03d%03d", v1, v2, v3);
     return std::string(buffer);
   icon: "mdi:chip"
 
