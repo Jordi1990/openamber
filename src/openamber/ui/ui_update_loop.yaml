@@ -92,16 +92,20 @@
   - lvgl.widget.update:
       id: tile_pump
       bg_color: !lambda |-
-        if(id(internal_pump_active).state)
+        if(id(pump_p0_current_pwm_sensor).state > 0)
           return lv_color_hex(0xF5F8FC);
         else
           return lv_color_hex(0x919191);
   - lvgl.label.update:
       id: tile_pump_state
       text: !lambda |-
-        bool state = id(internal_pump_active).state;
-        if(state)
-          return "AAN";
+        int pwm = id(pump_p0_current_pwm_sensor).state;
+        if(pwm > 0)
+        {
+          char buf[16];
+          snprintf(buf, sizeof(buf), "%d%%", pwm);
+          return std::string(buf);
+        }
         else
           return "UIT";
   - lvgl.widget.update:

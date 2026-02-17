@@ -1,7 +1,7 @@
 obj:
   id: header_bar
   width: 100%
-  height: 70
+  height: 12%
   align: TOP_MID
   bg_color: 0x15457A
   bg_opa: 100%
@@ -29,11 +29,9 @@ obj:
           flex_align_cross: CENTER
           pad_column: 8
         widgets:
-          - label:
-              id: header_title_icon
-              text: "\U000F1A44"
-              text_color: 0xFFFFFF
-              text_font: font_mdi_24
+          - image:
+              id: openamber_icon_img
+              src: openamber_icon
           - label:
               id: header_title
               text: "OpenAmber (0.0.0)"

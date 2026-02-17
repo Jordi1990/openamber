@@ -1,7 +1,7 @@
 obj:
   id: page_home
-  width: 1024
-  height: 460
+  width: 100%
+  height: 76%
   x: 0
   y: 70
   bg_opa: 0%
