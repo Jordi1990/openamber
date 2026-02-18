@@ -34,6 +34,12 @@
         - "\U000F0F29"  # mdi-snowflake-alert
         - "\U000F12CB"  # mdi-snowflake-melt
         - "\U000F1A44"  # mdi-heat-pump-outline
+        - "\U000F091F"  # mdi-wifi-strength-1
+        - "\U000F0922"  # mdi-wifi-strength-2
+        - "\U000F0925"  # mdi-wifi-strength-3
+        - "\U000F0928"  # mdi-wifi-strength-4
+        - "\U000F092E"  # mdi-wifi-strength-off-outline
+        - "\U000F07D0"  # mdi-home-assistant
 - file:
     type: gfonts
     family: "Roboto"
@@ -45,3 +51,23 @@
     - file: "openamber/ui/fonts/materialdesignicons-webfont.ttf"
       glyphs:
         - "\U000F01C2"  # mdi-delta
+
+- file:
+    type: gfonts
+    family: "Roboto"
+    weight: 500
+  id: font_mdi_30
+  size: 30
+  bpp: 4
+  extras:
+    - file: "openamber/ui/fonts/materialdesignicons-webfont.ttf"
+      glyphs:
+        - "\U000F0238"  # mdi-flame
+        - "\U000F0717"  # mdi-snowflake
+        - "\U000F058F"  # mdi-water-pump
+        - "\U000F091F"  # mdi-wifi-strength-1
+        - "\U000F0922"  # mdi-wifi-strength-2
+        - "\U000F0925"  # mdi-wifi-strength-3
+        - "\U000F0928"  # mdi-wifi-strength-4
+        - "\U000F092E"  # mdi-wifi-strength-off-outline
+        - "\U000F07D0"  # mdi-home-assistant

@@ -174,6 +174,60 @@
         char buf[16];
         snprintf(buf, sizeof(buf), "Buiten %.1f°C", v);
         return std::string(buf);
+
+  - lvgl.widget.update:
+      id: nav_status_heat_icon
+      hidden: !lambda |-
+        return !id(heat_demand_active_sensor).state;
+
+  - lvgl.widget.update:
+      id: nav_status_cool_icon
+      hidden: !lambda |-
+        return !id(cool_demand_active_sensor).state;
+
+  - lvgl.widget.update:
+      id: nav_status_dhw_icon
+      hidden: !lambda |-
+        return !id(dhw_demand_active_sensor).state;
+
+  - lvgl.label.update:
+      id: nav_status_wifi_icon
+      text: !lambda |-
+        float db = id(wifi_signal_db).state;
+        if (isnan(db))
+          return (std::string) "\U000F092E";
+        if (db >= -60.0f)
+          return (std::string) "\U000F0928";
+        if (db >= -70.0f)
+          return (std::string) "\U000F0925";
+        if (db >= -80.0f)
+          return (std::string) "\U000F0922";
+        return (std::string) "\U000F091F";
+
+  - lvgl.widget.update:
+      id: nav_status_wifi_icon
+      text_color: !lambda |-
+        float db = id(wifi_signal_db).state;
+        if (isnan(db))
+          return lv_color_hex(0x9CA3AF);
+        if (db >= -70.0f)
+          return lv_color_hex(0xD1D5DB);
+        if (db >= -80.0f)
+          return lv_color_hex(0xF59E0B);
+        return lv_color_hex(0xEF4444);
+
+  - if:
+      condition:
+        api.connected:
+      then:
+        - lvgl.widget.update:
+            id: nav_status_ha_icon
+            text_color: 0x22C55E
+      else:
+        - lvgl.widget.update:
+            id: nav_status_ha_icon
+            text_color: 0xEF4444
+
   # - lvgl.label.update:
   #     id: row_frost_1_outside_value
   #     text: !lambda |-
