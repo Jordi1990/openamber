@@ -222,6 +222,21 @@
   web_server:
     sorting_group_id: dhw_settings
 
+
+- platform: template
+  id: dhw_backup_avg_window_minutes
+  name: "Tapwater backup heater gemiddeld venster"
+  unit_of_measurement: "min"
+  min_value: 1
+  max_value: 60
+  step: 1
+  initial_value: 10
+  optimistic: true
+  restore_value: true
+  entity_category: config
+  web_server:
+    sorting_group_id: dhw_settings
+
 - platform: template
   id: backup_heater_degmin_threshold
   name: "Backup element graadminuten"

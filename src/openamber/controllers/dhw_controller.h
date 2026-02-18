@@ -23,6 +23,8 @@
 #include "constants.h"
 #include "pump_controller.h"
 #include "compressor_controller.h"
+#include <vector>
+#include <algorithm>
 
 using namespace esphome;
 
@@ -45,7 +47,6 @@ enum class DHWState
 class DHWController
 {
 private:
-  float start_current_temperature = 0.0f;
   DHWState state_ = DHWState::UNKNOWN;
   DHWState deferred_machine_state_;
   uint32_t defer_state_change_until_ms_;
@@ -56,6 +57,9 @@ private:
   PumpController *pump_controller_;
   CompressorController *compressor_controller_;
   float dhw_pump_start_time_ = 0.0f;
+  uint32_t last_dhw_avg_sample_ms_ = 0;
+  bool defrost_pause_active_ = false;
+  std::vector<std::pair<uint32_t, float>> dhw_temperature_samples_;
 
   const char* DHWStateToString(DHWState state) const
   {
@@ -137,6 +141,9 @@ private:
     ESP_LOGI("amber", "Stopping DHW pump.");
     id(dhw_pump_relay_switch).turn_off();
     dhw_pump_start_time_ = 0.0f;
+    last_dhw_avg_sample_ms_ = 0;
+    defrost_pause_active_ = false;
+    dhw_temperature_samples_.clear();
   }
 
   bool IsPredictedTemperatureAboveTarget()
@@ -206,26 +213,73 @@ private:
   bool IsHeatingSlowerThanMinimumAverageRate()
   {
     const uint32_t now = millis();
-  
+
     // Don't enable backup heater based when DHW pump is not started yet.
     if(dhw_pump_start_time_ == 0.0f)
     {
       return false;
     }
 
-    // Start calculations after grace period to let the temperature settle.
-    if(now - dhw_pump_start_time_ < DHW_BACKUP_HEATER_GRACE_PERIOD_S * 1000UL)
+    // During defrost, don't evaluate DHW average. Defrost can flatten/drop TW temporarily.
+    if(id(defrost_active_sensor).state)
+    {
+      if(!defrost_pause_active_)
+      {
+        ESP_LOGI("amber", "DHW backup average paused during defrost.");
+      }
+      defrost_pause_active_ = true;
+      return false;
+    }
+
+    // After defrost, restart rolling window to avoid defrost dip affecting backup activation.
+    if(defrost_pause_active_)
+    {
+      defrost_pause_active_ = false;
+      last_dhw_avg_sample_ms_ = now;
+      dhw_temperature_samples_.clear();
+      dhw_temperature_samples_.emplace_back(now, id(dhw_temperature_tw_sensor).state);
+      ESP_LOGI("amber", "DHW backup average resumed after defrost; rolling window restarted.");
+      return false;
+    }
+
+    // Evaluate a new rolling average sample once per minute.
+    if(last_dhw_avg_sample_ms_ != 0 && now - last_dhw_avg_sample_ms_ < 60000UL)
+    {
+      return false;
+    }
+    last_dhw_avg_sample_ms_ = now;
+
+    const float configured_window_min = id(dhw_backup_avg_window_minutes).state;
+    const uint32_t window_ms = (uint32_t)std::max(1.0f, configured_window_min) * 60000UL;
+    const float current_temperature = id(dhw_temperature_tw_sensor).state;
+
+    dhw_temperature_samples_.emplace_back(now, current_temperature);
+    while(!dhw_temperature_samples_.empty() && now - dhw_temperature_samples_.front().first > window_ms)
+    {
+      dhw_temperature_samples_.erase(dhw_temperature_samples_.begin());
+    }
+
+    if(dhw_temperature_samples_.empty())
     {
       return false;
     }
 
-    const float elapsed_min = (float)(now - dhw_pump_start_time_) / 60000.0f;
-    const float gained = id(dhw_temperature_tw_sensor).state - start_current_temperature;
-    const float avg_rate = (elapsed_min > 0.1f) ? (gained / elapsed_min) : 0.0f;
+    const auto oldest_sample = dhw_temperature_samples_.front();
+    const uint32_t elapsed_ms = now - oldest_sample.first;
+    if(elapsed_ms < window_ms)
+    {
+      ESP_LOGD("amber", "DHW rolling average window not filled yet (%lu/%lu ms).", elapsed_ms, window_ms);
+      return false;
+    }
+
+    const float elapsed_min = (float)elapsed_ms / 60000.0f;
+    const float gained = current_temperature - oldest_sample.second;
+    const float avg_rate = (elapsed_min > 0.0f) ? (gained / elapsed_min) : 0.0f;
+
     id(dhw_backup_current_avg_rate_sensor).publish_state(avg_rate);
     if (avg_rate < id(dhw_backup_min_avg_rate).state && id(dhw_backup_min_avg_rate).state > 0.0f)
     {
-      ESP_LOGI("amber", "DHW backup enable: avg_rate=%.3f°C/min < min=%.3f°C/min", avg_rate, id(dhw_backup_min_avg_rate).state);
+      ESP_LOGI("amber", "DHW backup enable: rolling avg_rate=%.3f°C/min over %.1f min < min=%.3f°C/min", avg_rate, configured_window_min, id(dhw_backup_min_avg_rate).state);
       return true;
     }
 
@@ -385,7 +439,6 @@ public:
 
         if(ShouldStartDhwPump())
         {
-          start_current_temperature = id(dhw_temperature_tw_sensor).state;
           ESP_LOGI("amber", "Starting DHW pump");
           id(dhw_pump_relay_switch).turn_on();
           SetNextState(DHWState::WAIT_DHW_PUMP_RUNNING);
@@ -430,6 +483,10 @@ public:
         if(id(dhw_pump_relay_switch).state)
         {
           dhw_pump_start_time_ = millis();
+          last_dhw_avg_sample_ms_ = dhw_pump_start_time_;
+          defrost_pause_active_ = false;
+          dhw_temperature_samples_.clear();
+          dhw_temperature_samples_.emplace_back(dhw_pump_start_time_, id(dhw_temperature_tw_sensor).state);
           SetNextState(DHWState::COMPRESSOR_RUNNING);
         }
         break;
@@ -437,7 +494,6 @@ public:
       case DHWState::WAIT_COMPRESSOR_STOP:
         if (!compressor_controller_->IsRunning())
         {
-          start_current_temperature = 0;
           pump_controller_->Stop();
           StopDhwPump();
           SetNextState(DHWState::WAIT_PUMP_STOP);

@@ -30,6 +30,7 @@
           root["dhw_restart_dhw_delta"] = id(dhw_restart_dhw_delta).state;
           root["dhw_temperature_threshold_max_compressor_mode"] = id(dhw_temperature_threshold_max_compressor_mode).state;
           root["dhw_backup_min_avg_rate"] = id(dhw_backup_min_avg_rate).state;
+          root["dhw_backup_avg_window_minutes"] = id(dhw_backup_avg_window_minutes).state;
           root["backup_heater_degmin_threshold"] = id(backup_heater_degmin_threshold).state;
           root["pump_speed_heating"] = id(pump_speed_heating_number).state;
           root["pump_speed_dhw"] = id(pump_speed_dhw_number).state;
