@@ -166,6 +166,34 @@ obj:
                     text_color: 0x1F2933
                     text_font: font_value_big
 
+          - obj:
+              id: water_outdoor_group
+              align: BOTTOM_LEFT
+              x: 0
+              y: 0
+              width: SIZE_CONTENT
+              height: SIZE_CONTENT
+              pad_all: 0
+              bg_opa: 0%
+              border_opa: 0%
+              layout:
+                type: FLEX
+                flex_flow: ROW
+                flex_align_cross: CENTER
+                pad_column: 8
+              widgets:
+                - label:
+                    id: water_outdoor_icon
+                    text: "\U000F050F"
+                    text_color: 0x0072CE
+                    text_font: font_mdi_24
+                    y: 2
+                - label:
+                    id: header_outdoor
+                    text: "Buiten -.-°C"
+                    text_color: 0x1F2933
+                    text_font: font_mdi_24
+
     - obj:
         id: home_tiles_grid
         width: 100%

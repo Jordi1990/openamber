@@ -64,32 +64,22 @@ obj:
               hidden: true
               text: "\U000F0238"
               text_color: 0xF97316
-              text_font: font_mdi_30
+              text_font: font_mdi_36
           - label:
               id: nav_status_cool_icon
               hidden: true
               text: "\U000F0717"
               text_color: 0x38BDF8
-              text_font: font_mdi_30
+              text_font: font_mdi_36
           - label:
               id: nav_status_dhw_icon
               hidden: true
               text: "\U000F058F"
               text_color: 0x22D3EE
-              text_font: font_mdi_30
-          - label:
-              id: nav_status_wifi_icon
-              text: "\U000F092E"
-              text_color: 0xD1D5DB
-              text_font: font_mdi_30
-          - label:
-              id: nav_status_ha_icon
-              text: "\U000F07D0"
-              text_color: 0xEF4444
-              text_font: font_mdi_30
+              text_font: font_mdi_36
 
     - obj:
-        id: header_outdoor_group
+        id: header_connectivity_group
         width: SIZE_CONTENT
         height: SIZE_CONTENT
         pad_all: 0
@@ -102,12 +92,12 @@ obj:
           pad_column: 6
         widgets:
           - label:
-              id: header_outdoor_icon
-              text: "\U000F06A1"
-              text_color: 0xFFFFFF
-              text_font: font_mdi_24
+              id: nav_status_ha_icon
+              text: "\U000F07D0"
+              text_color: 0xEF4444
+              text_font: font_mdi_36
           - label:
-              id: header_outdoor
-              text: "Buiten -°C"
-              text_color: 0xFFFFFF
-              text_font: font_mdi_24
+              id: nav_status_wifi_icon
+              text: "\U000F092E"
+              text_color: 0xD1D5DB
+              text_font: font_mdi_36
