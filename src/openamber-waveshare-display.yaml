@@ -66,7 +66,7 @@ touchscreen:
     on_release:
       - if:
           condition:
-            lambda: 'return (id(is_idled) == true);'
+            lambda: 'return id(is_idled);'
           then:
             - globals.set:
                 id: is_idled
@@ -84,6 +84,15 @@ image:
     type: RGB565
     transparency: alpha_channel
     resize: 420x420
+  - file: "openamber/ui/images/icon.png"
+    id: openamber_icon
+    type: RGB565
+    resize: 57x70
+    transparency: alpha_channel
+  - file: "openamber/ui/images/logo-512x512.png"
+    id: openamber_logo
+    type: RGB565
+    transparency: alpha_channel
 
 font: !include openamber/ui/fonts.yaml
 

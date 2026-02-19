@@ -1,7 +1,7 @@
 obj:
   id: header_bar
   width: 100%
-  height: 70
+  height: 12%
   align: TOP_MID
   bg_color: 0x15457A
   bg_opa: 100%
@@ -10,14 +10,19 @@ obj:
   border_opa: 0%
   pad_left: 24
   pad_right: 24
-  pad_top: 10
-  pad_bottom: 10
+  pad_top: 1
+  pad_bottom: 17
   scrollbar_mode: "OFF"
+  scrollable: false
+  layout:
+    type: FLEX
+    flex_flow: ROW
+    flex_align_main: SPACE_BETWEEN
+    flex_align_cross: CENTER
 
   widgets:
     - obj:
         id: header_title_group
-        align: LEFT_MID
         width: SIZE_CONTENT
         height: SIZE_CONTENT
         pad_all: 0
@@ -29,11 +34,9 @@ obj:
           flex_align_cross: CENTER
           pad_column: 8
         widgets:
-          - label:
-              id: header_title_icon
-              text: "\U000F1A44"
-              text_color: 0xFFFFFF
-              text_font: font_mdi_24
+          - image:
+              id: openamber_icon_img
+              src: openamber_icon
           - label:
               id: header_title
               text: "OpenAmber (0.0.0)"
@@ -41,8 +44,10 @@ obj:
               text_font: font_header_title
 
     - obj:
-        id: header_outdoor_group
-        align: RIGHT_MID
+        id: nav_status_group
+        ignore_layout: true
+        align: CENTER
+        y: 8
         width: SIZE_CONTENT
         height: SIZE_CONTENT
         pad_all: 0
@@ -55,12 +60,44 @@ obj:
           pad_column: 6
         widgets:
           - label:
-              id: header_outdoor_icon
-              text: "\U000F06A1"
-              text_color: 0xFFFFFF
-              text_font: font_mdi_24
+              id: nav_status_heat_icon
+              hidden: true
+              text: "\U000F0238"
+              text_color: 0xF97316
+              text_font: font_mdi_36
           - label:
-              id: header_outdoor
-              text: "Buiten -°C"
-              text_color: 0xFFFFFF
-              text_font: font_mdi_24
+              id: nav_status_cool_icon
+              hidden: true
+              text: "\U000F0717"
+              text_color: 0x38BDF8
+              text_font: font_mdi_36
+          - label:
+              id: nav_status_dhw_icon
+              hidden: true
+              text: "\U000F058F"
+              text_color: 0x22D3EE
+              text_font: font_mdi_36
+
+    - obj:
+        id: header_connectivity_group
+        width: SIZE_CONTENT
+        height: SIZE_CONTENT
+        pad_all: 0
+        bg_opa: 0%
+        border_opa: 0%
+        layout:
+          type: FLEX
+          flex_flow: ROW
+          flex_align_cross: CENTER
+          pad_column: 6
+        widgets:
+          - label:
+              id: nav_status_ha_icon
+              text: "\U000F07D0"
+              text_color: 0xEF4444
+              text_font: font_mdi_36
+          - label:
+              id: nav_status_wifi_icon
+              text: "\U000F092E"
+              text_color: 0xD1D5DB
+              text_font: font_mdi_36

@@ -12,45 +12,30 @@
   - lvgl.label.update:
       id: water_mode_text
       text: !lambda |-
-        switch (id(climate_controller).action) {
-          case CLIMATE_ACTION_OFF:
-            return (std::string) "Uit";
-          case CLIMATE_ACTION_COOLING:
-            return (std::string) "Koelen";
-          case CLIMATE_ACTION_HEATING:
-            return (std::string) "Verwarmen";
-          case CLIMATE_ACTION_IDLE:
-            return (std::string) "Standby";
-          default:
-            return (std::string) "Onbekend";
-        }
+        return id(working_mode_switch).current_option().c_str();
   - lvgl.label.update:
       id: water_mode_icon
       text: !lambda |-
-        switch (id(climate_controller).action) {
-          case CLIMATE_ACTION_OFF:
+        switch (id(working_mode_switch).active_index().value()) {
+          case 0:
             return (std::string) "\U000F0902";
-          case CLIMATE_ACTION_COOLING:
+          case 1:
             return (std::string) "\U000F0759";
-          case CLIMATE_ACTION_HEATING:
+          case 2:
             return (std::string) "\U000F0238";
-          case CLIMATE_ACTION_IDLE:
-            return (std::string) "\U000F0906";
           default:
             return (std::string) "\U000F0906";
         }
   - lvgl.widget.update:
       id: water_mode_chip
       bg_color: !lambda |-
-        switch (id(climate_controller).action) {
-          case CLIMATE_ACTION_OFF:
+        switch (id(working_mode_switch).active_index().value()) {
+          case 0:
             return lv_color_hex(0xB0B3B8);
-          case CLIMATE_ACTION_COOLING:
+          case 1:
             return lv_color_hex(0x0072CE);
-          case CLIMATE_ACTION_HEATING:
+          case 2:
             return lv_color_hex(0xF97316);
-          case CLIMATE_ACTION_IDLE:
-            return lv_color_hex(0xE5E7EB);
           default:
             return lv_color_hex(0xE5E7EB);
         }
@@ -92,16 +77,20 @@
   - lvgl.widget.update:
       id: tile_pump
       bg_color: !lambda |-
-        if(id(internal_pump_active).state)
+        if(id(pump_p0_current_pwm_sensor).state > 0)
           return lv_color_hex(0xF5F8FC);
         else
           return lv_color_hex(0x919191);
   - lvgl.label.update:
       id: tile_pump_state
       text: !lambda |-
-        bool state = id(internal_pump_active).state;
-        if(state)
-          return "AAN";
+        int pwm = id(pump_p0_current_pwm_sensor).state;
+        if(pwm > 0)
+        {
+          char buf[16];
+          snprintf(buf, sizeof(buf), "%d%%", pwm);
+          return std::string(buf);
+        }
         else
           return "UIT";
   - lvgl.widget.update:
@@ -167,9 +156,65 @@
       id: header_outdoor
       text: !lambda |-
         float v = id(temperature_outside_ta).state;
+        if (isnan(v))
+          return std::string("Buiten -.-°C");
         char buf[16];
         snprintf(buf, sizeof(buf), "Buiten %.1f°C", v);
         return std::string(buf);
+
+  - lvgl.widget.update:
+      id: nav_status_heat_icon
+      hidden: !lambda |-
+        return !id(heat_demand_active_sensor).state;
+
+  - lvgl.widget.update:
+      id: nav_status_cool_icon
+      hidden: !lambda |-
+        return !id(cool_demand_active_sensor).state;
+
+  - lvgl.widget.update:
+      id: nav_status_dhw_icon
+      hidden: !lambda |-
+        return !id(dhw_demand_active_sensor).state;
+
+  - lvgl.label.update:
+      id: nav_status_wifi_icon
+      text: !lambda |-
+        float db = id(wifi_signal_db).state;
+        if (isnan(db))
+          return (std::string) "\U000F092E";
+        if (db >= -60.0f)
+          return (std::string) "\U000F0928";
+        if (db >= -70.0f)
+          return (std::string) "\U000F0925";
+        if (db >= -80.0f)
+          return (std::string) "\U000F0922";
+        return (std::string) "\U000F091F";
+
+  - lvgl.widget.update:
+      id: nav_status_wifi_icon
+      text_color: !lambda |-
+        float db = id(wifi_signal_db).state;
+        if (isnan(db))
+          return lv_color_hex(0x9CA3AF);
+        if (db >= -70.0f)
+          return lv_color_hex(0xD1D5DB);
+        if (db >= -80.0f)
+          return lv_color_hex(0xF59E0B);
+        return lv_color_hex(0xEF4444);
+
+  - if:
+      condition:
+        api.connected:
+      then:
+        - lvgl.widget.update:
+            id: nav_status_ha_icon
+            text_color: 0x22C55E
+      else:
+        - lvgl.widget.update:
+            id: nav_status_ha_icon
+            text_color: 0xEF4444
+
   # - lvgl.label.update:
   #     id: row_frost_1_outside_value
   #     text: !lambda |-
