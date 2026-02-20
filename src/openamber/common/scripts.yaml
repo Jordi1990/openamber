@@ -78,3 +78,4 @@
           root["three_way_valve_active"] = id(three_way_valve_active_sensor).state;
           root["dhw_schedule_enabled"] = id(dhw_schedule_enabled_switch).state;
           root["dhw_schedule_active"] = id(dhw_schedule_active_sensor).state;
+          root["pump_p1_enabled"] = id(pump_p1_enabled).state;
