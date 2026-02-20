@@ -5,7 +5,7 @@
   restore_mode: RESTORE_DEFAULT_OFF
   entity_category: config
   web_server: 
-    sorting_group_id: verwarmings_settings
+    sorting_group_id: heating_settings
 
 - platform: template
   id: legio_enabled_switch
