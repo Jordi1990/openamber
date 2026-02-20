@@ -280,7 +280,7 @@ private:
     {
       ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stopping compressor to avoid damage.");
       compressor_controller_->Stop();
-      pump_controller_->Stop();
+      StopPumps();
       SetNextState(HeatCoolState::IDLE);
       return;
     }
@@ -401,7 +401,7 @@ public:
         else if(!pump_controller_->IsInitialized())
         {
           // Initialize pump to Off
-          pump_controller_->Stop();
+          StopPumps();
           // Short settle time before we start logic.
           LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState::IDLE, 60000);
         }
@@ -425,6 +425,7 @@ public:
         if (pump_controller_->ShouldStartNextPumpCycle() || HasCompressorDemand())
         {
           pump_controller_->Start(GetPreferredPumpSpeed());
+          StartPumpP1IfNeeded();
           SetNextState(HeatCoolState::WAIT_PUMP_RUNNING);
         }
         break;
@@ -451,7 +452,7 @@ public:
         if (!HasCompressorDemand() && pump_controller_->IsIntervalCycleFinished())
         {
           ESP_LOGI("amber", "Stopping pump (interval cycle finished)");
-          pump_controller_->Stop();
+          StopPumps();
           SetNextState(HeatCoolState::WAIT_PUMP_STOP);
           break;
         }
@@ -525,6 +526,7 @@ public:
 
         if (id(defrost_active_sensor).state)
         {
+          StopPumpP1IfNeeded();
           SetNextState(HeatCoolState::DEFROSTING);
           break;
         }
@@ -626,6 +628,9 @@ public:
           break;
         }
 
+        id(pid_heat_cool_temperature_control).reset_integral_term();
+        StartPumpP1IfNeeded();
+
         if (id(temperature_outside_ta).state <= id(defrost_backup_heater_boost_temperature_sensor).state)
         {
           ESP_LOGI("amber", "Defrost ended, enabling backup heater as configured for outside temperature %.2f°C to boost temperature back to setpoint.", id(temperature_outside_ta).state);
@@ -637,7 +642,6 @@ public:
           compressor_controller_->ApplyDefrostRecoveryMode();
           LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState::COMPRESSOR_RUNNING, COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
         }
-        id(pid_heat_cool_temperature_control).reset_integral_term();
         break;
       }
 
@@ -672,5 +676,29 @@ public:
   bool IsInIdleState()
   {
     return state_ == HeatCoolState::IDLE;
+  }
+
+  void StopPumps()
+  {
+    pump_controller_->Stop();
+    StopPumpP1IfNeeded();
+  }
+
+  void StartPumpP1IfNeeded()
+  {
+    if(id(pump_p1_enabled).state && !id(pump_p1_relay_switch).state)
+    {
+      ESP_LOGI("amber", "Starting pump P1");
+      id(pump_p1_relay_switch).turn_on();
+    }
+  }
+
+  void StopPumpP1IfNeeded()
+  {
+    if(id(pump_p1_enabled).state && id(pump_p1_relay_switch).state)
+    {
+      ESP_LOGI("amber", "Stopping pump P1");
+      id(pump_p1_relay_switch).turn_off();
+    }
   }
 };
