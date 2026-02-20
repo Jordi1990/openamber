@@ -190,7 +190,34 @@ obj:
                     y: 2
                 - label:
                     id: header_outdoor
-                    text: "Buiten -.-°C"
+                    text: "Buiten -°C"
+                    text_color: 0x1F2933
+                    text_font: font_mdi_24
+
+          - obj:
+              id: water_mode_temperature_group
+              align: BOTTOM_RIGHT
+              x: 0
+              y: 0
+              width: SIZE_CONTENT
+              height: SIZE_CONTENT
+              pad_all: 0
+              bg_opa: 0%
+              border_opa: 0%
+              layout:
+                type: FLEX
+                flex_flow: COLUMN
+                flex_align_cross: END
+                pad_row: 2
+              widgets:
+                - label:
+                    id: water_mode_temperature_caption
+                    text: "Huidig / Doel"
+                    text_color: 0x1F2933
+                    text_font: font_mdi_24
+                - label:
+                    id: water_mode_temperature_values
+                    text: "-°C / -°C"
                     text_color: 0x1F2933
                     text_font: font_mdi_24
 
