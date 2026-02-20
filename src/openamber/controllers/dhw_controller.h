@@ -34,7 +34,9 @@ enum class DHWState
   PUMP_RUNNING,
   WAIT_COMPRESSOR_RUNNING,
   COMPRESSOR_RUNNING,
+  DEFROSTING,
   WAIT_DHW_PUMP_RUNNING,
+  DHW_PUMP_SETTLED,
   WAIT_BACKUP_HEATER_RUNNING,
   BACKUP_HEATER_RUNNING,
   WAIT_COMPRESSOR_STOP,
@@ -45,17 +47,16 @@ enum class DHWState
 class DHWController
 {
 private:
-  float start_current_temperature = 0.0f;
   DHWState state_ = DHWState::UNKNOWN;
   DHWState deferred_machine_state_;
   uint32_t defer_state_change_until_ms_;
-  uint32_t backup_degmin_last_ms_ = 0;
-  float temperature_rate_c_per_min_ = 0.0f;
-  float last_temperature_for_rate_ = 0.0f;
+  uint32_t last_rate_measured_time_ = 0;
+  float last_temperature_rate_ = 0.0f;
+  float last_measured_temperature_ = 0.0f;
   bool requested_to_stop_ = false;
   PumpController *pump_controller_;
   CompressorController *compressor_controller_;
-  float dhw_pump_start_time_ = 0.0f;
+  float dhw_pump_settled_time_ = 0.0f;
 
   const char* DHWStateToString(DHWState state) const
   {
@@ -83,6 +84,10 @@ private:
         return "Wait pump stop";
       case DHWState::WAIT_FOR_STATE_SWITCH:
         return "Wait for state switch";
+      case DHWState::DEFROSTING:
+        return "Defrosting";
+      case DHWState::DHW_PUMP_SETTLED:
+        return "DHW pump settled";
       default:
         return "Unknown";
     }
@@ -136,7 +141,7 @@ private:
   {
     ESP_LOGI("amber", "Stopping DHW pump.");
     id(dhw_pump_relay_switch).turn_off();
-    dhw_pump_start_time_ = 0.0f;
+    dhw_pump_settled_time_ = 0.0f;
   }
 
   bool IsPredictedTemperatureAboveTarget()
@@ -155,25 +160,13 @@ private:
   float CalculatePredictedTemperature()
   {
     float current_temperature = id(dhw_temperature_tw_sensor).state;
-    float target = id(current_dhw_setpoint_sensor).state;
+    float avg_rate_c_per_min = id(dhw_backup_current_avg_rate_sensor).state;
+    const float lookahead_min = (float)BACKUP_HEATER_LOOKAHEAD_S / 60.0f;
+    float predicted_increase = avg_rate_c_per_min * lookahead_min;
+    float predicted_temperature = current_temperature + predicted_increase;
 
-    uint32_t dt_ms = millis() - backup_degmin_last_ms_;
-    const float dt_min = (float)dt_ms / 60000.0f;
-    if (dt_min <= 0.0f)
-    {
-      ESP_LOGW("amber", "Delta time for backup heater degree/min rate calculation is zero or negative, skipping update.");
-      return 0.0f;
-    }
-    // Calculate degree/minute rate
-    float rate = (current_temperature - last_temperature_for_rate_) / dt_min;
-    // Low-pass filter the rate to avoid spikes
-    double a = 0.2f;
-    temperature_rate_c_per_min_ = (1 - a) * temperature_rate_c_per_min_ + a * rate;
-    last_temperature_for_rate_ = current_temperature;
-    // Predict future Tc based on current rate
-    float predicted_temperature = current_temperature + temperature_rate_c_per_min_ * ((float)BACKUP_HEATER_LOOKAHEAD_S / 60.0f);
-    backup_degmin_last_ms_ = millis();
-    ESP_LOGI("amber", "Backup heater temperature rate/min updated: %.2f (Predicted Temperature: %.2f°C)", temperature_rate_c_per_min_, predicted_temperature);
+    ESP_LOGI("amber", "Backup heater prediction using avg_rate=%.2f°C/min (Predicted increase: %.2f°C, Predicted temperature: %.2f°C)",
+             avg_rate_c_per_min, predicted_increase, predicted_temperature);
     return predicted_temperature;
   }
 
@@ -203,29 +196,42 @@ private:
     return false;
   }
 
-  bool IsHeatingSlowerThanMinimumAverageRate()
+  void CalculateTemperatureIncreaseRate()
   {
+    if(!id(dhw_pump_relay_switch).state)
+    {
+      // Don't calculate rate when pump is not active.
+      return;
+    }
+
+    float current_temperature = id(dhw_temperature_tw_sensor).state;
     const uint32_t now = millis();
-  
+    float delta_min = (float)(now - last_rate_measured_time_) / 60000.0f;
+    float delta_t = current_temperature - last_measured_temperature_;
+    float rate = (delta_min > 0.01f) ? (delta_t / delta_min) : 0.0f;
+    id(dhw_backup_current_avg_rate_sensor).publish_state(rate);
+    last_measured_temperature_ = current_temperature;
+    last_rate_measured_time_ = now;
+  }
+
+  bool IsHeatingSlowerThanMinimumAverageRate()
+  {  
     // Don't enable backup heater based when DHW pump is not started yet.
-    if(dhw_pump_start_time_ == 0.0f)
+    if(!id(dhw_pump_relay_switch).state)
     {
       return false;
     }
 
-    // Start calculations after grace period to let the temperature settle.
-    if(now - dhw_pump_start_time_ < DHW_BACKUP_HEATER_GRACE_PERIOD_S * 1000UL)
+    // Start calculations after grace period to let the average sensor gather enough data.
+    if(millis() - dhw_pump_settled_time_ < DHW_BACKUP_HEATER_GRACE_PERIOD_S * 1000UL)
     {
       return false;
     }
-
-    const float elapsed_min = (float)(now - dhw_pump_start_time_) / 60000.0f;
-    const float gained = id(dhw_temperature_tw_sensor).state - start_current_temperature;
-    const float avg_rate = (elapsed_min > 0.1f) ? (gained / elapsed_min) : 0.0f;
-    id(dhw_backup_current_avg_rate_sensor).publish_state(avg_rate);
-    if (avg_rate < id(dhw_backup_min_avg_rate).state && id(dhw_backup_min_avg_rate).state > 0.0f)
+  
+    float min_avg_rate = id(dhw_backup_min_avg_rate).state;
+    if (id(dhw_backup_current_avg_rate_sensor).state < min_avg_rate && min_avg_rate > 0.0f)
     {
-      ESP_LOGI("amber", "DHW backup enable: avg_rate=%.3f°C/min < min=%.3f°C/min", avg_rate, id(dhw_backup_min_avg_rate).state);
+      ESP_LOGI("amber", "DHW backup enable: avg_rate=%.3f°C/min < min=%.3f°C/min", id(dhw_backup_current_avg_rate_sensor).state, min_avg_rate);
       return true;
     }
 
@@ -309,6 +315,8 @@ public:
   {
     DoSafetyChecks();
 
+    CalculateTemperatureIncreaseRate();
+
     switch (state_)
     {
       case DHWState::UNKNOWN:
@@ -385,10 +393,15 @@ public:
 
         if(ShouldStartDhwPump())
         {
-          start_current_temperature = id(dhw_temperature_tw_sensor).state;
           ESP_LOGI("amber", "Starting DHW pump");
           id(dhw_pump_relay_switch).turn_on();
           SetNextState(DHWState::WAIT_DHW_PUMP_RUNNING);
+          break;
+        }
+
+        if (id(defrost_active_sensor).state)
+        {
+          SetNextState(DHWState::DEFROSTING);
           break;
         }
 
@@ -425,19 +438,33 @@ public:
 
         compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
         break;
-  
+        
+      case DHWState::DEFROSTING:
+        if (!id(defrost_active_sensor).state)
+        {
+          SetNextState(DHWState::COMPRESSOR_RUNNING);
+        }
+        break;
+
       case DHWState::WAIT_DHW_PUMP_RUNNING:
         if(id(dhw_pump_relay_switch).state)
         {
-          dhw_pump_start_time_ = millis();
-          SetNextState(DHWState::COMPRESSOR_RUNNING);
+          dhw_pump_settled_time_ = millis();
+          // Let the temperature settle after starting the pump.
+          LeaveStateAndSetNextStateAfterWaitTime(DHWState::DHW_PUMP_SETTLED, DHW_PUMP_TEMPERATURE_SETTLE_TIME_S * 1000UL);
         }
+        break;
+
+      case DHWState::DHW_PUMP_SETTLED:
+        last_measured_temperature_ = id(dhw_temperature_tw_sensor).state;
+        last_rate_measured_time_ = millis();
+        dhw_pump_settled_time_ = millis();
+        SetNextState(DHWState::COMPRESSOR_RUNNING);
         break;
 
       case DHWState::WAIT_COMPRESSOR_STOP:
         if (!compressor_controller_->IsRunning())
         {
-          start_current_temperature = 0;
           pump_controller_->Stop();
           StopDhwPump();
           SetNextState(DHWState::WAIT_PUMP_STOP);

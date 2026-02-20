@@ -162,6 +162,29 @@
         snprintf(buf, sizeof(buf), "Buiten %.1f°C", v);
         return std::string(buf);
 
+  - lvgl.label.update:
+      id: water_mode_temperature_values
+      text: !lambda |-
+        const std::string main_state = id(state_machine_state_main).state;
+        float current_temperature = NAN;
+        float target_temperature = NAN;
+
+        if (main_state == "DHW") {
+          current_temperature = id(dhw_temperature_tw_sensor).state;
+          target_temperature = id(current_dhw_setpoint_sensor).state;
+        } else if (main_state == "Heat/Cool") {
+          current_temperature = id(heat_cool_temperature_tc).state;
+          target_temperature = id(current_setpoint).state;
+        }
+
+        char buf[48];
+        if (isnan(current_temperature) || isnan(target_temperature)) {
+          snprintf(buf, sizeof(buf), "-°C / -°C");
+        } else {
+          snprintf(buf, sizeof(buf), "%.1f°C / %.1f°C", current_temperature, target_temperature);
+        }
+        return std::string(buf);
+
   - lvgl.widget.update:
       id: nav_status_heat_icon
       hidden: !lambda |-
