@@ -57,6 +57,7 @@ private:
   void ApplyWorkingMode();
   void SetNextState(State state);
   const char* StateToString(State state);
+  void WriteHeatingFrequencyTable();
 public:
   OpenAmberComponent();
   ~OpenAmberComponent();

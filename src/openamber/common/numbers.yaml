@@ -278,11 +278,90 @@
   modbus_controller_id: modbus_outside_unit
   id: outlet_temperature_outside
   internal: True
-  name: "CV-aanvoertemperatuur - Buiten"
   address: 2005
   register_type: holding
   value_type: S_WORD
   mode: box
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: heating_frequency_index_1
+  internal: True
+  address: 3012
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: heating_frequency_index_2
+  internal: True
+  address: 3013
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: heating_frequency_index_3
+  internal: True
+  address: 3014
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: heating_frequency_index_4
+  internal: True
+  address: 3015
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: heating_frequency_index_5
+  internal: True
+  address: 3016
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: heating_frequency_index_6
+  internal: True
+  address: 3017
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: heating_frequency_index_7
+  internal: True
+  address: 3018
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: heating_frequency_index_8
+  internal: True
+  address: 3019
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: heating_frequency_index_9
+  internal: True
+  address: 3020
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: heating_frequency_index_10
+  internal: True
+  address: 3021
+  register_type: holding
+  value_type: S_WORD
 
 - platform: template
   name: "Pomp interval (minuten)"
