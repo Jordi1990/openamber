@@ -74,6 +74,7 @@ void OpenAmberComponent::update()
     {
       id(initialize_relay_switch).turn_on();
       id(pump_p0_relay_switch).turn_on();
+      WriteHeatingFrequencyTable();
       ESP_LOGI("amber", "Initialized heat pump controller");
       SetNextState(current_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL);
       break;
@@ -201,6 +202,21 @@ ThreeWayValvePosition OpenAmberComponent::GetDesiredThreeWayValvePosition()
   
   // Otherwise use heating/cooling position
   return ThreeWayValvePosition::HEATING_COOLING;
+}
+
+void OpenAmberComponent::WriteHeatingFrequencyTable()
+{
+      // Patch heating frequency table to have more control in low load situations.
+      id(heating_frequency_index_1).publish_state(30);
+      id(heating_frequency_index_2).publish_state(36);
+      id(heating_frequency_index_3).publish_state(43);
+      id(heating_frequency_index_4).publish_state(49);
+      id(heating_frequency_index_5).publish_state(55);
+      id(heating_frequency_index_6).publish_state(61);
+      id(heating_frequency_index_7).publish_state(69);
+      id(heating_frequency_index_8).publish_state(74);
+      id(heating_frequency_index_9).publish_state(82);
+      id(heating_frequency_index_10).publish_state(90);
 }
 }  // namespace openamber
 }  // namespace esphome
