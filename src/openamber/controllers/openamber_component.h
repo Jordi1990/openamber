@@ -139,7 +139,7 @@ void OpenAmberComponent::SetNextState(State state)
   state_ = state;
   const char* txt = StateToString(state);
   id(state_machine_state_main).publish_state(txt);
-  ESP_LOGI("amber", "HEAT_COOL state changed: %s", txt);
+  ESP_LOGI("amber", "State changed: %s", txt);
 }
 
 const char* OpenAmberComponent::StateToString(State state)
@@ -207,16 +207,16 @@ ThreeWayValvePosition OpenAmberComponent::GetDesiredThreeWayValvePosition()
 void OpenAmberComponent::WriteHeatingFrequencyTable()
 {
       // Patch heating frequency table to have more control in low load situations.
-      id(heating_frequency_index_1).publish_state(30);
-      id(heating_frequency_index_2).publish_state(36);
-      id(heating_frequency_index_3).publish_state(43);
-      id(heating_frequency_index_4).publish_state(49);
-      id(heating_frequency_index_5).publish_state(55);
-      id(heating_frequency_index_6).publish_state(61);
-      id(heating_frequency_index_7).publish_state(69);
-      id(heating_frequency_index_8).publish_state(74);
-      id(heating_frequency_index_9).publish_state(82);
-      id(heating_frequency_index_10).publish_state(90);
+      id(heating_frequency_index_1).make_call().set_value(30).perform();
+      id(heating_frequency_index_2).make_call().set_value(36).perform();
+      id(heating_frequency_index_3).make_call().set_value(43).perform();
+      id(heating_frequency_index_4).make_call().set_value(49).perform();
+      id(heating_frequency_index_5).make_call().set_value(55).perform();
+      id(heating_frequency_index_6).make_call().set_value(61).perform();
+      id(heating_frequency_index_7).make_call().set_value(69).perform();
+      id(heating_frequency_index_8).make_call().set_value(74).perform();
+      id(heating_frequency_index_9).make_call().set_value(82).perform();
+      id(heating_frequency_index_10).make_call().set_value(90).perform();
 }
 }  // namespace openamber
 }  // namespace esphome
