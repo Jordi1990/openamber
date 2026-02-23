@@ -44,6 +44,11 @@ display:
     model: WAVESHARE-5-1024X600
     id: my_display
 
+output:
+  - platform: ledc
+    pin: GPIO15
+    id: backlight
+
 switch:
   - platform: gpio
     name: backlight switch
@@ -73,6 +78,9 @@ touchscreen:
             - globals.set:
                 id: is_idled
                 value: 'false'
+            - output.set_level:
+                id: backlight
+                level: 100%
             - lvgl.widget.hide:
                 id: idle_screen_overlay
 
@@ -105,6 +113,9 @@ lvgl:
         - globals.set:
             id: is_idled
             value: 'true'
+        - output.set_level:
+            id: backlight
+            level: 50% # 50% turns off the backlight
         - lvgl.widget.show:
             id: idle_screen_overlay
   disp_bg_color: 0x0A2747
