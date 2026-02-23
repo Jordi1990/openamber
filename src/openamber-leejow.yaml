@@ -6,6 +6,10 @@ esp32:
   framework:
     advanced:
       minimum_chip_revision: "3.1"
+
+esphome:
+ project:
+  version: dev
     
 modbus:
   flow_control_pin: GPIO14
