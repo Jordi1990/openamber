@@ -7,6 +7,9 @@
         retain: true
         payload: |-
           root["device_id"] = id(mac_address).state;
+          root["model_identification_1"] = id(model_identification_1).state;
+          root["model_identification_2"] = id(model_identification_2).state;
+          root["model_identification_3"] = id(model_identification_3).state;
           root["timestamp"] = id(my_time).timestamp_now();
           root["firmware"] = ESPHOME_PROJECT_VERSION;
           root["hardware_item_number"] = id(outside_unit_hardware_item_number).state;
