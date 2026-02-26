@@ -238,6 +238,114 @@
             id: nav_status_ha_icon
             text_color: 0xEF4444
 
+  - if:
+      condition:
+        update.is_available: firmware_update
+      then:
+        - globals.set:
+            id: service_update_check_failed
+            value: 'false'
+        - lvgl.widget.show:
+            id: nav_service_badge
+        - lvgl.label.update:
+            id: service_update_status
+            text: ""
+        - lvgl.widget.hide:
+            id: service_update_error
+        - lvgl.label.update:
+            id: service_update_version
+            text: !lambda |-
+              const auto &info = id(firmware_update).update_info;
+              std::string latest = info.latest_version;
+              std::string current = info.current_version;
+              if (latest.empty()) latest = "onbekend";
+              if (current.empty()) current = ESPHOME_PROJECT_VERSION;
+              return std::string("Beschikbaar: ") + latest + " (huidig: " + current + ")";
+        - lvgl.qrcode.update:
+            id: service_release_qr
+            text: !lambda |-
+              const auto &info = id(firmware_update).update_info;
+              if (!info.release_url.empty())
+                return info.release_url;
+              return std::string("https://github.com/Jordi1990/openamber/releases");
+        - lvgl.widget.show:
+            id: service_release_qr_hint
+        - lvgl.widget.show:
+            id: service_release_qr
+        - lvgl.widget.show:
+            id: service_update_button
+        - if:
+            condition:
+              lambda: |-
+                return id(service_update_check_in_progress);
+            then:
+              - lvgl.widget.hide:
+                  id: service_check_update_button
+              - lvgl.widget.show:
+                  id: service_check_update_button_busy
+            else:
+              - lvgl.widget.hide:
+                  id: service_check_update_button
+              - lvgl.widget.hide:
+                  id: service_check_update_button_busy
+      else:
+        - lvgl.widget.hide:
+            id: nav_service_badge
+        - if:
+            condition:
+              lambda: |-
+                return id(service_update_check_failed);
+            then:
+              - lvgl.label.update:
+                  id: service_update_error
+                  text: "Geen verbinding mogelijk met update server"
+              - lvgl.widget.show:
+                  id: service_update_error
+            else:
+              - lvgl.widget.hide:
+                  id: service_update_error
+        - lvgl.label.update:
+            id: service_update_status
+            text: ""
+        - lvgl.label.update:
+            id: service_update_version
+            text: !lambda |-
+              const auto &info = id(firmware_update).update_info;
+              std::string current = info.current_version;
+              if (current.empty()) current = ESPHOME_PROJECT_VERSION;
+              return std::string("Geen nieuwe software beschikbaar\nHuidige versie: ") + current;
+        - lvgl.widget.hide:
+            id: service_release_qr_hint
+        - lvgl.widget.hide:
+            id: service_release_qr
+        - lvgl.widget.hide:
+            id: service_update_button
+        - if:
+            condition:
+              lambda: |-
+                return id(service_update_check_in_progress);
+            then:
+              - lvgl.widget.hide:
+                  id: service_check_update_button
+              - lvgl.widget.show:
+                  id: service_check_update_button_busy
+            else:
+              - lvgl.widget.show:
+                  id: service_check_update_button
+              - lvgl.widget.hide:
+                  id: service_check_update_button_busy
+
+  - if:
+      condition:
+        lambda: |-
+          return id(service_update_install_in_progress);
+      then:
+        - lvgl.widget.show:
+            id: service_update_progress_overlay
+      else:
+        - lvgl.widget.hide:
+            id: service_update_progress_overlay
+
   # - lvgl.label.update:
   #     id: row_frost_1_outside_value
   #     text: !lambda |-

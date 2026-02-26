@@ -43,3 +43,10 @@
   mac_address:
     id: mac_address
     internal: True
+
+- platform: template
+  name: "Analytics device ID"
+  id: analytics_device_id
+  icon: "mdi:identifier"
+  entity_category: diagnostic
+  update_interval: never

@@ -40,6 +40,8 @@
         - "\U000F0928"  # mdi-wifi-strength-4
         - "\U000F092E"  # mdi-wifi-strength-off-outline
         - "\U000F07D0"  # mdi-home-assistant
+        - "\U000F03EB"  # mdi-update
+        - "\U000F04A0"  # mdi-cogs
 - file:
     type: gfonts
     family: "Roboto"
