@@ -54,6 +54,7 @@ api:
 
 # Broker used to push analytics data (Opt-In)
 mqtt:
+  id: mqtt_client
   broker: mqtt.openamber.nl
   enable_on_boot: false
   username: openamber_write
@@ -63,6 +64,11 @@ mqtt:
   discovery_retain: false
   log_topic: null
   topic_prefix: null
+  on_connect:
+    - lambda: |-
+        id(mqtt_client).subscribe("openamber/" + id(mac_address).state + "/device_id", [](const std::string &topic, const std::string &payload) {
+          id(analytics_device_id).publish_state(payload);
+        });
 
 ota:
   - platform: esphome
@@ -73,6 +79,7 @@ http_request:
 
 update:
   - platform: http_request
+    id: firmware_update
     name: Firmware Update
     source: https://github.com/Jordi1990/openamber/releases/latest/download/openamber.manifest.json
 
@@ -110,6 +117,7 @@ web_server:
     - id: config
       name: "Config"
       sorting_weight: 90
+
 wifi:
   ap:
     ssid: "OpenAmber"
@@ -127,6 +135,18 @@ globals:
     restore_value: no
     initial_value: 'false'
   - id: modbus_outside_is_online
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: service_update_check_in_progress
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: service_update_check_failed
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: service_update_install_in_progress
     type: bool
     restore_value: no
     initial_value: 'false'

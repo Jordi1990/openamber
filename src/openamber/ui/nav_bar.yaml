@@ -39,6 +39,9 @@ obj:
           - lvgl.widget.update:
               id: page_home
               hidden: false
+          - lvgl.widget.update:
+              id: page_service
+              hidden: true
           # - lvgl.widget.update:
           #     id: page_settings
           #     hidden: true
@@ -60,6 +63,16 @@ obj:
               text_color: 0xD1D5DB
           - lvgl.widget.update:
               id: nav_settings_label
+              text_color: 0xD1D5DB
+
+          - lvgl.widget.update:
+              id: nav_service
+              bg_opa: 0%
+          - lvgl.widget.update:
+              id: nav_service_icon
+              text_color: 0xD1D5DB
+          - lvgl.widget.update:
+              id: nav_service_label
               text_color: 0xD1D5DB
 
         widgets:
@@ -190,8 +203,37 @@ obj:
         width: 120
         height: 100%
         pad_all: 0
+        bg_color: 0x1F3B68
         bg_opa: 0%
         border_opa: 0%
+        radius: 24
+        on_click:
+          - lvgl.widget.update:
+              id: page_home
+              hidden: true
+          - lvgl.widget.update:
+              id: page_service
+              hidden: false
+
+          - lvgl.widget.update:
+              id: nav_service
+              bg_opa: 100%
+          - lvgl.widget.update:
+              id: nav_service_icon
+              text_color: 0xFFFFFF
+          - lvgl.widget.update:
+              id: nav_service_label
+              text_color: 0xFFFFFF
+
+          - lvgl.widget.update:
+              id: nav_home
+              bg_opa: 0%
+          - lvgl.widget.update:
+              id: nav_home_icon
+              text_color: 0xD1D5DB
+          - lvgl.widget.update:
+              id: nav_home_label
+              text_color: 0xD1D5DB
         widgets:
           - label:
               id: nav_service_icon
@@ -206,4 +248,18 @@ obj:
               text_color: 0xD1D5DB
               text_font: font_mdi_24
               align: BOTTOM_MID
+          - obj:
+              id: nav_service_badge
+              width: 12
+              height: 12
+              align: TOP_RIGHT
+              x: -10
+              y: 6
+              hidden: true
+              bg_color: 0xEF4444
+              bg_opa: 100%
+              radius: 6
+              border_width: 0
+              border_opa: 0%
+              pad_all: 0
 

@@ -1,0 +1,393 @@
+obj:
+  id: page_service
+  width: 100%
+  height: 76%
+  x: 0
+  y: 70
+  hidden: true
+  bg_opa: 0%
+  border_opa: 0%
+  scrollbar_mode: "OFF"
+  scrollable: false
+  pad_left: 24
+  pad_right: 24
+  pad_top: 10
+  pad_bottom: 10
+
+  widgets:
+    - obj:
+        id: service_card
+        width: 100%
+        height: 100%
+        bg_color: 0xF5F8FC
+        bg_opa: 100%
+        radius: 18
+        pad_left: 24
+        pad_right: 24
+        pad_top: 20
+        pad_bottom: 20
+        border_width: 0
+        border_opa: 0%
+        shadow_width: 10
+        shadow_spread: 0
+        shadow_color: 0x000000
+        shadow_opa: 20%
+        scrollbar_mode: "OFF"
+        scrollable: false
+
+        widgets:
+          - obj:
+              id: service_tabs
+              width: 100%
+              height: 56
+              align: TOP_LEFT
+              y: 0
+              bg_color: 0xD1D5DB
+              bg_opa: 100%
+              radius: 16
+              border_width: 0
+              border_opa: 0%
+              pad_left: 6
+              pad_right: 6
+              pad_top: 2
+              pad_bottom: 2
+              widgets:
+                - obj:
+                    id: service_tab_updates
+                    width: 220
+                    height: 52
+                    align: CENTER
+                    bg_color: 0x1F3B68
+                    bg_opa: 100%
+                    radius: 14
+                    border_width: 2
+                    border_color: 0x1F3B68
+                    border_opa: 100%
+                    pad_left: 14
+                    pad_right: 14
+                    pad_top: 2
+                    pad_bottom: 2
+                    widgets:
+                      - obj:
+                              id: service_tab_updates_content
+                              width: SIZE_CONTENT
+                              height: SIZE_CONTENT
+                              align: CENTER
+                              y: 4
+                              bg_opa: 0%
+                              border_opa: 0%
+                              pad_all: 0
+                              layout:
+                                  type: FLEX
+                                  flex_flow: ROW
+                                  flex_align_main: CENTER
+                                  flex_align_cross: CENTER
+                                  pad_column: 8
+                              widgets:
+                                  - label:
+                                          id: service_tab_updates_icon
+                                          text: "\U000F03EB"
+                                          text_color: 0xFFFFFF
+                                          text_font: font_mdi_24
+                                  - label:
+                                          id: service_tab_updates_label
+                                          text: "Updates"
+                                          text_color: 0xFFFFFF
+                                          text_font: font_mdi_24
+
+          - obj:
+              id: service_updates_panel
+              width: 100%
+              height: 82%
+              align: TOP_LEFT
+              y: 74
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 0
+              widgets:
+                - label:
+                    id: service_update_status
+                    width: 62%
+                    text: "Controleren op update..."
+                    text_color: 0x1F2933
+                    text_font: font_mdi_24
+                    long_mode: WRAP
+                    align: TOP_LEFT
+
+                - obj:
+                    id: service_update_button
+                    width: 180
+                    height: 52
+                    align: BOTTOM_RIGHT
+                    y: 0
+                    hidden: true
+                    bg_color: 0x0072CE
+                    bg_opa: 100%
+                    radius: 14
+                    border_width: 0
+                    border_opa: 0%
+                    pad_all: 0
+                    on_click:
+                      - lvgl.widget.show:
+                          id: service_update_confirm_modal
+                    widgets:
+                      - label:
+                          id: service_update_button_label
+                          text: "Update"
+                          text_color: 0xFFFFFF
+                          text_font: font_mdi_24
+                          align: CENTER
+
+                - obj:
+                    id: service_check_update_button
+                    width: 250
+                    height: 52
+                    align: TOP_RIGHT
+                    y: -2
+                    hidden: false
+                    bg_color: 0x0072CE
+                    bg_opa: 100%
+                    radius: 14
+                    border_width: 0
+                    border_opa: 0%
+                    pad_all: 0
+                    on_click:
+                      - globals.set:
+                          id: service_update_check_failed
+                          value: 'false'
+                      - globals.set:
+                          id: service_update_check_in_progress
+                          value: 'true'
+                      - lvgl.widget.hide:
+                          id: service_check_update_button
+                      - lvgl.widget.show:
+                          id: service_check_update_button_busy
+                      - update.check:
+                          id: firmware_update
+                      - delay: 30s
+                      - if:
+                          condition:
+                            and:
+                              - not:
+                                  update.is_available: firmware_update
+                              - lambda: |-
+                                  const auto &info = id(firmware_update).update_info;
+                                  return info.latest_version.empty() && info.release_url.empty();
+                          then:
+                            - globals.set:
+                                id: service_update_check_failed
+                                value: 'true'
+                          else:
+                            - globals.set:
+                                id: service_update_check_failed
+                                value: 'false'
+                      - globals.set:
+                          id: service_update_check_in_progress
+                          value: 'false'
+                    widgets:
+                      - label:
+                              id: service_check_update_button_label
+                              text: "Controleer updates"
+                              text_color: 0xFFFFFF
+                              text_font: font_mdi_24
+                              align: CENTER
+
+                - obj:
+                    id: service_check_update_button_busy
+                    width: 250
+                    height: 52
+                    align: TOP_RIGHT
+                    y: -2
+                    hidden: true
+                    bg_color: 0xC7CDD6
+                    bg_opa: 100%
+                    radius: 14
+                    border_width: 0
+                    border_opa: 0%
+                    pad_all: 0
+                    widgets:
+                      - label:
+                          id: service_check_update_button_busy_label
+                          text: "Ophalen..."
+                          text_color: 0x4B5563
+                          text_font: font_mdi_24
+                          align: CENTER
+
+                - label:
+                    id: service_update_version
+                    width: 96%
+                    text: "Versie informatie wordt geladen..."
+                    text_color: 0x1F2933
+                    text_font: font_mdi_24
+                    long_mode: WRAP
+                    align: TOP_LEFT
+                    y: 10
+
+                - label:
+                    id: service_update_error
+                    width: 96%
+                    text: ""
+                    hidden: true
+                    text_color: 0xEF4444
+                    text_font: font_mdi_24
+                    long_mode: WRAP
+                    align: TOP_LEFT
+                    y: 68
+
+                - label:
+                    id: service_release_qr_hint
+                    text: "Scan QR voor release info"
+                    hidden: true
+                    text_color: 0x1F2933
+                    text_font: font_mdi_24
+                    align: TOP_LEFT
+                    y: 110
+
+                - qrcode:
+                    id: service_release_qr
+                    hidden: true
+                    align: TOP_MID
+                    y: 138
+                    size: 180
+                    dark_color: 0x000000
+                    light_color: 0xFFFFFF
+                    text: "https://github.com/Jordi1990/openamber/releases"
+
+    - obj:
+        id: service_update_confirm_modal
+        width: 100%
+        height: 100%
+        hidden: true
+        bg_color: 0x000000
+        bg_opa: 45%
+        border_width: 0
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+
+        widgets:
+          - obj:
+              id: service_update_confirm_card
+              width: 560
+              height: 260
+              align: CENTER
+              bg_color: 0xFFFFFF
+              bg_opa: 100%
+              radius: 18
+              border_width: 0
+              border_opa: 0%
+              pad_left: 22
+              pad_right: 22
+              pad_top: 18
+              pad_bottom: 18
+
+              widgets:
+                - label:
+                    id: service_update_confirm_title
+                    text: "Update bevestigen"
+                    text_color: 0x1F2933
+                    text_font: font_mdi_24
+                    align: TOP_LEFT
+
+                - label:
+                    id: service_update_confirm_text
+                    text: "Wil je de firmware update nu starten?"
+                    text_color: 0x1F2933
+                    text_font: font_mdi_24
+                    align: TOP_LEFT
+                    y: 56
+
+                - obj:
+                    id: service_update_cancel_button
+                    width: 200
+                    height: 56
+                    align: BOTTOM_LEFT
+                    bg_color: 0xE5E7EB
+                    bg_opa: 100%
+                    radius: 14
+                    border_width: 0
+                    border_opa: 0%
+                    pad_all: 0
+                    on_click:
+                      - lvgl.widget.hide:
+                          id: service_update_confirm_modal
+                    widgets:
+                      - label:
+                          id: service_update_cancel_label
+                          text: "Annuleren"
+                          text_color: 0x1F2933
+                          text_font: font_mdi_24
+                          align: CENTER
+
+                - obj:
+                    id: service_update_confirm_button
+                    width: 200
+                    height: 56
+                    align: BOTTOM_RIGHT
+                    bg_color: 0x0072CE
+                    bg_opa: 100%
+                    radius: 14
+                    border_width: 0
+                    border_opa: 0%
+                    pad_all: 0
+                    on_click:
+                      - lvgl.widget.hide:
+                          id: service_update_confirm_modal
+                      - globals.set:
+                          id: service_update_install_in_progress
+                          value: 'true'
+                      - lvgl.widget.show:
+                          id: service_update_progress_overlay
+                      - update.perform:
+                          id: firmware_update
+                      - delay: 10min
+                      - globals.set:
+                          id: service_update_install_in_progress
+                          value: 'false'
+                      - lvgl.widget.hide:
+                          id: service_update_progress_overlay
+                    widgets:
+                      - label:
+                          id: service_update_confirm_label
+                          text: "Update starten"
+                          text_color: 0xFFFFFF
+                          text_font: font_mdi_24
+                          align: CENTER
+
+    - obj:
+        id: service_update_progress_overlay
+        width: 100%
+        height: 100%
+        hidden: true
+        bg_color: 0x000000
+        bg_opa: 60%
+        border_width: 0
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+
+        widgets:
+          - obj:
+              id: service_update_progress_card
+              width: 560
+              height: 220
+              align: CENTER
+              bg_color: 0xFFFFFF
+              bg_opa: 100%
+              radius: 18
+              border_width: 0
+              border_opa: 0%
+              pad_left: 22
+              pad_right: 22
+              pad_top: 20
+              pad_bottom: 20
+
+              widgets:
+                - label:
+                    id: service_update_progress_title
+                    text: "Update wordt geinstalleerd"
+                    text_color: 0x1F2933
+                    text_font: font_mdi_24
+                    align: CENTER
