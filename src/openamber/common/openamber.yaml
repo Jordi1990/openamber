@@ -26,6 +26,9 @@ esphome:
     - openamber/controllers/heat_cool_controller.h
   on_boot:
     then:
+      - delay: 30s
+      - update.check:
+          id: firmware_update
       - if:
           condition:
             - switch.is_on: analytics_enabled_switch
@@ -44,6 +47,10 @@ interval:
           - switch.is_on: analytics_enabled_switch
          then:
           - script.execute: send_analytics
+  - interval: 24h
+    then:
+      - update.check:
+          id: firmware_update
 
 logger:
   level: INFO
