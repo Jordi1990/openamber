@@ -1,3 +1,18 @@
+- id: fetch_analytics_device_id
+  then:
+    - http_request.get:
+        url: !lambda |-
+          return "https://openamber.nl/api/devices/by-mac/" + id(mac_address).state + "/device-id";
+        capture_response: true
+        on_response:
+          then:
+            - if:
+                condition:
+                  lambda: return response->status_code == 200 && !body.empty();
+                then:
+                  - lambda: |-
+                      id(analytics_device_id).publish_state(body);
+
 - id: send_analytics
   then:
     - mqtt.publish_json:
@@ -82,3 +97,12 @@
           root["dhw_schedule_enabled"] = id(dhw_schedule_enabled_switch).state;
           root["dhw_schedule_active"] = id(dhw_schedule_active_sensor).state;
           root["pump_p1_enabled"] = id(pump_p1_enabled).state;
+          root["pump_p1_active"] = id(pump_p1_relay_switch).state;
+          root["expansion_valve_position"] = id(expansion_valve_position).state;
+          root["fan_rpm"] = id(fan_rpm_sensor).state;
+          root["suction_temperature_ts"] = id(suction_temperature_ts).state;
+          root["suction_pressure_ps"] = id(suction_pressure_ps).state;
+          root["discharge_temperature_td"] = id(discharge_temperature_td).state;
+          root["discharge_pressure_pd"] = id(discharge_pressure_pd).state;
+          root["power_compressor"] = id(power_compressor).state;
+          root["dhw_pump_relay"] = id(dhw_pump_relay_switch).state;

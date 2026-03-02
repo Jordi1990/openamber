@@ -72,10 +72,11 @@ mqtt:
   log_topic: null
   topic_prefix: null
   on_connect:
-    - lambda: |-
-        id(mqtt_client).subscribe("openamber/" + id(mac_address).state + "/device_id", [](const std::string &topic, const std::string &payload) {
-          id(analytics_device_id).publish_state(payload);
-        });
+    - if:
+        condition:
+          - switch.is_on: analytics_enabled_switch
+        then:
+          - script.execute: fetch_analytics_device_id
 
 ota:
   - platform: esphome

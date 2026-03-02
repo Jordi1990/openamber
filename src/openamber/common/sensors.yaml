@@ -21,6 +21,15 @@
     - sliding_window_moving_average:
         window_size: 60
         send_every: 1
+
+- platform: template
+  id: power_compressor
+  internal: True
+  device_class: power
+  state_class: measurement
+  unit_of_measurement: "W"
+  lambda: |-
+    return id(voltage_outside_unit).state * id(current_outside_unit).state;
           
 - platform: uptime
   name: "Uptime"
@@ -330,6 +339,7 @@
 # Outside unit
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
+  id: voltage_outside_unit
   name: "Voltage buitenunit"
   disabled_by_default: True
   address: 2100
@@ -346,6 +356,7 @@
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
+  id: current_outside_unit
   name: "Stroom buitenunit"
   disabled_by_default: True
   address: 2101
@@ -414,6 +425,7 @@
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
+  id: expansion_valve_position
   name: "Expansieklep"
   address: 2107
   register_type: holding
@@ -460,6 +472,7 @@
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
+  id: discharge_temperature_td
   name: "Persgastemperatuur (Td)"
   disabled_by_default: True
   address: 2112
@@ -477,6 +490,7 @@
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
+  id: suction_temperature_ts
   name: "Zuigastemperatuur (Ts)"
   disabled_by_default: True
   address: 2113
@@ -494,6 +508,7 @@
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
+  id: suction_pressure_ps
   name: "Zuiggasdruk (Ps)"
   disabled_by_default: True
   address: 2116
@@ -509,6 +524,7 @@
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
+  id: discharge_pressure_pd
   name: "Persgasdruk (Pd)"
   disabled_by_default: True
   address: 2117
