@@ -76,7 +76,18 @@ void OpenAmberComponent::update()
       id(pump_p0_relay_switch).turn_on();
       WriteHeatingFrequencyTable();
       ESP_LOGI("amber", "Initialized heat pump controller");
-      SetNextState(current_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL);
+      if(current_valve_position == ThreeWayValvePosition::DHW)
+      {
+        // Set again to make sure both relays are in proper position.
+        SetThreeWayValve(ThreeWayValvePosition::DHW);
+        SetNextState(State::DHW_HEAT);
+      }
+      else
+      {
+        // Set again to make sure both relays are in proper position.
+        SetThreeWayValve(ThreeWayValvePosition::HEATING_COOLING);
+        SetNextState(State::HEAT_COOL);
+      }
       break;
     }
 
