@@ -124,7 +124,7 @@ void OpenAmberComponent::update()
 
     case State::SWITCHING:
     {
-      if(last_three_way_valve_switch_ms_ + THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL < millis())
+      if(last_three_way_valve_switch_ms_ + THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL < App.get_loop_component_start_time())
       {
         SetNextState(desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL);
         ESP_LOGI("amber", "3-way valve switch complete, new mode: %s", state_ == State::DHW_HEAT ? "DHW" : "HEAT/COOL");
@@ -183,7 +183,7 @@ void OpenAmberComponent::SetThreeWayValve(ThreeWayValvePosition position)
     id(three_way_valve_heat_cool_switch).turn_on();
   }
 
-  last_three_way_valve_switch_ms_ = millis();
+  last_three_way_valve_switch_ms_ = App.get_loop_component_start_time();
   ESP_LOGI("amber", "Setting 3-way valve to %s.", position == ThreeWayValvePosition::DHW ? "DHW" : "Heating/Cooling");
 }
 

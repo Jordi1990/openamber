@@ -106,7 +106,7 @@ private:
   void LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState new_state, uint32_t defer_ms)
   {
     deferred_machine_state_ = new_state;
-    defer_state_change_until_ms_ = millis() + defer_ms;
+    defer_state_change_until_ms_ = App.get_loop_component_start_time() + defer_ms;
     SetNextState(HeatCoolState::WAIT_FOR_STATE_SWITCH);
   }
 
@@ -173,11 +173,12 @@ private:
 
   void CalculateAccumulatedDegreeMinutes()
   {
+    uint32_t now = App.get_loop_component_start_time();
     float tc = id(heat_cool_temperature_tc).state;
     float target = id(pid_heat_cool_temperature_control).target_temperature;
     const float diff = std::max(0.0f, target - tc);
-    uint32_t dt_ms = millis() - backup_degmin_last_ms_;
-    backup_degmin_last_ms_ = millis();
+    uint32_t dt_ms = now - backup_degmin_last_ms_;
+    backup_degmin_last_ms_ = now;
     const float dt_min = (float)dt_ms / 60000.0f;
 
     int mode_offset = id(compressor_control_select).size() - id(heat_compressor_mode).size();
@@ -208,10 +209,11 @@ private:
 
   float CalculateBackupHeaterPredictedTemperature()
   {
+    uint32_t now = App.get_loop_component_start_time();
     float current_temperature = id(heat_cool_temperature_tc).state;
     float target = id(pid_heat_cool_temperature_control).target_temperature;
 
-    uint32_t dt_ms = millis() - backup_degmin_last_ms_;
+    uint32_t dt_ms = now - backup_degmin_last_ms_;
     const float dt_min = (float)dt_ms / 60000.0f;
     if (dt_min <= 0.0f)
     {
@@ -226,7 +228,7 @@ private:
     last_temperature_for_rate_ = current_temperature;
     // Predict future Tc based on current rate.
     float predicted_temperature = current_temperature + temperature_rate_c_per_min_ * ((float)BACKUP_HEATER_LOOKAHEAD_S / 60.0f);
-    backup_degmin_last_ms_ = millis();
+    backup_degmin_last_ms_ = now;
     ESP_LOGI("amber", "Backup heater temperature rate/min updated: %.2f (Predicted Temperature: %.2f°C)", temperature_rate_c_per_min_, predicted_temperature);
     return predicted_temperature;
   }
@@ -309,12 +311,12 @@ public:
 
   void InitializeBackupDegMinTracking()
   {
-    backup_degmin_last_ms_ = millis();
+    backup_degmin_last_ms_ = App.get_loop_component_start_time();
   }
 
   int DetermineCompressorMode()
   {
-    const uint32_t now = millis();
+    const uint32_t now = App.get_loop_component_start_time();
     int desired_compressor_mode = MapPIDToCompressorMode(compressor_pid_);
     auto current_compressor_mode = id(compressor_control_select).active_index().value();
     float current_temperature = id(heat_cool_temperature_tc).state;
@@ -510,7 +512,7 @@ public:
       {
         if (compressor_controller_->HasPassedSoftStartDuration())
         {
-          backup_degmin_last_ms_ = millis();
+          backup_degmin_last_ms_ = App.get_loop_component_start_time();
           SetNextState(HeatCoolState::COMPRESSOR_RUNNING);
         }
         break;
@@ -647,9 +649,10 @@ public:
 
       case HeatCoolState::WAIT_FOR_STATE_SWITCH:
       {
-        if (defer_state_change_until_ms_ > millis())
+        uint32_t now = App.get_loop_component_start_time();
+        if (defer_state_change_until_ms_ > now)
         {
-          ESP_LOGD("amber", "Waiting for state switch, transitioning to next state in %lu ms", defer_state_change_until_ms_ - millis());
+          ESP_LOGD("amber", "Waiting for state switch, transitioning to next state in %lu ms", defer_state_change_until_ms_ - now);
         }
         else
         {

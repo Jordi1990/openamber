@@ -106,3 +106,4 @@
           root["discharge_pressure_pd"] = id(discharge_pressure_pd).state;
           root["power_compressor"] = id(power_compressor).state;
           root["dhw_pump_relay"] = id(dhw_pump_relay_switch).state;
+          root["working_mode"] = id(working_mode_switch).state;

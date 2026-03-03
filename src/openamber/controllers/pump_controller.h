@@ -36,12 +36,12 @@ public:
 
   bool ShouldStartNextPumpCycle()
   {
-    return millis() >= next_pump_cycle_;
+    return App.get_loop_component_start_time() >= next_pump_cycle_;
   }
 
   bool IsPumpSettled()
   {
-    return millis() - pump_start_time_ >= COMPRESSOR_MIN_TIME_PUMP_ON * 1000UL;
+    return App.get_loop_component_start_time() - pump_start_time_ >= COMPRESSOR_MIN_TIME_PUMP_ON * 1000UL;
   }
 
   void SetPwmDutyCycle(float duty_cycle)
@@ -76,7 +76,7 @@ public:
     }
 
     SetPwmDutyCycle(pump_speed_preference);
-    pump_start_time_ = millis();
+    pump_start_time_ = App.get_loop_component_start_time();
   }
 
   void Stop()
@@ -90,7 +90,7 @@ public:
   bool IsIntervalCycleFinished()
   {
     uint32_t duration_ms = (uint32_t)id(pump_duration).state * 60000UL;
-    return millis() >= pump_start_time_ + duration_ms;
+    return App.get_loop_component_start_time() >= pump_start_time_ + duration_ms;
   }
 
   void ResetInterval()
@@ -101,7 +101,7 @@ public:
   void RestartPumpInterval()
   {
     uint32_t interval_ms = (uint32_t)id(pump_interval).state * 60000UL;
-    next_pump_cycle_ = millis() + interval_ms;
+    next_pump_cycle_ = App.get_loop_component_start_time() + interval_ms;
   }
 
   bool IsRunning()

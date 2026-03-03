@@ -105,7 +105,7 @@ private:
   void LeaveStateAndSetNextStateAfterWaitTime(DHWState new_state, uint32_t defer_ms)
   {
     deferred_machine_state_ = new_state;
-    defer_state_change_until_ms_ = millis() + defer_ms;
+    defer_state_change_until_ms_ = App.get_loop_component_start_time() + defer_ms;
     SetNextState(DHWState::WAIT_FOR_STATE_SWITCH);
   }
 
@@ -205,7 +205,7 @@ private:
     }
 
     float current_temperature = id(dhw_temperature_tw_sensor).state;
-    const uint32_t now = millis();
+    uint32_t now = App.get_loop_component_start_time();
     float delta_min = (float)(now - last_rate_measured_time_) / 60000.0f;
     float delta_t = current_temperature - last_measured_temperature_;
     float rate = (delta_min > 0.01f) ? (delta_t / delta_min) : 0.0f;
@@ -223,7 +223,7 @@ private:
     }
 
     // Start calculations after grace period to let the average sensor gather enough data.
-    if(millis() - dhw_pump_settled_time_ < DHW_BACKUP_HEATER_GRACE_PERIOD_S * 1000UL)
+    if(App.get_loop_component_start_time() - dhw_pump_settled_time_ < DHW_BACKUP_HEATER_GRACE_PERIOD_S * 1000UL)
     {
       return false;
     }
@@ -313,6 +313,7 @@ public:
 
   void UpdateStateMachine()
   {
+    uint32_t now = App.get_loop_component_start_time();
     DoSafetyChecks();
 
     CalculateTemperatureIncreaseRate();
@@ -449,7 +450,7 @@ public:
       case DHWState::WAIT_DHW_PUMP_RUNNING:
         if(id(dhw_pump_relay_switch).state)
         {
-          dhw_pump_settled_time_ = millis();
+          dhw_pump_settled_time_ = now;
           // Let the temperature settle after starting the pump.
           LeaveStateAndSetNextStateAfterWaitTime(DHWState::DHW_PUMP_SETTLED, DHW_PUMP_TEMPERATURE_SETTLE_TIME_S * 1000UL);
         }
@@ -457,8 +458,8 @@ public:
 
       case DHWState::DHW_PUMP_SETTLED:
         last_measured_temperature_ = id(dhw_temperature_tw_sensor).state;
-        last_rate_measured_time_ = millis();
-        dhw_pump_settled_time_ = millis();
+        last_rate_measured_time_ = now;
+        dhw_pump_settled_time_ = now;
         SetNextState(DHWState::COMPRESSOR_RUNNING);
         break;
 
@@ -502,7 +503,7 @@ public:
 
       case DHWState::WAIT_FOR_STATE_SWITCH:
       {
-        if (defer_state_change_until_ms_ <= millis())
+        if (defer_state_change_until_ms_ <= now)
         {
           defer_state_change_until_ms_ = 0;
           SetNextState(deferred_machine_state_);
