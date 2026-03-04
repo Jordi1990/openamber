@@ -25,6 +25,8 @@
 // TIMING CONSTANTS (in seconds)
 // ============================================================================
 
+static const uint32_t INITIALIZATION_DELAY_S = 10;
+
 // Three-way valve
 static const uint32_t THREE_WAY_VALVE_SWITCH_TIME_S = 1 * 60;
 

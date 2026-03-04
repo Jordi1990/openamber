@@ -32,10 +32,13 @@ enum ThreeWayValvePosition
   DHW,
 };
 enum State {
+  UNKNOWN,
+  WAIT_INITIALIZATION,
   INITIALIZING,
   SWITCHING,
   DHW_HEAT,
   HEAT_COOL,
+  WAIT_FOR_STATE_SWITCH,
 };
 namespace esphome {
 namespace openamber {
@@ -49,13 +52,15 @@ private:
   HeatCoolController* heat_cool_controller_;
   PumpController *pump_controller_;
   CompressorController *compressor_controller_;
-  uint32_t last_three_way_valve_switch_ms_ = 0;
+  State deferred_machine_state_;
+  uint32_t defer_state_change_until_ms_;
   State state_ = State::INITIALIZING;
   void SetThreeWayValve(ThreeWayValvePosition position);
   ThreeWayValvePosition GetThreeWayValvePosition();
   ThreeWayValvePosition GetDesiredThreeWayValvePosition();
   void ApplyWorkingMode();
   void SetNextState(State state);
+  void LeaveStateAndSetNextStateAfterWaitTime(State new_state, uint32_t defer_ms);
   const char* StateToString(State state);
   void WriteHeatingFrequencyTable();
 public:

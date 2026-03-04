@@ -49,6 +49,7 @@ void OpenAmberComponent::setup()
   call.set_mode("HEAT");
   call.perform();
   ESP_LOGI("amber", "OpenAmberController initialized");
+  state_ = State::INITIALIZING;
 }
 
 void OpenAmberComponent::loop()
@@ -68,26 +69,26 @@ void OpenAmberComponent::update()
 
   dhw_controller_->CheckLegionellaCycle();
 
-  switch(state_)
+  switch (state_)
   {
     case State::INITIALIZING:
     {
       id(initialize_relay_switch).turn_on();
       id(pump_p0_relay_switch).turn_on();
+      id(pump_p1_relay_switch).turn_off();
+      id(three_way_valve_dhw_switch).turn_off();
+      id(three_way_valve_heat_cool_switch).turn_off();
+      pump_controller_->Stop();
       WriteHeatingFrequencyTable();
       ESP_LOGI("amber", "Initialized heat pump controller");
-      if(current_valve_position == ThreeWayValvePosition::DHW)
-      {
-        // Set again to make sure both relays are in proper position.
-        SetThreeWayValve(ThreeWayValvePosition::DHW);
-        SetNextState(State::DHW_HEAT);
-      }
-      else
-      {
-        // Set again to make sure both relays are in proper position.
-        SetThreeWayValve(ThreeWayValvePosition::HEATING_COOLING);
-        SetNextState(State::HEAT_COOL);
-      }
+      LeaveStateAndSetNextStateAfterWaitTime(State::WAIT_INITIALIZATION, INITIALIZATION_DELAY_S * 1000UL);
+      break;
+    }
+
+    case State::WAIT_INITIALIZATION:
+    {
+      SetThreeWayValve(desired_valve_position);
+      LeaveStateAndSetNextStateAfterWaitTime(desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);
       break;
     }
 
@@ -101,7 +102,7 @@ void OpenAmberComponent::update()
       if(heat_cool_controller_->IsInIdleState() && desired_valve_position != current_valve_position)
       {
         SetThreeWayValve(desired_valve_position);
-        SetNextState(State::SWITCHING);
+        LeaveStateAndSetNextStateAfterWaitTime(desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);
         break;
       }
 
@@ -114,7 +115,7 @@ void OpenAmberComponent::update()
       if(dhw_controller_->IsInIdleState() && desired_valve_position != current_valve_position)
       {
         SetThreeWayValve(desired_valve_position);
-        SetNextState(State::SWITCHING);
+        LeaveStateAndSetNextStateAfterWaitTime(desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);
         break;
       }
 
@@ -122,12 +123,18 @@ void OpenAmberComponent::update()
       break;
     }
 
-    case State::SWITCHING:
+    case State::WAIT_FOR_STATE_SWITCH:
     {
-      if(last_three_way_valve_switch_ms_ + THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL < App.get_loop_component_start_time())
+      uint32_t now = App.get_loop_component_start_time();
+      if (defer_state_change_until_ms_ > now)
       {
-        SetNextState(desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL);
-        ESP_LOGI("amber", "3-way valve switch complete, new mode: %s", state_ == State::DHW_HEAT ? "DHW" : "HEAT/COOL");
+        ESP_LOGD("amber", "Waiting for state switch, transitioning to next state in %lu ms", defer_state_change_until_ms_ - now);
+      }
+      else
+      {
+        defer_state_change_until_ms_ = 0;
+        SetNextState(deferred_machine_state_);
+        deferred_machine_state_ = State::UNKNOWN;
       }
       break;
     }
@@ -153,14 +160,23 @@ void OpenAmberComponent::SetNextState(State state)
   ESP_LOGI("amber", "State changed: %s", txt);
 }
 
+void OpenAmberComponent::LeaveStateAndSetNextStateAfterWaitTime(State new_state, uint32_t defer_ms)
+{
+  deferred_machine_state_ = new_state;
+  defer_state_change_until_ms_ = App.get_loop_component_start_time() + defer_ms;
+  SetNextState(State::WAIT_FOR_STATE_SWITCH);
+}
+
 const char* OpenAmberComponent::StateToString(State state)
 {
   switch (state)
   {
     case State::INITIALIZING:
       return "Initializing";
-    case State::SWITCHING:
-      return "Switching";
+    case State::WAIT_INITIALIZATION:
+      return "Waiting for initialization";
+    case State::WAIT_FOR_STATE_SWITCH:
+      return "Waiting for state switch";
     case State::DHW_HEAT:
       return "DHW";
     case State::HEAT_COOL:
@@ -183,7 +199,6 @@ void OpenAmberComponent::SetThreeWayValve(ThreeWayValvePosition position)
     id(three_way_valve_heat_cool_switch).turn_on();
   }
 
-  last_three_way_valve_switch_ms_ = App.get_loop_component_start_time();
   ESP_LOGI("amber", "Setting 3-way valve to %s.", position == ThreeWayValvePosition::DHW ? "DHW" : "Heating/Cooling");
 }
 

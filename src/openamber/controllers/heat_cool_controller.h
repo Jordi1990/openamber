@@ -400,13 +400,6 @@ public:
         {
           SetNextState(HeatCoolState::BACKUP_HEATER_RUNNING);
         }
-        else if(!pump_controller_->IsInitialized())
-        {
-          // Initialize pump to Off
-          StopPumps();
-          // Short settle time before we start logic.
-          LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState::IDLE, 60000);
-        }
         else 
         {
           SetNextState(HeatCoolState::IDLE);
