@@ -115,7 +115,7 @@ When using the Waveshare ESP32-S3 Touch LCD 5'' you need to set the RS485 resist
 | 1101       | Pump P2 relay                                      |
 | 1103       | Pump P0 duty cycle (1000=OFF, 0=HIGH)              |
 | 1104       | Unknown, needed for initialization                 |
-| 1105       | 3-way valve DHW                                    |
+| 1105       | 3-way valve Heat/Cool                              |
 | 1109       | Backup heater stage 1 relay                        |
 | 1110       | Backup heater stage 2 relay                        |
 | 1112       | 3-way valve SWW                                    |
