@@ -54,9 +54,9 @@ obj:
               widgets:
                 - obj:
                     id: service_tab_updates
-                    width: 220
+                    width: 49%
                     height: 52
-                    align: CENTER
+                    align: LEFT_MID
                     bg_color: 0x1F3B68
                     bg_opa: 100%
                     radius: 14
@@ -67,6 +67,31 @@ obj:
                     pad_right: 14
                     pad_top: 2
                     pad_bottom: 2
+                    on_click:
+                      - lvgl.widget.show:
+                          id: service_updates_panel
+                      - lvgl.widget.hide:
+                          id: service_analytics_panel
+                      - lvgl.widget.update:
+                          id: service_tab_updates
+                          bg_color: 0x1F3B68
+                          border_color: 0x1F3B68
+                      - lvgl.widget.update:
+                          id: service_tab_analytics
+                          bg_color: 0xD1D5DB
+                          border_color: 0x9CA3AF
+                      - lvgl.widget.update:
+                          id: service_tab_updates_icon
+                          text_color: 0xFFFFFF
+                      - lvgl.widget.update:
+                          id: service_tab_updates_label
+                          text_color: 0xFFFFFF
+                      - lvgl.widget.update:
+                          id: service_tab_analytics_icon
+                          text_color: 0x4B5563
+                      - lvgl.widget.update:
+                          id: service_tab_analytics_label
+                          text_color: 0x4B5563
                     widgets:
                       - obj:
                               id: service_tab_updates_content
@@ -91,8 +116,76 @@ obj:
                                           text_font: font_mdi_24
                                   - label:
                                           id: service_tab_updates_label
-                                          text: "Updates"
+                                          text: "System info"
                                           text_color: 0xFFFFFF
+                                          text_font: font_mdi_24
+
+                - obj:
+                    id: service_tab_analytics
+                    width: 49%
+                    height: 52
+                    align: RIGHT_MID
+                    bg_color: 0xD1D5DB
+                    bg_opa: 100%
+                    radius: 14
+                    border_width: 2
+                    border_color: 0x9CA3AF
+                    border_opa: 100%
+                    pad_left: 14
+                    pad_right: 14
+                    pad_top: 2
+                    pad_bottom: 2
+                    on_click:
+                      - lvgl.widget.hide:
+                          id: service_updates_panel
+                      - lvgl.widget.show:
+                          id: service_analytics_panel
+                      - lvgl.widget.update:
+                          id: service_tab_updates
+                          bg_color: 0xD1D5DB
+                          border_color: 0x9CA3AF
+                      - lvgl.widget.update:
+                          id: service_tab_analytics
+                          bg_color: 0x1F3B68
+                          border_color: 0x1F3B68
+                      - lvgl.widget.update:
+                          id: service_tab_updates_icon
+                          text_color: 0x4B5563
+                      - lvgl.widget.update:
+                          id: service_tab_updates_label
+                          text_color: 0x4B5563
+                      - lvgl.widget.update:
+                          id: service_tab_analytics_icon
+                          text_color: 0xFFFFFF
+                      - lvgl.widget.update:
+                          id: service_tab_analytics_label
+                          text_color: 0xFFFFFF
+                    widgets:
+                      - obj:
+                              id: service_tab_analytics_content
+                              width: SIZE_CONTENT
+                              height: SIZE_CONTENT
+                              align: CENTER
+                              y: 4
+                              bg_opa: 0%
+                              border_opa: 0%
+                              pad_all: 0
+                              layout:
+                                  type: FLEX
+                                  flex_flow: ROW
+                                  flex_align_main: CENTER
+                                  flex_align_cross: CENTER
+                                  pad_column: 8
+                              widgets:
+                                  - label:
+                                          id: service_tab_analytics_icon
+                                          text: "\U000F08D4"
+                                          text_color: 0x4B5563
+                                          text_font: font_mdi_24
+                                  - label:
+                                          id: service_tab_analytics_label
+                                          text: "Analytics"
+                                          text_color: 0x4B5563
                                           text_font: font_mdi_24
 
           - obj:
@@ -252,6 +345,78 @@ obj:
                     dark_color: 0x000000
                     light_color: 0xFFFFFF
                     text: "https://github.com/Jordi1990/openamber/releases"
+
+          - obj:
+              id: service_analytics_panel
+              width: 100%
+              height: 82%
+              align: TOP_LEFT
+              y: 74
+              hidden: true
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 0
+              widgets:
+                - label:
+                    id: service_analytics_title
+                    text: "Analytics"
+                    text_color: 0x1F2933
+                    text_font: font_mdi_24
+                    align: TOP_LEFT
+
+                - label:
+                    id: service_analytics_toggle_label
+                    text: "Analytics versturen"
+                    text_color: 0x1F2933
+                    text_font: font_mdi_24
+                    align: TOP_LEFT
+                    y: 48
+
+                - obj:
+                    id: service_analytics_toggle_button
+                    width: 180
+                    height: 52
+                    align: TOP_RIGHT
+                    y: 42
+                    bg_color: 0x9CA3AF
+                    bg_opa: 100%
+                    radius: 14
+                    border_width: 0
+                    border_opa: 0%
+                    pad_all: 0
+                    on_click:
+                      - if:
+                          condition:
+                            switch.is_on: analytics_enabled_switch
+                          then:
+                            - switch.turn_off: analytics_enabled_switch
+                          else:
+                            - switch.turn_on: analytics_enabled_switch
+                    widgets:
+                      - label:
+                          id: service_analytics_toggle_button_label
+                          text: "Uit"
+                          text_color: 0xFFFFFF
+                          text_font: font_mdi_24
+                          align: CENTER
+
+                - label:
+                    id: service_analytics_id_label
+                    text: "Analytics ID"
+                    text_color: 0x1F2933
+                    text_font: font_mdi_24
+                    align: TOP_LEFT
+                    y: 120
+
+                - label:
+                    id: service_analytics_id_value
+                    width: 100%
+                    text: "Laden..."
+                    text_color: 0x1F2933
+                    text_font: font_mdi_24
+                    long_mode: WRAP
+                    align: TOP_LEFT
+                    y: 154
 
     - obj:
         id: service_update_confirm_modal

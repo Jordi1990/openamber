@@ -238,6 +238,28 @@
             id: nav_status_ha_icon
             text_color: 0xEF4444
 
+  - lvgl.label.update:
+      id: service_analytics_id_value
+      text: !lambda |-
+        const std::string analytics_id = id(analytics_device_id).state;
+        if (analytics_id.empty())
+          return std::string("Niet beschikbaar");
+        return analytics_id;
+
+  - lvgl.widget.update:
+      id: service_analytics_toggle_button
+      bg_color: !lambda |-
+        if (id(analytics_enabled_switch).state)
+          return lv_color_hex(0x22C55E);
+        return lv_color_hex(0x9CA3AF);
+
+  - lvgl.label.update:
+      id: service_analytics_toggle_button_label
+      text: !lambda |-
+        if (id(analytics_enabled_switch).state)
+          return std::string("Aan");
+        return std::string("Uit");
+
   - if:
       condition:
         update.is_available: firmware_update

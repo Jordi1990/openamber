@@ -1,17 +1,21 @@
 - id: fetch_analytics_device_id
   then:
-    - http_request.get:
-        url: !lambda |-
-          return "https://openamber.nl/api/devices/by-mac/" + id(mac_address).state + "/device-id";
-        capture_response: true
-        on_response:
-          then:
-            - if:
-                condition:
-                  lambda: return response->status_code == 200 && !body.empty();
+    - if:
+        condition:
+          lambda: return id(analytics_device_id).state.empty();
+        then:
+          - http_request.get:
+              url: !lambda |-
+                return "https://openamber.nl/api/devices/by-mac/" + id(mac_address).state + "/device-id";
+              capture_response: true
+              on_response:
                 then:
-                  - lambda: |-
-                      id(analytics_device_id).publish_state(body);
+                  - if:
+                      condition:
+                        lambda: return response->status_code == 200 && !body.empty();
+                      then:
+                        - lambda: |-
+                            id(analytics_device_id).publish_state(body);
 
 - id: send_analytics
   then:
@@ -107,3 +111,4 @@
           root["power_compressor"] = id(power_compressor).state;
           root["dhw_pump_relay"] = id(dhw_pump_relay_switch).state;
           root["working_mode"] = id(working_mode_switch).current_option();
+    - script.execute: fetch_analytics_device_id
