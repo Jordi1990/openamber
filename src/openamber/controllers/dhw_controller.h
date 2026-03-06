@@ -47,7 +47,7 @@ enum class DHWState
 class DHWController
 {
 private:
-  DHWState state_ = DHWState::UNKNOWN;
+  DHWState state_ = DHWState::IDLE;
   DHWState deferred_machine_state_;
   uint32_t defer_state_change_until_ms_;
   uint32_t last_rate_measured_time_ = 0;
@@ -260,6 +260,7 @@ private:
     {
       ESP_LOGW("amber", "Safety check: Pump is not active while compressor is running, stopping compressor to avoid damage.");
       compressor_controller_->Stop();
+      StopDhwPump();
       SetNextState(DHWState::IDLE);
       return;
     }
@@ -270,6 +271,7 @@ private:
       ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stopping compressor to avoid damage.");
       compressor_controller_->Stop();
       pump_controller_->Stop();
+      StopDhwPump();
       SetNextState(DHWState::IDLE);
       return;
     }
@@ -320,25 +322,6 @@ public:
 
     switch (state_)
     {
-      case DHWState::UNKNOWN:
-        // Restore state based on current conditions on startup.
-        if (compressor_controller_->IsRunning())
-        {
-          SetNextState(DHWState::COMPRESSOR_RUNNING);
-        }
-        else if (pump_controller_->IsRunning())
-        {
-          SetNextState(DHWState::PUMP_RUNNING);
-        }
-        else if (IsBackupHeaterActive())
-        {
-          SetNextState(DHWState::BACKUP_HEATER_RUNNING);
-        }
-        else 
-        {
-          SetNextState(DHWState::IDLE);
-        }
-        break;
       case DHWState::IDLE:
         requested_to_stop_ = false;
 
