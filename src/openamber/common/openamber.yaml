@@ -197,6 +197,7 @@ datetime:
 time:
   - platform: sntp
     id: my_time
+    timezone: "Europe/Amsterdam"
 
 modbus:
   send_wait_time: 500ms
