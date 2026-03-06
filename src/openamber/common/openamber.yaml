@@ -110,6 +110,9 @@ web_server:
     - id: heating_settings
       name: "Verwarmingsinstellingen"
       sorting_weight: 40
+    - id: cooling_settings
+      name: "Koelinstellingen"
+      sorting_weight: 45
     - id: temperature_sensors
       name: "Temperatuursensoren"
       sorting_weight: 50
@@ -250,6 +253,13 @@ output:
     write_action:
       - lambda: |-
           id(amber_ctrl).write_heat_pid_value(state);
+
+  - platform: template
+    id: pid_cool_output
+    type: float
+    write_action:
+      - lambda: |-
+          id(amber_ctrl).write_cool_pid_value(state);
 
 button:
   - platform: factory_reset

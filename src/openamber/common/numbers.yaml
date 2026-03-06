@@ -252,6 +252,53 @@
     sorting_group_id: heating_settings
 
 - platform: template
+  id: pump_speed_cooling_number
+  name: "Pomp snelheid koelen"
+  optimistic: True
+  min_value: 0
+  max_value: 100
+  step: 1
+  unit_of_measurement: "%"
+  initial_value: 100
+  restore_value: True
+  entity_category: config
+  web_server: 
+    sorting_group_id: cooling_settings
+
+- platform: template
+  id: cooling_setpoint_number
+  name: "Koelen setpoint"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 5
+  max_value: 25
+  step: 1
+  initial_value: 7
+  restore_value: True
+  entity_category: config
+  on_value:
+    then:
+      - component.update: current_setpoint
+  web_server: 
+    sorting_group_id: cooling_settings
+
+- platform: template
+  id: compressor_stop_delta_cooling
+  name: "Compressor stop delta koelen"
+  optimistic: true
+  min_value: 0.1
+  max_value: 10
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 5.0
+  restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: cooling_settings
+
+- platform: template
   id: pump_speed_dhw_number
   name: "Pomp snelheid tapwater"
   optimistic: True
