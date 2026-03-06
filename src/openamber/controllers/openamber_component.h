@@ -76,8 +76,15 @@ void OpenAmberComponent::update()
       id(initialize_relay_switch).turn_on();
       id(pump_p0_relay_switch).turn_on();
       id(pump_p1_relay_switch).turn_off();
+      id(dhw_pump_relay_switch).turn_off();
       id(three_way_valve_dhw_switch).turn_off();
       id(three_way_valve_heat_cool_switch).turn_off();
+      id(backup_heater_stage_1).turn_off();
+      id(backup_heater_stage_2).turn_off();
+      auto working_mode_call = id(working_mode_switch).make_call();
+      working_mode_call.set_index(WORKING_MODE_STANDBY);
+      working_mode_call.perform();
+      compressor_controller_->Stop();
       pump_controller_->Stop();
       WriteHeatingFrequencyTable();
       ESP_LOGI("amber", "Initialized heat pump controller");

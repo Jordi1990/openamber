@@ -53,7 +53,7 @@ private:
   float compressor_pid_ = 0.0f;
   float start_current_temperature_ = 0.0f;
 
-  HeatCoolState state_ = HeatCoolState::UNKNOWN;
+  HeatCoolState state_ = HeatCoolState::IDLE;
   HeatCoolState deferred_machine_state_;
   uint32_t defer_state_change_until_ms_;
   bool requested_to_stop_ = false;
@@ -385,28 +385,6 @@ public:
 
     switch (state_)
     {
-      case HeatCoolState::UNKNOWN:
-      {
-        // Restore state based on current conditions on startup.
-        if (compressor_controller_->IsRunning())
-        {
-          SetNextState(HeatCoolState::COMPRESSOR_RUNNING);
-        }
-        else if (pump_controller_->IsRunning())
-        {
-          SetNextState(HeatCoolState::PUMP_RUNNING);
-        }
-        else if (IsBackupHeaterActive())
-        {
-          SetNextState(HeatCoolState::BACKUP_HEATER_RUNNING);
-        }
-        else 
-        {
-          SetNextState(HeatCoolState::IDLE);
-        }
-        break;
-      }
-
       case HeatCoolState::IDLE:
       {
         requested_to_stop_ = false;
