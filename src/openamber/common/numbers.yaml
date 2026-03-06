@@ -274,7 +274,7 @@
   min_value: 5
   max_value: 25
   step: 1
-  initial_value: 7
+  initial_value: 15
   restore_value: True
   entity_category: config
   on_value:
