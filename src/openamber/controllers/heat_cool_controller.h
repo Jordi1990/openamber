@@ -50,7 +50,8 @@ private:
   float accumulated_backup_degmin_ = 0.0;
   float temperature_rate_c_per_min_ = 0.0;
   float last_temperature_for_rate_ = 0.0;
-  float compressor_pid_ = 0.0f;
+  float compressor_heat_pid_ = 0.0f;
+  float compressor_cool_pid_ = 0.0f;
   float start_current_temperature_ = 0.0f;
 
   HeatCoolState state_ = HeatCoolState::IDLE;
@@ -110,6 +111,16 @@ private:
     SetNextState(HeatCoolState::WAIT_FOR_STATE_SWITCH);
   }
 
+  bool IsCoolingMode()
+  {
+    return id(working_mode_switch).active_index().value() == WORKING_MODE_COOLING;
+  }
+
+  auto& GetActiveCompressorMode()
+  {
+    return IsCoolingMode() ? id(cool_compressor_mode) : id(heat_compressor_mode);
+  }
+
   bool IsBackupHeaterActive()
   {
     return id(backup_heater_active_sensor).state;
@@ -125,36 +136,50 @@ private:
     id(backup_heater_relay).turn_off();
   }
 
-  int MapPIDToCompressorMode(float pid)
+  int MapPIDToCompressorMode()
   {
+    float pid = GetPIDValue();
     float raw = fabsf(pid);
     if (raw > 1.0f)
       raw = 1.0f;
 
-    int mode_offset = id(compressor_control_select).size() - id(heat_compressor_mode).size();
-    int amount_of_modes = id(heat_compressor_mode).active_index().value() + mode_offset;
+    auto& active_mode = GetActiveCompressorMode();
+    int mode_offset = id(compressor_control_select).size() - active_mode.size();
+    int amount_of_modes = active_mode.active_index().value() + mode_offset;
     int desired_mode = (int)roundf(raw * (amount_of_modes - 1)) + 1;
     return std::max(1, std::min(desired_mode, (int)amount_of_modes));
   }
 
   int DetermineSoftStartMode()
   {
-    float current_temperature = id(heat_cool_temperature_tc).state;
-    float target = id(pid_heat_cool_temperature_control).target_temperature;
-    float supply_temperature_delta = current_temperature - target;
-
     int start_compressor_frequency_mode;
-    float delta = fabs(supply_temperature_delta);
-    if (delta < 5.0f)
-      start_compressor_frequency_mode = 1;
-    else if (delta < 7.0f)
-      start_compressor_frequency_mode = 3;
-    else if (delta < 10.0f)
-      start_compressor_frequency_mode = 4;
-    else
-      start_compressor_frequency_mode = 5;
 
-    return start_compressor_frequency_mode;
+    if (IsCoolingMode())
+    {
+      // Cooling: always start at the lowest compressor mode
+      start_compressor_frequency_mode = 1;
+    }
+    else
+    {
+      // Heating: start higher when further from target
+      float current_temperature = id(heat_cool_temperature_tc).state;
+      float target = id(pid_heat_cool_temperature_control).target_temperature;
+      float delta = fabs(current_temperature - target);
+      if (delta < 5.0f)
+        start_compressor_frequency_mode = 1;
+      else if (delta < 7.0f)
+        start_compressor_frequency_mode = 3;
+      else if (delta < 10.0f)
+        start_compressor_frequency_mode = 4;
+      else
+        start_compressor_frequency_mode = 5;
+    }
+
+    // Cap by the user-selected compressor mode
+    auto& active_mode = GetActiveCompressorMode();
+    int mode_offset = id(compressor_control_select).size() - active_mode.size();
+    int max_allowed = (int)active_mode.active_index().value() + mode_offset;
+    return std::min(start_compressor_frequency_mode, max_allowed);
   }
 
   bool IsAccumulatedDegreeMinutesReached()
@@ -168,7 +193,7 @@ private:
   }
 
   float GetPreferredPumpSpeed() {
-    return id(pump_speed_heating_number).state;
+    return IsCoolingMode() ? id(pump_speed_cooling_number).state : id(pump_speed_heating_number).state;
   }
 
   void CalculateAccumulatedDegreeMinutes()
@@ -248,10 +273,18 @@ private:
 
   bool HasCompressorDemand()
   {
-    float current_temperature = id(heat_cool_temperature_tc).state;
-    float target_temperature = id(pid_heat_cool_temperature_control).target_temperature;
+    bool has_active_demand = false;
+  
+    // When compressor is running only consider the active demand for the current mode.
+    if(compressor_controller_->IsRunning())
+    {
+      has_active_demand = IsCoolingMode() ? id(cool_demand_active_sensor).state : id(heat_demand_active_sensor).state || id(frost_protection_stage2_active).state;
+    }
+    else 
+    {
+      has_active_demand = id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state || id(frost_protection_stage2_active).state;
+    }
 
-    bool has_active_demand = id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state || id(frost_protection_stage2_active).state;
     if (!has_active_demand)
     {
       return false;
@@ -259,7 +292,7 @@ private:
 
     if(requested_to_stop_)
     {
-      ESP_LOGI("amber", "Compressor stop requested, ignoring compressor demand until stopped.", current_temperature, target_temperature);
+      ESP_LOGI("amber", "Compressor stop requested, ignoring compressor demand until stopped.");
       return false;
     }
 
@@ -277,8 +310,8 @@ private:
       return;
     }
 
-    // If Tuo - Tui is above 8 degrees while compressor is running, stop compressor to avoid damage
-    if (id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state > 8.0f && compressor_controller_->IsRunning())
+    // If temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stop compressor to avoid damage
+    if (fabsf(id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state) > 8.0f && compressor_controller_->IsRunning())
     {
       ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stopping compressor to avoid damage.");
       compressor_controller_->Stop();
@@ -303,10 +336,19 @@ public:
   HeatCoolController(PumpController* pump_controller, CompressorController* compressor_controller)
     : pump_controller_(pump_controller), compressor_controller_(compressor_controller) {}
 
-  void SetPIDValue(float pid_value)
+  void SetHeatPIDValue(float pid_value)
   {
-    //ESP_LOGD("amber", "Writing PID value: %.2f", pid_value);
-    compressor_pid_ = pid_value;
+    compressor_heat_pid_ = pid_value;
+  }
+
+  void SetCoolPIDValue(float pid_value)
+  {
+    compressor_cool_pid_ = pid_value;
+  }
+
+  float GetPIDValue()
+  {
+    return IsCoolingMode() ? compressor_cool_pid_ : compressor_heat_pid_;
   }
 
   void InitializeBackupDegMinTracking()
@@ -317,7 +359,7 @@ public:
   int DetermineCompressorMode()
   {
     const uint32_t now = App.get_loop_component_start_time();
-    int desired_compressor_mode = MapPIDToCompressorMode(compressor_pid_);
+    int desired_compressor_mode = MapPIDToCompressorMode();
     auto current_compressor_mode = id(compressor_control_select).active_index().value();
     float current_temperature = id(heat_cool_temperature_tc).state;
     float target = id(pid_heat_cool_temperature_control).target_temperature;
@@ -330,18 +372,22 @@ public:
       return current_compressor_mode;
     }
 
-    // If Tc is above setpoint, then never modulate up
+    // Guard: never modulate up when temperature has already overshot the setpoint
     const float TEMP_MARGIN = 0.3f;
-    if (current_temperature > (target + TEMP_MARGIN) && desired_compressor_mode > current_compressor_mode)
+    bool overshoot = IsCoolingMode()
+      ? (current_temperature < (target - TEMP_MARGIN))
+      : (current_temperature > (target + TEMP_MARGIN));
+    if (overshoot && desired_compressor_mode > current_compressor_mode)
     {
-      ESP_LOGW("amber", "Temperature is above target and PID controller wanted to move to a higher compressor mode.");
+      ESP_LOGW("amber", "Temperature has overshot target and PID controller wanted to move to a higher compressor mode.");
       return current_compressor_mode;
     }
 
-    int mode_offset = id(compressor_control_select).size() - id(heat_compressor_mode).size();
-    int capped_mode_index = std::min(desired_compressor_mode, (int)id(heat_compressor_mode).active_index().value() + mode_offset);
+    auto& active_mode = GetActiveCompressorMode();
+    int mode_offset = id(compressor_control_select).size() - active_mode.size();
+    int capped_mode_index = std::min(desired_compressor_mode, (int)active_mode.active_index().value() + mode_offset);
 
-    ESP_LOGI("amber", "PID %.2f -> mode %d (previous mode %d)", compressor_pid_, capped_mode_index, current_compressor_mode);
+    ESP_LOGI("amber", "PID %.2f -> mode %d (previous mode %d)", GetPIDValue(), capped_mode_index, current_compressor_mode);
     return capped_mode_index;
   }
 
@@ -352,12 +398,15 @@ public:
       return true;
     }
 
-    // Stop when we overshoot above target + delta
     float target_temperature = id(pid_heat_cool_temperature_control).target_temperature;
     float current_temperature = id(heat_cool_temperature_tc).state;
-    float supply_temperature_delta = current_temperature - target_temperature;
-    
-    if (supply_temperature_delta >= id(compressor_stop_delta).state)
+
+    // Overshoot is positive when temp has passed the setpoint in the working direction
+    // Heating: too hot (Tc > target), Cooling: too cold (Tc < target)
+    float stop_delta = IsCoolingMode() ? id(compressor_stop_delta_cooling).state : id(compressor_stop_delta).state;
+    float overshoot = IsCoolingMode() ? (target_temperature - current_temperature) : (current_temperature - target_temperature);
+
+    if (overshoot >= stop_delta)
     {
       if (id(oil_return_cycle_active).state)
       {
@@ -365,7 +414,7 @@ public:
         return false;
       }
 
-      ESP_LOGI("amber", "Stopping compressor because it reached delta %.2f°C (ΔT=%.2f°C).", id(compressor_stop_delta).state, supply_temperature_delta);
+      ESP_LOGI("amber", "Stopping compressor because it reached delta %.2f°C (overshoot=%.2f°C).", stop_delta, overshoot);
       return true;
     }
 
@@ -451,14 +500,30 @@ public:
         // Start condition based on target temperature and start_compressor_delta
         float current_temperature = id(heat_cool_temperature_tc).state;
         float target_temperature = id(pid_heat_cool_temperature_control).target_temperature;
-        float start_temperature = target_temperature - id(compressor_start_delta).state;
-        if (current_temperature >= start_temperature && !id(frost_protection_stage2_active).state)
+        bool should_start;
+        if (IsCoolingMode())
         {
-          ESP_LOGI("amber", "Not starting compressor because target temperature (%.2f) is higher than the start temperature(%.2f)", current_temperature, start_temperature);
-          break;
+          // Cooling: start when supply temp is above target + start_delta
+          float start_temperature = target_temperature + id(compressor_start_delta).state;
+          should_start = current_temperature > start_temperature;
+          if (!should_start)
+          {
+            ESP_LOGI("amber", "Not starting compressor because supply temperature (%.2f) is below cooling start temperature (%.2f)", current_temperature, start_temperature);
+            break;
+          }
+        }
+        else
+        {
+          // Heating: start when supply temp is below target - start_delta
+          float start_temperature = target_temperature - id(compressor_start_delta).state;
+          if (current_temperature >= start_temperature && !id(frost_protection_stage2_active).state)
+          {
+            ESP_LOGI("amber", "Not starting compressor because supply temperature (%.2f) is above heating start temperature (%.2f)", current_temperature, start_temperature);
+            break;
+          }
         }
 
-        SetWorkingMode(id(heat_demand_active_sensor).state ? WORKING_MODE_HEATING : WORKING_MODE_COOLING);
+        SetWorkingMode(id(cool_demand_active_sensor).state ? WORKING_MODE_COOLING : WORKING_MODE_HEATING);
         compressor_controller_->ApplyCompressorMode(DetermineSoftStartMode());
         SetNextState(HeatCoolState::WAIT_COMPRESSOR_RUNNING);
         break;
@@ -519,21 +584,25 @@ public:
           ESP_LOGI("amber", "Minimum compressor on time not reached, not checking for potential stop conditions yet.");
         }
 
-        if (id(sg_ready_max_boost_mode_active_sensor).state)
+        // Backup heater logic only applies to heating mode
+        if (!IsCoolingMode())
         {
-          ESP_LOGI("amber", "Enabling backup heater (SG Ready max boost active)");
-          TurnOnBackupHeater();
-          SetNextState(HeatCoolState::WAIT_BACKUP_HEATER_RUNNING);
-          break;
-        }
+          if (id(sg_ready_max_boost_mode_active_sensor).state)
+          {
+            ESP_LOGI("amber", "Enabling backup heater (SG Ready max boost active)");
+            TurnOnBackupHeater();
+            SetNextState(HeatCoolState::WAIT_BACKUP_HEATER_RUNNING);
+            break;
+          }
 
-        CalculateAccumulatedDegreeMinutes();
-        if(IsAccumulatedDegreeMinutesReached())
-        {
-          TurnOnBackupHeater();
-          ResetAccumulatedDegMin();
-          SetNextState(HeatCoolState::WAIT_BACKUP_HEATER_RUNNING);
-          break;
+          CalculateAccumulatedDegreeMinutes();
+          if(IsAccumulatedDegreeMinutesReached())
+          {
+            TurnOnBackupHeater();
+            ResetAccumulatedDegMin();
+            SetNextState(HeatCoolState::WAIT_BACKUP_HEATER_RUNNING);
+            break;
+          }
         }
         
         compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
@@ -612,7 +681,7 @@ public:
         }
         else
         {
-          compressor_controller_->ApplyDefrostRecoveryMode();
+          compressor_controller_->ApplyDefrostRecoveryMode(IsCoolingMode());
           LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState::COMPRESSOR_RUNNING, COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
         }
         break;
