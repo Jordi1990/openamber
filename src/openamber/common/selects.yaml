@@ -1,6 +1,7 @@
 - platform: template
   id: heat_compressor_mode
   name: "Verwarmen vermogen"
+  restore_value: True
   optimistic: True
   options:
     - "Beperkt"
@@ -18,6 +19,7 @@
 - platform: template
   id: dhw_compressor_mode
   name: "Tapwater basisvermogen"
+  restore_value: True
   optimistic: True
   options:
     - "Beperkt"
@@ -35,6 +37,7 @@
 - platform: template
   id: dhw_compressor_mode_max
   name: "Tapwater wintervermogen"
+  restore_value: True
   optimistic: True
   options:
     - "Gemiddeld"
