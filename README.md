@@ -34,7 +34,6 @@ Open source control firmware based on ESPHome for Itho Daalderop Amber heat pump
 - Extend configuration options
 - Error handling
 - Support OpenTherm thermostats
-- EEPROM updates
 - .. More
 
 ## Hardware
@@ -74,12 +73,10 @@ Connect wires to your hardware RS485 port (Itho Daalderop Amber Control Module u
 
 ![Connect wires to your hardware RS485 port (Itho Daalderop Amber Control Module used in picture)](/docs/images/itho-module-install.png)
 
-When using the Waveshare ESP32-S3 Touch LCD 5'' you need to set the RS485 resistor dip switch to OFF state. Connect the modbus to RS485 A and B. For power move the 24V positive and ground of the WinCE to the VIN and GND pins of the display.
+When using the Waveshare ESP32-S3 Touch LCD 5'' you need to set the RS485 resistor dip switch to ON state. Connect the modbus to RS485 A and B. For power move the 24V positive, GND and FG of the WinCE to the VIN, GND and GND pins of the display.
 
 ## How can I contribute?
 - Test and provide feedback/bugs/suggestions
-- Sniff modbus traffic for TODO items
-- Analyze and document behavior of WinCE logic on TODO functionality.
 
 ## Modbus addresses overview
 ### Inside unit (Address 11)

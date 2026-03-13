@@ -127,6 +127,7 @@ web_server:
       sorting_weight: 90
 
 wifi:
+  reboot_timeout: 0s
   ap:
     ssid: "OpenAmber"
     password: "openamber"
@@ -158,6 +159,30 @@ globals:
     type: bool
     restore_value: no
     initial_value: 'false'
+  - id: settings_page_visible
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: hc_y_m10
+    type: int
+    restore_value: no
+    initial_value: '60'
+  - id: hc_y_0
+    type: int
+    restore_value: no
+    initial_value: '60'
+  - id: hc_y_p5
+    type: int
+    restore_value: no
+    initial_value: '60'
+  - id: hc_y_p10
+    type: int
+    restore_value: no
+    initial_value: '60'
+  - id: hc_y_p15
+    type: int
+    restore_value: no
+    initial_value: '60'
 
 datetime:
  - platform: template
@@ -201,13 +226,13 @@ time:
     timezone: "Europe/Amsterdam"
 
 modbus:
-  send_wait_time: 500ms
+  send_wait_time: 250ms
 
 modbus_controller:
 - id: modbus_outside_unit
   address: 0x2
   update_interval: 30s
-  command_throttle: 500ms
+  command_throttle: 1000ms
   max_cmd_retries: 3
   on_offline:
     then:
@@ -222,7 +247,7 @@ modbus_controller:
 - id: modbus_inside_unit
   address: 0x0B
   update_interval: 30s
-  command_throttle: 500ms
+  command_throttle: 1000ms
   max_cmd_retries: 3
   on_offline:
     then:

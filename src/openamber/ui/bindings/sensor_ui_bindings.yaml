@@ -1,0 +1,156 @@
+# ══════════════════════════════════════════════════════════════
+# Sensor → LVGL UI bindings (event-driven via !extend)
+# These extend sensors defined in common/sensors.yaml to add
+# on_value callbacks that update LVGL widgets on change.
+# ══════════════════════════════════════════════════════════════
+
+# ── Home page: Water temperatures ──
+- id: !extend outlet_temperature_tuo
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: water_aanvoer_value
+          text:
+            format: "%.1f°C"
+            args: ['x']
+      - script.execute: update_water_mode_temperature_display
+
+- id: !extend inlet_temperature_tui
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: water_retour_value
+          text:
+            format: "%.1f°C"
+            args: ['x']
+      - script.execute: update_water_mode_temperature_display
+
+- id: !extend heat_exchanger_delta_t
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: water_delta_value
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+# ── Home page: Tiles ──
+- id: !extend fan_rpm_sensor
+  on_value:
+    then:
+      - lvgl.widget.update:
+          id: tile_fan
+          bg_color: !lambda |-
+            if (x > 0) return lv_color_hex(0xF5F8FC);
+            return lv_color_hex(0x919191);
+      - lvgl.label.update:
+          id: tile_fan_value
+          text:
+            format: "%.0f RPM"
+            args: ['x']
+
+- id: !extend pump_p0_current_pwm_sensor
+  on_value:
+    then:
+      - lvgl.widget.update:
+          id: tile_pump
+          bg_color: !lambda |-
+            if (x > 0) return lv_color_hex(0xF5F8FC);
+            return lv_color_hex(0x919191);
+      - lvgl.label.update:
+          id: tile_pump_state
+          text: !lambda |-
+            int pwm = x;
+            if (pwm > 0) return str_snprintf("%d%%", 16, pwm);
+            return std::string("UIT");
+
+- id: !extend current_compressor_frequency
+  on_value:
+    then:
+      - lvgl.widget.update:
+          id: tile_compressor
+          bg_color: !lambda |-
+            if (x > 0) return lv_color_hex(0xF5F8FC);
+            return lv_color_hex(0x919191);
+      - lvgl.label.update:
+          id: tile_compressor_value
+          text:
+            format: "%.0f Hz"
+            args: ['x']
+
+# ── Home page: Outdoor temperature ──
+- id: !extend temperature_outside_ta
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: header_outdoor
+          text: !lambda |-
+            if (isnan(x)) return std::string("Buiten -.-°C");
+            return str_snprintf("Buiten %.1f°C", 16, x);
+
+# ── Home page: Mode temperature values ──
+- id: !extend dhw_temperature_tw_sensor
+  on_value:
+    then:
+      - script.execute: update_water_mode_temperature_display
+
+- id: !extend heat_cool_temperature_tc
+  on_value:
+    then:
+      - script.execute: update_water_mode_temperature_display
+
+- id: !extend current_setpoint
+  on_value:
+    then:
+      - script.execute: update_water_mode_temperature_display
+
+- id: !extend current_dhw_setpoint_sensor
+  on_value:
+    then:
+      - script.execute: update_water_mode_temperature_display
+
+# ── Nav bar: WiFi icon + Settings WiFi panel ──
+- id: !extend wifi_signal_db
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: nav_status_wifi_icon
+          text: !lambda |-
+            if (isnan(x)) return (std::string) "\U000F092E";
+            if (x >= -60.0f) return (std::string) "\U000F0928";
+            if (x >= -70.0f) return (std::string) "\U000F0925";
+            if (x >= -80.0f) return (std::string) "\U000F0922";
+            return (std::string) "\U000F091F";
+      - lvgl.widget.update:
+          id: nav_status_wifi_icon
+          text_color: !lambda |-
+            if (isnan(x)) return lv_color_hex(0x9CA3AF);
+            if (x >= -70.0f) return lv_color_hex(0xD1D5DB);
+            if (x >= -80.0f) return lv_color_hex(0xF59E0B);
+            return lv_color_hex(0xEF4444);
+      - lvgl.label.update:
+          id: wifi_signal_label
+          text: !lambda |-
+            if (isnan(x)) return std::string("Geen signaal");
+            char buf[32];
+            snprintf(buf, sizeof(buf), "%.0f dBm", x);
+            return std::string(buf);
+      - lvgl.label.update:
+          id: wifi_status_label
+          text: !lambda |-
+            if (isnan(x)) return std::string("Niet verbonden");
+            return std::string("Verbonden");
+      - lvgl.widget.update:
+          id: wifi_status_label
+          text_color: !lambda |-
+            if (isnan(x)) return lv_color_hex(0xEF4444);
+            return lv_color_hex(0x16A34A);
+      - if:
+          condition:
+            lambda: 'return isnan(x);'
+          then:
+            - lvgl.widget.hide: { id: wifi_connected_section }
+            - lvgl.widget.show: { id: wifi_disconnected_section }
+          else:
+            - lvgl.widget.show: { id: wifi_connected_section }
+            - lvgl.widget.hide: { id: wifi_disconnected_section }

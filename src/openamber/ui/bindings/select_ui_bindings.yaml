@@ -1,0 +1,81 @@
+# ══════════════════════════════════════════════════════════════
+# Select → LVGL UI bindings (event-driven via !extend)
+# These extend selects defined in common/selects.yaml to add
+# on_value callbacks that update LVGL widgets on change.
+# ══════════════════════════════════════════════════════════════
+
+# ── Home page: Working mode chip ──
+- id: !extend working_mode_switch
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: water_mode_text
+          text: !lambda |-
+            return id(working_mode_switch).current_option().c_str();
+      - lvgl.label.update:
+          id: water_mode_icon
+          text: !lambda |-
+            auto idx = id(working_mode_switch).active_index();
+            if (!idx.has_value()) return (std::string) "\U000F0906";
+            switch (idx.value()) {
+              case 0: return (std::string) "\U000F0902";
+              case 1: return (std::string) "\U000F0759";
+              case 2: return (std::string) "\U000F0238";
+              default: return (std::string) "\U000F0906";
+            }
+      - lvgl.widget.update:
+          id: water_mode_chip
+          bg_color: !lambda |-
+            auto idx = id(working_mode_switch).active_index();
+            if (!idx.has_value()) return lv_color_hex(0xE5E7EB);
+            switch (idx.value()) {
+              case 0: return lv_color_hex(0xB0B3B8);
+              case 1: return lv_color_hex(0x0072CE);
+              case 2: return lv_color_hex(0xF97316);
+              default: return lv_color_hex(0xE5E7EB);
+            }
+      - script.execute: update_water_mode_temperature_display
+
+# ── Settings: Thermostat dropdown ──
+- id: !extend thermostat_mode_select
+  on_value:
+    then:
+      - lvgl.dropdown.update:
+          id: set_thermostat_dd
+          selected_index: !lambda |-
+            auto idx = id(thermostat_mode_select).active_index();
+            return idx.has_value() ? idx.value() : 0;
+
+# ── Settings: Heat mode dropdown + heat curve visibility ──
+- id: !extend heat_mode_select
+  on_value:
+    then:
+      - lvgl.dropdown.update:
+          id: set_heat_mode_dd
+          selected_index: !lambda |-
+            auto idx = id(heat_mode_select).active_index();
+            return idx.has_value() ? idx.value() : 0;
+      - script.execute: update_manual_setpoint_ui
+      - if:
+          condition:
+            lambda: |-
+              auto idx = id(heat_mode_select).active_index();
+              return idx.has_value() && idx.value() == 0;
+          then:
+            - lvgl.widget.show: { id: set_heat_curve_title }
+            - lvgl.widget.show: { id: set_heat_curve_chart_container }
+            - lvgl.widget.show: { id: set_heat_curve_controls_container }
+          else:
+            - lvgl.widget.hide: { id: set_heat_curve_title }
+            - lvgl.widget.hide: { id: set_heat_curve_chart_container }
+            - lvgl.widget.hide: { id: set_heat_curve_controls_container }
+
+# ── Settings: Heat power dropdown ──
+- id: !extend heat_compressor_mode
+  on_value:
+    then:
+      - lvgl.dropdown.update:
+          id: set_heat_power_dd
+          selected_index: !lambda |-
+            auto idx = id(heat_compressor_mode).active_index();
+            return idx.has_value() ? idx.value() : 0;
