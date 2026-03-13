@@ -77,6 +77,9 @@ When using the Waveshare ESP32-S3 Touch LCD 5'' you need to set the RS485 resist
 
 ## How can I contribute?
 - Test and provide feedback/bugs/suggestions
+- Sniff modbus traffic for TODO items
+- Analyze and document behavior of WinCE logic on TODO functionality.
+- Design bracket for the Waveshare ESP32-S3 5'' screen.
 
 ## Modbus addresses overview
 ### Inside unit (Address 11)
