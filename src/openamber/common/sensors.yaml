@@ -170,15 +170,6 @@
   web_server: 
     sorting_group_id: temperature_sensors
 
-# Gap-fill register 1111 to merge 1109-1112 into a single read
-- platform: modbus_controller
-  modbus_controller_id: modbus_inside_unit
-  id: modbus_gap_1111
-  internal: True
-  address: 1111
-  register_type: holding
-  value_type: S_WORD
-
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
   id: room_temperature
@@ -191,6 +182,7 @@
   state_class: measurement
   unit_of_measurement: °C   
   accuracy_decimals: 1
+  register_count: 16 # 1199 - 1214
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -293,23 +285,6 @@
     - offset: -3000
     - multiply: 0.01
 
-# Gap-fill registers 1205-1206 to merge 1199-1208 into a single read
-- platform: modbus_controller
-  modbus_controller_id: modbus_inside_unit
-  id: modbus_gap_1205
-  internal: True
-  address: 1205
-  register_type: holding
-  value_type: S_WORD
-
-- platform: modbus_controller
-  modbus_controller_id: modbus_inside_unit
-  id: modbus_gap_1206
-  internal: True
-  address: 1206
-  register_type: holding
-  value_type: S_WORD
-
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
   name: "Cv-aanvoertemperatuur zone 1 (Tv1)"
@@ -341,56 +316,6 @@
   filters:
     - offset: -3000
     - multiply: 0.01
-
-# Gap-fill registers 1209-1210 to merge 1199-1214 into a single read
-- platform: modbus_controller
-  modbus_controller_id: modbus_inside_unit
-  id: modbus_gap_1209
-  internal: True
-  address: 1209
-  register_type: holding
-  value_type: S_WORD
-
-- platform: modbus_controller
-  modbus_controller_id: modbus_inside_unit
-  id: modbus_gap_1210
-  internal: True
-  address: 1210
-  register_type: holding
-  value_type: S_WORD
-
-# Gap-fill register 1304 and 1306-1308 to merge 1300-1309 into a single read
-- platform: modbus_controller
-  modbus_controller_id: modbus_inside_unit
-  id: modbus_gap_1304
-  internal: True
-  address: 1304
-  register_type: holding
-  value_type: S_WORD
-
-- platform: modbus_controller
-  modbus_controller_id: modbus_inside_unit
-  id: modbus_gap_1306
-  internal: True
-  address: 1306
-  register_type: holding
-  value_type: S_WORD
-
-- platform: modbus_controller
-  modbus_controller_id: modbus_inside_unit
-  id: modbus_gap_1307
-  internal: True
-  address: 1307
-  register_type: holding
-  value_type: S_WORD
-
-- platform: modbus_controller
-  modbus_controller_id: modbus_inside_unit
-  id: modbus_gap_1308
-  internal: True
-  address: 1308
-  register_type: holding
-  value_type: S_WORD
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
