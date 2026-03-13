@@ -1,0 +1,182 @@
+# ══════════════════════════════════════════════════════════════
+# Number → LVGL UI bindings (event-driven via !extend)
+# These extend numbers defined in common/numbers.yaml to add
+# on_value callbacks that update settings LVGL labels on change.
+# ══════════════════════════════════════════════════════════════
+
+# ── Vorstbescherming ──
+- id: !extend frost_protection_stage_1_temp_ta
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_frost1_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+- id: !extend frost_protection_stage_2_temp_ta
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_frost2_ta_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+- id: !extend frost_protection_stage_2_temp_tui
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_frost2_tui_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+- id: !extend defrost_backup_heater_boost_temperature_sensor
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_defrost_boost_val
+          text:
+            format: "%.0f°C"
+            args: ['x']
+
+# ── Pomp ──
+- id: !extend pump_speed_heating_number
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_pump_heat_val
+          text:
+            format: "%.0f%%"
+            args: ['x']
+
+- id: !extend pump_speed_dhw_number
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_pump_dhw_val
+          text:
+            format: "%.0f%%"
+            args: ['x']
+
+- id: !extend pump_interval
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_pump_interval_val
+          text:
+            format: "%.0f min"
+            args: ['x']
+
+- id: !extend pump_duration
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_pump_dur_val
+          text:
+            format: "%.0f min"
+            args: ['x']
+
+# ── Compressor ──
+- id: !extend compressor_start_delta
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_comp_start_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+- id: !extend compressor_stop_delta
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_comp_stop_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+- id: !extend backup_heater_degmin_threshold
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_degmin_val
+          text:
+            format: "%.0f °C·min"
+            args: ['x']
+
+# ── SmartGrid ──
+- id: !extend sg_ready_heating_boost_temperature_number
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_sg_heat_boost_val
+          text:
+            format: "%.0f°C"
+            args: ['x']
+
+- id: !extend sg_ready_dhw_boost_temperature_number
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_sg_dhw_boost_val
+          text:
+            format: "%.0f°C"
+            args: ['x']
+
+# ── DHW ──
+- id: !extend dhw_setpoint_temperature
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_dhw_setpoint_val
+          text:
+            format: "%.0f°C"
+            args: ['x']
+
+- id: !extend dhw_restart_dhw_delta
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_dhw_restart_val
+          text:
+            format: "%.0f°C"
+            args: ['x']
+
+- id: !extend dhw_temperature_threshold_max_compressor_mode
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_dhw_winter_temp_val
+          text:
+            format: "%.0f°C"
+            args: ['x']
+
+- id: !extend dhw_backup_min_avg_rate
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_dhw_rate_val
+          text:
+            format: "%.2f °C/min"
+            args: ['x']
+
+# ── Legionella ──
+- id: !extend legio_repeat_days_number
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_legio_days_val
+          text:
+            format: "%.0f d"
+            args: ['x']
+
+- id: !extend legio_target_temperature_number
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_legio_temp_val
+          text:
+            format: "%.0f°C"
+            args: ['x']

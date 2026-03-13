@@ -1,0 +1,21 @@
+# ══════════════════════════════════════════════════════════════
+# Text Sensor → LVGL UI bindings (event-driven via !extend)
+# These extend text sensors defined in common/text_sensors.yaml
+# to add on_value callbacks that update LVGL widgets on change.
+# ══════════════════════════════════════════════════════════════
+
+# ── Home page: Mode temperature display depends on state ──
+- id: !extend state_machine_state_main
+  on_value:
+    then:
+      - script.execute: update_water_mode_temperature_display
+
+# ── Settings page: Analytics device ID ──
+- id: !extend analytics_device_id
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_analytics_id_value
+          text: !lambda |-
+            if (x.empty()) return std::string("Onbekend");
+            return x;

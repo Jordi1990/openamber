@@ -42,6 +42,39 @@
         - "\U000F07D0"  # mdi-home-assistant
         - "\U000F03EB"  # mdi-update
         - "\U000F04A0"  # mdi-cogs
+        - "\U000F0493"  # mdi-tune
+        - "\U000F0EBB"  # mdi-lightning-bolt
+        - "\U000F1603"  # mdi-water-boiler
+        - "\U000F0374"  # mdi-minus
+        - "\U000F0415"  # mdi-plus
+        - "\U000F0759"  # mdi-snowflake-variant (koelen)
+        - "\U000F0502"  # mdi-speedometer (compressor)
+        - "\U000F04DB"  # mdi-shield-check (vorstbesch)
+        - "\U000F0F54"  # mdi-calendar-clock (schema)
+
+- file:
+    type: gfonts
+    family: "Roboto"
+    weight: 500
+  id: font_text_24
+  size: 24
+  bpp: 4
+  extras:
+    - file: "openamber/ui/fonts/materialdesignicons-webfont.ttf"
+      glyphs:
+        - "\U000F0140"  # mdi-chevron-down (dropdown arrow)
+- file:
+    type: gfonts
+    family: "Roboto"
+    weight: 500
+  id: font_text_20
+  size: 20
+  bpp: 4
+  extras:
+    - file: "openamber/ui/fonts/materialdesignicons-webfont.ttf"
+      glyphs:
+        - "\U000F0208"  # mdi-eye
+        - "\U000F0209"  # mdi-eye-off
 - file:
     type: gfonts
     family: "Roboto"

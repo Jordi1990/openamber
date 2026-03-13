@@ -1,0 +1,101 @@
+# ══════════════════════════════════════════════════════════════
+# Binary Sensor → LVGL UI bindings (event-driven via !extend)
+# These extend binary sensors defined in common/binary_sensors.yaml
+# to add on_state callbacks that update LVGL widgets on change.
+# ══════════════════════════════════════════════════════════════
+
+# ── Home page: Tiles ──
+- id: !extend defrost_active_sensor
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: tile_defrost
+          bg_color: !lambda |-
+            if (x) return lv_color_hex(0xF5F8FC);
+            return lv_color_hex(0x919191);
+      - lvgl.label.update:
+          id: tile_defrost_state
+          text: !lambda |-
+            if (x) return "AAN";
+            return "UIT";
+
+- id: !extend backup_heater_active_sensor
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: tile_backup_heater
+          bg_color: !lambda |-
+            if (x) return lv_color_hex(0xF5F8FC);
+            return lv_color_hex(0x919191);
+      - lvgl.label.update:
+          id: tile_backup_state
+          text: !lambda |-
+            if (x) return "AAN";
+            return "UIT";
+
+- id: !extend bottom_heater_active_sensor
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: tile_baseplate
+          bg_color: !lambda |-
+            if (x) return lv_color_hex(0xF5F8FC);
+            return lv_color_hex(0x919191);
+      - lvgl.label.update:
+          id: tile_baseplate_state
+          text: !lambda |-
+            if (x) return "AAN";
+            return "UIT";
+
+# ── Nav bar: Demand icons ──
+- id: !extend heat_demand_active_sensor
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: nav_status_heat_icon
+          hidden: !lambda 'return !x;'
+
+- id: !extend cool_demand_active_sensor
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: nav_status_cool_icon
+          hidden: !lambda 'return !x;'
+
+- id: !extend dhw_demand_active_sensor
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: nav_status_dhw_icon
+          hidden: !lambda 'return !x;'
+
+# ── Boot screen: Hide when both modbus units online ──
+- id: !extend modbus_inside_online
+  on_state:
+    then:
+      - if:
+          condition:
+            - binary_sensor.is_on: modbus_inside_online
+            - binary_sensor.is_on: modbus_outside_online
+          then:
+            - lvgl.widget.hide:
+                id: boot_screen
+            - lvgl.label.update:
+                id: header_title
+                text: !lambda |-
+                  return std::string("OpenAmber ") + ESPHOME_PROJECT_VERSION;
+
+- id: !extend modbus_outside_online
+  on_state:
+    then:
+      - if:
+          condition:
+            - binary_sensor.is_on: modbus_inside_online
+            - binary_sensor.is_on: modbus_outside_online
+          then:
+            - lvgl.widget.hide:
+                id: boot_screen
+            - lvgl.label.update:
+                id: header_title
+                text: !lambda |-
+                  return std::string("OpenAmber ") + ESPHOME_PROJECT_VERSION;

@@ -1,0 +1,102 @@
+# ══════════════════════════════════════════════════════════════
+# Switch → LVGL UI bindings (event-driven via !extend)
+# These extend switches defined in common/switches.yaml to add
+# on_state callbacks that update LVGL widgets on change.
+# ══════════════════════════════════════════════════════════════
+
+# ── Settings page: Analytics toggle ──
+- id: !extend analytics_enabled_switch
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_analytics_enabled_switch_ui
+          state:
+            checked: !lambda 'return x;'
+      - if:
+          condition:
+            lambda: 'return x;'
+          then:
+            - lvgl.widget.show: { id: set_analytics_id_row }
+          else:
+            - lvgl.widget.hide: { id: set_analytics_id_row }
+
+# ── Settings: Pump P1 toggle ──
+- id: !extend pump_p1_enabled
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_pump_p1_switch
+          state:
+            checked: !lambda 'return x;'
+
+# ── Settings: DHW enabled toggle ──
+- id: !extend dhw_enabled_switch
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_dhw_enabled_switch_ui
+          state:
+            checked: !lambda 'return x;'
+      - if:
+          condition:
+            lambda: 'return x;'
+          then:
+            - lvgl.widget.show: { id: stab_dhw }
+          else:
+            - lvgl.widget.hide: { id: stab_dhw }
+
+# ── Settings: DHW schedule toggle ──
+# ── Settings: Legionella toggle ──
+- id: !extend legio_enabled_switch
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_legio_switch
+          state:
+            checked: !lambda 'return x;'
+      - script.execute: update_legio_ui
+
+- id: !extend dhw_schedule_enabled_switch
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_dhw_sched_switch
+          state:
+            checked: !lambda 'return x;'
+      - script.execute: update_dhw_schedule_ui
+
+# ── Settings: DHW schedule day switches ──
+- id: !extend dhw_schedule_monday_enabled_switch
+  on_state:
+    then:
+      - script.execute: update_dhw_schedule_ui
+
+- id: !extend dhw_schedule_tuesday_enabled_switch
+  on_state:
+    then:
+      - script.execute: update_dhw_schedule_ui
+
+- id: !extend dhw_schedule_wednesday_enabled_switch
+  on_state:
+    then:
+      - script.execute: update_dhw_schedule_ui
+
+- id: !extend dhw_schedule_thursday_enabled_switch
+  on_state:
+    then:
+      - script.execute: update_dhw_schedule_ui
+
+- id: !extend dhw_schedule_friday_enabled_switch
+  on_state:
+    then:
+      - script.execute: update_dhw_schedule_ui
+
+- id: !extend dhw_schedule_saturday_enabled_switch
+  on_state:
+    then:
+      - script.execute: update_dhw_schedule_ui
+
+- id: !extend dhw_schedule_sunday_enabled_switch
+  on_state:
+    then:
+      - script.execute: update_dhw_schedule_ui

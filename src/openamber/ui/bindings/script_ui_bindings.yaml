@@ -1,0 +1,287 @@
+# ══════════════════════════════════════════════════════════════
+# UI helper scripts used by event-driven bindings
+# ══════════════════════════════════════════════════════════════
+
+- id: update_water_mode_temperature_display
+  mode: restart
+  then:
+    - lvgl.label.update:
+        id: water_mode_temperature_values
+        text: !lambda |-
+          const std::string main_state = id(state_machine_state_main).state;
+          float current_temperature = NAN;
+          float target_temperature = NAN;
+
+          if (main_state == "DHW") {
+            current_temperature = id(dhw_temperature_tw_sensor).state;
+            target_temperature = id(current_dhw_setpoint_sensor).state;
+          } else if (main_state == "Heat/Cool") {
+            current_temperature = id(heat_cool_temperature_tc).state;
+            target_temperature = id(current_setpoint).state;
+          }
+
+          if (isnan(current_temperature) || isnan(target_temperature))
+            return std::string("-°C / -°C");
+          return str_snprintf("%.1f°C / %.1f°C", 48, current_temperature, target_temperature);
+
+- id: update_manual_setpoint_ui
+  mode: restart
+  then:
+    - lvgl.label.update:
+        id: set_manual_sp_val
+        text:
+          format: "%.0f°C"
+          args: ['id(manual_setpoint).state']
+    - lvgl.label.update:
+        id: set_manual_sp_lbl
+        text_color: !lambda |-
+          return id(heat_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF);
+    - lvgl.label.update:
+        id: set_manual_sp_sub
+        text_color: !lambda |-
+          return id(heat_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x6B7280) : lv_color_hex(0xBFC5CC);
+    - lvgl.label.update:
+        id: set_manual_sp_val
+        text_color: !lambda |-
+          return id(heat_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF);
+    - lvgl.widget.update:
+        id: set_manual_sp_dec
+        bg_color: !lambda |-
+          return id(heat_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+    - lvgl.label.update:
+        id: set_manual_sp_dec_lbl
+        text_color: !lambda |-
+          return id(heat_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF);
+    - lvgl.widget.update:
+        id: set_manual_sp_inc
+        bg_color: !lambda |-
+          return id(heat_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+    - lvgl.label.update:
+        id: set_manual_sp_inc_lbl
+        text_color: !lambda |-
+          return id(heat_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF);
+
+- id: update_legio_ui
+  mode: restart
+  then:
+    - lvgl.label.update:
+        id: set_legio_days_lbl
+        text_color: !lambda |-
+          return id(legio_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF);
+    - lvgl.label.update:
+        id: set_legio_days_sub
+        text_color: !lambda |-
+          return id(legio_enabled_switch).state ? lv_color_hex(0x6B7280) : lv_color_hex(0xBFC5CC);
+    - lvgl.label.update:
+        id: set_legio_days_val
+        text_color: !lambda |-
+          return id(legio_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF);
+    - lvgl.widget.update:
+        id: set_legio_days_dec
+        bg_color: !lambda |-
+          return id(legio_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+    - lvgl.label.update:
+        id: set_legio_days_dec_lbl
+        text_color: !lambda |-
+          return id(legio_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF);
+    - lvgl.widget.update:
+        id: set_legio_days_inc
+        bg_color: !lambda |-
+          return id(legio_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+    - lvgl.label.update:
+        id: set_legio_days_inc_lbl
+        text_color: !lambda |-
+          return id(legio_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF);
+    - lvgl.label.update:
+        id: set_legio_temp_lbl
+        text_color: !lambda |-
+          return id(legio_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF);
+    - lvgl.label.update:
+        id: set_legio_temp_sub
+        text_color: !lambda |-
+          return id(legio_enabled_switch).state ? lv_color_hex(0x6B7280) : lv_color_hex(0xBFC5CC);
+    - lvgl.label.update:
+        id: set_legio_temp_val
+        text_color: !lambda |-
+          return id(legio_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF);
+    - lvgl.widget.update:
+        id: set_legio_temp_dec
+        bg_color: !lambda |-
+          return id(legio_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+    - lvgl.label.update:
+        id: set_legio_temp_dec_lbl
+        text_color: !lambda |-
+          return id(legio_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF);
+    - lvgl.widget.update:
+        id: set_legio_temp_inc
+        bg_color: !lambda |-
+          return id(legio_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+    - lvgl.label.update:
+        id: set_legio_temp_inc_lbl
+        text_color: !lambda |-
+          return id(legio_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF);
+
+- id: update_dhw_schedule_ui
+  mode: restart
+  then:
+    - lvgl.widget.update:
+        id: set_dhw_day_mon
+        bg_color: !lambda |-
+          if (!id(dhw_schedule_enabled_switch).state) return lv_color_hex(0xE5E7EB);
+          return id(dhw_schedule_monday_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xCBD5E1);
+    - lvgl.widget.update:
+        id: set_dhw_day_mon_lbl
+        text_color: !lambda |-
+          if (!id(dhw_schedule_enabled_switch).state) return lv_color_hex(0x9CA3AF);
+          return id(dhw_schedule_monday_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x334155);
+
+    - lvgl.widget.update:
+        id: set_dhw_day_tue
+        bg_color: !lambda |-
+          if (!id(dhw_schedule_enabled_switch).state) return lv_color_hex(0xE5E7EB);
+          return id(dhw_schedule_tuesday_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xCBD5E1);
+    - lvgl.widget.update:
+        id: set_dhw_day_tue_lbl
+        text_color: !lambda |-
+          if (!id(dhw_schedule_enabled_switch).state) return lv_color_hex(0x9CA3AF);
+          return id(dhw_schedule_tuesday_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x334155);
+
+    - lvgl.widget.update:
+        id: set_dhw_day_wed
+        bg_color: !lambda |-
+          if (!id(dhw_schedule_enabled_switch).state) return lv_color_hex(0xE5E7EB);
+          return id(dhw_schedule_wednesday_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xCBD5E1);
+    - lvgl.widget.update:
+        id: set_dhw_day_wed_lbl
+        text_color: !lambda |-
+          if (!id(dhw_schedule_enabled_switch).state) return lv_color_hex(0x9CA3AF);
+          return id(dhw_schedule_wednesday_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x334155);
+
+    - lvgl.widget.update:
+        id: set_dhw_day_thu
+        bg_color: !lambda |-
+          if (!id(dhw_schedule_enabled_switch).state) return lv_color_hex(0xE5E7EB);
+          return id(dhw_schedule_thursday_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xCBD5E1);
+    - lvgl.widget.update:
+        id: set_dhw_day_thu_lbl
+        text_color: !lambda |-
+          if (!id(dhw_schedule_enabled_switch).state) return lv_color_hex(0x9CA3AF);
+          return id(dhw_schedule_thursday_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x334155);
+
+    - lvgl.widget.update:
+        id: set_dhw_day_fri
+        bg_color: !lambda |-
+          if (!id(dhw_schedule_enabled_switch).state) return lv_color_hex(0xE5E7EB);
+          return id(dhw_schedule_friday_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xCBD5E1);
+    - lvgl.widget.update:
+        id: set_dhw_day_fri_lbl
+        text_color: !lambda |-
+          if (!id(dhw_schedule_enabled_switch).state) return lv_color_hex(0x9CA3AF);
+          return id(dhw_schedule_friday_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x334155);
+
+    - lvgl.widget.update:
+        id: set_dhw_day_sat
+        bg_color: !lambda |-
+          if (!id(dhw_schedule_enabled_switch).state) return lv_color_hex(0xE5E7EB);
+          return id(dhw_schedule_saturday_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xCBD5E1);
+    - lvgl.widget.update:
+        id: set_dhw_day_sat_lbl
+        text_color: !lambda |-
+          if (!id(dhw_schedule_enabled_switch).state) return lv_color_hex(0x9CA3AF);
+          return id(dhw_schedule_saturday_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x334155);
+
+    - lvgl.widget.update:
+        id: set_dhw_day_sun
+        bg_color: !lambda |-
+          if (!id(dhw_schedule_enabled_switch).state) return lv_color_hex(0xE5E7EB);
+          return id(dhw_schedule_sunday_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xCBD5E1);
+    - lvgl.widget.update:
+        id: set_dhw_day_sun_lbl
+        text_color: !lambda |-
+          if (!id(dhw_schedule_enabled_switch).state) return lv_color_hex(0x9CA3AF);
+          return id(dhw_schedule_sunday_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x334155);
+
+    - lvgl.label.update:
+        id: set_dhw_days_summary
+        text: !lambda |-
+          if (!id(dhw_schedule_enabled_switch).state) {
+            return std::string("Schema uit");
+          }
+
+          std::string out = "Actief op: ";
+          bool first = true;
+
+          if (id(dhw_schedule_monday_enabled_switch).state) { out += first ? "Ma" : ", Ma"; first = false; }
+          if (id(dhw_schedule_tuesday_enabled_switch).state) { out += first ? "Di" : ", Di"; first = false; }
+          if (id(dhw_schedule_wednesday_enabled_switch).state) { out += first ? "Wo" : ", Wo"; first = false; }
+          if (id(dhw_schedule_thursday_enabled_switch).state) { out += first ? "Do" : ", Do"; first = false; }
+          if (id(dhw_schedule_friday_enabled_switch).state) { out += first ? "Vr" : ", Vr"; first = false; }
+          if (id(dhw_schedule_saturday_enabled_switch).state) { out += first ? "Za" : ", Za"; first = false; }
+          if (id(dhw_schedule_sunday_enabled_switch).state) { out += first ? "Zo" : ", Zo"; first = false; }
+
+          if (first) {
+            return std::string("Geen dagen geselecteerd");
+          }
+          return out;
+
+    - lvgl.label.update:
+        id: set_dhw_start_time_val
+        text:
+          format: "%02d:%02d"
+          args: ['id(dhw_start_time).hour', 'id(dhw_start_time).minute']
+    - lvgl.label.update:
+        id: set_dhw_end_time_val
+        text:
+          format: "%02d:%02d"
+          args: ['id(dhw_end_time).hour', 'id(dhw_end_time).minute']
+
+    # Grey out start/end time controls when schedule is off
+    - lvgl.label.update:
+        id: set_dhw_start_time_lbl
+        text_color: !lambda |-
+          return id(dhw_schedule_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF);
+    - lvgl.label.update:
+        id: set_dhw_start_time_val
+        text_color: !lambda |-
+          return id(dhw_schedule_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF);
+    - lvgl.widget.update:
+        id: set_dhw_start_time_dec
+        bg_color: !lambda |-
+          return id(dhw_schedule_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+    - lvgl.label.update:
+        id: set_dhw_start_time_dec_lbl
+        text_color: !lambda |-
+          return id(dhw_schedule_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF);
+    - lvgl.widget.update:
+        id: set_dhw_start_time_inc
+        bg_color: !lambda |-
+          return id(dhw_schedule_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+    - lvgl.label.update:
+        id: set_dhw_start_time_inc_lbl
+        text_color: !lambda |-
+          return id(dhw_schedule_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF);
+
+    - lvgl.label.update:
+        id: set_dhw_end_time_lbl
+        text_color: !lambda |-
+          return id(dhw_schedule_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF);
+    - lvgl.label.update:
+        id: set_dhw_end_time_val
+        text_color: !lambda |-
+          return id(dhw_schedule_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF);
+    - lvgl.widget.update:
+        id: set_dhw_end_time_dec
+        bg_color: !lambda |-
+          return id(dhw_schedule_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+    - lvgl.label.update:
+        id: set_dhw_end_time_dec_lbl
+        text_color: !lambda |-
+          return id(dhw_schedule_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF);
+    - lvgl.widget.update:
+        id: set_dhw_end_time_inc
+        bg_color: !lambda |-
+          return id(dhw_schedule_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+    - lvgl.label.update:
+        id: set_dhw_end_time_inc_lbl
+        text_color: !lambda |-
+          return id(dhw_schedule_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF);
