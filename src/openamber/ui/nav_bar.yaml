@@ -36,15 +36,18 @@ obj:
         pad_top: 4
         pad_bottom: 4
         on_click:
+          - globals.set:
+              id: settings_page_visible
+              value: 'false'
           - lvgl.widget.update:
               id: page_home
               hidden: false
           - lvgl.widget.update:
               id: page_service
               hidden: true
-          # - lvgl.widget.update:
-          #     id: page_settings
-          #     hidden: true
+          - lvgl.widget.update:
+              id: page_settings
+              hidden: true
           - lvgl.widget.update:
               id: nav_home
               bg_opa: 100%
@@ -145,33 +148,49 @@ obj:
         pad_right: 12
         pad_top: 4
         pad_bottom: 4
-      #   on_click:
-      #     - lvgl.widget.update:
-      #         id: page_home
-      #         hidden: true
-      #     - lvgl.widget.update:
-      #         id: page_settings
-      #         hidden: false
+        on_click:
+          - globals.set:
+              id: settings_page_visible
+              value: 'true'
+          - lvgl.widget.update:
+              id: page_home
+              hidden: true
+          - lvgl.widget.update:
+              id: page_service
+              hidden: true
+          - lvgl.widget.update:
+              id: page_settings
+              hidden: false
 
-      #     - lvgl.widget.update:
-      #         id: nav_settings
-      #         bg_opa: 100%
-      #     - lvgl.widget.update:
-      #         id: nav_settings_icon
-      #         text_color: 0xFFFFFF
-      #     - lvgl.widget.update:
-      #         id: nav_settings_label
-      #         text_color: 0xFFFFFF
+          - lvgl.widget.update:
+              id: nav_settings
+              bg_opa: 100%
+          - lvgl.widget.update:
+              id: nav_settings_icon
+              text_color: 0xFFFFFF
+          - lvgl.widget.update:
+              id: nav_settings_label
+              text_color: 0xFFFFFF
 
-      #     - lvgl.widget.update:
-      #         id: nav_home
-      #         bg_opa: 0%
-      #     - lvgl.widget.update:
-      #         id: nav_home_icon
-      #         text_color: 0xD1D5DB
-      #     - lvgl.widget.update:
-      #         id: nav_home_label
-      #         text_color: 0xD1D5DB
+          - lvgl.widget.update:
+              id: nav_home
+              bg_opa: 0%
+          - lvgl.widget.update:
+              id: nav_home_icon
+              text_color: 0xD1D5DB
+          - lvgl.widget.update:
+              id: nav_home_label
+              text_color: 0xD1D5DB
+
+          - lvgl.widget.update:
+              id: nav_service
+              bg_opa: 0%
+          - lvgl.widget.update:
+              id: nav_service_icon
+              text_color: 0xD1D5DB
+          - lvgl.widget.update:
+              id: nav_service_label
+              text_color: 0xD1D5DB
 
         widgets:
           - label:
@@ -208,12 +227,18 @@ obj:
         border_opa: 0%
         radius: 24
         on_click:
+          - globals.set:
+              id: settings_page_visible
+              value: 'false'
           - lvgl.widget.update:
               id: page_home
               hidden: true
           - lvgl.widget.update:
               id: page_service
               hidden: false
+          - lvgl.widget.update:
+              id: page_settings
+              hidden: true
 
           - lvgl.widget.update:
               id: nav_service
@@ -233,6 +258,16 @@ obj:
               text_color: 0xD1D5DB
           - lvgl.widget.update:
               id: nav_home_label
+              text_color: 0xD1D5DB
+
+          - lvgl.widget.update:
+              id: nav_settings
+              bg_opa: 0%
+          - lvgl.widget.update:
+              id: nav_settings_icon
+              text_color: 0xD1D5DB
+          - lvgl.widget.update:
+              id: nav_settings_label
               text_color: 0xD1D5DB
         widgets:
           - label:

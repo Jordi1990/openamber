@@ -1,5 +1,6 @@
 packages:
  - !include openamber/common/openamber.yaml
+ - !include openamber/ui/display_switches.yaml
 
 esp32:
   variant: esp32s3
@@ -10,6 +11,8 @@ esp32:
       CONFIG_ESP32S3_DATA_CACHE_64KB: y
       CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
       CONFIG_SPIRAM_RODATA: y
+    advanced:
+      loop_task_stack_size: 16384
 
 esphome:
   platformio_options:
@@ -43,20 +46,12 @@ display:
   - platform: mipi_rgb
     model: WAVESHARE-5-1024X600
     id: my_display
+    auto_clear_enabled: false
 
 output:
   - platform: ledc
     pin: GPIO15
     id: backlight
-
-switch:
-  - platform: gpio
-    name: backlight switch
-    pin:
-      ch422g: ch422g_hub
-      number: 2
-    restore_mode: ALWAYS_ON
-    internal: true
 
 globals:
   - id: is_idled
@@ -83,6 +78,24 @@ touchscreen:
                 level: 100%
             - lvgl.widget.hide:
                 id: idle_screen_overlay
+
+sensor: !include openamber/ui/bindings/sensor_ui_bindings.yaml
+number: !include openamber/ui/bindings/number_ui_bindings.yaml
+binary_sensor: !include openamber/ui/bindings/binary_sensor_ui_bindings.yaml
+select: !include openamber/ui/bindings/select_ui_bindings.yaml
+switch: !include openamber/ui/bindings/switch_ui_bindings.yaml
+text_sensor: !include openamber/ui/bindings/text_sensor_ui_bindings.yaml
+script: !include openamber/ui/bindings/script_ui_bindings.yaml
+
+api:
+  on_client_connected:
+    - lvgl.widget.update:
+        id: nav_status_ha_icon
+        text_color: 0x22C55E
+  on_client_disconnected:
+    - lvgl.widget.update:
+        id: nav_status_ha_icon
+        text_color: 0xEF4444
 
 interval:
  - interval: 5s
@@ -124,6 +137,7 @@ lvgl:
     - !include openamber/ui/header_bar.yaml
     - !include openamber/ui/page_home.yaml
     - !include openamber/ui/page_service.yaml
+    - !include openamber/ui/page_settings.yaml
     - !include openamber/ui/nav_bar.yaml
     - !include openamber/ui/boot_screen.yaml
     - !include openamber/ui/idle_screen_overlay.yaml

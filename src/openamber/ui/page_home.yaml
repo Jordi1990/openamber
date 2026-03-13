@@ -248,7 +248,7 @@ obj:
               grid_cell_column_pos: 0
               grid_cell_x_align: STRETCH
               grid_cell_y_align: STRETCH
-              bg_color: 0xF5F8FC
+              bg_color: 0x919191
               bg_opa: 100%
               radius: 16
               pad_left: 8
@@ -291,7 +291,7 @@ obj:
                     widgets:
                       - label:
                           id: tile_fan_value
-                          text: "65%"
+                          text: "0 RPM"
 
           - obj:
               id: tile_pump
@@ -301,7 +301,7 @@ obj:
               grid_cell_column_pos: 1
               grid_cell_x_align: STRETCH
               grid_cell_y_align: STRETCH
-              bg_color: 0xF5F8FC
+              bg_color: 0x919191
               bg_opa: 100%
               radius: 16
               pad_left: 8
@@ -344,7 +344,7 @@ obj:
                     widgets:
                       - label:
                           id: tile_pump_state
-                          text: "AAN"
+                          text: "UIT"
 
           - obj:
               id: tile_defrost
@@ -354,7 +354,7 @@ obj:
               grid_cell_column_pos: 0
               grid_cell_x_align: STRETCH
               grid_cell_y_align: STRETCH
-              bg_color: 0xF5F8FC
+              bg_color: 0x919191
               bg_opa: 100%
               radius: 16
               pad_left: 8
@@ -407,7 +407,7 @@ obj:
               grid_cell_column_pos: 1
               grid_cell_x_align: STRETCH
               grid_cell_y_align: STRETCH
-              bg_color: 0xF5F8FC
+              bg_color: 0x919191
               bg_opa: 100%
               radius: 16
               pad_left: 8
@@ -450,7 +450,7 @@ obj:
                     widgets:
                       - label:
                           id: tile_compressor_value
-                          text: "38 Hz"
+                          text: "0 Hz"
 
           - obj:
               id: tile_backup_heater
@@ -460,7 +460,7 @@ obj:
               grid_cell_column_pos: 0
               grid_cell_x_align: STRETCH
               grid_cell_y_align: STRETCH
-              bg_color: 0xF5F8FC
+              bg_color: 0x919191
               bg_opa: 100%
               radius: 16
               pad_left: 8
@@ -503,7 +503,7 @@ obj:
                     widgets:
                       - label:
                           id: tile_backup_state
-                          text: "AAN"
+                          text: "UIT"
 
           - obj:
               id: tile_baseplate
@@ -513,7 +513,7 @@ obj:
               grid_cell_column_pos: 1
               grid_cell_x_align: STRETCH
               grid_cell_y_align: STRETCH
-              bg_color: 0xF5F8FC
+              bg_color: 0x919191
               bg_opa: 100%
               radius: 16
               pad_left: 8
