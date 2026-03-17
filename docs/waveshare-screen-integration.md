@@ -15,7 +15,7 @@ The general concept for the bracket design is an interlocking mechanism that sti
 
 ## Step 1: Back bracket
 
-First of all remove the 3M tape protector from the Waveshare module. Then place Part 2 on top of the back of the screen module, align it such that the cut out in the bracket aligns with the terminal connector.
+First of all remove the 3M tape protector from the Waveshare module. Then place Part 2 to the back of the screen module, align it such that the cut out in the bracket aligns with the terminal connector.
 
 ![Step1](./images/Bracket-Assembly-Step1.jpeg)
 
