@@ -27,7 +27,7 @@ Align Part 1 with the screen and back bracket from the back, note the cutouts in
 
 ## Step 3: Placement in control module
 
-Mount the Waveshare module with the attached bracket in the Amber control module using the screen tighteners that were used to secure the original screen in place. Tighten it until the screen is secured in place, do not overdo it as it is a 3D printed part. Optionally 4 screws can be added for an extra security if the 3M would ever stop sticking, note that these screw terminals on the Waveshare module are also secured by 3M tape. 
+Mount the Waveshare module (with the newly attached bracket) in the Amber control module. Using the screen tighteners that were used to secure the original screen, secure the assembly in place. Do not overdo it as it is a 3D printed part. Optionally 4 screws can be added for an extra security if the 3M would ever stop sticking, but note that these screw terminals on the Waveshare module are also secured by 3M tape. 
 
 ![Step3](./images/Bracket-Assembly-Step3.jpeg)
 
