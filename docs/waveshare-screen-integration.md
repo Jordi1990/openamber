@@ -21,7 +21,7 @@ First of all remove the 3M tape protector from the Waveshare module. Then place 
 
 ## Step 2: Screen bracket
 
-Align Part 1 with the screen and back bracket from the back, note the cutouts in this part for the USB port and switch. Slide Part 1 over the back bracket and press it on to the exposed 3M tape of the screen. When squeezing the bracket to the glass of the screen it should sink in neatly in the 3D print. This step will merge lock the back bracket in place.
+Align Part 1 with the screen and back bracket from the back, note the cutouts in this part for the USB port and switch. Slide Part 1 over the back bracket and press it on to the exposed 3M tape of the screen. The glass of the Waveshare screen should sink neatly into this part, if is does not sink in properly the sceen will also not stick to the bracket. This step will mechanically lock the back bracket, that was used in step 1, in its place.
 
 ![Step2](./images/Bracket-Assembly-Step2.jpeg)
 
