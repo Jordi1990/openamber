@@ -168,6 +168,28 @@ bool OpenthermProtocol::init_esp32_timer_() {
 
   return true;
 }
+
+void IRAM_ATTR OpenthermProtocol::start_esp32_timer_(uint64_t alarm_value) {
+  InterruptLock const lock;
+  this->timer_error_ = timer_set_alarm_value(this->timer_group_, this->timer_idx_, alarm_value);
+  if (this->timer_error_ != ESP_OK) {
+    this->mode_ = ProtocolMode::ERROR_TIMER;
+    this->notify_event_component_();
+    return;
+  }
+
+  this->timer_error_ = timer_start(this->timer_group_, this->timer_idx_);
+  if (this->timer_error_ != ESP_OK) {
+    this->mode_ = ProtocolMode::ERROR_TIMER;
+    this->notify_event_component_();
+  }
+}
+
+void IRAM_ATTR OpenthermProtocol::stop_timer_() {
+  InterruptLock const lock;
+  timer_pause(this->timer_group_, this->timer_idx_);
+  timer_set_counter_value(this->timer_group_, this->timer_idx_, 0);
+}
 #endif
 
 }  // namespace opentherm_slave
