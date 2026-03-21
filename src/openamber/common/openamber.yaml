@@ -26,9 +26,15 @@ esphome:
     - openamber/controllers/heat_cool_controller.h
   on_boot:
     then:
-      - delay: 30s
-      - update.check:
-          id: firmware_update
+      - delay: 60s
+      - if:
+          condition:
+            lambda: 'return id(my_time).now().is_valid();'
+          then:
+            - update.check:
+                id: firmware_update
+          else:
+            - logger.log: "Skipping firmware update check until time is synchronized"
       - if:
           condition:
             - switch.is_on: analytics_enabled_switch
@@ -49,8 +55,14 @@ interval:
           - script.execute: send_analytics
   - interval: 24h
     then:
-      - update.check:
-          id: firmware_update
+      - if:
+          condition:
+            lambda: 'return id(my_time).now().is_valid();'
+          then:
+            - update.check:
+                id: firmware_update
+          else:
+            - logger.log: "Skipping scheduled firmware update check until time is synchronized"
 
 logger:
   level: INFO
@@ -89,7 +101,7 @@ update:
   - platform: http_request
     id: firmware_update
     name: Firmware Update
-    source: https://github.com/Jordi1990/openamber/releases/latest/download/openamber.manifest.json
+    source: https://openamber.nl/openamber.manifest.json
 
 web_server:
   port: 80
