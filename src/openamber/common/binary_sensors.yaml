@@ -85,14 +85,17 @@
       return false;
     }
 
+    bool demand = false;
     if (id(thermostat_mode_select).current_option() == "Intern")
     {
-      return id(climate_controller).action == climate::CLIMATE_ACTION_HEATING;
+      demand = id(climate_controller).action == climate::CLIMATE_ACTION_HEATING;
     }
     else
     {
-      return id(external_heat_demand_wired).state || id(heat_demand_switch).state;
+      demand = id(external_heat_demand_wired).state || id(heat_demand_switch).state;
     }
+
+    return demand;
   web_server: 
     sorting_group_id: overview
 
@@ -106,14 +109,17 @@
       return false;
     }
 
+    bool demand = false;
     if (id(thermostat_mode_select).current_option() == "Intern")
     {
-      return id(climate_controller).action == climate::CLIMATE_ACTION_COOLING;
+      demand = id(climate_controller).action == climate::CLIMATE_ACTION_COOLING;
     }
     else
     {
-      return id(external_cool_demand_wired).state || id(cool_demand_switch).state;
+      demand = id(external_cool_demand_wired).state || id(cool_demand_switch).state;
     }
+
+    return demand;
   web_server: 
     sorting_group_id: overview
 
@@ -123,7 +129,7 @@
   filters:
     - delayed_on_off: 300s
   lambda: |-
-    return id(temperature_outside_ta).state < id(frost_protection_stage_1_temp_ta).state;
+    return id(effective_outside_temperature).state < id(frost_protection_stage_1_temp_ta).state;
   on_press: 
     then:
       - logger.log:
@@ -140,7 +146,7 @@
   filters:
     - delayed_on_off: 300s
   lambda: |-
-    return id(temperature_outside_ta).state < id(frost_protection_stage_2_temp_ta).state &&
+    return id(effective_outside_temperature).state < id(frost_protection_stage_2_temp_ta).state &&
             id(inlet_temperature_tui).state < id(frost_protection_stage_2_temp_tui).state;
   on_press: 
     then:
@@ -226,6 +232,19 @@
   register_type: holding
   device_class: running
   web_server: 
+    sorting_group_id: diagnostic
+
+- platform: opentherm_slave
+  opentherm_slave_id: ot_hub
+  type: link_online
+  id: opentherm_link_online
+  name: "OpenTherm online"
+  device_class: connectivity
+  entity_category: diagnostic
+  on_state:
+    then:
+      - component.update: current_setpoint
+  web_server:
     sorting_group_id: diagnostic
 
 - platform: modbus_controller

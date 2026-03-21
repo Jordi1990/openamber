@@ -12,6 +12,15 @@ openamber_component:
   id: amber_ctrl
   update_interval: 5s
 
+opentherm_slave:
+  id: ot_hub
+  flow_temp_input: heat_cool_temperature_tc
+  dhw_temp_input: dhw_temperature_tw_sensor
+  return_temp_input: inlet_temperature_tui
+  outside_temp_input: effective_outside_temperature
+  ch_active_input: heat_demand_active_sensor
+  dhw_active_input: dhw_demand_active_sensor
+
 esphome:
   name: ${device_name}
   friendly_name: ${device_friendly_name}
@@ -27,8 +36,14 @@ esphome:
   on_boot:
     then:
       - delay: 30s
-      - update.check:
-          id: firmware_update
+      - if:
+          condition:
+            lambda: 'return id(my_time).now().is_valid();'
+          then:
+            - update.check:
+                id: firmware_update
+          else:
+            - logger.log: "Skipping firmware update check until time is synchronized"
       - if:
           condition:
             - switch.is_on: analytics_enabled_switch
@@ -49,8 +64,14 @@ interval:
           - script.execute: send_analytics
   - interval: 24h
     then:
-      - update.check:
-          id: firmware_update
+      - if:
+          condition:
+            lambda: 'return id(my_time).now().is_valid();'
+          then:
+            - update.check:
+                id: firmware_update
+          else:
+            - logger.log: "Skipping scheduled firmware update check until time is synchronized"
 
 logger:
   level: INFO
@@ -89,7 +110,7 @@ update:
   - platform: http_request
     id: firmware_update
     name: Firmware Update
-    source: https://github.com/Jordi1990/openamber/releases/latest/download/openamber.manifest.json
+    source: https://openamber.nl/openamber.manifest.json
 
 web_server:
   port: 80
@@ -159,6 +180,10 @@ globals:
     type: bool
     restore_value: no
     initial_value: 'false'
+  - id: firmware_update_initial_check_done
+    type: bool
+    restore_value: no
+    initial_value: 'false'
   - id: settings_page_visible
     type: bool
     restore_value: no
@@ -224,6 +249,17 @@ time:
   - platform: sntp
     id: my_time
     timezone: "Europe/Amsterdam"
+    on_time_sync:
+      then:
+        - if:
+            condition:
+              lambda: 'return !id(firmware_update_initial_check_done);'
+            then:
+              - globals.set:
+                  id: firmware_update_initial_check_done
+                  value: 'true'
+              - update.check:
+                  id: firmware_update
 
 modbus:
   send_wait_time: 250ms

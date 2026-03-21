@@ -10,6 +10,15 @@ esp32:
 esphome:
  project:
   version: dev
+
+opentherm_slave:
+  id: ot_hub
+  in_pin:
+    number: GPIO25
+    inverted: true
+  out_pin:
+    number: GPIO26
+    inverted: false
     
 modbus:
   flow_control_pin: GPIO14

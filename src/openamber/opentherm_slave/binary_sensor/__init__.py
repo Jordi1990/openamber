@@ -7,14 +7,10 @@ from .. import CONF_OPENTHERM_SLAVE_ID, OpenthermSlaveHub
 
 DEPENDENCIES = ["opentherm_slave"]
 
-CONF_CH_ENABLE = "ch_enable"
-CONF_DHW_ENABLE = "dhw_enable"
-CONF_COOLING_ENABLE = "cooling_enable"
+CONF_LINK_ONLINE = "link_online"
 
 BINARY_SENSOR_TYPES = {
-    CONF_CH_ENABLE: "set_ch_enable_binary_sensor",
-    CONF_DHW_ENABLE: "set_dhw_enable_binary_sensor",
-    CONF_COOLING_ENABLE: "set_cooling_enable_binary_sensor",
+    CONF_LINK_ONLINE: "set_link_online_binary_sensor",
 }
 
 CONFIG_SCHEMA = binary_sensor.binary_sensor_schema().extend(

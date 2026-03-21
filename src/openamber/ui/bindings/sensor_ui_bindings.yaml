@@ -109,6 +109,111 @@
     then:
       - script.execute: update_water_mode_temperature_display
 
+# ── Settings: OpenTherm diagnostics ──
+- id: !extend opentherm_link_quality
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_ot_link_quality_value
+          text:
+            format: "%.0f%%"
+            args: ['x']
+
+- id: !extend opentherm_frames_received
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_ot_rx_value
+          text:
+            format: "%.0f"
+            args: ['x']
+
+- id: !extend opentherm_frames_sent
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_ot_tx_value
+          text:
+            format: "%.0f"
+            args: ['x']
+
+- id: !extend opentherm_errors_total
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_ot_errors_value
+          text:
+            format: "%.0f"
+            args: ['x']
+
+- id: !extend opentherm_last_message_age
+  on_value:
+    then:
+      - if:
+          condition:
+            lambda: 'return isnan(x);'
+          then:
+            - lvgl.label.update:
+                id: set_ot_last_seen_value
+                text: "-"
+          else:
+            - lvgl.label.update:
+                id: set_ot_last_seen_value
+                text:
+                  format: "%.1fs"
+                  args: ['x']
+
+- id: !extend opentherm_room_temperature
+  on_value:
+    then:
+      - if:
+          condition:
+            lambda: 'return isnan(x);'
+          then:
+            - lvgl.label.update:
+                id: set_ot_room_temp_value
+                text: "-"
+          else:
+            - lvgl.label.update:
+                id: set_ot_room_temp_value
+                text:
+                  format: "%.1f°C"
+                  args: ['x']
+
+- id: !extend opentherm_ch_setpoint
+  on_value:
+    then:
+      - if:
+          condition:
+            lambda: 'return isnan(x);'
+          then:
+            - lvgl.label.update:
+                id: set_ot_ch_setpoint_value
+                text: "-"
+          else:
+            - lvgl.label.update:
+                id: set_ot_ch_setpoint_value
+                text:
+                  format: "%.1f°C"
+                  args: ['x']
+
+- id: !extend effective_room_temperature
+  on_value:
+    then:
+      - if:
+          condition:
+            lambda: 'return isnan(x);'
+          then:
+            - lvgl.label.update:
+                id: set_ot_effective_room_temp_value
+                text: "-"
+          else:
+            - lvgl.label.update:
+                id: set_ot_effective_room_temp_value
+                text:
+                  format: "%.1f°C"
+                  args: ['x']
+
 # ── Nav bar: WiFi icon + Settings WiFi panel ──
 - id: !extend wifi_signal_db
   on_value:

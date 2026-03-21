@@ -22,7 +22,7 @@
 namespace esphome {
 namespace opentherm_slave {
 
-static const char *const TAG = "opentherm.protocol";
+static const char *const PROTOCOL_TAG = "opentherm.protocol";
 
 bool OpenthermProtocol::initialize() {
   this->in_pin_->pin_mode(gpio::FLAG_INPUT);
@@ -33,9 +33,9 @@ bool OpenthermProtocol::initialize() {
 
   bool in_level = this->in_pin_->digital_read();
   this->idle_level_ = in_level;
-  ESP_LOGD(TAG, "Initial line levels: in_pin=%d (idle expected HIGH), out_pin forced HIGH", in_level);
+  ESP_LOGD(PROTOCOL_TAG, "Initial line levels: in_pin=%d (idle expected HIGH), out_pin forced HIGH", in_level);
   if (!in_level) {
-    ESP_LOGW(TAG, "in_pin is LOW at startup; check OT adapter pin mapping or signal inversion");
+    ESP_LOGW(PROTOCOL_TAG, "in_pin is LOW at startup; check OT adapter pin mapping or signal inversion");
   }
 
 #ifdef USE_ESP32
@@ -140,11 +140,11 @@ bool OpenthermProtocol::init_esp32_timer_() {
       break;
     }
 
-    ESP_LOGD(TAG, "Timer %d:%d not available, trying next", timer_group, timer_idx);
+    ESP_LOGD(PROTOCOL_TAG, "Timer %d:%d not available, trying next", timer_group, timer_idx);
   }
 
   if (!timer_found) {
-    ESP_LOGE(TAG, "No free timer found for OpenTherm");
+    ESP_LOGE(PROTOCOL_TAG, "No free timer found for OpenTherm");
     return false;
   }
 
@@ -155,14 +155,14 @@ bool OpenthermProtocol::init_esp32_timer_() {
 
   result = timer_set_counter_value(this->timer_group_, this->timer_idx_, 0);
   if (result != ESP_OK) {
-    ESP_LOGE(TAG, "Failed to set timer counter: %s", esp_err_to_name(result));
+    ESP_LOGE(PROTOCOL_TAG, "Failed to set timer counter: %s", esp_err_to_name(result));
     return false;
   }
 
   result = timer_isr_callback_add(this->timer_group_, this->timer_idx_,
                                   reinterpret_cast<bool (*)(void *)>(timer_isr), this, 0);
   if (result != ESP_OK) {
-    ESP_LOGE(TAG, "Failed to register timer ISR: %s", esp_err_to_name(result));
+    ESP_LOGE(PROTOCOL_TAG, "Failed to register timer ISR: %s", esp_err_to_name(result));
     return false;
   }
 

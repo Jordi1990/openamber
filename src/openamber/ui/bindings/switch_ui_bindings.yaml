@@ -45,6 +45,40 @@
           else:
             - lvgl.widget.hide: { id: stab_dhw }
 
+# ── Settings: OpenTherm toggles ──
+- id: !extend opentherm_enabled_switch
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_ot_enabled_switch
+          state:
+            checked: !lambda 'return x;'
+      - script.execute: update_opentherm_control_mode_ui
+
+- id: !extend opentherm_use_room_temperature_switch
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_ot_room_temp_switch
+          state:
+            checked: !lambda 'return x;'
+
+- id: !extend opentherm_use_outside_temperature_switch
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_ot_outside_temp_switch
+          state:
+            checked: !lambda 'return x;'
+
+- id: !extend opentherm_use_ch_setpoint_switch
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_ot_ch_setpoint_switch
+          state:
+            checked: !lambda 'return x;'
+
 # ── Settings: DHW schedule toggle ──
 # ── Settings: Legionella toggle ──
 - id: !extend legio_enabled_switch

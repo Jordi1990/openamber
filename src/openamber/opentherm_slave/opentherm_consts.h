@@ -20,10 +20,7 @@
 #pragma once
 
 #include <cstdint>
-
-#ifdef USE_ESP32
 #include "esp_attr.h"
-#endif
 #ifndef IRAM_ATTR
 #define IRAM_ATTR
 #endif

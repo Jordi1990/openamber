@@ -27,40 +27,9 @@ opentherm_slave:
   in_pin:
     number: GPIO15
     inverted: true
-  out_pin: GPIO13
-
-sensor:
-  # This thermostat currently only writes t_set, so only expose CH setpoint.
-  - platform: opentherm_slave
-    opentherm_slave_id: ot_hub
-    type: ch_setpoint
-    name: "OT CV Setpoint"
-    id: ot_ch_setpoint
-    on_value:
-      then:
-        - logger.log:
-            format: "Thermostaat CH setpoint: %.1f C"
-            args: [x]
-
-binary_sensor:
-  # Thermostat-input binary sensors (flags FROM thermostat)
-  - platform: opentherm_slave
-    opentherm_slave_id: ot_hub
-    type: ch_enable
-    name: "OT CV Vraag"
-    id: ot_ch_enable
-
-  - platform: opentherm_slave
-    opentherm_slave_id: ot_hub
-    type: dhw_enable
-    name: "OT Tapwater Vraag"
-    id: ot_dhw_enable
-
-  - platform: opentherm_slave
-    opentherm_slave_id: ot_hub
-    type: cooling_enable
-    name: "OT Koudevraag"
-    id: ot_cooling_enable
+  out_pin:
+    number: GPIO13
+    inverted: false
 
 uart:
   rx_pin:
@@ -91,7 +60,7 @@ display:
 
 output:
   - platform: ledc
-    pin: GPIO11
+    pin: GPIO16
     id: backlight
 
 globals:

@@ -45,9 +45,9 @@
     internal: True
     on_value:
       then:
-        - lvgl.label.update:
-            id: wifi_mac_label
-            text: !lambda |-
+        - text_sensor.template.publish:
+            id: wifi_mac_ui
+            state: !lambda |-
               if (x.empty()) return std::string("-");
               return x;
   ssid:
@@ -55,9 +55,9 @@
     internal: True
     on_value:
       then:
-        - lvgl.label.update:
-            id: wifi_ssid_label
-            text: !lambda |-
+        - text_sensor.template.publish:
+            id: wifi_ssid_ui
+            state: !lambda |-
               if (x.empty()) return std::string("-");
               return x;
   ip_address:
@@ -65,9 +65,9 @@
     internal: True
     on_value:
       then:
-        - lvgl.label.update:
-            id: wifi_ip_label
-            text: !lambda |-
+        - text_sensor.template.publish:
+            id: wifi_ip_ui
+            state: !lambda |-
               if (x.empty()) return std::string("-");
               return x;
   scan_results:
@@ -75,37 +75,83 @@
     internal: True
     on_value:
       then:
-        - lambda: |-
-            std::string result = x;
-            std::string options;
-            size_t pos = 0;
-            while (pos < result.size()) {
-              size_t end = result.find('\n', pos);
-              if (end == std::string::npos) end = result.size();
-              std::string line = result.substr(pos, end - pos);
-              // Extract SSID: everything before last " ("
-              size_t paren = line.rfind(" (");
-              std::string ssid = (paren != std::string::npos) ? line.substr(0, paren) : line;
-              if (!ssid.empty()) {
-                // Deduplicate
-                std::string check = "\n" + options + "\n";
-                if (check.find("\n" + ssid + "\n") == std::string::npos) {
-                  if (!options.empty()) options += "\n";
-                  options += ssid;
-                }
-              }
-              pos = end + 1;
-            }
-            if (!options.empty()) {
-              options += "\nHandmatig...";
-            } else {
-              options = "Geen netwerken gevonden\nHandmatig...";
-            }
-            lv_dropdown_set_options(id(wifi_network_dd)->obj, options.c_str());
+        - text_sensor.template.publish:
+            id: wifi_scan_results_ui
+            state: !lambda 'return x;'
+
+- platform: template
+  id: wifi_ssid_ui
+  internal: True
+  update_interval: never
+
+- platform: template
+  id: wifi_ip_ui
+  internal: True
+  update_interval: never
+
+- platform: template
+  id: wifi_mac_ui
+  internal: True
+  update_interval: never
+
+- platform: template
+  id: wifi_scan_results_ui
+  internal: True
+  update_interval: never
 
 - platform: template
   name: "Analytics device ID"
   id: analytics_device_id
   icon: "mdi:identifier"
+  entity_category: diagnostic
+  update_interval: never
+
+- platform: opentherm_slave
+  opentherm_slave_id: ot_hub
+  type: status
+  id: opentherm_status_key
+  internal: true
+  on_value:
+    then:
+      - text_sensor.template.publish:
+          id: opentherm_status
+          state: !lambda |-
+            if (x == "protocol_error") return std::string("Protocolfout");
+            if (x == "timeout") return std::string("Timeout");
+            if (x == "timer_error") return std::string("Timerfout");
+            if (x == "connected") return std::string("Verbonden");
+            if (x == "connection_lost") return std::string("Verbinding verloren");
+            if (x == "listening") return std::string("Luistert");
+            return std::string("Wachten op thermostaat");
+
+- platform: template
+  id: opentherm_status
+  name: "OpenTherm status"
+  icon: "mdi:connection"
+  entity_category: diagnostic
+  update_interval: never
+
+- platform: opentherm_slave
+  opentherm_slave_id: ot_hub
+  type: last_error
+  id: opentherm_last_error_key
+  internal: true
+  on_value:
+    then:
+      - text_sensor.template.publish:
+          id: opentherm_last_error
+          state: !lambda |-
+            if (x == "no_transition") return std::string("Geen overgang");
+            if (x == "invalid_stop_bit") return std::string("Ongeldige stopbit");
+            if (x == "parity_error") return std::string("Pariteitsfout");
+            if (x == "no_change_too_long") return std::string("Geen verandering te lang");
+            if (x == "invalid_message") return std::string("Ongeldig bericht");
+            if (x == "unknown") return std::string("Onbekend");
+            return std::string("Geen fout");
+
+- platform: template
+  id: opentherm_last_error
+  name: "OpenTherm laatste fout"
+  icon: "mdi:alert-circle-outline"
   entity_category: diagnostic
   update_interval: never

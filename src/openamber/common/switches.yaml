@@ -116,6 +116,54 @@
           else:
             - mqtt.disable:
 
+- platform: template
+  id: opentherm_enabled_switch
+  name: "OpenTherm actief"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  on_state:
+    then:
+      - component.update: current_setpoint
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: opentherm_use_room_temperature_switch
+  name: "OpenTherm ruimtetemperatuur gebruiken"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: opentherm_use_outside_temperature_switch
+  name: "OpenTherm buitentemperatuur gebruiken"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  on_state:
+    then:
+      - component.update: effective_outside_temperature
+      - component.update: temperature_outside_ta_avg_1h
+      - component.update: heat_curve_calculated_setpoint
+      - component.update: current_setpoint
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: opentherm_use_ch_setpoint_switch
+  name: "OpenTherm CV setpoint gebruiken"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  on_state:
+    then:
+      - component.update: current_setpoint
+  web_server:
+    sorting_group_id: heating_settings
+
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
   id: pump_p0_relay_switch

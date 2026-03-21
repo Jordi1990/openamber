@@ -5,7 +5,7 @@ from esphome.const import CONF_ID
 from esphome.components import sensor, binary_sensor
 
 CODEOWNERS = ["@Jordi1990"]
-AUTO_LOAD = ["sensor", "binary_sensor"]
+AUTO_LOAD = ["sensor", "binary_sensor", "text_sensor"]
 
 CONF_IN_PIN = "in_pin"
 CONF_OUT_PIN = "out_pin"

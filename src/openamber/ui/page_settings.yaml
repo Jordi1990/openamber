@@ -87,6 +87,7 @@ obj:
                       - lvgl.widget.hide: { id: panel_dhw }
                       - lvgl.widget.hide: { id: panel_bijverwarmen }
                       - lvgl.widget.hide: { id: panel_smartgrid }
+                      - lvgl.widget.hide: { id: panel_opentherm }
                       - lvgl.widget.hide: { id: panel_wifi }
                       - lvgl.widget.update: { id: stab_general, bg_color: 0x1F3B68 }
                       - lvgl.widget.update: { id: stab_general_lbl, text_color: 0xFFFFFF }
@@ -104,6 +105,8 @@ obj:
                       - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_opentherm, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_opentherm_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
                     widgets:
@@ -129,6 +132,7 @@ obj:
                       - lvgl.widget.hide: { id: panel_dhw }
                       - lvgl.widget.hide: { id: panel_bijverwarmen }
                       - lvgl.widget.hide: { id: panel_smartgrid }
+                      - lvgl.widget.hide: { id: panel_opentherm }
                       - lvgl.widget.hide: { id: panel_wifi }
                       - lvgl.label.update:
                           id: set_frost1_val
@@ -151,6 +155,8 @@ obj:
                       - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_opentherm, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_opentherm_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
                     widgets:
@@ -176,6 +182,7 @@ obj:
                       - lvgl.widget.hide: { id: panel_dhw }
                       - lvgl.widget.hide: { id: panel_bijverwarmen }
                       - lvgl.widget.hide: { id: panel_smartgrid }
+                      - lvgl.widget.hide: { id: panel_opentherm }
                       - lvgl.widget.hide: { id: panel_wifi }
                       - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
@@ -193,6 +200,8 @@ obj:
                       - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_opentherm, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_opentherm_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
                     widgets:
@@ -218,6 +227,7 @@ obj:
                       - lvgl.widget.hide: { id: panel_dhw }
                       - lvgl.widget.hide: { id: panel_bijverwarmen }
                       - lvgl.widget.hide: { id: panel_smartgrid }
+                      - lvgl.widget.hide: { id: panel_opentherm }
                       - lvgl.widget.hide: { id: panel_wifi }
                       - script.execute: update_heat_curve_chart
                       - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
@@ -236,6 +246,8 @@ obj:
                       - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_opentherm, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_opentherm_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
                     widgets:
@@ -261,6 +273,7 @@ obj:
                       - lvgl.widget.hide: { id: panel_dhw }
                       - lvgl.widget.hide: { id: panel_bijverwarmen }
                       - lvgl.widget.hide: { id: panel_smartgrid }
+                      - lvgl.widget.hide: { id: panel_opentherm }
                       - lvgl.widget.hide: { id: panel_wifi }
                       - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
@@ -278,6 +291,8 @@ obj:
                       - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_opentherm, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_opentherm_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
                     widgets:
@@ -304,6 +319,7 @@ obj:
                       - lvgl.widget.show: { id: panel_dhw }
                       - lvgl.widget.hide: { id: panel_bijverwarmen }
                       - lvgl.widget.hide: { id: panel_smartgrid }
+                      - lvgl.widget.hide: { id: panel_opentherm }
                       - lvgl.widget.hide: { id: panel_wifi }
                       - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
@@ -321,6 +337,8 @@ obj:
                       - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_opentherm, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_opentherm_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
                     widgets:
@@ -346,6 +364,7 @@ obj:
                       - lvgl.widget.hide: { id: panel_dhw }
                       - lvgl.widget.show: { id: panel_bijverwarmen }
                       - lvgl.widget.hide: { id: panel_smartgrid }
+                      - lvgl.widget.hide: { id: panel_opentherm }
                       - lvgl.widget.hide: { id: panel_wifi }
                       - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
@@ -363,6 +382,8 @@ obj:
                       - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0xFFFFFF }
                       - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_opentherm, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_opentherm_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
                     widgets:
@@ -388,6 +409,7 @@ obj:
                       - lvgl.widget.hide: { id: panel_dhw }
                       - lvgl.widget.hide: { id: panel_bijverwarmen }
                       - lvgl.widget.show: { id: panel_smartgrid }
+                      - lvgl.widget.hide: { id: panel_opentherm }
                       - lvgl.widget.hide: { id: panel_wifi }
                       - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
@@ -405,10 +427,57 @@ obj:
                       - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0x1F3B68 }
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0xFFFFFF }
+                      - lvgl.widget.update: { id: stab_opentherm, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_opentherm_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
                     widgets:
                       - label: { id: stab_smartgrid_lbl, text: "SmartGrid", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
+                - obj:
+                    id: stab_opentherm
+                    width: 100%
+                    height: 40
+                    bg_color: 0xE8ECF1
+                    bg_opa: 100%
+                    radius: 10
+                    border_width: 0
+                    border_opa: 0%
+                    pad_left: 12
+                    pad_top: 2
+                    pad_bottom: 2
+                    on_click:
+                      - lvgl.widget.hide: { id: panel_general }
+                      - lvgl.widget.hide: { id: panel_frost }
+                      - lvgl.widget.hide: { id: panel_pump }
+                      - lvgl.widget.hide: { id: panel_heating }
+                      - lvgl.widget.hide: { id: panel_cooling }
+                      - lvgl.widget.hide: { id: panel_dhw }
+                      - lvgl.widget.hide: { id: panel_bijverwarmen }
+                      - lvgl.widget.hide: { id: panel_smartgrid }
+                      - lvgl.widget.show: { id: panel_opentherm }
+                      - lvgl.widget.hide: { id: panel_wifi }
+                      - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_frost, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_frost_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_pump, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_pump_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_heating, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_heating_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_cooling, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_cooling_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_dhw, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_dhw_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_bijverwarmen, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_opentherm, bg_color: 0x1F3B68 }
+                      - lvgl.widget.update: { id: stab_opentherm_lbl, text_color: 0xFFFFFF }
+                      - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
+                    widgets:
+                      - label: { id: stab_opentherm_lbl, text: "OpenTherm", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
                 - obj:
                     id: stab_wifi
                     width: 100%
@@ -430,6 +499,7 @@ obj:
                       - lvgl.widget.hide: { id: panel_dhw }
                       - lvgl.widget.hide: { id: panel_bijverwarmen }
                       - lvgl.widget.hide: { id: panel_smartgrid }
+                      - lvgl.widget.hide: { id: panel_opentherm }
                       - lvgl.widget.show: { id: panel_wifi }
                       - script.execute: wifi_scan_networks_if_empty
                       - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
@@ -448,6 +518,8 @@ obj:
                       - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_opentherm, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_opentherm_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0x1F3B68 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0xFFFFFF }
                     widgets:
@@ -496,8 +568,8 @@ obj:
                           border_opa: 0%
                           pad_all: 6
                           widgets:
-                            - label: { text: "Thermostaat bron", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-                            - label: { text: "Kies intern of extern thermostaatsignaal", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - label: { id: set_thermostat_lbl, text: "Thermostaat bron", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { id: set_thermostat_sub, text: "Kies intern of extern thermostaatsignaal", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
                             - dropdown:
                                 id: set_thermostat_dd
                                 symbol: "\U000F0140"
@@ -1156,8 +1228,8 @@ obj:
                           border_opa: 0%
                           pad_all: 6
                           widgets:
-                            - label: { text: "Verwarmingsmodus", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-                            - label: { text: "Kies stooklijn of extern aangestuurd setpoint", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - label: { id: set_heat_mode_lbl, text: "Verwarmingsmodus", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { id: set_heat_mode_sub, text: "Kies stooklijn of extern setpoint", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
                             - dropdown:
                                 id: set_heat_mode_dd
                                 symbol: "\U000F0140"
@@ -3148,6 +3220,175 @@ obj:
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
+                # ------------------------------------------------------------
+                # Panel: OpenTherm
+                # ------------------------------------------------------------
+                - obj:
+                    id: panel_opentherm
+                    width: 100%
+                    height: 100%
+                    hidden: true
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_left: 4
+                    pad_right: 4
+                    pad_top: 4
+                    pad_bottom: 4
+                    scrollbar_mode: "OFF"
+                    scrollable: true
+                    layout:
+                      type: FLEX
+                      flex_flow: COLUMN
+                      flex_align_main: START
+                      flex_align_cross: STRETCH
+                      pad_row: 6
+
+                    widgets:
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          widgets:
+                            - label: { text: "OpenTherm actief", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { text: "Activeer ondersteuning voor een OpenTherm thermostaat", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - switch:
+                                id: set_ot_enabled_switch
+                                align: TOP_RIGHT
+                                bg_color: 0x9CA3AF
+                                indicator:
+                                  bg_color: 0x16A34A
+                                knob:
+                                  bg_color: 0xFFFFFF
+                                on_click:
+                                  - if:
+                                      condition:
+                                        switch.is_on: opentherm_enabled_switch
+                                      then:
+                                        - switch.turn_off: opentherm_enabled_switch
+                                      else:
+                                        - switch.turn_on: opentherm_enabled_switch
+
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          widgets:
+                            - label: { text: "OpenTherm ruimtetemperatuur", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { text: "Gebruik de gemeten ruimtetemperatuur van de thermostaat als regelingingang", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - switch:
+                                id: set_ot_room_temp_switch
+                                align: TOP_RIGHT
+                                bg_color: 0x9CA3AF
+                                indicator:
+                                  bg_color: 0x16A34A
+                                knob:
+                                  bg_color: 0xFFFFFF
+                                on_click:
+                                  - if:
+                                      condition:
+                                        switch.is_on: opentherm_use_room_temperature_switch
+                                      then:
+                                        - switch.turn_off: opentherm_use_room_temperature_switch
+                                      else:
+                                        - switch.turn_on: opentherm_use_room_temperature_switch
+
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          widgets:
+                            - label: { text: "OpenTherm buitentemperatuur", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { text: "Gebruik t_outside van de thermostaat als bron voor buitentemperatuur", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - switch:
+                                id: set_ot_outside_temp_switch
+                                align: TOP_RIGHT
+                                bg_color: 0x9CA3AF
+                                indicator:
+                                  bg_color: 0x16A34A
+                                knob:
+                                  bg_color: 0xFFFFFF
+                                on_click:
+                                  - if:
+                                      condition:
+                                        switch.is_on: opentherm_use_outside_temperature_switch
+                                      then:
+                                        - switch.turn_off: opentherm_use_outside_temperature_switch
+                                      else:
+                                        - switch.turn_on: opentherm_use_outside_temperature_switch
+
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          widgets:
+                            - label: { text: "OpenTherm CV setpoint", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { text: "Sta toe dat het OpenTherm CV setpoint de aanvoertemperatuur bepaalt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - switch:
+                                id: set_ot_ch_setpoint_switch
+                                align: TOP_RIGHT
+                                bg_color: 0x9CA3AF
+                                indicator:
+                                  bg_color: 0x16A34A
+                                knob:
+                                  bg_color: 0xFFFFFF
+                                on_click:
+                                  - if:
+                                      condition:
+                                        switch.is_on: opentherm_use_ch_setpoint_switch
+                                      then:
+                                        - switch.turn_off: opentherm_use_ch_setpoint_switch
+                                      else:
+                                        - switch.turn_on: opentherm_use_ch_setpoint_switch
+
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          widgets:
+                            - label: { text: "Diagnostiek", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { text: "Live status en kwaliteit van de OpenTherm verbinding", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          layout: { type: FLEX, flex_flow: ROW_WRAP, pad_row: 6, pad_column: 12 }
+                          widgets:
+                            - label: { text: "Status", text_color: 0x1F2933, text_font: font_text_20 }
+                            - label: { id: set_ot_status_value, text: "Wachten op thermostaat", text_color: 0x6B7280, text_font: font_text_20 }
+                            - label: { text: "Laatste fout", text_color: 0x1F2933, text_font: font_text_20 }
+                            - label: { id: set_ot_last_error_value, text: "Geen fout", text_color: 0x6B7280, text_font: font_text_20 }
+                            - label: { text: "Verbindingskwaliteit", text_color: 0x1F2933, text_font: font_text_20 }
+                            - label: { id: set_ot_link_quality_value, text: "0%", text_color: 0x6B7280, text_font: font_text_20 }
+                            - label: { text: "Laatst gezien", text_color: 0x1F2933, text_font: font_text_20 }
+                            - label: { id: set_ot_last_seen_value, text: "-", text_color: 0x6B7280, text_font: font_text_20 }
+                            - label: { text: "Ontvangen", text_color: 0x1F2933, text_font: font_text_20 }
+                            - label: { id: set_ot_rx_value, text: "0", text_color: 0x6B7280, text_font: font_text_20 }
+                            - label: { text: "Verzonden", text_color: 0x1F2933, text_font: font_text_20 }
+                            - label: { id: set_ot_tx_value, text: "0", text_color: 0x6B7280, text_font: font_text_20 }
+                            - label: { text: "Fouten", text_color: 0x1F2933, text_font: font_text_20 }
+                            - label: { id: set_ot_errors_value, text: "0", text_color: 0x6B7280, text_font: font_text_20 }
+                            - label: { text: "OT ruimtetemperatuur", text_color: 0x1F2933, text_font: font_text_20 }
+                            - label: { id: set_ot_room_temp_value, text: "-", text_color: 0x6B7280, text_font: font_text_20 }
+                            - label: { text: "OT buitentemperatuur", text_color: 0x1F2933, text_font: font_text_20 }
+                            - label: { id: set_ot_outside_temp_value, text: "-", text_color: 0x6B7280, text_font: font_text_20 }
+                            - label: { text: "OT CV setpoint", text_color: 0x1F2933, text_font: font_text_20 }
+                            - label: { id: set_ot_ch_setpoint_value, text: "-", text_color: 0x6B7280, text_font: font_text_20 }
+                            - label: { text: "Actieve ruimtetemperatuur", text_color: 0x1F2933, text_font: font_text_20 }
+                            - label: { id: set_ot_effective_room_temp_value, text: "-", text_color: 0x6B7280, text_font: font_text_20 }
+
                 # ------------------------------------------------------------
                 # Panel: WiFi
                 # ------------------------------------------------------------

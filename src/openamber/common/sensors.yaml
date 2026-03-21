@@ -53,6 +53,27 @@
     sorting_group_id: diagnostic
 
 - platform: template
+  id: effective_outside_temperature
+  name: "Actieve buitentemperatuur"
+  unit_of_measurement: "°C"
+  accuracy_decimals: 1
+  device_class: temperature
+  state_class: measurement
+  update_interval: 5s
+  lambda: |-
+    if (id(opentherm_enabled_switch).state &&
+        id(opentherm_use_outside_temperature_switch).state &&
+        id(opentherm_link_online).state &&
+        id(opentherm_outside_temperature).has_state())
+    {
+      return id(opentherm_outside_temperature).state;
+    }
+
+    return id(temperature_outside_ta).state;
+  web_server:
+    sorting_group_id: diagnostic
+
+- platform: template
   id: temperature_outside_ta_avg_1h
   name: "Buiten temperatuur (1h gemiddelde)"
   internal: true
@@ -60,7 +81,7 @@
   accuracy_decimals: 1
   update_interval: 15s
   lambda: |-
-    return id(temperature_outside_ta).state;
+    return id(effective_outside_temperature).state;
   filters:
     - median:
         window_size: 5
@@ -80,6 +101,13 @@
     {
       setpoint = id(heat_curve_calculated_setpoint).state;
     }
+    else if (id(opentherm_enabled_switch).state &&
+             id(opentherm_use_ch_setpoint_switch).state &&
+             id(opentherm_link_online).state &&
+             id(opentherm_ch_setpoint).has_state())
+    {
+      setpoint = id(opentherm_ch_setpoint).state;
+    }
     else
     {
       setpoint = id(manual_setpoint).state;
@@ -98,6 +126,135 @@
         call.perform();
   web_server: 
     sorting_group_id: overview
+
+- platform: template
+  id: effective_room_temperature
+  name: "Actieve ruimtetemperatuur"
+  unit_of_measurement: "°C"
+  accuracy_decimals: 1
+  device_class: temperature
+  state_class: measurement
+  update_interval: 5s
+  lambda: |-
+    if (id(opentherm_enabled_switch).state &&
+        id(opentherm_use_room_temperature_switch).state &&
+        id(opentherm_link_online).state &&
+        id(opentherm_room_temperature).has_state())
+    {
+      return id(opentherm_room_temperature).state;
+    }
+
+    return id(room_temperature).state;
+  web_server:
+    sorting_group_id: diagnostic
+
+- platform: opentherm_slave
+  opentherm_slave_id: ot_hub
+  type: ch_setpoint
+  id: opentherm_ch_setpoint
+  name: "OpenTherm CV setpoint"
+  unit_of_measurement: "°C"
+  accuracy_decimals: 1
+  device_class: temperature
+  state_class: measurement
+  entity_category: diagnostic
+  on_value:
+    then:
+      - logger.log:
+          format: "Thermostaat CH setpoint: %.1f C"
+          args: [x]
+      - component.update: current_setpoint
+  web_server:
+    sorting_group_id: diagnostic
+
+- platform: opentherm_slave
+  opentherm_slave_id: ot_hub
+  type: room_temp
+  id: opentherm_room_temperature
+  name: "OpenTherm ruimtetemperatuur"
+  unit_of_measurement: "°C"
+  accuracy_decimals: 1
+  device_class: temperature
+  state_class: measurement
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: diagnostic
+
+- platform: opentherm_slave
+  opentherm_slave_id: ot_hub
+  type: outside_temp
+  id: opentherm_outside_temperature
+  name: "OpenTherm buitentemperatuur"
+  unit_of_measurement: "°C"
+  accuracy_decimals: 1
+  device_class: temperature
+  state_class: measurement
+  entity_category: diagnostic
+  on_value:
+    then:
+      - component.update: effective_outside_temperature
+      - component.update: temperature_outside_ta_avg_1h
+      - component.update: heat_curve_calculated_setpoint
+      - component.update: current_setpoint
+  web_server:
+    sorting_group_id: diagnostic
+
+- platform: opentherm_slave
+  opentherm_slave_id: ot_hub
+  type: link_quality
+  id: opentherm_link_quality
+  name: "OpenTherm verbindingskwaliteit"
+  unit_of_measurement: "%"
+  accuracy_decimals: 0
+  state_class: measurement
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: diagnostic
+
+- platform: opentherm_slave
+  opentherm_slave_id: ot_hub
+  type: frames_received
+  id: opentherm_frames_received
+  name: "OpenTherm ontvangen berichten"
+  accuracy_decimals: 0
+  state_class: total_increasing
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: diagnostic
+
+- platform: opentherm_slave
+  opentherm_slave_id: ot_hub
+  type: frames_sent
+  id: opentherm_frames_sent
+  name: "OpenTherm verzonden berichten"
+  accuracy_decimals: 0
+  state_class: total_increasing
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: diagnostic
+
+- platform: opentherm_slave
+  opentherm_slave_id: ot_hub
+  type: errors_total
+  id: opentherm_errors_total
+  name: "OpenTherm protocolfouten"
+  accuracy_decimals: 0
+  state_class: total_increasing
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: diagnostic
+
+- platform: opentherm_slave
+  opentherm_slave_id: ot_hub
+  type: last_message_age
+  id: opentherm_last_message_age
+  name: "OpenTherm laatst gezien"
+  unit_of_measurement: "s"
+  accuracy_decimals: 1
+  state_class: measurement
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: diagnostic
 
 - platform: template
   id: current_dhw_setpoint_sensor

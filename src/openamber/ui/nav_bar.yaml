@@ -1,27 +1,27 @@
 obj:
-  id: nav_bar
-  width: 100%
-  height: 12%
-  align: BOTTOM_MID
-  bg_color: 0x0A2747
-  bg_opa: 100%
-  radius: 0
-  border_width: 0
-  border_opa: 0%
-  scrollbar_mode: "OFF"
-  scrollable: false
-  pad_left: 24
-  pad_right: 24
-  pad_top: 5
-  pad_bottom: 5
-  layout:
-    type: FLEX
-    flex_flow: ROW
-    flex_align_main: SPACE_BETWEEN
-    flex_align_cross: CENTER
-    pad_column: 18
+    id: nav_bar
+    width: 100%
+    height: 12%
+    align: BOTTOM_MID
+    bg_color: 0x0A2747
+    bg_opa: 100%
+    radius: 0
+    border_width: 0
+    border_opa: 0%
+    scrollbar_mode: "OFF"
+    scrollable: false
+    pad_left: 24
+    pad_right: 24
+    pad_top: 5
+    pad_bottom: 5
+    layout:
+        type: FLEX
+        flex_flow: ROW
+        flex_align_main: SPACE_BETWEEN
+        flex_align_cross: CENTER
+        pad_column: 18
 
-  widgets:
+    widgets:
     - obj:
         id: nav_home
         width: 150

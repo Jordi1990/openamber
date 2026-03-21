@@ -69,6 +69,15 @@
           id: nav_status_dhw_icon
           hidden: !lambda 'return !x;'
 
+# ── Settings: OpenTherm diagnostics ──
+- id: !extend opentherm_link_online
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_ot_status_value
+          text_color: !lambda |-
+            return x ? lv_color_hex(0x16A34A) : lv_color_hex(0xEF4444);
+
 # ── Boot screen: Hide when both modbus units online ──
 - id: !extend modbus_inside_online
   on_state:
