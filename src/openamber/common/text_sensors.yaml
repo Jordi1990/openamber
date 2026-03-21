@@ -45,9 +45,9 @@
     internal: True
     on_value:
       then:
-        - lvgl.label.update:
-            id: wifi_mac_label
-            text: !lambda |-
+        - text_sensor.template.publish:
+            id: wifi_mac_ui
+            state: !lambda |-
               if (x.empty()) return std::string("-");
               return x;
   ssid:
@@ -55,9 +55,9 @@
     internal: True
     on_value:
       then:
-        - lvgl.label.update:
-            id: wifi_ssid_label
-            text: !lambda |-
+        - text_sensor.template.publish:
+            id: wifi_ssid_ui
+            state: !lambda |-
               if (x.empty()) return std::string("-");
               return x;
   ip_address:
@@ -65,9 +65,9 @@
     internal: True
     on_value:
       then:
-        - lvgl.label.update:
-            id: wifi_ip_label
-            text: !lambda |-
+        - text_sensor.template.publish:
+            id: wifi_ip_ui
+            state: !lambda |-
               if (x.empty()) return std::string("-");
               return x;
   scan_results:
@@ -75,33 +75,29 @@
     internal: True
     on_value:
       then:
-        - lambda: |-
-            std::string result = x;
-            std::string options;
-            size_t pos = 0;
-            while (pos < result.size()) {
-              size_t end = result.find('\n', pos);
-              if (end == std::string::npos) end = result.size();
-              std::string line = result.substr(pos, end - pos);
-              // Extract SSID: everything before last " ("
-              size_t paren = line.rfind(" (");
-              std::string ssid = (paren != std::string::npos) ? line.substr(0, paren) : line;
-              if (!ssid.empty()) {
-                // Deduplicate
-                std::string check = "\n" + options + "\n";
-                if (check.find("\n" + ssid + "\n") == std::string::npos) {
-                  if (!options.empty()) options += "\n";
-                  options += ssid;
-                }
-              }
-              pos = end + 1;
-            }
-            if (!options.empty()) {
-              options += "\nHandmatig...";
-            } else {
-              options = "Geen netwerken gevonden\nHandmatig...";
-            }
-            lv_dropdown_set_options(id(wifi_network_dd)->obj, options.c_str());
+        - text_sensor.template.publish:
+            id: wifi_scan_results_ui
+            state: !lambda 'return x;'
+
+- platform: template
+  id: wifi_ssid_ui
+  internal: True
+  update_interval: never
+
+- platform: template
+  id: wifi_ip_ui
+  internal: True
+  update_interval: never
+
+- platform: template
+  id: wifi_mac_ui
+  internal: True
+  update_interval: never
+
+- platform: template
+  id: wifi_scan_results_ui
+  internal: True
+  update_interval: never
 
 - platform: template
   name: "Analytics device ID"
