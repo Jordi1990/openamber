@@ -1,6 +1,7 @@
 packages:
  - !include openamber/common/openamber.yaml
  - !include openamber/ui/display_switches.yaml
+ - !include openamber/ui/bindings/ui_bindings_package.yaml
 
 esp32:
   variant: esp32s3
@@ -78,14 +79,6 @@ touchscreen:
                 level: 100%
             - lvgl.widget.hide:
                 id: idle_screen_overlay
-
-sensor: !include openamber/ui/bindings/sensor_ui_bindings.yaml
-number: !include openamber/ui/bindings/number_ui_bindings.yaml
-binary_sensor: !include openamber/ui/bindings/binary_sensor_ui_bindings.yaml
-select: !include openamber/ui/bindings/select_ui_bindings.yaml
-switch: !include openamber/ui/bindings/switch_ui_bindings.yaml
-text_sensor: !include openamber/ui/bindings/text_sensor_ui_bindings.yaml
-script: !include openamber/ui/bindings/script_ui_bindings.yaml
 
 api:
   on_client_connected:
