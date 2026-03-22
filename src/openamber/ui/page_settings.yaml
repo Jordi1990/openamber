@@ -1988,10 +1988,217 @@ obj:
                     border_opa: 0%
                     pad_left: 4
                     pad_right: 4
-                    pad_top: 20
+                    pad_top: 4
                     pad_bottom: 4
+                    scrollbar_mode: "OFF"
+                    scrollable: true
+                    layout:
+                      type: FLEX
+                      flex_flow: COLUMN
+                      flex_align_main: START
+                      flex_align_cross: STRETCH
+                      pad_row: 6
                     widgets:
-                      - label: { text: "Geen koeling instellingen beschikbaar.", text_color: 0x6B7280, text_font: font_text_24, align: TOP_LEFT }
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          widgets:
+                            - label: { text: "Setpoint (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { text: "Doeltemperatuur voor koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - obj:
+                                width: SIZE_CONTENT
+                                height: SIZE_CONTENT
+                                align: TOP_RIGHT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                                widgets:
+                                  - obj:
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.decrement: cooling_setpoint_number
+                                        - lvgl.label.update:
+                                            id: set_cool_setpoint_val
+                                            text:
+                                              format: "%.0f°C"
+                                              args: ['id(cooling_setpoint_number).state']
+                                      widgets:
+                                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                                  - label: { id: set_cool_setpoint_val, text: "7°C", text_color: 0x1F2933, text_font: font_text_24 }
+                                  - obj:
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.increment: cooling_setpoint_number
+                                        - lvgl.label.update:
+                                            id: set_cool_setpoint_val
+                                            text:
+                                              format: "%.0f°C"
+                                              args: ['id(cooling_setpoint_number).state']
+                                      widgets:
+                                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          widgets:
+                            - label: { text: "Koelen vermogen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { text: "Max compressorvermogen bij koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - dropdown:
+                                id: set_cool_power_dd
+                                symbol: "\U000F0140"
+                                width: 220
+                                align: TOP_RIGHT
+                                y: 0
+                                options:
+                                  - "Beperkt"
+                                  - "Zeer laag"
+                                  - "Laag"
+                                  - "Gemiddeld"
+                                  - "Verhoogd"
+                                  - "Hoog"
+                                  - "Maximaal"
+                                text_font: font_text_24
+                                dropdown_list:
+                                  text_font: font_text_24
+                                on_value:
+                                  then:
+                                    - lambda: |-
+                                        const char* opts[] = {"Beperkt","Zeer laag","Laag","Gemiddeld","Verhoogd","Hoog","Maximaal"};
+                                        auto val = lv_dropdown_get_selected(id(set_cool_power_dd)->obj);
+                                        if (val < 7) id(cool_compressor_mode).make_call().set_option(opts[val]).perform();
+
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          widgets:
+                            - label: { text: "Stop delta (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { text: "Verschil met setpoint om compressor te stoppen tijdens koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - obj:
+                                width: SIZE_CONTENT
+                                height: SIZE_CONTENT
+                                align: TOP_RIGHT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                                widgets:
+                                  - obj:
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.decrement: compressor_stop_delta_cooling
+                                        - lvgl.label.update:
+                                            id: set_comp_stop_cool_val
+                                            text:
+                                              format: "%.1f°C"
+                                              args: ['id(compressor_stop_delta_cooling).state']
+                                      widgets:
+                                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                                  - label: { id: set_comp_stop_cool_val, text: "5.0°C", text_color: 0x1F2933, text_font: font_text_24 }
+                                  - obj:
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.increment: compressor_stop_delta_cooling
+                                        - lvgl.label.update:
+                                            id: set_comp_stop_cool_val
+                                            text:
+                                              format: "%.1f°C"
+                                              args: ['id(compressor_stop_delta_cooling).state']
+                                      widgets:
+                                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          widgets:
+                            - label: { text: "Pompsnelheid koelen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { text: "Pompsnelheid tijdens koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - obj:
+                                width: SIZE_CONTENT
+                                height: SIZE_CONTENT
+                                align: TOP_RIGHT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                                widgets:
+                                  - obj:
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.decrement: pump_speed_cooling_number
+                                        - lvgl.label.update:
+                                            id: set_pump_cool_val
+                                            text:
+                                              format: "%.0f%%"
+                                              args: ['id(pump_speed_cooling_number).state']
+                                      widgets:
+                                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                                  - label: { id: set_pump_cool_val, text: "100%", text_color: 0x1F2933, text_font: font_text_24 }
+                                  - obj:
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.increment: pump_speed_cooling_number
+                                        - lvgl.label.update:
+                                            id: set_pump_cool_val
+                                            text:
+                                              format: "%.0f%%"
+                                              args: ['id(pump_speed_cooling_number).state']
+                                      widgets:
+                                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
                 # ------------------------------------------------------------
                 # Panel: Tapwater

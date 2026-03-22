@@ -79,3 +79,13 @@
           selected_index: !lambda |-
             auto idx = id(heat_compressor_mode).active_index();
             return idx.has_value() ? idx.value() : 0;
+
+# ── Settings: Cooling power dropdown ──
+- id: !extend cool_compressor_mode
+  on_value:
+    then:
+      - lvgl.dropdown.update:
+          id: set_cool_power_dd
+          selected_index: !lambda |-
+            auto idx = id(cool_compressor_mode).active_index();
+            return idx.has_value() ? idx.value() : 0;

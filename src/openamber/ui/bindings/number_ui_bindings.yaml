@@ -51,6 +51,15 @@
             format: "%.0f%%"
             args: ['x']
 
+- id: !extend pump_speed_cooling_number
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_pump_cool_val
+          text:
+            format: "%.0f%%"
+            args: ['x']
+
 - id: !extend pump_speed_dhw_number
   on_value:
     then:
@@ -95,6 +104,24 @@
           id: set_comp_stop_val
           text:
             format: "%.1f°C"
+            args: ['x']
+
+- id: !extend compressor_stop_delta_cooling
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_comp_stop_cool_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+- id: !extend cooling_setpoint_number
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_cool_setpoint_val
+          text:
+            format: "%.0f°C"
             args: ['x']
 
 - id: !extend backup_heater_degmin_threshold

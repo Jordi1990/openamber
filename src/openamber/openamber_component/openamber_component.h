@@ -59,6 +59,7 @@ private:
   ThreeWayValvePosition GetThreeWayValvePosition();
   ThreeWayValvePosition GetDesiredThreeWayValvePosition();
   void ApplyWorkingMode();
+  void ApplyPIDMode();
   void SetNextState(State state);
   void LeaveStateAndSetNextStateAfterWaitTime(State new_state, uint32_t defer_ms);
   const char* StateToString(State state);
@@ -72,6 +73,7 @@ public:
   void update() override;
   
   void write_heat_pid_value(float value);
+  void write_cool_pid_value(float value);
   void reset_pump_interval();
 };
 

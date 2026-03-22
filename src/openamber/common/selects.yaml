@@ -17,6 +17,24 @@
       sorting_group_id: heating_settings
 
 - platform: template
+  id: cool_compressor_mode
+  name: "Koelen vermogen"
+  restore_value: True
+  optimistic: True
+  options:
+    - "Beperkt"
+    - "Zeer laag"
+    - "Laag"
+    - "Gemiddeld"
+    - "Verhoogd"
+    - "Hoog"
+    - "Maximaal"
+  initial_option: "Maximaal"
+  entity_category: config
+  web_server: 
+      sorting_group_id: cooling_settings
+
+- platform: template
   id: dhw_compressor_mode
   name: "Tapwater basisvermogen"
   restore_value: True

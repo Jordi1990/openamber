@@ -76,6 +76,12 @@
   accuracy_decimals: 0
   lambda: |-
     float setpoint = 0.0;
+    auto working_mode = id(working_mode_switch).active_index();
+    if (working_mode.has_value() && working_mode.value() == WORKING_MODE_COOLING)
+    {
+      return id(cooling_setpoint_number).state;
+    }
+
     if (id(heat_mode_select).current_option() == "Stooklijn")
     {
       setpoint = id(heat_curve_calculated_setpoint).state;
