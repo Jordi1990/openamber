@@ -13,6 +13,8 @@ The 3D print models can be printed without support. The design has been tuned fo
 
 The general concept for the bracket design is an interlocking mechanism that sticks to the 3M tape that comes attached to the Waveshare module. By using the original metal screen tighteners, no additional tools are required to securing the screen module. 
 
+If you are not able to print yourself, the models can be printed for you by [Laser & Layers](https://www.laserandlayers.nl/product/openamber-waveshare-bracket/).
+
 ## Step 1: Back bracket
 
 First of all remove the 3M tape protector from the Waveshare module. Then place Part 2 to the back of the screen module, align it such that the cut out in the bracket aligns with the terminal connector.

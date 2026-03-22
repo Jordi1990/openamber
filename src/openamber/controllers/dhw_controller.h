@@ -499,7 +499,6 @@ public:
 
     if(id(dhw_legionella_run_active_sensor).state)
     {
-      ESP_LOGI("amber", "DHW legionella run active, allowing DHW start regardless of current temperature.");
       return true;
     }
 
@@ -544,7 +543,7 @@ public:
     }
     else if(id(dhw_legionella_run_active_sensor).state && !id(dhw_demand_active_sensor).state)
     {
-      ESP_LOGI("amber", "Legionella cycle completed, target temperature %.2f°C reached.", id(legio_target_temperature_number).state);
+      ESP_LOGI("amber", "Legionella cycle completed, target temperature %.2f°C reached, current temperature: %.2f°C, current setpoint: %.2f°C.", id(legio_target_temperature_number).state, id(dhw_temperature_tw_sensor).state, id(current_dhw_setpoint_sensor).state);
       id(dhw_legionella_run_active_sensor).publish_state(false);
     }
   }
