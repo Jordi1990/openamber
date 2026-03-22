@@ -59,9 +59,9 @@
         return false;
       }
 
-      if(!id(dhw_schedule_active_sensor).state)
+      if(!id(dhw_schedule_active_sensor).state && !id(dhw_legionella_run_active_sensor).state)
       {
-        return false;
+         return false;
       }
 
       return tw < setpoint;
@@ -74,6 +74,8 @@
   device_class: running
   web_server: 
     sorting_group_id: diagnostic
+  on_state:
+    - component.update: current_dhw_setpoint_sensor
 
 - platform: template
   name: "Warmtevraag"
@@ -173,6 +175,8 @@
            (!id(sg_ready_a_active_sensor).state && id(sg_ready_b_active_sensor).state);
   web_server: 
     sorting_group_id: diagnostic
+  on_state:
+    - component.update: current_dhw_setpoint_sensor
 
 - platform: template
   name: "SG-Ready maxboostmodus"
@@ -184,6 +188,8 @@
            (id(sg_ready_a_active_sensor).state && id(sg_ready_b_active_sensor).state);
   web_server: 
     sorting_group_id: diagnostic
+  on_state:
+    - component.update: current_dhw_setpoint_sensor
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
