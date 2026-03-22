@@ -46,7 +46,7 @@ Binary: openamber-esp32s3
 
 This is the preferred replacement for the WinCE controller as there is a touchscreen, RS485 and 24V input available.
 So the controller can be powered by the same cables which are now powering the WinCE controller.
-A 3D printed bracket to mount it properly is required. For more detail on how to integrate this screen module into the control unit, read the [Waveshare integration manual](docs/waveshare-screen-integration.md). 3D models for the bracket can also be found there.
+A 3D printed bracket to mount it properly is required. For more detail on how to integrate this screen module into the control unit, read the [Waveshare integration manual](docs/waveshare-screen-integration.md). 3D models for the bracket can also be found there, including a shop where the brackets can be ordered.
 
 ![UI](/docs/images/openamber-waveshare-display-ui.png)
 
