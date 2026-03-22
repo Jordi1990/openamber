@@ -26,9 +26,15 @@ esphome:
     - openamber/controllers/heat_cool_controller.h
   on_boot:
     then:
-      - delay: 30s
-      - update.check:
-          id: firmware_update
+      - delay: 60s
+      - if:
+          condition:
+            lambda: 'return id(my_time).now().is_valid();'
+          then:
+            - update.check:
+                id: firmware_update
+          else:
+            - logger.log: "Skipping firmware update check until time is synchronized"
       - if:
           condition:
             - switch.is_on: analytics_enabled_switch
@@ -49,8 +55,14 @@ interval:
           - script.execute: send_analytics
   - interval: 24h
     then:
-      - update.check:
-          id: firmware_update
+      - if:
+          condition:
+            lambda: 'return id(my_time).now().is_valid();'
+          then:
+            - update.check:
+                id: firmware_update
+          else:
+            - logger.log: "Skipping scheduled firmware update check until time is synchronized"
 
 logger:
   level: INFO
@@ -89,7 +101,7 @@ update:
   - platform: http_request
     id: firmware_update
     name: Firmware Update
-    source: https://github.com/Jordi1990/openamber/releases/latest/download/openamber.manifest.json
+    source: https://openamber.nl/openamber.manifest.json
 
 web_server:
   port: 80
@@ -130,6 +142,7 @@ web_server:
       sorting_weight: 90
 
 wifi:
+  reboot_timeout: 0s
   ap:
     ssid: "OpenAmber"
     password: "openamber"
@@ -161,6 +174,30 @@ globals:
     type: bool
     restore_value: no
     initial_value: 'false'
+  - id: settings_page_visible
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: hc_y_m10
+    type: int
+    restore_value: no
+    initial_value: '60'
+  - id: hc_y_0
+    type: int
+    restore_value: no
+    initial_value: '60'
+  - id: hc_y_p5
+    type: int
+    restore_value: no
+    initial_value: '60'
+  - id: hc_y_p10
+    type: int
+    restore_value: no
+    initial_value: '60'
+  - id: hc_y_p15
+    type: int
+    restore_value: no
+    initial_value: '60'
 
 datetime:
  - platform: template
@@ -204,13 +241,13 @@ time:
     timezone: "Europe/Amsterdam"
 
 modbus:
-  send_wait_time: 500ms
+  send_wait_time: 250ms
 
 modbus_controller:
 - id: modbus_outside_unit
   address: 0x2
   update_interval: 30s
-  command_throttle: 500ms
+  command_throttle: 1000ms
   max_cmd_retries: 3
   on_offline:
     then:
@@ -225,7 +262,7 @@ modbus_controller:
 - id: modbus_inside_unit
   address: 0x0B
   update_interval: 30s
-  command_throttle: 500ms
+  command_throttle: 1000ms
   max_cmd_retries: 3
   on_offline:
     then:

@@ -2,7 +2,7 @@
   then:
     - if:
         condition:
-          lambda: return id(analytics_device_id).state.empty();
+          lambda: return id(analytics_device_id).state.empty() && id(mac_address).has_state() && !id(mac_address).state.empty();
         then:
           - http_request.get:
               url: !lambda |-

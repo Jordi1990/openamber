@@ -183,6 +183,7 @@
 - platform: template
   id: dhw_restart_dhw_delta
   name: "∆T herstart tapwater verwarmen"
+  restore_value: True
   optimistic: True
   unit_of_measurement: "°C"
   device_class: "temperature"
@@ -197,6 +198,7 @@
 - platform: template
   id: dhw_temperature_threshold_max_compressor_mode
   name: "Buitentemperatuur Tapwater winter vermogen"
+  restore_value: True
   optimistic: True
   unit_of_measurement: "°C"
   device_class: "temperature"

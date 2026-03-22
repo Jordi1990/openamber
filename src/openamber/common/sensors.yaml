@@ -160,7 +160,6 @@
     return tc;
   filters:
     - round_to_multiple_of: 1
-    - delta: 1
 
 - platform: template
   id: heat_exchanger_delta_t

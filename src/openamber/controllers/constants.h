@@ -31,7 +31,7 @@ static const uint32_t INITIALIZATION_DELAY_S = 10;
 static const uint32_t THREE_WAY_VALVE_SWITCH_TIME_S = 1 * 60;
 
 // Compressor timing
-static const uint32_t COMPRESSOR_MIN_OFF_S = 1 * 60;
+static const uint32_t COMPRESSOR_MIN_OFF_S = 2 * 60;
 static const uint32_t COMPRESSOR_MIN_ON_S = 10 * 60;
 static const uint32_t COMPRESSOR_SOFT_START_DURATION_S = 3 * 60;
 static const uint32_t COMPRESSOR_MIN_TIME_PUMP_ON = 5 * 60;

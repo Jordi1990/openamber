@@ -681,7 +681,13 @@ public:
         }
         else
         {
-          compressor_controller_->ApplyDefrostRecoveryMode(IsCoolingMode());
+          float current_temperature = id(heat_cool_temperature_tc).state;
+          float target_temperature = id(pid_heat_cool_temperature_control).target_temperature;
+          bool should_use_defrost_recovery_mode = current_temperature < target_temperature - 3.0f;
+          if(should_use_defrost_recovery_mode)
+          {
+            compressor_controller_->ApplyDefrostRecoveryMode();
+          }
           LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState::COMPRESSOR_RUNNING, COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
         }
         break;

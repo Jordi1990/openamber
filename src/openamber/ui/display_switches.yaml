@@ -1,0 +1,14 @@
+# ══════════════════════════════════════════════════════════════
+# Display hardware switches
+# These are GPIO switches for display-specific hardware
+# (e.g. backlight enable via ch422g), separate from UI bindings.
+# ══════════════════════════════════════════════════════════════
+
+switch:
+  - platform: gpio
+    name: backlight switch
+    pin:
+      ch422g: ch422g_hub
+      number: 2
+    restore_mode: ALWAYS_ON
+    internal: true

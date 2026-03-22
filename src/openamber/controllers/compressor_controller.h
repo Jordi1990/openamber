@@ -58,7 +58,7 @@ public:
       }
 
       const uint32_t min_interval = (current_compressor_mode > compressor_mode ? FREQUENCY_CHANGE_INTERVAL_DOWN_S : FREQUENCY_CHANGE_INTERVAL_UP_S) * 1000;
-      if ((millis() - last_compressor_mode_change_ms_) < min_interval)
+      if ((App.get_loop_component_start_time() - last_compressor_mode_change_ms_) < min_interval)
       {
         ESP_LOGI("amber", "Frequency change skipped (interval not elapsed)");
         return;
@@ -69,13 +69,13 @@ public:
     compressor_set_call.set_index(compressor_mode);
     compressor_set_call.perform();
     ESP_LOGI("amber", "Applying compressor mode change to %d", compressor_mode);
-    last_compressor_mode_change_ms_ = millis();
+    last_compressor_mode_change_ms_ = App.get_loop_component_start_time();
   }
 
   void Stop()
   {
     last_compressor_start_ms_ = 0;
-    last_compressor_stop_ms_ = millis();
+    last_compressor_stop_ms_ = App.get_loop_component_start_time();
     auto compressor_set_call = id(compressor_control_select).make_call();
     compressor_set_call.select_first();
     compressor_set_call.perform();
@@ -89,23 +89,23 @@ public:
   bool HasPassedMinOnTime()
   {
     const uint32_t min_on_ms = COMPRESSOR_MIN_ON_S * 1000UL;
-    return (millis() - last_compressor_start_ms_) > min_on_ms;
+    return (App.get_loop_component_start_time() - last_compressor_start_ms_) > min_on_ms;
   }
 
   bool HasPassedMinOffTime()
   {
     const uint32_t min_off_ms = COMPRESSOR_MIN_OFF_S * 1000UL;
-    return millis() >= last_compressor_stop_ms_ + min_off_ms;
+    return (App.get_loop_component_start_time() - last_compressor_stop_ms_) > min_off_ms;
   }
 
   bool HasPassedSoftStartDuration()
   {
-    return millis() - last_compressor_start_ms_ >= COMPRESSOR_SOFT_START_DURATION_S * 1000UL;
+    return (App.get_loop_component_start_time() - last_compressor_start_ms_) >= COMPRESSOR_SOFT_START_DURATION_S * 1000UL;
   }
 
   void RecordStartTime()
   {
-    last_compressor_start_ms_ = millis();
+    last_compressor_start_ms_ = App.get_loop_component_start_time();
   }
 
   void ApplyDefrostRecoveryMode()
@@ -118,6 +118,6 @@ public:
     int capped_mode_index = std::min(defrost_recovery_mode, (int)id(heat_compressor_mode).active_index().value() + mode_offset);
     compressor_set_call.set_index(capped_mode_index);
     compressor_set_call.perform();
-    last_compressor_mode_change_ms_ = millis();
+    last_compressor_mode_change_ms_ = App.get_loop_component_start_time();
   }
 };

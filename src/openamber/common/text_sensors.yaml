@@ -43,6 +43,61 @@
   mac_address:
     id: mac_address
     internal: True
+    on_value:
+      then:
+        - text_sensor.template.publish:
+            id: wifi_mac_ui
+            state: !lambda |-
+              if (x.empty()) return std::string("-");
+              return x;
+  ssid:
+    id: wifi_ssid
+    internal: True
+    on_value:
+      then:
+        - text_sensor.template.publish:
+            id: wifi_ssid_ui
+            state: !lambda |-
+              if (x.empty()) return std::string("-");
+              return x;
+  ip_address:
+    id: wifi_ip
+    internal: True
+    on_value:
+      then:
+        - text_sensor.template.publish:
+            id: wifi_ip_ui
+            state: !lambda |-
+              if (x.empty()) return std::string("-");
+              return x;
+  scan_results:
+    id: wifi_scan_results
+    internal: True
+    on_value:
+      then:
+        - text_sensor.template.publish:
+            id: wifi_scan_results_ui
+            state: !lambda 'return x;'
+
+- platform: template
+  id: wifi_ssid_ui
+  internal: True
+  update_interval: never
+
+- platform: template
+  id: wifi_ip_ui
+  internal: True
+  update_interval: never
+
+- platform: template
+  id: wifi_mac_ui
+  internal: True
+  update_interval: never
+
+- platform: template
+  id: wifi_scan_results_ui
+  internal: True
+  update_interval: never
 
 - platform: template
   name: "Analytics device ID"
