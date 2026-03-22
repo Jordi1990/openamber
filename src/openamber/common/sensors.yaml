@@ -76,7 +76,8 @@
   accuracy_decimals: 0
   lambda: |-
     float setpoint = 0.0;
-    if (id(working_mode_switch).active_index().value() == WORKING_MODE_COOLING)
+    auto working_mode = id(working_mode_switch).active_index();
+    if (working_mode.has_value() && working_mode.value() == WORKING_MODE_COOLING)
     {
       return id(cooling_setpoint_number).state;
     }

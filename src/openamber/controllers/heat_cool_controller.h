@@ -113,7 +113,8 @@ private:
 
   bool IsCoolingMode()
   {
-    return id(working_mode_switch).active_index().value() == WORKING_MODE_COOLING;
+    auto working_mode = id(working_mode_switch).active_index();
+    return working_mode.has_value() && working_mode.value() == WORKING_MODE_COOLING;
   }
 
   auto& GetActiveCompressorMode()

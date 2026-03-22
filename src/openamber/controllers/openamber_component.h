@@ -163,7 +163,8 @@ void OpenAmberComponent::reset_pump_interval()
 
 void OpenAmberComponent::ApplyPIDMode()
 {
-  bool cooling = id(working_mode_switch).active_index().value() == WORKING_MODE_COOLING;
+  auto working_mode = id(working_mode_switch).active_index();
+  bool cooling = working_mode.has_value() && working_mode.value() == WORKING_MODE_COOLING;
   const char* desired_mode = cooling ? "COOL" : "HEAT";
   auto current_mode = id(pid_heat_cool_temperature_control).mode;
   auto target_mode = cooling ? climate::CLIMATE_MODE_COOL : climate::CLIMATE_MODE_HEAT;

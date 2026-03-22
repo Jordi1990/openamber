@@ -19,6 +19,7 @@
 - platform: template
   id: cool_compressor_mode
   name: "Koelen vermogen"
+  restore_value: True
   optimistic: True
   options:
     - "Beperkt"
