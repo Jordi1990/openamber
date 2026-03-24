@@ -526,7 +526,7 @@ obj:
                           pad_all: 6
                           widgets:
                             - label: { text: "Tapwater aanwezig", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-                            - label: { text: "Tapwaterboiler is aanwezig in het systeem", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - label: { text: "Tapwatervat is aanwezig in het systeem", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
                             - switch:
                                 id: set_dhw_enabled_switch_ui
                                 align: TOP_RIGHT
@@ -1197,7 +1197,7 @@ obj:
                           border_opa: 0%
                           pad_all: 6
                           widgets:
-                            - label: { id: set_manual_sp_lbl, text: "Handmatig setpoint (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { id: set_manual_sp_lbl, text: "Extern setpoint (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
                             - label: { id: set_manual_sp_sub, text: "Cv-aanvoertemperatuur bij extern setpoint", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
                             - obj:
                                 width: SIZE_CONTENT
@@ -2006,8 +2006,37 @@ obj:
                           border_opa: 0%
                           pad_all: 6
                           widgets:
-                            - label: { text: "Setpoint (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-                            - label: { text: "Doeltemperatuur voor koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - label: { text: "Koelmodus", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { text: "Kies Fixed of Extern setpoint", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - dropdown:
+                                id: set_cool_mode_dd
+                                symbol: "\U000F0140"
+                                width: 220
+                                align: TOP_RIGHT
+                                y: 0
+                                options:
+                                  - "Fixed setpoint"
+                                  - "Extern setpoint"
+                                text_font: font_text_24
+                                dropdown_list:
+                                  text_font: font_text_24
+                                on_value:
+                                  then:
+                                    - lambda: |-
+                                        auto val = lv_dropdown_get_selected(id(set_cool_mode_dd)->obj);
+                                        if (val == 0) id(cool_mode_select).make_call().set_option("Fixed setpoint").perform();
+                                        else id(cool_mode_select).make_call().set_option("Extern setpoint").perform();
+                                    - script.execute: update_manual_setpoint_ui
+
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          widgets:
+                            - label: { id: set_cool_setpoint_lbl, text: "Setpoint (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { id: set_cool_setpoint_sub, text: "Doeltemperatuur voor koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
                             - obj:
                                 width: SIZE_CONTENT
                                 height: SIZE_CONTENT
@@ -2018,6 +2047,7 @@ obj:
                                 layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                                 widgets:
                                   - obj:
+                                      id: set_cool_setpoint_dec
                                       width: 40
                                       height: 40
                                       bg_color: 0x1F3B68
@@ -2027,16 +2057,21 @@ obj:
                                       scrollbar_mode: "OFF"
                                       scrollable: false
                                       on_click:
-                                        - number.decrement: cooling_setpoint_number
-                                        - lvgl.label.update:
-                                            id: set_cool_setpoint_val
-                                            text:
-                                              format: "%.0f°C"
-                                              args: ['id(cooling_setpoint_number).state']
+                                        - if:
+                                            condition:
+                                              lambda: 'return id(cool_mode_select).current_option() == "Fixed setpoint";'
+                                            then:
+                                              - number.decrement: cooling_setpoint_number
+                                              - lvgl.label.update:
+                                                  id: set_cool_setpoint_val
+                                                  text:
+                                                    format: "%.0f°C"
+                                                    args: ['id(cooling_setpoint_number).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_cool_setpoint_val, text: "7°C", text_color: 0x1F2933, text_font: font_text_24 }
                                   - obj:
+                                      id: set_cool_setpoint_inc
                                       width: 40
                                       height: 40
                                       bg_color: 0x1F3B68
@@ -2046,18 +2081,87 @@ obj:
                                       scrollbar_mode: "OFF"
                                       scrollable: false
                                       on_click:
-                                        - number.increment: cooling_setpoint_number
-                                        - lvgl.label.update:
-                                            id: set_cool_setpoint_val
-                                            text:
-                                              format: "%.0f°C"
-                                              args: ['id(cooling_setpoint_number).state']
+                                        - if:
+                                            condition:
+                                              lambda: 'return id(cool_mode_select).current_option() == "Fixed setpoint";'
+                                            then:
+                                              - number.increment: cooling_setpoint_number
+                                              - lvgl.label.update:
+                                                  id: set_cool_setpoint_val
+                                                  text:
+                                                    format: "%.0f°C"
+                                                    args: ['id(cooling_setpoint_number).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
                       - obj:
                           width: 100%
                           height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          widgets:
+                            - label: { id: set_cool_manual_sp_lbl, text: "Extern setpoint (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { id: set_cool_manual_sp_sub, text: "Koel setpoint bij extern setpoint", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - obj:
+                                width: SIZE_CONTENT
+                                height: SIZE_CONTENT
+                                align: TOP_RIGHT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                                widgets:
+                                  - obj:
+                                      id: set_cool_manual_sp_dec
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - if:
+                                            condition:
+                                              lambda: 'return id(cool_mode_select).current_option() == "Extern setpoint";'
+                                            then:
+                                              - number.decrement: manual_setpoint
+                                              - lvgl.label.update:
+                                                  id: set_cool_manual_sp_val
+                                                  text:
+                                                    format: "%.0f°C"
+                                                    args: ['id(manual_setpoint).state']
+                                      widgets:
+                                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                                  - label: { id: set_cool_manual_sp_val, text: "30°C", text_color: 0x1F2933, text_font: font_text_24 }
+                                  - obj:
+                                      id: set_cool_manual_sp_inc
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - if:
+                                            condition:
+                                              lambda: 'return id(cool_mode_select).current_option() == "Extern setpoint";'
+                                            then:
+                                              - number.increment: manual_setpoint
+                                              - lvgl.label.update:
+                                                  id: set_cool_manual_sp_val
+                                                  text:
+                                                    format: "%.0f°C"
+                                                    args: ['id(manual_setpoint).state']
+                                      widgets:
+                                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+                      - obj:
+                          width: 100%
                           bg_opa: 0%
                           border_opa: 0%
                           pad_all: 6

@@ -97,6 +97,22 @@
       - component.update: current_setpoint
 
 - platform: template
+  id: cool_mode_select
+  name: "Koelmodus"
+  optimistic: True
+  options:
+    - "Intern setpoint"
+    - "Extern setpoint"
+  initial_option: "Intern setpoint"
+  restore_value: True
+  entity_category: config
+  web_server: 
+    sorting_group_id: cooling_settings
+  on_value: 
+    then:
+      - component.update: current_setpoint
+
+- platform: template
   id: thermostat_mode_select
   name: "Thermostaat keuze"
   optimistic: True

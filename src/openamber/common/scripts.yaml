@@ -64,10 +64,15 @@
           root["sg_ready_heating_boost_temperature"] = id(sg_ready_heating_boost_temperature_number).state;
           root["sg_ready_dhw_boost_temperature"] = id(sg_ready_dhw_boost_temperature_number).state;
           root["heat_compressor_mode"] = id(heat_compressor_mode).current_option();
+          root["cool_compressor_mode"] = id(cool_compressor_mode).current_option();
           root["dhw_compressor_mode"] = id(dhw_compressor_mode).current_option();
           root["dhw_compressor_mode_max"] = id(dhw_compressor_mode_max).current_option();
           root["dhw_pump_start_mode"] = id(dhw_pump_start_mode_select).current_option();
           root["heat_mode"] = id(heat_mode_select).current_option();
+          root["cool_mode"] = id(cool_mode_select).current_option();
+          root["cool_setpoint"] = id(cooling_setpoint_number).state;
+          root["cool_compressor_stop_delta"] = id(compressor_stop_delta_cooling).state;
+          root["pump_speed_cooling"] = id(pump_speed_cooling_number).state;
           root["thermostat_mode"] = id(thermostat_mode_select).current_option();
           root["sg_ready_mode"] = id(sg_ready_mode_select).current_option();
           root["heat_demand"] = id(heat_demand_active_sensor).state;
