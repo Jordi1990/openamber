@@ -80,6 +80,17 @@
             auto idx = id(heat_compressor_mode).active_index();
             return idx.has_value() ? idx.value() : 0;
 
+# ── Settings: Cooling mode dropdown ──
+- id: !extend cool_mode_select
+  on_value:
+    then:
+      - lvgl.dropdown.update:
+          id: set_cool_mode_dd
+          selected_index: !lambda |-
+            auto idx = id(cool_mode_select).active_index();
+            return idx.has_value() ? idx.value() : 0;
+      - script.execute: update_manual_setpoint_ui
+
 # ── Settings: Cooling power dropdown ──
 - id: !extend cool_compressor_mode
   on_value:

@@ -61,6 +61,58 @@
         text_color: !lambda |-
           return id(heat_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF);
 
+    - lvgl.label.update:
+        id: set_cool_manual_sp_val
+        text:
+          format: "%.0f°C"
+          args: ['id(manual_setpoint).state']
+    - lvgl.label.update:
+        id: set_cool_manual_sp_lbl
+        text_color: !lambda |-
+          return id(cool_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF);
+    - lvgl.label.update:
+        id: set_cool_manual_sp_sub
+        text_color: !lambda |-
+          return id(cool_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x6B7280) : lv_color_hex(0xBFC5CC);
+    - lvgl.label.update:
+        id: set_cool_manual_sp_val
+        text_color: !lambda |-
+          return id(cool_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF);
+    - lvgl.widget.update:
+        id: set_cool_manual_sp_dec
+        bg_color: !lambda |-
+          return id(cool_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+    - lvgl.widget.update:
+        id: set_cool_manual_sp_inc
+        bg_color: !lambda |-
+          return id(cool_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+
+    - lvgl.label.update:
+        id: set_cool_setpoint_val
+        text:
+          format: "%.0f°C"
+          args: ['id(cooling_setpoint_number).state']
+    - lvgl.label.update:
+        id: set_cool_setpoint_lbl
+        text_color: !lambda |-
+          return id(cool_mode_select).current_option() == "Fixed setpoint" ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF);
+    - lvgl.label.update:
+        id: set_cool_setpoint_sub
+        text_color: !lambda |-
+          return id(cool_mode_select).current_option() == "Fixed setpoint" ? lv_color_hex(0x6B7280) : lv_color_hex(0xBFC5CC);
+    - lvgl.label.update:
+        id: set_cool_setpoint_val
+        text_color: !lambda |-
+          return id(cool_mode_select).current_option() == "Fixed setpoint" ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF);
+    - lvgl.widget.update:
+        id: set_cool_setpoint_dec
+        bg_color: !lambda |-
+          return id(cool_mode_select).current_option() == "Fixed setpoint" ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+    - lvgl.widget.update:
+        id: set_cool_setpoint_inc
+        bg_color: !lambda |-
+          return id(cool_mode_select).current_option() == "Fixed setpoint" ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+
 - id: update_heat_curve_chart
   mode: restart
   then:

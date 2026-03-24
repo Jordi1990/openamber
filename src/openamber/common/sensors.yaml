@@ -79,7 +79,14 @@
     auto working_mode = id(working_mode_switch).active_index();
     if (working_mode.has_value() && working_mode.value() == WORKING_MODE_COOLING)
     {
-      return id(cooling_setpoint_number).state;
+      if (id(cool_mode_select).current_option() == "Extern setpoint")
+      {
+        return id(manual_setpoint).state;
+      }
+      else
+      {
+        return id(cooling_setpoint_number).state;
+      }
     }
 
     if (id(heat_mode_select).current_option() == "Stooklijn")
