@@ -7,6 +7,8 @@ Open source control firmware based on ESPHome for Itho Daalderop Amber heat pump
 
 ![UI](/docs/images/screen_mounted.jpg)
 
+![Settings](/docs/images/openamber-settings.png)
+
 ### HomeAssistant dashboard example
 ![HomeAssistant example](/docs/images/openamber-hass-example.png)
 

@@ -64,8 +64,6 @@ void OpenAmberComponent::update()
   ThreeWayValvePosition current_valve_position = GetThreeWayValvePosition();
   ThreeWayValvePosition desired_valve_position = GetDesiredThreeWayValvePosition();
 
-  dhw_controller_->CheckLegionellaCycle();
-
   switch (state_)
   {
     case State::INITIALIZING:
@@ -98,6 +96,8 @@ void OpenAmberComponent::update()
 
     case State::HEAT_COOL:
     {
+      dhw_controller_->CheckLegionellaCycle();
+
       if(desired_valve_position == ThreeWayValvePosition::DHW && !heat_cool_controller_->IsRequestedToStop())
       {
         heat_cool_controller_->RequestToStop();
@@ -117,6 +117,8 @@ void OpenAmberComponent::update()
 
     case State::DHW_HEAT:
     {
+      dhw_controller_->CheckLegionellaCycle();
+
       if(dhw_controller_->IsInIdleState() && desired_valve_position != current_valve_position)
       {
         SetThreeWayValve(desired_valve_position);

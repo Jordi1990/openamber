@@ -515,6 +515,15 @@ public:
     return true;
   }
 
+  bool HasDatePassed(const ESPTime& current_time, const ESPTime& target_time)
+  {
+    return current_time.year >= target_time.year &&
+           current_time.month >= target_time.month &&
+           current_time.day_of_month >= target_time.day_of_month &&
+           current_time.hour >= target_time.hour &&
+           current_time.minute >= target_time.minute;
+  }
+
   void CheckLegionellaCycle()
   {
     if(!id(legio_enabled_switch).state)
@@ -522,13 +531,23 @@ public:
       return;
     }
 
+    if(!id(my_time).now().is_valid())
+    {
+      ESP_LOGW("amber", "Time is not synchronized, skipping legionella cycle check.");
+      return;
+    }
+
     auto now = id(my_time).now();
     auto legionella_time = id(next_legionella_run).state_as_esptime();
-    if(!id(dhw_legionella_run_active_sensor).state && now >= legionella_time)
+    if (!now.is_valid()) {
+      ESP_LOGW("amber", "WARNING: Time is not synchronized, skipping legionella cycle check.");
+      return;
+    }
+    if(!id(dhw_legionella_run_active_sensor).state && HasDatePassed(now, legionella_time))
     {
       ESP_LOGI("amber", "Starting legionella cycle.");
       id(dhw_legionella_run_active_sensor).publish_state(true);
-      auto next_run = id(next_legionella_run).state_as_esptime();
+      auto next_run = id(my_time).now();
       for(int i=1; i<=id(legio_repeat_days_number).state; i++)
       {
         next_run.increment_day();
@@ -537,9 +556,9 @@ public:
       legio_start_call.set_datetime(next_run);
       legio_start_call.perform();
       ESP_LOGI("amber", "Next legionella cycle scheduled at %04d-%02d-%02d %02d:%02d", 
-               id(next_legionella_run).year, id(next_legionella_run).month, 
-               id(next_legionella_run).day, id(next_legionella_run).hour, 
-               id(next_legionella_run).minute);
+               next_run.year, next_run.month, 
+               next_run.day_of_month, next_run.hour, 
+               next_run.minute);
     }
     else if(id(dhw_legionella_run_active_sensor).state && !id(dhw_demand_active_sensor).state)
     {
