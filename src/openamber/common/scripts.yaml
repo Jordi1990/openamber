@@ -17,7 +17,7 @@
                         - lambda: |-
                             id(analytics_device_id).publish_state(body);
 
-- id: send_analytics
+- id: send_device_info
   then:
     - mqtt.publish_json:
         topic: !lambda |-
@@ -26,94 +26,224 @@
         retain: true
         payload: |-
           root["device_id"] = id(mac_address).state;
+          root["timestamp"] = id(my_time).timestamp_now();
+          root["firmware"] = ESPHOME_PROJECT_VERSION;
+
           root["model_identification_1"] = id(model_identification_1).state;
           root["model_identification_2"] = id(model_identification_2).state;
           root["model_identification_3"] = id(model_identification_3).state;
-          root["timestamp"] = id(my_time).timestamp_now();
-          root["firmware"] = ESPHOME_PROJECT_VERSION;
+
           root["hardware_item_number"] = id(outside_unit_hardware_item_number).state;
+
           root["eeprom_version"] = id(outside_unit_eeprom_version).state;
           root["outside_unit_eeprom_version_part1"] = id(outside_unit_eeprom_version_part1).state;
           root["outside_unit_eeprom_version_part2"] = id(outside_unit_eeprom_version_part2).state;
+
           root["program_version"] = id(outside_unit_program_version).state;
+
+- id: send_config_1
+  then:
+    - mqtt.publish_json:
+        topic: !lambda |-
+          return "openamber/" + id(mac_address).state;
+        qos: 0
+        retain: true
+        payload: |-
+          root["device_id"] = id(mac_address).state;
+
           root["dhw_enabled"] = id(dhw_enabled_switch).state;
           root["legio_enabled"] = id(legio_enabled_switch).state;
+
           root["frost_protection_stage_1_temp_ta"] = id(frost_protection_stage_1_temp_ta).state;
           root["frost_protection_stage_2_temp_ta"] = id(frost_protection_stage_2_temp_ta).state;
           root["frost_protection_stage_2_temp_tui"] = id(frost_protection_stage_2_temp_tui).state;
+
           root["compressor_start_delta"] = id(compressor_start_delta).state;
           root["compressor_stop_delta"] = id(compressor_stop_delta).state;
+
+- id: send_config_2
+  then:
+    - mqtt.publish_json:
+        topic: !lambda |-
+          return "openamber/" + id(mac_address).state;
+        qos: 0
+        retain: true
+        payload: |-
+          root["device_id"] = id(mac_address).state;
+
           root["heat_curve_p15"] = id(heat_curve_p15).state;
           root["heat_curve_p10"] = id(heat_curve_p10).state;
           root["heat_curve_p5"] = id(heat_curve_p5).state;
           root["heat_curve_0"] = id(heat_curve_0).state;
           root["heat_curve_m10"] = id(heat_curve_m10).state;
+
           root["dhw_setpoint_temperature"] = id(dhw_setpoint_temperature).state;
           root["dhw_restart_dhw_delta"] = id(dhw_restart_dhw_delta).state;
           root["dhw_temperature_threshold_max_compressor_mode"] = id(dhw_temperature_threshold_max_compressor_mode).state;
+
+- id: send_config_3
+  then:
+    - mqtt.publish_json:
+        topic: !lambda |-
+          return "openamber/" + id(mac_address).state;
+        qos: 0
+        retain: true
+        payload: |-
+          root["device_id"] = id(mac_address).state;
+
           root["dhw_backup_min_avg_rate"] = id(dhw_backup_min_avg_rate).state;
           root["backup_heater_degmin_threshold"] = id(backup_heater_degmin_threshold).state;
+
           root["pump_speed_heating"] = id(pump_speed_heating_number).state;
           root["pump_speed_dhw"] = id(pump_speed_dhw_number).state;
+          root["pump_speed_cooling"] = id(pump_speed_cooling_number).state;
+
           root["pump_interval"] = id(pump_interval).state;
           root["pump_duration"] = id(pump_duration).state;
+
           root["defrost_backup_heater_boost_temperature"] = id(defrost_backup_heater_boost_temperature_sensor).state;
+
           root["legio_repeat_days"] = id(legio_repeat_days_number).state;
           root["legio_target_temperature"] = id(legio_target_temperature_number).state;
+
           root["manual_setpoint"] = id(manual_setpoint).state;
+
           root["sg_ready_heating_boost_temperature"] = id(sg_ready_heating_boost_temperature_number).state;
           root["sg_ready_dhw_boost_temperature"] = id(sg_ready_dhw_boost_temperature_number).state;
+
+          root["cool_setpoint"] = id(cooling_setpoint_number).state;
+          root["cool_compressor_stop_delta"] = id(compressor_stop_delta_cooling).state;
+
+- id: send_modes
+  then:
+    - mqtt.publish_json:
+        topic: !lambda |-
+          return "openamber/" + id(mac_address).state;
+        qos: 0
+        retain: true
+        payload: |-
+          root["device_id"] = id(mac_address).state;
+
           root["heat_compressor_mode"] = id(heat_compressor_mode).current_option();
           root["cool_compressor_mode"] = id(cool_compressor_mode).current_option();
           root["dhw_compressor_mode"] = id(dhw_compressor_mode).current_option();
           root["dhw_compressor_mode_max"] = id(dhw_compressor_mode_max).current_option();
+
           root["dhw_pump_start_mode"] = id(dhw_pump_start_mode_select).current_option();
+
           root["heat_mode"] = id(heat_mode_select).current_option();
           root["cool_mode"] = id(cool_mode_select).current_option();
-          root["cool_setpoint"] = id(cooling_setpoint_number).state;
-          root["cool_compressor_stop_delta"] = id(compressor_stop_delta_cooling).state;
-          root["pump_speed_cooling"] = id(pump_speed_cooling_number).state;
+
           root["thermostat_mode"] = id(thermostat_mode_select).current_option();
           root["sg_ready_mode"] = id(sg_ready_mode_select).current_option();
+
+          root["heat_demand_switch"] = id(heat_demand_switch).state;
+          root["cool_demand_switch"] = id(cool_demand_switch).state;
+
+          root["dhw_schedule_enabled"] = id(dhw_schedule_enabled_switch).state;
+          root["pump_p1_enabled"] = id(pump_p1_enabled).state;
+
+- id: send_telemetry_1
+  then:
+    - mqtt.publish_json:
+        topic: !lambda |-
+          return "openamber/" + id(mac_address).state;
+        qos: 0
+        retain: true
+        payload: |-
+          root["device_id"] = id(mac_address).state;
+
           root["heat_demand"] = id(heat_demand_active_sensor).state;
           root["cool_demand"] = id(cool_demand_active_sensor).state;
           root["dhw_demand"] = id(dhw_demand_active_sensor).state;
-          root["backup_heater_active"] = id(backup_heater_active_sensor).state;
-          root["internal_pump_active"] = id(internal_pump_active).state;
-          root["defrost_active"] = id(defrost_active_sensor).state;
-          root["heat_demand_switch"] = id(heat_demand_switch).state;
-          root["cool_demand_switch"] = id(cool_demand_switch).state;
-          root["backup_heater_degmin_current"] = id(backup_heater_degmin_current_sensor).state;
-          root["dhw_backup_current_avg_rate"] = id(dhw_backup_current_avg_rate_sensor).state;
-          root["state_machine_state_dhw"] = id(state_machine_state_dhw).state;
-          root["state_machine_state_heat_cool"] = id(state_machine_state_heat_cool).state;
-          root["state_machine_state_main"] = id(state_machine_state_main).state;
+
           root["current_setpoint"] = id(current_setpoint).state;
           root["room_temperature"] = id(room_temperature).state;
           root["temperature_outside_ta"] = id(temperature_outside_ta).state;
+
           root["dhw_temperature_tw"] = id(dhw_temperature_tw_sensor).state;
           root["heat_cool_temperature_tc"] = id(heat_cool_temperature_tc).state;
+
           root["outlet_temperature_tuo"] = id(outlet_temperature_tuo).state;
           root["inlet_temperature_tui"] = id(inlet_temperature_tui).state;
-          root["pump_p0_current_pwm"] = id(pump_p0_current_pwm_sensor).state;
-          root["current_compressor_frequency"] = id(current_compressor_frequency).state;
+
+- id: send_telemetry_2
+  then:
+    - mqtt.publish_json:
+        topic: !lambda |-
+          return "openamber/" + id(mac_address).state;
+        qos: 0
+        retain: true
+        payload: |-
+          root["device_id"] = id(mac_address).state;
+
           root["condensate_temperature_tup"] = id(condensate_temperature_tup).state;
           root["evaporation_temperature_tp"] = id(evaporation_temperature_tp).state;
+
+          root["suction_temperature_ts"] = id(suction_temperature_ts).state;
+          root["discharge_temperature_td"] = id(discharge_temperature_td).state;
+
+          root["suction_pressure_ps"] = id(suction_pressure_ps).state;
+          root["discharge_pressure_pd"] = id(discharge_pressure_pd).state;
+
+          root["fan_rpm"] = id(fan_rpm_sensor).state;
+          root["power_compressor"] = id(power_compressor).state;
+
+          root["current_compressor_frequency"] = id(current_compressor_frequency).state;
+
+- id: send_telemetry_3
+  then:
+    - mqtt.publish_json:
+        topic: !lambda |-
+          return "openamber/" + id(mac_address).state;
+        qos: 0
+        retain: true
+        payload: |-
+          root["device_id"] = id(mac_address).state;
+
+          root["backup_heater_active"] = id(backup_heater_active_sensor).state;
+          root["internal_pump_active"] = id(internal_pump_active).state;
+          root["defrost_active"] = id(defrost_active_sensor).state;
+
+          root["backup_heater_degmin_current"] = id(backup_heater_degmin_current_sensor).state;
+          root["dhw_backup_current_avg_rate"] = id(dhw_backup_current_avg_rate_sensor).state;
+
+          root["state_machine_state_dhw"] = id(state_machine_state_dhw).state;
+          root["state_machine_state_heat_cool"] = id(state_machine_state_heat_cool).state;
+          root["state_machine_state_main"] = id(state_machine_state_main).state;
+
           root["uptime"] = id(sensor_uptime).state;
+
           root["current_dhw_setpoint"] = id(current_dhw_setpoint_sensor).state;
           root["dhw_legionella_run_active"] = id(dhw_legionella_run_active_sensor).state;
+
           root["three_way_valve_active"] = id(three_way_valve_active_sensor).state;
-          root["dhw_schedule_enabled"] = id(dhw_schedule_enabled_switch).state;
           root["dhw_schedule_active"] = id(dhw_schedule_active_sensor).state;
-          root["pump_p1_enabled"] = id(pump_p1_enabled).state;
+
           root["pump_p1_active"] = id(pump_p1_relay_switch).state;
-          root["expansion_valve_position"] = id(expansion_valve_position).state;
-          root["fan_rpm"] = id(fan_rpm_sensor).state;
-          root["suction_temperature_ts"] = id(suction_temperature_ts).state;
-          root["suction_pressure_ps"] = id(suction_pressure_ps).state;
-          root["discharge_temperature_td"] = id(discharge_temperature_td).state;
-          root["discharge_pressure_pd"] = id(discharge_pressure_pd).state;
-          root["power_compressor"] = id(power_compressor).state;
           root["dhw_pump_relay"] = id(dhw_pump_relay_switch).state;
+
+          root["expansion_valve_position"] = id(expansion_valve_position).state;
+          root["pump_p0_current_pwm"] = id(pump_p0_current_pwm_sensor).state;
+
           root["working_mode"] = id(working_mode_switch).current_option();
+
+- id: send_analytics
+  then:
+    - script.execute: send_device_info
+    - delay: 120ms
+    - script.execute: send_config_1
+    - delay: 120ms
+    - script.execute: send_config_2
+    - delay: 120ms
+    - script.execute: send_config_3
+    - delay: 120ms
+    - script.execute: send_modes
+    - delay: 120ms
+    - script.execute: send_telemetry_1
+    - delay: 120ms
+    - script.execute: send_telemetry_2
+    - delay: 120ms
+    - script.execute: send_telemetry_3
+    - delay: 120ms
     - script.execute: fetch_analytics_device_id
