@@ -641,11 +641,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.decrement: frost_protection_stage_1_temp_ta
-                                        - lvgl.label.update:
-                                            id: set_frost1_val
-                                            text:
-                                              format: "%.1f°C"
-                                              args: ['id(frost_protection_stage_1_temp_ta).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_frost1_val, text: "5.0°C", text_color: 0x1F2933, text_font: font_text_24 }
@@ -660,11 +655,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.increment: frost_protection_stage_1_temp_ta
-                                        - lvgl.label.update:
-                                            id: set_frost1_val
-                                            text:
-                                              format: "%.1f°C"
-                                              args: ['id(frost_protection_stage_1_temp_ta).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
@@ -697,11 +687,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.decrement: frost_protection_stage_2_temp_ta
-                                        - lvgl.label.update:
-                                            id: set_frost2_ta_val
-                                            text:
-                                              format: "%.1f°C"
-                                              args: ['id(frost_protection_stage_2_temp_ta).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_frost2_ta_val, text: "4.0°C", text_color: 0x1F2933, text_font: font_text_24 }
@@ -716,11 +701,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.increment: frost_protection_stage_2_temp_ta
-                                        - lvgl.label.update:
-                                            id: set_frost2_ta_val
-                                            text:
-                                              format: "%.1f°C"
-                                              args: ['id(frost_protection_stage_2_temp_ta).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
@@ -753,11 +733,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.decrement: frost_protection_stage_2_temp_tui
-                                        - lvgl.label.update:
-                                            id: set_frost2_tui_val
-                                            text:
-                                              format: "%.1f°C"
-                                              args: ['id(frost_protection_stage_2_temp_tui).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_frost2_tui_val, text: "7.0°C", text_color: 0x1F2933, text_font: font_text_24 }
@@ -772,11 +747,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.increment: frost_protection_stage_2_temp_tui
-                                        - lvgl.label.update:
-                                            id: set_frost2_tui_val
-                                            text:
-                                              format: "%.1f°C"
-                                              args: ['id(frost_protection_stage_2_temp_tui).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
@@ -859,11 +829,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.decrement: pump_speed_heating_number
-                                        - lvgl.label.update:
-                                            id: set_pump_heat_val
-                                            text:
-                                              format: "%.0f%%"
-                                              args: ['id(pump_speed_heating_number).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_pump_heat_val, text: "100%", text_color: 0x1F2933, text_font: font_text_24 }
@@ -878,11 +843,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.increment: pump_speed_heating_number
-                                        - lvgl.label.update:
-                                            id: set_pump_heat_val
-                                            text:
-                                              format: "%.0f%%"
-                                              args: ['id(pump_speed_heating_number).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
@@ -915,11 +875,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.decrement: pump_speed_dhw_number
-                                        - lvgl.label.update:
-                                            id: set_pump_dhw_val
-                                            text:
-                                              format: "%.0f%%"
-                                              args: ['id(pump_speed_dhw_number).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_pump_dhw_val, text: "100%", text_color: 0x1F2933, text_font: font_text_24 }
@@ -934,11 +889,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.increment: pump_speed_dhw_number
-                                        - lvgl.label.update:
-                                            id: set_pump_dhw_val
-                                            text:
-                                              format: "%.0f%%"
-                                              args: ['id(pump_speed_dhw_number).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
@@ -971,11 +921,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.decrement: pump_interval
-                                        - lvgl.label.update:
-                                            id: set_pump_interval_val
-                                            text:
-                                              format: "%.0f min"
-                                              args: ['id(pump_interval).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_pump_interval_val, text: "15 min", text_color: 0x1F2933, text_font: font_text_24 }
@@ -990,11 +935,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.increment: pump_interval
-                                        - lvgl.label.update:
-                                            id: set_pump_interval_val
-                                            text:
-                                              format: "%.0f min"
-                                              args: ['id(pump_interval).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
@@ -1027,11 +967,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.decrement: pump_duration
-                                        - lvgl.label.update:
-                                            id: set_pump_dur_val
-                                            text:
-                                              format: "%.0f min"
-                                              args: ['id(pump_duration).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_pump_dur_val, text: "2 min", text_color: 0x1F2933, text_font: font_text_24 }
@@ -1046,11 +981,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.increment: pump_duration
-                                        - lvgl.label.update:
-                                            id: set_pump_dur_val
-                                            text:
-                                              format: "%.0f min"
-                                              args: ['id(pump_duration).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
@@ -1107,11 +1037,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.decrement: compressor_start_delta
-                                        - lvgl.label.update:
-                                            id: set_comp_start_val
-                                            text:
-                                              format: "%.1f°C"
-                                              args: ['id(compressor_start_delta).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_comp_start_val, text: "3.0°C", text_color: 0x1F2933, text_font: font_text_24 }
@@ -1126,11 +1051,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.increment: compressor_start_delta
-                                        - lvgl.label.update:
-                                            id: set_comp_start_val
-                                            text:
-                                              format: "%.1f°C"
-                                              args: ['id(compressor_start_delta).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
@@ -1302,11 +1222,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.decrement: compressor_stop_delta
-                                        - lvgl.label.update:
-                                            id: set_comp_stop_val
-                                            text:
-                                              format: "%.1f\u00b0C"
-                                              args: ['id(compressor_stop_delta).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_comp_stop_val, text: "5.0°C", text_color: 0x1F2933, text_font: font_text_24 }
@@ -1321,11 +1236,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.increment: compressor_stop_delta
-                                        - lvgl.label.update:
-                                            id: set_comp_stop_val
-                                            text:
-                                              format: "%.1f\u00b0C"
-                                              args: ['id(compressor_stop_delta).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
@@ -2043,11 +1953,6 @@ obj:
                                               lambda: 'return id(cool_mode_select).current_option() == "Fixed setpoint";'
                                             then:
                                               - number.decrement: cooling_setpoint_number
-                                              - lvgl.label.update:
-                                                  id: set_cool_setpoint_val
-                                                  text:
-                                                    format: "%.0f°C"
-                                                    args: ['id(cooling_setpoint_number).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_cool_setpoint_val, text: "7°C", text_color: 0x1F2933, text_font: font_text_24 }
@@ -2067,11 +1972,6 @@ obj:
                                               lambda: 'return id(cool_mode_select).current_option() == "Fixed setpoint";'
                                             then:
                                               - number.increment: cooling_setpoint_number
-                                              - lvgl.label.update:
-                                                  id: set_cool_setpoint_val
-                                                  text:
-                                                    format: "%.0f°C"
-                                                    args: ['id(cooling_setpoint_number).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
@@ -2202,11 +2102,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.decrement: compressor_stop_delta_cooling
-                                        - lvgl.label.update:
-                                            id: set_comp_stop_cool_val
-                                            text:
-                                              format: "%.1f°C"
-                                              args: ['id(compressor_stop_delta_cooling).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_comp_stop_cool_val, text: "5.0°C", text_color: 0x1F2933, text_font: font_text_24 }
@@ -2221,11 +2116,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.increment: compressor_stop_delta_cooling
-                                        - lvgl.label.update:
-                                            id: set_comp_stop_cool_val
-                                            text:
-                                              format: "%.1f°C"
-                                              args: ['id(compressor_stop_delta_cooling).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
@@ -2258,11 +2148,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.decrement: pump_speed_cooling_number
-                                        - lvgl.label.update:
-                                            id: set_pump_cool_val
-                                            text:
-                                              format: "%.0f%%"
-                                              args: ['id(pump_speed_cooling_number).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_pump_cool_val, text: "100%", text_color: 0x1F2933, text_font: font_text_24 }
@@ -2277,11 +2162,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.increment: pump_speed_cooling_number
-                                        - lvgl.label.update:
-                                            id: set_pump_cool_val
-                                            text:
-                                              format: "%.0f%%"
-                                              args: ['id(pump_speed_cooling_number).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
@@ -2338,11 +2218,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.decrement: dhw_setpoint_temperature
-                                        - lvgl.label.update:
-                                            id: set_dhw_setpoint_val
-                                            text:
-                                              format: "%.0f°C"
-                                              args: ['id(dhw_setpoint_temperature).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_dhw_setpoint_val, text: "55°C", text_color: 0x1F2933, text_font: font_text_24 }
@@ -2357,11 +2232,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.increment: dhw_setpoint_temperature
-                                        - lvgl.label.update:
-                                            id: set_dhw_setpoint_val
-                                            text:
-                                              format: "%.0f°C"
-                                              args: ['id(dhw_setpoint_temperature).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
@@ -2395,11 +2265,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.decrement: dhw_restart_dhw_delta
-                                        - lvgl.label.update:
-                                            id: set_dhw_restart_val
-                                            text:
-                                              format: "%.0f°C"
-                                              args: ['id(dhw_restart_dhw_delta).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_dhw_restart_val, text: "15°C", text_color: 0x1F2933, text_font: font_text_24 }
@@ -2414,11 +2279,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.increment: dhw_restart_dhw_delta
-                                        - lvgl.label.update:
-                                            id: set_dhw_restart_val
-                                            text:
-                                              format: "%.0f°C"
-                                              args: ['id(dhw_restart_dhw_delta).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
@@ -2514,11 +2374,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.decrement: dhw_temperature_threshold_max_compressor_mode
-                                        - lvgl.label.update:
-                                            id: set_dhw_winter_temp_val
-                                            text:
-                                              format: "%.0f°C"
-                                              args: ['id(dhw_temperature_threshold_max_compressor_mode).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_dhw_winter_temp_val, text: "5°C", text_color: 0x1F2933, text_font: font_text_24 }
@@ -2533,11 +2388,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.increment: dhw_temperature_threshold_max_compressor_mode
-                                        - lvgl.label.update:
-                                            id: set_dhw_winter_temp_val
-                                            text:
-                                              format: "%.0f°C"
-                                              args: ['id(dhw_temperature_threshold_max_compressor_mode).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                       - obj:
@@ -2628,11 +2478,6 @@ obj:
                                               switch.is_on: legio_enabled_switch
                                             then:
                                               - number.decrement: legio_repeat_days_number
-                                              - lvgl.label.update:
-                                                  id: set_legio_days_val
-                                                  text:
-                                                    format: "%.0f d"
-                                                    args: ['id(legio_repeat_days_number).state']
                                       widgets:
                                         - label: { id: set_legio_days_dec_lbl, text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_legio_days_val, text: "7 d", text_color: 0x1F2933, text_font: font_text_24 }
@@ -2652,11 +2497,6 @@ obj:
                                               switch.is_on: legio_enabled_switch
                                             then:
                                               - number.increment: legio_repeat_days_number
-                                              - lvgl.label.update:
-                                                  id: set_legio_days_val
-                                                  text:
-                                                    format: "%.0f d"
-                                                    args: ['id(legio_repeat_days_number).state']
                                       widgets:
                                         - label: { id: set_legio_days_inc_lbl, text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
@@ -2694,11 +2534,6 @@ obj:
                                               switch.is_on: legio_enabled_switch
                                             then:
                                               - number.decrement: legio_target_temperature_number
-                                              - lvgl.label.update:
-                                                  id: set_legio_temp_val
-                                                  text:
-                                                    format: "%.0f°C"
-                                                    args: ['id(legio_target_temperature_number).state']
                                       widgets:
                                         - label: { id: set_legio_temp_dec_lbl, text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_legio_temp_val, text: "60°C", text_color: 0x1F2933, text_font: font_text_24 }
@@ -2718,11 +2553,6 @@ obj:
                                               switch.is_on: legio_enabled_switch
                                             then:
                                               - number.increment: legio_target_temperature_number
-                                              - lvgl.label.update:
-                                                  id: set_legio_temp_val
-                                                  text:
-                                                    format: "%.0f°C"
-                                                    args: ['id(legio_target_temperature_number).state']
                                       widgets:
                                         - label: { id: set_legio_temp_inc_lbl, text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
@@ -3150,11 +2980,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.decrement: defrost_backup_heater_boost_temperature_sensor
-                                        - lvgl.label.update:
-                                            id: set_defrost_boost_val
-                                            text:
-                                              format: "%.0f°C"
-                                              args: ['id(defrost_backup_heater_boost_temperature_sensor).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_defrost_boost_val, text: "-3°C", text_color: 0x1F2933, text_font: font_text_24 }
@@ -3169,11 +2994,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.increment: defrost_backup_heater_boost_temperature_sensor
-                                        - lvgl.label.update:
-                                            id: set_defrost_boost_val
-                                            text:
-                                              format: "%.0f°C"
-                                              args: ['id(defrost_backup_heater_boost_temperature_sensor).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
@@ -3206,11 +3026,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.decrement: backup_heater_degmin_threshold
-                                        - lvgl.label.update:
-                                            id: set_degmin_val
-                                            text:
-                                              format: "%.0f \u00b0C\u00b7min"
-                                              args: ['id(backup_heater_degmin_threshold).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_degmin_val, text: "40 °C·min", text_color: 0x1F2933, text_font: font_text_24 }
@@ -3225,11 +3040,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.increment: backup_heater_degmin_threshold
-                                        - lvgl.label.update:
-                                            id: set_degmin_val
-                                            text:
-                                              format: "%.0f \u00b0C\u00b7min"
-                                              args: ['id(backup_heater_degmin_threshold).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
@@ -3262,11 +3072,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.decrement: dhw_backup_min_avg_rate
-                                        - lvgl.label.update:
-                                            id: set_dhw_rate_val
-                                            text:
-                                              format: "%.2f \u00b0C/min"
-                                              args: ['id(dhw_backup_min_avg_rate).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_dhw_rate_val, text: "0.12 °C/min", text_color: 0x1F2933, text_font: font_text_24 }
@@ -3281,11 +3086,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.increment: dhw_backup_min_avg_rate
-                                        - lvgl.label.update:
-                                            id: set_dhw_rate_val
-                                            text:
-                                              format: "%.2f \u00b0C/min"
-                                              args: ['id(dhw_backup_min_avg_rate).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
@@ -3342,11 +3142,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.decrement: sg_ready_heating_boost_temperature_number
-                                        - lvgl.label.update:
-                                            id: set_sg_heat_boost_val
-                                            text:
-                                              format: "%.0f°C"
-                                              args: ['id(sg_ready_heating_boost_temperature_number).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_sg_heat_boost_val, text: "5°C", text_color: 0x1F2933, text_font: font_text_24 }
@@ -3361,11 +3156,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.increment: sg_ready_heating_boost_temperature_number
-                                        - lvgl.label.update:
-                                            id: set_sg_heat_boost_val
-                                            text:
-                                              format: "%.0f°C"
-                                              args: ['id(sg_ready_heating_boost_temperature_number).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
@@ -3398,11 +3188,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.decrement: sg_ready_dhw_boost_temperature_number
-                                        - lvgl.label.update:
-                                            id: set_sg_dhw_boost_val
-                                            text:
-                                              format: "%.0f°C"
-                                              args: ['id(sg_ready_dhw_boost_temperature_number).state']
                                       widgets:
                                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                                   - label: { id: set_sg_dhw_boost_val, text: "5°C", text_color: 0x1F2933, text_font: font_text_24 }
@@ -3417,11 +3202,6 @@ obj:
                                       scrollable: false
                                       on_click:
                                         - number.increment: sg_ready_dhw_boost_temperature_number
-                                        - lvgl.label.update:
-                                            id: set_sg_dhw_boost_val
-                                            text:
-                                              format: "%.0f°C"
-                                              args: ['id(sg_ready_dhw_boost_temperature_number).state']
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
