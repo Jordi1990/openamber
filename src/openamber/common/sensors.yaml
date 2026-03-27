@@ -1,7 +1,7 @@
 - platform: pid
   name: "PID Controller Verwarmen"
   climate_id: pid_heat_temperature_control
-  type: RESULT
+  type: HEAT
   disabled_by_default: True
   entity_category: diagnostic
   web_server: 
@@ -10,7 +10,7 @@
 - platform: pid
   name: "PID Controller Koelen"
   climate_id: pid_cool_temperature_control
-  type: RESULT
+  type: COOL
   disabled_by_default: True
   entity_category: diagnostic
   web_server: 
