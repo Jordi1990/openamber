@@ -338,7 +338,7 @@ private:
   void SetPidController(int working_mode)
   {
     auto heat_call = id(pid_heat_temperature_control).make_call();
-    heat_call.set_mode(working_mode == WORKING_MODE_HEAT ? climate::CLIMATE_MODE_HEAT : climate::CLIMATE_MODE_OFF);
+    heat_call.set_mode(working_mode == WORKING_MODE_HEATING ? climate::CLIMATE_MODE_HEAT : climate::CLIMATE_MODE_OFF);
     heat_call.perform();
     ESP_LOGI("amber", "PID climate mode switched to HEATING");
     
