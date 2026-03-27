@@ -1,3 +1,21 @@
+- platform: pid
+  name: "PID Controller Verwarmen"
+  climate_id: pid_heat_temperature_control
+  type: RESULT
+  disabled_by_default: True
+  entity_category: diagnostic
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: pid
+  name: "PID Controller Koelen"
+  climate_id: pid_cool_temperature_control
+  type: RESULT
+  disabled_by_default: True
+  entity_category: diagnostic
+  web_server: 
+    sorting_group_id: diagnostic
+
 - platform: template
   id: backup_heater_degmin_current_sensor
   name: "Backup heater degree⁄min current"
@@ -106,7 +124,8 @@
     return setpoint;
   on_value:
     - lambda: |-
-        auto call = id(pid_heat_cool_temperature_control).make_call();
+        auto climate = working_mode.value() == WORKING_MODE_COOLING ? id(pid_cool_temperature_control) : id(pid_heat_temperature_control);
+        auto call = climate.make_call();
         call.set_target_temperature(x);
         call.perform();
   web_server: 

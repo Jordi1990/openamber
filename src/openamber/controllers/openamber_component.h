@@ -44,7 +44,6 @@ OpenAmberComponent::~OpenAmberComponent()
 
 void OpenAmberComponent::setup()
 {
-  ApplyPIDMode();
   ESP_LOGI("amber", "OpenAmberController initialized");
   state_ = State::INITIALIZING;
 }
@@ -110,7 +109,6 @@ void OpenAmberComponent::update()
         break;
       }
 
-      ApplyPIDMode();
       heat_cool_controller_->UpdateStateMachine();
       break;
     }
@@ -161,23 +159,6 @@ void OpenAmberComponent::write_cool_pid_value(float value)
 void OpenAmberComponent::reset_pump_interval()
 {
   pump_controller_->ResetInterval();
-}
-
-void OpenAmberComponent::ApplyPIDMode()
-{
-  auto working_mode = id(working_mode_switch).active_index();
-  bool cooling = working_mode.has_value() && working_mode.value() == WORKING_MODE_COOLING;
-  const char* desired_mode = cooling ? "COOL" : "HEAT";
-  auto current_mode = id(pid_heat_cool_temperature_control).mode;
-  auto target_mode = cooling ? climate::CLIMATE_MODE_COOL : climate::CLIMATE_MODE_HEAT;
-
-  if (current_mode != target_mode)
-  {
-    auto call = id(pid_heat_cool_temperature_control).make_call();
-    call.set_mode(desired_mode);
-    call.perform();
-    ESP_LOGI("amber", "PID climate mode switched to %s", desired_mode);
-  }
 }
 
 // Privates

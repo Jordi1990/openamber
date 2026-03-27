@@ -169,6 +169,7 @@
     then:
       - lambda: 
           id(modbus_outside_is_online) = true;
+      - component.update: current_setpoint
   optionsmap:
     "Standby": 0
     "Koelen": 1
