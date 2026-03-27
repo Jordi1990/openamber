@@ -25,21 +25,23 @@ esphome:
     - openamber/controllers/openamber_component.h
     - openamber/controllers/heat_cool_controller.h
   on_boot:
-    then:
-      - delay: 60s
-      - if:
-          condition:
-            lambda: 'return id(my_time).now().is_valid();'
-          then:
-            - update.check:
-                id: firmware_update
-          else:
-            - logger.log: "Skipping firmware update check until time is synchronized"
-      - if:
-          condition:
-            - switch.is_on: analytics_enabled_switch
-          then:
-            - mqtt.enable:
+    - priority: 600
+      then:
+        - script.execute: apply_pid_settings
+        - delay: 60s
+        - if:
+            condition:
+              lambda: 'return id(my_time).now().is_valid();'
+            then:
+              - update.check:
+                  id: firmware_update
+            else:
+              - logger.log: "Skipping firmware update check until time is synchronized"
+        - if:
+            condition:
+              - switch.is_on: analytics_enabled_switch
+            then:
+              - mqtt.enable:
 
 esp32:
   framework:

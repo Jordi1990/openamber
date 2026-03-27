@@ -115,6 +115,60 @@
             format: "%.1f°C"
             args: ['x']
 
+- id: !extend pid_heat_kp
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_heat_pid_kp_val
+          text:
+            format: "%.2f"
+            args: ['x']
+
+- id: !extend pid_heat_ki
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_heat_pid_ki_val
+          text:
+            format: "%.4f"
+            args: ['x']
+
+- id: !extend pid_heat_kd
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_heat_pid_kd_val
+          text:
+            format: "%.2f"
+            args: ['x']
+
+- id: !extend pid_cool_kp
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_cool_pid_kp_val
+          text:
+            format: "%.2f"
+            args: ['x']
+
+- id: !extend pid_cool_ki
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_cool_pid_ki_val
+          text:
+            format: "%.4f"
+            args: ['x']
+
+- id: !extend pid_cool_kd
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_cool_pid_kd_val
+          text:
+            format: "%.2f"
+            args: ['x']
+
 - id: !extend cooling_setpoint_number
   on_value:
     then:
