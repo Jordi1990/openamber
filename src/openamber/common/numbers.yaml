@@ -505,6 +505,8 @@
   entity_category: config
   web_server: 
     sorting_group_id: heating_settings
+  on_value:
+    - component.update: current_setpoint
 
 - platform: template
   id: sg_ready_dhw_boost_temperature_number
