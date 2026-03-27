@@ -303,6 +303,126 @@
       sorting_group_id: cooling_settings
 
 - platform: template
+  id: pid_heat_kp
+  name: "PID verwarmen Kp"
+  optimistic: True
+  min_value: 0.0
+  max_value: 3.0
+  step: 0.01
+  initial_value: 0.6
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pid_heat_temperature_control
+          kp: !lambda 'return id(pid_heat_kp).state;'
+          ki: !lambda 'return id(pid_heat_ki).state;'
+          kd: !lambda 'return id(pid_heat_kd).state;'
+
+- platform: template
+  id: pid_heat_ki
+  name: "PID verwarmen Ki"
+  optimistic: True
+  min_value: 0.0000
+  max_value: 0.0500
+  step: 0.0001
+  initial_value: 0.0020
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pid_heat_temperature_control
+          kp: !lambda 'return id(pid_heat_kp).state;'
+          ki: !lambda 'return id(pid_heat_ki).state;'
+          kd: !lambda 'return id(pid_heat_kd).state;'
+
+- platform: template
+  id: pid_heat_kd
+  name: "PID verwarmen Kd"
+  optimistic: True
+  min_value: 0.0
+  max_value: 5.0
+  step: 0.01
+  initial_value: 0.7
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pid_heat_temperature_control
+          kp: !lambda 'return id(pid_heat_kp).state;'
+          ki: !lambda 'return id(pid_heat_ki).state;'
+          kd: !lambda 'return id(pid_heat_kd).state;'
+
+- platform: template
+  id: pid_cool_kp
+  name: "PID koelen Kp"
+  optimistic: True
+  min_value: 0.0
+  max_value: 3.0
+  step: 0.01
+  initial_value: 0.6
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: cooling_settings
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pid_cool_temperature_control
+          kp: !lambda 'return id(pid_cool_kp).state;'
+          ki: !lambda 'return id(pid_cool_ki).state;'
+          kd: !lambda 'return id(pid_cool_kd).state;'
+
+- platform: template
+  id: pid_cool_ki
+  name: "PID koelen Ki"
+  optimistic: True
+  min_value: 0.0000
+  max_value: 0.0500
+  step: 0.0001
+  initial_value: 0.0020
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: cooling_settings
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pid_cool_temperature_control
+          kp: !lambda 'return id(pid_cool_kp).state;'
+          ki: !lambda 'return id(pid_cool_ki).state;'
+          kd: !lambda 'return id(pid_cool_kd).state;'
+
+- platform: template
+  id: pid_cool_kd
+  name: "PID koelen Kd"
+  optimistic: True
+  min_value: 0.0
+  max_value: 5.0
+  step: 0.01
+  initial_value: 0.7
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: cooling_settings
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pid_cool_temperature_control
+          kp: !lambda 'return id(pid_cool_kp).state;'
+          ki: !lambda 'return id(pid_cool_ki).state;'
+          kd: !lambda 'return id(pid_cool_kd).state;'
+
+- platform: template
   id: pump_speed_dhw_number
   name: "Pomp snelheid tapwater"
   optimistic: True

@@ -20,6 +20,12 @@
           else:
             - lvgl.widget.hide: { id: set_analytics_id_row }
 
+# ── Settings page: Advanced settings toggle ──
+- id: !extend advanced_settings_enabled
+  on_state:
+    then:
+      - script.execute: update_advanced_settings_ui
+
 # ── Settings: Pump P1 toggle ──
 - id: !extend pump_p1_enabled
   on_state:

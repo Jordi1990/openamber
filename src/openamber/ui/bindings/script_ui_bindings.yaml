@@ -2,6 +2,23 @@
 # UI helper scripts used by event-driven bindings
 # ══════════════════════════════════════════════════════════════
 
+- id: update_advanced_settings_ui
+  mode: restart
+  then:
+    - lvgl.widget.update:
+        id: set_advanced_settings_switch_ui
+        state:
+          checked: !lambda 'return id(advanced_settings_enabled).state;'
+    - if:
+        condition:
+          switch.is_on: advanced_settings_enabled
+        then:
+          - lvgl.widget.show: { id: set_heat_pid_section }
+          - lvgl.widget.show: { id: set_cool_pid_section }
+        else:
+          - lvgl.widget.hide: { id: set_heat_pid_section }
+          - lvgl.widget.hide: { id: set_cool_pid_section }
+
 - id: update_water_mode_temperature_display
   mode: restart
   then:

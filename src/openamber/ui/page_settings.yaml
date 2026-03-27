@@ -105,6 +105,7 @@ obj:
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
+                      - script.execute: update_advanced_settings_ui
                     widgets:
                       - label: { id: stab_general_lbl, text: "Algemeen", text_color: 0xFFFFFF, text_font: font_text_20, align: LEFT_MID }
                 - obj:
@@ -237,6 +238,7 @@ obj:
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
+                      - script.execute: update_advanced_settings_ui
                     widgets:
                       - label: { id: stab_heating_lbl, text: "Verwarmen", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
                 - obj:
@@ -279,6 +281,7 @@ obj:
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
+                      - script.execute: update_advanced_settings_ui
                     widgets:
                       - label: { id: stab_cooling_lbl, text: "Koelen", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
                 - obj:
@@ -587,6 +590,32 @@ obj:
                                 long_mode: WRAP
                                 align: TOP_LEFT
                                 y: 36
+
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          widgets:
+                            - label: { text: "Geavanceerde instellingen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { text: "Toon geavanceerde instellingen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - switch:
+                                id: set_advanced_settings_switch_ui
+                                align: TOP_RIGHT
+                                bg_color: 0x9CA3AF
+                                indicator:
+                                  bg_color: 0x16A34A
+                                knob:
+                                  bg_color: 0xFFFFFF
+                                on_click:
+                                  - if:
+                                      condition:
+                                        switch.is_on: advanced_settings_enabled
+                                      then:
+                                        - switch.turn_off: advanced_settings_enabled
+                                      else:
+                                        - switch.turn_on: advanced_settings_enabled
 
                 # ------------------------------------------------------------
                 # Panel: Vorstbescherming
@@ -1238,7 +1267,7 @@ obj:
                                         - number.increment: compressor_stop_delta
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-      
+
                       - label: { id: set_heat_curve_title, text: "Stooklijn", text_color: 0x1F2933, text_font: font_text_24, x: 6 }
                       - obj:
                           id: set_heat_curve_chart_container
@@ -1866,6 +1895,159 @@ obj:
                                               - script.execute: update_heat_curve_chart
                                             widgets:
                                               - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+                      - obj:
+                          id: set_heat_pid_section
+                          width: 100%
+                          height: SIZE_CONTENT
+                          hidden: true
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          layout:
+                            type: FLEX
+                            flex_flow: COLUMN
+                            flex_align_main: START
+                            flex_align_cross: STRETCH
+                            pad_row: 6
+                          widgets:
+                            - obj:
+                                width: 100%
+                                height: SIZE_CONTENT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 6
+                                widgets:
+                                  - label: { text: "PID P (Kp)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                                  - label: { text: "Hoger: sneller reageren, lager: rustiger maar trager", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                                  - obj:
+                                      width: SIZE_CONTENT
+                                      height: SIZE_CONTENT
+                                      align: TOP_RIGHT
+                                      bg_opa: 0%
+                                      border_opa: 0%
+                                      pad_all: 0
+                                      layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                                      widgets:
+                                        - obj:
+                                            width: 40
+                                            height: 40
+                                            bg_color: 0x1F3B68
+                                            bg_opa: 100%
+                                            radius: 10
+                                            border_opa: 0%
+                                            scrollbar_mode: "OFF"
+                                            scrollable: false
+                                            on_click:
+                                              - number.decrement: pid_heat_kp
+                                            widgets:
+                                              - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                                        - label: { id: set_heat_pid_kp_val, text: "0.60", text_color: 0x1F2933, text_font: font_text_24 }
+                                        - obj:
+                                            width: 40
+                                            height: 40
+                                            bg_color: 0x1F3B68
+                                            bg_opa: 100%
+                                            radius: 10
+                                            border_opa: 0%
+                                            scrollbar_mode: "OFF"
+                                            scrollable: false
+                                            on_click:
+                                              - number.increment: pid_heat_kp
+                                            widgets:
+                                              - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+                            - obj:
+                                width: 100%
+                                height: SIZE_CONTENT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 6
+                                widgets:
+                                  - label: { text: "PID I (Ki)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                                  - label: { text: "Hoger: corrigeert afwijking sneller, lager: minder agressief", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                                  - obj:
+                                      width: SIZE_CONTENT
+                                      height: SIZE_CONTENT
+                                      align: TOP_RIGHT
+                                      bg_opa: 0%
+                                      border_opa: 0%
+                                      pad_all: 0
+                                      layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                                      widgets:
+                                        - obj:
+                                            width: 40
+                                            height: 40
+                                            bg_color: 0x1F3B68
+                                            bg_opa: 100%
+                                            radius: 10
+                                            border_opa: 0%
+                                            scrollbar_mode: "OFF"
+                                            scrollable: false
+                                            on_click:
+                                              - number.decrement: pid_heat_ki
+                                            widgets:
+                                              - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                                        - label: { id: set_heat_pid_ki_val, text: "0.0020", text_color: 0x1F2933, text_font: font_text_24 }
+                                        - obj:
+                                            width: 40
+                                            height: 40
+                                            bg_color: 0x1F3B68
+                                            bg_opa: 100%
+                                            radius: 10
+                                            border_opa: 0%
+                                            scrollbar_mode: "OFF"
+                                            scrollable: false
+                                            on_click:
+                                              - number.increment: pid_heat_ki
+                                            widgets:
+                                              - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+                            - obj:
+                                width: 100%
+                                height: SIZE_CONTENT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 6
+                                widgets:
+                                  - label: { text: "PID D (Kd)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                                  - label: { text: "Hoger: dempt schommelingen, lager: directer maar onrustiger", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                                  - obj:
+                                      width: SIZE_CONTENT
+                                      height: SIZE_CONTENT
+                                      align: TOP_RIGHT
+                                      bg_opa: 0%
+                                      border_opa: 0%
+                                      pad_all: 0
+                                      layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                                      widgets:
+                                        - obj:
+                                            width: 40
+                                            height: 40
+                                            bg_color: 0x1F3B68
+                                            bg_opa: 100%
+                                            radius: 10
+                                            border_opa: 0%
+                                            scrollbar_mode: "OFF"
+                                            scrollable: false
+                                            on_click:
+                                              - number.decrement: pid_heat_kd
+                                            widgets:
+                                              - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                                        - label: { id: set_heat_pid_kd_val, text: "0.70", text_color: 0x1F2933, text_font: font_text_24 }
+                                        - obj:
+                                            width: 40
+                                            height: 40
+                                            bg_color: 0x1F3B68
+                                            bg_opa: 100%
+                                            radius: 10
+                                            border_opa: 0%
+                                            scrollbar_mode: "OFF"
+                                            scrollable: false
+                                            on_click:
+                                              - number.increment: pid_heat_kd
+                                            widgets:
+                                              - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
                 # ------------------------------------------------------------
                 # Panel: Koelen
@@ -2043,6 +2225,7 @@ obj:
 
                       - obj:
                           width: 100%
+                          height: SIZE_CONTENT
                           bg_opa: 0%
                           border_opa: 0%
                           pad_all: 6
@@ -2164,6 +2347,159 @@ obj:
                                         - number.increment: pump_speed_cooling_number
                                       widgets:
                                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+                      - obj:
+                          id: set_cool_pid_section
+                          width: 100%
+                          height: SIZE_CONTENT
+                          hidden: true
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          layout:
+                            type: FLEX
+                            flex_flow: COLUMN
+                            flex_align_main: START
+                            flex_align_cross: STRETCH
+                            pad_row: 6
+                          widgets:
+                            - obj:
+                                width: 100%
+                                height: SIZE_CONTENT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 6
+                                widgets:
+                                  - label: { text: "PID P (Kp)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                                  - label: { text: "Hoger: sneller reageren, lager: rustiger maar trager", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                                  - obj:
+                                      width: SIZE_CONTENT
+                                      height: SIZE_CONTENT
+                                      align: TOP_RIGHT
+                                      bg_opa: 0%
+                                      border_opa: 0%
+                                      pad_all: 0
+                                      layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                                      widgets:
+                                        - obj:
+                                            width: 40
+                                            height: 40
+                                            bg_color: 0x1F3B68
+                                            bg_opa: 100%
+                                            radius: 10
+                                            border_opa: 0%
+                                            scrollbar_mode: "OFF"
+                                            scrollable: false
+                                            on_click:
+                                              - number.decrement: pid_cool_kp
+                                            widgets:
+                                              - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                                        - label: { id: set_cool_pid_kp_val, text: "0.60", text_color: 0x1F2933, text_font: font_text_24 }
+                                        - obj:
+                                            width: 40
+                                            height: 40
+                                            bg_color: 0x1F3B68
+                                            bg_opa: 100%
+                                            radius: 10
+                                            border_opa: 0%
+                                            scrollbar_mode: "OFF"
+                                            scrollable: false
+                                            on_click:
+                                              - number.increment: pid_cool_kp
+                                            widgets:
+                                              - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+                            - obj:
+                                width: 100%
+                                height: SIZE_CONTENT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 6
+                                widgets:
+                                  - label: { text: "PID I (Ki)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                                  - label: { text: "Hoger: corrigeert afwijking sneller, lager: minder agressief", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                                  - obj:
+                                      width: SIZE_CONTENT
+                                      height: SIZE_CONTENT
+                                      align: TOP_RIGHT
+                                      bg_opa: 0%
+                                      border_opa: 0%
+                                      pad_all: 0
+                                      layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                                      widgets:
+                                        - obj:
+                                            width: 40
+                                            height: 40
+                                            bg_color: 0x1F3B68
+                                            bg_opa: 100%
+                                            radius: 10
+                                            border_opa: 0%
+                                            scrollbar_mode: "OFF"
+                                            scrollable: false
+                                            on_click:
+                                              - number.decrement: pid_cool_ki
+                                            widgets:
+                                              - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                                        - label: { id: set_cool_pid_ki_val, text: "0.0020", text_color: 0x1F2933, text_font: font_text_24 }
+                                        - obj:
+                                            width: 40
+                                            height: 40
+                                            bg_color: 0x1F3B68
+                                            bg_opa: 100%
+                                            radius: 10
+                                            border_opa: 0%
+                                            scrollbar_mode: "OFF"
+                                            scrollable: false
+                                            on_click:
+                                              - number.increment: pid_cool_ki
+                                            widgets:
+                                              - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+                            - obj:
+                                width: 100%
+                                height: SIZE_CONTENT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 6
+                                widgets:
+                                  - label: { text: "PID D (Kd)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                                  - label: { text: "Hoger: dempt schommelingen, lager: directer maar onrustiger", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                                  - obj:
+                                      width: SIZE_CONTENT
+                                      height: SIZE_CONTENT
+                                      align: TOP_RIGHT
+                                      bg_opa: 0%
+                                      border_opa: 0%
+                                      pad_all: 0
+                                      layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                                      widgets:
+                                        - obj:
+                                            width: 40
+                                            height: 40
+                                            bg_color: 0x1F3B68
+                                            bg_opa: 100%
+                                            radius: 10
+                                            border_opa: 0%
+                                            scrollbar_mode: "OFF"
+                                            scrollable: false
+                                            on_click:
+                                              - number.decrement: pid_cool_kd
+                                            widgets:
+                                              - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                                        - label: { id: set_cool_pid_kd_val, text: "0.70", text_color: 0x1F2933, text_font: font_text_24 }
+                                        - obj:
+                                            width: 40
+                                            height: 40
+                                            bg_color: 0x1F3B68
+                                            bg_opa: 100%
+                                            radius: 10
+                                            border_opa: 0%
+                                            scrollbar_mode: "OFF"
+                                            scrollable: false
+                                            on_click:
+                                              - number.increment: pid_cool_kd
+                                            widgets:
+                                              - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
                 # ------------------------------------------------------------
                 # Panel: Tapwater

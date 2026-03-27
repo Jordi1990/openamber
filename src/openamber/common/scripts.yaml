@@ -17,6 +17,19 @@
                         - lambda: |-
                             id(analytics_device_id).publish_state(body);
 
+- id: apply_pid_settings
+  then:
+    - climate.pid.set_control_parameters:
+        id: pid_heat_temperature_control
+        kp: !lambda 'return id(pid_heat_kp).state;'
+        ki: !lambda 'return id(pid_heat_ki).state;'
+        kd: !lambda 'return id(pid_heat_kd).state;'
+    - climate.pid.set_control_parameters:
+        id: pid_cool_temperature_control
+        kp: !lambda 'return id(pid_cool_kp).state;'
+        ki: !lambda 'return id(pid_cool_ki).state;'
+        kd: !lambda 'return id(pid_cool_kd).state;'
+
 - id: send_device_info
   then:
     - mqtt.publish_json:
@@ -77,6 +90,14 @@
           root["dt"] = id(dhw_setpoint_temperature).state;
           root["dr"] = id(dhw_restart_dhw_delta).state;
           root["dm"] = id(dhw_temperature_threshold_max_compressor_mode).state;
+
+          root["qa"] = id(pid_heat_kp).state;
+          root["qb"] = id(pid_heat_ki).state;
+          root["qc"] = id(pid_heat_kd).state;
+
+          root["ra"] = id(pid_cool_kp).state;
+          root["rb"] = id(pid_cool_ki).state;
+          root["rc"] = id(pid_cool_kd).state;
 
 - id: send_config_3
   then:
