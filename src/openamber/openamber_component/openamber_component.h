@@ -58,8 +58,7 @@ private:
   void SetThreeWayValve(ThreeWayValvePosition position);
   ThreeWayValvePosition GetThreeWayValvePosition();
   ThreeWayValvePosition GetDesiredThreeWayValvePosition();
-  void ApplyWorkingMode();
-  void ApplyPIDMode();
+
   void SetNextState(State state);
   void LeaveStateAndSetNextStateAfterWaitTime(State new_state, uint32_t defer_ms);
   const char* StateToString(State state);
