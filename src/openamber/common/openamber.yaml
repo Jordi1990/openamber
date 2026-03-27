@@ -158,6 +158,10 @@ globals:
     type: bool
     restore_value: no
     initial_value: 'false'
+  - id: analytics_batch_timestamp
+    type: int64_t
+    restore_value: no
+    initial_value: '0'
   - id: modbus_outside_is_online
     type: bool
     restore_value: no
