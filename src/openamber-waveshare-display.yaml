@@ -1,3 +1,6 @@
+substitutions:
+  device_model: waveshare-5-1024x600
+
 packages:
  - !include openamber/common/openamber.yaml
  - !include openamber/ui/display_switches.yaml

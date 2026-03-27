@@ -40,6 +40,7 @@
         payload: |-
           root["ts"] = id(analytics_batch_timestamp);
           root["fw"] = ESPHOME_PROJECT_VERSION;
+          root["mo"] = "${device_model}";
 
           root["a1"] = id(model_identification_1).state;
           root["a2"] = id(model_identification_2).state;

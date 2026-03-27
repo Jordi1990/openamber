@@ -1,6 +1,9 @@
 packages:
  - !include openamber/common/openamber.yaml
 
+substitutions:
+  device_model: leejow
+
 esp32:
   board: esp32dev
   framework:
