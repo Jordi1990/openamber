@@ -182,6 +182,7 @@
     sorting_group_id: diagnostic
   on_state:
     - component.update: current_dhw_setpoint_sensor
+    - component.update : current_setpoint
 
 - platform: template
   name: "SG-Ready maxboostmodus"
@@ -195,6 +196,7 @@
     sorting_group_id: diagnostic
   on_state:
     - component.update: current_dhw_setpoint_sensor
+    - component.update : current_setpoint
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
