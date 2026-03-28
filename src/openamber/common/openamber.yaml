@@ -82,6 +82,7 @@ mqtt:
   enable_on_boot: false
   username: openamber_write
   password: openamber
+  reboot_timeout: 0s
   discovery: false
   discover_ip: false
   discovery_retain: false
