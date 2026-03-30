@@ -12,7 +12,7 @@
                 then:
                   - if:
                       condition:
-                        lambda: return response->status_code == 200 && !body.empty();
+                        lambda: return response->status_code == 200 && body.size() == 6;
                       then:
                         - lambda: |-
                             id(analytics_device_id).publish_state(body);
