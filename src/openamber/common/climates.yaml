@@ -44,9 +44,9 @@
   default_target_temperature: 30°C
   heat_output: pid_heat_output
   control_parameters:
-    kp: 0.6
-    ki: 0.002
-    kd: 0.7
+    kp: 0.4
+    ki: 0.005
+    kd: 5.0
   deadband_parameters:
     threshold_low: -1
     threshold_high: 1
@@ -62,9 +62,9 @@
   default_target_temperature: 18°C
   cool_output: pid_cool_output
   control_parameters:
-    kp: 0.6
-    ki: 0.002
-    kd: 0.7
+    kp: 0.4
+    ki: 0.005
+    kd: 5.0
   deadband_parameters:
     threshold_low: -1
     threshold_high: 1

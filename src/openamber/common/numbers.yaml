@@ -309,7 +309,7 @@
   min_value: 0.0
   max_value: 3.0
   step: 0.01
-  initial_value: 0.6
+  initial_value: 0.4
   restore_value: True
   entity_category: config
   web_server:
@@ -329,7 +329,7 @@
   min_value: 0.0000
   max_value: 0.0500
   step: 0.0001
-  initial_value: 0.0020
+  initial_value: 0.0050
   restore_value: True
   entity_category: config
   web_server:
@@ -347,9 +347,9 @@
   name: "PID verwarmen Kd"
   optimistic: True
   min_value: 0.0
-  max_value: 5.0
+  max_value: 25.0
   step: 0.01
-  initial_value: 0.7
+  initial_value: 5.0
   restore_value: True
   entity_category: config
   web_server:
@@ -369,7 +369,7 @@
   min_value: 0.0
   max_value: 3.0
   step: 0.01
-  initial_value: 0.6
+  initial_value: 0.4
   restore_value: True
   entity_category: config
   web_server:
@@ -389,7 +389,7 @@
   min_value: 0.0000
   max_value: 0.0500
   step: 0.0001
-  initial_value: 0.0020
+  initial_value: 0.0050
   restore_value: True
   entity_category: config
   web_server:
@@ -407,9 +407,9 @@
   name: "PID koelen Kd"
   optimistic: True
   min_value: 0.0
-  max_value: 5.0
+  max_value: 25.0
   step: 0.01
-  initial_value: 0.7
+  initial_value: 5
   restore_value: True
   entity_category: config
   web_server:
