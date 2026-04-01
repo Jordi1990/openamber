@@ -45,6 +45,8 @@
     internal: True
     on_value:
       then:
+        - lambda: |-
+            id(analytics_topic) = "openamber/" + x;
         - text_sensor.template.publish:
             id: wifi_mac_ui
             state: !lambda |-
