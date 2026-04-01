@@ -214,6 +214,7 @@
   state_class: measurement
   unit_of_measurement: °C   
   accuracy_decimals: 1
+  register_count: 10 # 1199 - 1208
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -380,6 +381,7 @@
   unit_of_measurement: "V"
   accuracy_decimals: 0
   state_class: "measurement"
+  register_count: 33 # 2100-2132
   entity_category: diagnostic
   web_server: 
     sorting_group_id: diagnostic
