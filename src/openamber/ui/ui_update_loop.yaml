@@ -25,13 +25,11 @@
             id: service_update_error
         - lvgl.label.update:
             id: service_update_version
-            text: !lambda |-
-              const auto &info = id(firmware_update).update_info;
-              std::string latest = info.latest_version;
-              std::string current = info.current_version;
-              if (latest.empty()) latest = "onbekend";
-              if (current.empty()) current = ESPHOME_PROJECT_VERSION;
-              return std::string("Beschikbaar: ") + latest + " (huidig: " + current + ")";
+            text:
+              format: "Beschikbaar: %s (huidig: %s)"
+              args:
+                - 'id(firmware_update).update_info.latest_version.empty() ? "onbekend" : id(firmware_update).update_info.latest_version.c_str()'
+                - 'id(firmware_update).update_info.current_version.empty() ? ESPHOME_PROJECT_VERSION : id(firmware_update).update_info.current_version.c_str()'
         - lvgl.qrcode.update:
             id: service_release_qr
             text: !lambda |-
@@ -80,11 +78,10 @@
             text: ""
         - lvgl.label.update:
             id: service_update_version
-            text: !lambda |-
-              const auto &info = id(firmware_update).update_info;
-              std::string current = info.current_version;
-              if (current.empty()) current = ESPHOME_PROJECT_VERSION;
-              return std::string("Geen nieuwe software beschikbaar\nHuidige versie: ") + current;
+            text:
+              format: "Geen nieuwe software beschikbaar\nHuidige versie: %s"
+              args:
+                - 'id(firmware_update).update_info.current_version.empty() ? ESPHOME_PROJECT_VERSION : id(firmware_update).update_info.current_version.c_str()'
         - lvgl.widget.hide:
             id: service_release_qr_hint
         - lvgl.widget.hide:

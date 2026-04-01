@@ -159,6 +159,9 @@ uart:
   parity: EVEN
 
 globals:
+  - id: analytics_topic
+    type: std::string
+    restore_value: no
   - id: modbus_inside_is_online
     type: bool
     restore_value: no
