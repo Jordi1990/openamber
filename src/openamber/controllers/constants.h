@@ -70,3 +70,9 @@ static const uint32_t WORKING_MODE_HEATING = 2;
 
 static const uint32_t DHW_START_PUMP_MODE_DELTA_T = 0;
 static const uint32_t DHW_START_PUMP_MODE_DIRECT = 1;
+
+// ============================================================================
+// EEPROM VERSIONS
+// ============================================================================
+static const uint32_t EEPROM_VERSION_AMBER = 114;
+static const uint32_t EEPROM_VERSION_HPS = 29184;
