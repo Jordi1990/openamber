@@ -36,7 +36,6 @@
   web_server: 
     sorting_group_id: overview
 
-# TODO: Find a way to set PID values from settings and maybe different profiles for heating/cooling/dhw.
 - platform: pid
   id: pid_heat_temperature_control
   internal: True
@@ -44,9 +43,9 @@
   default_target_temperature: 30°C
   heat_output: pid_heat_output
   control_parameters:
-    kp: 0.4
-    ki: 0.005
-    kd: 5.0
+    kp: 0.6
+    ki: 0.002
+    kd: 0.7
   deadband_parameters:
     threshold_low: -1
     threshold_high: 1
@@ -62,9 +61,9 @@
   default_target_temperature: 18°C
   cool_output: pid_cool_output
   control_parameters:
-    kp: 0.4
-    ki: 0.005
-    kd: 5.0
+    kp: 0.6
+    ki: 0.002
+    kd: 0.7
   deadband_parameters:
     threshold_low: -1
     threshold_high: 1
