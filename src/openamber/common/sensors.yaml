@@ -76,7 +76,7 @@
   internal: true
   unit_of_measurement: "°C"
   accuracy_decimals: 1
-  update_interval: 15s
+  update_interval: 60s
   lambda: |-
     return id(temperature_outside_ta).state;
   filters:
@@ -84,7 +84,7 @@
         window_size: 5
         send_every: 1
     - sliding_window_moving_average:
-        window_size: 240
+        window_size: 60
         send_every: 1
 
 - platform: template
