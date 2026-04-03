@@ -180,7 +180,8 @@
   web_server: 
       sorting_group_id: dhw_settings
   on_value:
-    - component.update: current_dhw_setpoint_sensor
+    then:
+      - component.update: current_dhw_setpoint_sensor
 
 - platform: template
   id: dhw_restart_dhw_delta
@@ -609,7 +610,8 @@
   web_server: 
     sorting_group_id: dhw_settings
   on_value:
-    - component.update: current_dhw_setpoint_sensor
+    then:
+      - component.update: current_dhw_setpoint_sensor
 
 - platform: template
   id: sg_ready_heating_boost_temperature_number
@@ -626,7 +628,8 @@
   web_server: 
     sorting_group_id: heating_settings
   on_value:
-    - component.update: current_setpoint
+    then:
+      - component.update: current_setpoint
 
 - platform: template
   id: sg_ready_dhw_boost_temperature_number
@@ -643,4 +646,5 @@
   web_server: 
     sorting_group_id: dhw_settings
   on_value:
-    - component.update: current_dhw_setpoint_sensor
+    then:
+      - component.update: current_dhw_setpoint_sensor
