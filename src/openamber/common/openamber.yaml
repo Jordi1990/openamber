@@ -259,8 +259,8 @@ modbus_controller:
 - id: modbus_outside_unit
   address: 0x2
   update_interval: 30s
-  command_throttle: 1000ms
-  max_cmd_retries: 3
+  command_throttle: 250ms
+  max_cmd_retries: 2
   on_offline:
     then:
       - lambda: |-
@@ -274,8 +274,8 @@ modbus_controller:
 - id: modbus_inside_unit
   address: 0x0B
   update_interval: 30s
-  command_throttle: 1000ms
-  max_cmd_retries: 3
+  command_throttle: 250ms
+  max_cmd_retries: 2
   on_offline:
     then:
       - lambda: |-
