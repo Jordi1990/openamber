@@ -180,7 +180,8 @@
   web_server: 
       sorting_group_id: dhw_settings
   on_value:
-    - component.update: current_dhw_setpoint_sensor
+    then:
+      - component.update: current_dhw_setpoint_sensor
 
 - platform: template
   id: dhw_restart_dhw_delta
