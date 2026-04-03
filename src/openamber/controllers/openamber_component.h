@@ -55,7 +55,7 @@ void OpenAmberComponent::loop()
 
 void OpenAmberComponent::update()
 {
-  if(!id(modbus_inside_online).state || !id(modbus_outside_online).state)
+  if(!id(modbus_inside_online).state || !id(modbus_outside_online).state || !id(outside_unit_eeprom_version).has_state())
   {
     return;
   }
@@ -80,7 +80,14 @@ void OpenAmberComponent::update()
       working_mode_call.perform();
       compressor_controller_->Stop();
       pump_controller_->Stop();
-      WriteHeatingFrequencyTable();
+      if(id(outside_unit_eeprom_version).state == EEPROM_VERSION_HPS)
+      {
+        ESP_LOGI("amber", "Detected HPS unit based on EEPROM version, not writing heating frequency table.");
+      }
+      else
+      {
+        WriteHeatingFrequencyTable();
+      }
       ESP_LOGI("amber", "Initialized heat pump controller");
       LeaveStateAndSetNextStateAfterWaitTime(State::WAIT_INITIALIZATION, INITIALIZATION_DELAY_S * 1000UL);
       break;
