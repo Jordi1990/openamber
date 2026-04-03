@@ -123,12 +123,13 @@
 
     return setpoint;
   on_value:
-    - lambda: |-
-        auto working_mode = id(working_mode_switch).active_index();
-        auto climate = working_mode.has_value() && working_mode.value() == WORKING_MODE_COOLING ? id(pid_cool_temperature_control) : id(pid_heat_temperature_control);
-        auto call = climate->make_call();
-        call.set_target_temperature(x);
-        call.perform();
+    then:
+      - lambda: |-
+          auto working_mode = id(working_mode_switch).active_index();
+          auto climate = working_mode.has_value() && working_mode.value() == WORKING_MODE_COOLING ? id(pid_cool_temperature_control) : id(pid_heat_temperature_control);
+          auto call = climate->make_call();
+          call.set_target_temperature(x);
+          call.perform();
   web_server: 
     sorting_group_id: overview
 
