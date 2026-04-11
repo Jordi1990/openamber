@@ -28,8 +28,6 @@ switch:
    id: relay_heating
    icon: mdi:electric-switch
    restore_mode: RESTORE_DEFAULT_OFF
-   web_server: 
-    sorting_group_id: manual_control
 
  - platform: gpio
    pin: GPIO23
@@ -37,8 +35,6 @@ switch:
    id: relay_cooling
    icon: mdi:electric-switch
    restore_mode: RESTORE_DEFAULT_OFF
-   web_server: 
-    sorting_group_id: manual_control
 
 sensor:
   - platform: pulse_counter
@@ -70,5 +66,3 @@ number:
     optimistic: true
     unit_of_measurement: pulses/l
     entity_category: config
-    web_server: 
-        sorting_group_id: general_settings

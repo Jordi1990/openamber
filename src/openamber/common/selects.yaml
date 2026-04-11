@@ -13,8 +13,6 @@
     - "Maximaal"
   initial_option: "Maximaal"
   entity_category: config
-  web_server: 
-      sorting_group_id: heating_settings
 
 - platform: template
   id: cool_compressor_mode
@@ -31,8 +29,6 @@
     - "Maximaal"
   initial_option: "Maximaal"
   entity_category: config
-  web_server: 
-      sorting_group_id: cooling_settings
 
 - platform: template
   id: dhw_compressor_mode
@@ -49,8 +45,6 @@
     - "Maximaal"
   initial_option: "Beperkt"
   entity_category: config
-  web_server: 
-      sorting_group_id: dhw_settings
 
 - platform: template
   id: dhw_compressor_mode_max
@@ -64,8 +58,6 @@
     - "Maximaal"
   initial_option: "Gemiddeld"
   entity_category: config
-  web_server: 
-      sorting_group_id: dhw_settings
 
 - platform: template
   id: dhw_pump_start_mode_select
@@ -77,8 +69,6 @@
     - "Samen met compressor"
   initial_option: "Aanvoer warmer dan vat (ΔT)"
   entity_category: config
-  web_server: 
-      sorting_group_id: dhw_settings
 
 - platform: template
   id: heat_mode_select
@@ -90,8 +80,6 @@
   initial_option: "Stooklijn"
   restore_value: True
   entity_category: config
-  web_server: 
-    sorting_group_id: heating_settings
   on_value: 
     then:
       - component.update: current_setpoint
@@ -106,8 +94,6 @@
   initial_option: "Intern setpoint"
   restore_value: True
   entity_category: config
-  web_server: 
-    sorting_group_id: cooling_settings
   on_value: 
     then:
       - component.update: current_setpoint
@@ -122,8 +108,6 @@
   initial_option: "Extern"
   restore_value: True
   entity_category: config
-  web_server: 
-    sorting_group_id: heating_settings
 
 - platform: template
   id: sg_ready_mode_select
@@ -137,8 +121,6 @@
   initial_option: "Normaal"
   restore_value: True
   entity_category: config
-  web_server: 
-    sorting_group_id: manual_control
 
 - platform: logger
   name: "Logging niveau"

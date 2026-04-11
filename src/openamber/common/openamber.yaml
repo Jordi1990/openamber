@@ -108,43 +108,43 @@ update:
     name: Firmware Update
     source: https://openamber.nl/openamber.manifest.json
 
-web_server:
-  port: 80
-  version: 3
-  sorting_groups:
-    - id: overview
-      name: "Overzicht"
-      sorting_weight: 0
-    - id: general_settings
-      name: "Algemene instellingen"
-      sorting_weight: 10
-    - id: dhw_settings
-      name: "Tapwater instellingen"
-      sorting_weight: 20
-    - id: dhw_schedule_settings
-      name: "Tapwater schema instellingen"
-      sorting_weight: 30
-    - id: heating_settings
-      name: "Verwarmingsinstellingen"
-      sorting_weight: 40
-    - id: cooling_settings
-      name: "Koelinstellingen"
-      sorting_weight: 45
-    - id: temperature_sensors
-      name: "Temperatuursensoren"
-      sorting_weight: 50
-    - id: diagnostic
-      name: "Diagnostiek"
-      sorting_weight: 60
-    - id: error_codes
-      name: "Foutcodes"
-      sorting_weight: 70
-    - id: manual_control
-      name: "Handmatige bediening"
-      sorting_weight: 80
-    - id: config
-      name: "Config"
-      sorting_weight: 90
+# web_server:
+#   port: 80
+#   version: 3
+#   sorting_groups:
+#     - id: overview
+#       name: "Overzicht"
+#       sorting_weight: 0
+#     - id: general_settings
+#       name: "Algemene instellingen"
+#       sorting_weight: 10
+#     - id: dhw_settings
+#       name: "Tapwater instellingen"
+#       sorting_weight: 20
+#     - id: dhw_schedule_settings
+#       name: "Tapwater schema instellingen"
+#       sorting_weight: 30
+#     - id: heating_settings
+#       name: "Verwarmingsinstellingen"
+#       sorting_weight: 40
+#     - id: cooling_settings
+#       name: "Koelinstellingen"
+#       sorting_weight: 45
+#     - id: temperature_sensors
+#       name: "Temperatuursensoren"
+#       sorting_weight: 50
+#     - id: diagnostic
+#       name: "Diagnostiek"
+#       sorting_weight: 60
+#     - id: error_codes
+#       name: "Foutcodes"
+#       sorting_weight: 70
+#     - id: manual_control
+#       name: "Handmatige bediening"
+#       sorting_weight: 80
+#     - id: config
+#       name: "Config"
+#       sorting_weight: 90
 
 wifi:
   reboot_timeout: 0s
@@ -220,8 +220,6 @@ datetime:
    optimistic: true
    initial_value: "2030-01-01 10:00:00"
    entity_category: config
-   web_server: 
-    sorting_group_id: dhw_settings
 
  - platform: template
    id: dhw_start_time
@@ -231,8 +229,6 @@ datetime:
    initial_value: "10:00:00"
    restore_value: true
    entity_category: config
-   web_server: 
-    sorting_group_id: dhw_schedule_settings
 
  - platform: template
    id: dhw_end_time
@@ -242,8 +238,6 @@ datetime:
    initial_value: "17:00:00"
    restore_value: true
    entity_category: config
-   web_server: 
-    sorting_group_id: dhw_schedule_settings
 
 
 # Use SNTP for time so we also have time when not connected to Home Assistant.

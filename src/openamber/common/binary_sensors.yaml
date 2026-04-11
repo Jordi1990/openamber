@@ -65,15 +65,11 @@
       }
 
       return tw < setpoint;
-  web_server: 
-    sorting_group_id: overview
 
 - platform: template
   name: "Legionellacyclus actief"
   id: dhw_legionella_run_active_sensor
   device_class: running
-  web_server: 
-    sorting_group_id: diagnostic
   on_state:
     - component.update: current_dhw_setpoint_sensor
 
@@ -95,8 +91,6 @@
     {
       return id(external_heat_demand_wired).state || id(heat_demand_switch).state;
     }
-  web_server: 
-    sorting_group_id: overview
 
 - platform: template
   name: "Koudevraag"
@@ -121,8 +115,6 @@
     {
       return id(external_cool_demand_wired).state || id(cool_demand_switch).state;
     }
-  web_server: 
-    sorting_group_id: overview
 
 - platform: template
   name: "Vorstbescherming 1e trap"
@@ -138,8 +130,6 @@
           level: INFO
       - lambda: |-
           id(amber_ctrl).reset_pump_interval();
-  web_server: 
-    sorting_group_id: overview
 
 - platform: template
   name: "Vorstbescherming 2e trap"
@@ -156,8 +146,6 @@
           level: INFO
       - lambda: |-
           id(amber_ctrl).reset_pump_interval();
-  web_server: 
-    sorting_group_id: overview
 
 - platform: template
   name: "SG-Ready blokkeermodus"
@@ -167,8 +155,6 @@
   lambda: |-
     return id(sg_ready_mode_select).current_option() == "Blokkeren" ||
            (id(sg_ready_a_active_sensor).state && !id(sg_ready_b_active_sensor).state);
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: template
   name: "SG-Ready boostmodus"
@@ -178,8 +164,6 @@
   lambda: |-
     return id(sg_ready_mode_select).current_option() == "Boost" ||
            (!id(sg_ready_a_active_sensor).state && id(sg_ready_b_active_sensor).state);
-  web_server: 
-    sorting_group_id: diagnostic
   on_state:
     - component.update: current_dhw_setpoint_sensor
     - component.update : current_setpoint
@@ -192,8 +176,6 @@
   lambda: |-
     return id(sg_ready_mode_select).current_option() == "Max Boost" ||
            (id(sg_ready_a_active_sensor).state && id(sg_ready_b_active_sensor).state);
-  web_server: 
-    sorting_group_id: diagnostic
   on_state:
     - component.update: current_dhw_setpoint_sensor
     - component.update : current_setpoint
@@ -206,8 +188,6 @@
   address: 1211
   register_type: holding
   device_class: running
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -216,8 +196,6 @@
   address: 1212
   register_type: holding
   device_class: running
-  web_server: 
-    sorting_group_id: overview
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -227,8 +205,6 @@
   address: 1213
   register_type: holding
   device_class: running
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -238,8 +214,6 @@
   address: 1214
   register_type: holding
   device_class: running
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -249,8 +223,6 @@
   address: 1220
   register_type: holding
   device_class: running
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -275,8 +247,6 @@
   address: 1302
   register_type: holding
   device_class: running
-  web_server: 
-    sorting_group_id: overview
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -285,8 +255,6 @@
   address: 1305
   register_type: holding
   device_class: running
-  web_server: 
-    sorting_group_id: overview
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -295,8 +263,6 @@
   address: 1309
   register_type: holding
   device_class: running
-  web_server: 
-    sorting_group_id: overview
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -313,8 +279,6 @@
   register_type: holding
   address: 2108
   bitmask: 0x4
-  web_server: 
-    sorting_group_id: overview
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -322,8 +286,6 @@
   register_type: holding
   address: 2108
   bitmask: 0x8
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -332,8 +294,6 @@
   register_type: holding
   address: 2108
   bitmask: 0x10
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -342,8 +302,6 @@
   register_type: holding
   address: 2108
   bitmask: 0x20
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -352,8 +310,6 @@
   register_type: holding
   address: 2108
   bitmask: 0x40
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -362,8 +318,6 @@
   register_type: holding
   address: 2108
   bitmask: 0x80
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -380,8 +334,6 @@
   icon: mdi:snowflake
   register_type: holding
   address: 2118
-  web_server: 
-    sorting_group_id: overview
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -391,8 +343,6 @@
   bitmask: 0x0001
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -402,8 +352,6 @@
   bitmask: 0x0002
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -413,8 +361,6 @@
   bitmask: 0x0004
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -426,8 +372,6 @@
   bitmask: 0x0008
   device_class: running
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -437,8 +381,6 @@
   bitmask: 0x0010
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -448,8 +390,6 @@
   bitmask: 0x0020
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -459,8 +399,6 @@
   bitmask: 0x0040
   device_class: running
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -470,8 +408,6 @@
   bitmask: 0x0080
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -481,8 +417,6 @@
   bitmask: 0x0100
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -492,8 +426,6 @@
   bitmask: 0x0200
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -503,8 +435,6 @@
   bitmask: 0x0400
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -514,8 +444,6 @@
   bitmask: 0x0800
   device_class: running
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -525,8 +453,6 @@
   bitmask: 0x1000
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -536,8 +462,6 @@
   bitmask: 0x0001
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -547,8 +471,6 @@
   bitmask: 0x0002
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -558,8 +480,6 @@
   bitmask: 0x0004
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -569,8 +489,6 @@
   bitmask: 0x0008
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -580,8 +498,6 @@
   bitmask: 0x0010
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -591,8 +507,6 @@
   bitmask: 0x0020
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -602,8 +516,6 @@
   bitmask: 0x0040
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -613,8 +525,6 @@
   bitmask: 0x0100
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -624,8 +534,6 @@
   bitmask: 0x0001
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -635,8 +543,6 @@
   bitmask: 0x0002
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -646,8 +552,6 @@
   bitmask: 0x0004
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -657,8 +561,6 @@
   bitmask: 0x0008
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -668,8 +570,6 @@
   bitmask: 0x0010
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -679,8 +579,6 @@
   bitmask: 0x0020
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -690,8 +588,6 @@
   bitmask: 0x0040
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -701,8 +597,6 @@
   bitmask: 0x0080
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -712,8 +606,6 @@
   bitmask: 0x0100
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -723,8 +615,6 @@
   bitmask: 0x0200
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -734,8 +624,6 @@
   bitmask: 0x0400
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -745,8 +633,6 @@
   bitmask: 0x0800
   device_class: problem
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: error_codes
 
 - platform: template
   id: modbus_inside_online

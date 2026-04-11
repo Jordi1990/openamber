@@ -4,8 +4,6 @@
   type: HEAT
   disabled_by_default: True
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: pid
   name: "PID Controller Koelen"
@@ -13,8 +11,6 @@
   type: COOL
   disabled_by_default: True
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: template
   id: backup_heater_degmin_current_sensor
@@ -23,8 +19,6 @@
   accuracy_decimals: 1
   state_class: measurement
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: template
   id: dhw_backup_current_avg_rate_sensor
@@ -33,8 +27,6 @@
   accuracy_decimals: 2
   state_class: measurement
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: diagnostic
   filters:
     - sliding_window_moving_average:
         window_size: 60
@@ -58,8 +50,6 @@
   unit_of_measurement: s
   state_class: total_increasing
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: wifi_signal
   name: WiFi signal dB
@@ -67,8 +57,6 @@
   id: wifi_signal_db
   update_interval: 20s
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: template
   id: temperature_outside_ta_avg_1h
@@ -130,8 +118,6 @@
           auto call = climate->make_call();
           call.set_target_temperature(x);
           call.perform();
-  web_server: 
-    sorting_group_id: overview
 
 - platform: template
   id: current_dhw_setpoint_sensor
@@ -155,8 +141,6 @@
     }
 
     return setpoint;
-  web_server: 
-    sorting_group_id: overview
 
 - platform: template
   id: heat_curve_calculated_setpoint
@@ -200,8 +184,6 @@
   accuracy_decimals: 1
   lambda: |-
     return id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state;
-  web_server: 
-    sorting_group_id: temperature_sensors
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -231,8 +213,6 @@
   state_class: measurement
   unit_of_measurement: °C   
   accuracy_decimals: 1
-  web_server: 
-    sorting_group_id: overview
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -248,8 +228,6 @@
   state_class: measurement
   unit_of_measurement: °C   
   accuracy_decimals: 1
-  web_server: 
-    sorting_group_id: overview
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -266,8 +244,6 @@
   state_class: measurement
   unit_of_measurement: °C   
   accuracy_decimals: 1
-  web_server: 
-    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -286,8 +262,6 @@
   state_class: measurement
   unit_of_measurement: °C   
   accuracy_decimals: 1
-  web_server: 
-    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -312,8 +286,6 @@
   state_class: measurement
   unit_of_measurement: °C   
   accuracy_decimals: 1
-  web_server: 
-    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -328,8 +300,6 @@
   state_class: measurement
   unit_of_measurement: °C   
   accuracy_decimals: 1
-  web_server: 
-    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -344,8 +314,6 @@
   state_class: measurement
   unit_of_measurement: °C   
   accuracy_decimals: 1
-  web_server: 
-    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -362,8 +330,6 @@
   filters:
     - lambda: |-
         return ((x * -1) + 1000) / 10;
-  web_server: 
-    sorting_group_id: overview
   on_value: 
     then:
       - lambda: 
@@ -384,8 +350,6 @@
   state_class: "measurement"
   register_count: 33 # 2100-2132
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -402,8 +366,6 @@
   entity_category: diagnostic
   filters:
     - multiply: 0.1
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -428,8 +390,6 @@
   accuracy_decimals: 0
   state_class: measurement
   unit_of_measurement: Hz
-  web_server: 
-    sorting_group_id: overview
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -453,8 +413,6 @@
   state_class: measurement
   unit_of_measurement: rpm
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -465,8 +423,6 @@
   value_type: S_WORD
   state_class: "measurement"
   entity_category: diagnostic
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -479,8 +435,6 @@
   state_class: measurement
   unit_of_measurement: °C   
   accuracy_decimals: 1
-  web_server: 
-    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -497,8 +451,6 @@
   state_class: measurement
   unit_of_measurement: °C   
   accuracy_decimals: 1
-  web_server: 
-    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -515,8 +467,6 @@
   state_class: measurement
   unit_of_measurement: °C   
   accuracy_decimals: 1
-  web_server: 
-    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -533,8 +483,6 @@
   state_class: measurement
   unit_of_measurement: °C     
   accuracy_decimals: 1
-  web_server: 
-    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -608,8 +556,6 @@
   device_class: "temperature"
   state_class: "measurement"
   accuracy_decimals: 2
-  web_server: 
-    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
@@ -624,8 +570,6 @@
   device_class: "temperature"
   state_class: "measurement"
   accuracy_decimals: 2
-  web_server: 
-    sorting_group_id: temperature_sensors
   filters:
     - offset: -3000
     - multiply: 0.01
