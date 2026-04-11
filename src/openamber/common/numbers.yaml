@@ -46,8 +46,6 @@
   initial_value: 5.0
   restore_value: True
   entity_category: config
-  web_server: 
-      sorting_group_id: general_settings
 
 - platform: template
   name: "Vorstbescherming 2e trap buiten temperatuur(Ta)"
@@ -61,8 +59,6 @@
   initial_value: 4.0
   restore_value: True
   entity_category: config
-  web_server: 
-      sorting_group_id: general_settings
 
 - platform: template
   name: "Vorstbescherming 2e trap water temperatuur (Tui)"
@@ -76,8 +72,6 @@
   initial_value: 7.0
   restore_value: True
   entity_category: config
-  web_server: 
-      sorting_group_id: general_settings
 
 - platform: template
   name: "Compressor start delta"
@@ -91,8 +85,6 @@
   initial_value: 3.0
   restore_value: True
   entity_category: config
-  web_server: 
-      sorting_group_id: general_settings
 
 - platform: template
   name: "Compressor stop delta"
@@ -106,8 +98,6 @@
   initial_value: 5.0
   restore_value: True
   entity_category: config
-  web_server: 
-      sorting_group_id: general_settings
 
 - platform: template
   id: heat_curve_p15
@@ -121,8 +111,6 @@
   restore_value: true
   initial_value: 25
   entity_category: config
-  web_server: 
-      sorting_group_id: heating_settings
 
 - platform: template
   id: heat_curve_p10
@@ -136,8 +124,6 @@
   restore_value: true
   initial_value: 27
   entity_category: config
-  web_server: 
-      sorting_group_id: heating_settings
 
 - platform: template
   id: heat_curve_p5
@@ -151,8 +137,6 @@
   restore_value: true
   initial_value: 28
   entity_category: config
-  web_server: 
-      sorting_group_id: heating_settings
 
 - platform: template
   id: heat_curve_0
@@ -166,8 +150,6 @@
   restore_value: true
   initial_value: 30
   entity_category: config
-  web_server: 
-      sorting_group_id: heating_settings
 
 - platform: template
   id: heat_curve_m10
@@ -181,8 +163,6 @@
   restore_value: true
   initial_value: 35
   entity_category: config
-  web_server: 
-      sorting_group_id: heating_settings
 
 - platform: template
   id: manual_setpoint
@@ -198,8 +178,6 @@
   on_value: 
     then:
       - component.update: current_setpoint
-  web_server: 
-      sorting_group_id: manual_control
 
 - platform: template
   id: dhw_setpoint_temperature
@@ -213,8 +191,6 @@
   initial_value: 55
   restore_value: True
   entity_category: config
-  web_server: 
-      sorting_group_id: dhw_settings
   on_value:
     then:
       - component.update: current_dhw_setpoint_sensor
@@ -231,8 +207,6 @@
   step: 1
   initial_value: 15
   entity_category: config
-  web_server: 
-      sorting_group_id: dhw_settings
 
 - platform: template
   id: dhw_temperature_threshold_max_compressor_mode
@@ -246,8 +220,6 @@
   step: 1
   initial_value: 5
   entity_category: config
-  web_server: 
-      sorting_group_id: dhw_settings
 
 - platform: template
   id: dhw_backup_min_avg_rate
@@ -260,8 +232,6 @@
   optimistic: true
   restore_value: true
   entity_category: config
-  web_server:
-    sorting_group_id: dhw_settings
 
 - platform: template
   id: backup_heater_degmin_threshold
@@ -275,8 +245,6 @@
   restore_value: true
   entity_category: config
   icon: mdi:heat-wave
-  web_server: 
-      sorting_group_id: heating_settings
 
 - platform: template
   id: pump_speed_heating_number
@@ -289,8 +257,6 @@
   initial_value: 100
   restore_value: True
   entity_category: config
-  web_server: 
-    sorting_group_id: heating_settings
 
 - platform: template
   id: pump_speed_cooling_number
@@ -303,8 +269,6 @@
   initial_value: 100
   restore_value: True
   entity_category: config
-  web_server: 
-    sorting_group_id: cooling_settings
 
 - platform: template
   id: cooling_setpoint_number
@@ -321,8 +285,6 @@
   on_value:
     then:
       - component.update: current_setpoint
-  web_server: 
-    sorting_group_id: cooling_settings
 
 - platform: template
   id: compressor_stop_delta_cooling
@@ -336,8 +298,6 @@
   initial_value: 5.0
   restore_value: True
   entity_category: config
-  web_server: 
-      sorting_group_id: cooling_settings
 
 - platform: template
   id: pid_heat_kp
@@ -349,8 +309,6 @@
   initial_value: 0.6
   restore_value: True
   entity_category: config
-  web_server:
-    sorting_group_id: heating_settings
   on_value:
     then:
       - climate.pid.set_control_parameters:
@@ -369,8 +327,6 @@
   initial_value: 0.0020
   restore_value: True
   entity_category: config
-  web_server:
-    sorting_group_id: heating_settings
   on_value:
     then:
       - climate.pid.set_control_parameters:
@@ -389,8 +345,6 @@
   initial_value: 0.7
   restore_value: True
   entity_category: config
-  web_server:
-    sorting_group_id: heating_settings
   on_value:
     then:
       - climate.pid.set_control_parameters:
@@ -429,8 +383,6 @@
   initial_value: 0.6
   restore_value: True
   entity_category: config
-  web_server:
-    sorting_group_id: cooling_settings
   on_value:
     then:
       - climate.pid.set_control_parameters:
@@ -449,8 +401,6 @@
   initial_value: 0.0020
   restore_value: True
   entity_category: config
-  web_server:
-    sorting_group_id: cooling_settings
   on_value:
     then:
       - climate.pid.set_control_parameters:
@@ -469,8 +419,6 @@
   initial_value: 0.7
   restore_value: True
   entity_category: config
-  web_server:
-    sorting_group_id: cooling_settings
   on_value:
     then:
       - climate.pid.set_control_parameters:
@@ -510,8 +458,6 @@
   initial_value: 100
   restore_value: True
   entity_category: config
-  web_server: 
-    sorting_group_id: dhw_settings
 
 - platform: modbus_controller
   id: pump_control_pwm_number
@@ -765,8 +711,6 @@
   icon: "mdi:timer-outline"
   initial_value: 15
   entity_category: config
-  web_server: 
-      sorting_group_id: general_settings
 
 - platform: template
   name: "Pomp duur (minuten)"
@@ -780,8 +724,6 @@
   icon: "mdi:clock-outline"
   initial_value: 2
   entity_category: config
-  web_server: 
-      sorting_group_id: general_settings
 
 - platform: template
   id: defrost_backup_heater_boost_temperature_sensor
@@ -795,8 +737,6 @@
   unit_of_measurement: "°C"
   device_class: "temperature"
   entity_category: config
-  web_server: 
-    sorting_group_id: general_settings
 
 - platform: template
   id: legio_repeat_days_number
@@ -810,8 +750,6 @@
   optimistic: True
   mode: box
   entity_category: config
-  web_server: 
-    sorting_group_id: dhw_settings
 
 - platform: template
   id: legio_target_temperature_number
@@ -825,8 +763,6 @@
   restore_value: True
   optimistic: True
   entity_category: config
-  web_server: 
-    sorting_group_id: dhw_settings
   on_value:
     then:
       - component.update: current_dhw_setpoint_sensor
@@ -843,8 +779,6 @@
   unit_of_measurement: "°C"
   device_class: "temperature"
   entity_category: config
-  web_server: 
-    sorting_group_id: heating_settings
   on_value:
     then:
       - component.update: current_setpoint
@@ -861,8 +795,6 @@
   unit_of_measurement: "°C"
   device_class: "temperature"
   entity_category: config
-  web_server: 
-    sorting_group_id: dhw_settings
   on_value:
     then:
       - component.update: current_dhw_setpoint_sensor

@@ -33,8 +33,6 @@
     - name: Comfort
       default_target_temperature_low: 20.5 °C
       default_target_temperature_high: 24 °C
-  web_server: 
-    sorting_group_id: overview
 
 - platform: pid
   id: pid_heat_temperature_control
