@@ -265,10 +265,10 @@ private:
       return;
     }
 
-    // If Tuo - Tui is above 8 degrees while compressor is running, stop compressor to avoid damage
-    if (id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state > 8.0f && compressor_controller_->IsRunning())
+    // If Tuo - Tui is above 15 degrees while compressor is running, stop compressor to avoid damage
+    if (id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state > 15.0f && compressor_controller_->IsRunning())
     {
-      ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stopping compressor to avoid damage.");
+      ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 15 degrees while compressor is running, stopping compressor to avoid damage.");
       compressor_controller_->Stop();
       pump_controller_->Stop();
       StopDhwPump();
