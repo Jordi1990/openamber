@@ -15,6 +15,7 @@ esp32:
       CONFIG_ESP32S3_DATA_CACHE_64KB: y
       CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
       CONFIG_SPIRAM_RODATA: y
+      CONFIG_ESP_TASK_WDT_TIMEOUT_S: "15"
     advanced:
       loop_task_stack_size: 16384
 

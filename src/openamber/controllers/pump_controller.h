@@ -46,7 +46,7 @@ public:
   void SetPwmDutyCycle(float duty_cycle)
   {
     float control_speed = ((duty_cycle * 10) * -1) + 1000;
-    if (id(pump_p0_current_pwm_sensor).raw_state != control_speed)
+    if (id(pump_p0_current_pwm_sensor).get_raw_state() != control_speed)
     {
       ESP_LOGI("amber", "Applying pump speed change to %.0f (Duty cycle: %.0f)", control_speed, duty_cycle);
       auto pump_call = id(pump_control_pwm_number).make_call();
