@@ -14,39 +14,71 @@
 - id: !extend analytics_device_id
   on_value:
     then:
-      - lvgl.label.update:
-          id: set_analytics_id_value
-          text: !lambda |-
-            if (x.empty()) return std::string("Onbekend");
-            return x;
+      - if:
+          condition:
+            lambda: 'return !x.empty();'
+          then:
+            - lvgl.label.update:
+                id: set_analytics_id_value
+                text:
+                  format: "%s"
+                  args: ['x.c_str()']
+          else:
+            - lvgl.label.update:
+                id: set_analytics_id_value
+                text: "Onbekend"
 
 # ── Settings page: WiFi info ──
 - id: !extend wifi_mac_ui
   on_value:
     then:
-      - lvgl.label.update:
-          id: wifi_mac_label
-          text: !lambda |-
-            if (x.empty()) return std::string("-");
-            return x;
+      - if:
+          condition:
+            lambda: 'return !x.empty();'
+          then:
+            - lvgl.label.update:
+                id: wifi_mac_label
+                text:
+                  format: "%s"
+                  args: ['x.c_str()']
+          else:
+            - lvgl.label.update:
+                id: wifi_mac_label
+                text: "-"
 
 - id: !extend wifi_ssid_ui
   on_value:
     then:
-      - lvgl.label.update:
-          id: wifi_ssid_label
-          text: !lambda |-
-            if (x.empty()) return std::string("-");
-            return x;
+      - if:
+          condition:
+            lambda: 'return !x.empty();'
+          then:
+            - lvgl.label.update:
+                id: wifi_ssid_label
+                text:
+                  format: "%s"
+                  args: ['x.c_str()']
+          else:
+            - lvgl.label.update:
+                id: wifi_ssid_label
+                text: "-"
 
 - id: !extend wifi_ip_ui
   on_value:
     then:
-      - lvgl.label.update:
-          id: wifi_ip_label
-          text: !lambda |-
-            if (x.empty()) return std::string("-");
-            return x;
+      - if:
+          condition:
+            lambda: 'return !x.empty();'
+          then:
+            - lvgl.label.update:
+                id: wifi_ip_label
+                text:
+                  format: "%s"
+                  args: ['x.c_str()']
+          else:
+            - lvgl.label.update:
+                id: wifi_ip_label
+                text: "-"
 
 - id: !extend wifi_scan_results_ui
   on_value:

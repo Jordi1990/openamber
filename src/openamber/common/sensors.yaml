@@ -76,7 +76,7 @@
   internal: true
   unit_of_measurement: "°C"
   accuracy_decimals: 1
-  update_interval: 15s
+  update_interval: 60s
   lambda: |-
     return id(temperature_outside_ta).state;
   filters:
@@ -84,7 +84,7 @@
         window_size: 5
         send_every: 1
     - sliding_window_moving_average:
-        window_size: 240
+        window_size: 60
         send_every: 1
 
 - platform: template
@@ -123,12 +123,13 @@
 
     return setpoint;
   on_value:
-    - lambda: |-
-        auto working_mode = id(working_mode_switch).active_index();
-        auto climate = working_mode.has_value() && working_mode.value() == WORKING_MODE_COOLING ? id(pid_cool_temperature_control) : id(pid_heat_temperature_control);
-        auto call = climate->make_call();
-        call.set_target_temperature(x);
-        call.perform();
+    then:
+      - lambda: |-
+          auto working_mode = id(working_mode_switch).active_index();
+          auto climate = working_mode.has_value() && working_mode.value() == WORKING_MODE_COOLING ? id(pid_cool_temperature_control) : id(pid_heat_temperature_control);
+          auto call = climate->make_call();
+          call.set_target_temperature(x);
+          call.perform();
   web_server: 
     sorting_group_id: overview
 
@@ -574,7 +575,6 @@
   modbus_controller_id: modbus_outside_unit
   id: outside_unit_program_version
   internal: True
-  skip_updates: 10
   address: 2122
   register_type: holding
   value_type: S_WORD
@@ -583,7 +583,6 @@
   modbus_controller_id: modbus_outside_unit
   id: outside_unit_eeprom_version
   name: "EEPROM"
-  skip_updates: 10
   address: 2123
   register_type: holding
   value_type: S_WORD
@@ -594,7 +593,6 @@
   name: "Hardware item nummer"
   id: outside_unit_hardware_item_number
   disabled_by_default: true
-  skip_updates: 10
   address: 2127
   register_type: holding
   value_type: S_WORD

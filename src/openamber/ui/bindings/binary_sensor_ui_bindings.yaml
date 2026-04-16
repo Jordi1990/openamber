@@ -118,8 +118,9 @@
                 id: boot_screen
             - lvgl.label.update:
                 id: header_title
-                text: !lambda |-
-                  return std::string("OpenAmber ") + ESPHOME_PROJECT_VERSION;
+                text:
+                  format: "OpenAmber %s"
+                  args: ['ESPHOME_PROJECT_VERSION']
 
 - id: !extend modbus_outside_online
   on_state:
@@ -133,5 +134,6 @@
                 id: boot_screen
             - lvgl.label.update:
                 id: header_title
-                text: !lambda |-
-                  return std::string("OpenAmber ") + ESPHOME_PROJECT_VERSION;
+                text:
+                  format: "OpenAmber %s"
+                  args: ['ESPHOME_PROJECT_VERSION']

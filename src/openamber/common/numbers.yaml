@@ -180,7 +180,8 @@
   web_server: 
       sorting_group_id: dhw_settings
   on_value:
-    - component.update: current_dhw_setpoint_sensor
+    then:
+      - component.update: current_dhw_setpoint_sensor
 
 - platform: template
   id: dhw_restart_dhw_delta
@@ -347,7 +348,7 @@
   name: "PID verwarmen Kd"
   optimistic: True
   min_value: 0.0
-  max_value: 5.0
+  max_value: 25.0
   step: 0.01
   initial_value: 0.7
   restore_value: True
@@ -407,7 +408,7 @@
   name: "PID koelen Kd"
   optimistic: True
   min_value: 0.0
-  max_value: 5.0
+  max_value: 25.0
   step: 0.01
   initial_value: 0.7
   restore_value: True
@@ -609,7 +610,8 @@
   web_server: 
     sorting_group_id: dhw_settings
   on_value:
-    - component.update: current_dhw_setpoint_sensor
+    then:
+      - component.update: current_dhw_setpoint_sensor
 
 - platform: template
   id: sg_ready_heating_boost_temperature_number
@@ -626,7 +628,8 @@
   web_server: 
     sorting_group_id: heating_settings
   on_value:
-    - component.update: current_setpoint
+    then:
+      - component.update: current_setpoint
 
 - platform: template
   id: sg_ready_dhw_boost_temperature_number
@@ -643,4 +646,5 @@
   web_server: 
     sorting_group_id: dhw_settings
   on_value:
-    - component.update: current_dhw_setpoint_sensor
+    then:
+      - component.update: current_dhw_setpoint_sensor

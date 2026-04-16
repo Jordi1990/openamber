@@ -22,24 +22,29 @@
 - id: update_water_mode_temperature_display
   mode: restart
   then:
-    - lvgl.label.update:
-        id: water_mode_temperature_values
-        text: !lambda |-
-          const std::string main_state = id(state_machine_state_main).state;
-          float current_temperature = NAN;
-          float target_temperature = NAN;
-
-          if (main_state == "DHW") {
-            current_temperature = id(dhw_temperature_tw_sensor).state;
-            target_temperature = id(current_dhw_setpoint_sensor).state;
-          } else if (main_state == "Heat/Cool") {
-            current_temperature = id(heat_cool_temperature_tc).state;
-            target_temperature = id(current_setpoint).state;
-          }
-
-          if (isnan(current_temperature) || isnan(target_temperature))
-            return std::string("-°C / -°C");
-          return str_snprintf("%.1f°C / %.1f°C", 48, current_temperature, target_temperature);
+    - if:
+        condition:
+          lambda: 'return id(state_machine_state_main).state == "DHW" && !isnan(id(dhw_temperature_tw_sensor).state) && !isnan(id(current_dhw_setpoint_sensor).state);'
+        then:
+          - lvgl.label.update:
+              id: water_mode_temperature_values
+              text:
+                format: "%.1f°C / %.1f°C"
+                args: ['id(dhw_temperature_tw_sensor).state', 'id(current_dhw_setpoint_sensor).state']
+        else:
+          - if:
+              condition:
+                lambda: 'return id(state_machine_state_main).state == "Heat/Cool" && !isnan(id(heat_cool_temperature_tc).state) && !isnan(id(current_setpoint).state);'
+              then:
+                - lvgl.label.update:
+                    id: water_mode_temperature_values
+                    text:
+                      format: "%.1f°C / %.1f°C"
+                      args: ['id(heat_cool_temperature_tc).state', 'id(current_setpoint).state']
+              else:
+                - lvgl.label.update:
+                    id: water_mode_temperature_values
+                    text: "-°C / -°C"
 
 - id: update_manual_setpoint_ui
   mode: restart

@@ -36,7 +36,6 @@
   web_server: 
     sorting_group_id: overview
 
-# TODO: Find a way to set PID values from settings and maybe different profiles for heating/cooling/dhw.
 - platform: pid
   id: pid_heat_temperature_control
   internal: True

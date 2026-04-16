@@ -383,7 +383,7 @@ public:
     // Deadband on Tc to avoid too frequent changes around setpoint
     if (fabsf(dt) < DEAD_BAND_DT)
     {
-      ESP_LOGD("amber", "ΔT=%.2f°C within deadband, compressor mode remains at %d", dt, current_compressor_mode);
+      ESP_LOGI("amber", "ΔT=%.2f°C within deadband, compressor mode remains at %d", dt, current_compressor_mode);
       return current_compressor_mode;
     }
 
