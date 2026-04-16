@@ -129,14 +129,6 @@ private:
     return selected_dhw_compressor_mode;
   }
 
-  bool IsTargetTemperatureReached()
-  {
-    // In DHW mode, stop when target temperature is reached
-    float current_temperature = id(dhw_temperature_tw_sensor).state;
-    float target_temperature = id(current_dhw_setpoint_sensor).state;
-    return current_temperature >= target_temperature;
-  }
-
   void StopDhwPump()
   {
     ESP_LOGI("amber", "Stopping DHW pump.");
@@ -387,9 +379,9 @@ public:
 
         if (compressor_controller_->HasPassedMinOnTime())
         {
-          if(IsTargetTemperatureReached())
+          if(!HasDemand())
           {
-            ESP_LOGI("amber", "Target temperature reached, stopping compressor.");
+            ESP_LOGI("amber", "No more DHW demand, stopping compressor.");
             compressor_controller_->Stop();
             SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
             break;
