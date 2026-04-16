@@ -238,7 +238,7 @@ ThreeWayValvePosition OpenAmberComponent::GetDesiredThreeWayValvePosition()
   // TODO: Potentially prioritize heating when in certain conditions.
 
   // DHW has priority
-  if (dhw_controller_->CanStartDhw())
+  if (id(dhw_demand_active_sensor).state)
   {
     return ThreeWayValvePosition::DHW;
   }
