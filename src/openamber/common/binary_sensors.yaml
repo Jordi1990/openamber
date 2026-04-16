@@ -52,21 +52,34 @@
       float tw = id(dhw_temperature_tw_sensor).state;
       float setpoint = id(current_dhw_setpoint_sensor).state;
       bool dhw_enabled = id(dhw_enabled_switch).state;
-
+      float delta_restart = id(dhw_restart_dhw_delta).state;
       if(id(sg_ready_block_mode_active_sensor).state
       || !dhw_enabled)
       {
         return false;
       }
 
-      if(!id(dhw_schedule_active_sensor).state && !id(dhw_legionella_run_active_sensor).state)
+      if(id(dhw_legionella_run_active_sensor).state)
+      {
+        return true;
+      }
+
+      if(!id(dhw_schedule_active_sensor).state)
       {
          return false;
       }
 
-      return tw < setpoint;
+      if(id(dhw_active).state)
+      {
+        return true;
+      }
+
+      return tw < setpoint - delta_restart;
   web_server: 
     sorting_group_id: overview
+
+- platform: template
+  id: dhw_active
 
 - platform: template
   name: "Legionellacyclus actief"

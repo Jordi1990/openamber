@@ -129,14 +129,6 @@ private:
     return selected_dhw_compressor_mode;
   }
 
-  bool IsTargetTemperatureReached()
-  {
-    // In DHW mode, stop when target temperature is reached
-    float current_temperature = id(dhw_temperature_tw_sensor).state;
-    float target_temperature = id(current_dhw_setpoint_sensor).state;
-    return current_temperature >= target_temperature;
-  }
-
   void StopDhwPump()
   {
     ESP_LOGI("amber", "Stopping DHW pump.");
@@ -261,6 +253,7 @@ private:
       ESP_LOGW("amber", "Safety check: Pump is not active while compressor is running, stopping compressor to avoid damage.");
       compressor_controller_->Stop();
       StopDhwPump();
+      id(dhw_active).publish_state(false);
       SetNextState(DHWState::IDLE);
       return;
     }
@@ -272,6 +265,7 @@ private:
       compressor_controller_->Stop();
       pump_controller_->Stop();
       StopDhwPump();
+      id(dhw_active).publish_state(false);
       SetNextState(DHWState::IDLE);
       return;
     }
@@ -330,6 +324,7 @@ public:
           break;
         }
 
+        id(dhw_active).publish_state(true);
         pump_controller_->Start(GetPreferredPumpSpeed());
         SetNextState(DHWState::WAIT_PUMP_RUNNING);
         break;
@@ -384,9 +379,9 @@ public:
 
         if (compressor_controller_->HasPassedMinOnTime())
         {
-          if(IsTargetTemperatureReached())
+          if(!HasDemand())
           {
-            ESP_LOGI("amber", "Target temperature reached, stopping compressor.");
+            ESP_LOGI("amber", "No more DHW demand, stopping compressor.");
             compressor_controller_->Stop();
             SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
             break;
@@ -452,6 +447,7 @@ public:
         if (!pump_controller_->IsRunning())
         {
           SetWorkingMode(WORKING_MODE_STANDBY);
+          id(dhw_active).publish_state(false);
           SetNextState(DHWState::IDLE);
         }
         else 
@@ -490,43 +486,9 @@ public:
     }
   }
 
-  bool CanStartDhw()
-  {
-    if(!HasDemand())
-    {
-      return false;
-    }
-
-    if(id(dhw_legionella_run_active_sensor).state)
-    {
-      return true;
-    }
-
-    float current_temperature = id(dhw_temperature_tw_sensor).state;
-    float target_temperature = id(current_dhw_setpoint_sensor).state;
-    float restart_delta = id(dhw_restart_dhw_delta).state;
-
-    // Only start DHW when the current temperature is below the target temperature minus the restart delta.
-    if (current_temperature >= target_temperature - restart_delta)
-    {
-      return false;
-    }
-
-    return true;
-  }
-
-  bool HasDatePassed(const ESPTime& current_time, const ESPTime& target_time)
-  {
-    return current_time.year >= target_time.year &&
-           current_time.month >= target_time.month &&
-           current_time.day_of_month >= target_time.day_of_month &&
-           current_time.hour >= target_time.hour &&
-           current_time.minute >= target_time.minute;
-  }
-
   void CheckLegionellaCycle()
   {
-    if(!id(legio_enabled_switch).state)
+    if(!id(legio_enabled_switch).state || !id(dhw_enabled_switch).state)
     {
       return;
     }
@@ -543,7 +505,7 @@ public:
       ESP_LOGW("amber", "WARNING: Time is not synchronized, skipping legionella cycle check.");
       return;
     }
-    if(!id(dhw_legionella_run_active_sensor).state && HasDatePassed(now, legionella_time))
+    if(!id(dhw_legionella_run_active_sensor).state && now >= legionella_time)
     {
       ESP_LOGI("amber", "Starting legionella cycle.");
       id(dhw_legionella_run_active_sensor).publish_state(true);
@@ -560,7 +522,7 @@ public:
                next_run.day_of_month, next_run.hour, 
                next_run.minute);
     }
-    else if(id(dhw_legionella_run_active_sensor).state && !id(dhw_demand_active_sensor).state)
+    else if(id(dhw_legionella_run_active_sensor).state && id(dhw_temperature_tw_sensor).state >= id(legio_target_temperature_number).state)
     {
       ESP_LOGI("amber", "Legionella cycle completed, target temperature %.2f°C reached, current temperature: %.2f°C, current setpoint: %.2f°C.", id(legio_target_temperature_number).state, id(dhw_temperature_tw_sensor).state, id(current_dhw_setpoint_sensor).state);
       id(dhw_legionella_run_active_sensor).publish_state(false);
