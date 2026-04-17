@@ -45,6 +45,15 @@
           selected_index: !lambda |-
             auto idx = id(thermostat_mode_select).active_index();
             return idx.has_value() ? idx.value() : 0;
+      - if:
+          condition:
+            lambda: |-
+              auto idx = id(thermostat_mode_select).active_index();
+              return idx.has_value() && idx.value() == 0;
+          then:
+            - lvgl.widget.show: { id: stab_thermostat }
+          else:
+            - lvgl.widget.hide: { id: stab_thermostat }
 
 # ── Settings: Heat mode dropdown + heat curve visibility ──
 - id: !extend heat_mode_select

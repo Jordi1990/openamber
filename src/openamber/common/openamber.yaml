@@ -28,6 +28,7 @@ esphome:
     - priority: 600
       then:
         - script.execute: apply_pid_settings
+        - script.execute: apply_thermostat_settings
         - delay: 60s
         - if:
             condition:
