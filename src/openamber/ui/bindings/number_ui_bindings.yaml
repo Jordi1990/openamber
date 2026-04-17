@@ -261,3 +261,67 @@
           text:
             format: "%.0f°C"
             args: ['x']
+
+# ── Interne thermostaat ──
+- id: !extend thermostat_setpoint_number
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_therm_sp_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+- id: !extend thermostat_default_heat_setpoint
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_therm_def_heat_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+- id: !extend thermostat_default_cool_setpoint
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_therm_def_cool_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+- id: !extend thermostat_heat_deadband
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_therm_heat_db_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+- id: !extend thermostat_heat_overrun
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_therm_heat_or_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+- id: !extend thermostat_cool_deadband
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_therm_cool_db_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+- id: !extend thermostat_cool_overrun
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_therm_cool_or_val
+          text:
+            format: "%.1f°C"
+            args: ['x']

@@ -648,3 +648,125 @@
   on_value:
     then:
       - component.update: current_dhw_setpoint_sensor
+
+# ── Interne thermostaat ──
+- platform: template
+  id: thermostat_setpoint_number
+  optimistic: True
+  min_value: 10
+  max_value: 30
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 20.5
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - lambda: |-
+          auto call = id(climate_controller).make_call();
+          call.set_target_temperature_low(x);
+          call.perform();
+
+- platform: template
+  id: thermostat_default_heat_setpoint
+  optimistic: True
+  min_value: 10
+  max_value: 30
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 20.5
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: thermostat_default_cool_setpoint
+  optimistic: True
+  min_value: 18
+  max_value: 35
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 24.0
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: thermostat_heat_deadband
+  optimistic: True
+  min_value: 0.1
+  max_value: 5.0
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 0.3
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - lambda: |-
+          id(climate_controller).set_heat_deadband(x);
+
+- platform: template
+  id: thermostat_heat_overrun
+
+  optimistic: True
+  min_value: 0.1
+  max_value: 5.0
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 0.2
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - lambda: |-
+          id(climate_controller).set_heat_overrun(x);
+
+- platform: template
+  id: thermostat_cool_deadband
+  optimistic: True
+  min_value: 0.1
+  max_value: 5.0
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 0.5
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - lambda: |-
+          id(climate_controller).set_cool_deadband(x);
+
+- platform: template
+  id: thermostat_cool_overrun
+  optimistic: True
+  min_value: 0.1
+  max_value: 10.0
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 3.0
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - lambda: |-
+          id(climate_controller).set_cool_overrun(x);

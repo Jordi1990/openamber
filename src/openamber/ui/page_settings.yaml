@@ -87,6 +87,7 @@ obj:
                       - lvgl.widget.hide: { id: panel_bijverwarmen }
                       - lvgl.widget.hide: { id: panel_smartgrid }
                       - lvgl.widget.hide: { id: panel_wifi }
+                      - lvgl.widget.hide: { id: panel_thermostat }
                       - lvgl.widget.update: { id: stab_general, bg_color: 0x1F3B68 }
                       - lvgl.widget.update: { id: stab_general_lbl, text_color: 0xFFFFFF }
                       - lvgl.widget.update: { id: stab_frost, bg_color: 0xE8ECF1 }
@@ -105,9 +106,58 @@ obj:
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_thermostat, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0x4B5563 }
                       - script.execute: update_advanced_settings_ui
                     widgets:
                       - label: { id: stab_general_lbl, text: "Algemeen", text_color: 0xFFFFFF, text_font: font_text_20, align: LEFT_MID }
+                - obj:
+                    id: stab_thermostat
+                    width: 100%
+                    height: 40
+                    hidden: true
+                    bg_color: 0xE8ECF1
+                    bg_opa: 100%
+                    radius: 10
+                    border_width: 0
+                    border_opa: 0%
+                    pad_left: 12
+                    pad_top: 2
+                    pad_bottom: 2
+                    on_click:
+                      - lvgl.widget.hide: { id: panel_general }
+                      - lvgl.widget.hide: { id: panel_frost }
+                      - lvgl.widget.hide: { id: panel_pump }
+                      - lvgl.widget.hide: { id: panel_heating }
+                      - lvgl.widget.hide: { id: panel_cooling }
+                      - lvgl.widget.hide: { id: panel_dhw }
+                      - lvgl.widget.hide: { id: panel_bijverwarmen }
+                      - lvgl.widget.hide: { id: panel_smartgrid }
+                      - lvgl.widget.hide: { id: panel_wifi }
+                      - lvgl.widget.show: { id: panel_thermostat }
+                      - script.execute: update_thermostat_settings_ui
+                      - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_frost, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_frost_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_pump, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_pump_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_heating, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_heating_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_cooling, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_cooling_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_dhw, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_dhw_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_bijverwarmen, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_thermostat, bg_color: 0x1F3B68 }
+                      - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0xFFFFFF }
+                    widgets:
+                      - label: { id: stab_thermostat_lbl, text: "Thermostaat", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
                 - obj:
                     id: stab_frost
                     width: 100%
@@ -130,6 +180,7 @@ obj:
                       - lvgl.widget.hide: { id: panel_bijverwarmen }
                       - lvgl.widget.hide: { id: panel_smartgrid }
                       - lvgl.widget.hide: { id: panel_wifi }
+                      - lvgl.widget.hide: { id: panel_thermostat }
                       - lvgl.label.update:
                           id: set_frost1_val
                           text:
@@ -153,6 +204,8 @@ obj:
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_thermostat, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0x4B5563 }
                     widgets:
                       - label: { id: stab_frost_lbl, text: "Vorstbescherming", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
                 - obj:
@@ -177,6 +230,7 @@ obj:
                       - lvgl.widget.hide: { id: panel_bijverwarmen }
                       - lvgl.widget.hide: { id: panel_smartgrid }
                       - lvgl.widget.hide: { id: panel_wifi }
+                      - lvgl.widget.hide: { id: panel_thermostat }
                       - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_frost, bg_color: 0xE8ECF1 }
@@ -195,6 +249,8 @@ obj:
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_thermostat, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0x4B5563 }
                     widgets:
                       - label: { id: stab_pump_lbl, text: "Pomp", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
                 - obj:
@@ -219,6 +275,7 @@ obj:
                       - lvgl.widget.hide: { id: panel_bijverwarmen }
                       - lvgl.widget.hide: { id: panel_smartgrid }
                       - lvgl.widget.hide: { id: panel_wifi }
+                      - lvgl.widget.hide: { id: panel_thermostat }
                       - script.execute: update_heat_curve_chart
                       - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
@@ -238,6 +295,8 @@ obj:
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_thermostat, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0x4B5563 }
                       - script.execute: update_advanced_settings_ui
                     widgets:
                       - label: { id: stab_heating_lbl, text: "Verwarmen", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
@@ -263,6 +322,7 @@ obj:
                       - lvgl.widget.hide: { id: panel_bijverwarmen }
                       - lvgl.widget.hide: { id: panel_smartgrid }
                       - lvgl.widget.hide: { id: panel_wifi }
+                      - lvgl.widget.hide: { id: panel_thermostat }
                       - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_frost, bg_color: 0xE8ECF1 }
@@ -281,6 +341,8 @@ obj:
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_thermostat, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0x4B5563 }
                       - script.execute: update_advanced_settings_ui
                     widgets:
                       - label: { id: stab_cooling_lbl, text: "Koelen", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
@@ -307,6 +369,7 @@ obj:
                       - lvgl.widget.hide: { id: panel_bijverwarmen }
                       - lvgl.widget.hide: { id: panel_smartgrid }
                       - lvgl.widget.hide: { id: panel_wifi }
+                      - lvgl.widget.hide: { id: panel_thermostat }
                       - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_frost, bg_color: 0xE8ECF1 }
@@ -325,6 +388,8 @@ obj:
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_thermostat, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0x4B5563 }
                     widgets:
                       - label: { id: stab_dhw_lbl, text: "Tapwater", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
                 - obj:
@@ -349,6 +414,7 @@ obj:
                       - lvgl.widget.show: { id: panel_bijverwarmen }
                       - lvgl.widget.hide: { id: panel_smartgrid }
                       - lvgl.widget.hide: { id: panel_wifi }
+                      - lvgl.widget.hide: { id: panel_thermostat }
                       - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_frost, bg_color: 0xE8ECF1 }
@@ -367,6 +433,8 @@ obj:
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_thermostat, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0x4B5563 }
                     widgets:
                       - label: { id: stab_bijverwarmen_lbl, text: "Bijverwarmen", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
                 - obj:
@@ -391,6 +459,7 @@ obj:
                       - lvgl.widget.hide: { id: panel_bijverwarmen }
                       - lvgl.widget.show: { id: panel_smartgrid }
                       - lvgl.widget.hide: { id: panel_wifi }
+                      - lvgl.widget.hide: { id: panel_thermostat }
                       - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_frost, bg_color: 0xE8ECF1 }
@@ -409,6 +478,8 @@ obj:
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0xFFFFFF }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: stab_thermostat, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0x4B5563 }
                     widgets:
                       - label: { id: stab_smartgrid_lbl, text: "SmartGrid", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
                 - obj:
@@ -433,6 +504,7 @@ obj:
                       - lvgl.widget.hide: { id: panel_bijverwarmen }
                       - lvgl.widget.hide: { id: panel_smartgrid }
                       - lvgl.widget.show: { id: panel_wifi }
+                      - lvgl.widget.hide: { id: panel_thermostat }
                       - script.execute: wifi_scan_networks_if_empty
                       - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
                       - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
@@ -452,6 +524,8 @@ obj:
                       - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: stab_wifi, bg_color: 0x1F3B68 }
                       - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0xFFFFFF }
+                      - lvgl.widget.update: { id: stab_thermostat, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0x4B5563 }
                     widgets:
                       - label: { id: stab_wifi_lbl, text: "WiFi", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
 
@@ -3874,6 +3948,359 @@ obj:
                                 hidden: true
                                 textarea: wifi_password_ta
                                 mode: TEXT_LOWER
+
+                # ------------------------------------------------------------
+                # Panel: Thermostaat (intern)
+                # ------------------------------------------------------------
+                - obj:
+                    id: panel_thermostat
+                    width: 100%
+                    height: 100%
+                    hidden: true
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_left: 4
+                    pad_right: 4
+                    pad_top: 4
+                    pad_bottom: 4
+                    scrollbar_mode: "OFF"
+                    scrollable: true
+                    layout:
+                      type: FLEX
+                      flex_flow: COLUMN
+                      flex_align_main: START
+                      flex_align_cross: STRETCH
+                      pad_row: 6
+
+                    widgets:
+                      # ── Setpoint (live) ──
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          widgets:
+                            - label: { text: "Setpoint (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { text: "Huidig kamertemperatuur setpoint", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - obj:
+                                width: SIZE_CONTENT
+                                height: SIZE_CONTENT
+                                align: TOP_RIGHT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                                widgets:
+                                  - obj:
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.decrement: thermostat_setpoint_number
+                                      widgets:
+                                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                                  - label: { id: set_therm_sp_val, text: "20.5°C", text_color: 0x1F2933, text_font: font_text_24 }
+                                  - obj:
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.increment: thermostat_setpoint_number
+                                      widgets:
+                                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+                      # ── Default setpoint verwarmen ──
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          widgets:
+                            - label: { text: "Default setpoint verwarmen (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { text: "Setpoint verwarmen na herstart", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - obj:
+                                width: SIZE_CONTENT
+                                height: SIZE_CONTENT
+                                align: TOP_RIGHT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                                widgets:
+                                  - obj:
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.decrement: thermostat_default_heat_setpoint
+                                      widgets:
+                                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                                  - label: { id: set_therm_def_heat_val, text: "20.5°C", text_color: 0x1F2933, text_font: font_text_24 }
+                                  - obj:
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.increment: thermostat_default_heat_setpoint
+                                      widgets:
+                                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+                      # ── Default setpoint koelen ──
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          widgets:
+                            - label: { text: "Default setpoint koelen (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { text: "Setpoint koelen na herstart", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - obj:
+                                width: SIZE_CONTENT
+                                height: SIZE_CONTENT
+                                align: TOP_RIGHT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                                widgets:
+                                  - obj:
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.decrement: thermostat_default_cool_setpoint
+                                      widgets:
+                                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                                  - label: { id: set_therm_def_cool_val, text: "24.0°C", text_color: 0x1F2933, text_font: font_text_24 }
+                                  - obj:
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.increment: thermostat_default_cool_setpoint
+                                      widgets:
+                                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+                      # ── Deadband verwarmen ──
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          widgets:
+                            - label: { text: "Deadband verwarmen (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { text: "Temperatuurverschil onder setpoint voor verwarmen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - obj:
+                                width: SIZE_CONTENT
+                                height: SIZE_CONTENT
+                                align: TOP_RIGHT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                                widgets:
+                                  - obj:
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.decrement: thermostat_heat_deadband
+                                      widgets:
+                                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                                  - label: { id: set_therm_heat_db_val, text: "0.3°C", text_color: 0x1F2933, text_font: font_text_24 }
+                                  - obj:
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.increment: thermostat_heat_deadband
+                                      widgets:
+                                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+                      # ── Overrun verwarmen ──
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          widgets:
+                            - label: { text: "Overrun verwarmen (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { text: "Temperatuurverschil boven setpoint voor stoppen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - obj:
+                                width: SIZE_CONTENT
+                                height: SIZE_CONTENT
+                                align: TOP_RIGHT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                                widgets:
+                                  - obj:
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.decrement: thermostat_heat_overrun
+                                      widgets:
+                                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                                  - label: { id: set_therm_heat_or_val, text: "0.2°C", text_color: 0x1F2933, text_font: font_text_24 }
+                                  - obj:
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.increment: thermostat_heat_overrun
+                                      widgets:
+                                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+                      # ── Deadband koelen ──
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          widgets:
+                            - label: { text: "Deadband koelen (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { text: "Temperatuurverschil boven setpoint voor koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - obj:
+                                width: SIZE_CONTENT
+                                height: SIZE_CONTENT
+                                align: TOP_RIGHT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                                widgets:
+                                  - obj:
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.decrement: thermostat_cool_deadband
+                                      widgets:
+                                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                                  - label: { id: set_therm_cool_db_val, text: "0.5°C", text_color: 0x1F2933, text_font: font_text_24 }
+                                  - obj:
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.increment: thermostat_cool_deadband
+                                      widgets:
+                                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+                      # ── Overrun koelen ──
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          widgets:
+                            - label: { text: "Overrun koelen (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { text: "Temperatuurverschil onder setpoint voor stoppen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - obj:
+                                width: SIZE_CONTENT
+                                height: SIZE_CONTENT
+                                align: TOP_RIGHT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                                widgets:
+                                  - obj:
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.decrement: thermostat_cool_overrun
+                                      widgets:
+                                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                                  - label: { id: set_therm_cool_or_val, text: "3.0°C", text_color: 0x1F2933, text_font: font_text_24 }
+                                  - obj:
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.increment: thermostat_cool_overrun
+                                      widgets:
+                                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
 
       
