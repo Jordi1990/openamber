@@ -109,6 +109,11 @@ image:
     type: RGB565
     resize: 57x70
     transparency: alpha_channel
+  - file: "openamber/ui/images/dhw_tank.png"
+    id: img_dhw_tank
+    type: RGB565
+    transparency: alpha_channel
+    resize: 130x260
   - file: "openamber/ui/images/logo-512x512.png"
     id: openamber_logo
     type: RGB565
