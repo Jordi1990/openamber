@@ -69,6 +69,11 @@
          return false;
       }
 
+      if(tw >= setpoint)
+      {
+        return false;
+      }
+
       if(id(dhw_active).state)
       {
         return true;

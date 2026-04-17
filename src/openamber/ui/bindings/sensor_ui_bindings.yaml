@@ -108,25 +108,37 @@
   on_value:
     then:
       - script.execute: update_water_mode_temperature_display
-      - lvgl.label.update:
-          id: dhw_tank_temp_value
-          text: !lambda |-
-            if (isnan(x)) return (std::string) "-°C";
-            char buf[16];
-            snprintf(buf, sizeof(buf), "%.1f°C", x);
-            return (std::string) buf;
+      - if:
+          condition:
+            lambda: 'return isnan(x);'
+          then:
+            - lvgl.label.update:
+                id: dhw_tank_temp_value
+                text: "-°C"
+          else:
+            - lvgl.label.update:
+                id: dhw_tank_temp_value
+                text:
+                  format: "%.1f°C"
+                  args: ['x']
 
 - id: !extend current_dhw_setpoint_sensor
   on_value:
     then:
       - script.execute: update_water_mode_temperature_display
-      - lvgl.label.update:
-          id: dhw_tank_target_value
-          text: !lambda |-
-            if (isnan(x)) return (std::string) "-°C";
-            char buf[16];
-            snprintf(buf, sizeof(buf), "%.1f°C", x);
-            return (std::string) buf;
+      - if:
+          condition:
+            lambda: 'return isnan(x);'
+          then:
+            - lvgl.label.update:
+                id: dhw_tank_target_value
+                text: "-°C"
+          else:
+            - lvgl.label.update:
+                id: dhw_tank_target_value
+                text:
+                  format: "%.1f°C"
+                  args: ['x']
 
 - id: !extend heat_cool_temperature_tc
   on_value:
