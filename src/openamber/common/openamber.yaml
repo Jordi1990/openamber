@@ -315,6 +315,9 @@ button:
   - platform: factory_reset
     disabled_by_default: true
     name: Restart with Factory Default Settings
+  - platform: restart
+    id: restart_openamber
+    name: Restart OpenAmber
 
 preferences:
  flash_write_interval: 5min
