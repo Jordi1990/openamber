@@ -68,7 +68,6 @@
       - lvgl.widget.update:
           id: nav_status_dhw_icon
           hidden: !lambda 'return !x;'
-      - script.execute: update_dhw_tank_status_chip
 
 # ── Home page: DHW pump active → circulation animation ──
 - id: !extend dhw_pump_active_sensor
@@ -98,12 +97,6 @@
           text_color: !lambda |-
             if (x) return lv_color_hex(0x22D3EE);
             return lv_color_hex(0x919191);
-
-# ── Home page: DHW legionella → status chip ──
-- id: !extend dhw_legionella_run_active_sensor
-  on_state:
-    then:
-      - script.execute: update_dhw_tank_status_chip
 
 # ── Boot screen: Hide when both modbus units online ──
 - id: !extend modbus_inside_online

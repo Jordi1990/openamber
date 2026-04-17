@@ -49,7 +49,6 @@
           then:
             - lvgl.widget.show: { id: stab_dhw }
             - lvgl.widget.show: { id: dhw_tank_card }
-            - script.execute: update_dhw_tank_status_chip
           else:
             - lvgl.widget.hide: { id: stab_dhw }
             - lvgl.widget.hide: { id: dhw_tank_card }
