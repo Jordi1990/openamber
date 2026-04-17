@@ -108,8 +108,10 @@ obj:
                 - obj:
                     id: water_aanvoer_group
                     align: LEFT_MID
-                    x: 40
-                    y: 5
+                    x: 10
+                    y: -30
+                    width: SIZE_CONTENT
+                    height: SIZE_CONTENT
                     bg_opa: 0%
                     border_opa: 0%
                     pad_all: 0
@@ -126,15 +128,17 @@ obj:
                           text_font: font_mdi_24
                       - label:
                           id: water_aanvoer_value
-                          text: "32,5°C"
+                          text: "-°C"
                           text_color: 0x1F2933
                           text_font: font_value_big
 
                 - obj:
                     id: water_retour_group
                     align: RIGHT_MID
-                    x: -10
-                    y: 5
+                    x: 10
+                    y: -30
+                    width: SIZE_CONTENT
+                    height: SIZE_CONTENT
                     bg_opa: 0%
                     border_opa: 0%
                     pad_all: 0
@@ -151,7 +155,7 @@ obj:
                           text_font: font_mdi_24
                       - label:
                           id: water_retour_value
-                          text: "27,8°C"
+                          text: "-°C"
                           text_color: 0x1F2933
                           text_font: font_value_big
 
@@ -235,12 +239,12 @@ obj:
                           text_color: 0x1F2933
                           text_font: font_mdi_24
 
-          # ── DHW Tank Card (hidden when DHW not enabled) ──
+          # ── DHW Tank Card (greyed out when DHW not enabled) ──
           - obj:
               id: dhw_tank_card
               width: 160
               height: 100%
-              hidden: true
+              opa: 40%
               bg_color: 0xF5F8FC
               bg_opa: 100%
               radius: 18
@@ -467,7 +471,6 @@ obj:
                       - label:
                           id: tile_fan_value
                           text: "0 RPM"
-                          text_font: font_text_20
 
           - obj:
               id: tile_pump
@@ -521,7 +524,6 @@ obj:
                       - label:
                           id: tile_pump_state
                           text: "UIT"
-                          text_font: font_text_20
 
           - obj:
               id: tile_defrost
@@ -575,7 +577,6 @@ obj:
                       - label:
                           id: tile_defrost_state
                           text: "UIT"
-                          text_font: font_text_20
 
           - obj:
               id: tile_compressor
@@ -629,7 +630,6 @@ obj:
                       - label:
                           id: tile_compressor_value
                           text: "0 Hz"
-                          text_font: font_text_20
 
           - obj:
               id: tile_backup_heater
@@ -683,7 +683,6 @@ obj:
                       - label:
                           id: tile_backup_state
                           text: "UIT"
-                          text_font: font_text_20
 
           - obj:
               id: tile_baseplate
@@ -737,4 +736,3 @@ obj:
                       - label:
                           id: tile_baseplate_state
                           text: "UIT"
-                          text_font: font_text_20

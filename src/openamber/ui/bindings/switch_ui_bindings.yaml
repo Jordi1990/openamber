@@ -48,10 +48,14 @@
             lambda: 'return x;'
           then:
             - lvgl.widget.show: { id: stab_dhw }
-            - lvgl.widget.show: { id: dhw_tank_card }
+            - lvgl.widget.update:
+                id: dhw_tank_card
+                opa: 100%
           else:
             - lvgl.widget.hide: { id: stab_dhw }
-            - lvgl.widget.hide: { id: dhw_tank_card }
+            - lvgl.widget.update:
+                id: dhw_tank_card
+                opa: 40%
 
 # ── Settings: DHW schedule toggle ──
 # ── Settings: Legionella toggle ──
