@@ -123,17 +123,38 @@ private:
 
   bool IsBackupHeaterActive()
   {
-    return id(backup_heater_active_sensor).state;
+    if(id(backup_heating_mode_select).active_index().value() == 0)
+    {
+      return id(backup_heater_active_sensor).state;
+    }
+    else
+    {
+      return true; // Assume external backup heater is active when enabled, as we don't have a sensor for it.
+    }
   }
 
   void TurnOnBackupHeater()
   {
-    id(backup_heater_relay).turn_on();
+    if(id(backup_heating_mode_select).active_index().value() == 0)
+    {      
+      id(backup_heater_relay).turn_on();
+    }
+    else
+    {
+      id(external_backup_heating_relay).turn_on();
+    }
   }
 
   void TurnOffBackupHeater()
   {
-    id(backup_heater_relay).turn_off();
+    if(id(backup_heater_relay).state)
+    {      
+      id(backup_heater_relay).turn_off();
+    }
+    else if(id(external_backup_heating_relay).state)
+    {
+      id(external_backup_heating_relay).turn_off();
+    }
   }
 
   int MapPIDToCompressorMode()

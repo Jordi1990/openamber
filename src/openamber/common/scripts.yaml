@@ -176,6 +176,11 @@
             root["mg"] = idx.has_value() ? idx.value() : -1;
           }
 
+          {
+            auto idx = id(backup_heating_mode).active_index();
+            root["mb"] = idx.has_value() ? idx.value() : -1;
+          }
+
           root["wh"] = id(heat_demand_switch).state;
           root["wc"] = id(cool_demand_switch).state;
 
