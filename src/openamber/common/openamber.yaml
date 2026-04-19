@@ -24,6 +24,7 @@ esphome:
     - openamber/controllers/dhw_controller.h
     - openamber/controllers/openamber_component.h
     - openamber/controllers/heat_cool_controller.h
+    - openamber/controllers/base_controller.h
   on_boot:
     - priority: 600
       then:
