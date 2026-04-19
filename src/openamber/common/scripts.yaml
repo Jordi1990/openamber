@@ -30,6 +30,22 @@
         ki: !lambda 'return id(pid_cool_ki).state;'
         kd: !lambda 'return id(pid_cool_kd).state;'
 
+- id: apply_thermostat_settings
+  then:
+    - lambda: |-
+        // Pas deadband/overrun instellingen toe
+        id(climate_controller).set_heat_deadband(id(thermostat_heat_deadband).state);
+        id(climate_controller).set_heat_overrun(id(thermostat_heat_overrun).state);
+        id(climate_controller).set_cool_deadband(id(thermostat_cool_deadband).state);
+        id(climate_controller).set_cool_overrun(id(thermostat_cool_overrun).state);
+    - climate.control:
+        id: climate_controller
+        target_temperature_low: !lambda 'return id(thermostat_default_heat_setpoint).state;'
+        target_temperature_high: !lambda 'return id(thermostat_default_cool_setpoint).state;'
+    - number.set:
+        id: thermostat_setpoint_number
+        value: !lambda 'return id(thermostat_default_heat_setpoint).state;'
+
 - id: send_device_info
   then:
     - mqtt.publish_json:

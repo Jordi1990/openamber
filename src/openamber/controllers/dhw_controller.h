@@ -19,12 +19,7 @@
 
 #pragma once
 
-#include "esphome.h"
-#include "constants.h"
-#include "pump_controller.h"
-#include "compressor_controller.h"
-
-using namespace esphome;
+#include "base_controller.h"
 
 enum class DHWState
 {
@@ -44,21 +39,15 @@ enum class DHWState
   WAIT_FOR_STATE_SWITCH,
 };
 
-class DHWController
+class DHWController : public BaseController<DHWState>
 {
 private:
-  DHWState state_ = DHWState::IDLE;
-  DHWState deferred_machine_state_;
-  uint32_t defer_state_change_until_ms_;
   uint32_t last_rate_measured_time_ = 0;
   float last_temperature_rate_ = 0.0f;
   float last_measured_temperature_ = 0.0f;
-  bool requested_to_stop_ = false;
-  PumpController *pump_controller_;
-  CompressorController *compressor_controller_;
   float dhw_pump_settled_time_ = 0.0f;
 
-  const char* DHWStateToString(DHWState state) const
+  const char* StateToString(DHWState state) const override
   {
     switch (state)
     {
@@ -93,20 +82,14 @@ private:
     }
   }
 
-  void SetNextState(DHWState new_state)
+  void PublishState(const char* state_text) override
   {
-    state_ = new_state;
-    const char* txt = DHWStateToString(new_state);
-    
-    id(state_machine_state_dhw).publish_state(txt);
-    ESP_LOGI("amber", "DHW state changed: %s", txt);
+    id(state_machine_state_dhw).publish_state(state_text);
   }
 
-  void LeaveStateAndSetNextStateAfterWaitTime(DHWState new_state, uint32_t defer_ms)
+  const char* LogTag() const override
   {
-    deferred_machine_state_ = new_state;
-    defer_state_change_until_ms_ = App.get_loop_component_start_time() + defer_ms;
-    SetNextState(DHWState::WAIT_FOR_STATE_SWITCH);
+    return "DHW";
   }
 
   float GetPreferredPumpSpeed() {
@@ -230,42 +213,6 @@ private:
     return false;
   }
 
-  bool IsBackupHeaterActive()
-  {
-    if(id(backup_heating_mode_select).active_index().value() == 0)
-    {
-      return id(backup_heater_active_sensor).state;
-    }
-    else
-    {
-      return true; // Assume external backup heater is active when enabled, as we don't have a sensor for it.
-    }
-  }
-
-  void TurnOnBackupHeater()
-  {
-    if(id(backup_heating_mode_select).active_index().value() == 0)
-    {      
-      id(backup_heater_relay).turn_on();
-    }
-    else
-    {
-      id(external_backup_heating_relay).turn_on();
-    }
-  }
-
-  void TurnOffBackupHeater()
-  {
-    if(id(backup_heater_relay).state)
-    {      
-      id(backup_heater_relay).turn_off();
-    }
-    else if(id(external_backup_heating_relay).state)
-    {
-      id(external_backup_heating_relay).turn_off();
-    }
-  }
-
   void DoSafetyChecks()
   {
     // If pump is not active while compressor is running, stop compressor to avoid damage
@@ -292,41 +239,13 @@ private:
     }
   }
 
-  void SetWorkingMode(int working_mode)
-  {
-    if(id(working_mode_switch).active_index().value() == working_mode)
-    {
-      return;
-    }
-
-    auto working_mode_call = id(working_mode_switch).make_call();
-    working_mode_call.set_index(working_mode);
-    working_mode_call.perform();
-  }
-
   bool HasDemand()
   {
     return id(dhw_demand_active_sensor).state;
   }
 public:
     DHWController(PumpController *pump_controller, CompressorController *compressor_controller)
-        : pump_controller_(pump_controller), compressor_controller_(compressor_controller) {}
-
-  void RequestToStop()
-  {
-    requested_to_stop_ = true;
-    ESP_LOGI("amber", "DHW controller requested to stop. Current state: %s", DHWStateToString(state_));
-  }
-
-  bool IsRequestedToStop()
-  {
-    return requested_to_stop_;
-  }
-
-  bool IsInIdleState()
-  {
-    return state_ == DHWState::IDLE;
-  }
+        : BaseController(pump_controller, compressor_controller, DHWState::WAIT_FOR_STATE_SWITCH, DHWState::UNKNOWN, DHWState::IDLE) {}
 
   void UpdateStateMachine()
   {
@@ -496,12 +415,7 @@ public:
 
       case DHWState::WAIT_FOR_STATE_SWITCH:
       {
-        if (defer_state_change_until_ms_ <= now)
-        {
-          defer_state_change_until_ms_ = 0;
-          SetNextState(deferred_machine_state_);
-          deferred_machine_state_ = DHWState::UNKNOWN;
-        }
+        ProcessDeferredStateChange();
         break;
       }
     }

@@ -2,6 +2,45 @@
 # UI helper scripts used by event-driven bindings
 # ══════════════════════════════════════════════════════════════
 
+- id: update_thermostat_settings_ui
+  mode: restart
+  then:
+    - lvgl.label.update:
+        id: set_therm_sp_val
+        text:
+          format: "%.1f°C"
+          args: ['id(thermostat_setpoint_number).state']
+    - lvgl.label.update:
+        id: set_therm_def_heat_val
+        text:
+          format: "%.1f°C"
+          args: ['id(thermostat_default_heat_setpoint).state']
+    - lvgl.label.update:
+        id: set_therm_def_cool_val
+        text:
+          format: "%.1f°C"
+          args: ['id(thermostat_default_cool_setpoint).state']
+    - lvgl.label.update:
+        id: set_therm_heat_db_val
+        text:
+          format: "%.1f°C"
+          args: ['id(thermostat_heat_deadband).state']
+    - lvgl.label.update:
+        id: set_therm_heat_or_val
+        text:
+          format: "%.1f°C"
+          args: ['id(thermostat_heat_overrun).state']
+    - lvgl.label.update:
+        id: set_therm_cool_db_val
+        text:
+          format: "%.1f°C"
+          args: ['id(thermostat_cool_deadband).state']
+    - lvgl.label.update:
+        id: set_therm_cool_or_val
+        text:
+          format: "%.1f°C"
+          args: ['id(thermostat_cool_overrun).state']
+
 - id: update_advanced_settings_ui
   mode: restart
   then:

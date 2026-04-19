@@ -194,6 +194,118 @@ obj:
                     light_color: 0xFFFFFF
                     text: "https://github.com/Jordi1990/openamber/releases"
 
+                - obj:
+                    id: service_restart_button
+                    width: 250
+                    height: 52
+                    align: BOTTOM_LEFT
+                    bg_color: 0xE5E7EB
+                    bg_opa: 100%
+                    radius: 14
+                    border_width: 0
+                    border_opa: 0%
+                    pad_all: 0
+                    on_click:
+                      - lvgl.widget.show:
+                          id: service_restart_confirm_modal
+                    widgets:
+                      - label:
+                          id: service_restart_button_label
+                          text: "Herstarten"
+                          text_color: 0x1F2933
+                          text_font: font_mdi_24
+                          align: CENTER
+
+    - obj:
+        id: service_restart_confirm_modal
+        width: 100%
+        height: 100%
+        hidden: true
+        bg_color: 0x000000
+        bg_opa: 45%
+        border_width: 0
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+
+        widgets:
+          - obj:
+              id: service_restart_confirm_card
+              width: 560
+              height: 260
+              align: CENTER
+              bg_color: 0xFFFFFF
+              bg_opa: 100%
+              radius: 18
+              border_width: 0
+              border_opa: 0%
+              pad_left: 22
+              pad_right: 22
+              pad_top: 18
+              pad_bottom: 18
+
+              widgets:
+                - label:
+                    id: service_restart_confirm_title
+                    text: "Herstarten bevestigen"
+                    text_color: 0x1F2933
+                    text_font: font_mdi_24
+                    align: TOP_LEFT
+
+                - label:
+                    id: service_restart_confirm_text
+                    text: "Wil je OpenAmber nu herstarten?"
+                    text_color: 0x1F2933
+                    text_font: font_mdi_24
+                    align: TOP_LEFT
+                    y: 56
+
+                - obj:
+                    id: service_restart_cancel_button
+                    width: 200
+                    height: 56
+                    align: BOTTOM_LEFT
+                    bg_color: 0xE5E7EB
+                    bg_opa: 100%
+                    radius: 14
+                    border_width: 0
+                    border_opa: 0%
+                    pad_all: 0
+                    on_click:
+                      - lvgl.widget.hide:
+                          id: service_restart_confirm_modal
+                    widgets:
+                      - label:
+                          id: service_restart_cancel_label
+                          text: "Annuleren"
+                          text_color: 0x1F2933
+                          text_font: font_mdi_24
+                          align: CENTER
+
+                - obj:
+                    id: service_restart_confirm_button
+                    width: 200
+                    height: 56
+                    align: BOTTOM_RIGHT
+                    bg_color: 0x0072CE
+                    bg_opa: 100%
+                    radius: 14
+                    border_width: 0
+                    border_opa: 0%
+                    pad_all: 0
+                    on_click:
+                      - lvgl.widget.hide:
+                          id: service_restart_confirm_modal
+                      - button.press: restart_openamber
+                    widgets:
+                      - label:
+                          id: service_restart_confirm_label
+                          text: "Herstarten"
+                          text_color: 0xFFFFFF
+                          text_font: font_mdi_24
+                          align: CENTER
+
     - obj:
         id: service_update_confirm_modal
         width: 100%
