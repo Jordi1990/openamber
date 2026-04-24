@@ -626,6 +626,15 @@ public:
           TurnOffBackupHeater();
           LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
         }
+
+        if(ShouldStopCompressor())
+        {
+          ESP_LOGI("amber", "Stopping compressor and backup heater because there is no demand or a temperature overshoot.");
+          compressor_controller_->Stop();
+          TurnOffBackupHeater();
+          SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
+          break;
+        }
         break;
       }
 
