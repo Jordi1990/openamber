@@ -425,6 +425,11 @@ public:
   {
     if(!id(legio_enabled_switch).state || !id(dhw_enabled_switch).state)
     {
+      if(id(dhw_legionella_run_active_sensor).state)
+      {
+        ESP_LOGI("amber", "Legionella cycle disabled or DHW disabled, stopping active legionella cycle.");
+        id(dhw_legionella_run_active_sensor).publish_state(false);
+      }
       return;
     }
 
