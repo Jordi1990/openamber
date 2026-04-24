@@ -76,19 +76,17 @@ protected:
 
   bool IsBackupHeaterActive()
   {
-    if(id(backup_heating_mode_select).active_index().value() == 0)
+    if(id(backup_heating_mode).active_index().value() == 0)
     {
       return id(backup_heater_active_sensor).state;
     }
-    else
-    {
-      return true; // Assume external backup heater is active when enabled, as we don't have a sensor for it.
-    }
+
+    return true; // Assume external backup heater is active when enabled, as we don't have a sensor for it.
   }
 
   void TurnOnBackupHeater()
   {
-    if(id(backup_heating_mode_select).active_index().value() == 0)
+    if(id(backup_heating_mode).active_index().value() == 0)
     {      
       id(backup_heater_relay).turn_on();
     }

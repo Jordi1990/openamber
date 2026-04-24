@@ -134,7 +134,7 @@ lvgl:
             level: 50% # 50% turns off the backlight
         - lvgl.widget.show:
             id: idle_screen_overlay
-  disp_bg_color: 0x0A2747
+  bottom_layer: 0x0A2747
   widgets:
     - !include openamber/ui/root_bg.yaml
     - !include openamber/ui/header_bar.yaml
