@@ -411,6 +411,17 @@ public:
           LeaveStateAndSetNextStateAfterWaitTime(DHWState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
           return;
         }
+        
+        if(!HasDemand())
+        {
+          ESP_LOGI("amber", "No more DHW demand, stopping compressor and backup heater.");
+          TurnOffBackupHeater();
+          compressor_controller_->Stop();
+          SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
+          break;
+        }
+
+        compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
         break;
 
       case DHWState::WAIT_FOR_STATE_SWITCH:
