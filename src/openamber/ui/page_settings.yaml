@@ -598,6 +598,34 @@ obj:
                           border_opa: 0%
                           pad_all: 6
                           widgets:
+                            - label: { text: "Backup element", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                            - label: { text: "Extern is voor Hybride opstellingen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                            - dropdown:
+                                id: set_backup_heating_mode_dd
+                                symbol: "\U000F0140"
+                                width: 260
+                                align: TOP_RIGHT
+                                y: 0
+                                options:
+                                  - "Intern verwarmingselement"
+                                  - "Externe backup verwarming"
+                                text_font: font_text_24
+                                dropdown_list:
+                                  text_font: font_text_24
+                                on_value:
+                                  then:
+                                    - lambda: |-
+                                        auto val = lv_dropdown_get_selected(id(set_backup_heating_mode_dd)->obj);
+                                        if (val == 0) id(backup_heating_mode).make_call().set_option("Intern verwarmingselement").perform();
+                                        else id(backup_heating_mode).make_call().set_option("Externe backup verwarming").perform();
+
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          widgets:
                             - label: { text: "Tapwater aanwezig", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
                             - label: { text: "Tapwatervat is aanwezig in het systeem", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
                             - switch:
