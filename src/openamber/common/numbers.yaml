@@ -593,8 +593,6 @@
   initial_value: 20.5
   restore_value: True
   entity_category: config
-  web_server:
-    sorting_group_id: heating_settings
   on_value:
     then:
       - lambda: |-
@@ -613,8 +611,6 @@
   initial_value: 20.5
   restore_value: True
   entity_category: config
-  web_server:
-    sorting_group_id: heating_settings
 
 - platform: template
   id: thermostat_default_cool_setpoint
@@ -627,8 +623,6 @@
   initial_value: 24.0
   restore_value: True
   entity_category: config
-  web_server:
-    sorting_group_id: heating_settings
 
 - platform: template
   id: thermostat_heat_deadband
@@ -641,8 +635,6 @@
   initial_value: 0.3
   restore_value: True
   entity_category: config
-  web_server:
-    sorting_group_id: heating_settings
   on_value:
     then:
       - lambda: |-
@@ -660,8 +652,6 @@
   initial_value: 0.2
   restore_value: True
   entity_category: config
-  web_server:
-    sorting_group_id: heating_settings
   on_value:
     then:
       - lambda: |-
@@ -678,8 +668,6 @@
   initial_value: 0.5
   restore_value: True
   entity_category: config
-  web_server:
-    sorting_group_id: heating_settings
   on_value:
     then:
       - lambda: |-
@@ -696,8 +684,6 @@
   initial_value: 3.0
   restore_value: True
   entity_category: config
-  web_server:
-    sorting_group_id: heating_settings
   on_value:
     then:
       - lambda: |-
