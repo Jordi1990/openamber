@@ -19,12 +19,7 @@
 
 #pragma once
 
-#include "esphome.h"
-#include "constants.h"
-#include "pump_controller.h"
-#include "compressor_controller.h"
-
-using namespace esphome;
+#include "base_controller.h"
 
 enum class HeatCoolState
 {
@@ -43,7 +38,7 @@ enum class HeatCoolState
   WAIT_FOR_STATE_SWITCH,
 };
 
-class HeatCoolController
+class HeatCoolController : public BaseController<HeatCoolState>
 {
 private:
   uint32_t backup_degmin_last_ms_ = 0;
@@ -54,15 +49,7 @@ private:
   float compressor_cool_pid_ = 0.0f;
   float start_current_temperature_ = 0.0f;
 
-  HeatCoolState state_ = HeatCoolState::IDLE;
-  HeatCoolState deferred_machine_state_;
-  uint32_t defer_state_change_until_ms_;
-  bool requested_to_stop_ = false;
-
-  CompressorController* compressor_controller_;
-  PumpController* pump_controller_;
-
-  const char* StateToString(HeatCoolState state) const
+  const char* StateToString(HeatCoolState state) const override
   {
     switch (state)
     {
@@ -95,20 +82,14 @@ private:
     }
   }
 
-  void SetNextState(HeatCoolState new_state)
+  void PublishState(const char* state_text) override
   {
-    state_ = new_state;
-    const char* txt = StateToString(new_state);
-    
-    id(state_machine_state_heat_cool).publish_state(txt);
-    ESP_LOGI("amber", "HEAT_COOL state changed: %s", txt);
+    id(state_machine_state_heat_cool).publish_state(state_text);
   }
 
-  void LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState new_state, uint32_t defer_ms)
+  const char* LogTag() const override
   {
-    deferred_machine_state_ = new_state;
-    defer_state_change_until_ms_ = App.get_loop_component_start_time() + defer_ms;
-    SetNextState(HeatCoolState::WAIT_FOR_STATE_SWITCH);
+    return "HEAT_COOL";
   }
 
   bool IsCoolingDemand()
@@ -119,21 +100,6 @@ private:
   auto& GetActiveCompressorMode()
   {
     return IsCoolingDemand() ? id(cool_compressor_mode) : id(heat_compressor_mode);
-  }
-
-  bool IsBackupHeaterActive()
-  {
-    return id(backup_heater_active_sensor).state;
-  }
-
-  void TurnOnBackupHeater()
-  {
-    id(backup_heater_relay).turn_on();
-  }
-
-  void TurnOffBackupHeater()
-  {
-    id(backup_heater_relay).turn_off();
   }
 
   int MapPIDToCompressorMode()
@@ -320,36 +286,20 @@ private:
       return;
     }
   }
-
-  void SetWorkingMode(int working_mode)
-  {
-    if(id(working_mode_switch).active_index().value() == working_mode)
-    {
-      return;
-    }
-
-    auto working_mode_call = id(working_mode_switch).make_call();
-    working_mode_call.set_index(working_mode);
-    working_mode_call.perform();
-
-    SetPidController(working_mode);
-  }
   
-  void SetPidController(int working_mode)
+  void SetPidController(climate::ClimateMode climate_mode)
   {
     auto heat_call = id(pid_heat_temperature_control).make_call();
-    heat_call.set_mode(working_mode == WORKING_MODE_HEATING ? climate::CLIMATE_MODE_HEAT : climate::CLIMATE_MODE_OFF);
+    heat_call.set_mode(climate_mode);
     heat_call.perform();
-    ESP_LOGI("amber", "PID climate mode switched to HEATING");
     
     auto cool_call = id(pid_cool_temperature_control).make_call();
-    cool_call.set_mode(working_mode == WORKING_MODE_COOLING ? climate::CLIMATE_MODE_COOL : climate::CLIMATE_MODE_OFF);
+    cool_call.set_mode(climate_mode);
     cool_call.perform();
-    ESP_LOGI("amber", "PID climate mode switched to COOLING");
    }
 public:
   HeatCoolController(PumpController* pump_controller, CompressorController* compressor_controller)
-    : pump_controller_(pump_controller), compressor_controller_(compressor_controller) {}
+    : BaseController(pump_controller, compressor_controller, HeatCoolState::WAIT_FOR_STATE_SWITCH, HeatCoolState::UNKNOWN, HeatCoolState::IDLE) {}
 
   void SetHeatPIDValue(float pid_value)
   {
@@ -539,6 +489,7 @@ public:
         }
 
         SetWorkingMode(IsCoolingDemand() ? WORKING_MODE_COOLING : WORKING_MODE_HEATING);
+        SetPidController(IsCoolingDemand() ? climate::CLIMATE_MODE_COOL : climate::CLIMATE_MODE_HEAT);
         compressor_controller_->ApplyCompressorMode(DetermineSoftStartMode());
         SetNextState(HeatCoolState::WAIT_COMPRESSOR_RUNNING);
         break;
@@ -645,6 +596,7 @@ public:
         if (!pump_controller_->IsRunning())
         {
           SetWorkingMode(WORKING_MODE_STANDBY);
+          SetPidController(climate::CLIMATE_MODE_OFF);
           SetNextState(HeatCoolState::IDLE);
         }
         else 
@@ -673,6 +625,15 @@ public:
           ESP_LOGI("amber", "Disabling backup heater (predicted Temperature %.2f°C above target %.2f°C)", predicted_temperature, target_temperature);
           TurnOffBackupHeater();
           LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
+        }
+
+        if(ShouldStopCompressor())
+        {
+          ESP_LOGI("amber", "Stopping compressor and backup heater because there is no demand or a temperature overshoot.");
+          compressor_controller_->Stop();
+          TurnOffBackupHeater();
+          SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
+          break;
         }
         break;
       }
@@ -710,36 +671,10 @@ public:
 
       case HeatCoolState::WAIT_FOR_STATE_SWITCH:
       {
-        uint32_t now = App.get_loop_component_start_time();
-        if (defer_state_change_until_ms_ > now)
-        {
-          ESP_LOGD("amber", "Waiting for state switch, transitioning to next state in %lu ms", defer_state_change_until_ms_ - now);
-        }
-        else
-        {
-          defer_state_change_until_ms_ = 0;
-          SetNextState(deferred_machine_state_);
-          deferred_machine_state_ = HeatCoolState::UNKNOWN;
-        }
+        ProcessDeferredStateChange();
         break;
       }
     }
-  }
-
-  void RequestToStop()
-  {
-    requested_to_stop_ = true;
-    ESP_LOGI("amber", "Heat/Cool controller requested to stop. Current state: %s", StateToString(state_));
-  }
-
-  bool IsRequestedToStop()
-  {
-    return requested_to_stop_;
-  }
-
-  bool IsInIdleState()
-  {
-    return state_ == HeatCoolState::IDLE;
   }
 
   void StopPumps()

@@ -149,6 +149,13 @@
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
+  id: external_backup_heating_relay
+  internal: True
+  address: 1108
+  register_type: holding
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
   id: backup_heater_stage_1
   internal: True
   name: "Backup heater stage 1"

@@ -26,6 +26,7 @@ Open source control firmware based on ESPHome for Itho Daalderop Amber heat pump
 - Software thermostat based on Tr sensor.
 - Heat curve(5-points).
 - Backup heater
+- External backup heater (Hybrid setup)
 - Boost after defrost using backup heater.
 - Sensors for error codes
 - Support external thermostats (Heating/Cooling input)
@@ -33,7 +34,6 @@ Open source control firmware based on ESPHome for Itho Daalderop Amber heat pump
 
 ## Todo
 - Tv1/Tv2 buffer support
-- Extend configuration options
 - Error handling
 - Support OpenTherm thermostats
 - .. More

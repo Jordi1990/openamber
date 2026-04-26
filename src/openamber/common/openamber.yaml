@@ -24,10 +24,12 @@ esphome:
     - openamber/controllers/dhw_controller.h
     - openamber/controllers/openamber_component.h
     - openamber/controllers/heat_cool_controller.h
+    - openamber/controllers/base_controller.h
   on_boot:
     - priority: 600
       then:
         - script.execute: apply_pid_settings
+        - script.execute: apply_thermostat_settings
         - delay: 60s
         - if:
             condition:
@@ -309,6 +311,9 @@ button:
   - platform: factory_reset
     disabled_by_default: true
     name: Restart with Factory Default Settings
+  - platform: restart
+    id: restart_openamber
+    name: Restart OpenAmber
 
 preferences:
  flash_write_interval: 5min

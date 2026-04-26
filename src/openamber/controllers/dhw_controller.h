@@ -19,12 +19,7 @@
 
 #pragma once
 
-#include "esphome.h"
-#include "constants.h"
-#include "pump_controller.h"
-#include "compressor_controller.h"
-
-using namespace esphome;
+#include "base_controller.h"
 
 enum class DHWState
 {
@@ -44,21 +39,15 @@ enum class DHWState
   WAIT_FOR_STATE_SWITCH,
 };
 
-class DHWController
+class DHWController : public BaseController<DHWState>
 {
 private:
-  DHWState state_ = DHWState::IDLE;
-  DHWState deferred_machine_state_;
-  uint32_t defer_state_change_until_ms_;
   uint32_t last_rate_measured_time_ = 0;
   float last_temperature_rate_ = 0.0f;
   float last_measured_temperature_ = 0.0f;
-  bool requested_to_stop_ = false;
-  PumpController *pump_controller_;
-  CompressorController *compressor_controller_;
   float dhw_pump_settled_time_ = 0.0f;
 
-  const char* DHWStateToString(DHWState state) const
+  const char* StateToString(DHWState state) const override
   {
     switch (state)
     {
@@ -93,20 +82,14 @@ private:
     }
   }
 
-  void SetNextState(DHWState new_state)
+  void PublishState(const char* state_text) override
   {
-    state_ = new_state;
-    const char* txt = DHWStateToString(new_state);
-    
-    id(state_machine_state_dhw).publish_state(txt);
-    ESP_LOGI("amber", "DHW state changed: %s", txt);
+    id(state_machine_state_dhw).publish_state(state_text);
   }
 
-  void LeaveStateAndSetNextStateAfterWaitTime(DHWState new_state, uint32_t defer_ms)
+  const char* LogTag() const override
   {
-    deferred_machine_state_ = new_state;
-    defer_state_change_until_ms_ = App.get_loop_component_start_time() + defer_ms;
-    SetNextState(DHWState::WAIT_FOR_STATE_SWITCH);
+    return "DHW";
   }
 
   float GetPreferredPumpSpeed() {
@@ -127,14 +110,6 @@ private:
       selected_dhw_compressor_mode = id(dhw_compressor_mode_max).active_index().value() + dhw_mode_max_offset;
     }
     return selected_dhw_compressor_mode;
-  }
-
-  bool IsTargetTemperatureReached()
-  {
-    // In DHW mode, stop when target temperature is reached
-    float current_temperature = id(dhw_temperature_tw_sensor).state;
-    float target_temperature = id(current_dhw_setpoint_sensor).state;
-    return current_temperature >= target_temperature;
   }
 
   void StopDhwPump()
@@ -238,21 +213,6 @@ private:
     return false;
   }
 
-  bool IsBackupHeaterActive()
-  {
-    return id(backup_heater_active_sensor).state;
-  }
-
-  void TurnOnBackupHeater()
-  {
-    id(backup_heater_relay).turn_on();
-  }
-
-  void TurnOffBackupHeater()
-  {
-    id(backup_heater_relay).turn_off();
-  }
-
   void DoSafetyChecks()
   {
     // If pump is not active while compressor is running, stop compressor to avoid damage
@@ -261,32 +221,22 @@ private:
       ESP_LOGW("amber", "Safety check: Pump is not active while compressor is running, stopping compressor to avoid damage.");
       compressor_controller_->Stop();
       StopDhwPump();
+      id(dhw_active).publish_state(false);
       SetNextState(DHWState::IDLE);
       return;
     }
 
-    // If Tuo - Tui is above 8 degrees while compressor is running, stop compressor to avoid damage
-    if (id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state > 8.0f && compressor_controller_->IsRunning())
+    // If Tuo - Tui is above 15 degrees while compressor is running, stop compressor to avoid damage
+    if (id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state > 15.0f && compressor_controller_->IsRunning())
     {
-      ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stopping compressor to avoid damage.");
+      ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 15 degrees while compressor is running, stopping compressor to avoid damage.");
       compressor_controller_->Stop();
       pump_controller_->Stop();
       StopDhwPump();
+      id(dhw_active).publish_state(false);
       SetNextState(DHWState::IDLE);
       return;
     }
-  }
-
-  void SetWorkingMode(int working_mode)
-  {
-    if(id(working_mode_switch).active_index().value() == working_mode)
-    {
-      return;
-    }
-
-    auto working_mode_call = id(working_mode_switch).make_call();
-    working_mode_call.set_index(working_mode);
-    working_mode_call.perform();
   }
 
   bool HasDemand()
@@ -295,23 +245,7 @@ private:
   }
 public:
     DHWController(PumpController *pump_controller, CompressorController *compressor_controller)
-        : pump_controller_(pump_controller), compressor_controller_(compressor_controller) {}
-
-  void RequestToStop()
-  {
-    requested_to_stop_ = true;
-    ESP_LOGI("amber", "DHW controller requested to stop. Current state: %s", DHWStateToString(state_));
-  }
-
-  bool IsRequestedToStop()
-  {
-    return requested_to_stop_;
-  }
-
-  bool IsInIdleState()
-  {
-    return state_ == DHWState::IDLE;
-  }
+        : BaseController(pump_controller, compressor_controller, DHWState::WAIT_FOR_STATE_SWITCH, DHWState::UNKNOWN, DHWState::IDLE) {}
 
   void UpdateStateMachine()
   {
@@ -330,6 +264,7 @@ public:
           break;
         }
 
+        id(dhw_active).publish_state(true);
         pump_controller_->Start(GetPreferredPumpSpeed());
         SetNextState(DHWState::WAIT_PUMP_RUNNING);
         break;
@@ -384,9 +319,9 @@ public:
 
         if (compressor_controller_->HasPassedMinOnTime())
         {
-          if(IsTargetTemperatureReached())
+          if(!HasDemand())
           {
-            ESP_LOGI("amber", "Target temperature reached, stopping compressor.");
+            ESP_LOGI("amber", "No more DHW demand, stopping compressor.");
             compressor_controller_->Stop();
             SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
             break;
@@ -452,6 +387,7 @@ public:
         if (!pump_controller_->IsRunning())
         {
           SetWorkingMode(WORKING_MODE_STANDBY);
+          id(dhw_active).publish_state(false);
           SetNextState(DHWState::IDLE);
         }
         else 
@@ -475,59 +411,36 @@ public:
           LeaveStateAndSetNextStateAfterWaitTime(DHWState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
           return;
         }
+        
+        if(!HasDemand())
+        {
+          ESP_LOGI("amber", "No more DHW demand, stopping compressor and backup heater.");
+          TurnOffBackupHeater();
+          compressor_controller_->Stop();
+          SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
+          break;
+        }
+
+        compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
         break;
 
       case DHWState::WAIT_FOR_STATE_SWITCH:
       {
-        if (defer_state_change_until_ms_ <= now)
-        {
-          defer_state_change_until_ms_ = 0;
-          SetNextState(deferred_machine_state_);
-          deferred_machine_state_ = DHWState::UNKNOWN;
-        }
+        ProcessDeferredStateChange();
         break;
       }
     }
   }
 
-  bool CanStartDhw()
-  {
-    if(!HasDemand())
-    {
-      return false;
-    }
-
-    if(id(dhw_legionella_run_active_sensor).state)
-    {
-      return true;
-    }
-
-    float current_temperature = id(dhw_temperature_tw_sensor).state;
-    float target_temperature = id(current_dhw_setpoint_sensor).state;
-    float restart_delta = id(dhw_restart_dhw_delta).state;
-
-    // Only start DHW when the current temperature is below the target temperature minus the restart delta.
-    if (current_temperature >= target_temperature - restart_delta)
-    {
-      return false;
-    }
-
-    return true;
-  }
-
-  bool HasDatePassed(const ESPTime& current_time, const ESPTime& target_time)
-  {
-    return current_time.year >= target_time.year &&
-           current_time.month >= target_time.month &&
-           current_time.day_of_month >= target_time.day_of_month &&
-           current_time.hour >= target_time.hour &&
-           current_time.minute >= target_time.minute;
-  }
-
   void CheckLegionellaCycle()
   {
-    if(!id(legio_enabled_switch).state)
+    if(!id(legio_enabled_switch).state || !id(dhw_enabled_switch).state)
     {
+      if(id(dhw_legionella_run_active_sensor).state)
+      {
+        ESP_LOGI("amber", "Legionella cycle disabled or DHW disabled, stopping active legionella cycle.");
+        id(dhw_legionella_run_active_sensor).publish_state(false);
+      }
       return;
     }
 
@@ -543,7 +456,7 @@ public:
       ESP_LOGW("amber", "WARNING: Time is not synchronized, skipping legionella cycle check.");
       return;
     }
-    if(!id(dhw_legionella_run_active_sensor).state && HasDatePassed(now, legionella_time))
+    if(!id(dhw_legionella_run_active_sensor).state && now >= legionella_time)
     {
       ESP_LOGI("amber", "Starting legionella cycle.");
       id(dhw_legionella_run_active_sensor).publish_state(true);
@@ -560,7 +473,7 @@ public:
                next_run.day_of_month, next_run.hour, 
                next_run.minute);
     }
-    else if(id(dhw_legionella_run_active_sensor).state && !id(dhw_demand_active_sensor).state)
+    else if(id(dhw_legionella_run_active_sensor).state && id(dhw_temperature_tw_sensor).state >= id(legio_target_temperature_number).state)
     {
       ESP_LOGI("amber", "Legionella cycle completed, target temperature %.2f°C reached, current temperature: %.2f°C, current setpoint: %.2f°C.", id(legio_target_temperature_number).state, id(dhw_temperature_tw_sensor).state, id(current_dhw_setpoint_sensor).state);
       id(dhw_legionella_run_active_sensor).publish_state(false);

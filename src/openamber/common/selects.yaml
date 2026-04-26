@@ -1,4 +1,17 @@
 - platform: template
+  id: backup_heating_mode
+  name: "Backup verwarmingsmodus"
+  optimistic: True
+  options:
+    - "Intern verwarmingselement"
+    - "Externe backup verwarming"
+  initial_option: "Intern verwarmingselement"
+  restore_value: True
+  entity_category: config
+  web_server: 
+    sorting_group_id: heating_settings
+
+- platform: template
   id: heat_compressor_mode
   name: "Verwarmen vermogen"
   restore_value: True

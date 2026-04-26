@@ -15,6 +15,7 @@ esp32:
       CONFIG_ESP32S3_DATA_CACHE_64KB: y
       CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
       CONFIG_SPIRAM_RODATA: y
+      CONFIG_ESP_TASK_WDT_TIMEOUT_S: "15"
     advanced:
       loop_task_stack_size: 16384
 
@@ -108,6 +109,11 @@ image:
     type: RGB565
     resize: 57x70
     transparency: alpha_channel
+  - file: "openamber/ui/images/dhw_tank.png"
+    id: img_dhw_tank
+    type: RGB565
+    transparency: alpha_channel
+    resize: 130x260
   - file: "openamber/ui/images/logo-512x512.png"
     id: openamber_logo
     type: RGB565
@@ -128,7 +134,8 @@ lvgl:
             level: 50% # 50% turns off the backlight
         - lvgl.widget.show:
             id: idle_screen_overlay
-  disp_bg_color: 0x0A2747
+  bottom_layer:
+    bg_color: 0x0A2747
   widgets:
     - !include openamber/ui/root_bg.yaml
     - !include openamber/ui/header_bar.yaml

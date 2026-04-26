@@ -51,6 +51,9 @@
         - "\U000F0502"  # mdi-speedometer (compressor)
         - "\U000F04DB"  # mdi-shield-check (vorstbesch)
         - "\U000F0F54"  # mdi-calendar-clock (schema)
+        - "\U000F0026"  # mdi-alert (legionella)
+        - "\U000F0045"  # mdi-arrow-down (flow)
+        - "\U000F005D"  # mdi-arrow-up (flow)
 
 - file:
     type: gfonts
