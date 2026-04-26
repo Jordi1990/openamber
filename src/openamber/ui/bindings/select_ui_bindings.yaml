@@ -79,6 +79,16 @@
             - lvgl.widget.hide: { id: set_heat_curve_chart_container }
             - lvgl.widget.hide: { id: set_heat_curve_controls_container }
 
+# ── Settings: Backup heating mode dropdown ──
+- id: !extend backup_heating_mode
+  on_value:
+    then:
+      - lvgl.dropdown.update:
+          id: set_backup_heating_mode_dd
+          selected_index: !lambda |-
+            auto idx = id(backup_heating_mode).active_index();
+            return idx.has_value() ? idx.value() : 0;
+
 # ── Settings: Heat power dropdown ──
 - id: !extend heat_compressor_mode
   on_value:
