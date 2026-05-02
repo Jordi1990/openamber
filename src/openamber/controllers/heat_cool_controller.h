@@ -610,6 +610,9 @@ public:
       {
         if (IsBackupHeaterActive())
         {
+          last_temperature_for_rate_ = id(heat_cool_temperature_tc).state;
+          temperature_rate_c_per_min_ = 0.0f;
+          backup_degmin_last_ms_ = backup_heater_start_time_ms_;
           SetNextState(HeatCoolState::BACKUP_HEATER_RUNNING);
         }
         break;
@@ -617,14 +620,29 @@ public:
 
       case HeatCoolState::BACKUP_HEATER_RUNNING:
       {
-        float predicted_temperature = CalculateBackupHeaterPredictedTemperature();
+        float current_temperature = id(heat_cool_temperature_tc).state;
         float target_temperature = id(pid_heat_temperature_control).target_temperature;
+
+        if (current_temperature >= target_temperature + id(compressor_stop_delta).state)
+        {
+          ESP_LOGI("amber", "Disabling backup heater because measured temperature %.2f°C exceeded stop temperature delta %.2f°C.", current_temperature, target_temperature + id(compressor_stop_delta).state);
+          TurnOffBackupHeater();
+          LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
+          break;
+        }
+
+        uint32_t now = App.get_loop_component_start_time();
+        float predicted_temperature = CalculateBackupHeaterPredictedTemperature();
         // Disable backup heater if predicted Temperature is above target.
-        if (predicted_temperature >= target_temperature + 2.0f)
+        uint32_t settle_elapsed_ms = now - backup_heater_start_time_ms_;
+        uint32_t settle_time_ms = BACKUP_HEATER_PREDICTION_SETTLE_TIME_S * 1000UL;
+        // Only check predicition after a minimum settle time to avoid disabling backup heater too early due to initial temperature fluctuations when turning it on.
+        if (predicted_temperature >= target_temperature + 2.0f && settle_elapsed_ms >= settle_time_ms)
         { // Margin to buffer some heat to reduce undershoot.
           ESP_LOGI("amber", "Disabling backup heater (predicted Temperature %.2f°C above target %.2f°C)", predicted_temperature, target_temperature);
           TurnOffBackupHeater();
           LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
+          break;
         }
 
         if(ShouldStopCompressor())

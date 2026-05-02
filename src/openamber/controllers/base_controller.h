@@ -33,6 +33,7 @@ protected:
   StateEnum state_;
   StateEnum deferred_machine_state_;
   uint32_t defer_state_change_until_ms_ = 0;
+  uint32_t backup_heater_start_time_ms_ = 0;
   bool requested_to_stop_ = false;
   PumpController* pump_controller_;
   CompressorController* compressor_controller_;
@@ -86,6 +87,7 @@ protected:
 
   void TurnOnBackupHeater()
   {
+    backup_heater_start_time_ms_ = App.get_loop_component_start_time();
     if(id(backup_heating_mode).active_index().value() == 0)
     {      
       id(backup_heater_relay).turn_on();
@@ -98,6 +100,7 @@ protected:
 
   void TurnOffBackupHeater()
   {
+    backup_heater_start_time_ms_ = 0;
     if(id(backup_heater_relay).state)
     {      
       id(backup_heater_relay).turn_off();

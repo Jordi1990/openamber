@@ -41,6 +41,7 @@ static const uint32_t FREQUENCY_CHANGE_INTERVAL_UP_S = 5 * 60;
 
 // Backup heater timing
 static const uint32_t BACKUP_HEATER_LOOKAHEAD_S = 2 * 60;
+static const uint32_t BACKUP_HEATER_PREDICTION_SETTLE_TIME_S = 5 * 60;
 static const uint32_t BACKUP_HEATER_OFF_SETTLE_TIME_S = 2 * 60;
 static const uint32_t DHW_BACKUP_HEATER_GRACE_PERIOD_S = 10 * 60;
 
