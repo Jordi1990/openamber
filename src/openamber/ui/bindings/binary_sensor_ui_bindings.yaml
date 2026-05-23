@@ -18,6 +18,11 @@
           text: !lambda |-
             if (x) return "AAN";
             return "UIT";
+      - lvgl.label.update:
+          id: service_diag_defrost_bottom_value
+          text:
+            format: "%s / %s"
+            args: ['x ? "AAN" : "UIT"', 'id(bottom_heater_active_sensor).state ? "AAN" : "UIT"']
 
 - id: !extend backup_heater_active_sensor
   on_state:
@@ -46,6 +51,11 @@
           text: !lambda |-
             if (x) return "AAN";
             return "UIT";
+      - lvgl.label.update:
+          id: service_diag_defrost_bottom_value
+          text:
+            format: "%s / %s"
+            args: ['id(defrost_active_sensor).state ? "AAN" : "UIT"', 'x ? "AAN" : "UIT"']
 
 # ── Nav bar: Demand icons ──
 - id: !extend heat_demand_active_sensor
@@ -98,10 +108,56 @@
             if (x) return lv_color_hex(0x22D3EE);
             return lv_color_hex(0x919191);
 
+- id: !extend sg_ready_a_active_sensor
+  on_state:
+    then:
+      - lvgl.label.update:
+          id: service_diag_sg_contacts_value
+          text:
+            format: "%s / %s"
+            args: ['x ? "AAN" : "UIT"', 'id(sg_ready_b_active_sensor).state ? "AAN" : "UIT"']
+
+- id: !extend sg_ready_b_active_sensor
+  on_state:
+    then:
+      - lvgl.label.update:
+          id: service_diag_sg_contacts_value
+          text:
+            format: "%s / %s"
+            args: ['id(sg_ready_a_active_sensor).state ? "AAN" : "UIT"', 'x ? "AAN" : "UIT"']
+
+- id: !extend external_heat_demand_wired
+  on_state:
+    then:
+      - lvgl.label.update:
+          id: service_diag_external_demand_wired_value
+          text:
+            format: "%s / %s"
+            args: ['x ? "AAN" : "UIT"', 'id(external_cool_demand_wired).state ? "AAN" : "UIT"']
+
+- id: !extend external_cool_demand_wired
+  on_state:
+    then:
+      - lvgl.label.update:
+          id: service_diag_external_demand_wired_value
+          text:
+            format: "%s / %s"
+            args: ['id(external_heat_demand_wired).state ? "AAN" : "UIT"', 'x ? "AAN" : "UIT"']
+
 # ── Boot screen: Hide when both modbus units online ──
 - id: !extend modbus_inside_online
   on_state:
     then:
+      - lvgl.label.update:
+          id: service_diag_modbus_inside_value
+          text:
+            format: "%s"
+            args: ['x ? "Online" : "Offline"']
+      - lvgl.label.update:
+          id: service_diag_modbus_outside_value
+          text:
+            format: "%s"
+            args: ['id(modbus_outside_online).state ? "Online" : "Offline"']
       - if:
           condition:
             - binary_sensor.is_on: modbus_inside_online
@@ -118,6 +174,16 @@
 - id: !extend modbus_outside_online
   on_state:
     then:
+      - lvgl.label.update:
+          id: service_diag_modbus_outside_value
+          text:
+            format: "%s"
+            args: ['x ? "Online" : "Offline"']
+      - lvgl.label.update:
+          id: service_diag_modbus_inside_value
+          text:
+            format: "%s"
+            args: ['id(modbus_inside_online).state ? "Online" : "Offline"']
       - if:
           condition:
             - binary_sensor.is_on: modbus_inside_online

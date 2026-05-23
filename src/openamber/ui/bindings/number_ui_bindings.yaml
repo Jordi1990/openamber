@@ -216,6 +216,19 @@
             format: "%.1f°C"
             args: ['x']
 
+- id: !extend fan_speed_manual_number
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: service_fan_slider_value
+          text:
+            format: "%.0f %%"
+            args: ['id(fan_speed_manual_number).state / 10.0f']
+      - lambda: |-
+          if (id(service_fan_slider) != nullptr) {
+            lv_slider_set_value(id(service_fan_slider), (int) (id(fan_speed_manual_number).state / 10.0f), LV_ANIM_OFF);
+          }
+
 - id: !extend pid_heat_kp
   on_value:
     then:

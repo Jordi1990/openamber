@@ -79,6 +79,38 @@ obj:
               text_font: font_mdi_36
 
     - obj:
+        id: header_maintenance_badge
+        ignore_layout: true
+        hidden: true
+        align: TOP_MID
+        y: 2
+        width: SIZE_CONTENT
+        height: SIZE_CONTENT
+        pad_left: 10
+        pad_right: 10
+        pad_top: 2
+        pad_bottom: 2
+        bg_color: 0xB91C1C
+        bg_opa: 100%
+        radius: 10
+        border_width: 0
+        border_opa: 0%
+        layout:
+          type: FLEX
+          flex_flow: ROW
+          flex_align_cross: CENTER
+          pad_column: 4
+        widgets:
+          - label:
+              text: "\U000F0BE0"
+              text_color: 0xFFFFFF
+              text_font: font_mdi_24
+          - label:
+              text: "Onderhoudsmodus actief"
+              text_color: 0xFFFFFF
+              text_font: font_text_20
+
+    - obj:
         id: header_connectivity_group
         width: SIZE_CONTENT
         height: SIZE_CONTENT

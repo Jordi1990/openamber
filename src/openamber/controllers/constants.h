@@ -63,6 +63,7 @@ static const float DEAD_BAND_DT = 1.0f;
 static const uint32_t WORKING_MODE_STANDBY = 0;
 static const uint32_t WORKING_MODE_COOLING = 1;
 static const uint32_t WORKING_MODE_HEATING = 2;
+static const uint32_t WORKING_MODE_MAINTENANCE = 3;
 
 
 // ============================================================================

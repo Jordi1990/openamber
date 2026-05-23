@@ -3,6 +3,10 @@ substitutions:
   device_friendly_name: OpenAmber
   device_project_name: jordi.openamber
 
+packages:
+  maintenance_proxy_switches: !include maintenance_proxy_switches.yaml
+  maintenance_proxy_numbers: !include maintenance_proxy_numbers.yaml
+
 external_components:
   - source:
       type: local

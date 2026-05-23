@@ -62,6 +62,7 @@ void OpenAmberComponent::update()
 
   ThreeWayValvePosition current_valve_position = GetThreeWayValvePosition();
   ThreeWayValvePosition desired_valve_position = GetDesiredThreeWayValvePosition();
+  bool maintenance_requested = id(service_mode_enabled).state;
 
   switch (state_)
   {
@@ -104,15 +105,25 @@ void OpenAmberComponent::update()
     {
       dhw_controller_->CheckLegionellaCycle();
 
-      if(desired_valve_position == ThreeWayValvePosition::DHW && !heat_cool_controller_->IsRequestedToStop())
+      if((desired_valve_position == ThreeWayValvePosition::DHW || maintenance_requested) && !heat_cool_controller_->IsRequestedToStop())
       {
         heat_cool_controller_->RequestToStop();
       }
 
-      if(heat_cool_controller_->IsInIdleState() && desired_valve_position != current_valve_position)
+      if(heat_cool_controller_->IsInIdleState())
       {
-        SetThreeWayValve(desired_valve_position);
-        LeaveStateAndSetNextStateAfterWaitTime(desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);
+        if(maintenance_requested)
+        {
+          auto working_mode_call = id(working_mode_switch).make_call();
+          working_mode_call.set_index(WORKING_MODE_MAINTENANCE);
+          working_mode_call.perform();
+          SetNextState(State::MAINTENANCE);
+        }
+        else if(desired_valve_position != current_valve_position)
+        {
+          SetThreeWayValve(desired_valve_position);
+          LeaveStateAndSetNextStateAfterWaitTime(desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);
+        }
         break;
       }
 
@@ -124,10 +135,25 @@ void OpenAmberComponent::update()
     {
       dhw_controller_->CheckLegionellaCycle();
 
-      if(dhw_controller_->IsInIdleState() && desired_valve_position != current_valve_position)
+      if(maintenance_requested && !dhw_controller_->IsRequestedToStop())
       {
-        SetThreeWayValve(desired_valve_position);
-        LeaveStateAndSetNextStateAfterWaitTime(desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);
+        dhw_controller_->RequestToStop();
+      }
+
+      if(dhw_controller_->IsInIdleState())
+      {
+        if(maintenance_requested)
+        {
+          auto working_mode_call = id(working_mode_switch).make_call();
+          working_mode_call.set_index(WORKING_MODE_MAINTENANCE);
+          working_mode_call.perform();
+          SetNextState(State::MAINTENANCE);
+        }
+        else if(desired_valve_position != current_valve_position)
+        {
+          SetThreeWayValve(desired_valve_position);
+          LeaveStateAndSetNextStateAfterWaitTime(desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);
+        }
         break;
       }
 
@@ -135,10 +161,20 @@ void OpenAmberComponent::update()
       break;
     }
 
+    case State::MAINTENANCE:
+    {
+      if (!maintenance_requested)
+      {
+        // Go to initializing state so we also reset all relays and working mode.
+        SetNextState(State::INITIALIZING);
+      }
+      break;
+    }
+
     case State::WAIT_FOR_STATE_SWITCH:
     {
       uint32_t now = App.get_loop_component_start_time();
-      if (defer_state_change_until_ms_ > now)
+      if (defer_state_change_until_ms_ > now && !maintenance_requested)
       {
         ESP_LOGD("amber", "Waiting for state switch, transitioning to next state in %lu ms", defer_state_change_until_ms_ - now);
       }
@@ -168,13 +204,18 @@ void OpenAmberComponent::reset_pump_interval()
   pump_controller_->ResetInterval();
 }
 
+bool OpenAmberComponent::is_maintenance_state() const
+{
+  return state_ == State::MAINTENANCE;
+}
+
 // Privates
 void OpenAmberComponent::SetNextState(State state)
 {
   state_ = state;
   const char* txt = StateToString(state);
   id(state_machine_state_main).publish_state(txt);
-  ESP_LOGI("amber", "State changed: %s", txt);
+  ESP_LOGI("amber", "Main State changed: %s", txt);
 }
 
 void OpenAmberComponent::LeaveStateAndSetNextStateAfterWaitTime(State new_state, uint32_t defer_ms)
@@ -198,6 +239,8 @@ const char* OpenAmberComponent::StateToString(State state)
       return "DHW";
     case State::HEAT_COOL:
       return "Heat/Cool";
+    case State::MAINTENANCE:
+      return "Maintenance";
     default:
       return "Unknown";
   }

@@ -26,6 +26,86 @@
     then:
       - script.execute: update_advanced_settings_ui
 
+# ── Service: Maintenance mode toggle ──
+- id: !extend service_mode_enabled
+  on_state:
+    then:
+      - script.execute: update_service_mode_ui
+
+- id: !extend pump_p0_relay_switch
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: service_pump_p0_switch_ui
+          state:
+            checked: !lambda 'return x;'
+
+- id: !extend pump_p1_relay_switch
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: service_pump_p1_switch_ui
+          state:
+            checked: !lambda 'return x;'
+
+- id: !extend pump_p2_relay_switch
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: service_pump_p2_switch_ui
+          state:
+            checked: !lambda 'return x;'
+
+- id: !extend dhw_pump_relay_switch
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: service_dhw_pump_switch_ui
+          state:
+            checked: !lambda 'return x;'
+
+- id: !extend backup_heater_relay
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: service_backup_heater_relay_switch_ui
+          state:
+            checked: !lambda 'return x;'
+
+- id: !extend external_backup_heating_relay
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: service_external_backup_heating_relay_switch_ui
+          state:
+            checked: !lambda 'return x;'
+
+- id: !extend compressor_crankcase_heater_manual_switch
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: service_crankcase_heater_switch_ui
+          state:
+            checked: !lambda 'return x;'
+
+- id: !extend bottom_plate_heater_manual_switch
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: service_bottom_plate_heater_switch_ui
+          state:
+            checked: !lambda 'return x;'
+
+- id: !extend three_way_valve_heat_cool_switch
+  on_state:
+    then:
+      - script.execute: update_service_valve_ui
+
+- id: !extend three_way_valve_dhw_switch
+  on_state:
+    then:
+      - script.execute: update_service_valve_ui
+
 # ── Settings: Pump P1 toggle ──
 - id: !extend pump_p1_enabled
   on_state:

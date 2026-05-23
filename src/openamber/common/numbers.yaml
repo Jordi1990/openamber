@@ -521,6 +521,38 @@
   address: 1103
   min_value: 0
   max_value: 1000
+  web_server:
+    sorting_group_id: manual_control
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: fan_speed_manual_number
+  name: "Ventilator snelheid handmatig"
+  internal: True
+  address: 2009
+  register_type: holding
+  value_type: S_WORD
+  min_value: 0
+  max_value: 1000
+  step: 1
+  mode: box
+  web_server:
+    sorting_group_id: manual_control
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: evi_open_setting_manual_number
+  name: "EVI opening handmatig"
+  internal: True
+  address: 2013
+  register_type: holding
+  value_type: S_WORD
+  min_value: 0
+  max_value: 500
+  step: 1
+  mode: box
+  web_server:
+    sorting_group_id: manual_control
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit

@@ -22,10 +22,10 @@ obj:
         bg_color: 0xF5F8FC
         bg_opa: 100%
         radius: 18
-        pad_left: 24
-        pad_right: 24
-        pad_top: 20
-        pad_bottom: 20
+        pad_left: 16
+        pad_right: 16
+        pad_top: 12
+        pad_bottom: 12
         border_width: 0
         border_opa: 0%
         shadow_width: 10
@@ -37,11 +37,1245 @@ obj:
 
         widgets:
           - obj:
-              id: service_updates_panel
-              width: 100%
+              id: service_tabs_bar
+              width: 210
               height: 100%
               align: TOP_LEFT
+              bg_color: 0xE8ECF1
+              bg_opa: 100%
+              radius: 14
+              border_width: 0
+              border_opa: 0%
+              pad_left: 4
+              pad_right: 4
+              pad_top: 6
+              pad_bottom: 6
+              scrollbar_mode: "OFF"
+              scrollable: true
+              layout:
+                type: FLEX
+                flex_flow: COLUMN
+                flex_align_main: START
+                flex_align_cross: STRETCH
+                pad_row: 2
+              widgets:
+                - obj:
+                    id: service_tab_system
+                    hidden: true
+                    width: 100%
+                    height: 40
+                    bg_color: 0x1F3B68
+                    bg_opa: 100%
+                    radius: 10
+                    border_width: 0
+                    border_opa: 0%
+                    pad_left: 12
+                    pad_top: 2
+                    pad_bottom: 2
+                    on_click:
+                      - lvgl.widget.hide: { id: service_maintenance_panel }
+                      - lvgl.widget.hide: { id: service_sensors_panel }
+                      - lvgl.widget.show: { id: service_updates_panel }
+                      - lvgl.widget.hide: { id: service_mpanel_compressor }
+                      - lvgl.widget.hide: { id: service_mpanel_pumps }
+                      - lvgl.widget.hide: { id: service_mpanel_valve }
+                      - lvgl.widget.hide: { id: service_mpanel_backup }
+                      - lvgl.widget.update: { id: service_tab_maintenance, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_maintenance_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_compressor, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_compressor_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_pumps, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_pumps_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_valve, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_valve_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_backup, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_backup_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_sensors, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_sensors_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_system, bg_color: 0x1F3B68 }
+                      - lvgl.widget.update: { id: service_tab_system_lbl, text_color: 0xFFFFFF }
+                    widgets:
+                      - label:
+                          id: service_tab_system_lbl
+                          text: "Systeem"
+                          text_color: 0xFFFFFF
+                          text_font: font_text_24
+                          align: LEFT_MID
+
+                - obj:
+                    hidden: true
+                    width: 100%
+                    height: 2
+                    bg_color: 0xCBD5E1
+                    bg_opa: 100%
+                    border_opa: 0%
+                    radius: 0
+                    pad_all: 0
+                    scrollbar_mode: "OFF"
+                    scrollable: false
+
+                - obj:
+                    id: service_tab_maintenance
+                    width: 100%
+                    height: 40
+                    bg_color: 0xE8ECF1
+                    bg_opa: 100%
+                    radius: 10
+                    border_width: 0
+                    border_opa: 0%
+                    pad_left: 12
+                    pad_top: 2
+                    pad_bottom: 2
+                    on_click:
+                      - lvgl.widget.show: { id: service_maintenance_panel }
+                      - lvgl.widget.hide: { id: service_sensors_panel }
+                      - lvgl.widget.hide: { id: service_updates_panel }
+                      - lvgl.widget.show: { id: service_maintenance_header }
+                      - lvgl.widget.show: { id: service_maintenance_title }
+                      - lvgl.widget.show: { id: service_maintenance_state }
+                      - lvgl.widget.show: { id: set_service_mode_switch_ui }
+                      - lvgl.widget.update: { id: service_maintenance_layout, y: 112, height: 72% }
+                      - lvgl.widget.hide: { id: service_mpanel_compressor }
+                      - lvgl.widget.hide: { id: service_mpanel_pumps }
+                      - lvgl.widget.hide: { id: service_mpanel_valve }
+                      - lvgl.widget.hide: { id: service_mpanel_backup }
+                      - lvgl.widget.update: { id: service_tab_maintenance, bg_color: 0x1F3B68 }
+                      - lvgl.widget.update: { id: service_tab_maintenance_lbl, text_color: 0xFFFFFF }
+                      - lvgl.widget.update: { id: service_tab_compressor, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_compressor_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_pumps, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_pumps_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_valve, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_valve_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_backup, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_backup_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_sensors, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_sensors_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_system, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_system_lbl, text_color: 0x4B5563 }
+                      - script.execute: update_service_mode_ui
+                    widgets:
+                      - label:
+                          id: service_tab_maintenance_lbl
+                          text: "Algemeen"
+                          text_color: 0x4B5563
+                          text_font: font_text_24
+                          align: LEFT_MID
+
+                - obj:
+                    id: service_tab_compressor
+                    width: 100%
+                    height: 40
+                    bg_color: 0xE8ECF1
+                    bg_opa: 100%
+                    radius: 10
+                    border_width: 0
+                    border_opa: 0%
+                    pad_left: 12
+                    pad_top: 2
+                    pad_bottom: 2
+                    on_click:
+                      - lvgl.widget.show: { id: service_maintenance_panel }
+                      - lvgl.widget.hide: { id: service_sensors_panel }
+                      - lvgl.widget.hide: { id: service_updates_panel }
+                      - lvgl.widget.hide: { id: service_maintenance_header }
+                      - lvgl.widget.hide: { id: service_maintenance_title }
+                      - lvgl.widget.hide: { id: service_maintenance_state }
+                      - lvgl.widget.hide: { id: set_service_mode_switch_ui }
+                      - lvgl.widget.update: { id: service_maintenance_layout, y: 0, height: 100% }
+                      - lvgl.widget.show: { id: service_mpanel_compressor }
+                      - lvgl.widget.hide: { id: service_mpanel_pumps }
+                      - lvgl.widget.hide: { id: service_mpanel_valve }
+                      - lvgl.widget.hide: { id: service_mpanel_backup }
+                      - lvgl.widget.update: { id: service_tab_system, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_system_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_sensors, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_sensors_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_maintenance, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_maintenance_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_compressor, bg_color: 0x1F3B68 }
+                      - lvgl.widget.update: { id: service_tab_compressor_lbl, text_color: 0xFFFFFF }
+                      - lvgl.widget.update: { id: service_tab_pumps, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_pumps_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_valve, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_valve_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_backup, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_backup_lbl, text_color: 0x4B5563 }
+                      - script.execute: update_service_mode_ui
+                    widgets:
+                      - label:
+                          id: service_tab_compressor_lbl
+                          text: "Buitenunit"
+                          text_color: 0x4B5563
+                          text_font: font_text_24
+                          align: LEFT_MID
+
+                - obj:
+                    id: service_tab_pumps
+                    width: 100%
+                    height: 40
+                    bg_color: 0xE8ECF1
+                    bg_opa: 100%
+                    radius: 10
+                    border_width: 0
+                    border_opa: 0%
+                    pad_left: 12
+                    pad_top: 2
+                    pad_bottom: 2
+                    on_click:
+                      - lvgl.widget.show: { id: service_maintenance_panel }
+                      - lvgl.widget.hide: { id: service_sensors_panel }
+                      - lvgl.widget.hide: { id: service_updates_panel }
+                      - lvgl.widget.hide: { id: service_maintenance_header }
+                      - lvgl.widget.hide: { id: service_maintenance_title }
+                      - lvgl.widget.hide: { id: service_maintenance_state }
+                      - lvgl.widget.hide: { id: set_service_mode_switch_ui }
+                      - lvgl.widget.update: { id: service_maintenance_layout, y: 0, height: 100% }
+                      - lvgl.widget.hide: { id: service_mpanel_compressor }
+                      - lvgl.widget.show: { id: service_mpanel_pumps }
+                      - lvgl.widget.hide: { id: service_mpanel_valve }
+                      - lvgl.widget.hide: { id: service_mpanel_backup }
+                      - lvgl.widget.update: { id: service_tab_system, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_system_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_sensors, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_sensors_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_maintenance, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_maintenance_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_compressor, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_compressor_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_pumps, bg_color: 0x1F3B68 }
+                      - lvgl.widget.update: { id: service_tab_pumps_lbl, text_color: 0xFFFFFF }
+                      - lvgl.widget.update: { id: service_tab_valve, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_valve_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_backup, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_backup_lbl, text_color: 0x4B5563 }
+                      - script.execute: update_service_mode_ui
+                    widgets:
+                      - label:
+                          id: service_tab_pumps_lbl
+                          text: "Pompen"
+                          text_color: 0x4B5563
+                          text_font: font_text_24
+                          align: LEFT_MID
+
+                - obj:
+                    id: service_tab_valve
+                    width: 100%
+                    height: 40
+                    bg_color: 0xE8ECF1
+                    bg_opa: 100%
+                    radius: 10
+                    border_width: 0
+                    border_opa: 0%
+                    pad_left: 12
+                    pad_top: 2
+                    pad_bottom: 2
+                    on_click:
+                      - lvgl.widget.show: { id: service_maintenance_panel }
+                      - lvgl.widget.hide: { id: service_sensors_panel }
+                      - lvgl.widget.hide: { id: service_updates_panel }
+                      - lvgl.widget.hide: { id: service_maintenance_header }
+                      - lvgl.widget.hide: { id: service_maintenance_title }
+                      - lvgl.widget.hide: { id: service_maintenance_state }
+                      - lvgl.widget.hide: { id: set_service_mode_switch_ui }
+                      - lvgl.widget.update: { id: service_maintenance_layout, y: 0, height: 100% }
+                      - lvgl.widget.hide: { id: service_mpanel_compressor }
+                      - lvgl.widget.hide: { id: service_mpanel_pumps }
+                      - lvgl.widget.show: { id: service_mpanel_valve }
+                      - lvgl.widget.hide: { id: service_mpanel_backup }
+                      - lvgl.widget.update: { id: service_tab_system, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_system_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_sensors, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_sensors_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_maintenance, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_maintenance_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_compressor, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_compressor_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_pumps, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_pumps_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_valve, bg_color: 0x1F3B68 }
+                      - lvgl.widget.update: { id: service_tab_valve_lbl, text_color: 0xFFFFFF }
+                      - lvgl.widget.update: { id: service_tab_backup, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_backup_lbl, text_color: 0x4B5563 }
+                      - script.execute: update_service_mode_ui
+                    widgets:
+                      - label:
+                          id: service_tab_valve_lbl
+                          text: "3-weg klep"
+                          text_color: 0x4B5563
+                          text_font: font_text_24
+                          align: LEFT_MID
+
+                - obj:
+                    id: service_tab_backup
+                    width: 100%
+                    height: 40
+                    bg_color: 0xE8ECF1
+                    bg_opa: 100%
+                    radius: 10
+                    border_width: 0
+                    border_opa: 0%
+                    pad_left: 12
+                    pad_top: 2
+                    pad_bottom: 2
+                    on_click:
+                      - lvgl.widget.show: { id: service_maintenance_panel }
+                      - lvgl.widget.hide: { id: service_sensors_panel }
+                      - lvgl.widget.hide: { id: service_updates_panel }
+                      - lvgl.widget.hide: { id: service_maintenance_header }
+                      - lvgl.widget.hide: { id: service_maintenance_title }
+                      - lvgl.widget.hide: { id: service_maintenance_state }
+                      - lvgl.widget.hide: { id: set_service_mode_switch_ui }
+                      - lvgl.widget.update: { id: service_maintenance_layout, y: 0, height: 100% }
+                      - lvgl.widget.hide: { id: service_mpanel_compressor }
+                      - lvgl.widget.hide: { id: service_mpanel_pumps }
+                      - lvgl.widget.hide: { id: service_mpanel_valve }
+                      - lvgl.widget.show: { id: service_mpanel_backup }
+                      - lvgl.widget.update: { id: service_tab_system, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_system_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_sensors, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_sensors_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_maintenance, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_maintenance_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_compressor, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_compressor_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_pumps, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_pumps_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_valve, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_valve_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_backup, bg_color: 0x1F3B68 }
+                      - lvgl.widget.update: { id: service_tab_backup_lbl, text_color: 0xFFFFFF }
+                      - script.execute: update_service_mode_ui
+                    widgets:
+                      - label:
+                          id: service_tab_backup_lbl
+                          text: "Back-up"
+                          text_color: 0x4B5563
+                          text_font: font_text_24
+                          align: LEFT_MID
+
+                - obj:
+                    id: service_tab_sensors
+                    width: 100%
+                    height: 40
+                    bg_color: 0xE8ECF1
+                    bg_opa: 100%
+                    radius: 10
+                    border_width: 0
+                    border_opa: 0%
+                    pad_left: 12
+                    pad_top: 2
+                    pad_bottom: 2
+                    on_click:
+                      - lvgl.widget.hide: { id: service_maintenance_panel }
+                      - lvgl.widget.show: { id: service_sensors_panel }
+                      - lvgl.widget.hide: { id: service_updates_panel }
+                      - lvgl.widget.hide: { id: service_mpanel_compressor }
+                      - lvgl.widget.hide: { id: service_mpanel_pumps }
+                      - lvgl.widget.hide: { id: service_mpanel_valve }
+                      - lvgl.widget.hide: { id: service_mpanel_backup }
+                      - lvgl.widget.update: { id: service_tab_maintenance, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_maintenance_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_compressor, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_compressor_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_pumps, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_pumps_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_valve, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_valve_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_backup, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_backup_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: service_tab_sensors, bg_color: 0x1F3B68 }
+                      - lvgl.widget.update: { id: service_tab_sensors_lbl, text_color: 0xFFFFFF }
+                      - lvgl.widget.update: { id: service_tab_system, bg_color: 0xE8ECF1 }
+                      - lvgl.widget.update: { id: service_tab_system_lbl, text_color: 0x4B5563 }
+                      - script.execute: update_service_mode_ui
+                    widgets:
+                      - label:
+                          id: service_tab_sensors_lbl
+                          text: "Sensoren"
+                          text_color: 0x4B5563
+                          text_font: font_text_24
+                          align: LEFT_MID
+
+          - obj:
+              id: service_maintenance_panel
+              width: 72%
+              height: 100%
+              align: TOP_RIGHT
               y: 0
+              hidden: true
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 0
+              scrollbar_mode: "OFF"
+              scrollable: false
+              widgets:
+                - obj:
+                    id: service_maintenance_header
+                    width: 100%
+                    height: 72
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_all: 4
+                    scrollbar_mode: "OFF"
+                    scrollable: false
+                    widgets:
+                      - label:
+                          id: service_maintenance_title
+                          text: "Onderhoudsmodus"
+                          text_color: 0x1F2933
+                          text_font: font_text_24
+                          align: TOP_LEFT
+                      - label:
+                          id: service_maintenance_state
+                          width: 75%
+                          height: SIZE_CONTENT
+                          text: "Onderhoudsmodus niet actief"
+                          text_color: 0x6B7280
+                          text_font: font_text_24
+                          align: TOP_LEFT
+                          y: 34
+                      - switch:
+                          id: set_service_mode_switch_ui
+                          align: TOP_RIGHT
+                          bg_color: 0x9CA3AF
+                          indicator:
+                            bg_color: 0x16A34A
+                          knob:
+                            bg_color: 0xFFFFFF
+                          on_click:
+                            - if:
+                                condition:
+                                  switch.is_on: service_mode_enabled
+                                then:
+                                  - switch.turn_off: service_mode_enabled
+                                  - script.execute: update_service_mode_ui
+                                else:
+                                  - switch.turn_on: service_mode_enabled
+                                  - script.execute: update_service_mode_ui
+
+                - label:
+                    id: service_maintenance_lock_hint
+                    width: 100%
+                    text: "Handmatige bediening blijft vergrendeld tot onderhoudsmodus actief is."
+                    text_color: 0x9CA3AF
+                    text_font: font_text_24
+                    long_mode: WRAP
+                    align: TOP_LEFT
+                    y: 74
+
+                - obj:
+                    id: service_maintenance_layout
+                    width: 100%
+                    height: 72%
+                    align: TOP_LEFT
+                    y: 112
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_all: 0
+                    scrollbar_mode: "OFF"
+                    scrollable: false
+                    layout:
+                      type: GRID
+                      grid_rows: [FR(1)]
+                      grid_columns: [FR(1)]
+                      pad_column: 0
+                    widgets:
+                      - obj:
+                          id: service_maintenance_controls_container
+                          width: 100%
+                          height: 100%
+                          grid_cell_row_pos: 0
+                          grid_cell_column_pos: 0
+                          grid_cell_x_align: STRETCH
+                          grid_cell_y_align: STRETCH
+                          hidden: false
+                          opa: 45%
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 6
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          widgets:
+                            - obj:
+                                id: service_mpanel_compressor
+                                width: 100%
+                                height: 100%
+                                hidden: false
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                widgets:
+                                  - label:
+                                      text: "Buitenunit"
+                                      text_color: 0x1F2933
+                                      text_font: font_text_24
+                                      align: TOP_LEFT
+                                  - label:
+                                      width: 100%
+                                      text: "Stuur ventilator en heaters handmatig voor service en diagnose."
+                                      text_color: 0x6B7280
+                                      text_font: font_text_24
+                                      long_mode: WRAP
+                                      align: TOP_LEFT
+                                      y: 26
+
+                                  - obj:
+                                      width: 100%
+                                      height: 64
+                                      y: 86
+                                      bg_opa: 0%
+                                      border_opa: 0%
+                                      pad_all: 0
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      widgets:
+                                        - label:
+                                            text: "Ventilator handmatig"
+                                            text_color: 0x1F2933
+                                            text_font: font_text_24
+                                            align: TOP_LEFT
+                                        - label:
+                                            id: service_fan_slider_value
+                                            text: "- %"
+                                            text_color: 0x1F2933
+                                            text_font: font_text_24
+                                            align: TOP_RIGHT
+                                        - slider:
+                                            id: service_fan_slider
+                                            width: 96%
+                                            align: TOP_MID
+                                            y: 30
+                                            min_value: 0
+                                            max_value: 100
+                                            value: 0
+                                            knob:
+                                              bg_color: 0xFFFFFF
+                                              border_color: 0x1F3B68
+                                              border_width: 3
+                                            on_value:
+                                              then:
+                                                - lambda: |-
+                                                    const auto duty = lv_slider_get_value(id(service_fan_slider));
+                                                    lv_label_set_text_fmt(id(service_fan_slider_value), "%d %%", duty);
+                                            on_release:
+                                              then:
+                                                - if:
+                                                    condition:
+                                                      lambda: 'return id(state_machine_state_main).state == "Maintenance";'
+                                                    then:
+                                                      - lambda: |-
+                                                          const auto duty = lv_slider_get_value(id(service_fan_slider));
+                                                          auto fan_call = id(fan_speed_manual_number).make_call();
+                                                          fan_call.set_value(duty * 10);
+                                                          fan_call.perform();
+                                                    else:
+                                                      - script.execute: update_service_mode_ui
+
+                                  - obj:
+                                      width: 100%
+                                      height: 34
+                                      y: 154
+                                      bg_opa: 0%
+                                      border_opa: 0%
+                                      pad_all: 0
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      widgets:
+                                        - label:
+                                            text: "Carterverwarming"
+                                            text_color: 0x1F2933
+                                            text_font: font_text_24
+                                            align: LEFT_MID
+                                        - switch:
+                                            id: service_crankcase_heater_switch_ui
+                                            align: RIGHT_MID
+                                            bg_color: 0x9CA3AF
+                                            indicator:
+                                              bg_color: 0x16A34A
+                                            knob:
+                                              bg_color: 0xFFFFFF
+                                            on_click:
+                                              - if:
+                                                  condition:
+                                                    lambda: 'return id(state_machine_state_main).state == "Maintenance";'
+                                                  then:
+                                                    - switch.toggle: compressor_crankcase_heater_manual_switch
+                                                  else:
+                                                    - script.execute: update_service_mode_ui
+
+                                  - obj:
+                                      width: 100%
+                                      height: 34
+                                      y: 190
+                                      bg_opa: 0%
+                                      border_opa: 0%
+                                      pad_all: 0
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      widgets:
+                                        - label:
+                                            text: "Bodemplaat verwarming"
+                                            text_color: 0x1F2933
+                                            text_font: font_text_24
+                                            align: LEFT_MID
+                                        - switch:
+                                            id: service_bottom_plate_heater_switch_ui
+                                            align: RIGHT_MID
+                                            bg_color: 0x9CA3AF
+                                            indicator:
+                                              bg_color: 0x16A34A
+                                            knob:
+                                              bg_color: 0xFFFFFF
+                                            on_click:
+                                              - if:
+                                                  condition:
+                                                    lambda: 'return id(state_machine_state_main).state == "Maintenance";'
+                                                  then:
+                                                    - switch.toggle: bottom_plate_heater_manual_switch
+                                                  else:
+                                                    - script.execute: update_service_mode_ui
+
+                            - obj:
+                                id: service_mpanel_pumps
+                                width: 100%
+                                height: 100%
+                                hidden: true
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                widgets:
+                                  - label:
+                                      text: "Pompen"
+                                      text_color: 0x1F2933
+                                      text_font: font_text_24
+                                      align: TOP_LEFT
+                                  - label:
+                                      width: 100%
+                                      text: "Schakel pompen en P0-PWM tijdelijk handmatig voor testdoeleinden."
+                                      text_color: 0x6B7280
+                                      text_font: font_text_24
+                                      long_mode: WRAP
+                                      align: TOP_LEFT
+                                      y: 26
+                                  - obj:
+                                      width: 100%
+                                      height: 34
+                                      y: 56
+                                      bg_opa: 0%
+                                      border_opa: 0%
+                                      pad_all: 0
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      widgets:
+                                        - label:
+                                            text: "P0 pomp relais"
+                                            text_color: 0x1F2933
+                                            text_font: font_text_24
+                                            align: LEFT_MID
+                                        - switch:
+                                            id: service_pump_p0_switch_ui
+                                            align: RIGHT_MID
+                                            bg_color: 0x9CA3AF
+                                            indicator:
+                                              bg_color: 0x16A34A
+                                            knob:
+                                              bg_color: 0xFFFFFF
+                                            on_click:
+                                              - if:
+                                                  condition:
+                                                    lambda: 'return id(state_machine_state_main).state == "Maintenance";'
+                                                  then:
+                                                    - switch.toggle: pump_p0_relay_switch
+                                                  else:
+                                                    - script.execute: update_service_mode_ui
+
+                                  - obj:
+                                      width: 100%
+                                      height: 64
+                                      y: 92
+                                      bg_opa: 0%
+                                      border_opa: 0%
+                                      pad_all: 0
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      widgets:
+                                        - label:
+                                            text: "P0 PWM"
+                                            text_color: 0x1F2933
+                                            text_font: font_text_24
+                                            align: TOP_LEFT
+                                        - label:
+                                            id: service_p0_pwm_slider_value
+                                            text: "- %"
+                                            text_color: 0x1F2933
+                                            text_font: font_text_24
+                                            align: TOP_RIGHT
+                                        - slider:
+                                            id: service_p0_pwm_slider
+                                            width: 96%
+                                            align: TOP_MID
+                                            y: 30
+                                            min_value: 0
+                                            max_value: 100
+                                            value: 0
+                                            knob:
+                                              bg_color: 0xFFFFFF
+                                              border_color: 0x1F3B68
+                                              border_width: 3
+                                            on_value:
+                                              then:
+                                                - lambda: |-
+                                                    const auto duty = lv_slider_get_value(id(service_p0_pwm_slider));
+                                                    lv_label_set_text_fmt(id(service_p0_pwm_slider_value), "%d %%", duty);
+                                            on_release:
+                                              then:
+                                                - if:
+                                                    condition:
+                                                      lambda: 'return id(state_machine_state_main).state == "Maintenance";'
+                                                    then:
+                                                      - lambda: |-
+                                                          const auto duty = lv_slider_get_value(id(service_p0_pwm_slider));
+                                                          const float control_speed = ((duty * 10) * -1) + 1000;
+                                                          auto pump_call = id(pump_control_pwm_number).make_call();
+                                                          pump_call.set_value(control_speed);
+                                                          pump_call.perform();
+                                                    else:
+                                                      - script.execute: update_service_mode_ui
+
+                                  - obj:
+                                      width: 100%
+                                      height: 34
+                                      y: 160
+                                      bg_opa: 0%
+                                      border_opa: 0%
+                                      pad_all: 0
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      widgets:
+                                        - label:
+                                            text: "P1 pomp relais"
+                                            text_color: 0x1F2933
+                                            text_font: font_text_24
+                                            align: LEFT_MID
+                                        - switch:
+                                            id: service_pump_p1_switch_ui
+                                            align: RIGHT_MID
+                                            bg_color: 0x9CA3AF
+                                            indicator:
+                                              bg_color: 0x16A34A
+                                            knob:
+                                              bg_color: 0xFFFFFF
+                                            on_click:
+                                              - if:
+                                                  condition:
+                                                    lambda: 'return id(state_machine_state_main).state == "Maintenance";'
+                                                  then:
+                                                    - switch.toggle: pump_p1_relay_switch
+                                                  else:
+                                                    - script.execute: update_service_mode_ui
+
+                                  - obj:
+                                      width: 100%
+                                      height: 34
+                                      y: 196
+                                      bg_opa: 0%
+                                      border_opa: 0%
+                                      pad_all: 0
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      widgets:
+                                        - label:
+                                            text: "P2 pomp relais"
+                                            text_color: 0x1F2933
+                                            text_font: font_text_24
+                                            align: LEFT_MID
+                                        - switch:
+                                            id: service_pump_p2_switch_ui
+                                            align: RIGHT_MID
+                                            bg_color: 0x9CA3AF
+                                            indicator:
+                                              bg_color: 0x16A34A
+                                            knob:
+                                              bg_color: 0xFFFFFF
+                                            on_click:
+                                              - if:
+                                                  condition:
+                                                    lambda: 'return id(state_machine_state_main).state == "Maintenance";'
+                                                  then:
+                                                    - switch.toggle: pump_p2_relay_switch
+                                                  else:
+                                                    - script.execute: update_service_mode_ui
+
+                                  - obj:
+                                      width: 100%
+                                      height: 34
+                                      y: 232
+                                      bg_opa: 0%
+                                      border_opa: 0%
+                                      pad_all: 0
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      widgets:
+                                        - label:
+                                            text: "SWW pomp relais"
+                                            text_color: 0x1F2933
+                                            text_font: font_text_24
+                                            align: LEFT_MID
+                                        - switch:
+                                            id: service_dhw_pump_switch_ui
+                                            align: RIGHT_MID
+                                            bg_color: 0x9CA3AF
+                                            indicator:
+                                              bg_color: 0x16A34A
+                                            knob:
+                                              bg_color: 0xFFFFFF
+                                            on_click:
+                                              - if:
+                                                  condition:
+                                                    lambda: 'return id(state_machine_state_main).state == "Maintenance";'
+                                                  then:
+                                                    - switch.toggle: dhw_pump_relay_switch
+                                                  else:
+                                                    - script.execute: update_service_mode_ui
+
+                            - obj:
+                                id: service_mpanel_valve
+                                width: 100%
+                                height: 100%
+                                hidden: true
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                widgets:
+                                  - label:
+                                      text: "3-weg klep"
+                                      text_color: 0x1F2933
+                                      text_font: font_text_24
+                                      align: TOP_LEFT
+                                  - label:
+                                      width: 100%
+                                      text: "Forceer de klepstand tijdelijk naar CV/Koelen of Tapwater."
+                                      text_color: 0x6B7280
+                                      text_font: font_text_24
+                                      long_mode: WRAP
+                                      align: TOP_LEFT
+                                      y: 26
+                                  - obj:
+                                      id: service_valve_btn_heat_cool
+                                      width: 48%
+                                      height: 42
+                                      align: TOP_LEFT
+                                      y: 64
+                                      bg_color: 0xE8ECF1
+                                      bg_opa: 100%
+                                      radius: 8
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - if:
+                                            condition:
+                                              lambda: 'return id(state_machine_state_main).state == "Maintenance";'
+                                            then:
+                                              - lvgl.widget.update: { id: service_valve_btn_heat_cool, bg_color: 0x1F3B68 }
+                                              - lvgl.widget.update: { id: service_valve_btn_heat_cool_lbl, text_color: 0xFFFFFF }
+                                              - lvgl.widget.update: { id: service_valve_btn_dhw, bg_color: 0xE8ECF1 }
+                                              - lvgl.widget.update: { id: service_valve_btn_dhw_lbl, text_color: 0x4B5563 }
+                                              - switch.turn_on: three_way_valve_heat_cool_switch
+                                              - switch.turn_off: three_way_valve_dhw_switch
+                                              - script.execute: update_service_valve_ui
+                                      widgets:
+                                        - label:
+                                            id: service_valve_btn_heat_cool_lbl
+                                            text: "CV/Koelen"
+                                            text_color: 0x4B5563
+                                            text_font: font_text_24
+                                            align: CENTER
+                                  - obj:
+                                      id: service_valve_btn_dhw
+                                      width: 48%
+                                      height: 42
+                                      align: TOP_RIGHT
+                                      y: 64
+                                      bg_color: 0xE8ECF1
+                                      bg_opa: 100%
+                                      radius: 8
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - if:
+                                            condition:
+                                              lambda: 'return id(state_machine_state_main).state == "Maintenance";'
+                                            then:
+                                              - lvgl.widget.update: { id: service_valve_btn_dhw, bg_color: 0x1F3B68 }
+                                              - lvgl.widget.update: { id: service_valve_btn_dhw_lbl, text_color: 0xFFFFFF }
+                                              - lvgl.widget.update: { id: service_valve_btn_heat_cool, bg_color: 0xE8ECF1 }
+                                              - lvgl.widget.update: { id: service_valve_btn_heat_cool_lbl, text_color: 0x4B5563 }
+                                              - switch.turn_on: three_way_valve_dhw_switch
+                                              - switch.turn_off: three_way_valve_heat_cool_switch
+                                              - script.execute: update_service_valve_ui
+                                      widgets:
+                                        - label:
+                                            id: service_valve_btn_dhw_lbl
+                                            text: "Tapwater"
+                                            text_color: 0x4B5563
+                                            text_font: font_text_24
+                                            align: CENTER
+
+                            - obj:
+                                id: service_mpanel_backup
+                                width: 100%
+                                height: 100%
+                                hidden: true
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                widgets:
+                                  - label:
+                                      text: "Back-up verwarming"
+                                      text_color: 0x1F2933
+                                      text_font: font_text_24
+                                      align: TOP_LEFT
+                                  - label:
+                                      width: 100%
+                                      text: "Test handmatig het backup element en CV hybride backup relais."
+                                      text_color: 0x6B7280
+                                      text_font: font_text_24
+                                      long_mode: WRAP
+                                      align: TOP_LEFT
+                                      y: 26
+                                  - obj:
+                                      width: 100%
+                                      height: 34
+                                      y: 64
+                                      bg_opa: 0%
+                                      border_opa: 0%
+                                      pad_all: 0
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      widgets:
+                                        - label:
+                                            text: "Backup element"
+                                            text_color: 0x1F2933
+                                            text_font: font_text_24
+                                            align: LEFT_MID
+                                        - switch:
+                                            id: service_backup_heater_relay_switch_ui
+                                            align: RIGHT_MID
+                                            bg_color: 0x9CA3AF
+                                            indicator:
+                                              bg_color: 0x16A34A
+                                            knob:
+                                              bg_color: 0xFFFFFF
+                                            on_click:
+                                              - if:
+                                                  condition:
+                                                    lambda: 'return id(state_machine_state_main).state == "Maintenance";'
+                                                  then:
+                                                    - switch.toggle: backup_heater_relay
+                                                  else:
+                                                    - script.execute: update_service_mode_ui
+                                  - obj:
+                                      width: 100%
+                                      height: 34
+                                      y: 100
+                                      bg_opa: 0%
+                                      border_opa: 0%
+                                      pad_all: 0
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      widgets:
+                                        - label:
+                                            text: "CV hybride backup relais"
+                                            text_color: 0x1F2933
+                                            text_font: font_text_24
+                                            align: LEFT_MID
+                                        - switch:
+                                            id: service_external_backup_heating_relay_switch_ui
+                                            align: RIGHT_MID
+                                            bg_color: 0x9CA3AF
+                                            indicator:
+                                              bg_color: 0x16A34A
+                                            knob:
+                                              bg_color: 0xFFFFFF
+                                            on_click:
+                                              - if:
+                                                  condition:
+                                                    lambda: 'return id(state_machine_state_main).state == "Maintenance";'
+                                                  then:
+                                                    - switch.toggle: external_backup_heating_relay
+                                                  else:
+                                                    - script.execute: update_service_mode_ui
+
+          - obj:
+              id: service_sensors_panel
+              width: 72%
+              height: 100%
+              align: TOP_RIGHT
+              y: 0
+              hidden: true
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 0
+              scrollbar_mode: "OFF"
+              scrollable: false
+              layout:
+                type: FLEX
+                flex_flow: ROW_WRAP
+                flex_align_main: START
+                flex_align_cross: STRETCH
+                pad_row: 10
+                pad_column: 10
+              widgets:
+                - obj:
+                    width: 49%
+                    height: 166
+                    bg_color: 0xFFFFFF
+                    bg_opa: 100%
+                    radius: 12
+                    border_width: 1
+                    border_color: 0xE5E7EB
+                    border_opa: 100%
+                    pad_all: 10
+                    scrollbar_mode: "OFF"
+                    scrollable: false
+                    widgets:
+                      - label: { text: "Status", text_color: 0x111827, text_font: font_text_20, align: TOP_LEFT }
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          y: 30
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          widgets:
+                            - label: { text: "Hoofdstatus", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
+                            - label: { id: service_diag_state_main_value, width: 54%, text: "-", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: DOT, align: TOP_RIGHT }
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          y: 62
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          widgets:
+                            - label: { text: "CV/Koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
+                            - label: { id: service_diag_state_heat_cool_value, width: 54%, text: "-", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: DOT, align: TOP_RIGHT }
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          y: 94
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          widgets:
+                            - label: { text: "Tapwater", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
+                            - label: { id: service_diag_state_dhw_value, width: 54%, text: "-", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: DOT, align: TOP_RIGHT }
+
+                - obj:
+                    width: 49%
+                    height: 166
+                    bg_color: 0xFFFFFF
+                    bg_opa: 100%
+                    radius: 12
+                    border_width: 1
+                    border_color: 0xE5E7EB
+                    border_opa: 100%
+                    pad_all: 10
+                    scrollbar_mode: "OFF"
+                    scrollable: false
+                    widgets:
+                      - label: { text: "Druk & Temperatuur", text_color: 0x111827, text_font: font_text_20, align: TOP_LEFT }
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          y: 30
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          widgets:
+                            - label: { text: "Ta / Tc", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
+                            - label: { id: service_diag_ta_tc_value, text: "- / -", text_color: 0x1F2933, text_font: font_text_20, align: TOP_RIGHT }
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          y: 62
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          widgets:
+                            - label: { text: "Tuo / Tui", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
+                            - label: { id: service_diag_tuo_tui_value, text: "- / -", text_color: 0x1F2933, text_font: font_text_20, align: TOP_RIGHT }
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          y: 94
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          widgets:
+                            - label: { text: "Zuig / Pers", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
+                            - label: { id: service_diag_pressure_value, text: "- / -", text_color: 0x1F2933, text_font: font_text_20, align: TOP_RIGHT }
+
+                - obj:
+                    width: 49%
+                    height: 230
+                    bg_color: 0xFFFFFF
+                    bg_opa: 100%
+                    radius: 12
+                    border_width: 1
+                    border_color: 0xE5E7EB
+                    border_opa: 100%
+                    pad_all: 10
+                    scrollbar_mode: "OFF"
+                    scrollable: false
+                    widgets:
+                      - label: { text: "Aansturing", text_color: 0x111827, text_font: font_text_20, align: TOP_LEFT }
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          y: 30
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          widgets:
+                            - label: { text: "Compressor", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
+                            - label: { id: service_diag_comp_freq_value, text: "- Hz", text_color: 0x1F2933, text_font: font_text_20, align: TOP_RIGHT }
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          y: 62
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          widgets:
+                            - label: { text: "Pomp PWM", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
+                            - label: { id: service_diag_pump_pwm_value, text: "- %", text_color: 0x1F2933, text_font: font_text_20, align: TOP_RIGHT }
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          y: 94
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          widgets:
+                            - label: { text: "Fan RPM", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
+                            - label: { id: service_diag_fan_value, text: "- rpm", text_color: 0x1F2933, text_font: font_text_20, align: TOP_RIGHT }
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          y: 126
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          widgets:
+                            - label: { text: "Expansieklep", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
+                            - label: { id: service_diag_ev_value, text: "-", text_color: 0x1F2933, text_font: font_text_20, align: TOP_RIGHT }
+
+                - obj:
+                    width: 49%
+                    height: 230
+                    bg_color: 0xFFFFFF
+                    bg_opa: 100%
+                    radius: 12
+                    border_width: 1
+                    border_color: 0xE5E7EB
+                    border_opa: 100%
+                    pad_all: 10
+                    scrollbar_mode: "OFF"
+                    scrollable: false
+                    widgets:
+                      - label: { text: "Systeem", text_color: 0x111827, text_font: font_text_20, align: TOP_LEFT }
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          y: 30
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          widgets:
+                            - label: { text: "Defrost / Bodemplaat", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
+                            - label: { id: service_diag_defrost_bottom_value, width: 50%, text: "- / -", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: DOT, align: TOP_RIGHT }
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          y: 62
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          widgets:
+                            - label: { text: "Modbus binnen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
+                            - label: { id: service_diag_modbus_inside_value, text: "-", text_color: 0x1F2933, text_font: font_text_20, align: TOP_RIGHT }
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          y: 94
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          widgets:
+                            - label: { text: "Modbus buiten", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
+                            - label: { id: service_diag_modbus_outside_value, text: "-", text_color: 0x1F2933, text_font: font_text_20, align: TOP_RIGHT }
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          y: 126
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          widgets:
+                            - label: { text: "SG contacten A / B", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
+                            - label: { id: service_diag_sg_contacts_value, width: 50%, text: "- / -", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: DOT, align: TOP_RIGHT }
+                      - obj:
+                          width: 100%
+                          height: SIZE_CONTENT
+                          y: 158
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          widgets:
+                            - label: { text: "Warmte/koude vraag", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
+                            - label: { id: service_diag_external_demand_wired_value, width: 50%, text: "- / -", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: DOT, align: TOP_RIGHT }
+
+          - obj:
+              id: service_updates_panel
+              width: 72%
+              height: 100%
+              align: TOP_RIGHT
+              y: 0
+              hidden: false
               bg_opa: 0%
               border_opa: 0%
               pad_all: 0
@@ -127,11 +1361,11 @@ obj:
                           value: 'false'
                     widgets:
                       - label:
-                              id: service_check_update_button_label
-                              text: "Controleer updates"
-                              text_color: 0xFFFFFF
-                              text_font: font_mdi_24
-                              align: CENTER
+                          id: service_check_update_button_label
+                          text: "Controleer updates"
+                          text_color: 0xFFFFFF
+                          text_font: font_mdi_24
+                          align: CENTER
 
                 - obj:
                     id: service_check_update_button_busy

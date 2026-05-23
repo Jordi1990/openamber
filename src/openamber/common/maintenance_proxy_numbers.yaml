@@ -1,0 +1,66 @@
+number:
+  - platform: template
+    id: maintenance_pump_control_pwm_proxy
+    name: "Pomp PWM (Maintenance)"
+    min_value: 0
+    max_value: 1000
+    step: 1
+    mode: box
+    lambda: |-
+      return id(pump_control_pwm_number).state;
+    set_action:
+      - if:
+          condition:
+            lambda: 'return id(amber_ctrl).is_maintenance_state();'
+          then:
+            - number.set:
+                id: pump_control_pwm_number
+                value: !lambda 'return x;'
+    disabled_by_default: true
+    entity_category: config
+    web_server:
+      sorting_group_id: manual_control
+
+  - platform: template
+    id: maintenance_fan_speed_manual_proxy
+    name: "Ventilator snelheid handmatig (Maintenance)"
+    min_value: 0
+    max_value: 1000
+    step: 1
+    mode: box
+    lambda: |-
+      return id(fan_speed_manual_number).state;
+    set_action:
+      - if:
+          condition:
+            lambda: 'return id(amber_ctrl).is_maintenance_state();'
+          then:
+            - number.set:
+                id: fan_speed_manual_number
+                value: !lambda 'return x;'
+    disabled_by_default: true
+    entity_category: config
+    web_server:
+      sorting_group_id: manual_control
+
+  - platform: template
+    id: maintenance_evi_open_setting_manual_proxy
+    name: "EVI opening handmatig (Maintenance)"
+    min_value: 0
+    max_value: 500
+    step: 1
+    mode: box
+    lambda: |-
+      return id(evi_open_setting_manual_number).state;
+    set_action:
+      - if:
+          condition:
+            lambda: 'return id(amber_ctrl).is_maintenance_state();'
+          then:
+            - number.set:
+                id: evi_open_setting_manual_number
+                value: !lambda 'return x;'
+    disabled_by_default: true
+    entity_category: config
+    web_server:
+      sorting_group_id: manual_control
