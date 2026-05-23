@@ -574,9 +574,9 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: bottomplate_heater_ambient_temperature_start
-  name: "Bodemplaat starttemperatuur"
   unit_of_measurement: "°C"
   device_class: "temperature"
+  internal: True
   address: 3237
   register_type: holding
   value_type: S_WORD
@@ -584,9 +584,9 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: bottomplate_heater_ambient_hysteresis_stop
-  name: "Bodemplaat stop-hysterese"
   unit_of_measurement: "°C"
   device_class: "temperature"
+  internal: True
   address: 3238
   register_type: holding
   value_type: S_WORD
@@ -594,12 +594,9 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: enter_defrost_temperature
-  name: "Defrost starttemperatuur 1"
-  min_value: -3
-  max_value: 3
-  step: 0.1
   unit_of_measurement: "°C"
   device_class: "temperature"
+  internal: True
   address: 3276
   register_type: holding
   value_type: S_WORD
@@ -607,9 +604,9 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: exit_defrost_temperature
-  name: "Defrost stoptemperatuur"
   unit_of_measurement: "°C"
   device_class: "temperature"
+  internal: True
   address: 3277
   register_type: holding
   value_type: S_WORD
@@ -617,7 +614,7 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: max_defrost_time
-  name: "Defrost maximale duur"
+  internal: True
   address: 3278
   register_type: holding
   value_type: S_WORD
@@ -625,12 +622,12 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: enter_defrost_temperature_2
-  name: "Defrost starttemperatuur 2"
   min_value: -3
   max_value: 3
   step: 0.1
   unit_of_measurement: "°C"
   device_class: "temperature"
+  internal: True
   address: 3336
   register_type: holding
   value_type: S_WORD
@@ -638,12 +635,12 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: enter_defrost_temperature_3
-  name: "Defrost starttemperatuur 3"
   min_value: -10
   max_value: -3
   step: 0.1
   unit_of_measurement: "°C"
   device_class: "temperature"
+  internal: True
   address: 3337
   register_type: holding
   value_type: S_WORD
@@ -651,12 +648,12 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: enter_defrost_temperature_4
-  name: "Defrost starttemperatuur 4"
   min_value: -10
   max_value: -3
   step: 0.1
   unit_of_measurement: "°C"
   device_class: "temperature"
+  internal: True
   address: 3338
   register_type: holding
   value_type: S_WORD
