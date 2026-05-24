@@ -56,7 +56,7 @@ obj:
                     id: thermostat_select_tab
                     tab_index: 0
               widgets:
-                - label: { id: thermostat_stab_setpoint_lbl, text: "Setpoint", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
+                - label: { id: thermostat_stab_setpoint_lbl, text: "Algemeen", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
 
           - obj:
               id: thermostat_stab_verwarmen
@@ -116,6 +116,38 @@ obj:
           flex_align_cross: STRETCH
           pad_row: 4
         widgets:
+          - obj:
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Thermostaat bron", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Kies intern of extern thermostaatsignaal", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - dropdown:
+                    id: set_thermostat_dd
+                    symbol: "\U000F0140"
+                    width: 200
+                    align: TOP_RIGHT
+                    y: 0
+                    options:
+                      - "Intern"
+                      - "Extern"
+                    text_font: font_text_20
+                    dropdown_list:
+                      text_font: font_text_20
+                    on_value:
+                      then:
+                        - lambda: |-
+                            auto val = lv_dropdown_get_selected(id(set_thermostat_dd)->obj);
+                            auto idx = id(thermostat_mode_select).active_index();
+                            if (idx.has_value() && idx.value() == (int) val) {
+                              return;
+                            }
+                            if (val == 0) id(thermostat_mode_select).make_call().set_option("Intern").perform();
+                            else id(thermostat_mode_select).make_call().set_option("Extern").perform();
+
           - obj:
               width: 100%
               height: SIZE_CONTENT

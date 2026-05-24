@@ -4,6 +4,34 @@
 # on_value callbacks that update settings LVGL labels on change.
 # ══════════════════════════════════════════════════════════════
 
+# ── Sensor kalibratie ──
+- id: !extend tr_offset
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_tr_offset_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+- id: !extend tw_offset
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_tw_offset_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+- id: !extend tc_offset
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_tc_offset_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
 # ── Vorstbescherming ──
 - id: !extend frost_protection_stage_1_temp_ta
   on_value:

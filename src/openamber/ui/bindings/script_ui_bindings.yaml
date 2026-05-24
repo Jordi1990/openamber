@@ -84,6 +84,29 @@
                 - lvgl.widget.update: { id: thermostat_stab_koelen, bg_color: 0x1F3B68 }
                 - lvgl.label.update: { id: thermostat_stab_koelen_lbl, text_color: 0xFFFFFF }
 
+- id: general_select_tab
+  mode: restart
+  parameters:
+    tab_index: int
+  then:
+    - if:
+        condition:
+          lambda: 'return tab_index == 0;'
+        then:
+          - lvgl.widget.show: { id: panel_general_page_systeem }
+          - lvgl.widget.hide: { id: panel_general_page_sensor_kalibratie }
+          - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0x1F3B68 }
+          - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0xFFFFFF }
+          - lvgl.widget.update: { id: general_stab_sensor_kalibratie, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: general_stab_sensor_kalibratie_lbl, text_color: 0x4B5563 }
+        else:
+          - lvgl.widget.hide: { id: panel_general_page_systeem }
+          - lvgl.widget.show: { id: panel_general_page_sensor_kalibratie }
+          - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0x4B5563 }
+          - lvgl.widget.update: { id: general_stab_sensor_kalibratie, bg_color: 0x1F3B68 }
+          - lvgl.label.update: { id: general_stab_sensor_kalibratie_lbl, text_color: 0xFFFFFF }
+
 - id: pump_select_tab
   mode: restart
   parameters:
@@ -293,9 +316,29 @@
         then:
           - lvgl.widget.show: { id: set_heat_pid_section }
           - lvgl.widget.show: { id: set_cool_pid_section }
+          - lvgl.widget.hide: { id: set_heat_pid_disabled_overlay }
+          - lvgl.widget.hide: { id: set_cool_pid_disabled_overlay }
+          - lvgl.widget.update:
+              id: set_heat_pid_section
+              state:
+                disabled: false
+          - lvgl.widget.update:
+              id: set_cool_pid_section
+              state:
+                disabled: false
         else:
-          - lvgl.widget.hide: { id: set_heat_pid_section }
-          - lvgl.widget.hide: { id: set_cool_pid_section }
+          - lvgl.widget.show: { id: set_heat_pid_section }
+          - lvgl.widget.show: { id: set_cool_pid_section }
+          - lvgl.widget.show: { id: set_heat_pid_disabled_overlay }
+          - lvgl.widget.show: { id: set_cool_pid_disabled_overlay }
+          - lvgl.widget.update:
+              id: set_heat_pid_section
+              state:
+                disabled: true
+          - lvgl.widget.update:
+              id: set_cool_pid_section
+              state:
+                disabled: true
 
 - id: update_water_mode_temperature_display
   mode: restart

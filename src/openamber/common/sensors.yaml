@@ -219,6 +219,7 @@
   filters:
     - offset: -3000
     - multiply: 0.01
+    - lambda: return x + id(tr_offset).state;
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -236,6 +237,7 @@
   filters:
     - offset: -3000
     - multiply: 0.01
+    - lambda: return x + id(tw_offset).state;
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -253,6 +255,7 @@
   filters:
     - offset: -3000
     - multiply: 0.01
+    - lambda: return x + id(tc_offset).state;
     - throttle: 30s # Throttle because PID loop depends on this
 
 - platform: modbus_controller

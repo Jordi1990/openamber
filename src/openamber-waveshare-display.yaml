@@ -15,7 +15,7 @@ esp32:
       CONFIG_ESP32S3_DATA_CACHE_64KB: y
       CONFIG_LV_BIN_DECODER_RAM_LOAD: y
       CONFIG_SPIRAM_RODATA: y
-      CONFIG_ESP_TASK_WDT_TIMEOUT_S: "15"
+      CONFIG_ESP_TASK_WDT_TIMEOUT_S: "25"
     advanced:
       loop_task_stack_size: 16384
 
