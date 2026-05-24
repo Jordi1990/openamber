@@ -1,0 +1,151 @@
+﻿# Panel: Algemeen
+# ------------------------------------------------------------
+obj:
+    id: panel_general
+    width: 100%
+    height: 100%
+    bg_opa: 0%
+    border_opa: 0%
+    pad_left: 4
+    pad_right: 4
+    pad_top: 4
+    pad_bottom: 4
+    scrollbar_mode: "OFF"
+    scrollable: true
+    layout:
+      type: FLEX
+      flex_flow: COLUMN
+      flex_align_main: START
+      flex_align_cross: STRETCH
+      pad_row: 6
+      
+    widgets:
+      - obj:
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Thermostaat bron", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Kies intern of extern thermostaatsignaal", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - dropdown:
+                id: set_thermostat_dd
+                symbol: "\U000F0140"
+                width: 200
+                align: TOP_RIGHT
+                y: 0
+                options:
+                  - "Intern"
+                  - "Extern"
+                text_font: font_text_24
+                dropdown_list:
+                  text_font: font_text_24
+                on_value:
+                  then:
+                    - lambda: |-
+                        auto val = lv_dropdown_get_selected(id(set_thermostat_dd)->obj);
+                        if (val == 0) id(thermostat_mode_select).make_call().set_option("Intern").perform();
+                        else id(thermostat_mode_select).make_call().set_option("Extern").perform();
+
+      - obj:
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Tapwater aanwezig", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Tapwatervat is aanwezig in het systeem", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - switch:
+                id: set_dhw_enabled_switch_ui
+                align: TOP_RIGHT
+                bg_color: 0x9CA3AF
+                indicator:
+                  bg_color: 0x16A34A
+                knob:
+                  bg_color: 0xFFFFFF
+                on_click:
+                  - if:
+                      condition:
+                        switch.is_on: dhw_enabled_switch
+                      then:
+                        - switch.turn_off: dhw_enabled_switch
+                        - lvgl.widget.hide: { id: stab_dhw }
+                      else:
+                        - switch.turn_on: dhw_enabled_switch
+                        - lvgl.widget.show: { id: stab_dhw }
+
+      - obj:
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Analytics versturen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Deel anonieme gebruiksdata voor het OpenAmber dashboard", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - switch:
+                id: set_analytics_enabled_switch_ui
+                align: TOP_RIGHT
+                bg_color: 0x9CA3AF
+                indicator:
+                  bg_color: 0x16A34A
+                knob:
+                  bg_color: 0xFFFFFF
+                on_click:
+                  - if:
+                      condition:
+                        switch.is_on: analytics_enabled_switch
+                      then:
+                        - switch.turn_off: analytics_enabled_switch
+                      else:
+                        - switch.turn_on: analytics_enabled_switch
+
+      - obj:
+          id: set_analytics_id_row
+          width: 100%
+          height: SIZE_CONTENT
+          hidden: true
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Analytics ID", text_color: 0x9CA3AF, text_font: font_text_24, align: TOP_LEFT }
+            - label:
+                id: set_analytics_id_value
+                width: 100%
+                text: "Onbekend"
+                text_color: 0x9CA3AF
+                text_font: font_text_20
+                long_mode: WRAP
+                align: TOP_LEFT
+                y: 36
+
+      - obj:
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Geavanceerde instellingen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Toon geavanceerde instellingen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - switch:
+                id: set_advanced_settings_switch_ui
+                align: TOP_RIGHT
+                bg_color: 0x9CA3AF
+                indicator:
+                  bg_color: 0x16A34A
+                knob:
+                  bg_color: 0xFFFFFF
+                on_click:
+                  - if:
+                      condition:
+                        switch.is_on: advanced_settings_enabled
+                      then:
+                        - switch.turn_off: advanced_settings_enabled
+                      else:
+                        - switch.turn_on: advanced_settings_enabled
+
+# ------------------------------------------------------------

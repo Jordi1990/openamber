@@ -1,0 +1,473 @@
+# Panel: Thermostaat (intern)
+# ------------------------------------------------------------
+obj:
+  id: panel_thermostat
+  width: 100%
+  height: 100%
+  hidden: true
+  bg_opa: 0%
+  border_opa: 0%
+  pad_left: 4
+  pad_right: 4
+  pad_top: 4
+  pad_bottom: 4
+  scrollbar_mode: "OFF"
+  scrollable: false
+  layout:
+    type: FLEX
+    flex_flow: COLUMN
+    flex_align_main: START
+    flex_align_cross: STRETCH
+    pad_row: 4
+
+  widgets:
+    - obj:
+        id: panel_thermostat_tab_bar
+        width: 100%
+        height: 40
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: ROW
+          flex_align_main: START
+          flex_align_cross: CENTER
+          pad_column: 6
+        widgets:
+          - obj:
+              id: thermostat_stab_setpoint
+              width: SIZE_CONTENT
+              height: 34
+              bg_color: 0x1F3B68
+              bg_opa: 100%
+              radius: 8
+              border_opa: 0%
+              pad_left: 12
+              pad_right: 12
+              pad_top: 4
+              pad_bottom: 4
+              scrollbar_mode: "OFF"
+              scrollable: false
+              on_click:
+                - script.execute:
+                    id: thermostat_select_tab
+                    tab_index: 0
+              widgets:
+                - label: { id: thermostat_stab_setpoint_lbl, text: "Setpoint", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
+
+          - obj:
+              id: thermostat_stab_verwarmen
+              width: SIZE_CONTENT
+              height: 34
+              bg_color: 0xCBD5E1
+              bg_opa: 100%
+              radius: 8
+              border_opa: 0%
+              pad_left: 12
+              pad_right: 12
+              pad_top: 4
+              pad_bottom: 4
+              scrollbar_mode: "OFF"
+              scrollable: false
+              on_click:
+                - script.execute:
+                    id: thermostat_select_tab
+                    tab_index: 1
+              widgets:
+                - label: { id: thermostat_stab_verwarmen_lbl, text: "Verwarmen", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
+
+          - obj:
+              id: thermostat_stab_koelen
+              width: SIZE_CONTENT
+              height: 34
+              bg_color: 0xCBD5E1
+              bg_opa: 100%
+              radius: 8
+              border_opa: 0%
+              pad_left: 12
+              pad_right: 12
+              pad_top: 4
+              pad_bottom: 4
+              scrollbar_mode: "OFF"
+              scrollable: false
+              on_click:
+                - script.execute:
+                    id: thermostat_select_tab
+                    tab_index: 2
+              widgets:
+                - label: { id: thermostat_stab_koelen_lbl, text: "Koelen", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
+
+    - obj:
+        id: panel_thermostat_page_setpoint
+        width: 100%
+        height: SIZE_CONTENT
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: COLUMN
+          flex_align_main: START
+          flex_align_cross: STRETCH
+          pad_row: 4
+        widgets:
+          - obj:
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Setpoint", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Huidig kamertemperatuur setpoint", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - obj:
+                    width: SIZE_CONTENT
+                    height: SIZE_CONTENT
+                    align: TOP_RIGHT
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_all: 0
+                    layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                    widgets:
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.decrement: thermostat_setpoint_number
+                          widgets:
+                            - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                      - label: { id: set_therm_sp_val, text: "20.5C", text_color: 0x1F2933, text_font: font_text_24 }
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.increment: thermostat_setpoint_number
+                          widgets:
+                            - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+          - obj:
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Default setpoint verwarmen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Setpoint verwarmen na herstart", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - obj:
+                    width: SIZE_CONTENT
+                    height: SIZE_CONTENT
+                    align: TOP_RIGHT
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_all: 0
+                    layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                    widgets:
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.decrement: thermostat_default_heat_setpoint
+                          widgets:
+                            - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                      - label: { id: set_therm_def_heat_val, text: "20.5C", text_color: 0x1F2933, text_font: font_text_24 }
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.increment: thermostat_default_heat_setpoint
+                          widgets:
+                            - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+          - obj:
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Default setpoint koelen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Setpoint koelen na herstart", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - obj:
+                    width: SIZE_CONTENT
+                    height: SIZE_CONTENT
+                    align: TOP_RIGHT
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_all: 0
+                    layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                    widgets:
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.decrement: thermostat_default_cool_setpoint
+                          widgets:
+                            - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                      - label: { id: set_therm_def_cool_val, text: "24.0C", text_color: 0x1F2933, text_font: font_text_24 }
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.increment: thermostat_default_cool_setpoint
+                          widgets:
+                            - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+    - obj:
+        id: panel_thermostat_page_verwarmen
+        hidden: true
+        width: 100%
+        height: SIZE_CONTENT
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: COLUMN
+          flex_align_main: START
+          flex_align_cross: STRETCH
+          pad_row: 4
+        widgets:
+          - obj:
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Deadband verwarmen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Temperatuurverschil onder setpoint voor verwarmen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - obj:
+                    width: SIZE_CONTENT
+                    height: SIZE_CONTENT
+                    align: TOP_RIGHT
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_all: 0
+                    layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                    widgets:
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.decrement: thermostat_heat_deadband
+                          widgets:
+                            - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                      - label: { id: set_therm_heat_db_val, text: "0.3C", text_color: 0x1F2933, text_font: font_text_24 }
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.increment: thermostat_heat_deadband
+                          widgets:
+                            - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+          - obj:
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Overrun verwarmen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Temperatuurverschil boven setpoint voor stoppen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - obj:
+                    width: SIZE_CONTENT
+                    height: SIZE_CONTENT
+                    align: TOP_RIGHT
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_all: 0
+                    layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                    widgets:
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.decrement: thermostat_heat_overrun
+                          widgets:
+                            - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                      - label: { id: set_therm_heat_or_val, text: "0.2C", text_color: 0x1F2933, text_font: font_text_24 }
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.increment: thermostat_heat_overrun
+                          widgets:
+                            - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+    - obj:
+        id: panel_thermostat_page_koelen
+        hidden: true
+        width: 100%
+        height: SIZE_CONTENT
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: COLUMN
+          flex_align_main: START
+          flex_align_cross: STRETCH
+          pad_row: 4
+        widgets:
+          - obj:
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Deadband koelen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Temperatuurverschil boven setpoint voor koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - obj:
+                    width: SIZE_CONTENT
+                    height: SIZE_CONTENT
+                    align: TOP_RIGHT
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_all: 0
+                    layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                    widgets:
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.decrement: thermostat_cool_deadband
+                          widgets:
+                            - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                      - label: { id: set_therm_cool_db_val, text: "0.5C", text_color: 0x1F2933, text_font: font_text_24 }
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.increment: thermostat_cool_deadband
+                          widgets:
+                            - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+          - obj:
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Overrun koelen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Temperatuurverschil onder setpoint voor stoppen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - obj:
+                    width: SIZE_CONTENT
+                    height: SIZE_CONTENT
+                    align: TOP_RIGHT
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_all: 0
+                    layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                    widgets:
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.decrement: thermostat_cool_overrun
+                          widgets:
+                            - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                      - label: { id: set_therm_cool_or_val, text: "3.0C", text_color: 0x1F2933, text_font: font_text_24 }
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.increment: thermostat_cool_overrun
+                          widgets:
+                            - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
