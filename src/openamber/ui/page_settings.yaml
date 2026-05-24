@@ -11,8 +11,8 @@ obj:
   scrollable: false
   pad_left: 24
   pad_right: 24
-  pad_top: 10
-  pad_bottom: 10
+  pad_top: 4
+  pad_bottom: 4
 
   widgets:
     - obj:
@@ -24,8 +24,8 @@ obj:
         radius: 18
         pad_left: 16
         pad_right: 16
-        pad_top: 12
-        pad_bottom: 12
+        pad_top: 8
+        pad_bottom: 8
         border_width: 0
         border_opa: 0%
         shadow_width: 10

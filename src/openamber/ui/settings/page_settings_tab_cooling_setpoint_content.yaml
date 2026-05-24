@@ -23,7 +23,7 @@
             then:
               - lambda: |-
                   auto val = lv_dropdown_get_selected(id(set_cool_mode_dd)->obj);
-                  if (val == 0) id(cool_mode_select).make_call().set_option("Fixed setpoint").perform();
+                  if (val == 0) id(cool_mode_select).make_call().set_option("Intern setpoint").perform();
                   else id(cool_mode_select).make_call().set_option("Extern setpoint").perform();
               - script.execute: update_manual_setpoint_ui
 
@@ -59,7 +59,7 @@
                 on_click:
                   - if:
                       condition:
-                        lambda: 'return id(cool_mode_select).current_option() == "Fixed setpoint";'
+                        lambda: 'return id(cool_mode_select).current_option() == "Intern setpoint";'
                       then:
                         - number.decrement: cooling_setpoint_number
                 widgets:
@@ -78,7 +78,7 @@
                 on_click:
                   - if:
                       condition:
-                        lambda: 'return id(cool_mode_select).current_option() == "Fixed setpoint";'
+                        lambda: 'return id(cool_mode_select).current_option() == "Intern setpoint";'
                       then:
                         - number.increment: cooling_setpoint_number
                 widgets:

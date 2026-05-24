@@ -33,7 +33,7 @@ obj:
             - dropdown:
                 id: set_backup_heating_mode_dd
                 symbol: "\U000F0140"
-                width: 260
+                width: 320
                 align: TOP_RIGHT
                 y: 0
                 options:

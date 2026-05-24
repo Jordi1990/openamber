@@ -11,8 +11,8 @@
     border_opa: 0%
     pad_left: 4
     pad_right: 4
-    pad_top: 6
-    pad_bottom: 6
+    pad_top: 3
+    pad_bottom: 3
     scrollbar_mode: "OFF"
     scrollable: true
     layout:
