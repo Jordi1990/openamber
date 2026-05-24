@@ -209,6 +209,77 @@
                 - lvgl.label.update: { id: cooling_stab_pid_lbl, text_color: 0xFFFFFF }
                 - script.execute: update_advanced_settings_ui
 
+- id: dhw_select_tab
+  mode: restart
+  parameters:
+    tab_index: int
+  then:
+    - if:
+        condition:
+          lambda: 'return tab_index == 0;'
+        then:
+          - lvgl.widget.show: { id: panel_dhw_page_algemeen }
+          - lvgl.widget.hide: { id: panel_dhw_page_winter }
+          - lvgl.widget.hide: { id: panel_dhw_page_schema }
+          - lvgl.widget.hide: { id: panel_dhw_page_legionella }
+          - lvgl.widget.update: { id: dhw_stab_algemeen, bg_color: 0x1F3B68 }
+          - lvgl.label.update: { id: dhw_stab_algemeen_lbl, text_color: 0xFFFFFF }
+          - lvgl.widget.update: { id: dhw_stab_winter, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: dhw_stab_winter_lbl, text_color: 0x4B5563 }
+          - lvgl.widget.update: { id: dhw_stab_schema, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: dhw_stab_schema_lbl, text_color: 0x4B5563 }
+          - lvgl.widget.update: { id: dhw_stab_legionella, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: dhw_stab_legionella_lbl, text_color: 0x4B5563 }
+        else:
+          - if:
+              condition:
+                lambda: 'return tab_index == 1;'
+              then:
+                - lvgl.widget.hide: { id: panel_dhw_page_algemeen }
+                - lvgl.widget.show: { id: panel_dhw_page_winter }
+                - lvgl.widget.hide: { id: panel_dhw_page_schema }
+                - lvgl.widget.hide: { id: panel_dhw_page_legionella }
+                - lvgl.widget.update: { id: dhw_stab_algemeen, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: dhw_stab_algemeen_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: dhw_stab_winter, bg_color: 0x1F3B68 }
+                - lvgl.label.update: { id: dhw_stab_winter_lbl, text_color: 0xFFFFFF }
+                - lvgl.widget.update: { id: dhw_stab_schema, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: dhw_stab_schema_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: dhw_stab_legionella, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: dhw_stab_legionella_lbl, text_color: 0x4B5563 }
+              else:
+                - if:
+                    condition:
+                      lambda: 'return tab_index == 2;'
+                    then:
+                      - lvgl.widget.hide: { id: panel_dhw_page_algemeen }
+                      - lvgl.widget.hide: { id: panel_dhw_page_winter }
+                      - lvgl.widget.show: { id: panel_dhw_page_schema }
+                      - lvgl.widget.hide: { id: panel_dhw_page_legionella }
+                      - lvgl.widget.update: { id: dhw_stab_algemeen, bg_color: 0xCBD5E1 }
+                      - lvgl.label.update: { id: dhw_stab_algemeen_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: dhw_stab_winter, bg_color: 0xCBD5E1 }
+                      - lvgl.label.update: { id: dhw_stab_winter_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: dhw_stab_schema, bg_color: 0x1F3B68 }
+                      - lvgl.label.update: { id: dhw_stab_schema_lbl, text_color: 0xFFFFFF }
+                      - lvgl.widget.update: { id: dhw_stab_legionella, bg_color: 0xCBD5E1 }
+                      - lvgl.label.update: { id: dhw_stab_legionella_lbl, text_color: 0x4B5563 }
+                      - script.execute: update_dhw_schedule_ui
+                    else:
+                      - lvgl.widget.hide: { id: panel_dhw_page_algemeen }
+                      - lvgl.widget.hide: { id: panel_dhw_page_winter }
+                      - lvgl.widget.hide: { id: panel_dhw_page_schema }
+                      - lvgl.widget.show: { id: panel_dhw_page_legionella }
+                      - lvgl.widget.update: { id: dhw_stab_algemeen, bg_color: 0xCBD5E1 }
+                      - lvgl.label.update: { id: dhw_stab_algemeen_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: dhw_stab_winter, bg_color: 0xCBD5E1 }
+                      - lvgl.label.update: { id: dhw_stab_winter_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: dhw_stab_schema, bg_color: 0xCBD5E1 }
+                      - lvgl.label.update: { id: dhw_stab_schema_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: dhw_stab_legionella, bg_color: 0x1F3B68 }
+                      - lvgl.label.update: { id: dhw_stab_legionella_lbl, text_color: 0xFFFFFF }
+                      - script.execute: update_legio_ui
+
 - id: update_advanced_settings_ui
   mode: restart
   then:

@@ -335,6 +335,9 @@
             - lvgl.widget.hide: { id: panel_heating }
             - lvgl.widget.hide: { id: panel_cooling }
             - lvgl.widget.show: { id: panel_dhw }
+            - script.execute:
+                id: dhw_select_tab
+                tab_index: 0
             - lvgl.widget.hide: { id: panel_bijverwarmen }
             - lvgl.widget.hide: { id: panel_smartgrid }
             - lvgl.widget.hide: { id: panel_wifi }
