@@ -66,6 +66,7 @@
     - file: "openamber/ui/fonts/materialdesignicons-webfont.ttf"
       glyphs:
         - "\U000F0140"  # mdi-chevron-down (dropdown arrow)
+
 - file:
     type: gfonts
     family: "Roboto"
@@ -78,6 +79,7 @@
       glyphs:
         - "\U000F0208"  # mdi-eye
         - "\U000F0209"  # mdi-eye-off
+        - "\U000F0140"  # mdi-chevron-down (dropdown arrow)
 - file:
     type: gfonts
     family: "Roboto"

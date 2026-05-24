@@ -1,0 +1,763 @@
+﻿# Panel: Tapwater
+# ------------------------------------------------------------
+obj:
+    id: panel_dhw
+    width: 100%
+    height: 100%
+    hidden: true
+    bg_opa: 0%
+    border_opa: 0%
+    pad_left: 4
+    pad_right: 4
+    pad_top: 4
+    pad_bottom: 4
+    scrollbar_mode: "OFF"
+    scrollable: true
+    layout:
+      type: FLEX
+      flex_flow: COLUMN
+      flex_align_main: START
+      flex_align_cross: STRETCH
+      pad_row: 6
+      
+    widgets:
+      - obj:
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Setpoint (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Gewenste tapwatertemperatuur", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - obj:
+                width: SIZE_CONTENT
+                height: SIZE_CONTENT
+                align: TOP_RIGHT
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                widgets:
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.decrement: dhw_setpoint_temperature
+                      widgets:
+                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { id: set_dhw_setpoint_val, text: "55°C", text_color: 0x1F2933, text_font: font_text_24 }
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.increment: dhw_setpoint_temperature
+                      widgets:
+                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+      
+      # Herstart Delta T
+      - obj:
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Herstart delta (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Temperatuurdaling waarna verwarming herstart", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - obj:
+                width: SIZE_CONTENT
+                height: SIZE_CONTENT
+                align: TOP_RIGHT
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                widgets:
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.decrement: dhw_restart_dhw_delta
+                      widgets:
+                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { id: set_dhw_restart_val, text: "15°C", text_color: 0x1F2933, text_font: font_text_24 }
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.increment: dhw_restart_dhw_delta
+                      widgets:
+                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+      
+      - obj:
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Basisvermogen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Compressorvermogen in normale modus", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - dropdown:
+                id: set_dhw_power_dd
+                symbol: "\U000F0140"
+                width: 220
+                align: TOP_RIGHT
+                y: 0
+                options:
+                  - "Beperkt"
+                  - "Zeer laag"
+                  - "Laag"
+                  - "Gemiddeld"
+                  - "Verhoogd"
+                  - "Hoog"
+                  - "Maximaal"
+                text_font: font_text_24
+                dropdown_list:
+                  text_font: font_text_24
+                on_value:
+                  then:
+                    - lambda: |-
+                        const char* opts[] = {"Beperkt","Zeer laag","Laag","Gemiddeld","Verhoogd","Hoog","Maximaal"};
+                        auto val = lv_dropdown_get_selected(id(set_dhw_power_dd)->obj);
+                        if (val < 7) id(dhw_compressor_mode).make_call().set_option(opts[val]).perform();
+      
+      - obj:
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Wintervermogen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Max compressorvermogen in wintermodus", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - dropdown:
+                id: set_dhw_winter_dd
+                symbol: "\U000F0140"
+                width: 220
+                align: TOP_RIGHT
+                y: 0
+                options:
+                  - "Gemiddeld"
+                  - "Verhoogd"
+                  - "Hoog"
+                  - "Maximaal"
+                text_font: font_text_24
+                dropdown_list:
+                  text_font: font_text_24
+                on_value:
+                  then:
+                    - lambda: |-
+                        const char* opts[] = {"Gemiddeld","Verhoogd","Hoog","Maximaal"};
+                        auto val = lv_dropdown_get_selected(id(set_dhw_winter_dd)->obj);
+                        if (val < 4) id(dhw_compressor_mode_max).make_call().set_option(opts[val]).perform();
+      
+      - obj:
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Wintertemperatuurdrempel", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Buitentemperatuur waaronder wintermodus actief", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - obj:
+                width: SIZE_CONTENT
+                height: SIZE_CONTENT
+                align: TOP_RIGHT
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                widgets:
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.decrement: dhw_temperature_threshold_max_compressor_mode
+                      widgets:
+                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { id: set_dhw_winter_temp_val, text: "5°C", text_color: 0x1F2933, text_font: font_text_24 }
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.increment: dhw_temperature_threshold_max_compressor_mode
+                      widgets:
+                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+      - obj:
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Tapwaterpomp startmodus", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Wanneer de tapwaterpomp start", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - dropdown:
+                id: set_dhw_pump_dd
+                symbol: "\U000F0140"
+                width: 290
+                align: TOP_RIGHT
+                y: 0
+                options:
+                  - "Aanvoer warmer dan vat"
+                  - "Samen met compressor"
+                text_font: font_text_24
+                dropdown_list:
+                  text_font: font_text_24
+                on_value:
+                  then:
+                    - lambda: |-
+                        auto val = lv_dropdown_get_selected(id(set_dhw_pump_dd)->obj);
+                        if (val == 0) id(dhw_pump_start_mode_select).make_call().set_option("Aanvoer warmer dan vat (Î”T)").perform();
+                        else id(dhw_pump_start_mode_select).make_call().set_option("Samen met compressor").perform();
+      
+      - obj:
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Legionellapreventie", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Periodieke opwarming tegen legionella", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - switch:
+                id: set_legio_switch
+                align: TOP_RIGHT
+                bg_color: 0x9CA3AF
+                indicator:
+                  bg_color: 0x16A34A
+                knob:
+                  bg_color: 0xFFFFFF
+                on_click:
+                  - if:
+                      condition:
+                        switch.is_on: legio_enabled_switch
+                      then:
+                        - switch.turn_off: legio_enabled_switch
+                      else:
+                        - switch.turn_on: legio_enabled_switch
+      
+      - obj:
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { id: set_legio_days_lbl, text: "Legionella herhaling (dgn)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { id: set_legio_days_sub, text: "Dagen tussen preventieverwarming", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - obj:
+                width: SIZE_CONTENT
+                height: SIZE_CONTENT
+                align: TOP_RIGHT
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                widgets:
+                  - obj:
+                      id: set_legio_days_dec
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - if:
+                            condition:
+                              switch.is_on: legio_enabled_switch
+                            then:
+                              - number.decrement: legio_repeat_days_number
+                      widgets:
+                        - label: { id: set_legio_days_dec_lbl, text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { id: set_legio_days_val, text: "7 d", text_color: 0x1F2933, text_font: font_text_24 }
+                  - obj:
+                      id: set_legio_days_inc
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - if:
+                            condition:
+                              switch.is_on: legio_enabled_switch
+                            then:
+                              - number.increment: legio_repeat_days_number
+                      widgets:
+                        - label: { id: set_legio_days_inc_lbl, text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+      
+      - obj:
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { id: set_legio_temp_lbl, text: "Legionella doeltemperatuur (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { id: set_legio_temp_sub, text: "Doeltemperatuur bij legionellapreventie", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - obj:
+                width: SIZE_CONTENT
+                height: SIZE_CONTENT
+                align: TOP_RIGHT
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                widgets:
+                  - obj:
+                      id: set_legio_temp_dec
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - if:
+                            condition:
+                              switch.is_on: legio_enabled_switch
+                            then:
+                              - number.decrement: legio_target_temperature_number
+                      widgets:
+                        - label: { id: set_legio_temp_dec_lbl, text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { id: set_legio_temp_val, text: "60°C", text_color: 0x1F2933, text_font: font_text_24 }
+                  - obj:
+                      id: set_legio_temp_inc
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - if:
+                            condition:
+                              switch.is_on: legio_enabled_switch
+                            then:
+                              - number.increment: legio_target_temperature_number
+                      widgets:
+                        - label: { id: set_legio_temp_inc_lbl, text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+      
+      - obj:
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Tapwater schema", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Verwarming alleen op geplande tijden", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - switch:
+                id: set_dhw_sched_switch
+                align: TOP_RIGHT
+                bg_color: 0x9CA3AF
+                indicator:
+                  bg_color: 0x16A34A
+                knob:
+                  bg_color: 0xFFFFFF
+                on_click:
+                  - if:
+                      condition:
+                        switch.is_on: dhw_schedule_enabled_switch
+                      then:
+                        - switch.turn_off: dhw_schedule_enabled_switch
+                      else:
+                        - switch.turn_on: dhw_schedule_enabled_switch
+            - obj:
+                width: SIZE_CONTENT
+                height: SIZE_CONTENT
+                align: TOP_LEFT
+                y: 68
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 6 }
+                widgets:
+                  - obj:
+                      id: set_dhw_day_mon
+                      width: 44
+                      height: 34
+                      bg_color: 0xCBD5E1
+                      bg_opa: 100%
+                      radius: 8
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - if:
+                            condition:
+                              switch.is_on: dhw_schedule_enabled_switch
+                            then:
+                              - if:
+                                  condition:
+                                    switch.is_on: dhw_schedule_monday_enabled_switch
+                                  then:
+                                    - switch.turn_off: dhw_schedule_monday_enabled_switch
+                                  else:
+                                    - switch.turn_on: dhw_schedule_monday_enabled_switch
+                      widgets:
+                        - label: { id: set_dhw_day_mon_lbl, text: "Ma", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+                  - obj:
+                      id: set_dhw_day_tue
+                      width: 44
+                      height: 34
+                      bg_color: 0xCBD5E1
+                      bg_opa: 100%
+                      radius: 8
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - if:
+                            condition:
+                              switch.is_on: dhw_schedule_enabled_switch
+                            then:
+                              - if:
+                                  condition:
+                                    switch.is_on: dhw_schedule_tuesday_enabled_switch
+                                  then:
+                                    - switch.turn_off: dhw_schedule_tuesday_enabled_switch
+                                  else:
+                                    - switch.turn_on: dhw_schedule_tuesday_enabled_switch
+                      widgets:
+                        - label: { id: set_dhw_day_tue_lbl, text: "Di", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+                  - obj:
+                      id: set_dhw_day_wed
+                      width: 44
+                      height: 34
+                      bg_color: 0xCBD5E1
+                      bg_opa: 100%
+                      radius: 8
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - if:
+                            condition:
+                              switch.is_on: dhw_schedule_enabled_switch
+                            then:
+                              - if:
+                                  condition:
+                                    switch.is_on: dhw_schedule_wednesday_enabled_switch
+                                  then:
+                                    - switch.turn_off: dhw_schedule_wednesday_enabled_switch
+                                  else:
+                                    - switch.turn_on: dhw_schedule_wednesday_enabled_switch
+                      widgets:
+                        - label: { id: set_dhw_day_wed_lbl, text: "Wo", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+                  - obj:
+                      id: set_dhw_day_thu
+                      width: 44
+                      height: 34
+                      bg_color: 0xCBD5E1
+                      bg_opa: 100%
+                      radius: 8
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - if:
+                            condition:
+                              switch.is_on: dhw_schedule_enabled_switch
+                            then:
+                              - if:
+                                  condition:
+                                    switch.is_on: dhw_schedule_thursday_enabled_switch
+                                  then:
+                                    - switch.turn_off: dhw_schedule_thursday_enabled_switch
+                                  else:
+                                    - switch.turn_on: dhw_schedule_thursday_enabled_switch
+                      widgets:
+                        - label: { id: set_dhw_day_thu_lbl, text: "Do", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+                  - obj:
+                      id: set_dhw_day_fri
+                      width: 44
+                      height: 34
+                      bg_color: 0xCBD5E1
+                      bg_opa: 100%
+                      radius: 8
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - if:
+                            condition:
+                              switch.is_on: dhw_schedule_enabled_switch
+                            then:
+                              - if:
+                                  condition:
+                                    switch.is_on: dhw_schedule_friday_enabled_switch
+                                  then:
+                                    - switch.turn_off: dhw_schedule_friday_enabled_switch
+                                  else:
+                                    - switch.turn_on: dhw_schedule_friday_enabled_switch
+                      widgets:
+                        - label: { id: set_dhw_day_fri_lbl, text: "Vr", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+                  - obj:
+                      id: set_dhw_day_sat
+                      width: 44
+                      height: 34
+                      bg_color: 0xCBD5E1
+                      bg_opa: 100%
+                      radius: 8
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - if:
+                            condition:
+                              switch.is_on: dhw_schedule_enabled_switch
+                            then:
+                              - if:
+                                  condition:
+                                    switch.is_on: dhw_schedule_saturday_enabled_switch
+                                  then:
+                                    - switch.turn_off: dhw_schedule_saturday_enabled_switch
+                                  else:
+                                    - switch.turn_on: dhw_schedule_saturday_enabled_switch
+                      widgets:
+                        - label: { id: set_dhw_day_sat_lbl, text: "Za", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+                  - obj:
+                      id: set_dhw_day_sun
+                      width: 44
+                      height: 34
+                      bg_color: 0xCBD5E1
+                      bg_opa: 100%
+                      radius: 8
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - if:
+                            condition:
+                              switch.is_on: dhw_schedule_enabled_switch
+                            then:
+                              - if:
+                                  condition:
+                                    switch.is_on: dhw_schedule_sunday_enabled_switch
+                                  then:
+                                    - switch.turn_off: dhw_schedule_sunday_enabled_switch
+                                  else:
+                                    - switch.turn_on: dhw_schedule_sunday_enabled_switch
+                      widgets:
+                        - label: { id: set_dhw_day_sun_lbl, text: "Zo", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+            - label:
+                id: set_dhw_days_summary
+                text: "Actief op: -"
+                text_color: 0x6B7280
+                text_font: font_text_20
+                align: TOP_LEFT
+                y: 108
+            - obj:
+                width: 100%
+                height: SIZE_CONTENT
+                align: TOP_LEFT
+                y: 138
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                widgets:
+                  - label: { id: set_dhw_start_time_lbl, text: "Starttijd", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                  - obj:
+                      width: SIZE_CONTENT
+                      height: SIZE_CONTENT
+                      align: TOP_RIGHT
+                      bg_opa: 0%
+                      border_opa: 0%
+                      pad_all: 0
+                      layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 4 }
+                      widgets:
+                        - obj:
+                            id: set_dhw_start_time_dec
+                            width: 40
+                            height: 40
+                            bg_color: 0x1F3B68
+                            bg_opa: 100%
+                            radius: 10
+                            border_opa: 0%
+                            scrollbar_mode: "OFF"
+                            scrollable: false
+                            on_click:
+                              - if:
+                                  condition:
+                                    switch.is_on: dhw_schedule_enabled_switch
+                                  then:
+                                    - lambda: |-
+                                        int h = id(dhw_start_time).hour;
+                                        int m = id(dhw_start_time).minute;
+                                        m -= 30;
+                                        if (m < 0) { m += 60; h = (h + 23) % 24; }
+                                        auto call = id(dhw_start_time).make_call();
+                                        call.set_time(h, m, 0);
+                                        call.perform();
+                                    - lvgl.label.update:
+                                        id: set_dhw_start_time_val
+                                        text:
+                                          format: "%02d:%02d"
+                                          args: ['id(dhw_start_time).hour', 'id(dhw_start_time).minute']
+                            widgets:
+                              - label: { id: set_dhw_start_time_dec_lbl, text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { id: set_dhw_start_time_val, text: "10:00", text_color: 0x1F2933, text_font: font_text_24 }
+                        - obj:
+                            id: set_dhw_start_time_inc
+                            width: 40
+                            height: 40
+                            bg_color: 0x1F3B68
+                            bg_opa: 100%
+                            radius: 10
+                            border_opa: 0%
+                            scrollbar_mode: "OFF"
+                            scrollable: false
+                            on_click:
+                              - if:
+                                  condition:
+                                    switch.is_on: dhw_schedule_enabled_switch
+                                  then:
+                                    - lambda: |-
+                                        int h = id(dhw_start_time).hour;
+                                        int m = id(dhw_start_time).minute;
+                                        m += 30;
+                                        if (m >= 60) { m -= 60; h = (h + 1) % 24; }
+                                        auto call = id(dhw_start_time).make_call();
+                                        call.set_time(h, m, 0);
+                                        call.perform();
+                                    - lvgl.label.update:
+                                        id: set_dhw_start_time_val
+                                        text:
+                                          format: "%02d:%02d"
+                                          args: ['id(dhw_start_time).hour', 'id(dhw_start_time).minute']
+                            widgets:
+                              - label: { id: set_dhw_start_time_inc_lbl, text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - obj:
+                width: 100%
+                height: SIZE_CONTENT
+                align: TOP_LEFT
+                y: 180
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                widgets:
+                  - label: { id: set_dhw_end_time_lbl, text: "Eindtijd", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                  - obj:
+                      width: SIZE_CONTENT
+                      height: SIZE_CONTENT
+                      align: TOP_RIGHT
+                      bg_opa: 0%
+                      border_opa: 0%
+                      pad_all: 0
+                      layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 4 }
+                      widgets:
+                        - obj:
+                            id: set_dhw_end_time_dec
+                            width: 40
+                            height: 40
+                            bg_color: 0x1F3B68
+                            bg_opa: 100%
+                            radius: 10
+                            border_opa: 0%
+                            scrollbar_mode: "OFF"
+                            scrollable: false
+                            on_click:
+                              - if:
+                                  condition:
+                                    switch.is_on: dhw_schedule_enabled_switch
+                                  then:
+                                    - lambda: |-
+                                        int h = id(dhw_end_time).hour;
+                                        int m = id(dhw_end_time).minute;
+                                        m -= 30;
+                                        if (m < 0) { m += 60; h = (h + 23) % 24; }
+                                        auto call = id(dhw_end_time).make_call();
+                                        call.set_time(h, m, 0);
+                                        call.perform();
+                                    - lvgl.label.update:
+                                        id: set_dhw_end_time_val
+                                        text:
+                                          format: "%02d:%02d"
+                                          args: ['id(dhw_end_time).hour', 'id(dhw_end_time).minute']
+                            widgets:
+                              - label: { id: set_dhw_end_time_dec_lbl, text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { id: set_dhw_end_time_val, text: "17:00", text_color: 0x1F2933, text_font: font_text_24 }
+                        - obj:
+                            id: set_dhw_end_time_inc
+                            width: 40
+                            height: 40
+                            bg_color: 0x1F3B68
+                            bg_opa: 100%
+                            radius: 10
+                            border_opa: 0%
+                            scrollbar_mode: "OFF"
+                            scrollable: false
+                            on_click:
+                              - if:
+                                  condition:
+                                    switch.is_on: dhw_schedule_enabled_switch
+                                  then:
+                                    - lambda: |-
+                                        int h = id(dhw_end_time).hour;
+                                        int m = id(dhw_end_time).minute;
+                                        m += 30;
+                                        if (m >= 60) { m -= 60; h = (h + 1) % 24; }
+                                        auto call = id(dhw_end_time).make_call();
+                                        call.set_time(h, m, 0);
+                                        call.perform();
+                                    - lvgl.label.update:
+                                        id: set_dhw_end_time_val
+                                        text:
+                                          format: "%02d:%02d"
+                                          args: ['id(dhw_end_time).hour', 'id(dhw_end_time).minute']
+                            widgets:
+                              - label: { id: set_dhw_end_time_inc_lbl, text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+      
+# ------------------------------------------------------------
+

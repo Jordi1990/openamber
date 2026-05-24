@@ -41,6 +41,174 @@
           format: "%.1f°C"
           args: ['id(thermostat_cool_overrun).state']
 
+- id: thermostat_select_tab
+  mode: restart
+  parameters:
+    tab_index: int
+  then:
+    - if:
+        condition:
+          lambda: 'return tab_index == 0;'
+        then:
+          - lvgl.widget.show: { id: panel_thermostat_page_setpoint }
+          - lvgl.widget.hide: { id: panel_thermostat_page_verwarmen }
+          - lvgl.widget.hide: { id: panel_thermostat_page_koelen }
+          - lvgl.widget.update: { id: thermostat_stab_setpoint, bg_color: 0x1F3B68 }
+          - lvgl.label.update: { id: thermostat_stab_setpoint_lbl, text_color: 0xFFFFFF }
+          - lvgl.widget.update: { id: thermostat_stab_verwarmen, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: thermostat_stab_verwarmen_lbl, text_color: 0x4B5563 }
+          - lvgl.widget.update: { id: thermostat_stab_koelen, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: thermostat_stab_koelen_lbl, text_color: 0x4B5563 }
+        else:
+          - if:
+              condition:
+                lambda: 'return tab_index == 1;'
+              then:
+                - lvgl.widget.hide: { id: panel_thermostat_page_setpoint }
+                - lvgl.widget.show: { id: panel_thermostat_page_verwarmen }
+                - lvgl.widget.hide: { id: panel_thermostat_page_koelen }
+                - lvgl.widget.update: { id: thermostat_stab_setpoint, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: thermostat_stab_setpoint_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: thermostat_stab_verwarmen, bg_color: 0x1F3B68 }
+                - lvgl.label.update: { id: thermostat_stab_verwarmen_lbl, text_color: 0xFFFFFF }
+                - lvgl.widget.update: { id: thermostat_stab_koelen, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: thermostat_stab_koelen_lbl, text_color: 0x4B5563 }
+              else:
+                - lvgl.widget.hide: { id: panel_thermostat_page_setpoint }
+                - lvgl.widget.hide: { id: panel_thermostat_page_verwarmen }
+                - lvgl.widget.show: { id: panel_thermostat_page_koelen }
+                - lvgl.widget.update: { id: thermostat_stab_setpoint, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: thermostat_stab_setpoint_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: thermostat_stab_verwarmen, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: thermostat_stab_verwarmen_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: thermostat_stab_koelen, bg_color: 0x1F3B68 }
+                - lvgl.label.update: { id: thermostat_stab_koelen_lbl, text_color: 0xFFFFFF }
+
+- id: pump_select_tab
+  mode: restart
+  parameters:
+    tab_index: int
+  then:
+    - if:
+        condition:
+          lambda: 'return tab_index == 0;'
+        then:
+          - lvgl.widget.show: { id: panel_pump_page_algemeen }
+          - lvgl.widget.hide: { id: panel_pump_page_pompsnelheid }
+          - lvgl.widget.update: { id: pump_stab_algemeen, bg_color: 0x1F3B68 }
+          - lvgl.label.update: { id: pump_stab_algemeen_lbl, text_color: 0xFFFFFF }
+          - lvgl.widget.update: { id: pump_stab_pompsnelheid, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: pump_stab_pompsnelheid_lbl, text_color: 0x4B5563 }
+        else:
+          - lvgl.widget.hide: { id: panel_pump_page_algemeen }
+          - lvgl.widget.show: { id: panel_pump_page_pompsnelheid }
+          - lvgl.widget.update: { id: pump_stab_algemeen, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: pump_stab_algemeen_lbl, text_color: 0x4B5563 }
+          - lvgl.widget.update: { id: pump_stab_pompsnelheid, bg_color: 0x1F3B68 }
+          - lvgl.label.update: { id: pump_stab_pompsnelheid_lbl, text_color: 0xFFFFFF }
+
+- id: heating_select_tab
+  mode: restart
+  parameters:
+    tab_index: int
+  then:
+    - if:
+        condition:
+          lambda: 'return tab_index == 0;'
+        then:
+          - lvgl.widget.show: { id: panel_heating_page_algemeen }
+          - lvgl.widget.hide: { id: panel_heating_page_stooklijn }
+          - lvgl.widget.hide: { id: panel_heating_page_pid }
+          - lvgl.widget.update: { id: heating_stab_algemeen, bg_color: 0x1F3B68 }
+          - lvgl.label.update: { id: heating_stab_algemeen_lbl, text_color: 0xFFFFFF }
+          - lvgl.widget.update: { id: heating_stab_stooklijn, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: heating_stab_stooklijn_lbl, text_color: 0x4B5563 }
+          - lvgl.widget.update: { id: heating_stab_pid, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: heating_stab_pid_lbl, text_color: 0x4B5563 }
+          - script.execute: update_manual_setpoint_ui
+        else:
+          - if:
+              condition:
+                lambda: 'return tab_index == 1;'
+              then:
+                - lvgl.widget.hide: { id: panel_heating_page_algemeen }
+                - lvgl.widget.show: { id: panel_heating_page_stooklijn }
+                - lvgl.widget.hide: { id: panel_heating_page_pid }
+                - lvgl.widget.update: { id: heating_stab_algemeen, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: heating_stab_algemeen_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: heating_stab_stooklijn, bg_color: 0x1F3B68 }
+                - lvgl.label.update: { id: heating_stab_stooklijn_lbl, text_color: 0xFFFFFF }
+                - lvgl.widget.update: { id: heating_stab_pid, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: heating_stab_pid_lbl, text_color: 0x4B5563 }
+                - if:
+                    condition:
+                      lambda: 'return id(heat_mode_select).current_option() == "Stooklijn";'
+                    then:
+                      - lvgl.widget.show: { id: set_heat_curve_title }
+                      - lvgl.widget.show: { id: set_heat_curve_chart_container }
+                      - lvgl.widget.show: { id: set_heat_curve_controls_container }
+                    else:
+                      - lvgl.widget.hide: { id: set_heat_curve_title }
+                      - lvgl.widget.hide: { id: set_heat_curve_chart_container }
+                      - lvgl.widget.hide: { id: set_heat_curve_controls_container }
+                - script.execute: update_heat_curve_chart
+              else:
+                - lvgl.widget.hide: { id: panel_heating_page_algemeen }
+                - lvgl.widget.hide: { id: panel_heating_page_stooklijn }
+                - lvgl.widget.show: { id: panel_heating_page_pid }
+                - lvgl.widget.update: { id: heating_stab_algemeen, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: heating_stab_algemeen_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: heating_stab_stooklijn, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: heating_stab_stooklijn_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: heating_stab_pid, bg_color: 0x1F3B68 }
+                - lvgl.label.update: { id: heating_stab_pid_lbl, text_color: 0xFFFFFF }
+                - script.execute: update_advanced_settings_ui
+
+- id: cooling_select_tab
+  mode: restart
+  parameters:
+    tab_index: int
+  then:
+    - if:
+        condition:
+          lambda: 'return tab_index == 0;'
+        then:
+          - lvgl.widget.show: { id: panel_cooling_page_algemeen }
+          - lvgl.widget.hide: { id: panel_cooling_page_setpoint }
+          - lvgl.widget.hide: { id: panel_cooling_page_pid }
+          - lvgl.widget.update: { id: cooling_stab_algemeen, bg_color: 0x1F3B68 }
+          - lvgl.label.update: { id: cooling_stab_algemeen_lbl, text_color: 0xFFFFFF }
+          - lvgl.widget.update: { id: cooling_stab_setpoint, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: cooling_stab_setpoint_lbl, text_color: 0x4B5563 }
+          - lvgl.widget.update: { id: cooling_stab_pid, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: cooling_stab_pid_lbl, text_color: 0x4B5563 }
+        else:
+          - if:
+              condition:
+                lambda: 'return tab_index == 1;'
+              then:
+                - lvgl.widget.hide: { id: panel_cooling_page_algemeen }
+                - lvgl.widget.show: { id: panel_cooling_page_setpoint }
+                - lvgl.widget.hide: { id: panel_cooling_page_pid }
+                - lvgl.widget.update: { id: cooling_stab_algemeen, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: cooling_stab_algemeen_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: cooling_stab_setpoint, bg_color: 0x1F3B68 }
+                - lvgl.label.update: { id: cooling_stab_setpoint_lbl, text_color: 0xFFFFFF }
+                - lvgl.widget.update: { id: cooling_stab_pid, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: cooling_stab_pid_lbl, text_color: 0x4B5563 }
+                - script.execute: update_manual_setpoint_ui
+              else:
+                - lvgl.widget.hide: { id: panel_cooling_page_algemeen }
+                - lvgl.widget.hide: { id: panel_cooling_page_setpoint }
+                - lvgl.widget.show: { id: panel_cooling_page_pid }
+                - lvgl.widget.update: { id: cooling_stab_algemeen, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: cooling_stab_algemeen_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: cooling_stab_setpoint, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: cooling_stab_setpoint_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: cooling_stab_pid, bg_color: 0x1F3B68 }
+                - lvgl.label.update: { id: cooling_stab_pid_lbl, text_color: 0xFFFFFF }
+                - script.execute: update_advanced_settings_ui
+
 - id: update_advanced_settings_ui
   mode: restart
   then:
