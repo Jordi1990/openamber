@@ -316,9 +316,29 @@
         then:
           - lvgl.widget.show: { id: set_heat_pid_section }
           - lvgl.widget.show: { id: set_cool_pid_section }
+          - lvgl.widget.hide: { id: set_heat_pid_disabled_overlay }
+          - lvgl.widget.hide: { id: set_cool_pid_disabled_overlay }
+          - lvgl.widget.update:
+              id: set_heat_pid_section
+              state:
+                disabled: false
+          - lvgl.widget.update:
+              id: set_cool_pid_section
+              state:
+                disabled: false
         else:
-          - lvgl.widget.hide: { id: set_heat_pid_section }
-          - lvgl.widget.hide: { id: set_cool_pid_section }
+          - lvgl.widget.show: { id: set_heat_pid_section }
+          - lvgl.widget.show: { id: set_cool_pid_section }
+          - lvgl.widget.show: { id: set_heat_pid_disabled_overlay }
+          - lvgl.widget.show: { id: set_cool_pid_disabled_overlay }
+          - lvgl.widget.update:
+              id: set_heat_pid_section
+              state:
+                disabled: true
+          - lvgl.widget.update:
+              id: set_cool_pid_section
+              state:
+                disabled: true
 
 - id: update_water_mode_temperature_display
   mode: restart
