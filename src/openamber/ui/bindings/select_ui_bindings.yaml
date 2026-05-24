@@ -40,11 +40,18 @@
 - id: !extend thermostat_mode_select
   on_value:
     then:
-      - lvgl.dropdown.update:
-          id: set_thermostat_dd
-          selected_index: !lambda |-
-            auto idx = id(thermostat_mode_select).active_index();
-            return idx.has_value() ? idx.value() : 0;
+      - if:
+          condition:
+            lambda: |-
+              auto idx = id(thermostat_mode_select).active_index();
+              if (!idx.has_value()) return false;
+              return lv_dropdown_get_selected(id(set_thermostat_dd)->obj) != (uint16_t) idx.value();
+          then:
+            - lvgl.dropdown.update:
+                id: set_thermostat_dd
+                selected_index: !lambda |-
+                  auto idx = id(thermostat_mode_select).active_index();
+                  return idx.has_value() ? idx.value() : 0;
       - if:
           condition:
             lambda: |-
