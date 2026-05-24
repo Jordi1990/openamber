@@ -63,9 +63,9 @@
           options:
             - "Stooklijn"
             - "Extern setpoint"
-          text_font: font_text_24
+          text_font: font_text_20
           dropdown_list:
-            text_font: font_text_24
+            text_font: font_text_20
           on_value:
             then:
               - lambda: |-
@@ -176,9 +176,9 @@
             - "Verhoogd"
             - "Hoog"
             - "Maximaal"
-          text_font: font_text_24
+          text_font: font_text_20
           dropdown_list:
-            text_font: font_text_24
+            text_font: font_text_20
           on_value:
             then:
               - lambda: |-

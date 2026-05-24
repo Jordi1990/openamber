@@ -1,0 +1,370 @@
+- obj:
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Tapwater schema", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Verwarming alleen op geplande tijden", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - switch:
+          id: set_dhw_sched_switch
+          align: TOP_RIGHT
+          bg_color: 0x9CA3AF
+          indicator:
+            bg_color: 0x16A34A
+          knob:
+            bg_color: 0xFFFFFF
+          on_click:
+            - if:
+                condition:
+                  switch.is_on: dhw_schedule_enabled_switch
+                then:
+                  - switch.turn_off: dhw_schedule_enabled_switch
+                else:
+                  - switch.turn_on: dhw_schedule_enabled_switch
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_LEFT
+          y: 68
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 6 }
+          widgets:
+            - obj:
+                id: set_dhw_day_mon
+                width: 44
+                height: 34
+                bg_color: 0xCBD5E1
+                bg_opa: 100%
+                radius: 8
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - if:
+                      condition:
+                        switch.is_on: dhw_schedule_enabled_switch
+                      then:
+                        - if:
+                            condition:
+                              switch.is_on: dhw_schedule_monday_enabled_switch
+                            then:
+                              - switch.turn_off: dhw_schedule_monday_enabled_switch
+                            else:
+                              - switch.turn_on: dhw_schedule_monday_enabled_switch
+                widgets:
+                  - label: { id: set_dhw_day_mon_lbl, text: "Ma", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+            - obj:
+                id: set_dhw_day_tue
+                width: 44
+                height: 34
+                bg_color: 0xCBD5E1
+                bg_opa: 100%
+                radius: 8
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - if:
+                      condition:
+                        switch.is_on: dhw_schedule_enabled_switch
+                      then:
+                        - if:
+                            condition:
+                              switch.is_on: dhw_schedule_tuesday_enabled_switch
+                            then:
+                              - switch.turn_off: dhw_schedule_tuesday_enabled_switch
+                            else:
+                              - switch.turn_on: dhw_schedule_tuesday_enabled_switch
+                widgets:
+                  - label: { id: set_dhw_day_tue_lbl, text: "Di", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+            - obj:
+                id: set_dhw_day_wed
+                width: 44
+                height: 34
+                bg_color: 0xCBD5E1
+                bg_opa: 100%
+                radius: 8
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - if:
+                      condition:
+                        switch.is_on: dhw_schedule_enabled_switch
+                      then:
+                        - if:
+                            condition:
+                              switch.is_on: dhw_schedule_wednesday_enabled_switch
+                            then:
+                              - switch.turn_off: dhw_schedule_wednesday_enabled_switch
+                            else:
+                              - switch.turn_on: dhw_schedule_wednesday_enabled_switch
+                widgets:
+                  - label: { id: set_dhw_day_wed_lbl, text: "Wo", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+            - obj:
+                id: set_dhw_day_thu
+                width: 44
+                height: 34
+                bg_color: 0xCBD5E1
+                bg_opa: 100%
+                radius: 8
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - if:
+                      condition:
+                        switch.is_on: dhw_schedule_enabled_switch
+                      then:
+                        - if:
+                            condition:
+                              switch.is_on: dhw_schedule_thursday_enabled_switch
+                            then:
+                              - switch.turn_off: dhw_schedule_thursday_enabled_switch
+                            else:
+                              - switch.turn_on: dhw_schedule_thursday_enabled_switch
+                widgets:
+                  - label: { id: set_dhw_day_thu_lbl, text: "Do", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+            - obj:
+                id: set_dhw_day_fri
+                width: 44
+                height: 34
+                bg_color: 0xCBD5E1
+                bg_opa: 100%
+                radius: 8
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - if:
+                      condition:
+                        switch.is_on: dhw_schedule_enabled_switch
+                      then:
+                        - if:
+                            condition:
+                              switch.is_on: dhw_schedule_friday_enabled_switch
+                            then:
+                              - switch.turn_off: dhw_schedule_friday_enabled_switch
+                            else:
+                              - switch.turn_on: dhw_schedule_friday_enabled_switch
+                widgets:
+                  - label: { id: set_dhw_day_fri_lbl, text: "Vr", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+            - obj:
+                id: set_dhw_day_sat
+                width: 44
+                height: 34
+                bg_color: 0xCBD5E1
+                bg_opa: 100%
+                radius: 8
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - if:
+                      condition:
+                        switch.is_on: dhw_schedule_enabled_switch
+                      then:
+                        - if:
+                            condition:
+                              switch.is_on: dhw_schedule_saturday_enabled_switch
+                            then:
+                              - switch.turn_off: dhw_schedule_saturday_enabled_switch
+                            else:
+                              - switch.turn_on: dhw_schedule_saturday_enabled_switch
+                widgets:
+                  - label: { id: set_dhw_day_sat_lbl, text: "Za", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+            - obj:
+                id: set_dhw_day_sun
+                width: 44
+                height: 34
+                bg_color: 0xCBD5E1
+                bg_opa: 100%
+                radius: 8
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - if:
+                      condition:
+                        switch.is_on: dhw_schedule_enabled_switch
+                      then:
+                        - if:
+                            condition:
+                              switch.is_on: dhw_schedule_sunday_enabled_switch
+                            then:
+                              - switch.turn_off: dhw_schedule_sunday_enabled_switch
+                            else:
+                              - switch.turn_on: dhw_schedule_sunday_enabled_switch
+                widgets:
+                  - label: { id: set_dhw_day_sun_lbl, text: "Zo", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+      - label:
+          id: set_dhw_days_summary
+          text: "Actief op: -"
+          text_color: 0x6B7280
+          text_font: font_text_20
+          align: TOP_LEFT
+          y: 108
+      - obj:
+          width: 100%
+          height: SIZE_CONTENT
+          align: TOP_LEFT
+          y: 138
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          widgets:
+            - label: { id: set_dhw_start_time_lbl, text: "Starttijd", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - obj:
+                width: SIZE_CONTENT
+                height: SIZE_CONTENT
+                align: TOP_RIGHT
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 4 }
+                widgets:
+                  - obj:
+                      id: set_dhw_start_time_dec
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - if:
+                            condition:
+                              switch.is_on: dhw_schedule_enabled_switch
+                            then:
+                              - lambda: |-
+                                  int h = id(dhw_start_time).hour;
+                                  int m = id(dhw_start_time).minute;
+                                  m -= 30;
+                                  if (m < 0) { m += 60; h = (h + 23) % 24; }
+                                  auto call = id(dhw_start_time).make_call();
+                                  call.set_time(h, m, 0);
+                                  call.perform();
+                              - lvgl.label.update:
+                                  id: set_dhw_start_time_val
+                                  text:
+                                    format: "%02d:%02d"
+                                    args: ['id(dhw_start_time).hour', 'id(dhw_start_time).minute']
+                      widgets:
+                        - label: { id: set_dhw_start_time_dec_lbl, text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { id: set_dhw_start_time_val, text: "10:00", text_color: 0x1F2933, text_font: font_text_24 }
+                  - obj:
+                      id: set_dhw_start_time_inc
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - if:
+                            condition:
+                              switch.is_on: dhw_schedule_enabled_switch
+                            then:
+                              - lambda: |-
+                                  int h = id(dhw_start_time).hour;
+                                  int m = id(dhw_start_time).minute;
+                                  m += 30;
+                                  if (m >= 60) { m -= 60; h = (h + 1) % 24; }
+                                  auto call = id(dhw_start_time).make_call();
+                                  call.set_time(h, m, 0);
+                                  call.perform();
+                              - lvgl.label.update:
+                                  id: set_dhw_start_time_val
+                                  text:
+                                    format: "%02d:%02d"
+                                    args: ['id(dhw_start_time).hour', 'id(dhw_start_time).minute']
+                      widgets:
+                        - label: { id: set_dhw_start_time_inc_lbl, text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+      - obj:
+          width: 100%
+          height: SIZE_CONTENT
+          align: TOP_LEFT
+          y: 180
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          widgets:
+            - label: { id: set_dhw_end_time_lbl, text: "Eindtijd", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - obj:
+                width: SIZE_CONTENT
+                height: SIZE_CONTENT
+                align: TOP_RIGHT
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 4 }
+                widgets:
+                  - obj:
+                      id: set_dhw_end_time_dec
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - if:
+                            condition:
+                              switch.is_on: dhw_schedule_enabled_switch
+                            then:
+                              - lambda: |-
+                                  int h = id(dhw_end_time).hour;
+                                  int m = id(dhw_end_time).minute;
+                                  m -= 30;
+                                  if (m < 0) { m += 60; h = (h + 23) % 24; }
+                                  auto call = id(dhw_end_time).make_call();
+                                  call.set_time(h, m, 0);
+                                  call.perform();
+                              - lvgl.label.update:
+                                  id: set_dhw_end_time_val
+                                  text:
+                                    format: "%02d:%02d"
+                                    args: ['id(dhw_end_time).hour', 'id(dhw_end_time).minute']
+                      widgets:
+                        - label: { id: set_dhw_end_time_dec_lbl, text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { id: set_dhw_end_time_val, text: "17:00", text_color: 0x1F2933, text_font: font_text_24 }
+                  - obj:
+                      id: set_dhw_end_time_inc
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - if:
+                            condition:
+                              switch.is_on: dhw_schedule_enabled_switch
+                            then:
+                              - lambda: |-
+                                  int h = id(dhw_end_time).hour;
+                                  int m = id(dhw_end_time).minute;
+                                  m += 30;
+                                  if (m >= 60) { m -= 60; h = (h + 1) % 24; }
+                                  auto call = id(dhw_end_time).make_call();
+                                  call.set_time(h, m, 0);
+                                  call.perform();
+                              - lvgl.label.update:
+                                  id: set_dhw_end_time_val
+                                  text:
+                                    format: "%02d:%02d"
+                                    args: ['id(dhw_end_time).hour', 'id(dhw_end_time).minute']
+                      widgets:
+                        - label: { id: set_dhw_end_time_inc_lbl, text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }

@@ -1,0 +1,153 @@
+- obj:
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Setpoint (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Gewenste tapwatertemperatuur", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: dhw_setpoint_temperature
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_dhw_setpoint_val, text: "55°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: dhw_setpoint_temperature
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Herstart delta (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Temperatuurdaling waarna verwarming herstart", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: dhw_restart_dhw_delta
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_dhw_restart_val, text: "15°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: dhw_restart_dhw_delta
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Basisvermogen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Compressorvermogen in normale modus", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - dropdown:
+          id: set_dhw_power_dd
+          symbol: "\U000F0140"
+          width: 220
+          align: TOP_RIGHT
+          y: 0
+          options:
+            - "Beperkt"
+            - "Zeer laag"
+            - "Laag"
+            - "Gemiddeld"
+            - "Verhoogd"
+            - "Hoog"
+            - "Maximaal"
+          text_font: font_text_20
+          dropdown_list:
+            text_font: font_text_20
+          on_value:
+            then:
+              - lambda: |-
+                  const char* opts[] = {"Beperkt","Zeer laag","Laag","Gemiddeld","Verhoogd","Hoog","Maximaal"};
+                  auto val = lv_dropdown_get_selected(id(set_dhw_power_dd)->obj);
+                  if (val < 7) id(dhw_compressor_mode).make_call().set_option(opts[val]).perform();
+
+- obj:
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Tapwaterpomp startmodus", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Wanneer de tapwaterpomp start", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - dropdown:
+          id: set_dhw_pump_dd
+          symbol: "\U000F0140"
+          width: 290
+          align: TOP_RIGHT
+          y: 0
+          options:
+            - "Aanvoer warmer dan vat"
+            - "Samen met compressor"
+          text_font: font_text_20
+          dropdown_list:
+            text_font: font_text_20
+          on_value:
+            then:
+              - lambda: |-
+                  auto val = lv_dropdown_get_selected(id(set_dhw_pump_dd)->obj);
+                  auto call = id(dhw_pump_start_mode_select).make_call();
+                  call.set_index(val);
+                  call.perform();
