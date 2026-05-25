@@ -244,7 +244,7 @@ private:
     // When compressor is running only consider the active demand for the current mode.
     if(compressor_controller_->IsRunning())
     {
-      has_active_demand = IsCoolingDemand() ? id(cool_demand_active_sensor).state : id(heat_demand_active_sensor).state || id(frost_protection_stage2_active).state;
+      has_active_demand = IsWorkingMode(WORKING_MODE_COOLING) ? id(cool_demand_active_sensor).state : id(heat_demand_active_sensor).state || id(frost_protection_stage2_active).state;
     }
     else 
     {
@@ -272,6 +272,8 @@ private:
     {
       ESP_LOGW("amber", "Safety check: Pump is not active while compressor is running, stopping compressor to avoid damage.");
       compressor_controller_->Stop();
+      TurnOffBackupHeater();
+      StopPumps();
       SetNextState(HeatCoolState::IDLE);
       return;
     }
@@ -281,6 +283,7 @@ private:
     {
       ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stopping compressor to avoid damage.");
       compressor_controller_->Stop();
+      TurnOffBackupHeater();
       StopPumps();
       SetNextState(HeatCoolState::IDLE);
       return;
@@ -339,7 +342,7 @@ public:
 
     // Guard: never modulate up when temperature has already overshot the setpoint
     const float TEMP_MARGIN = 0.3f;
-    bool overshoot = IsCoolingDemand()
+    bool overshoot = IsWorkingMode(WORKING_MODE_COOLING)
       ? (current_temperature < (target - TEMP_MARGIN))
       : (current_temperature > (target + TEMP_MARGIN));
     if (overshoot && desired_compressor_mode > current_compressor_mode)
@@ -368,8 +371,8 @@ public:
 
     // Overshoot is positive when temp has passed the setpoint in the working direction
     // Heating: too hot (Tc > target), Cooling: too cold (Tc < target)
-    float stop_delta = IsCoolingDemand() ? id(compressor_stop_delta_cooling).state : id(compressor_stop_delta).state;
-    float overshoot = IsCoolingDemand() ? (target_temperature - current_temperature) : (current_temperature - target_temperature);
+    float stop_delta = IsWorkingMode(WORKING_MODE_COOLING) ? id(compressor_stop_delta_cooling).state : id(compressor_stop_delta).state;
+    float overshoot = IsWorkingMode(WORKING_MODE_COOLING) ? (target_temperature - current_temperature) : (current_temperature - target_temperature);
 
     if (overshoot >= stop_delta)
     {
@@ -464,11 +467,11 @@ public:
 
         // Start condition based on target temperature and start_compressor_delta
         float current_temperature = id(heat_cool_temperature_tc).state;
-        float target_temperature = GetPidController().target_temperature;
         bool should_start;
         if (IsCoolingDemand())
         {
           // Cooling: start when supply temp is above target + start_delta
+          float target_temperature = id(pid_cool_temperature_control).target_temperature;
           float start_temperature = target_temperature + id(compressor_start_delta).state;
           should_start = current_temperature > start_temperature;
           if (!should_start)
@@ -480,6 +483,7 @@ public:
         else
         {
           // Heating: start when supply temp is below target - start_delta
+          float target_temperature = id(pid_heat_temperature_control).target_temperature;
           float start_temperature = target_temperature - id(compressor_start_delta).state;
           if (current_temperature >= start_temperature && !id(frost_protection_stage2_active).state)
           {
@@ -551,7 +555,7 @@ public:
         }
 
         // Backup heater logic only applies to heating mode
-        if (!IsCoolingDemand())
+        if (!IsWorkingMode(WORKING_MODE_COOLING))
         {
           if (id(sg_ready_max_boost_mode_active_sensor).state)
           {
@@ -721,6 +725,6 @@ public:
 
   pid::PIDClimate& GetPidController()
   {
-    return IsCoolingDemand() ? id(pid_cool_temperature_control) : id(pid_heat_temperature_control);
+    return IsWorkingMode(WORKING_MODE_COOLING) ? id(pid_cool_temperature_control) : id(pid_heat_temperature_control);
   }
 };

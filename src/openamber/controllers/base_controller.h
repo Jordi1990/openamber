@@ -148,4 +148,9 @@ public:
   {
     return state_ == idle_state_;
   }
+
+  bool IsWorkingMode(int working_mode)
+  {
+    return id(working_mode_switch).active_index().value() == working_mode;
+  }
 };
