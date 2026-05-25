@@ -96,6 +96,17 @@
             auto idx = id(backup_heating_mode).active_index();
             return idx.has_value() ? idx.value() : 0;
 
+# ── Settings: Bottomplate mode dropdown ──
+- id: !extend bottomplate_heater_mode
+  on_value:
+    then:
+      - lvgl.dropdown.update:
+          id: set_bottomplate_mode_dd
+          selected_index: !lambda |-
+            auto idx = id(bottomplate_heater_mode).active_index();
+            return idx.has_value() ? idx.value() : 0;
+      - script.execute: update_bottomplate_mode_ui
+
 # ── Settings: Heat power dropdown ──
 - id: !extend heat_compressor_mode
   on_value:

@@ -69,6 +69,79 @@
             format: "%.0f°C"
             args: ['x']
 
+# ── Algemeen: Bodemplaat & Defrost ──
+- id: !extend bottomplate_heater_ambient_temperature_start
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_bottomplate_start_val
+          text:
+            format: "%.0f°C"
+            args: ['x']
+
+- id: !extend bottomplate_heater_ambient_hysteresis_stop
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_bottomplate_hysteresis_val
+          text:
+            format: "%.0f°C"
+            args: ['x']
+
+- id: !extend enter_defrost_temperature
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_defrost_enter1_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+- id: !extend exit_defrost_temperature
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_defrost_exit_val
+          text:
+            format: "%.0f°C"
+            args: ['x']
+
+- id: !extend max_defrost_time
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_defrost_max_time_val
+          text:
+            format: "%.0f min"
+            args: ['x']
+
+- id: !extend enter_defrost_temperature_2
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_defrost_enter2_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+- id: !extend enter_defrost_temperature_3
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_defrost_enter3_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+- id: !extend enter_defrost_temperature_4
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_defrost_enter4_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
 # ── Pomp ──
 - id: !extend pump_speed_heating_number
   on_value:
