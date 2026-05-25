@@ -580,6 +580,10 @@
   address: 3237
   register_type: holding
   value_type: S_WORD
+  lambda: |-
+    return x - 30;
+  write_lambda: |-
+    return x + 30;
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -600,6 +604,10 @@
   address: 3276
   register_type: holding
   value_type: S_WORD
+  lambda: |-
+    return x - 30;
+  write_lambda: |-
+    return x + 30;
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -610,6 +618,10 @@
   address: 3277
   register_type: holding
   value_type: S_WORD
+  lambda: |-
+    return x - 30;
+  write_lambda: |-
+    return x + 30;
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -631,6 +643,10 @@
   address: 3336
   register_type: holding
   value_type: S_WORD
+  lambda: |-
+    return x - 30;
+  write_lambda: |-
+    return x + 30;
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -644,6 +660,10 @@
   address: 3337
   register_type: holding
   value_type: S_WORD
+  lambda: |-
+    return x - 30;
+  write_lambda: |-
+    return x + 30;
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -657,6 +677,10 @@
   address: 3338
   register_type: holding
   value_type: S_WORD
+  lambda: |-
+    return x - 30;
+  write_lambda: |-
+    return x + 30;
 
 - platform: template
   name: "Pomp interval (minuten)"
