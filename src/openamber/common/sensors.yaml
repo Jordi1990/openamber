@@ -94,8 +94,7 @@
   accuracy_decimals: 0
   lambda: |-
     float setpoint = 0.0;
-    auto working_mode = id(working_mode_switch).active_index();
-    if (working_mode.has_value() && working_mode.value() == WORKING_MODE_COOLING)
+    if (id(cool_demand_active_sensor).state)
     {
       if (id(cool_mode_select).current_option() == "Extern setpoint")
       {
@@ -125,8 +124,7 @@
   on_value:
     then:
       - lambda: |-
-          auto working_mode = id(working_mode_switch).active_index();
-          auto climate = working_mode.has_value() && working_mode.value() == WORKING_MODE_COOLING ? id(pid_cool_temperature_control) : id(pid_heat_temperature_control);
+          auto climate = id(cool_demand_active_sensor).state ? id(pid_cool_temperature_control) : id(pid_heat_temperature_control);
           auto call = climate->make_call();
           call.set_target_temperature(x);
           call.perform();
