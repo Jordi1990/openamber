@@ -89,23 +89,162 @@
   parameters:
     tab_index: int
   then:
+    - lvgl.widget.show: { id: panel_general_page_systeem }
+    - lvgl.widget.hide: { id: panel_general_page_sensor_kalibratie }
     - if:
         condition:
           lambda: 'return tab_index == 0;'
         then:
-          - lvgl.widget.show: { id: panel_general_page_systeem }
-          - lvgl.widget.hide: { id: panel_general_page_sensor_kalibratie }
+          - lvgl.widget.show: { id: set_general_system_dhw }
+          - lvgl.widget.show: { id: set_general_system_analytics }
+          - if:
+              condition:
+                switch.is_on: analytics_enabled_switch
+              then:
+                - lvgl.widget.show: { id: set_analytics_id_row }
+              else:
+                - lvgl.widget.hide: { id: set_analytics_id_row }
+          - lvgl.widget.hide: { id: set_general_bodemplaat_mode_row }
+          - lvgl.widget.hide: { id: set_general_bodemplaat_start_row }
+          - lvgl.widget.hide: { id: set_general_bodemplaat_hysteresis_row }
+          - lvgl.widget.hide: { id: set_general_bodemplaat_note_row }
+          - lvgl.widget.hide: { id: set_general_defrost_enter1_row }
+          - lvgl.widget.hide: { id: set_general_defrost_exit_row }
+          - lvgl.widget.hide: { id: set_general_defrost_max_time_row }
+          - lvgl.widget.hide: { id: set_general_defrost_note_row }
+          - lvgl.widget.hide: { id: set_general_defrost_start_note_row }
+          - lvgl.widget.show: { id: set_general_defrost_advanced_toggle_row }
+          - lvgl.widget.hide: { id: set_defrost_advanced_section }
           - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0x1F3B68 }
           - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0xFFFFFF }
-          - lvgl.widget.update: { id: general_stab_sensor_kalibratie, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: general_stab_sensor_kalibratie_lbl, text_color: 0x4B5563 }
+          - lvgl.widget.update: { id: general_stab_bodemplaat, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: general_stab_bodemplaat_lbl, text_color: 0x4B5563 }
+          - lvgl.widget.update: { id: general_stab_defrost, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: general_stab_defrost_lbl, text_color: 0x4B5563 }
+          - lvgl.widget.update: { id: general_stab_defrost_start, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: general_stab_defrost_start_lbl, text_color: 0x4B5563 }
         else:
-          - lvgl.widget.hide: { id: panel_general_page_systeem }
-          - lvgl.widget.show: { id: panel_general_page_sensor_kalibratie }
-          - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: general_stab_sensor_kalibratie, bg_color: 0x1F3B68 }
-          - lvgl.label.update: { id: general_stab_sensor_kalibratie_lbl, text_color: 0xFFFFFF }
+          - if:
+              condition:
+                lambda: 'return tab_index == 1;'
+              then:
+                - lvgl.widget.hide: { id: set_general_system_dhw }
+                - lvgl.widget.hide: { id: set_general_system_analytics }
+                - lvgl.widget.hide: { id: set_analytics_id_row }
+                - lvgl.widget.show: { id: set_general_bodemplaat_mode_row }
+                - lvgl.widget.show: { id: set_general_bodemplaat_start_row }
+                - lvgl.widget.show: { id: set_general_bodemplaat_hysteresis_row }
+                - lvgl.widget.show: { id: set_general_bodemplaat_note_row }
+                - lvgl.widget.hide: { id: set_general_defrost_enter1_row }
+                - lvgl.widget.hide: { id: set_general_defrost_exit_row }
+                - lvgl.widget.hide: { id: set_general_defrost_max_time_row }
+                - lvgl.widget.hide: { id: set_general_defrost_note_row }
+                - lvgl.widget.hide: { id: set_general_defrost_start_note_row }
+                - lvgl.widget.hide: { id: set_general_defrost_advanced_toggle_row }
+                - lvgl.widget.hide: { id: set_defrost_advanced_section }
+                - script.execute: update_bottomplate_mode_ui
+                - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: general_stab_bodemplaat, bg_color: 0x1F3B68 }
+                - lvgl.label.update: { id: general_stab_bodemplaat_lbl, text_color: 0xFFFFFF }
+                - lvgl.widget.update: { id: general_stab_defrost, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: general_stab_defrost_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: general_stab_defrost_start, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: general_stab_defrost_start_lbl, text_color: 0x4B5563 }
+              else:
+                - if:
+                    condition:
+                      lambda: 'return tab_index == 2;'
+                    then:
+                      - lvgl.widget.hide: { id: set_general_system_dhw }
+                      - lvgl.widget.hide: { id: set_general_system_analytics }
+                      - lvgl.widget.hide: { id: set_analytics_id_row }
+                      - lvgl.widget.hide: { id: set_general_bodemplaat_mode_row }
+                      - lvgl.widget.hide: { id: set_general_bodemplaat_start_row }
+                      - lvgl.widget.hide: { id: set_general_bodemplaat_hysteresis_row }
+                      - lvgl.widget.hide: { id: set_general_bodemplaat_note_row }
+                      - lvgl.widget.hide: { id: set_general_defrost_enter1_row }
+                      - lvgl.widget.show: { id: set_general_defrost_exit_row }
+                      - lvgl.widget.show: { id: set_general_defrost_max_time_row }
+                      - lvgl.widget.show: { id: set_general_defrost_note_row }
+                      - lvgl.widget.hide: { id: set_general_defrost_start_note_row }
+                      - lvgl.widget.hide: { id: set_general_defrost_advanced_toggle_row }
+                      - lvgl.widget.hide: { id: set_defrost_advanced_section }
+                      - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0xCBD5E1 }
+                      - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: general_stab_bodemplaat, bg_color: 0xCBD5E1 }
+                      - lvgl.label.update: { id: general_stab_bodemplaat_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: general_stab_defrost, bg_color: 0x1F3B68 }
+                      - lvgl.label.update: { id: general_stab_defrost_lbl, text_color: 0xFFFFFF }
+                      - lvgl.widget.update: { id: general_stab_defrost_start, bg_color: 0xCBD5E1 }
+                      - lvgl.label.update: { id: general_stab_defrost_start_lbl, text_color: 0x4B5563 }
+                    else:
+                      - lvgl.widget.hide: { id: set_general_system_dhw }
+                      - lvgl.widget.hide: { id: set_general_system_analytics }
+                      - lvgl.widget.hide: { id: set_analytics_id_row }
+                      - lvgl.widget.hide: { id: set_general_bodemplaat_mode_row }
+                      - lvgl.widget.hide: { id: set_general_bodemplaat_start_row }
+                      - lvgl.widget.hide: { id: set_general_bodemplaat_hysteresis_row }
+                      - lvgl.widget.hide: { id: set_general_bodemplaat_note_row }
+                      - lvgl.widget.show: { id: set_general_defrost_start_note_row }
+                      - lvgl.widget.show: { id: set_general_defrost_enter1_row }
+                      - lvgl.widget.hide: { id: set_general_defrost_exit_row }
+                      - lvgl.widget.hide: { id: set_general_defrost_max_time_row }
+                      - lvgl.widget.hide: { id: set_general_defrost_note_row }
+                      - lvgl.widget.hide: { id: set_general_defrost_advanced_toggle_row }
+                      - if:
+                          condition:
+                            switch.is_on: advanced_settings_enabled
+                          then:
+                            - lvgl.widget.show: { id: set_defrost_advanced_section }
+                          else:
+                            - lvgl.widget.hide: { id: set_defrost_advanced_section }
+                      - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0xCBD5E1 }
+                      - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: general_stab_bodemplaat, bg_color: 0xCBD5E1 }
+                      - lvgl.label.update: { id: general_stab_bodemplaat_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: general_stab_defrost, bg_color: 0xCBD5E1 }
+                      - lvgl.label.update: { id: general_stab_defrost_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: general_stab_defrost_start, bg_color: 0x1F3B68 }
+                      - lvgl.label.update: { id: general_stab_defrost_start_lbl, text_color: 0xFFFFFF }
+
+- id: update_bottomplate_mode_ui
+  mode: restart
+  then:
+    - if:
+        condition:
+          lambda: |-
+            return lv_dropdown_get_selected(id(set_bottomplate_mode_dd)->obj) == 1;
+        then:
+          - lvgl.widget.update:
+              id: set_general_bodemplaat_start_row
+              state:
+                disabled: false
+          - lvgl.widget.update:
+              id: set_general_bodemplaat_hysteresis_row
+              state:
+                disabled: false
+          - lvgl.widget.update:
+              id: set_general_bodemplaat_start_row
+              opa: 100%
+          - lvgl.widget.update:
+              id: set_general_bodemplaat_hysteresis_row
+              opa: 100%
+        else:
+          - lvgl.widget.update:
+              id: set_general_bodemplaat_start_row
+              state:
+                disabled: true
+          - lvgl.widget.update:
+              id: set_general_bodemplaat_hysteresis_row
+              state:
+                disabled: true
+          - lvgl.widget.update:
+              id: set_general_bodemplaat_start_row
+              opa: 40%
+          - lvgl.widget.update:
+              id: set_general_bodemplaat_hysteresis_row
+              opa: 40%
 
 - id: pump_select_tab
   mode: restart
