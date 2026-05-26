@@ -28,7 +28,7 @@ obj:
           border_opa: 0%
           pad_all: 6
           widgets:
-            - label: { text: "Vorstbescherming buitentemperatuur 1e trap", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Buitentemperatuur 1e trap", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Buitentemperatuur waaronder trap 1 activeert", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
             - obj:
                 width: SIZE_CONTENT
@@ -74,7 +74,7 @@ obj:
           border_opa: 0%
           pad_all: 6
           widgets:
-            - label: { text: "Vorstbescherming buitentemperatuur 2e trap", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Buitentemperatuur 2e trap", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Buitentemperatuur waaronder trap 2 activeert", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
             - obj:
                 width: SIZE_CONTENT
@@ -120,7 +120,7 @@ obj:
           border_opa: 0%
           pad_all: 6
           widgets:
-            - label: { text: "Vorstbescherming watertemperatuur 2e trap", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Watertemperatuur 2e trap", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Watertemperatuur waaronder trap 2 activeert", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
             - obj:
                 width: SIZE_CONTENT

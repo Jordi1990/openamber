@@ -79,6 +79,27 @@ obj:
               widgets:
                 - label: { id: pump_stab_pompsnelheid_lbl, text: "Pompsnelheid", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
 
+          - obj:
+              id: pump_stab_vorstbescherming
+              width: SIZE_CONTENT
+              height: 34
+              bg_color: 0xCBD5E1
+              bg_opa: 100%
+              radius: 8
+              border_opa: 0%
+              pad_left: 12
+              pad_right: 12
+              pad_top: 4
+              pad_bottom: 4
+              scrollbar_mode: "OFF"
+              scrollable: false
+              on_click:
+                - script.execute:
+                    id: pump_select_tab
+                    tab_index: 2
+              widgets:
+                - label: { id: pump_stab_vorstbescherming_lbl, text: "Vorstbescherming", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
+
     - obj:
         id: panel_pump_page_algemeen
         width: 100%
@@ -113,3 +134,5 @@ obj:
           flex_align_cross: STRETCH
           pad_row: 6
         widgets: !include page_settings_tab_pump_pompsnelheid_content.yaml
+
+    - !include page_settings_tab_frost.yaml

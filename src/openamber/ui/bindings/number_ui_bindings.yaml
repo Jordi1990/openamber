@@ -243,6 +243,15 @@
             format: "%.2f"
             args: ['x']
 
+- id: !extend pid_heat_deadband
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_heat_pid_deadband_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
 - id: !extend pid_cool_kp
   on_value:
     then:
@@ -268,6 +277,15 @@
           id: set_cool_pid_kd_val
           text:
             format: "%.2f"
+            args: ['x']
+
+- id: !extend pid_cool_deadband
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_cool_pid_deadband_val
+          text:
+            format: "%.1f°C"
             args: ['x']
 
 - id: !extend cooling_setpoint_number

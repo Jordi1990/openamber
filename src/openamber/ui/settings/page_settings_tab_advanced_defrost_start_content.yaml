@@ -1,5 +1,67 @@
 - obj:
-    id: set_heat_pid_section
+    id: set_general_defrost_start_note_row
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label:
+          width: 100%
+          text: "Let op: experimentele instellingen. Wijzigingen worden niet opgeslagen en na een power cycle teruggezet naar standaard."
+          text_color: 0xB45309
+          text_font: font_text_20
+          long_mode: WRAP
+          align: TOP_LEFT
+
+- obj:
+    id: set_general_defrost_enter1_row
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Defrost starttemperatuur 1", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: enter_defrost_temperature
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_defrost_enter1_val, text: "27.0°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: enter_defrost_temperature
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    id: set_defrost_advanced_section
     width: 100%
     height: SIZE_CONTENT
     bg_opa: 0%
@@ -19,8 +81,7 @@
           border_opa: 0%
           pad_all: 6
           widgets:
-            - label: { text: "PID P (Kp)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-            - label: { text: "Hoger: sneller reageren, lager: rustiger maar trager", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - label: { text: "Defrost starttemperatuur 2", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - obj:
                 width: SIZE_CONTENT
                 height: SIZE_CONTENT
@@ -40,10 +101,10 @@
                       scrollbar_mode: "OFF"
                       scrollable: false
                       on_click:
-                        - number.decrement: pid_heat_kp
+                        - number.decrement: enter_defrost_temperature_2
                       widgets:
                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                  - label: { id: set_heat_pid_kp_val, text: "0.60", text_color: 0x1F2933, text_font: font_text_24 }
+                  - label: { id: set_defrost_enter2_val, text: "-3.0°C", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
                       width: 40
                       height: 40
@@ -54,7 +115,7 @@
                       scrollbar_mode: "OFF"
                       scrollable: false
                       on_click:
-                        - number.increment: pid_heat_kp
+                        - number.increment: enter_defrost_temperature_2
                       widgets:
                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
@@ -65,8 +126,7 @@
           border_opa: 0%
           pad_all: 6
           widgets:
-            - label: { text: "PID I (Ki)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-            - label: { text: "Hoger: corrigeert afwijking sneller, lager: minder agressief", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - label: { text: "Defrost starttemperatuur 3", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - obj:
                 width: SIZE_CONTENT
                 height: SIZE_CONTENT
@@ -86,10 +146,10 @@
                       scrollbar_mode: "OFF"
                       scrollable: false
                       on_click:
-                        - number.decrement: pid_heat_ki
+                        - number.decrement: enter_defrost_temperature_3
                       widgets:
                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                  - label: { id: set_heat_pid_ki_val, text: "0.0020", text_color: 0x1F2933, text_font: font_text_24 }
+                  - label: { id: set_defrost_enter3_val, text: "-3.0°C", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
                       width: 40
                       height: 40
@@ -100,7 +160,7 @@
                       scrollbar_mode: "OFF"
                       scrollable: false
                       on_click:
-                        - number.increment: pid_heat_ki
+                        - number.increment: enter_defrost_temperature_3
                       widgets:
                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
@@ -111,8 +171,7 @@
           border_opa: 0%
           pad_all: 6
           widgets:
-            - label: { text: "PID D (Kd)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-            - label: { text: "Hoger: dempt schommelingen, lager: directer maar onrustiger", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - label: { text: "Defrost starttemperatuur 4", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - obj:
                 width: SIZE_CONTENT
                 height: SIZE_CONTENT
@@ -132,10 +191,10 @@
                       scrollbar_mode: "OFF"
                       scrollable: false
                       on_click:
-                        - number.decrement: pid_heat_kd
+                        - number.decrement: enter_defrost_temperature_4
                       widgets:
                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                  - label: { id: set_heat_pid_kd_val, text: "0.70", text_color: 0x1F2933, text_font: font_text_24 }
+                  - label: { id: set_defrost_enter4_val, text: "-10.0°C", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
                       width: 40
                       height: 40
@@ -146,67 +205,6 @@
                       scrollbar_mode: "OFF"
                       scrollable: false
                       on_click:
-                        - number.increment: pid_heat_kd
+                        - number.increment: enter_defrost_temperature_4
                       widgets:
                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-
-      - obj:
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
-          widgets:
-            - label: { text: "PID deadband (+/-)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-            - label: { text: "Zone rond setpoint waarin PID-output minder wijzigt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-            - obj:
-                width: SIZE_CONTENT
-                height: SIZE_CONTENT
-                align: TOP_RIGHT
-                bg_opa: 0%
-                border_opa: 0%
-                pad_all: 0
-                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-                widgets:
-                  - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
-                      scrollable: false
-                      on_click:
-                        - number.decrement: pid_heat_deadband
-                      widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                  - label: { id: set_heat_pid_deadband_val, text: "1.0°C", text_color: 0x1F2933, text_font: font_text_24 }
-                  - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
-                      scrollable: false
-                      on_click:
-                        - number.increment: pid_heat_deadband
-                      widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-
-      - obj:
-          id: set_heat_pid_disabled_overlay
-          hidden: true
-          ignore_layout: true
-          align: TOP_LEFT
-          width: 100%
-          height: 100%
-          bg_color: 0xFFFFFF
-          bg_opa: 55%
-          border_opa: 0%
-          radius: 0
-          pad_all: 0
-          scrollbar_mode: "OFF"
-          scrollable: false

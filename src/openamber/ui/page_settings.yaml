@@ -54,7 +54,7 @@ obj:
               scrollable: false
               widgets:
                 - !include settings/page_settings_tab_general.yaml
-                - !include settings/page_settings_tab_frost.yaml
+                - !include settings/page_settings_tab_advanced.yaml
                 - !include settings/page_settings_tab_pump.yaml
                 - !include settings/page_settings_tab_heating.yaml
                 - !include settings/page_settings_tab_cooling.yaml
