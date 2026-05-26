@@ -1,0 +1,141 @@
+- obj:
+    id: set_general_bodemplaat_note_row
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label:
+          width: 100%
+          text: "Let op: experimentele instellingen. Wijzigingen worden niet opgeslagen en na een power cycle teruggezet naar standaard."
+          text_color: 0xB45309
+          text_font: font_text_20
+          long_mode: WRAP
+          align: TOP_LEFT
+
+- obj:
+    id: set_general_bodemplaat_mode_row
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Bodemplaat", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Kies wanneer actief", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - dropdown:
+          id: set_bottomplate_mode_dd
+          symbol: "\U000F0140"
+          width: 230
+          align: TOP_RIGHT
+          y: 0
+          options:
+            - "Onbekend"
+            - "Buitentemperatuur"
+            - "Tijdens defrost"
+          text_font: font_text_20
+          dropdown_list:
+            text_font: font_text_20
+          on_value:
+            then:
+              - lambda: |-
+                  auto val = lv_dropdown_get_selected(id(set_bottomplate_mode_dd)->obj);
+                  if (val == 0) id(bottomplate_heater_mode).make_call().set_option("Onbekend").perform();
+                  else if (val == 1) id(bottomplate_heater_mode).make_call().set_option("Buitentemperatuur").perform();
+                  else id(bottomplate_heater_mode).make_call().set_option("Tijdens defrost").perform();
+              - script.execute: update_bottomplate_mode_ui
+
+- obj:
+    id: set_general_bodemplaat_start_row
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Starttemperatuur bodemplaat", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Buitentemperatuur voor inschakelen bodemplaat", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: bottomplate_heater_ambient_temperature_start
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_bottomplate_start_val, text: "34°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: bottomplate_heater_ambient_temperature_start
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    id: set_general_bodemplaat_hysteresis_row
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Stop-hysterese bodemplaat", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Hysterese voor uitschakelen bodemplaat", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: bottomplate_heater_ambient_hysteresis_stop
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_bottomplate_hysteresis_val, text: "3°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: bottomplate_heater_ambient_hysteresis_stop
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }

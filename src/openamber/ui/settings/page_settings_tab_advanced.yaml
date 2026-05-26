@@ -1,0 +1,232 @@
+# Panel: Geavanceerd
+# ------------------------------------------------------------
+obj:
+  id: panel_advanced
+  width: 100%
+  height: 100%
+  hidden: true
+  bg_opa: 0%
+  border_opa: 0%
+  pad_left: 0
+  pad_right: 0
+  pad_top: 4
+  pad_bottom: 4
+  scrollbar_mode: "OFF"
+  scrollable: false
+  layout:
+    type: FLEX
+    flex_flow: COLUMN
+    flex_align_main: START
+    flex_align_cross: STRETCH
+    pad_row: 4
+
+  widgets:
+    - obj:
+        id: panel_advanced_tab_bar
+        width: 100%
+        height: 40
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: ROW
+          flex_align_main: SPACE_BETWEEN
+          flex_align_cross: CENTER
+          pad_column: 0
+        widgets:
+          - obj:
+              id: advanced_stab_heat_pid
+              width: SIZE_CONTENT
+              height: 34
+              bg_color: 0x1F3B68
+              bg_opa: 100%
+              radius: 8
+              border_opa: 0%
+              pad_left: 4
+              pad_right: 4
+              pad_top: 4
+              pad_bottom: 4
+              scrollbar_mode: "OFF"
+              scrollable: false
+              on_click:
+                - script.execute:
+                    id: advanced_select_tab
+                    tab_index: 0
+              widgets:
+                - label: { id: advanced_stab_heat_pid_lbl, text: "Verwarmen PID", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
+
+          - obj:
+              id: advanced_stab_cool_pid
+              width: SIZE_CONTENT
+              height: 34
+              bg_color: 0xCBD5E1
+              bg_opa: 100%
+              radius: 8
+              border_opa: 0%
+              pad_left: 4
+              pad_right: 4
+              pad_top: 4
+              pad_bottom: 4
+              scrollbar_mode: "OFF"
+              scrollable: false
+              on_click:
+                - script.execute:
+                    id: advanced_select_tab
+                    tab_index: 1
+              widgets:
+                - label: { id: advanced_stab_cool_pid_lbl, text: "Koelen PID", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
+
+          - obj:
+              id: advanced_stab_bodemplaat
+              width: SIZE_CONTENT
+              height: 34
+              bg_color: 0xCBD5E1
+              bg_opa: 100%
+              radius: 8
+              border_opa: 0%
+              pad_left: 4
+              pad_right: 4
+              pad_top: 4
+              pad_bottom: 4
+              scrollbar_mode: "OFF"
+              scrollable: false
+              on_click:
+                - script.execute:
+                    id: advanced_select_tab
+                    tab_index: 2
+              widgets:
+                - label: { id: advanced_stab_bodemplaat_lbl, text: "Bodemplaat", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
+
+          - obj:
+              id: advanced_stab_defrost
+              width: SIZE_CONTENT
+              height: 34
+              bg_color: 0xCBD5E1
+              bg_opa: 100%
+              radius: 8
+              border_opa: 0%
+              pad_left: 4
+              pad_right: 4
+              pad_top: 4
+              pad_bottom: 4
+              scrollbar_mode: "OFF"
+              scrollable: false
+              on_click:
+                - script.execute:
+                    id: advanced_select_tab
+                    tab_index: 3
+              widgets:
+                - label: { id: advanced_stab_defrost_lbl, text: "Defrost 1/2", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
+
+          - obj:
+              id: advanced_stab_defrost_start
+              width: SIZE_CONTENT
+              height: 34
+              bg_color: 0xCBD5E1
+              bg_opa: 100%
+              radius: 8
+              border_opa: 0%
+              pad_left: 4
+              pad_right: 4
+              pad_top: 4
+              pad_bottom: 4
+              scrollbar_mode: "OFF"
+              scrollable: false
+              on_click:
+                - script.execute:
+                    id: advanced_select_tab
+                    tab_index: 4
+              widgets:
+                - label: { id: advanced_stab_defrost_start_lbl, text: "Defrost 2/2", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
+
+    - obj:
+        id: panel_advanced_page_heat_pid
+        width: 100%
+        height: SIZE_CONTENT
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: COLUMN
+          flex_align_main: START
+          flex_align_cross: STRETCH
+          pad_row: 6
+        widgets: !include page_settings_tab_heating_pid_content.yaml
+
+    - obj:
+        id: panel_advanced_page_cool_pid
+        hidden: true
+        width: 100%
+        height: SIZE_CONTENT
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: COLUMN
+          flex_align_main: START
+          flex_align_cross: STRETCH
+          pad_row: 6
+        widgets: !include page_settings_tab_cooling_pid_content.yaml
+
+    - obj:
+        id: panel_advanced_page_bodemplaat
+        hidden: true
+        width: 100%
+        height: SIZE_CONTENT
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: COLUMN
+          flex_align_main: START
+          flex_align_cross: STRETCH
+          pad_row: 6
+        widgets: !include page_settings_tab_advanced_bodemplaat_content.yaml
+
+    - obj:
+        id: panel_advanced_page_defrost
+        hidden: true
+        width: 100%
+        height: SIZE_CONTENT
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: COLUMN
+          flex_align_main: START
+          flex_align_cross: STRETCH
+          pad_row: 6
+        widgets: !include page_settings_tab_advanced_defrost_content.yaml
+
+    - obj:
+        id: panel_advanced_page_defrost_start
+        hidden: true
+        width: 100%
+        height: SIZE_CONTENT
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: COLUMN
+          flex_align_main: START
+          flex_align_cross: STRETCH
+          pad_row: 6
+        widgets: !include page_settings_tab_advanced_defrost_start_content.yaml
