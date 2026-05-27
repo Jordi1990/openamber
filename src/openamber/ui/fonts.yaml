@@ -81,7 +81,6 @@
         - "\U000F0140"  # mdi-chevron-down (dropdown arrow)
         - "\U000F0208"  # mdi-eye
         - "\U000F0209"  # mdi-eye-off
-        - "\U000F0140"  # mdi-chevron-down (dropdown arrow)
 - file:
     type: gfonts
     family: "Roboto"

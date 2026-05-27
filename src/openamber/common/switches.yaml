@@ -128,9 +128,9 @@
 - platform: template
   id: service_mode_enabled
   name: "Onderhoudsmodus"
-  internal: True
   optimistic: True
   entity_category: config
+  disabled_by_default: true
   web_server:
     sorting_group_id: manual_control
 
@@ -139,7 +139,7 @@
   id: bottom_plate_heater_manual_switch
   name: "Bodemplaat verwarming handmatig"
   internal: True
-  address: 2011
+  address: 2010
   register_type: holding
   bitmask: 0x4
   web_server:
@@ -150,7 +150,7 @@
   id: compressor_crankcase_heater_manual_switch
   name: "Compressor carterverwarming handmatig"
   internal: True
-  address: 2011
+  address: 2010
   register_type: holding
   bitmask: 0x8
   web_server:

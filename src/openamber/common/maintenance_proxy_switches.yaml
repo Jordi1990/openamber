@@ -1,21 +1,7 @@
 switch:
   - platform: template
-    id: maintenance_service_mode_proxy
-    name: "Onderhoudsmodus (Maintenance)"
-    lambda: |-
-      return id(service_mode_enabled).state;
-    turn_on_action:
-      - switch.turn_on: service_mode_enabled
-    turn_off_action:
-      - switch.turn_off: service_mode_enabled
-    disabled_by_default: true
-    entity_category: config
-    web_server:
-      sorting_group_id: manual_control
-
-  - platform: template
     id: maintenance_bottom_plate_heater_manual_proxy
-    name: "Bodemplaat verwarming handmatig (Maintenance)"
+    name: "Bodemplaat verwarming (Onderhoud)"
     lambda: |-
       return id(bottom_plate_heater_manual_switch).state;
     turn_on_action:
@@ -37,7 +23,7 @@ switch:
 
   - platform: template
     id: maintenance_compressor_crankcase_heater_manual_proxy
-    name: "Compressor carterverwarming handmatig (Maintenance)"
+    name: "Compressor carterverwarming (Onderhoud)"
     lambda: |-
       return id(compressor_crankcase_heater_manual_switch).state;
     turn_on_action:
@@ -59,7 +45,7 @@ switch:
 
   - platform: template
     id: maintenance_pump_p0_relay_proxy
-    name: "Pomp P0 relais (Maintenance)"
+    name: "Pomp P0 relais (Onderhoud)"
     lambda: |-
       return id(pump_p0_relay_switch).state;
     turn_on_action:
@@ -81,7 +67,7 @@ switch:
 
   - platform: template
     id: maintenance_pump_p1_relay_proxy
-    name: "Pomp P1 relais (Maintenance)"
+    name: "Pomp P1 relais (Onderhoud)"
     lambda: |-
       return id(pump_p1_relay_switch).state;
     turn_on_action:
@@ -103,7 +89,7 @@ switch:
 
   - platform: template
     id: maintenance_pump_p2_relay_proxy
-    name: "Pomp P2 relais (Maintenance)"
+    name: "Pomp P2 relais (Onderhoud)"
     lambda: |-
       return id(pump_p2_relay_switch).state;
     turn_on_action:
@@ -125,7 +111,7 @@ switch:
 
   - platform: template
     id: maintenance_dhw_pump_relay_proxy
-    name: "Tapwater pomp relais (Maintenance)"
+    name: "Tapwater pomp relais (Onderhoud)"
     lambda: |-
       return id(dhw_pump_relay_switch).state;
     turn_on_action:
@@ -147,7 +133,7 @@ switch:
 
   - platform: template
     id: maintenance_three_way_valve_heat_cool_proxy
-    name: "3-weg klep Koelen & Verwarmen (Maintenance)"
+    name: "3-weg klep Koelen & Verwarmen (Onderhoud)"
     lambda: |-
       return id(three_way_valve_heat_cool_switch).state;
     turn_on_action:
@@ -169,7 +155,7 @@ switch:
 
   - platform: template
     id: maintenance_three_way_valve_dhw_proxy
-    name: "3-weg klep SWW (Maintenance)"
+    name: "3-weg klep SWW (Onderhoud)"
     lambda: |-
       return id(three_way_valve_dhw_switch).state;
     turn_on_action:
@@ -191,7 +177,7 @@ switch:
 
   - platform: template
     id: maintenance_backup_heater_relay_proxy
-    name: "Backup verwarmingselement (Maintenance)"
+    name: "Backup verwarmingselement (Onderhoud)"
     lambda: |-
       return id(backup_heater_relay).state;
     turn_on_action:
@@ -212,44 +198,22 @@ switch:
       sorting_group_id: manual_control
 
   - platform: template
-    id: maintenance_backup_heater_stage_1_proxy
-    name: "Backup heater stage 1 (Maintenance)"
+    id: maintenance_cv_hybride_backup_relay_proxy
+    name: "CV Hybride backup relais (Onderhoud)"
     lambda: |-
-      return id(backup_heater_stage_1).state;
+      return id(external_backup_heating_relay).state;
     turn_on_action:
       - if:
           condition:
             lambda: 'return id(amber_ctrl).is_maintenance_state();'
           then:
-            - switch.turn_on: backup_heater_stage_1
+            - switch.turn_on: external_backup_heating_relay
     turn_off_action:
       - if:
           condition:
             lambda: 'return id(amber_ctrl).is_maintenance_state();'
           then:
-            - switch.turn_off: backup_heater_stage_1
-    disabled_by_default: true
-    entity_category: config
-    web_server:
-      sorting_group_id: manual_control
-
-  - platform: template
-    id: maintenance_backup_heater_stage_2_proxy
-    name: "Backup heater stage 2 (Maintenance)"
-    lambda: |-
-      return id(backup_heater_stage_2).state;
-    turn_on_action:
-      - if:
-          condition:
-            lambda: 'return id(amber_ctrl).is_maintenance_state();'
-          then:
-            - switch.turn_on: backup_heater_stage_2
-    turn_off_action:
-      - if:
-          condition:
-            lambda: 'return id(amber_ctrl).is_maintenance_state();'
-          then:
-            - switch.turn_off: backup_heater_stage_2
+            - switch.turn_off: external_backup_heating_relay
     disabled_by_default: true
     entity_category: config
     web_server:

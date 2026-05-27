@@ -117,6 +117,7 @@ void OpenAmberComponent::update()
           auto working_mode_call = id(working_mode_switch).make_call();
           working_mode_call.set_index(WORKING_MODE_MAINTENANCE);
           working_mode_call.perform();
+          id(pump_p0_relay_switch).turn_off();
           SetNextState(State::MAINTENANCE);
         }
         else if(desired_valve_position != current_valve_position)

@@ -46,6 +46,9 @@ obj:
               id: page_service
               hidden: true
           - lvgl.widget.update:
+              id: page_system
+              hidden: true
+          - lvgl.widget.update:
               id: page_settings
               hidden: true
           - lvgl.widget.update:
@@ -168,6 +171,9 @@ obj:
               id: page_service
               hidden: true
           - lvgl.widget.update:
+              id: page_system
+              hidden: true
+          - lvgl.widget.update:
               id: page_settings
               hidden: false
 
@@ -255,6 +261,9 @@ obj:
               id: page_service
               hidden: false
           - lvgl.widget.update:
+              id: page_system
+              hidden: true
+          - lvgl.widget.update:
               id: page_settings
               hidden: true
           - lvgl.widget.show:
@@ -265,10 +274,6 @@ obj:
               align: TOP_RIGHT
           - lvgl.widget.update:
               id: service_sensors_panel
-              width: 72%
-              align: TOP_RIGHT
-          - lvgl.widget.update:
-              id: service_updates_panel
               width: 72%
               align: TOP_RIGHT
           - lvgl.widget.show:
@@ -285,8 +290,6 @@ obj:
               id: service_maintenance_state
           - lvgl.widget.hide:
               id: service_sensors_panel
-          - lvgl.widget.hide:
-              id: service_updates_panel
           - lvgl.widget.show:
               id: set_service_mode_switch_ui
           - lvgl.widget.hide:
@@ -417,38 +420,13 @@ obj:
               hidden: true
           - lvgl.widget.update:
               id: page_service
+              hidden: true
+          - lvgl.widget.update:
+              id: page_system
               hidden: false
           - lvgl.widget.update:
               id: page_settings
               hidden: true
-          - lvgl.widget.hide:
-              id: service_tabs_bar
-          - lvgl.widget.update:
-              id: service_maintenance_panel
-              width: 100%
-              align: TOP_LEFT
-          - lvgl.widget.update:
-              id: service_sensors_panel
-              width: 100%
-              align: TOP_LEFT
-          - lvgl.widget.update:
-              id: service_updates_panel
-              width: 100%
-              align: TOP_LEFT
-          - lvgl.widget.hide:
-              id: service_maintenance_panel
-          - lvgl.widget.hide:
-              id: service_sensors_panel
-          - lvgl.widget.show:
-              id: service_updates_panel
-          - lvgl.widget.hide:
-              id: service_mpanel_compressor
-          - lvgl.widget.hide:
-              id: service_mpanel_pumps
-          - lvgl.widget.hide:
-              id: service_mpanel_valve
-          - lvgl.widget.hide:
-              id: service_mpanel_backup
 
           - lvgl.widget.update:
               id: nav_system

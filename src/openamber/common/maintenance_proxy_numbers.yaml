@@ -1,7 +1,7 @@
 number:
   - platform: template
     id: maintenance_pump_control_pwm_proxy
-    name: "Pomp PWM (Maintenance)"
+    name: "Pomp PWM (Onderhoud)"
     min_value: 0
     max_value: 1000
     step: 1
@@ -23,7 +23,7 @@ number:
 
   - platform: template
     id: maintenance_fan_speed_manual_proxy
-    name: "Ventilator snelheid handmatig (Maintenance)"
+    name: "Ventilator snelheid RPM (Onderhoud)"
     min_value: 0
     max_value: 1000
     step: 1
@@ -44,21 +44,21 @@ number:
       sorting_group_id: manual_control
 
   - platform: template
-    id: maintenance_evi_open_setting_manual_proxy
-    name: "EVI opening handmatig (Maintenance)"
+    id: maintenance_eev_open_setting_manual_proxy
+    name: "EEV opening handmatig (Onderhoud)"
     min_value: 0
     max_value: 500
     step: 1
     mode: box
     lambda: |-
-      return id(evi_open_setting_manual_number).state;
+      return id(eev_open_setting_manual_number).state;
     set_action:
       - if:
           condition:
             lambda: 'return id(amber_ctrl).is_maintenance_state();'
           then:
             - number.set:
-                id: evi_open_setting_manual_number
+                id: eev_open_setting_manual_number
                 value: !lambda 'return x;'
     disabled_by_default: true
     entity_category: config

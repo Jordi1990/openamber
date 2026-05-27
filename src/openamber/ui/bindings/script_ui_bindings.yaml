@@ -608,6 +608,15 @@
                 - lvgl.widget.update: { id: service_valve_btn_dhw, bg_color: 0xE8ECF1 }
                 - lvgl.widget.update: { id: service_valve_btn_dhw_lbl, text_color: 0x4B5563 }
 
+- id: set_service_maintenance_fan_speed_pending
+  mode: restart
+  parameters:
+    selected: int
+  then:
+    - lambda: |-
+        id(service_pending_maintenance_fan_speed) = selected;
+    - script.execute: update_service_mode_ui
+
 - id: update_service_mode_ui
   mode: restart
   then:
@@ -678,12 +687,68 @@
         text:
           format: "%.0f %%"
           args: ['id(fan_speed_manual_number).state / 10.0f']
+    - lvgl.label.update:
+        id: service_maintenance_fan_speed_value
+        text: !lambda |-
+          const int pending = id(service_pending_maintenance_fan_speed);
+          if (pending >= 0) return (std::string) str_sprintf("Stand %d", pending);
+          auto idx = id(maintenance_fan_speed).active_index();
+          if (!idx.has_value()) return (std::string) "-";
+          return (std::string) str_sprintf("Stand %d", idx.value());
     - lambda: |-
         if (id(service_p0_pwm_slider) != nullptr) {
           lv_slider_set_value(id(service_p0_pwm_slider), (int) id(pump_p0_current_pwm_sensor).state, LV_ANIM_OFF);
         }
         if (id(service_fan_slider) != nullptr) {
           lv_slider_set_value(id(service_fan_slider), (int) (id(fan_speed_manual_number).state / 10.0f), LV_ANIM_OFF);
+        }
+        const auto fan_speed_idx = id(maintenance_fan_speed).active_index();
+        int selected_fan_speed = id(service_pending_maintenance_fan_speed);
+        if (selected_fan_speed < 0) {
+          selected_fan_speed = fan_speed_idx.has_value() ? fan_speed_idx.value() : -1;
+        }
+
+        lv_obj_t *fan_speed_buttons[] = {
+          id(service_maintenance_fan_speed_btn_0),
+          id(service_maintenance_fan_speed_btn_1),
+          id(service_maintenance_fan_speed_btn_2),
+          id(service_maintenance_fan_speed_btn_3),
+          id(service_maintenance_fan_speed_btn_4),
+          id(service_maintenance_fan_speed_btn_5),
+          id(service_maintenance_fan_speed_btn_6),
+          id(service_maintenance_fan_speed_btn_7),
+          id(service_maintenance_fan_speed_btn_8),
+          id(service_maintenance_fan_speed_btn_9),
+        };
+
+        lv_obj_t *fan_speed_labels[] = {
+          id(service_maintenance_fan_speed_btn_0_lbl),
+          id(service_maintenance_fan_speed_btn_1_lbl),
+          id(service_maintenance_fan_speed_btn_2_lbl),
+          id(service_maintenance_fan_speed_btn_3_lbl),
+          id(service_maintenance_fan_speed_btn_4_lbl),
+          id(service_maintenance_fan_speed_btn_5_lbl),
+          id(service_maintenance_fan_speed_btn_6_lbl),
+          id(service_maintenance_fan_speed_btn_7_lbl),
+          id(service_maintenance_fan_speed_btn_8_lbl),
+          id(service_maintenance_fan_speed_btn_9_lbl),
+        };
+
+        for (int i = 0; i < 10; i++) {
+          if (fan_speed_buttons[i] == nullptr || fan_speed_labels[i] == nullptr) continue;
+          const bool active = (i == selected_fan_speed);
+          const lv_style_selector_t default_selector =
+            ((lv_style_selector_t) LV_PART_MAIN) | ((lv_style_selector_t) LV_STATE_DEFAULT);
+          lv_obj_set_style_bg_color(
+            fan_speed_buttons[i],
+            lv_color_hex(active ? 0x1F3B68 : 0xE8ECF1),
+            default_selector
+          );
+          lv_obj_set_style_text_color(
+            fan_speed_labels[i],
+            lv_color_hex(active ? 0xFFFFFF : 0x4B5563),
+            default_selector
+          );
         }
     - lvgl.widget.show: { id: service_maintenance_controls_container }
     - if:
