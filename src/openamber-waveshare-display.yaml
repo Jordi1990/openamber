@@ -141,6 +141,7 @@ lvgl:
     - !include openamber/ui/header_bar.yaml
     - !include openamber/ui/page_home.yaml
     - !include openamber/ui/page_service.yaml
+    - !include openamber/ui/page_system.yaml
     - !include openamber/ui/page_settings.yaml
     - !include openamber/ui/nav_bar.yaml
     - !include openamber/ui/boot_screen.yaml
