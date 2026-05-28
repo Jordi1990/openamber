@@ -139,6 +139,8 @@
     {
       return id(external_cool_demand_wired).state || id(cool_demand_switch).state;
     }
+  on_state:
+    - component.update : current_setpoint
   web_server: 
     sorting_group_id: overview
 
