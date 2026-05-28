@@ -685,8 +685,8 @@
     - lvgl.label.update:
         id: service_fan_slider_value
         text:
-          format: "%.0f %%"
-          args: ['id(fan_speed_manual_number).state / 10.0f']
+          format: "%.0f RPM"
+          args: ['id(fan_speed_manual_number).state']
     - lvgl.label.update:
         id: service_maintenance_fan_speed_value
         text: !lambda |-
@@ -700,7 +700,7 @@
           lv_slider_set_value(id(service_p0_pwm_slider), (int) id(pump_p0_current_pwm_sensor).state, LV_ANIM_OFF);
         }
         if (id(service_fan_slider) != nullptr) {
-          lv_slider_set_value(id(service_fan_slider), (int) (id(fan_speed_manual_number).state / 10.0f), LV_ANIM_OFF);
+          lv_slider_set_value(id(service_fan_slider), (int) id(fan_speed_manual_number).state, LV_ANIM_OFF);
         }
         const auto fan_speed_idx = id(maintenance_fan_speed).active_index();
         int selected_fan_speed = id(service_pending_maintenance_fan_speed);

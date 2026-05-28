@@ -7,23 +7,10 @@ obj:
   border_opa: 0%
   pad_all: 0
   widgets:
-    - label:
-        text: "Back-up verwarming"
-        text_color: 0x1F2933
-        text_font: font_text_24
-        align: TOP_LEFT
-    - label:
-        width: 100%
-        text: "Test backup verwarming relais."
-        text_color: 0x6B7280
-        text_font: font_text_24
-        long_mode: WRAP
-        align: TOP_LEFT
-        y: 26
     - obj:
         width: 100%
-        height: 34
-        y: 64
+        height: 62
+        y: 0
         bg_opa: 0%
         border_opa: 0%
         pad_all: 0
@@ -34,10 +21,17 @@ obj:
               text: "Backup element"
               text_color: 0x1F2933
               text_font: font_text_24
-              align: LEFT_MID
+              align: TOP_LEFT
+          - label:
+              text: "Schakel elektrisch backup element handmatig voor test"
+              width: 72%
+              text_color: 0x6B7280
+              text_font: font_text_20
+              align: TOP_LEFT
+              y: 34
           - switch:
               id: service_backup_heater_relay_switch_ui
-              align: RIGHT_MID
+              align: TOP_RIGHT
               bg_color: 0x9CA3AF
               indicator:
                 bg_color: 0x16A34A
@@ -53,8 +47,8 @@ obj:
                       - script.execute: update_service_mode_ui
     - obj:
         width: 100%
-        height: 34
-        y: 100
+        height: 62
+        y: 68
         bg_opa: 0%
         border_opa: 0%
         pad_all: 0
@@ -65,10 +59,17 @@ obj:
               text: "CV hybride backup relais"
               text_color: 0x1F2933
               text_font: font_text_24
-              align: LEFT_MID
+              align: TOP_LEFT
+          - label:
+              text: "Schakel hybride backup relais handmatig voor test"
+              width: 72%
+              text_color: 0x6B7280
+              text_font: font_text_20
+              align: TOP_LEFT
+              y: 34
           - switch:
               id: service_external_backup_heating_relay_switch_ui
-              align: RIGHT_MID
+              align: TOP_RIGHT
               bg_color: 0x9CA3AF
               indicator:
                 bg_color: 0x16A34A

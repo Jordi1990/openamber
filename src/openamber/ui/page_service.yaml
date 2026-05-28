@@ -11,8 +11,8 @@ obj:
   scrollable: false
   pad_left: 24
   pad_right: 24
-  pad_top: 10
-  pad_bottom: 10
+  pad_top: 4
+  pad_bottom: 4
 
   widgets:
     - obj:
@@ -24,8 +24,8 @@ obj:
         radius: 18
         pad_left: 16
         pad_right: 16
-        pad_top: 12
-        pad_bottom: 12
+        pad_top: 8
+        pad_bottom: 8
         border_width: 0
         border_opa: 0%
         shadow_width: 10
@@ -34,8 +34,24 @@ obj:
         shadow_opa: 20%
         scrollbar_mode: "OFF"
         scrollable: false
+        layout:
+          type: GRID
+          grid_rows: [FR(1)]
+          grid_columns: [210, FR(1)]
+          pad_column: 12
 
         widgets:
           - !include service/page_service_sidebar.yaml
-          - !include service/page_service_tab_maintenance.yaml
-          - !include service/page_service_tab_sensors.yaml
+          - obj:
+              id: service_content
+              grid_cell_row_pos: 0
+              grid_cell_column_pos: 1
+              grid_cell_x_align: STRETCH
+              grid_cell_y_align: STRETCH
+              bg_opa: 0%
+              border_opa: 0%
+              scrollbar_mode: "OFF"
+              scrollable: false
+              widgets:
+                - !include service/page_service_tab_maintenance.yaml
+                - !include service/page_service_tab_sensors.yaml

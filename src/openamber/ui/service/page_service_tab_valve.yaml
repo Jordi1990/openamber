@@ -8,24 +8,24 @@ obj:
   pad_all: 0
   widgets:
     - label:
-        text: "3-weg klep"
+        text: "Klepstand forceren"
         text_color: 0x1F2933
         text_font: font_text_24
         align: TOP_LEFT
     - label:
         width: 100%
-        text: "Forceer de klepstand tijdelijk naar CV/Koelen of Tapwater."
+        text: "Forceer de 3-weg klep tijdelijk naar CV/Koelen of Tapwater"
         text_color: 0x6B7280
-        text_font: font_text_24
+        text_font: font_text_20
         long_mode: WRAP
         align: TOP_LEFT
-        y: 26
+        y: 38
     - obj:
         id: service_valve_btn_heat_cool
         width: 48%
         height: 42
         align: TOP_LEFT
-        y: 64
+        y: 74
         bg_color: 0xE8ECF1
         bg_opa: 100%
         radius: 8
@@ -49,14 +49,14 @@ obj:
               id: service_valve_btn_heat_cool_lbl
               text: "CV/Koelen"
               text_color: 0x4B5563
-              text_font: font_text_24
+              text_font: font_text_20
               align: CENTER
     - obj:
         id: service_valve_btn_dhw
         width: 48%
         height: 42
         align: TOP_RIGHT
-        y: 64
+        y: 74
         bg_color: 0xE8ECF1
         bg_opa: 100%
         radius: 8
@@ -80,6 +80,6 @@ obj:
               id: service_valve_btn_dhw_lbl
               text: "Tapwater"
               text_color: 0x4B5563
-              text_font: font_text_24
+              text_font: font_text_20
               align: CENTER
 

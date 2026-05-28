@@ -1,8 +1,11 @@
 obj:
   id: service_tabs_bar
+  grid_cell_row_pos: 0
+  grid_cell_column_pos: 0
+  grid_cell_x_align: STRETCH
+  grid_cell_y_align: STRETCH
   width: 210
   height: 100%
-  align: TOP_LEFT
   bg_color: 0xE8ECF1
   bg_opa: 100%
   radius: 14
@@ -10,8 +13,8 @@ obj:
   border_opa: 0%
   pad_left: 4
   pad_right: 4
-  pad_top: 6
-  pad_bottom: 6
+  pad_top: 3
+  pad_bottom: 3
   scrollbar_mode: "OFF"
   scrollable: true
   layout:
@@ -63,7 +66,7 @@ obj:
               id: service_tab_maintenance_lbl
               text: "Algemeen"
               text_color: 0x4B5563
-              text_font: font_text_24
+              text_font: font_text_20
               align: LEFT_MID
 
     - obj:
@@ -108,7 +111,7 @@ obj:
               id: service_tab_compressor_lbl
               text: "Buitenunit"
               text_color: 0x4B5563
-              text_font: font_text_24
+              text_font: font_text_20
               align: LEFT_MID
 
     - obj:
@@ -153,7 +156,7 @@ obj:
               id: service_tab_pumps_lbl
               text: "Pompen"
               text_color: 0x4B5563
-              text_font: font_text_24
+              text_font: font_text_20
               align: LEFT_MID
 
     - obj:
@@ -198,7 +201,7 @@ obj:
               id: service_tab_valve_lbl
               text: "3-weg klep"
               text_color: 0x4B5563
-              text_font: font_text_24
+              text_font: font_text_20
               align: LEFT_MID
 
     - obj:
@@ -243,7 +246,7 @@ obj:
               id: service_tab_backup_lbl
               text: "Back-up"
               text_color: 0x4B5563
-              text_font: font_text_24
+              text_font: font_text_20
               align: LEFT_MID
 
     - obj:
@@ -283,6 +286,6 @@ obj:
               id: service_tab_sensors_lbl
               text: "Sensoren"
               text_color: 0x4B5563
-              text_font: font_text_24
+              text_font: font_text_20
               align: LEFT_MID
 

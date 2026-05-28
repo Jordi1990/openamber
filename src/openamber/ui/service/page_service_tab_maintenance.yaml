@@ -1,8 +1,8 @@
 obj:
   id: service_maintenance_panel
-  width: 72%
+  width: 100%
   height: 100%
-  align: TOP_RIGHT
+  align: TOP_LEFT
   y: 0
   hidden: true
   bg_opa: 0%
@@ -33,9 +33,9 @@ obj:
               height: SIZE_CONTENT
               text: "Onderhoudsmodus niet actief"
               text_color: 0x6B7280
-              text_font: font_text_24
+              text_font: font_text_20
               align: TOP_LEFT
-              y: 34
+              y: 38
           - switch:
               id: set_service_mode_switch_ui
               align: TOP_RIGHT
@@ -60,10 +60,10 @@ obj:
         width: 100%
         text: "Handmatige bediening blijft vergrendeld tot onderhoudsmodus actief is."
         text_color: 0x9CA3AF
-        text_font: font_text_24
+        text_font: font_text_20
         long_mode: WRAP
         align: TOP_LEFT
-        y: 74
+        y: 76
 
     - obj:
         id: service_maintenance_layout

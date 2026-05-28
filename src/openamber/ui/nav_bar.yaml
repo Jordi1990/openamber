@@ -270,12 +270,12 @@ obj:
               id: service_tabs_bar
           - lvgl.widget.update:
               id: service_maintenance_panel
-              width: 72%
-              align: TOP_RIGHT
+              width: 100%
+              align: TOP_LEFT
           - lvgl.widget.update:
               id: service_sensors_panel
-              width: 72%
-              align: TOP_RIGHT
+              width: 100%
+              align: TOP_LEFT
           - lvgl.widget.show:
               id: service_maintenance_panel
           - lvgl.widget.update:
