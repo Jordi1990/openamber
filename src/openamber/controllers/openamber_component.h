@@ -45,7 +45,9 @@ OpenAmberComponent::~OpenAmberComponent()
 void OpenAmberComponent::setup()
 {
   ESP_LOGI("amber", "OpenAmberController initialized");
-  state_ = State::INITIALIZING;
+  dhw_controller_->Init();
+  heat_cool_controller_->Init();
+  SetNextState(State::INITIALIZING);
 }
 
 void OpenAmberComponent::loop()
