@@ -111,6 +111,11 @@ private:
 
     auto& active_mode = GetActiveCompressorMode();
     int mode_offset = id(compressor_control_select).size() - active_mode.size();
+    if(IsCoolingDemand())
+    {
+      // Cooling maximum range is limited to make the mode selection based on the lower frequencies, maximum compressor modes should not be needed for cooling.
+      mode_offset -= 3;
+    }
     int amount_of_modes = active_mode.active_index().value() + mode_offset;
     int desired_mode = (int)roundf(raw * (amount_of_modes - 1)) + 1;
     return std::max(1, std::min(desired_mode, (int)amount_of_modes));
