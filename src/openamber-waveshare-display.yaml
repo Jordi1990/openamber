@@ -122,7 +122,7 @@ image:
 font: !include openamber/ui/fonts.yaml
 
 lvgl:
-  buffer_size: 50%
+  buffer_size: 24%
   on_idle:
     - timeout: 60s
       then:
