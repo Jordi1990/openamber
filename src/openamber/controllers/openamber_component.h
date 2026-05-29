@@ -118,14 +118,15 @@ void OpenAmberComponent::update()
           working_mode_call.set_index(WORKING_MODE_MAINTENANCE);
           working_mode_call.perform();
           id(pump_p0_relay_switch).turn_off();
-          SetNextState(State::MAINTENANCE);
+          SetNextState(State::MAINTENANCE);          
+          break;
         }
         else if(desired_valve_position != current_valve_position)
         {
           SetThreeWayValve(desired_valve_position);
-          LeaveStateAndSetNextStateAfterWaitTime(desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);
+          LeaveStateAndSetNextStateAfterWaitTime(desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);          
+          break;
         }
-        break;
       }
 
       heat_cool_controller_->UpdateStateMachine();
@@ -148,14 +149,15 @@ void OpenAmberComponent::update()
           auto working_mode_call = id(working_mode_switch).make_call();
           working_mode_call.set_index(WORKING_MODE_MAINTENANCE);
           working_mode_call.perform();
-          SetNextState(State::MAINTENANCE);
+          SetNextState(State::MAINTENANCE);          
+          break;
         }
         else if(desired_valve_position != current_valve_position)
         {
           SetThreeWayValve(desired_valve_position);
-          LeaveStateAndSetNextStateAfterWaitTime(desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);
+          LeaveStateAndSetNextStateAfterWaitTime(desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);          
+          break;
         }
-        break;
       }
 
       dhw_controller_->UpdateStateMachine();
