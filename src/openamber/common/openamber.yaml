@@ -196,10 +196,6 @@ globals:
     type: bool
     restore_value: no
     initial_value: 'false'
-  - id: service_pending_maintenance_fan_speed
-    type: int
-    restore_value: no
-    initial_value: '-1'
   - id: hc_y_m10
     type: int
     restore_value: no

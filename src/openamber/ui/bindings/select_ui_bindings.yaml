@@ -138,11 +138,3 @@
             auto idx = id(cool_compressor_mode).active_index();
             return idx.has_value() ? idx.value() : 0;
 
-# ── Service: Maintenance fan speed buttons ──
-- id: !extend maintenance_fan_speed
-  on_value:
-    then:
-      - lambda: |-
-          id(service_pending_maintenance_fan_speed) = -1;
-      - script.execute: update_service_mode_ui
-
