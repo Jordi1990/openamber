@@ -126,13 +126,12 @@ protected:
 public:
   BaseController(PumpController* pump_controller, CompressorController* compressor_controller,
                  StateEnum wait_for_state_switch, StateEnum unknown_state, StateEnum idle_state)
+    : state_(idle_state),
       pump_controller_(pump_controller),
       compressor_controller_(compressor_controller),
       wait_for_state_switch_state_(wait_for_state_switch),
       unknown_state_(unknown_state),
-      idle_state_(idle_state) {
-        SetNextState(idle_state);
-      }
+      idle_state_(idle_state) {}
 
   void RequestToStop()
   {
