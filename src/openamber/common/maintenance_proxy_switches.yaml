@@ -18,8 +18,6 @@ switch:
             - switch.turn_off: bottom_plate_heater_manual_switch
     disabled_by_default: true
     entity_category: config
-    web_server:
-      sorting_group_id: manual_control
 
   - platform: template
     id: maintenance_compressor_crankcase_heater_manual_proxy
@@ -40,8 +38,6 @@ switch:
             - switch.turn_off: compressor_crankcase_heater_manual_switch
     disabled_by_default: true
     entity_category: config
-    web_server:
-      sorting_group_id: manual_control
 
   - platform: template
     id: maintenance_pump_p0_relay_proxy
@@ -62,8 +58,6 @@ switch:
             - switch.turn_off: pump_p0_relay_switch
     disabled_by_default: true
     entity_category: config
-    web_server:
-      sorting_group_id: manual_control
 
   - platform: template
     id: maintenance_pump_p1_relay_proxy
@@ -84,8 +78,6 @@ switch:
             - switch.turn_off: pump_p1_relay_switch
     disabled_by_default: true
     entity_category: config
-    web_server:
-      sorting_group_id: manual_control
 
   - platform: template
     id: maintenance_pump_p2_relay_proxy
@@ -106,8 +98,6 @@ switch:
             - switch.turn_off: pump_p2_relay_switch
     disabled_by_default: true
     entity_category: config
-    web_server:
-      sorting_group_id: manual_control
 
   - platform: template
     id: maintenance_dhw_pump_relay_proxy
@@ -128,8 +118,6 @@ switch:
             - switch.turn_off: dhw_pump_relay_switch
     disabled_by_default: true
     entity_category: config
-    web_server:
-      sorting_group_id: manual_control
 
   - platform: template
     id: maintenance_three_way_valve_heat_cool_proxy
@@ -150,8 +138,6 @@ switch:
             - switch.turn_off: three_way_valve_heat_cool_switch
     disabled_by_default: true
     entity_category: config
-    web_server:
-      sorting_group_id: manual_control
 
   - platform: template
     id: maintenance_three_way_valve_dhw_proxy
@@ -172,8 +158,6 @@ switch:
             - switch.turn_off: three_way_valve_dhw_switch
     disabled_by_default: true
     entity_category: config
-    web_server:
-      sorting_group_id: manual_control
 
   - platform: template
     id: maintenance_backup_heater_relay_proxy
@@ -194,8 +178,6 @@ switch:
             - switch.turn_off: backup_heater_relay
     disabled_by_default: true
     entity_category: config
-    web_server:
-      sorting_group_id: manual_control
 
   - platform: template
     id: maintenance_cv_hybride_backup_relay_proxy
@@ -216,5 +198,3 @@ switch:
             - switch.turn_off: external_backup_heating_relay
     disabled_by_default: true
     entity_category: config
-    web_server:
-      sorting_group_id: manual_control

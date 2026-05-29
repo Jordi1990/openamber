@@ -18,8 +18,6 @@ number:
                 value: !lambda 'return x;'
     disabled_by_default: true
     entity_category: config
-    web_server:
-      sorting_group_id: manual_control
 
   - platform: template
     id: maintenance_fan_speed_manual_proxy
@@ -40,8 +38,6 @@ number:
                 value: !lambda 'return x;'
     disabled_by_default: true
     entity_category: config
-    web_server:
-      sorting_group_id: manual_control
 
   - platform: template
     id: maintenance_eev_open_setting_manual_proxy
@@ -62,5 +58,3 @@ number:
                 value: !lambda 'return x;'
     disabled_by_default: true
     entity_category: config
-    web_server:
-      sorting_group_id: manual_control

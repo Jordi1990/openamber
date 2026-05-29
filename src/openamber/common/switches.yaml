@@ -105,8 +105,6 @@
   optimistic: True
   entity_category: config
   disabled_by_default: true
-  web_server:
-    sorting_group_id: manual_control
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -116,8 +114,6 @@
   address: 2010
   register_type: holding
   bitmask: 0x4
-  web_server:
-    sorting_group_id: manual_control
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
@@ -127,8 +123,6 @@
   address: 2010
   register_type: holding
   bitmask: 0x8
-  web_server:
-    sorting_group_id: manual_control
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
