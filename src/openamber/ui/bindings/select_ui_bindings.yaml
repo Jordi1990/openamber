@@ -137,3 +137,4 @@
           selected_index: !lambda |-
             auto idx = id(cool_compressor_mode).active_index();
             return idx.has_value() ? idx.value() : 0;
+

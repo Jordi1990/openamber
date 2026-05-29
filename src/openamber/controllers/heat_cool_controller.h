@@ -307,7 +307,9 @@ private:
    }
 public:
   HeatCoolController(PumpController* pump_controller, CompressorController* compressor_controller)
-    : BaseController(pump_controller, compressor_controller, HeatCoolState::WAIT_FOR_STATE_SWITCH, HeatCoolState::UNKNOWN, HeatCoolState::IDLE) {}
+    : BaseController(pump_controller, compressor_controller, HeatCoolState::WAIT_FOR_STATE_SWITCH, HeatCoolState::UNKNOWN, HeatCoolState::IDLE) {
+      PublishState(StateToString(state_));
+    }
 
   void SetHeatPIDValue(float pid_value)
   {

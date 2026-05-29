@@ -521,6 +521,37 @@
   address: 1103
   min_value: 0
   max_value: 1000
+  web_server:
+    sorting_group_id: manual_control
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: fan_speed_manual_number
+  internal: True
+  address: 2008
+  register_type: holding
+  value_type: S_WORD
+  min_value: 0
+  max_value: 1000
+  step: 1
+  mode: box
+  web_server:
+    sorting_group_id: manual_control
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: eev_open_setting_manual_number
+  name: "EEV opening handmatig"
+  internal: True
+  address: 2001
+  register_type: holding
+  value_type: S_WORD
+  min_value: 0
+  max_value: 500
+  step: 1
+  mode: box
+  web_server:
+    sorting_group_id: manual_control
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit

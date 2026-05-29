@@ -35,9 +35,9 @@ enum State {
   UNKNOWN,
   WAIT_INITIALIZATION,
   INITIALIZING,
-  SWITCHING,
   DHW_HEAT,
   HEAT_COOL,
+  MAINTENANCE,
   WAIT_FOR_STATE_SWITCH,
 };
 namespace esphome {
@@ -74,6 +74,7 @@ public:
   void write_heat_pid_value(float value);
   void write_cool_pid_value(float value);
   void reset_pump_interval();
+  bool is_maintenance_state() const;
 };
 
 }  // namespace openamber

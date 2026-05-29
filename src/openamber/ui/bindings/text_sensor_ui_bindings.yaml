@@ -9,6 +9,30 @@
   on_value:
     then:
       - script.execute: update_water_mode_temperature_display
+      - script.execute: update_service_mode_ui
+      - lvgl.label.update:
+          id: service_diag_state_main_value
+          text:
+            format: "%s"
+            args: ['x.c_str()']
+
+- id: !extend state_machine_state_heat_cool
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: service_diag_state_heat_cool_value
+          text:
+            format: "%s"
+            args: ['x.c_str()']
+
+- id: !extend state_machine_state_dhw
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: service_diag_state_dhw_value
+          text:
+            format: "%s"
+            args: ['x.c_str()']
 
 # ── Settings page: Analytics device ID ──
 - id: !extend analytics_device_id

@@ -1,0 +1,145 @@
+obj:
+  id: service_mpanel_compressor
+  width: 100%
+  height: 100%
+  hidden: false
+  bg_opa: 0%
+  border_opa: 0%
+  pad_all: 0
+  widgets:
+    - obj:
+        width: 100%
+        height: 94
+        y: 0
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        widgets:
+          - label:
+              text: "Ventilator RPM"
+              text_color: 0x1F2933
+              text_font: font_text_24
+              align: TOP_LEFT
+          - label:
+              id: service_fan_slider_value
+              text: "- RPM"
+              text_color: 0x1F2933
+              text_font: font_text_24
+              align: TOP_RIGHT
+          - label:
+              text: "Kies handmatig een ventilator RPM waarde (0-1000)"
+              text_color: 0x6B7280
+              text_font: font_text_20
+              align: TOP_LEFT
+              y: 34
+          - slider:
+              id: service_fan_slider
+              width: 96%
+              align: TOP_MID
+              y: 56
+              min_value: 0
+              max_value: 1000
+              value: 0
+              knob:
+                bg_color: 0xFFFFFF
+                border_color: 0x1F3B68
+                border_width: 3
+              on_value:
+                then:
+                  - lambda: |-
+                      const auto duty = lv_slider_get_value(id(service_fan_slider));
+                      lv_label_set_text_fmt(id(service_fan_slider_value), "%d RPM", duty);
+              on_release:
+                then:
+                  - if:
+                      condition:
+                        lambda: 'return id(state_machine_state_main).state == "Maintenance";'
+                      then:
+                        - lambda: |-
+                            const auto duty = lv_slider_get_value(id(service_fan_slider));
+                            auto fan_call = id(fan_speed_manual_number).make_call();
+                            fan_call.set_value(duty);
+                            fan_call.perform();
+                      else:
+                        - script.execute: update_service_mode_ui
+
+    - obj:
+        width: 100%
+        height: 62
+        y: 100
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        widgets:
+          - label:
+              text: "Carterverwarming"
+              text_color: 0x1F2933
+              text_font: font_text_24
+              align: TOP_LEFT
+          - label:
+              text: "Schakel de carterverwarming"
+              width: 72%
+              text_color: 0x6B7280
+              text_font: font_text_20
+              align: TOP_LEFT
+              y: 34
+          - switch:
+              id: service_crankcase_heater_switch_ui
+              align: TOP_RIGHT
+              bg_color: 0x9CA3AF
+              indicator:
+                bg_color: 0x16A34A
+              knob:
+                bg_color: 0xFFFFFF
+              on_click:
+                - if:
+                    condition:
+                      lambda: 'return id(state_machine_state_main).state == "Maintenance";'
+                    then:
+                      - switch.toggle: compressor_crankcase_heater_manual_switch
+                    else:
+                      - script.execute: update_service_mode_ui
+
+    - obj:
+        width: 100%
+        height: 62
+        y: 168
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        widgets:
+          - label:
+              text: "Bodemplaat verwarming"
+              text_color: 0x1F2933
+              text_font: font_text_24
+              align: TOP_LEFT
+          - label:
+              text: "Schakel de bodemplaatverwarming"
+              width: 72%
+              text_color: 0x6B7280
+              text_font: font_text_20
+              align: TOP_LEFT
+              y: 34
+          - switch:
+              id: service_bottom_plate_heater_switch_ui
+              align: TOP_RIGHT
+              bg_color: 0x9CA3AF
+              indicator:
+                bg_color: 0x16A34A
+              knob:
+                bg_color: 0xFFFFFF
+              on_click:
+                - if:
+                    condition:
+                      lambda: 'return id(state_machine_state_main).state == "Maintenance";'
+                    then:
+                      - switch.toggle: bottom_plate_heater_manual_switch
+                    else:
+                      - script.execute: update_service_mode_ui
+

@@ -153,4 +153,9 @@ public:
   {
     return id(working_mode_switch).active_index().value() == working_mode;
   }
+
+  void Init()
+  {
+    SetNextState(idle_state_);
+  }
 };

@@ -30,6 +30,7 @@
         - "\U000F0902"  # mdi-power-off
         - "\U000F08BB"  # mdi-cog-outline
         - "\U000F08D4"  # mdi-chart-line
+        - "\U000F035B"  # mdi-memory
         - "\U000F0BE0"  # mdi-wrench-outline
         - "\U000F0F29"  # mdi-snowflake-alert
         - "\U000F12CB"  # mdi-snowflake-melt
@@ -77,9 +78,9 @@
   extras:
     - file: "openamber/ui/fonts/materialdesignicons-webfont.ttf"
       glyphs:
+        - "\U000F0140"  # mdi-chevron-down (dropdown arrow)
         - "\U000F0208"  # mdi-eye
         - "\U000F0209"  # mdi-eye-off
-        - "\U000F0140"  # mdi-chevron-down (dropdown arrow)
 - file:
     type: gfonts
     family: "Roboto"

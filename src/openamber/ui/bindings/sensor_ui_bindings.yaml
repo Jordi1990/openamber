@@ -14,6 +14,11 @@
             format: "%.1f°C"
             args: ['x']
       - script.execute: update_water_mode_temperature_display
+      - lvgl.label.update:
+          id: service_diag_tuo_tui_value
+          text:
+            format: "%.1f°C / %.1f°C"
+            args: ['x', 'id(inlet_temperature_tui).state']
 
 - id: !extend inlet_temperature_tui
   on_value:
@@ -24,6 +29,11 @@
             format: "%.1f°C"
             args: ['x']
       - script.execute: update_water_mode_temperature_display
+      - lvgl.label.update:
+          id: service_diag_tuo_tui_value
+          text:
+            format: "%.1f°C / %.1f°C"
+            args: ['id(outlet_temperature_tuo).state', 'x']
 
 - id: !extend heat_exchanger_delta_t
   on_value:
@@ -48,6 +58,11 @@
           text:
             format: "%.0f RPM"
             args: ['x']
+      - lvgl.label.update:
+          id: service_diag_fan_value
+          text:
+            format: "%.0f rpm"
+            args: ['x']
 
 - id: !extend pump_p0_current_pwm_sensor
   on_value:
@@ -70,6 +85,20 @@
             - lvgl.label.update:
                 id: tile_pump_state
                 text: "UIT"
+      - lvgl.label.update:
+          id: service_diag_pump_pwm_value
+          text:
+            format: "%.0f %%"
+            args: ['x']
+      - lvgl.label.update:
+          id: service_p0_pwm_slider_value
+          text:
+            format: "%.0f %%"
+            args: ['x']
+      - lambda: |-
+          if (id(service_p0_pwm_slider) != nullptr) {
+            lv_slider_set_value(id(service_p0_pwm_slider), (int) x, LV_ANIM_OFF);
+          }
 
 - id: !extend current_compressor_frequency
   on_value:
@@ -83,6 +112,20 @@
           id: tile_compressor_value
           text:
             format: "%.0f Hz"
+            args: ['x']
+      - lvgl.label.update:
+          id: service_diag_comp_freq_value
+          text:
+            format: "%.0f Hz"
+            args: ['x']
+
+- id: !extend expansion_valve_position
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: service_diag_ev_value
+          text:
+            format: "%.0f %%"
             args: ['x']
 
 # ── Home page: Outdoor temperature ──
@@ -102,6 +145,11 @@
             - lvgl.label.update:
                 id: header_outdoor
                 text: "Buiten -.-°C"
+      - lvgl.label.update:
+          id: service_diag_ta_tc_value
+          text:
+            format: "%.1f°C / %.1f°C"
+            args: ['x', 'id(heat_cool_temperature_tc).state']
 
 # ── Home page: Mode temperature values ──
 - id: !extend dhw_temperature_tw_sensor
@@ -144,11 +192,34 @@
   on_value:
     then:
       - script.execute: update_water_mode_temperature_display
+      - lvgl.label.update:
+          id: service_diag_ta_tc_value
+          text:
+            format: "%.1f°C / %.1f°C"
+            args: ['id(temperature_outside_ta).state', 'x']
 
 - id: !extend current_setpoint
   on_value:
     then:
       - script.execute: update_water_mode_temperature_display
+
+- id: !extend suction_pressure_ps
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: service_diag_pressure_value
+          text:
+            format: "%.1f / %.1f bar"
+            args: ['x', 'id(discharge_pressure_pd).state']
+
+- id: !extend discharge_pressure_pd
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: service_diag_pressure_value
+          text:
+            format: "%.1f / %.1f bar"
+            args: ['id(suction_pressure_ps).state', 'x']
 
 # ── Nav bar: WiFi icon + Settings WiFi panel ──
 - id: !extend wifi_signal_db
