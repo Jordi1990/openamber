@@ -948,6 +948,8 @@
     then:
       - lambda: |-
           id(climate_controller).set_cool_deadband(x);
+  web_server:
+    sorting_group_id: heating_settings
 
 - platform: template
   id: thermostat_cool_overrun
@@ -964,3 +966,5 @@
     then:
       - lambda: |-
           id(climate_controller).set_cool_overrun(x);
+  web_server:
+    sorting_group_id: heating_settings
