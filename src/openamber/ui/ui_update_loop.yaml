@@ -29,13 +29,23 @@
               args:
                 - 'id(firmware_update).update_info.latest_version.empty() ? "onbekend" : id(firmware_update).update_info.latest_version.c_str()'
                 - 'id(firmware_update).update_info.current_version.empty() ? ESPHOME_PROJECT_VERSION : id(firmware_update).update_info.current_version.c_str()'
-        - lvgl.qrcode.update:
-            id: service_release_qr
-            text: !lambda |-
-              const auto &info = id(firmware_update).update_info;
-              if (!info.release_url.empty())
-                return info.release_url;
-              return std::string("https://github.com/Jordi1990/openamber/releases");
+        - if:
+            condition:
+              lambda: |-
+                const auto &info = id(firmware_update).update_info;
+                std::string release_url = !info.release_url.empty()
+                  ? info.release_url
+                  : std::string("https://github.com/Jordi1990/openamber/releases");
+                return id(service_release_qr_url_cache) != release_url;
+            then:
+              - lambda: |-
+                  const auto &info = id(firmware_update).update_info;
+                  id(service_release_qr_url_cache) = !info.release_url.empty()
+                    ? info.release_url
+                    : std::string("https://github.com/Jordi1990/openamber/releases");
+              - lvgl.qrcode.update:
+                  id: service_release_qr
+                  text: !lambda 'return id(service_release_qr_url_cache);'
         - lvgl.widget.show:
             id: service_release_qr_hint
         - lvgl.widget.show:
@@ -47,15 +57,35 @@
               lambda: |-
                 return id(service_update_check_in_progress);
             then:
-              - lvgl.widget.hide:
+              - lvgl.widget.enable:
                   id: service_check_update_button
               - lvgl.widget.show:
-                  id: service_check_update_button_busy
+                  id: service_check_update_button
+              - lvgl.widget.disable:
+                  id: service_check_update_button
+              - lvgl.widget.update:
+                  id: service_check_update_button
+                  bg_color: 0xC7CDD6
+              - lvgl.label.update:
+                  id: service_check_update_button_label
+                  text: "Ophalen..."
+              - lvgl.widget.update:
+                  id: service_check_update_button_label
+                  text_color: 0x4B5563
             else:
-              - lvgl.widget.hide:
+              - lvgl.widget.enable:
                   id: service_check_update_button
               - lvgl.widget.hide:
-                  id: service_check_update_button_busy
+                  id: service_check_update_button
+              - lvgl.widget.update:
+                  id: service_check_update_button
+                  bg_color: 0x0072CE
+              - lvgl.label.update:
+                  id: service_check_update_button_label
+                  text: "Controleer updates"
+              - lvgl.widget.update:
+                  id: service_check_update_button_label
+                  text_color: 0xFFFFFF
       else:
         - lvgl.widget.hide: { id: nav_system_badge }
         - if:
@@ -80,26 +110,43 @@
               format: "Geen nieuwe software beschikbaar\nHuidige versie: %s"
               args:
                 - 'id(firmware_update).update_info.current_version.empty() ? ESPHOME_PROJECT_VERSION : id(firmware_update).update_info.current_version.c_str()'
-        - lvgl.widget.hide:
-            id: service_release_qr_hint
-        - lvgl.widget.hide:
-            id: service_release_qr
-        - lvgl.widget.hide:
-            id: service_update_button
+        - lvgl.widget.hide: { id: service_release_qr_hint }
+        - lvgl.widget.hide: { id: service_release_qr }
+        - lvgl.widget.hide: { id: service_update_button }
         - if:
             condition:
               lambda: |-
                 return id(service_update_check_in_progress);
             then:
-              - lvgl.widget.hide:
+              - lvgl.widget.enable:
                   id: service_check_update_button
               - lvgl.widget.show:
-                  id: service_check_update_button_busy
+                  id: service_check_update_button
+              - lvgl.widget.disable:
+                  id: service_check_update_button
+              - lvgl.widget.update:
+                  id: service_check_update_button
+                  bg_color: 0xC7CDD6
+              - lvgl.label.update:
+                  id: service_check_update_button_label
+                  text: "Ophalen..."
+              - lvgl.widget.update:
+                  id: service_check_update_button_label
+                  text_color: 0x4B5563
             else:
               - lvgl.widget.show:
                   id: service_check_update_button
-              - lvgl.widget.hide:
-                  id: service_check_update_button_busy
+              - lvgl.widget.enable:
+                  id: service_check_update_button
+              - lvgl.widget.update:
+                  id: service_check_update_button
+                  bg_color: 0x0072CE
+              - lvgl.label.update:
+                  id: service_check_update_button_label
+                  text: "Controleer updates"
+              - lvgl.widget.update:
+                  id: service_check_update_button_label
+                  text_color: 0xFFFFFF
 
   # ── Service update progress overlay ──
   - if:

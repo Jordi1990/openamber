@@ -28,7 +28,7 @@ obj:
         id: service_fan_slider
         width: 96%
         align: TOP_MID
-      y: 68
+        y: 56
         min_value: 0
         max_value: 1000
         value: 0
@@ -59,18 +59,18 @@ obj:
         text_color: 0x1F2933
         text_font: font_text_24
         align: TOP_LEFT
-      y: 112
+        y: 100
     - label:
         text: "Schakel de carterverwarming"
         width: 72%
         text_color: 0x6B7280
         text_font: font_text_20
         align: TOP_LEFT
-      y: 146
+        y: 134
     - switch:
         id: service_crankcase_heater_switch_ui
         align: TOP_RIGHT
-      y: 112
+        y: 100
         bg_color: 0x9CA3AF
         indicator:
           bg_color: 0x16A34A
@@ -89,18 +89,18 @@ obj:
         text_color: 0x1F2933
         text_font: font_text_24
         align: TOP_LEFT
-      y: 180
+        y: 168
     - label:
         text: "Schakel de bodemplaatverwarming"
         width: 72%
         text_color: 0x6B7280
         text_font: font_text_20
         align: TOP_LEFT
-      y: 214
+        y: 202
     - switch:
         id: service_bottom_plate_heater_switch_ui
         align: TOP_RIGHT
-      y: 180
+        y: 168
         bg_color: 0x9CA3AF
         indicator:
           bg_color: 0x16A34A

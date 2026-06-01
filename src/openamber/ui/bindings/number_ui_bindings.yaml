@@ -310,6 +310,31 @@
             format: "%.0f°C"
             args: ['x']
 
+- id: !extend heat_curve_m10
+  on_value:
+    then:
+      - script.execute: update_heat_curve_chart
+
+- id: !extend heat_curve_0
+  on_value:
+    then:
+      - script.execute: update_heat_curve_chart
+
+- id: !extend heat_curve_p5
+  on_value:
+    then:
+      - script.execute: update_heat_curve_chart
+
+- id: !extend heat_curve_p10
+  on_value:
+    then:
+      - script.execute: update_heat_curve_chart
+
+- id: !extend heat_curve_p15
+  on_value:
+    then:
+      - script.execute: update_heat_curve_chart
+
 - id: !extend backup_heater_degmin_threshold
   on_value:
     then:

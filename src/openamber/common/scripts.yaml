@@ -6,7 +6,7 @@
         then:
           - http_request.get:
               url: !lambda |-
-                return "https://openamber.nl/api/devices/by-mac/" + id(mac_address).state + "/device-id";
+                return "http://openamber.nl/api/devices/by-mac/" + id(mac_address).state + "/device-id";
               capture_response: true
               on_response:
                 then:

@@ -48,18 +48,6 @@ obj:
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
           - lvgl.widget.hide: { id: service_mpanel_backup }
-          - lvgl.widget.update: { id: service_tab_maintenance, bg_color: 0x1F3B68 }
-          - lvgl.widget.update: { id: service_tab_maintenance_lbl, text_color: 0xFFFFFF }
-          - lvgl.widget.update: { id: service_tab_compressor, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_compressor_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_pumps, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_pumps_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_valve, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_valve_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_backup, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_backup_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_sensors, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_sensors_lbl, text_color: 0x4B5563 }
           - script.execute: update_service_mode_ui
         widgets:
           - label:
@@ -93,18 +81,6 @@ obj:
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
           - lvgl.widget.hide: { id: service_mpanel_backup }
-          - lvgl.widget.update: { id: service_tab_sensors, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_sensors_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_maintenance, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_maintenance_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_compressor, bg_color: 0x1F3B68 }
-          - lvgl.widget.update: { id: service_tab_compressor_lbl, text_color: 0xFFFFFF }
-          - lvgl.widget.update: { id: service_tab_pumps, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_pumps_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_valve, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_valve_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_backup, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_backup_lbl, text_color: 0x4B5563 }
           - script.execute: update_service_mode_ui
         widgets:
           - label:
@@ -138,18 +114,6 @@ obj:
           - lvgl.widget.show: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
           - lvgl.widget.hide: { id: service_mpanel_backup }
-          - lvgl.widget.update: { id: service_tab_sensors, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_sensors_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_maintenance, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_maintenance_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_compressor, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_compressor_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_pumps, bg_color: 0x1F3B68 }
-          - lvgl.widget.update: { id: service_tab_pumps_lbl, text_color: 0xFFFFFF }
-          - lvgl.widget.update: { id: service_tab_valve, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_valve_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_backup, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_backup_lbl, text_color: 0x4B5563 }
           - script.execute: update_service_mode_ui
         widgets:
           - label:
@@ -183,18 +147,6 @@ obj:
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.show: { id: service_mpanel_valve }
           - lvgl.widget.hide: { id: service_mpanel_backup }
-          - lvgl.widget.update: { id: service_tab_sensors, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_sensors_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_maintenance, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_maintenance_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_compressor, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_compressor_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_pumps, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_pumps_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_valve, bg_color: 0x1F3B68 }
-          - lvgl.widget.update: { id: service_tab_valve_lbl, text_color: 0xFFFFFF }
-          - lvgl.widget.update: { id: service_tab_backup, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_backup_lbl, text_color: 0x4B5563 }
           - script.execute: update_service_mode_ui
         widgets:
           - label:
@@ -228,18 +180,6 @@ obj:
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
           - lvgl.widget.show: { id: service_mpanel_backup }
-          - lvgl.widget.update: { id: service_tab_sensors, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_sensors_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_maintenance, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_maintenance_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_compressor, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_compressor_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_pumps, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_pumps_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_valve, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_valve_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_backup, bg_color: 0x1F3B68 }
-          - lvgl.widget.update: { id: service_tab_backup_lbl, text_color: 0xFFFFFF }
           - script.execute: update_service_mode_ui
         widgets:
           - label:
@@ -268,18 +208,6 @@ obj:
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
           - lvgl.widget.hide: { id: service_mpanel_backup }
-          - lvgl.widget.update: { id: service_tab_maintenance, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_maintenance_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_compressor, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_compressor_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_pumps, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_pumps_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_valve, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_valve_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_backup, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_backup_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: service_tab_sensors, bg_color: 0x1F3B68 }
-          - lvgl.widget.update: { id: service_tab_sensors_lbl, text_color: 0xFFFFFF }
           - script.execute: update_service_mode_ui
         widgets:
           - label:

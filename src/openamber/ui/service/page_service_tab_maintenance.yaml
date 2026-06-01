@@ -71,34 +71,14 @@ obj:
         height: 72%
         align: TOP_LEFT
         y: 112
+        opa: 45%
         bg_opa: 0%
         border_opa: 0%
-        pad_all: 0
+        pad_all: 6
         scrollbar_mode: "OFF"
         scrollable: false
-        layout:
-          type: GRID
-          grid_rows: [FR(1)]
-          grid_columns: [FR(1)]
-          pad_column: 0
         widgets:
-          - obj:
-              id: service_maintenance_controls_container
-              width: 100%
-              height: 100%
-              grid_cell_row_pos: 0
-              grid_cell_column_pos: 0
-              grid_cell_x_align: STRETCH
-              grid_cell_y_align: STRETCH
-              hidden: false
-              opa: 45%
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 6
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - !include page_service_tab_compressor.yaml
-                - !include page_service_tab_pumps.yaml
-                - !include page_service_tab_valve.yaml
-                - !include page_service_tab_backup.yaml
+          - !include page_service_tab_buitenunit.yaml
+          - !include page_service_tab_pumps.yaml
+          - !include page_service_tab_valve.yaml
+          - !include page_service_tab_backup.yaml
