@@ -875,6 +875,8 @@
           auto call = id(climate_controller).make_call();
           call.set_target_temperature_low(x);
           call.perform();
+  web_server:
+    sorting_group_id: heating_settings
 
 - platform: template
   id: thermostat_default_heat_setpoint
@@ -887,6 +889,8 @@
   initial_value: 20.5
   restore_value: True
   entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
 
 - platform: template
   id: thermostat_default_cool_setpoint
@@ -899,6 +903,8 @@
   initial_value: 24.0
   restore_value: True
   entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
 
 - platform: template
   id: thermostat_heat_deadband
@@ -915,6 +921,8 @@
     then:
       - lambda: |-
           id(climate_controller).set_heat_deadband(x);
+  web_server:
+    sorting_group_id: heating_settings
 
 - platform: template
   id: thermostat_heat_overrun
@@ -932,6 +940,8 @@
     then:
       - lambda: |-
           id(climate_controller).set_heat_overrun(x);
+  web_server:
+    sorting_group_id: heating_settings
 
 - platform: template
   id: thermostat_cool_deadband
