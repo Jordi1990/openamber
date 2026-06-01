@@ -163,6 +163,8 @@
   internal: True
   address: 1999
   value_type: S_WORD
+  web_server:
+    sorting_group_id: manual_control
   optionsmap:
     "0": 0
     "1": 1
