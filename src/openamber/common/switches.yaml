@@ -4,6 +4,8 @@
   optimistic: True
   restore_mode: RESTORE_DEFAULT_OFF
   entity_category: config
+  web_server: 
+    sorting_group_id: heating_settings
 
 - platform: template
   id: legio_enabled_switch
@@ -11,6 +13,8 @@
   optimistic: True
   restore_mode: RESTORE_DEFAULT_OFF
   entity_category: config
+  web_server: 
+    sorting_group_id: dhw_settings
 
 - platform: template
   id: dhw_enabled_switch
@@ -18,6 +22,8 @@
   optimistic: True
   restore_mode: RESTORE_DEFAULT_OFF
   entity_category: config
+  web_server: 
+    sorting_group_id: dhw_settings
 
 - platform: template
   id: dhw_schedule_enabled_switch
@@ -25,6 +31,8 @@
   optimistic: True
   restore_mode: RESTORE_DEFAULT_OFF
   entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
 
 - platform: template
   id: dhw_schedule_monday_enabled_switch
@@ -32,6 +40,8 @@
   optimistic: True
   restore_mode: RESTORE_DEFAULT_OFF
   entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
 
 - platform: template
   id: dhw_schedule_tuesday_enabled_switch
@@ -39,6 +49,8 @@
   optimistic: True
   restore_mode: RESTORE_DEFAULT_OFF
   entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
 
 - platform: template
   id: dhw_schedule_wednesday_enabled_switch
@@ -46,6 +58,8 @@
   optimistic: True
   restore_mode: RESTORE_DEFAULT_OFF
   entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
 
 - platform: template
   id: dhw_schedule_thursday_enabled_switch
@@ -53,6 +67,8 @@
   optimistic: True
   restore_mode: RESTORE_DEFAULT_OFF
   entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
 
 - platform: template
   id: dhw_schedule_friday_enabled_switch
@@ -60,6 +76,8 @@
   optimistic: True
   restore_mode: RESTORE_DEFAULT_OFF
   entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
 
 - platform: template
   id: dhw_schedule_saturday_enabled_switch
@@ -67,6 +85,8 @@
   optimistic: True
   restore_mode: RESTORE_DEFAULT_OFF
   entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
 
 - platform: template
   id: dhw_schedule_sunday_enabled_switch
@@ -74,6 +94,8 @@
   optimistic: True
   restore_mode: RESTORE_DEFAULT_OFF
   entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
 
 - platform: template
   id: analytics_enabled_switch
@@ -82,6 +104,8 @@
   restore_mode: RESTORE_DEFAULT_OFF
   entity_category: config
   setup_priority: 200
+  web_server: 
+    sorting_group_id: diagnostic
   on_state:
     then:
       - if:
@@ -98,6 +122,8 @@
   optimistic: True
   restore_mode: RESTORE_DEFAULT_OFF
   entity_category: config
+  web_server:
+    sorting_group_id: general_settings
 
 - platform: template
   id: service_mode_enabled
@@ -221,8 +247,12 @@
   id: heat_demand_switch
   name: "Externe warmtevraag"
   optimistic: True
+  web_server: 
+    sorting_group_id: manual_control
 
 - platform: template
   id: cool_demand_switch
   name: "Externe koudevraag"
   optimistic: True
+  web_server: 
+    sorting_group_id: manual_control
