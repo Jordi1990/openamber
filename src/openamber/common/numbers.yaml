@@ -879,14 +879,14 @@
   initial_value: 20.5
   restore_value: True
   entity_category: config
-  web_server:
-    sorting_group_id: heating_settings
   on_value:
     then:
       - lambda: |-
           auto call = id(climate_controller).make_call();
           call.set_target_temperature_low(x);
           call.perform();
+  web_server:
+    sorting_group_id: heating_settings
 
 - platform: template
   id: thermostat_default_heat_setpoint
@@ -927,12 +927,12 @@
   initial_value: 0.3
   restore_value: True
   entity_category: config
-  web_server:
-    sorting_group_id: heating_settings
   on_value:
     then:
       - lambda: |-
           id(climate_controller).set_heat_deadband(x);
+  web_server:
+    sorting_group_id: heating_settings
 
 - platform: template
   id: thermostat_heat_overrun
@@ -946,12 +946,12 @@
   initial_value: 0.2
   restore_value: True
   entity_category: config
-  web_server:
-    sorting_group_id: heating_settings
   on_value:
     then:
       - lambda: |-
           id(climate_controller).set_heat_overrun(x);
+  web_server:
+    sorting_group_id: heating_settings
 
 - platform: template
   id: thermostat_cool_deadband
@@ -964,12 +964,12 @@
   initial_value: 0.5
   restore_value: True
   entity_category: config
-  web_server:
-    sorting_group_id: heating_settings
   on_value:
     then:
       - lambda: |-
           id(climate_controller).set_cool_deadband(x);
+  web_server:
+    sorting_group_id: heating_settings
 
 - platform: template
   id: thermostat_cool_overrun
@@ -982,9 +982,9 @@
   initial_value: 3.0
   restore_value: True
   entity_category: config
-  web_server:
-    sorting_group_id: heating_settings
   on_value:
     then:
       - lambda: |-
           id(climate_controller).set_cool_overrun(x);
+  web_server:
+    sorting_group_id: heating_settings

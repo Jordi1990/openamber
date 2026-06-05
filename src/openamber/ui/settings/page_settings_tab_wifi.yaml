@@ -53,7 +53,7 @@ obj:
             flex_align_cross: STRETCH
             pad_row: 6
           widgets:
-            # Netwerk (SSID)
+            # Verbinding details
             - obj:
                 width: 100%
                 height: SIZE_CONTENT
@@ -61,58 +61,14 @@ obj:
                 border_opa: 0%
                 pad_all: 6
                 widgets:
-                  - label: { text: "Netwerk (SSID)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
                   - label:
-                      id: wifi_ssid_label
-                      text: "-"
-                      text_color: 0x6B7280
+                      text: "Netwerk (SSID)\nIP adres\nMAC adres\nSignaalsterkte"
+                      text_color: 0x1F2933
                       text_font: font_text_24
-                      align: TOP_RIGHT
-
-            # IP Adres
-            - obj:
-                width: 100%
-                height: SIZE_CONTENT
-                bg_opa: 0%
-                border_opa: 0%
-                pad_all: 6
-                widgets:
-                  - label: { text: "IP adres", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                      align: TOP_LEFT
                   - label:
-                      id: wifi_ip_label
-                      text: "-"
-                      text_color: 0x6B7280
-                      text_font: font_text_24
-                      align: TOP_RIGHT
-
-            # MAC Adres
-            - obj:
-                width: 100%
-                height: SIZE_CONTENT
-                bg_opa: 0%
-                border_opa: 0%
-                pad_all: 6
-                widgets:
-                  - label: { text: "MAC adres", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-                  - label:
-                      id: wifi_mac_label
-                      text: "-"
-                      text_color: 0x6B7280
-                      text_font: font_text_24
-                      align: TOP_RIGHT
-
-            # Signaalsterkte
-            - obj:
-                width: 100%
-                height: SIZE_CONTENT
-                bg_opa: 0%
-                border_opa: 0%
-                pad_all: 6
-                widgets:
-                  - label: { text: "Signaalsterkte", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-                  - label:
-                      id: wifi_signal_label
-                      text: "-"
+                      id: wifi_connected_values_label
+                      text: "-\n-\n-\n-"
                       text_color: 0x6B7280
                       text_font: font_text_24
                       align: TOP_RIGHT

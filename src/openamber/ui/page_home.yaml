@@ -454,23 +454,11 @@ obj:
                     align: CENTER
                     y: -4
 
-                - obj:
-                    id: tile_fan_chip
+                - label:
+                    id: tile_fan_value
+                    text: "0 RPM"
                     align: BOTTOM_MID
-                    width: SIZE_CONTENT
-                    height: SIZE_CONTENT
-                    pad_left: 16
-                    pad_right: 16
-                    pad_top: 4
-                    pad_bottom: 4
-                    text_color: 0x000000
-                    bg_opa: TRANSP
-                    radius: 16
-                    border_width: 0
-                    widgets:
-                      - label:
-                          id: tile_fan_value
-                          text: "0 RPM"
+                    y: -4
 
           - obj:
               id: tile_pump
@@ -507,23 +495,11 @@ obj:
                     align: CENTER
                     y: -4
 
-                - obj:
-                    id: tile_pump_chip
+                - label:
+                    id: tile_pump_state
+                    text: "UIT"
                     align: BOTTOM_MID
-                    width: SIZE_CONTENT
-                    height: SIZE_CONTENT
-                    pad_left: 16
-                    pad_right: 16
-                    pad_top: 4
-                    pad_bottom: 4
-                    text_color: 0x000000
-                    bg_opa: TRANSP
-                    radius: 16
-                    border_width: 0
-                    widgets:
-                      - label:
-                          id: tile_pump_state
-                          text: "UIT"
+                    y: -4
 
           - obj:
               id: tile_defrost
@@ -560,23 +536,11 @@ obj:
                     align: CENTER
                     y: -4
 
-                - obj:
-                    id: tile_defrost_chip
+                - label:
+                    id: tile_defrost_state
+                    text: "UIT"
                     align: BOTTOM_MID
-                    width: SIZE_CONTENT
-                    height: SIZE_CONTENT
-                    pad_left: 16
-                    pad_right: 16
-                    pad_top: 4
-                    pad_bottom: 4
-                    text_color: 0x000000
-                    bg_opa: TRANSP
-                    radius: 16
-                    border_width: 0
-                    widgets:
-                      - label:
-                          id: tile_defrost_state
-                          text: "UIT"
+                    y: -4
 
           - obj:
               id: tile_compressor
@@ -613,23 +577,11 @@ obj:
                     align: CENTER
                     y: -4
 
-                - obj:
-                    id: tile_compressor_chip
+                - label:
+                    id: tile_compressor_value
+                    text: "0 Hz"
                     align: BOTTOM_MID
-                    width: SIZE_CONTENT
-                    height: SIZE_CONTENT
-                    pad_left: 16
-                    pad_right: 16
-                    pad_top: 4
-                    pad_bottom: 4
-                    text_color: 0x000000
-                    bg_opa: TRANSP
-                    radius: 16
-                    border_width: 0
-                    widgets:
-                      - label:
-                          id: tile_compressor_value
-                          text: "0 Hz"
+                    y: -4
 
           - obj:
               id: tile_backup_heater
@@ -666,23 +618,11 @@ obj:
                     align: CENTER
                     y: -10
 
-                - obj:
-                    id: tile_backup_chip
+                - label:
+                    id: tile_backup_state
+                    text: "UIT"
                     align: BOTTOM_MID
-                    width: SIZE_CONTENT
-                    height: SIZE_CONTENT
-                    pad_left: 16
-                    pad_right: 16
-                    pad_top: 4
-                    pad_bottom: 4
-                    text_color: 0x000000
-                    bg_opa: TRANSP
-                    radius: 16
-                    border_width: 0
-                    widgets:
-                      - label:
-                          id: tile_backup_state
-                          text: "UIT"
+                    y: -4
 
           - obj:
               id: tile_baseplate
@@ -719,20 +659,8 @@ obj:
                     align: CENTER
                     y: -4
 
-                - obj:
-                    id: tile_baseplate_chip
+                - label:
+                    id: tile_baseplate_state
+                    text: "UIT"
                     align: BOTTOM_MID
-                    width: SIZE_CONTENT
-                    height: SIZE_CONTENT
-                    pad_left: 16
-                    pad_right: 16
-                    pad_top: 4
-                    pad_bottom: 4
-                    text_color: 0x000000
-                    bg_opa: TRANSP
-                    radius: 16
-                    border_width: 0
-                    widgets:
-                      - label:
-                          id: tile_baseplate_state
-                          text: "UIT"
+                    y: -4

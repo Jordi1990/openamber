@@ -32,42 +32,8 @@ obj:
         scrollable: false
         widgets:
           - label: { text: "Status", text_color: 0x111827, text_font: font_text_20, align: TOP_LEFT }
-          - obj:
-              width: 100%
-              height: SIZE_CONTENT
-              y: 30
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 0
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - label: { text: "Hoofdstatus", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
-                - label: { id: service_diag_state_main_value, width: 54%, text: "-", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: DOT, align: TOP_RIGHT }
-          - obj:
-              width: 100%
-              height: SIZE_CONTENT
-              y: 62
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 0
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - label: { text: "CV/Koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
-                - label: { id: service_diag_state_heat_cool_value, width: 54%, text: "-", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: DOT, align: TOP_RIGHT }
-          - obj:
-              width: 100%
-              height: SIZE_CONTENT
-              y: 94
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 0
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - label: { text: "Tapwater", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
-                - label: { id: service_diag_state_dhw_value, width: 54%, text: "-", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: DOT, align: TOP_RIGHT }
+          - label: { width: 44%, text: "Hoofdstatus\nCV/Koelen\nTapwater", text_color: 0x6B7280, text_font: font_text_20, long_mode: WRAP, align: TOP_LEFT, y: 30 }
+          - label: { id: service_diag_status_values, width: 54%, text: "-\n-\n-", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: WRAP, align: TOP_RIGHT, y: 30 }
 
     - obj:
         width: 49%
@@ -83,42 +49,8 @@ obj:
         scrollable: false
         widgets:
           - label: { text: "Druk & Temperatuur", text_color: 0x111827, text_font: font_text_20, align: TOP_LEFT }
-          - obj:
-              width: 100%
-              height: SIZE_CONTENT
-              y: 30
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 0
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - label: { text: "Ta / Tc", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
-                - label: { id: service_diag_ta_tc_value, text: "- / -", text_color: 0x1F2933, text_font: font_text_20, align: TOP_RIGHT }
-          - obj:
-              width: 100%
-              height: SIZE_CONTENT
-              y: 62
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 0
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - label: { text: "Tuo / Tui", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
-                - label: { id: service_diag_tuo_tui_value, text: "- / -", text_color: 0x1F2933, text_font: font_text_20, align: TOP_RIGHT }
-          - obj:
-              width: 100%
-              height: SIZE_CONTENT
-              y: 94
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 0
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - label: { text: "Zuig / Pers", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
-                - label: { id: service_diag_pressure_value, text: "- / -", text_color: 0x1F2933, text_font: font_text_20, align: TOP_RIGHT }
+          - label: { width: 42%, text: "Ta / Tc\nTuo / Tui\nZuig / Pers", text_color: 0x6B7280, text_font: font_text_20, long_mode: WRAP, align: TOP_LEFT, y: 30 }
+          - label: { id: service_diag_temp_values, width: 56%, text: "- / -\n- / -\n- / -", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: WRAP, align: TOP_RIGHT, y: 30 }
 
     - obj:
         width: 49%
@@ -134,54 +66,8 @@ obj:
         scrollable: false
         widgets:
           - label: { text: "Aansturing", text_color: 0x111827, text_font: font_text_20, align: TOP_LEFT }
-          - obj:
-              width: 100%
-              height: SIZE_CONTENT
-              y: 30
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 0
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - label: { text: "Compressor", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
-                - label: { id: service_diag_comp_freq_value, text: "- Hz", text_color: 0x1F2933, text_font: font_text_20, align: TOP_RIGHT }
-          - obj:
-              width: 100%
-              height: SIZE_CONTENT
-              y: 62
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 0
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - label: { text: "Pomp PWM", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
-                - label: { id: service_diag_pump_pwm_value, text: "- %", text_color: 0x1F2933, text_font: font_text_20, align: TOP_RIGHT }
-          - obj:
-              width: 100%
-              height: SIZE_CONTENT
-              y: 94
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 0
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - label: { text: "Fan RPM", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
-                - label: { id: service_diag_fan_value, text: "- rpm", text_color: 0x1F2933, text_font: font_text_20, align: TOP_RIGHT }
-          - obj:
-              width: 100%
-              height: SIZE_CONTENT
-              y: 126
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 0
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - label: { text: "Expansieklep", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
-                - label: { id: service_diag_ev_value, text: "-", text_color: 0x1F2933, text_font: font_text_20, align: TOP_RIGHT }
+          - label: { width: 42%, text: "Compressor\nPomp PWM\nFan RPM\nExpansieklep", text_color: 0x6B7280, text_font: font_text_20, long_mode: WRAP, align: TOP_LEFT, y: 30 }
+          - label: { id: service_diag_control_values, width: 56%, text: "- Hz\n- %\n- rpm\n- %", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: WRAP, align: TOP_RIGHT, y: 30 }
 
     - obj:
         width: 49%
@@ -197,64 +83,6 @@ obj:
         scrollable: false
         widgets:
           - label: { text: "Systeem", text_color: 0x111827, text_font: font_text_20, align: TOP_LEFT }
-          - obj:
-              width: 100%
-              height: SIZE_CONTENT
-              y: 30
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 0
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - label: { text: "Defrost / Bodemplaat", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
-                - label: { id: service_diag_defrost_bottom_value, width: 50%, text: "- / -", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: DOT, align: TOP_RIGHT }
-          - obj:
-              width: 100%
-              height: SIZE_CONTENT
-              y: 62
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 0
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - label: { text: "Modbus binnen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
-                - label: { id: service_diag_modbus_inside_value, text: "-", text_color: 0x1F2933, text_font: font_text_20, align: TOP_RIGHT }
-          - obj:
-              width: 100%
-              height: SIZE_CONTENT
-              y: 94
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 0
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - label: { text: "Modbus buiten", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
-                - label: { id: service_diag_modbus_outside_value, text: "-", text_color: 0x1F2933, text_font: font_text_20, align: TOP_RIGHT }
-          - obj:
-              width: 100%
-              height: SIZE_CONTENT
-              y: 126
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 0
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - label: { text: "SG contacten A / B", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
-                - label: { id: service_diag_sg_contacts_value, width: 50%, text: "- / -", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: DOT, align: TOP_RIGHT }
-          - obj:
-              width: 100%
-              height: SIZE_CONTENT
-              y: 158
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 0
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - label: { text: "Warmte/koude vraag", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
-                - label: { id: service_diag_external_demand_wired_value, width: 50%, text: "- / -", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: DOT, align: TOP_RIGHT }
+          - label: { width: 44%, text: "Defrost / Bodemplaat\nModbus binnen\nModbus buiten\nSG contacten A / B\nWarmte/koude vraag", text_color: 0x6B7280, text_font: font_text_20, long_mode: WRAP, align: TOP_LEFT, y: 30 }
+          - label: { id: service_diag_system_values, width: 54%, text: "- / -\n-\n-\n- / -\n- / -", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: WRAP, align: TOP_RIGHT, y: 30 }
 

@@ -34,7 +34,7 @@ esphome:
       then:
         - script.execute: apply_pid_settings
         - script.execute: apply_thermostat_settings
-        - delay: 60s
+        - delay: 5min
         - if:
             condition:
               lambda: 'return id(my_time).now().is_valid();'
@@ -112,7 +112,7 @@ update:
   - platform: http_request
     id: firmware_update
     name: Firmware Update
-    source: https://openamber.nl/openamber.manifest.json
+    source: http://openamber.nl/openamber.manifest.json
 
 web_server:
   port: 80
@@ -180,42 +180,6 @@ globals:
     type: bool
     restore_value: no
     initial_value: 'false'
-  - id: service_update_check_in_progress
-    type: bool
-    restore_value: no
-    initial_value: 'false'
-  - id: service_update_check_failed
-    type: bool
-    restore_value: no
-    initial_value: 'false'
-  - id: service_update_install_in_progress
-    type: bool
-    restore_value: no
-    initial_value: 'false'
-  - id: settings_page_visible
-    type: bool
-    restore_value: no
-    initial_value: 'false'
-  - id: hc_y_m10
-    type: int
-    restore_value: no
-    initial_value: '60'
-  - id: hc_y_0
-    type: int
-    restore_value: no
-    initial_value: '60'
-  - id: hc_y_p5
-    type: int
-    restore_value: no
-    initial_value: '60'
-  - id: hc_y_p10
-    type: int
-    restore_value: no
-    initial_value: '60'
-  - id: hc_y_p15
-    type: int
-    restore_value: no
-    initial_value: '60'
 
 datetime:
  - platform: template

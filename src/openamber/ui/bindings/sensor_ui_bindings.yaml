@@ -14,11 +14,7 @@
             format: "%.1f°C"
             args: ['x']
       - script.execute: update_water_mode_temperature_display
-      - lvgl.label.update:
-          id: service_diag_tuo_tui_value
-          text:
-            format: "%.1f°C / %.1f°C"
-            args: ['x', 'id(inlet_temperature_tui).state']
+      - script.execute: update_service_diag_summary_ui
 
 - id: !extend inlet_temperature_tui
   on_value:
@@ -29,11 +25,7 @@
             format: "%.1f°C"
             args: ['x']
       - script.execute: update_water_mode_temperature_display
-      - lvgl.label.update:
-          id: service_diag_tuo_tui_value
-          text:
-            format: "%.1f°C / %.1f°C"
-            args: ['id(outlet_temperature_tuo).state', 'x']
+      - script.execute: update_service_diag_summary_ui
 
 - id: !extend heat_exchanger_delta_t
   on_value:
@@ -58,11 +50,7 @@
           text:
             format: "%.0f RPM"
             args: ['x']
-      - lvgl.label.update:
-          id: service_diag_fan_value
-          text:
-            format: "%.0f rpm"
-            args: ['x']
+      - script.execute: update_service_diag_summary_ui
 
 - id: !extend pump_p0_current_pwm_sensor
   on_value:
@@ -85,11 +73,7 @@
             - lvgl.label.update:
                 id: tile_pump_state
                 text: "UIT"
-      - lvgl.label.update:
-          id: service_diag_pump_pwm_value
-          text:
-            format: "%.0f %%"
-            args: ['x']
+      - script.execute: update_service_diag_summary_ui
       - lvgl.label.update:
           id: service_p0_pwm_slider_value
           text:
@@ -113,20 +97,12 @@
           text:
             format: "%.0f Hz"
             args: ['x']
-      - lvgl.label.update:
-          id: service_diag_comp_freq_value
-          text:
-            format: "%.0f Hz"
-            args: ['x']
+      - script.execute: update_service_diag_summary_ui
 
 - id: !extend expansion_valve_position
   on_value:
     then:
-      - lvgl.label.update:
-          id: service_diag_ev_value
-          text:
-            format: "%.0f %%"
-            args: ['x']
+      - script.execute: update_service_diag_summary_ui
 
 # ── Home page: Outdoor temperature ──
 - id: !extend temperature_outside_ta
@@ -145,11 +121,7 @@
             - lvgl.label.update:
                 id: header_outdoor
                 text: "Buiten -.-°C"
-      - lvgl.label.update:
-          id: service_diag_ta_tc_value
-          text:
-            format: "%.1f°C / %.1f°C"
-            args: ['x', 'id(heat_cool_temperature_tc).state']
+      - script.execute: update_service_diag_summary_ui
 
 # ── Home page: Mode temperature values ──
 - id: !extend dhw_temperature_tw_sensor
@@ -192,11 +164,7 @@
   on_value:
     then:
       - script.execute: update_water_mode_temperature_display
-      - lvgl.label.update:
-          id: service_diag_ta_tc_value
-          text:
-            format: "%.1f°C / %.1f°C"
-            args: ['id(temperature_outside_ta).state', 'x']
+      - script.execute: update_service_diag_summary_ui
 
 - id: !extend current_setpoint
   on_value:
@@ -206,20 +174,12 @@
 - id: !extend suction_pressure_ps
   on_value:
     then:
-      - lvgl.label.update:
-          id: service_diag_pressure_value
-          text:
-            format: "%.1f / %.1f bar"
-            args: ['x', 'id(discharge_pressure_pd).state']
+      - script.execute: update_service_diag_summary_ui
 
 - id: !extend discharge_pressure_pd
   on_value:
     then:
-      - lvgl.label.update:
-          id: service_diag_pressure_value
-          text:
-            format: "%.1f / %.1f bar"
-            args: ['id(suction_pressure_ps).state', 'x']
+      - script.execute: update_service_diag_summary_ui
 
 # ── Nav bar: WiFi icon + Settings WiFi panel ──
 - id: !extend wifi_signal_db
@@ -245,11 +205,6 @@
             lambda: 'return !isnan(x);'
           then:
             - lvgl.label.update:
-                id: wifi_signal_label
-                text:
-                  format: "%.0f dBm"
-                  args: ['x']
-            - lvgl.label.update:
                 id: wifi_status_label
                 text: "Verbonden"
             - lvgl.widget.update:
@@ -257,14 +212,12 @@
                 text_color: 0x16A34A
           else:
             - lvgl.label.update:
-                id: wifi_signal_label
-                text: "Geen signaal"
-            - lvgl.label.update:
                 id: wifi_status_label
                 text: "Niet verbonden"
             - lvgl.widget.update:
                 id: wifi_status_label
                 text_color: 0xEF4444
+      - script.execute: update_wifi_connected_summary_ui
       - if:
           condition:
             lambda: 'return isnan(x);'

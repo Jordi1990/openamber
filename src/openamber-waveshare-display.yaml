@@ -4,7 +4,11 @@ substitutions:
 packages:
  - !include openamber/common/openamber.yaml
  - !include openamber/ui/display_switches.yaml
+ - !include openamber/ui/display_globals.yaml
  - !include openamber/ui/bindings/ui_bindings_package.yaml
+ 
+wifi:
+  use_psram: true
 
 esp32:
   variant: esp32s3
@@ -13,11 +17,12 @@ esp32:
   framework:
     sdkconfig_options:
       CONFIG_ESP32S3_DATA_CACHE_64KB: y
-      CONFIG_LV_BIN_DECODER_RAM_LOAD: y
+      CONFIG_SPIRAM_USE_MALLOC: y
+      CONFIG_NVS_ALLOCATE_CACHE_IN_SPIRAM: y
       CONFIG_SPIRAM_RODATA: y
       CONFIG_ESP_TASK_WDT_TIMEOUT_S: "60"
     advanced:
-      loop_task_stack_size: 16384
+      loop_task_stack_size: 10240
 
 esphome:
   platformio_options:
@@ -57,10 +62,6 @@ output:
   - platform: ledc
     pin: GPIO15
     id: backlight
-
-globals:
-  - id: is_idled
-    type: bool
 
 touchscreen:
   - platform: gt911
@@ -122,7 +123,7 @@ image:
 font: !include openamber/ui/fonts.yaml
 
 lvgl:
-  buffer_size: 24%
+  buffer_size: 100%
   on_idle:
     - timeout: 60s
       then:
