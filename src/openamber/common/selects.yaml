@@ -204,6 +204,7 @@
     "Buitentemperatuur": 1
     "Tijdens defrost": 2
 
+# TODO: This needs an external ambient sensor, or an offset for the current Ta.
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: frequency_limit_mode
