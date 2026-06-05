@@ -286,8 +286,17 @@ public:
 
       case DHWState::PUMP_RUNNING:
         SetWorkingMode(WORKING_MODE_HEATING);
-        compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
-        SetNextState(DHWState::WAIT_COMPRESSOR_RUNNING);
+        if(id(emergency_mode_enabled).state)
+        {
+          ESP_LOGW("amber", "Emergency mode enabled, not starting compressor but switching on backup heater");
+          TurnOnBackupHeater();
+          SetNextState(DHWState::WAIT_BACKUP_HEATER_RUNNING);
+        }
+        else
+        {
+          compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
+          SetNextState(DHWState::WAIT_COMPRESSOR_RUNNING);
+        }
         break;
 
       case DHWState::WAIT_COMPRESSOR_RUNNING:
@@ -373,7 +382,7 @@ public:
         last_measured_temperature_ = id(dhw_temperature_tw_sensor).state;
         last_rate_measured_time_ = now;
         dhw_pump_settled_time_ = now;
-        SetNextState(DHWState::COMPRESSOR_RUNNING);
+        SetNextState(id(emergency_mode_enabled).state ? DHWState::BACKUP_HEATER_RUNNING : DHWState::COMPRESSOR_RUNNING);
         break;
 
       case DHWState::WAIT_COMPRESSOR_STOP:
@@ -406,24 +415,49 @@ public:
         break;
 
       case DHWState::BACKUP_HEATER_RUNNING:
-        if (IsPredictedTemperatureAboveTarget())
+        if(id(emergency_mode_enabled).state)
         {
-          ESP_LOGI("amber", "Disabling backup heater because predicted temperature is above target");
-          TurnOffBackupHeater();
-          LeaveStateAndSetNextStateAfterWaitTime(DHWState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
-          return;
+          if(ShouldStartDhwPump())
+          {
+            ESP_LOGI("amber", "Starting DHW pump");
+            id(dhw_pump_relay_switch).turn_on();
+            SetNextState(DHWState::WAIT_DHW_PUMP_RUNNING);
+            break;
+          }
+        }
+        else 
+        {
+          if (IsPredictedTemperatureAboveTarget())
+          {
+            ESP_LOGI("amber", "Disabling backup heater because predicted temperature is above target");
+            TurnOffBackupHeater();
+            LeaveStateAndSetNextStateAfterWaitTime(DHWState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
+            return;
+          }
         }
         
         if(!HasDemand())
         {
           ESP_LOGI("amber", "No more DHW demand, stopping compressor and backup heater.");
           TurnOffBackupHeater();
-          compressor_controller_->Stop();
-          SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
+          if(id(emergency_mode_enabled).state)
+          {
+            pump_controller_->Stop();
+            StopDhwPump();
+            SetNextState(DHWState::WAIT_PUMP_STOP);
+          }
+          else
+          {            
+            compressor_controller_->Stop();
+            SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
+          }
           break;
         }
 
-        compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
+        if(!id(emergency_mode_enabled).state)
+        {
+          compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
+        }
         break;
 
       case DHWState::WAIT_FOR_STATE_SWITCH:

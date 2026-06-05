@@ -501,8 +501,18 @@ public:
 
         SetWorkingMode(IsCoolingDemand() ? WORKING_MODE_COOLING : WORKING_MODE_HEATING);
         SetPidController(IsCoolingDemand() ? climate::CLIMATE_MODE_COOL : climate::CLIMATE_MODE_HEAT);
-        compressor_controller_->ApplyCompressorMode(DetermineSoftStartMode());
-        SetNextState(HeatCoolState::WAIT_COMPRESSOR_RUNNING);
+
+        if(id(emergency_mode_enabled).state)
+        {
+          ESP_LOGW("amber", "Emergency mode enabled, not starting compressor but switching on backup heater");
+          TurnOnBackupHeater();
+          SetNextState(HeatCoolState::WAIT_BACKUP_HEATER_RUNNING);
+        }
+        else
+        {
+          compressor_controller_->ApplyCompressorMode(DetermineSoftStartMode());
+          SetNextState(HeatCoolState::WAIT_COMPRESSOR_RUNNING);
+        }
         break;
       }
 
@@ -638,22 +648,25 @@ public:
         {
           ESP_LOGI("amber", "Disabling backup heater because measured temperature %.2f°C exceeded stop temperature delta %.2f°C.", current_temperature, target_temperature + id(compressor_stop_delta).state);
           TurnOffBackupHeater();
-          LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
+          LeaveStateAndSetNextStateAfterWaitTime(id(emergency_mode_enabled).state ? HeatCoolState::PUMP_RUNNING : HeatCoolState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
           break;
         }
 
-        uint32_t now = App.get_loop_component_start_time();
-        float predicted_temperature = CalculateBackupHeaterPredictedTemperature();
-        // Disable backup heater if predicted Temperature is above target.
-        uint32_t settle_elapsed_ms = now - backup_heater_start_time_ms_;
-        uint32_t settle_time_ms = BACKUP_HEATER_PREDICTION_SETTLE_TIME_S * 1000UL;
-        // Only check predicition after a minimum settle time to avoid disabling backup heater too early due to initial temperature fluctuations when turning it on.
-        if (predicted_temperature >= target_temperature + 2.0f && settle_elapsed_ms >= settle_time_ms)
-        { // Margin to buffer some heat to reduce undershoot.
-          ESP_LOGI("amber", "Disabling backup heater (predicted Temperature %.2f°C above target %.2f°C)", predicted_temperature, target_temperature);
-          TurnOffBackupHeater();
-          LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
-          break;
+        if(!id(emergency_mode_enabled).state)
+        {
+          uint32_t now = App.get_loop_component_start_time();
+          float predicted_temperature = CalculateBackupHeaterPredictedTemperature();
+          // Disable backup heater if predicted Temperature is above target.
+          uint32_t settle_elapsed_ms = now - backup_heater_start_time_ms_;
+          uint32_t settle_time_ms = BACKUP_HEATER_PREDICTION_SETTLE_TIME_S * 1000UL;
+          // Only check predicition after a minimum settle time to avoid disabling backup heater too early due to initial temperature fluctuations when turning it on.
+          if (predicted_temperature >= target_temperature + 2.0f && settle_elapsed_ms >= settle_time_ms)
+          { // Margin to buffer some heat to reduce undershoot.
+            ESP_LOGI("amber", "Disabling backup heater (predicted Temperature %.2f°C above target %.2f°C)", predicted_temperature, target_temperature);
+            TurnOffBackupHeater();
+            LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
+            break;
+          }
         }
 
         if(ShouldStopCompressor())
@@ -661,7 +674,7 @@ public:
           ESP_LOGI("amber", "Stopping compressor and backup heater because there is no demand or a temperature overshoot.");
           compressor_controller_->Stop();
           TurnOffBackupHeater();
-          SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
+          SetNextState(id(emergency_mode_enabled).state ? HeatCoolState::PUMP_RUNNING : HeatCoolState::WAIT_COMPRESSOR_STOP);
           break;
         }
         break;

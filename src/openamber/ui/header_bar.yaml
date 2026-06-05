@@ -44,10 +44,7 @@ obj:
               text_font: font_header_title
 
     - obj:
-        id: nav_status_group
-        ignore_layout: true
-        align: CENTER
-        y: 8
+        id: header_status_cluster
         width: SIZE_CONTENT
         height: SIZE_CONTENT
         pad_all: 0
@@ -57,26 +54,63 @@ obj:
           type: FLEX
           flex_flow: ROW
           flex_align_cross: CENTER
-          pad_column: 6
+          pad_column: 18
         widgets:
-          - label:
-              id: nav_status_heat_icon
-              hidden: true
-              text: "\U000F0238"
-              text_color: 0xF97316
-              text_font: font_mdi_36
-          - label:
-              id: nav_status_cool_icon
-              hidden: true
-              text: "\U000F0717"
-              text_color: 0x38BDF8
-              text_font: font_mdi_36
-          - label:
-              id: nav_status_dhw_icon
-              hidden: true
-              text: "\U000F058F"
-              text_color: 0x22D3EE
-              text_font: font_mdi_36
+          - obj:
+              id: nav_status_group
+              width: SIZE_CONTENT
+              height: SIZE_CONTENT
+              pad_all: 0
+              bg_opa: 0%
+              border_opa: 0%
+              layout:
+                type: FLEX
+                flex_flow: ROW
+                flex_align_cross: CENTER
+                pad_column: 6
+              widgets:
+                - label:
+                    id: nav_status_heat_icon
+                    hidden: true
+                    text: "\U000F0238"
+                    text_color: 0xF97316
+                    text_font: font_mdi_36
+                - label:
+                    id: nav_status_cool_icon
+                    hidden: true
+                    text: "\U000F0717"
+                    text_color: 0x38BDF8
+                    text_font: font_mdi_36
+                - label:
+                    id: nav_status_dhw_icon
+                    hidden: true
+                    text: "\U000F058F"
+                    text_color: 0x22D3EE
+                    text_font: font_mdi_36
+
+          - obj:
+              id: header_connectivity_group
+              width: SIZE_CONTENT
+              height: SIZE_CONTENT
+              pad_all: 0
+              bg_opa: 0%
+              border_opa: 0%
+              layout:
+                type: FLEX
+                flex_flow: ROW
+                flex_align_cross: CENTER
+                pad_column: 6
+              widgets:
+                - label:
+                    id: nav_status_ha_icon
+                    text: "\U000F07D0"
+                    text_color: 0xEF4444
+                    text_font: font_mdi_36
+                - label:
+                    id: nav_status_wifi_icon
+                    text: "\U000F092E"
+                    text_color: 0xD1D5DB
+                    text_font: font_mdi_36
 
     - obj:
         id: header_maintenance_badge
@@ -111,25 +145,34 @@ obj:
               text_font: font_text_20
 
     - obj:
-        id: header_connectivity_group
+        id: header_emergency_badge
+        ignore_layout: true
+        hidden: true
+        align: TOP_MID
+        y: 2
         width: SIZE_CONTENT
         height: SIZE_CONTENT
-        pad_all: 0
-        bg_opa: 0%
+        pad_left: 10
+        pad_right: 10
+        pad_top: 2
+        pad_bottom: 2
+        bg_color: 0xF97316
+        bg_opa: 100%
+        radius: 10
+        border_width: 0
         border_opa: 0%
         layout:
           type: FLEX
           flex_flow: ROW
           flex_align_cross: CENTER
-          pad_column: 6
+          pad_column: 4
         widgets:
           - label:
-              id: nav_status_ha_icon
-              text: "\U000F07D0"
-              text_color: 0xEF4444
-              text_font: font_mdi_36
+              text: "\U000F0026"
+              text_color: 0xFFFFFF
+              text_font: font_mdi_24
           - label:
-              id: nav_status_wifi_icon
-              text: "\U000F092E"
-              text_color: 0xD1D5DB
-              text_font: font_mdi_36
+              text: "Noodbedrijf actief"
+              text_color: 0xFFFFFF
+              text_font: font_text_20
+

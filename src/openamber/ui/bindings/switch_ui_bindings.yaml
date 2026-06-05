@@ -26,6 +26,12 @@
     then:
       - script.execute: update_advanced_settings_ui
 
+# ── Settings page: Emergency mode toggle ──
+- id: !extend emergency_mode_enabled
+  on_state:
+    then:
+      - script.execute: update_emergency_mode_ui
+
 # ── Service: Maintenance mode toggle ──
 - id: !extend service_mode_enabled
   on_state:
