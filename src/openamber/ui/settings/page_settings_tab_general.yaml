@@ -74,9 +74,30 @@ obj:
               on_click:
                 - script.execute:
                     id: general_select_tab
-                    tab_index: 1
+                    tab_index: 2
               widgets:
                 - label: { id: general_stab_sensor_kalibratie_lbl, text: "Sensor kalibratie", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
+
+          - obj:
+              id: general_stab_noodbedrijf
+              width: SIZE_CONTENT
+              height: 34
+              bg_color: 0xCBD5E1
+              bg_opa: 100%
+              radius: 8
+              border_opa: 0%
+              pad_left: 12
+              pad_right: 12
+              pad_top: 4
+              pad_bottom: 4
+              scrollbar_mode: "OFF"
+              scrollable: false
+              on_click:
+                - script.execute:
+                    id: general_select_tab
+                    tab_index: 1
+              widgets:
+                - label: { id: general_stab_noodbedrijf_lbl, text: "Noodbedrijf", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
 
     - obj:
         id: panel_general_page_systeem
@@ -352,5 +373,49 @@ obj:
                             - number.increment: tc_offset
                           widgets:
                             - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+    - obj:
+        id: panel_general_page_noodbedrijf
+        hidden: true
+        width: 100%
+        height: SIZE_CONTENT
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: COLUMN
+          flex_align_main: START
+          flex_align_cross: STRETCH
+          pad_row: 6
+        widgets:
+          - obj:
+              id: set_general_emergency_mode_row
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Noodbedrijf", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Schakel de compressor uit en laat alleen het backup-element werken", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - switch:
+                    id: set_emergency_mode_switch_ui
+                    align: TOP_RIGHT
+                    bg_color: 0x9CA3AF
+                    indicator:
+                      bg_color: 0xF97316
+                    knob:
+                      bg_color: 0xFFFFFF
+                    on_click:
+                      - if:
+                          condition:
+                            switch.is_on: emergency_mode_enabled
+                          then:
+                            - switch.turn_off: emergency_mode_enabled
+                          else:
+                            - switch.turn_on: emergency_mode_enabled
 
 # ------------------------------------------------------------
