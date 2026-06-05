@@ -13,106 +13,10 @@
     widgets:
       # Y-axis labels (aanvoertemperatuur)
       - label:
-          text: !lambda |-
-            float vmin = id(heat_curve_m10).state;
-            if (id(heat_curve_0).state < vmin) vmin = id(heat_curve_0).state;
-            if (id(heat_curve_p5).state < vmin) vmin = id(heat_curve_p5).state;
-            if (id(heat_curve_p10).state < vmin) vmin = id(heat_curve_p10).state;
-            if (id(heat_curve_p15).state < vmin) vmin = id(heat_curve_p15).state;
-            float vmax = id(heat_curve_m10).state;
-            if (id(heat_curve_0).state > vmax) vmax = id(heat_curve_0).state;
-            if (id(heat_curve_p5).state > vmax) vmax = id(heat_curve_p5).state;
-            if (id(heat_curve_p10).state > vmax) vmax = id(heat_curve_p10).state;
-            if (id(heat_curve_p15).state > vmax) vmax = id(heat_curve_p15).state;
-            if (vmax < 1.0f && vmin < 1.0f) { vmin = 25.0f; vmax = 35.0f; }
-            char buf[16];
-            snprintf(buf, sizeof(buf), "%.0f", vmax);
-            return std::string(buf);
+          id: heat_curve_y_axis_labels
+          text: "35\n33\n30\n28\n25"
           x: 2
           y: 0
-          text_color: 0x6B7280
-          text_font: font_text_24
-      - label:
-          text: !lambda |-
-            float vmin = id(heat_curve_m10).state;
-            if (id(heat_curve_0).state < vmin) vmin = id(heat_curve_0).state;
-            if (id(heat_curve_p5).state < vmin) vmin = id(heat_curve_p5).state;
-            if (id(heat_curve_p10).state < vmin) vmin = id(heat_curve_p10).state;
-            if (id(heat_curve_p15).state < vmin) vmin = id(heat_curve_p15).state;
-            float vmax = id(heat_curve_m10).state;
-            if (id(heat_curve_0).state > vmax) vmax = id(heat_curve_0).state;
-            if (id(heat_curve_p5).state > vmax) vmax = id(heat_curve_p5).state;
-            if (id(heat_curve_p10).state > vmax) vmax = id(heat_curve_p10).state;
-            if (id(heat_curve_p15).state > vmax) vmax = id(heat_curve_p15).state;
-            if (vmax < 1.0f && vmin < 1.0f) { vmin = 25.0f; vmax = 35.0f; }
-            float step = (vmax - vmin) / 4.0f;
-            char buf[16];
-            snprintf(buf, sizeof(buf), "%.0f", vmax - step);
-            return std::string(buf);
-          x: 2
-          y: 22
-          text_color: 0x6B7280
-          text_font: font_text_24
-      - label:
-          text: !lambda |-
-            float vmin = id(heat_curve_m10).state;
-            if (id(heat_curve_0).state < vmin) vmin = id(heat_curve_0).state;
-            if (id(heat_curve_p5).state < vmin) vmin = id(heat_curve_p5).state;
-            if (id(heat_curve_p10).state < vmin) vmin = id(heat_curve_p10).state;
-            if (id(heat_curve_p15).state < vmin) vmin = id(heat_curve_p15).state;
-            float vmax = id(heat_curve_m10).state;
-            if (id(heat_curve_0).state > vmax) vmax = id(heat_curve_0).state;
-            if (id(heat_curve_p5).state > vmax) vmax = id(heat_curve_p5).state;
-            if (id(heat_curve_p10).state > vmax) vmax = id(heat_curve_p10).state;
-            if (id(heat_curve_p15).state > vmax) vmax = id(heat_curve_p15).state;
-            if (vmax < 1.0f && vmin < 1.0f) { vmin = 25.0f; vmax = 35.0f; }
-            float step = (vmax - vmin) / 4.0f;
-            char buf[16];
-            snprintf(buf, sizeof(buf), "%.0f", vmax - (2.0f * step));
-            return std::string(buf);
-          x: 2
-          y: 44
-          text_color: 0x6B7280
-          text_font: font_text_24
-      - label:
-          text: !lambda |-
-            float vmin = id(heat_curve_m10).state;
-            if (id(heat_curve_0).state < vmin) vmin = id(heat_curve_0).state;
-            if (id(heat_curve_p5).state < vmin) vmin = id(heat_curve_p5).state;
-            if (id(heat_curve_p10).state < vmin) vmin = id(heat_curve_p10).state;
-            if (id(heat_curve_p15).state < vmin) vmin = id(heat_curve_p15).state;
-            float vmax = id(heat_curve_m10).state;
-            if (id(heat_curve_0).state > vmax) vmax = id(heat_curve_0).state;
-            if (id(heat_curve_p5).state > vmax) vmax = id(heat_curve_p5).state;
-            if (id(heat_curve_p10).state > vmax) vmax = id(heat_curve_p10).state;
-            if (id(heat_curve_p15).state > vmax) vmax = id(heat_curve_p15).state;
-            if (vmax < 1.0f && vmin < 1.0f) { vmin = 25.0f; vmax = 35.0f; }
-            float step = (vmax - vmin) / 4.0f;
-            char buf[16];
-            snprintf(buf, sizeof(buf), "%.0f", vmax - (3.0f * step));
-            return std::string(buf);
-          x: 2
-          y: 66
-          text_color: 0x6B7280
-          text_font: font_text_24
-      - label:
-          text: !lambda |-
-            float vmin = id(heat_curve_m10).state;
-            if (id(heat_curve_0).state < vmin) vmin = id(heat_curve_0).state;
-            if (id(heat_curve_p5).state < vmin) vmin = id(heat_curve_p5).state;
-            if (id(heat_curve_p10).state < vmin) vmin = id(heat_curve_p10).state;
-            if (id(heat_curve_p15).state < vmin) vmin = id(heat_curve_p15).state;
-            float vmax = id(heat_curve_m10).state;
-            if (id(heat_curve_0).state > vmax) vmax = id(heat_curve_0).state;
-            if (id(heat_curve_p5).state > vmax) vmax = id(heat_curve_p5).state;
-            if (id(heat_curve_p10).state > vmax) vmax = id(heat_curve_p10).state;
-            if (id(heat_curve_p15).state > vmax) vmax = id(heat_curve_p15).state;
-            if (vmax < 1.0f && vmin < 1.0f) { vmin = 25.0f; vmax = 35.0f; }
-            char buf[16];
-            snprintf(buf, sizeof(buf), "%.0f", vmin);
-            return std::string(buf);
-          x: 2
-          y: 88
           text_color: 0x6B7280
           text_font: font_text_24
       
@@ -146,237 +50,16 @@
           line_rounded: true
           points:
             - x: 0
-              y: !lambda |-
-                float vmin = id(heat_curve_m10).state;
-                                  if (id(heat_curve_0).state < vmin) vmin = id(heat_curve_0).state;
-                                  if (id(heat_curve_p5).state < vmin) vmin = id(heat_curve_p5).state;
-                                  if (id(heat_curve_p10).state < vmin) vmin = id(heat_curve_p10).state;
-                                  if (id(heat_curve_p15).state < vmin) vmin = id(heat_curve_p15).state;
-                                  float vmax = id(heat_curve_m10).state;
-                                  if (id(heat_curve_0).state > vmax) vmax = id(heat_curve_0).state;
-                                  if (id(heat_curve_p5).state > vmax) vmax = id(heat_curve_p5).state;
-                                  if (id(heat_curve_p10).state > vmax) vmax = id(heat_curve_p10).state;
-                                  if (id(heat_curve_p15).state > vmax) vmax = id(heat_curve_p15).state;
-                                  if (vmax < 1.0f && vmin < 1.0f) { vmin = 25.0f; vmax = 35.0f; }
-                                  float range = vmax - vmin;
-                                  if (range < 0.5f) range = 0.5f;
-                                  float y = 114.0f - ((id(heat_curve_m10).state - vmin) / range) * 108.0f;
-                                  if (y < 6.0f) y = 6.0f;
-                                  if (y > 114.0f) y = 114.0f;
-                                  return int(y);
+              y: !lambda 'return (lv_coord_t)id(hc_y_m10);'
             - x: 155
-              y: !lambda |-
-                float vmin = id(heat_curve_m10).state;
-                                  if (id(heat_curve_0).state < vmin) vmin = id(heat_curve_0).state;
-                                  if (id(heat_curve_p5).state < vmin) vmin = id(heat_curve_p5).state;
-                                  if (id(heat_curve_p10).state < vmin) vmin = id(heat_curve_p10).state;
-                                  if (id(heat_curve_p15).state < vmin) vmin = id(heat_curve_p15).state;
-                                  float vmax = id(heat_curve_m10).state;
-                                  if (id(heat_curve_0).state > vmax) vmax = id(heat_curve_0).state;
-                                  if (id(heat_curve_p5).state > vmax) vmax = id(heat_curve_p5).state;
-                                  if (id(heat_curve_p10).state > vmax) vmax = id(heat_curve_p10).state;
-                                  if (id(heat_curve_p15).state > vmax) vmax = id(heat_curve_p15).state;
-                                  if (vmax < 1.0f && vmin < 1.0f) { vmin = 25.0f; vmax = 35.0f; }
-                                  float range = vmax - vmin;
-                                  if (range < 0.5f) range = 0.5f;
-                                  float y = 114.0f - ((id(heat_curve_0).state - vmin) / range) * 108.0f;
-                                  if (y < 6.0f) y = 6.0f;
-                                  if (y > 114.0f) y = 114.0f;
-                                  return int(y);
+              y: !lambda 'return (lv_coord_t)id(hc_y_0);'
             - x: 310
-              y: !lambda |-
-                float vmin = id(heat_curve_m10).state;
-                                  if (id(heat_curve_0).state < vmin) vmin = id(heat_curve_0).state;
-                                  if (id(heat_curve_p5).state < vmin) vmin = id(heat_curve_p5).state;
-                                  if (id(heat_curve_p10).state < vmin) vmin = id(heat_curve_p10).state;
-                                  if (id(heat_curve_p15).state < vmin) vmin = id(heat_curve_p15).state;
-                                  float vmax = id(heat_curve_m10).state;
-                                  if (id(heat_curve_0).state > vmax) vmax = id(heat_curve_0).state;
-                                  if (id(heat_curve_p5).state > vmax) vmax = id(heat_curve_p5).state;
-                                  if (id(heat_curve_p10).state > vmax) vmax = id(heat_curve_p10).state;
-                                  if (id(heat_curve_p15).state > vmax) vmax = id(heat_curve_p15).state;
-                                  if (vmax < 1.0f && vmin < 1.0f) { vmin = 25.0f; vmax = 35.0f; }
-                                  float range = vmax - vmin;
-                                  if (range < 0.5f) range = 0.5f;
-                                  float y = 114.0f - ((id(heat_curve_p5).state - vmin) / range) * 108.0f;
-                                  if (y < 6.0f) y = 6.0f;
-                                  if (y > 114.0f) y = 114.0f;
-                                  return int(y);
+              y: !lambda 'return (lv_coord_t)id(hc_y_p5);'
             - x: 465
-              y: !lambda |-
-                float vmin = id(heat_curve_m10).state;
-                                  if (id(heat_curve_0).state < vmin) vmin = id(heat_curve_0).state;
-                                  if (id(heat_curve_p5).state < vmin) vmin = id(heat_curve_p5).state;
-                                  if (id(heat_curve_p10).state < vmin) vmin = id(heat_curve_p10).state;
-                                  if (id(heat_curve_p15).state < vmin) vmin = id(heat_curve_p15).state;
-                                  float vmax = id(heat_curve_m10).state;
-                                  if (id(heat_curve_0).state > vmax) vmax = id(heat_curve_0).state;
-                                  if (id(heat_curve_p5).state > vmax) vmax = id(heat_curve_p5).state;
-                                  if (id(heat_curve_p10).state > vmax) vmax = id(heat_curve_p10).state;
-                                  if (id(heat_curve_p15).state > vmax) vmax = id(heat_curve_p15).state;
-                                  if (vmax < 1.0f && vmin < 1.0f) { vmin = 25.0f; vmax = 35.0f; }
-                                  float range = vmax - vmin;
-                                  if (range < 0.5f) range = 0.5f;
-                                  float y = 114.0f - ((id(heat_curve_p10).state - vmin) / range) * 108.0f;
-                                  if (y < 6.0f) y = 6.0f;
-                                  if (y > 114.0f) y = 114.0f;
-                                  return int(y);
+              y: !lambda 'return (lv_coord_t)id(hc_y_p10);'
             - x: 620
-              y: !lambda |-
-                float vmin = id(heat_curve_m10).state;
-                                  if (id(heat_curve_0).state < vmin) vmin = id(heat_curve_0).state;
-                                  if (id(heat_curve_p5).state < vmin) vmin = id(heat_curve_p5).state;
-                                  if (id(heat_curve_p10).state < vmin) vmin = id(heat_curve_p10).state;
-                                  if (id(heat_curve_p15).state < vmin) vmin = id(heat_curve_p15).state;
-                                  float vmax = id(heat_curve_m10).state;
-                                  if (id(heat_curve_0).state > vmax) vmax = id(heat_curve_0).state;
-                                  if (id(heat_curve_p5).state > vmax) vmax = id(heat_curve_p5).state;
-                                  if (id(heat_curve_p10).state > vmax) vmax = id(heat_curve_p10).state;
-                                  if (id(heat_curve_p15).state > vmax) vmax = id(heat_curve_p15).state;
-                                  if (vmax < 1.0f && vmin < 1.0f) { vmin = 25.0f; vmax = 35.0f; }
-                                  float range = vmax - vmin;
-                                  if (range < 0.5f) range = 0.5f;
-                                  float y = 114.0f - ((id(heat_curve_p15).state - vmin) / range) * 108.0f;
-                                  if (y < 6.0f) y = 6.0f;
-                                  if (y > 114.0f) y = 114.0f;
-                                  return int(y);
+              y: !lambda 'return (lv_coord_t)id(hc_y_p15);'
       
-      # Dots at curve points
-      - obj:
-          id: heat_dot_m10
-          width: 10
-          height: 10
-          radius: 5
-          bg_color: 0x1F3B68
-          bg_opa: 100%
-          border_width: 0
-          x: 33
-          y: !lambda |-
-            float vmin = id(heat_curve_m10).state;
-            if (id(heat_curve_0).state < vmin) vmin = id(heat_curve_0).state;
-            if (id(heat_curve_p5).state < vmin) vmin = id(heat_curve_p5).state;
-            if (id(heat_curve_p10).state < vmin) vmin = id(heat_curve_p10).state;
-            if (id(heat_curve_p15).state < vmin) vmin = id(heat_curve_p15).state;
-            float vmax = id(heat_curve_m10).state;
-            if (id(heat_curve_0).state > vmax) vmax = id(heat_curve_0).state;
-            if (id(heat_curve_p5).state > vmax) vmax = id(heat_curve_p5).state;
-            if (id(heat_curve_p10).state > vmax) vmax = id(heat_curve_p10).state;
-            if (id(heat_curve_p15).state > vmax) vmax = id(heat_curve_p15).state;
-            if (vmax < 1.0f && vmin < 1.0f) { vmin = 25.0f; vmax = 35.0f; }
-            float range = vmax - vmin;
-            if (range < 0.5f) range = 0.5f;
-            float y = 114.0f - ((id(heat_curve_m10).state - vmin) / range) * 108.0f;
-            if (y < 6.0f) y = 6.0f;
-            if (y > 114.0f) y = 114.0f;
-            return int(y) - 5;
-      - obj:
-          id: heat_dot_0
-          width: 10
-          height: 10
-          radius: 5
-          bg_color: 0x1F3B68
-          bg_opa: 100%
-          border_width: 0
-          x: 188
-          y: !lambda |-
-            float vmin = id(heat_curve_m10).state;
-            if (id(heat_curve_0).state < vmin) vmin = id(heat_curve_0).state;
-            if (id(heat_curve_p5).state < vmin) vmin = id(heat_curve_p5).state;
-            if (id(heat_curve_p10).state < vmin) vmin = id(heat_curve_p10).state;
-            if (id(heat_curve_p15).state < vmin) vmin = id(heat_curve_p15).state;
-            float vmax = id(heat_curve_m10).state;
-            if (id(heat_curve_0).state > vmax) vmax = id(heat_curve_0).state;
-            if (id(heat_curve_p5).state > vmax) vmax = id(heat_curve_p5).state;
-            if (id(heat_curve_p10).state > vmax) vmax = id(heat_curve_p10).state;
-            if (id(heat_curve_p15).state > vmax) vmax = id(heat_curve_p15).state;
-            if (vmax < 1.0f && vmin < 1.0f) { vmin = 25.0f; vmax = 35.0f; }
-            float range = vmax - vmin;
-            if (range < 0.5f) range = 0.5f;
-            float y = 114.0f - ((id(heat_curve_0).state - vmin) / range) * 108.0f;
-            if (y < 6.0f) y = 6.0f;
-            if (y > 114.0f) y = 114.0f;
-            return int(y) - 5;
-      - obj:
-          id: heat_dot_p5
-          width: 10
-          height: 10
-          radius: 5
-          bg_color: 0x1F3B68
-          bg_opa: 100%
-          border_width: 0
-          x: 343
-          y: !lambda |-
-            float vmin = id(heat_curve_m10).state;
-            if (id(heat_curve_0).state < vmin) vmin = id(heat_curve_0).state;
-            if (id(heat_curve_p5).state < vmin) vmin = id(heat_curve_p5).state;
-            if (id(heat_curve_p10).state < vmin) vmin = id(heat_curve_p10).state;
-            if (id(heat_curve_p15).state < vmin) vmin = id(heat_curve_p15).state;
-            float vmax = id(heat_curve_m10).state;
-            if (id(heat_curve_0).state > vmax) vmax = id(heat_curve_0).state;
-            if (id(heat_curve_p5).state > vmax) vmax = id(heat_curve_p5).state;
-            if (id(heat_curve_p10).state > vmax) vmax = id(heat_curve_p10).state;
-            if (id(heat_curve_p15).state > vmax) vmax = id(heat_curve_p15).state;
-            if (vmax < 1.0f && vmin < 1.0f) { vmin = 25.0f; vmax = 35.0f; }
-            float range = vmax - vmin;
-            if (range < 0.5f) range = 0.5f;
-            float y = 114.0f - ((id(heat_curve_p5).state - vmin) / range) * 108.0f;
-            if (y < 6.0f) y = 6.0f;
-            if (y > 114.0f) y = 114.0f;
-            return int(y) - 5;
-      - obj:
-          id: heat_dot_p10
-          width: 10
-          height: 10
-          radius: 5
-          bg_color: 0x1F3B68
-          bg_opa: 100%
-          border_width: 0
-          x: 498
-          y: !lambda |-
-            float vmin = id(heat_curve_m10).state;
-            if (id(heat_curve_0).state < vmin) vmin = id(heat_curve_0).state;
-            if (id(heat_curve_p5).state < vmin) vmin = id(heat_curve_p5).state;
-            if (id(heat_curve_p10).state < vmin) vmin = id(heat_curve_p10).state;
-            if (id(heat_curve_p15).state < vmin) vmin = id(heat_curve_p15).state;
-            float vmax = id(heat_curve_m10).state;
-            if (id(heat_curve_0).state > vmax) vmax = id(heat_curve_0).state;
-            if (id(heat_curve_p5).state > vmax) vmax = id(heat_curve_p5).state;
-            if (id(heat_curve_p10).state > vmax) vmax = id(heat_curve_p10).state;
-            if (id(heat_curve_p15).state > vmax) vmax = id(heat_curve_p15).state;
-            if (vmax < 1.0f && vmin < 1.0f) { vmin = 25.0f; vmax = 35.0f; }
-            float range = vmax - vmin;
-            if (range < 0.5f) range = 0.5f;
-            float y = 114.0f - ((id(heat_curve_p10).state - vmin) / range) * 108.0f;
-            if (y < 6.0f) y = 6.0f;
-            if (y > 114.0f) y = 114.0f;
-            return int(y) - 5;
-      - obj:
-          id: heat_dot_p15
-          width: 10
-          height: 10
-          radius: 5
-          bg_color: 0x1F3B68
-          bg_opa: 100%
-          border_width: 0
-          x: 653
-          y: !lambda |-
-            float vmin = id(heat_curve_m10).state;
-            if (id(heat_curve_0).state < vmin) vmin = id(heat_curve_0).state;
-            if (id(heat_curve_p5).state < vmin) vmin = id(heat_curve_p5).state;
-            if (id(heat_curve_p10).state < vmin) vmin = id(heat_curve_p10).state;
-            if (id(heat_curve_p15).state < vmin) vmin = id(heat_curve_p15).state;
-            float vmax = id(heat_curve_m10).state;
-            if (id(heat_curve_0).state > vmax) vmax = id(heat_curve_0).state;
-            if (id(heat_curve_p5).state > vmax) vmax = id(heat_curve_p5).state;
-            if (id(heat_curve_p10).state > vmax) vmax = id(heat_curve_p10).state;
-            if (id(heat_curve_p15).state > vmax) vmax = id(heat_curve_p15).state;
-            if (vmax < 1.0f && vmin < 1.0f) { vmin = 25.0f; vmax = 35.0f; }
-            float range = vmax - vmin;
-            if (range < 0.5f) range = 0.5f;
-            float y = 114.0f - ((id(heat_curve_p15).state - vmin) / range) * 108.0f;
-            if (y < 6.0f) y = 6.0f;
-            if (y > 114.0f) y = 114.0f;
-            return int(y) - 5;
 
 - obj:
     id: set_heat_curve_controls_container
@@ -422,7 +105,6 @@
                       scrollable: false
                       on_click:
                         - number.decrement: heat_curve_m10
-                        - script.execute: update_heat_curve_chart
                       widgets:
                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                   - obj:
@@ -436,7 +118,6 @@
                       scrollable: false
                       on_click:
                         - number.increment: heat_curve_m10
-                        - script.execute: update_heat_curve_chart
                       widgets:
                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       # 0°C
@@ -469,7 +150,6 @@
                       scrollable: false
                       on_click:
                         - number.decrement: heat_curve_0
-                        - script.execute: update_heat_curve_chart
                       widgets:
                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                   - obj:
@@ -483,7 +163,6 @@
                       scrollable: false
                       on_click:
                         - number.increment: heat_curve_0
-                        - script.execute: update_heat_curve_chart
                       widgets:
                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       # +5°C
@@ -516,7 +195,6 @@
                       scrollable: false
                       on_click:
                         - number.decrement: heat_curve_p5
-                        - script.execute: update_heat_curve_chart
                       widgets:
                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                   - obj:
@@ -530,7 +208,6 @@
                       scrollable: false
                       on_click:
                         - number.increment: heat_curve_p5
-                        - script.execute: update_heat_curve_chart
                       widgets:
                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       # +10°C
@@ -563,7 +240,6 @@
                       scrollable: false
                       on_click:
                         - number.decrement: heat_curve_p10
-                        - script.execute: update_heat_curve_chart
                       widgets:
                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                   - obj:
@@ -577,7 +253,6 @@
                       scrollable: false
                       on_click:
                         - number.increment: heat_curve_p10
-                        - script.execute: update_heat_curve_chart
                       widgets:
                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       # +15°C
@@ -610,7 +285,6 @@
                       scrollable: false
                       on_click:
                         - number.decrement: heat_curve_p15
-                        - script.execute: update_heat_curve_chart
                       widgets:
                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                   - obj:
@@ -624,7 +298,6 @@
                       scrollable: false
                       on_click:
                         - number.increment: heat_curve_p15
-                        - script.execute: update_heat_curve_chart
                       widgets:
                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 

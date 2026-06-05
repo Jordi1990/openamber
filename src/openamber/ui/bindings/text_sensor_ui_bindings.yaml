@@ -10,29 +10,16 @@
     then:
       - script.execute: update_water_mode_temperature_display
       - script.execute: update_service_mode_ui
-      - lvgl.label.update:
-          id: service_diag_state_main_value
-          text:
-            format: "%s"
-            args: ['x.c_str()']
 
 - id: !extend state_machine_state_heat_cool
   on_value:
     then:
-      - lvgl.label.update:
-          id: service_diag_state_heat_cool_value
-          text:
-            format: "%s"
-            args: ['x.c_str()']
+      - script.execute: update_service_diag_summary_ui
 
 - id: !extend state_machine_state_dhw
   on_value:
     then:
-      - lvgl.label.update:
-          id: service_diag_state_dhw_value
-          text:
-            format: "%s"
-            args: ['x.c_str()']
+      - script.execute: update_service_diag_summary_ui
 
 # ── Settings page: Analytics device ID ──
 - id: !extend analytics_device_id
@@ -56,53 +43,17 @@
 - id: !extend wifi_mac_ui
   on_value:
     then:
-      - if:
-          condition:
-            lambda: 'return !x.empty();'
-          then:
-            - lvgl.label.update:
-                id: wifi_mac_label
-                text:
-                  format: "%s"
-                  args: ['x.c_str()']
-          else:
-            - lvgl.label.update:
-                id: wifi_mac_label
-                text: "-"
+      - script.execute: update_wifi_connected_summary_ui
 
 - id: !extend wifi_ssid_ui
   on_value:
     then:
-      - if:
-          condition:
-            lambda: 'return !x.empty();'
-          then:
-            - lvgl.label.update:
-                id: wifi_ssid_label
-                text:
-                  format: "%s"
-                  args: ['x.c_str()']
-          else:
-            - lvgl.label.update:
-                id: wifi_ssid_label
-                text: "-"
+      - script.execute: update_wifi_connected_summary_ui
 
 - id: !extend wifi_ip_ui
   on_value:
     then:
-      - if:
-          condition:
-            lambda: 'return !x.empty();'
-          then:
-            - lvgl.label.update:
-                id: wifi_ip_label
-                text:
-                  format: "%s"
-                  args: ['x.c_str()']
-          else:
-            - lvgl.label.update:
-                id: wifi_ip_label
-                text: "-"
+      - script.execute: update_wifi_connected_summary_ui
 
 - id: !extend wifi_scan_results_ui
   on_value:
@@ -110,6 +61,10 @@
       - lambda: |-
           std::string result = x;
           std::string options;
+          options.reserve(result.size() + 24);
+          std::string seen;
+          seen.reserve(result.size() + 2);
+          seen.push_back('\n');
           size_t pos = 0;
           while (pos < result.size()) {
             size_t end = result.find('\n', pos);
@@ -118,10 +73,16 @@
             size_t paren = line.rfind(" (");
             std::string ssid = (paren != std::string::npos) ? line.substr(0, paren) : line;
             if (!ssid.empty()) {
-              std::string check = "\n" + options + "\n";
-              if (check.find("\n" + ssid + "\n") == std::string::npos) {
+              std::string needle;
+              needle.reserve(ssid.size() + 2);
+              needle.push_back('\n');
+              needle += ssid;
+              needle.push_back('\n');
+              if (seen.find(needle) == std::string::npos) {
                 if (!options.empty()) options += "\n";
                 options += ssid;
+                seen += ssid;
+                seen.push_back('\n');
               }
             }
             pos = end + 1;
@@ -130,5 +91,9 @@
             options += "\nHandmatig...";
           } else {
             options = "Geen netwerken gevonden\nHandmatig...";
+          }
+          const char *current_options = lv_dropdown_get_options(id(wifi_network_dd)->obj);
+          if (current_options != nullptr && options == current_options) {
+            return;
           }
           lv_dropdown_set_options(id(wifi_network_dd)->obj, options.c_str());

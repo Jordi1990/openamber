@@ -1,0 +1,62 @@
+globals:
+  - id: is_idled
+    type: bool
+  - id: service_release_qr_url_cache
+    type: std::string
+    restore_value: no
+  - id: service_update_check_in_progress
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: service_update_check_failed
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: service_update_install_in_progress
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: service_confirm_action
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: hc_y_m10
+    type: int
+    restore_value: no
+    initial_value: '60'
+  - id: hc_y_0
+    type: int
+    restore_value: no
+    initial_value: '60'
+  - id: hc_y_p5
+    type: int
+    restore_value: no
+    initial_value: '60'
+  - id: hc_y_p10
+    type: int
+    restore_value: no
+    initial_value: '60'
+  - id: hc_y_p15
+    type: int
+    restore_value: no
+    initial_value: '60'
+  - id: hc_axis_top
+    type: int
+    restore_value: no
+    initial_value: '35'
+  - id: hc_axis_upper_mid
+    type: int
+    restore_value: no
+    initial_value: '33'
+  - id: hc_axis_mid
+    type: int
+    restore_value: no
+    initial_value: '30'
+  - id: hc_axis_lower_mid
+    type: int
+    restore_value: no
+    initial_value: '28'
+  - id: hc_axis_bottom
+    type: int
+    restore_value: no
+    initial_value: '25'
