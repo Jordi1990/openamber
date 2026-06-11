@@ -21,6 +21,12 @@
 
 #include <cstdint>
 
+struct TuoLimitCurvePoint
+{
+	float ta_c;
+	float tuo_max_c;
+};
+
 // ============================================================================
 // TIMING CONSTANTS (in seconds)
 // ============================================================================
@@ -38,6 +44,10 @@ static const uint32_t COMPRESSOR_MIN_TIME_PUMP_ON = 2 * 60;
 static const uint32_t COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 5 * 60;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_DOWN_S = 10;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_UP_S = 5 * 60;
+static const uint32_t FREQUENCY_LIMIT_UP_LOCK_S = 60 * 60;
+
+// No limiting at lower compressor frequencies.
+static const uint8_t FREQUENCY_LIMIT_CUTOFF_MODE_INDEX = 4;
 
 // Backup heater timing
 static const uint32_t BACKUP_HEATER_LOOKAHEAD_S = 2 * 60;
@@ -54,6 +64,18 @@ static const uint32_t DHW_PUMP_TEMPERATURE_SETTLE_TIME_S = 2 * 60;
 // ============================================================================
 
 static const float DEAD_BAND_DT = 1.0f;
+
+// Frequency limiter curve (Ta -> Tuo max) based on Amber documentation chart
+static const TuoLimitCurvePoint TUO_LIMIT_CURVE_POINTS[] = {
+	{-25.0f, 50.0f},
+	{-15.0f, 55.0f},
+	{-10.0f, 70.0f},
+	{20.0f, 70.0f},
+	{25.0f, 55.0f},
+	{35.0f, 50.0f},
+	{45.0f, 50.0f},
+};
+static const uint8_t TUO_LIMIT_CURVE_POINT_COUNT = sizeof(TUO_LIMIT_CURVE_POINTS) / sizeof(TUO_LIMIT_CURVE_POINTS[0]);
 
 
 // ============================================================================

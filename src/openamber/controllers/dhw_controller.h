@@ -100,11 +100,11 @@ private:
   {
     float temperature_ta = id(temperature_outside_ta).state;
     float ta_threshold = id(dhw_temperature_threshold_max_compressor_mode).state;
-    
+
     int dhw_mode_offset = id(compressor_control_select).size() - id(dhw_compressor_mode).size();
     int dhw_mode_max_offset = id(compressor_control_select).size() - id(dhw_compressor_mode_max).size();
-    
-    int selected_dhw_compressor_mode = id(dhw_compressor_mode).active_index().value() + dhw_mode_offset;    
+
+    int selected_dhw_compressor_mode = id(dhw_compressor_mode).active_index().value() + dhw_mode_offset;
     if (temperature_ta <= ta_threshold)
     {
       selected_dhw_compressor_mode = id(dhw_compressor_mode_max).active_index().value() + dhw_mode_max_offset;

@@ -102,6 +102,18 @@ private:
     return IsCoolingDemand() ? id(cool_compressor_mode) : id(heat_compressor_mode);
   }
 
+  int DetermineCompressorModeCap()
+  {
+    auto& active_mode = GetActiveCompressorMode();
+    int mode_offset = id(compressor_control_select).size() - active_mode.size();
+    if (IsCoolingDemand())
+    {
+      // Cooling maximum range is limited to lower frequencies.
+      mode_offset -= 3;
+    }
+    return (int)active_mode.active_index().value() + mode_offset;
+  }
+
   int MapPIDToCompressorMode()
   {
     float pid = GetPIDValue();
@@ -146,11 +158,7 @@ private:
         start_compressor_frequency_mode = 5;
     }
 
-    // Cap by the user-selected compressor mode
-    auto& active_mode = GetActiveCompressorMode();
-    int mode_offset = id(compressor_control_select).size() - active_mode.size();
-    int max_allowed = (int)active_mode.active_index().value() + mode_offset;
-    return std::min(start_compressor_frequency_mode, max_allowed);
+    return std::min(start_compressor_frequency_mode, DetermineCompressorModeCap());
   }
 
   bool IsAccumulatedDegreeMinutesReached()
@@ -304,36 +312,10 @@ private:
     auto cool_call = id(pid_cool_temperature_control).make_call();
     cool_call.set_mode(climate_mode);
     cool_call.perform();
-   }
-public:
-  HeatCoolController(PumpController* pump_controller, CompressorController* compressor_controller)
-    : BaseController(pump_controller, compressor_controller, HeatCoolState::WAIT_FOR_STATE_SWITCH, HeatCoolState::UNKNOWN, HeatCoolState::IDLE) {
-      PublishState(StateToString(state_));
-    }
-
-  void SetHeatPIDValue(float pid_value)
-  {
-    compressor_heat_pid_ = pid_value;
-  }
-
-  void SetCoolPIDValue(float pid_value)
-  {
-    compressor_cool_pid_ = pid_value;
-  }
-
-  float GetPIDValue()
-  {
-    return IsCoolingDemand() ? compressor_cool_pid_ : compressor_heat_pid_;
-  }
-
-  void InitializeBackupDegMinTracking()
-  {
-    backup_degmin_last_ms_ = App.get_loop_component_start_time();
   }
 
   int DetermineCompressorMode()
   {
-    const uint32_t now = App.get_loop_component_start_time();
     int desired_compressor_mode = MapPIDToCompressorMode();
     auto current_compressor_mode = id(compressor_control_select).active_index().value();
     float current_temperature = id(heat_cool_temperature_tc).state;
@@ -358,12 +340,33 @@ public:
       return current_compressor_mode;
     }
 
-    auto& active_mode = GetActiveCompressorMode();
-    int mode_offset = id(compressor_control_select).size() - active_mode.size();
-    int capped_mode_index = std::min(desired_compressor_mode, (int)active_mode.active_index().value() + mode_offset);
+    return std::min(desired_compressor_mode, DetermineCompressorModeCap());
+  }
 
-    ESP_LOGI("amber", "PID %.2f -> mode %d (previous mode %d)", GetPIDValue(), capped_mode_index, current_compressor_mode);
-    return capped_mode_index;
+public:
+  HeatCoolController(PumpController* pump_controller, CompressorController* compressor_controller)
+    : BaseController(pump_controller, compressor_controller, HeatCoolState::WAIT_FOR_STATE_SWITCH, HeatCoolState::UNKNOWN, HeatCoolState::IDLE) {
+      PublishState(StateToString(state_));
+    }
+
+  void SetHeatPIDValue(float pid_value)
+  {
+    compressor_heat_pid_ = pid_value;
+  }
+
+  void SetCoolPIDValue(float pid_value)
+  {
+    compressor_cool_pid_ = pid_value;
+  }
+
+  float GetPIDValue()
+  {
+    return IsCoolingDemand() ? compressor_cool_pid_ : compressor_heat_pid_;
+  }
+
+  void InitializeBackupDegMinTracking()
+  {
+    backup_degmin_last_ms_ = App.get_loop_component_start_time();
   }
 
   bool ShouldStopCompressor()
@@ -592,7 +595,9 @@ public:
           }
         }
         
-        compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
+        int desired_compressor_mode = DetermineCompressorMode();
+        ESP_LOGI("amber", "PID %.2f -> mode %d (previous mode %d)", GetPIDValue(), desired_compressor_mode, id(compressor_control_select).active_index().value());
+        compressor_controller_->ApplyCompressorMode(desired_compressor_mode);
         break;
       }
 
