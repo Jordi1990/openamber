@@ -20,6 +20,14 @@ globals:
     type: int
     restore_value: no
     initial_value: '0'
+  - id: service_error_page_index
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: service_warning_page_index
+    type: int
+    restore_value: no
+    initial_value: '0'
   - id: hc_y_m10
     type: int
     restore_value: no

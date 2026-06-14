@@ -154,3 +154,179 @@
                 text:
                   format: "OpenAmber %s"
                   args: ['ESPHOME_PROJECT_VERSION']
+
+# ── Service page: error/warning cards with pagination ──
+- id: !extend error_active
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend warning_active
+  on_state:
+    then:
+      - script.execute: update_service_warnings_ui
+
+- id: !extend error_flag_p01
+  on_state:
+    then:
+      - script.execute: update_service_warnings_ui
+
+- id: !extend error_flag_p02
+  on_state:
+    then:
+      - script.execute: update_service_warnings_ui
+
+- id: !extend error_flag_p03
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend oil_return_cycle_active
+  on_state:
+    then:
+      - script.execute: update_service_warnings_ui
+
+- id: !extend error_flag_p05
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_p06
+  on_state:
+    then:
+      - script.execute: update_service_warnings_ui
+
+- id: !extend error_flag_p07
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_p08
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_p09
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_p10
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_p11
+  on_state:
+    then:
+      - script.execute: update_service_warnings_ui
+
+- id: !extend error_flag_p12
+  on_state:
+    then:
+      - script.execute: update_service_warnings_ui
+
+- id: !extend error_flag_p13
+  on_state:
+    then:
+      - script.execute: update_service_warnings_ui
+
+- id: !extend error_flag_f01
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_f02
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_f03
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_f04
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_f05
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_f06
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_f07
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_f09
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_f10
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_f16
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_f17
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_f18
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_e01
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_e02
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_e03
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_e04
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_e05
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_e06
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_e07
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_flag_e08
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui

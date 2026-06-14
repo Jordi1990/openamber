@@ -215,12 +215,25 @@ private:
 
   void DoSafetyChecks()
   {
+    if(id(error_active).state && state_ != DHWState::IDLE)
+    {
+      ESP_LOGI("amber", "Error active, stopping heatpump.");
+      compressor_controller_->Stop();
+      pump_controller_->Stop();
+      TurnOffBackupHeater();
+      StopDhwPump();
+      id(dhw_active).publish_state(false);
+      SetNextState(DHWState::IDLE);
+      return;
+    }
+
     // If pump is not active while compressor is running, stop compressor to avoid damage
     if (compressor_controller_->IsRunning() && !pump_controller_->IsRunning())
     {
       ESP_LOGW("amber", "Safety check: Pump is not active while compressor is running, stopping compressor to avoid damage.");
       compressor_controller_->Stop();
       StopDhwPump();
+      TurnOffBackupHeater();
       id(dhw_active).publish_state(false);
       SetNextState(DHWState::IDLE);
       return;
@@ -233,6 +246,7 @@ private:
       compressor_controller_->Stop();
       pump_controller_->Stop();
       StopDhwPump();
+      TurnOffBackupHeater();
       id(dhw_active).publish_state(false);
       SetNextState(DHWState::IDLE);
       return;

@@ -272,6 +272,16 @@ private:
 
   void DoSafetyChecks()
   {
+    if(id(error_active).state && state_ != HeatCoolState::IDLE)
+    {
+      ESP_LOGI("amber", "Error active, stopping heatpump.");
+      compressor_controller_->Stop();
+      TurnOffBackupHeater();
+      StopPumps();
+      SetNextState(HeatCoolState::IDLE);
+      return;
+    }
+
     // If pump is not active while compressor is running, stop compressor to avoid damage
     if (compressor_controller_->IsRunning() && !pump_controller_->IsRunning())
     {
