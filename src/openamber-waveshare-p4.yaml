@@ -1,5 +1,5 @@
 substitutions:
-  device_model: waveshare-5-1024x600
+  device_model: waveshare-p4-7-1024x600
 
 packages:
  - !include openamber/common/openamber.yaml
@@ -9,82 +9,111 @@ packages:
 wifi:
   use_psram: true
 
+esp32_ble_tracker:
+
 esp32:
-  variant: esp32s3
-  flash_size: 16MB
-  cpu_frequency: 240MHZ
+  board: esp32-p4-evboard
+  variant: esp32p4
+  flash_size: 32MB
+  cpu_frequency: 360MHz
   framework:
     sdkconfig_options:
-      CONFIG_ESP32S3_DATA_CACHE_64KB: y
       CONFIG_SPIRAM_USE_MALLOC: y
-      CONFIG_ESP32S3_DATA_CACHE_LINE_64B: y
-      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
-      CONFIG_SPIRAM_USE_CAPS_ALLOC: n      
-      CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL: "4096"
-      CONFIG_SPIRAM_MALLOC_RESERVE_INTERNAL: "65536"
-      CONFIG_SPIRAM_TRY_ALLOCATE_WIFI_LWIP: y
-      CONFIG_MDNS_TASK_CREATE_FROM_SPIRAM: y
-      CONFIG_MDNS_MEMORY_ALLOC_SPIRAM: y
       CONFIG_NVS_ALLOCATE_CACHE_IN_SPIRAM: y
       CONFIG_SPIRAM_RODATA: y
       CONFIG_ESP_TASK_WDT_TIMEOUT_S: "60"
+      CONFIG_SPIRAM_XIP_FROM_PSRAM: "y"
+      CONFIG_ESP_HOSTED_MEMPOOL_PREFER_SPIRAM: y
     advanced:
       loop_task_stack_size: 10240
-      execute_from_psram: true
+      enable_idf_experimental_features: true
 
 esphome:
   project:
     version: dev
 
+esp32_hosted:
+  variant: ESP32C6
+  reset_pin: GPIO54
+  cmd_pin: GPIO19
+  clk_pin: GPIO18
+  d0_pin: GPIO14
+  d1_pin: GPIO15
+  d2_pin: GPIO16
+  d3_pin: GPIO17
+  active_high: true
+  use_psram: true
+
+update:
+  - platform: esp32_hosted
+    name: ESP-Hosted Firmware
+    icon: mdi:chip
+    type: http
+    source: https://esphome.github.io/esp-hosted-firmware/manifest/esp32c6.json
+    update_interval: 6h
+
 uart:
   rx_pin:
-    number: GPIO43
+    number: GPIO26
     inverted: False
   tx_pin:
-    number: GPIO44
+    number: GPIO27
     inverted: False
 
 psram:
-  mode: octal
-  speed: 80MHz
+  mode: hex
+  speed: 200MHz
 
-ch422g:
-  - id: ch422g_hub
-
-i2c:
-  sda: GPIO08
-  scl: GPIO09
-  scan: False
-  frequency: 400kHz
+esp_ldo:
+  - channel: 3
+    voltage: 2.5V
 
 display:
-  - platform: mipi_rgb
-    model: WAVESHARE-5-1024X600
+  - platform: mipi_dsi
+    model: WAVESHARE-ESP32-P4-WIFI6-TOUCH-LCD-7B
     id: my_display
+    reset_pin:
+      number: 33
+    update_interval: never
     auto_clear_enabled: false
+    dimensions:
+      width: 1024
+      height: 600
 
 output:
   - platform: ledc
-    pin: GPIO15
     id: backlight
+    pin: GPIO32
+    inverted: true
+    frequency: 1000Hz
 
-switch:
-  - platform: gpio
-    name: backlight switch
-    pin:
-      ch422g: ch422g_hub
-      number: 2
+light:
+  - platform: monochromatic
+    output: backlight
+    name: Display Backlight
+    icon: mdi:lightbulb-on
+    id: display_backlight
     restore_mode: ALWAYS_ON
-    internal: true
+    default_transition_length: 250ms
+
+i2c:
+  - id: bus_a
+    sda: GPIO07
+    scl: GPIO08
+    frequency: 400kHz
+    scan: true
 
 touchscreen:
   - platform: gt911
     address: 0x5D
+    i2c_id: bus_a
+    reset_pin: GPIO23
+    update_interval: 50ms
     id: my_touchscreen
-    interrupt_pin: GPIO4
-    reset_pin:
-      ch422g: ch422g_hub
-      number: 1
+    transform:
+      swap_xy: false
+      mirror_x: true
+      mirror_y: true
     on_release:
       - if:
           condition:
@@ -96,8 +125,6 @@ touchscreen:
             - output.set_level:
                 id: backlight
                 level: 100%
-            - lvgl.widget.hide:
-                id: idle_screen_overlay
 
 api:
   on_client_connected:
@@ -137,6 +164,8 @@ image:
 font: !include openamber/ui/fonts.yaml
 
 lvgl:
+  rotation: 180
+  byte_order: little_endian
   buffer_size: 100%
   on_idle:
     - timeout: 60s
@@ -146,9 +175,7 @@ lvgl:
             value: 'true'
         - output.set_level:
             id: backlight
-            level: 50% # 50% turns off the backlight
-        - lvgl.widget.show:
-            id: idle_screen_overlay
+            level: 0%
   bottom_layer:
     bg_color: 0x0A2747
   widgets:
@@ -160,4 +187,3 @@ lvgl:
     - !include openamber/ui/page_settings.yaml
     - !include openamber/ui/nav_bar.yaml
     - !include openamber/ui/boot_screen.yaml
-    - !include openamber/ui/idle_screen_overlay.yaml
