@@ -90,6 +90,7 @@ void OpenAmberComponent::update()
       else
       {
         WriteHeatingFrequencyTable();
+        WriteCoolingFrequencyTable();
       }
       ESP_LOGI("amber", "Initialized heat pump controller");
       LeaveStateAndSetNextStateAfterWaitTime(State::WAIT_INITIALIZATION, INITIALIZATION_DELAY_S * 1000UL);
@@ -297,17 +298,31 @@ ThreeWayValvePosition OpenAmberComponent::GetDesiredThreeWayValvePosition()
 
 void OpenAmberComponent::WriteHeatingFrequencyTable()
 {
-      // Patch heating frequency table to have more control in low load situations.
-      id(heating_frequency_index_1).make_call().set_value(30).perform();
-      id(heating_frequency_index_2).make_call().set_value(36).perform();
-      id(heating_frequency_index_3).make_call().set_value(43).perform();
-      id(heating_frequency_index_4).make_call().set_value(49).perform();
-      id(heating_frequency_index_5).make_call().set_value(55).perform();
-      id(heating_frequency_index_6).make_call().set_value(61).perform();
-      id(heating_frequency_index_7).make_call().set_value(69).perform();
-      id(heating_frequency_index_8).make_call().set_value(74).perform();
-      id(heating_frequency_index_9).make_call().set_value(82).perform();
-      id(heating_frequency_index_10).make_call().set_value(90).perform();
+    // Patch heating frequency table to have more control in low load situations.
+    id(heating_frequency_index_1).make_call().set_value(20).perform();
+    id(heating_frequency_index_2).make_call().set_value(26).perform();
+    id(heating_frequency_index_3).make_call().set_value(30).perform();
+    id(heating_frequency_index_4).make_call().set_value(36).perform();
+    id(heating_frequency_index_5).make_call().set_value(43).perform();
+    id(heating_frequency_index_6).make_call().set_value(48).perform();
+    id(heating_frequency_index_7).make_call().set_value(55).perform();
+    id(heating_frequency_index_8).make_call().set_value(69).perform();
+    id(heating_frequency_index_9).make_call().set_value(82).perform();
+    id(heating_frequency_index_10).make_call().set_value(90).perform();
+}
+
+void OpenAmberComponent::WriteCoolingFrequencyTable()
+{
+    id(cooling_frequency_index_1).make_call().set_value(20).perform();
+    id(cooling_frequency_index_2).make_call().set_value(26).perform();
+    id(cooling_frequency_index_3).make_call().set_value(30).perform();
+    id(cooling_frequency_index_4).make_call().set_value(36).perform();
+    id(cooling_frequency_index_5).make_call().set_value(43).perform();
+    id(cooling_frequency_index_6).make_call().set_value(48).perform();
+    id(cooling_frequency_index_7).make_call().set_value(55).perform();
+    id(cooling_frequency_index_8).make_call().set_value(69).perform();
+    id(cooling_frequency_index_9).make_call().set_value(74).perform();
+    id(cooling_frequency_index_10).make_call().set_value(82).perform();
 }
 }  // namespace openamber
 }  // namespace esphome

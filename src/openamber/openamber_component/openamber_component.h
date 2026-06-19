@@ -63,6 +63,7 @@ private:
   void LeaveStateAndSetNextStateAfterWaitTime(State new_state, uint32_t defer_ms);
   const char* StateToString(State state);
   void WriteHeatingFrequencyTable();
+  void WriteCoolingFrequencyTable();
 public:
   OpenAmberComponent();
   ~OpenAmberComponent();
