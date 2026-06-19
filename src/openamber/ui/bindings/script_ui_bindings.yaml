@@ -788,6 +788,112 @@
                                               - lvgl.widget.update: { id: service_tab_maintenance, bg_color: 0x1F3B68 }
                                               - lvgl.widget.update: { id: service_tab_maintenance_lbl, text_color: 0xFFFFFF }
 
+- id: open_service_errors_tab
+  mode: restart
+  then:
+    - lvgl.widget.update: { id: page_home, hidden: true }
+    - lvgl.widget.update: { id: page_service, hidden: false }
+    - lvgl.widget.update: { id: page_system, hidden: true }
+    - lvgl.widget.update: { id: page_settings, hidden: true }
+    - lvgl.widget.show: { id: service_tabs_bar }
+    - lvgl.widget.hide: { id: service_maintenance_panel }
+    - lvgl.widget.hide: { id: service_sensors_panel }
+    - lvgl.widget.show: { id: service_errors_panel }
+    - lvgl.widget.hide: { id: service_warnings_panel }
+    - lvgl.widget.hide: { id: service_mpanel_compressor }
+    - lvgl.widget.hide: { id: service_mpanel_pumps }
+    - lvgl.widget.hide: { id: service_mpanel_valve }
+    - lvgl.widget.hide: { id: service_mpanel_backup }
+    - lvgl.widget.hide: { id: service_maintenance_header }
+    - lvgl.widget.hide: { id: service_maintenance_title }
+    - lvgl.widget.hide: { id: service_maintenance_state }
+    - lvgl.widget.hide: { id: set_service_mode_switch_ui }
+    - script.execute: update_service_mode_ui
+    - script.execute: update_service_errors_ui
+    - script.execute: update_service_top_tabs_ui
+    - lvgl.widget.update: { id: nav_service, bg_opa: 100% }
+    - lvgl.widget.update: { id: nav_service_icon, text_color: 0xFFFFFF }
+    - lvgl.widget.update: { id: nav_service_label, text_color: 0xFFFFFF }
+    - lvgl.widget.update: { id: nav_home, bg_opa: 0% }
+    - lvgl.widget.update: { id: nav_home_icon, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_home_label, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_settings, bg_opa: 0% }
+    - lvgl.widget.update: { id: nav_settings_icon, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_settings_label, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_system, bg_opa: 0% }
+    - lvgl.widget.update: { id: nav_system_icon, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_system_label, text_color: 0xD1D5DB }
+
+- id: open_service_warnings_tab
+  mode: restart
+  then:
+    - lvgl.widget.update: { id: page_home, hidden: true }
+    - lvgl.widget.update: { id: page_service, hidden: false }
+    - lvgl.widget.update: { id: page_system, hidden: true }
+    - lvgl.widget.update: { id: page_settings, hidden: true }
+    - lvgl.widget.show: { id: service_tabs_bar }
+    - lvgl.widget.hide: { id: service_maintenance_panel }
+    - lvgl.widget.hide: { id: service_sensors_panel }
+    - lvgl.widget.hide: { id: service_errors_panel }
+    - lvgl.widget.show: { id: service_warnings_panel }
+    - lvgl.widget.hide: { id: service_mpanel_compressor }
+    - lvgl.widget.hide: { id: service_mpanel_pumps }
+    - lvgl.widget.hide: { id: service_mpanel_valve }
+    - lvgl.widget.hide: { id: service_mpanel_backup }
+    - lvgl.widget.hide: { id: service_maintenance_header }
+    - lvgl.widget.hide: { id: service_maintenance_title }
+    - lvgl.widget.hide: { id: service_maintenance_state }
+    - lvgl.widget.hide: { id: set_service_mode_switch_ui }
+    - script.execute: update_service_mode_ui
+    - script.execute: update_service_warnings_ui
+    - script.execute: update_service_top_tabs_ui
+    - lvgl.widget.update: { id: nav_service, bg_opa: 100% }
+    - lvgl.widget.update: { id: nav_service_icon, text_color: 0xFFFFFF }
+    - lvgl.widget.update: { id: nav_service_label, text_color: 0xFFFFFF }
+    - lvgl.widget.update: { id: nav_home, bg_opa: 0% }
+    - lvgl.widget.update: { id: nav_home_icon, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_home_label, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_settings, bg_opa: 0% }
+    - lvgl.widget.update: { id: nav_settings_icon, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_settings_label, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_system, bg_opa: 0% }
+    - lvgl.widget.update: { id: nav_system_icon, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_system_label, text_color: 0xD1D5DB }
+
+- id: update_header_alert_icons
+  mode: restart
+  then:
+    - lvgl.widget.update:
+        id: nav_status_error_btn
+        hidden: !lambda 'return !id(error_active).state;'
+    - lvgl.widget.update:
+        id: nav_status_warning_btn
+        hidden: !lambda 'return !id(warning_active).state;'
+    - lvgl.widget.update:
+        id: nav_status_error_btn
+        bg_color: !lambda |-
+          return id(header_alert_blink_phase) ? lv_color_hex(0xEF4444) : lv_color_hex(0xB91C1C);
+    - lvgl.widget.update:
+        id: nav_status_warning_btn
+        bg_color: !lambda |-
+          return id(header_alert_blink_phase) ? lv_color_hex(0xF59E0B) : lv_color_hex(0xD97706);
+    - lvgl.widget.update:
+        id: nav_status_error_icon
+        text_color: !lambda |-
+          return lv_color_hex(0xFFFFFF);
+    - lvgl.widget.update:
+        id: nav_status_warning_icon
+        text_color: !lambda |-
+          return lv_color_hex(0xFFFFFF);
+
+- id: toggle_header_alert_blink
+  mode: restart
+  then:
+    - globals.set:
+        id: header_alert_blink_phase
+        value: !lambda 'return !id(header_alert_blink_phase);'
+    - script.execute: update_header_alert_icons
+
 - id: update_service_diag_summary_ui
   mode: restart
   then:
@@ -863,6 +969,7 @@
         if (id(service_errors_status) == nullptr ||
             id(service_errors_code_title) == nullptr ||
             id(service_errors_explanation_value) == nullptr ||
+            id(service_errors_reset_timeout_btn) == nullptr ||
             id(service_errors_counter) == nullptr ||
             id(service_errors_nav_row) == nullptr ||
             id(service_errors_prev_btn) == nullptr ||
@@ -900,6 +1007,9 @@
           {"E07 - Voedingsspanning te hoog of te laag", "Voedingspanning te hoog of te laag.", id(error_flag_e07).state},
           {"E08 - Storing EEPROM warmtepomp", "Storing EEPROM warmtepomp.", id(error_flag_e08).state},
           {"F10 - Storing ventilatormotor DC", "Storing ventilatormotor DC.", id(error_flag_f10).state},
+          {"TO01 - Pomp start timeout", "De pomp startte niet binnen de verwachte tijd. Controleer pompaansturing, relais, bedrijfstoestand en de flow (flow switch), omdat deze timeout op flow-detectie wordt bepaald.", id(error_pump_start_timeout).state},
+          {"TO02 - Compressor start timeout", "De compressor startte niet binnen de verwachte tijd. Controleer permissies, beveiligingen en startcondities.", id(error_compressor_start_timeout).state},
+          {"TO03 - Pomp stop timeout", "De pomp stopte niet binnen de verwachte tijd. Controleer relaisstatus, besturingslogica en de flow (flow switch), omdat deze timeout op flow-detectie wordt bepaald.", id(error_pump_stop_timeout).state},
           {"F16 - Storing sensor aanvoertemperatuur Tuo", "Storing sensor aanvoertemperatuur Tuo.", id(error_flag_f16).state},
           {"F17 - Storing sensor retourtemperatuur Tui", "Storing sensor retourtemperatuur Tui.", id(error_flag_f17).state},
           {"F18 - Storing sensor condensortemperatuur Tup", "Storing sensor condensortemperatuur Tup.", id(error_flag_f18).state}
@@ -913,6 +1023,14 @@
             active_indices[active_count++] = i;
           }
         }
+
+        const bool timeout_error_active =
+            id(error_pump_start_timeout).state ||
+            id(error_compressor_start_timeout).state ||
+            id(error_pump_stop_timeout).state;
+
+        if (timeout_error_active) lv_obj_clear_flag(id(service_errors_reset_timeout_btn), LV_OBJ_FLAG_HIDDEN);
+        else lv_obj_add_flag(id(service_errors_reset_timeout_btn), LV_OBJ_FLAG_HIDDEN);
 
         if (active_count == 0) {
           id(service_error_page_index) = 0;
@@ -1087,6 +1205,7 @@
     - script.execute: update_service_diag_summary_ui
     - script.execute: update_service_errors_ui
     - script.execute: update_service_warnings_ui
+    - script.execute: update_header_alert_icons
     - script.execute: update_service_valve_ui
     - lvgl.label.update:
         id: service_p0_pwm_slider_value

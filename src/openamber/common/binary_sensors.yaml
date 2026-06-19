@@ -834,6 +834,30 @@
   entity_category: diagnostic
 
 - platform: template
+  id: error_pump_start_timeout
+  name: "Pomp start timeout"
+  device_class: problem
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_compressor_start_timeout
+  name: "Compressor start timeout"
+  device_class: problem
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_pump_stop_timeout
+  name: "Pomp stop timeout"
+  device_class: problem
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: error_codes
+
+- platform: template
   id: error_active
   name: "Error actief"
   device_class: problem
@@ -866,7 +890,10 @@
            id(error_flag_f10).state ||
            id(error_flag_f16).state ||
            id(error_flag_f17).state ||
-           id(error_flag_f18).state;
+           id(error_flag_f18).state ||
+           id(error_pump_start_timeout).state ||
+           id(error_compressor_start_timeout).state ||
+           id(error_pump_stop_timeout).state;
 
 - platform: template
   id: warning_active

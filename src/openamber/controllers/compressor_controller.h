@@ -30,6 +30,7 @@ private:
   uint32_t last_compressor_start_ms_ = 0;
   uint32_t last_compressor_stop_ms_ = 0;
   uint32_t last_compressor_mode_change_ms_ = 0;
+  uint32_t start_wait_started_ms_ = 0;
 
 public:
   CompressorController() {}
@@ -74,6 +75,7 @@ public:
 
   void Stop()
   {
+    ClearStartWaitTimer();
     last_compressor_start_ms_ = 0;
     last_compressor_stop_ms_ = App.get_loop_component_start_time();
     auto compressor_set_call = id(compressor_control_select).make_call();
@@ -105,7 +107,23 @@ public:
 
   void RecordStartTime()
   {
+    ClearStartWaitTimer();
     last_compressor_start_ms_ = App.get_loop_component_start_time();
+  }
+
+  void ArmStartWaitTimer()
+  {
+    start_wait_started_ms_ = App.get_loop_component_start_time();
+  }
+
+  void ClearStartWaitTimer()
+  {
+    start_wait_started_ms_ = 0;
+  }
+
+  uint32_t GetStartWaitStartedTime()
+  {
+    return start_wait_started_ms_;
   }
 
   void ApplyDefrostRecoveryMode()
