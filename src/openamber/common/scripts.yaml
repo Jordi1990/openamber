@@ -293,6 +293,28 @@
             root["vr"] = idx.has_value() ? idx.value() : -1;
           }
 
+- id: schedule_send_errors_realtime
+  mode: restart
+  then:
+    - delay: 200ms
+    - script.execute: send_errors_realtime
+
+- id: send_errors_realtime
+  then:
+    - if:
+        condition:
+          - switch.is_on: analytics_enabled_switch
+        then:
+          - mqtt.publish_json:
+              topic: !lambda 'return id(analytics_topic);'
+              qos: 0
+              retain: true
+              payload: |-
+                root["ts"] = id(my_time).timestamp_now();
+                root["e2119"] = (uint16_t) id(error_register_2119_raw).state;
+                root["e2120"] = (uint16_t) id(error_register_2120_raw).state;
+                root["e2121"] = (uint16_t) id(error_register_2121_raw).state;
+
 - id: send_analytics
   then:
     - lambda: |-
