@@ -313,6 +313,7 @@ void OpenAmberComponent::WriteHeatingFrequencyTable()
 
 void OpenAmberComponent::WriteCoolingFrequencyTable()
 {
+    id(cooling_frequency_index_0).make_call().set_value(0).perform();
     id(cooling_frequency_index_1).make_call().set_value(20).perform();
     id(cooling_frequency_index_2).make_call().set_value(26).perform();
     id(cooling_frequency_index_3).make_call().set_value(30).perform();
