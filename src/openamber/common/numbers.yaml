@@ -564,6 +564,94 @@
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_0
+  internal: True
+  address: 3000
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_1
+  internal: True
+  address: 3001
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_2
+  internal: True
+  address: 3002
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_3
+  internal: True
+  address: 3003
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_4
+  internal: True
+  address: 3004
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_5
+  internal: True
+  address: 3005
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_6
+  internal: True
+  address: 3006
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_7
+  internal: True
+  address: 3007
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_8
+  internal: True
+  address: 3008
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_9
+  internal: True
+  address: 3009
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_10
+  internal: True
+  address: 3010
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
   id: heating_frequency_index_1
   internal: True
   address: 3012
