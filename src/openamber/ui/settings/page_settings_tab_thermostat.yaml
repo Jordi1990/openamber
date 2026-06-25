@@ -117,6 +117,7 @@ obj:
           pad_row: 4
         widgets:
           - obj:
+              id: thermostat_row_setpoint
               width: 100%
               height: SIZE_CONTENT
               bg_opa: 0%
@@ -149,6 +150,7 @@ obj:
                             else id(thermostat_mode_select).make_call().set_option("Extern").perform();
 
           - obj:
+              id: thermostat_row_default_heat
               width: 100%
               height: SIZE_CONTENT
               bg_opa: 0%
@@ -195,13 +197,14 @@ obj:
                             - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
           - obj:
+              id: thermostat_row_default_cool
               width: 100%
               height: SIZE_CONTENT
               bg_opa: 0%
               border_opa: 0%
               pad_all: 6
               widgets:
-                - label: { text: "Default setpoint verwarmen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Standaard setpoint verwarmen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
                 - label: { text: "Setpoint verwarmen na herstart", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
                 - obj:
                     width: SIZE_CONTENT
@@ -241,13 +244,14 @@ obj:
                             - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
           - obj:
+              id: thermostat_row_heat_deadband
               width: 100%
               height: SIZE_CONTENT
               bg_opa: 0%
               border_opa: 0%
               pad_all: 6
               widgets:
-                - label: { text: "Default setpoint koelen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Standaard setpoint koelen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
                 - label: { text: "Setpoint koelen na herstart", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
                 - obj:
                     width: SIZE_CONTENT
@@ -304,6 +308,7 @@ obj:
           pad_row: 4
         widgets:
           - obj:
+              id: thermostat_row_heat_overrun
               width: 100%
               height: SIZE_CONTENT
               bg_opa: 0%
@@ -350,6 +355,7 @@ obj:
                             - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
           - obj:
+              id: thermostat_row_cool_deadband
               width: 100%
               height: SIZE_CONTENT
               bg_opa: 0%
@@ -413,6 +419,7 @@ obj:
           pad_row: 4
         widgets:
           - obj:
+              id: thermostat_row_cool_overrun
               width: 100%
               height: SIZE_CONTENT
               bg_opa: 0%
