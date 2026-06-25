@@ -383,7 +383,7 @@ public:
 
     if (overshoot >= stop_delta)
     {
-      if (id(oil_return_cycle_active).state)
+      if (id(oil_return_cycle_active_settled).state)
       {
         ESP_LOGI("amber", "Not stopping compressor because oil return cycle is active.");
         return false;
