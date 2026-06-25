@@ -41,6 +41,29 @@
           format: "%.1f°C"
           args: ['id(thermostat_cool_overrun).state']
 
+- id: update_thermostat_mode_ui
+  mode: restart
+  then:
+    - if:
+        condition:
+          lambda: |-
+            auto idx = id(thermostat_mode_select).active_index();
+            return idx.has_value() && idx.value() == 0;
+        then:
+          - lvgl.widget.update: { id: thermostat_row_default_heat, state: { disabled: false }, opa: 100% }
+          - lvgl.widget.update: { id: thermostat_row_default_cool, state: { disabled: false }, opa: 100% }
+          - lvgl.widget.update: { id: thermostat_row_heat_deadband, state: { disabled: false }, opa: 100% }
+          - lvgl.widget.update: { id: thermostat_row_heat_overrun, state: { disabled: false }, opa: 100% }
+          - lvgl.widget.update: { id: thermostat_row_cool_deadband, state: { disabled: false }, opa: 100% }
+          - lvgl.widget.update: { id: thermostat_row_cool_overrun, state: { disabled: false }, opa: 100% }
+        else:
+          - lvgl.widget.update: { id: thermostat_row_default_heat, state: { disabled: true }, opa: 40% }
+          - lvgl.widget.update: { id: thermostat_row_default_cool, state: { disabled: true }, opa: 40% }
+          - lvgl.widget.update: { id: thermostat_row_heat_deadband, state: { disabled: true }, opa: 40% }
+          - lvgl.widget.update: { id: thermostat_row_heat_overrun, state: { disabled: true }, opa: 40% }
+          - lvgl.widget.update: { id: thermostat_row_cool_deadband, state: { disabled: true }, opa: 40% }
+          - lvgl.widget.update: { id: thermostat_row_cool_overrun, state: { disabled: true }, opa: 40% }
+
 - id: thermostat_select_tab
   mode: restart
   parameters:
