@@ -62,6 +62,13 @@ display:
     model: WAVESHARE-5-1024X600
     id: my_display
     auto_clear_enabled: false
+    dimensions:
+      width: 1024
+      height: 600
+      offset_width: 0
+      offset_height: 0
+      pad_width: 0
+      pad_height: 0
 
 output:
   - platform: ledc
