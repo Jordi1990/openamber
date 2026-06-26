@@ -5,53 +5,6 @@
     border_opa: 0%
     pad_all: 6
     widgets:
-      - label: { text: "Start delta (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Verschil met setpoint om compressor te starten", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-      - obj:
-          width: SIZE_CONTENT
-          height: SIZE_CONTENT
-          align: TOP_RIGHT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 0
-          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-          widgets:
-            - obj:
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
-                scrollable: false
-                on_click:
-                  - number.decrement: compressor_start_delta
-                widgets:
-                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-            - label: { id: set_comp_start_val, text: "3.0°C", text_color: 0x1F2933, text_font: font_text_24 }
-            - obj:
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
-                scrollable: false
-                on_click:
-                  - number.increment: compressor_start_delta
-                widgets:
-                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-
-
-- obj:
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
-    widgets:
       - label: { text: "Verwarmingsmodus", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { text: "Kies stooklijn of extern aangestuurd setpoint", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
       - dropdown:
@@ -186,52 +139,6 @@
                   auto val = lv_dropdown_get_selected(id(set_heat_power_dd)->obj);
                   if (val < 7) id(heat_compressor_mode).make_call().set_option(opts[val]).perform();
 
-
-- obj:
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
-    widgets:
-      - label: { text: "Stop delta (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Verschil met setpoint om compressor te stoppen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-      - obj:
-          width: SIZE_CONTENT
-          height: SIZE_CONTENT
-          align: TOP_RIGHT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 0
-          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-          widgets:
-            - obj:
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
-                scrollable: false
-                on_click:
-                  - number.decrement: compressor_stop_delta
-                widgets:
-                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-            - label: { id: set_comp_stop_val, text: "5.0°C", text_color: 0x1F2933, text_font: font_text_24 }
-            - obj:
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
-                scrollable: false
-                on_click:
-                  - number.increment: compressor_stop_delta
-                widgets:
-                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
 
 
