@@ -207,6 +207,15 @@
             format: "%.1f°C"
             args: ['x']
 
+- id: !extend compressor_start_delta_cooling
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_comp_start_cool_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
 - id: !extend compressor_stop_delta_cooling
   on_value:
     then:

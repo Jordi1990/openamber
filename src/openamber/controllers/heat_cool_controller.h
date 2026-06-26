@@ -479,7 +479,7 @@ public:
         {
           // Cooling: start when supply temp is above target + start_delta
           float target_temperature = id(pid_cool_temperature_control).target_temperature;
-          float start_temperature = target_temperature + id(compressor_start_delta).state;
+          float start_temperature = target_temperature + id(compressor_start_delta_cooling).state;
           should_start = current_temperature > start_temperature;
           if (!should_start)
           {
