@@ -189,7 +189,7 @@
             args: ['x']
 
 # ── Compressor ──
-- id: !extend compressor_start_delta
+- id: !extend compressor_start_delta_heating
   on_value:
     then:
       - lvgl.label.update:
@@ -198,7 +198,7 @@
             format: "%.1f°C"
             args: ['x']
 
-- id: !extend compressor_stop_delta
+- id: !extend compressor_stop_delta_heating
   on_value:
     then:
       - lvgl.label.update:

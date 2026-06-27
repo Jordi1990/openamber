@@ -92,8 +92,8 @@
           root["fb"] = id(frost_protection_stage_2_temp_ta).state;
           root["fc"] = id(frost_protection_stage_2_temp_tui).state;
 
-          root["ca"] = id(compressor_start_delta).state;
-          root["cb"] = id(compressor_stop_delta).state;
+          root["ca"] = id(compressor_start_delta_heating).state;
+          root["cb"] = id(compressor_stop_delta_heating).state;
 
 - id: send_config_2
   then:

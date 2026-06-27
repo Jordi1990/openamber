@@ -378,7 +378,7 @@ public:
 
     // Overshoot is positive when temp has passed the setpoint in the working direction
     // Heating: too hot (Tc > target), Cooling: too cold (Tc < target)
-    float stop_delta = IsWorkingMode(WORKING_MODE_COOLING) ? id(compressor_stop_delta_cooling).state : id(compressor_stop_delta).state;
+    float stop_delta = IsWorkingMode(WORKING_MODE_COOLING) ? id(compressor_stop_delta_cooling).state : id(compressor_stop_delta_heating).state;
     float overshoot = IsWorkingMode(WORKING_MODE_COOLING) ? (target_temperature - current_temperature) : (current_temperature - target_temperature);
 
     if (overshoot >= stop_delta)
@@ -491,7 +491,7 @@ public:
         {
           // Heating: start when supply temp is below target - start_delta
           float target_temperature = id(pid_heat_temperature_control).target_temperature;
-          float start_temperature = target_temperature - id(compressor_start_delta).state;
+          float start_temperature = target_temperature - id(compressor_start_delta_heating).state;
           if (current_temperature >= start_temperature && !id(frost_protection_stage2_active).state)
           {
             ESP_LOGI("amber", "Not starting compressor because supply temperature (%.2f) is above heating start temperature (%.2f)", current_temperature, start_temperature);
@@ -644,9 +644,9 @@ public:
         float current_temperature = id(heat_cool_temperature_tc).state;
         float target_temperature = id(pid_heat_temperature_control).target_temperature;
 
-        if (current_temperature >= target_temperature + id(compressor_stop_delta).state)
+        if (current_temperature >= target_temperature + id(compressor_stop_delta_heating).state)
         {
-          ESP_LOGI("amber", "Disabling backup heater because measured temperature %.2f°C exceeded stop temperature delta %.2f°C.", current_temperature, target_temperature + id(compressor_stop_delta).state);
+          ESP_LOGI("amber", "Disabling backup heater because measured temperature %.2f°C exceeded stop temperature delta %.2f°C.", current_temperature, target_temperature + id(compressor_stop_delta_heating).state);
           TurnOffBackupHeater();
           LeaveStateAndSetNextStateAfterWaitTime(id(emergency_mode_enabled).state ? HeatCoolState::PUMP_RUNNING : HeatCoolState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
           break;

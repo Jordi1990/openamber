@@ -81,7 +81,7 @@
 
 - platform: template
   name: "Compressor start delta"
-  id: compressor_start_delta
+  id: compressor_start_delta_heating
   optimistic: true
   min_value: 0.1
   max_value: 10
@@ -96,7 +96,7 @@
 
 - platform: template
   name: "Compressor stop delta"
-  id: compressor_stop_delta
+  id: compressor_stop_delta_heating
   optimistic: true
   min_value: 0.1
   max_value: 10
