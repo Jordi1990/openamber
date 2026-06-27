@@ -81,7 +81,7 @@
 
 - platform: template
   name: "Compressor start delta"
-  id: compressor_start_delta
+  id: compressor_start_delta_heating
   optimistic: true
   min_value: 0.1
   max_value: 10
@@ -96,7 +96,7 @@
 
 - platform: template
   name: "Compressor stop delta"
-  id: compressor_stop_delta
+  id: compressor_stop_delta_heating
   optimistic: true
   min_value: 0.1
   max_value: 10
@@ -323,6 +323,21 @@
       - component.update: current_setpoint
   web_server: 
     sorting_group_id: cooling_settings
+
+- platform: template
+  id: compressor_start_delta_cooling
+  name: "Compressor start delta koelen"
+  optimistic: true
+  min_value: 0.1
+  max_value: 10
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 3.0
+  restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: cooling_settings
 
 - platform: template
   id: compressor_stop_delta_cooling
