@@ -150,6 +150,7 @@
           root["sj"] = id(sg_ready_dhw_boost_temperature_number).state;
 
           root["cs"] = id(cooling_setpoint_number).state;
+          root["cj"] = id(compressor_start_delta_cooling).state;
           root["ck"] = id(compressor_stop_delta_cooling).state;
 
 - id: send_modes
