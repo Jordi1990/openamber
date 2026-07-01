@@ -1,3 +1,45 @@
+- platform: template
+  name: Thermisch vermogen
+  id: thermal_power
+  accuracy_decimals: 0
+  device_class: power
+  state_class: measurement
+  unit_of_measurement: W
+  entity_category: diagnostic
+  lambda: |-
+      if (!id(flow_sensor_enabled).state)
+      {
+        return 0.0;
+      }
+
+      float qv = id(water_flow_rate).state / 60 / 1000;
+      float dT = id(heat_exchanger_delta_t).state;
+      float pw = qv * dT * 998 * 4190;
+      return pw;
+
+- platform: template
+  name: COP (Schatting)
+  id: estimated_cop
+  accuracy_decimals: 2
+  state_class: measurement
+  lambda: |-
+      if (!id(flow_sensor_enabled).state)
+      {
+        return 0.0;
+      }
+
+      float power = id(power_compressor).state;
+      float thermalPower = id(thermal_power).state;
+      int compressorFrequency = id(current_compressor_frequency).state;
+      bool defrostActive = id(defrost_active_sensor).state;
+      if (compressorFrequency > 0 && !defrostActive)
+      {
+        return thermalPower / power;
+      }
+      else {
+        return 0;
+      }
+
 - platform: pid
   name: "PID Controller Verwarmen"
   climate_id: pid_heat_temperature_control
@@ -42,12 +84,175 @@
 
 - platform: template
   id: power_compressor
-  internal: True
+  name: "Stroomverbruik compressor"
   device_class: power
   state_class: measurement
   unit_of_measurement: "W"
   lambda: |-
     return id(voltage_outside_unit).state * id(current_outside_unit).state;
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
+  id: cop_thermal_power
+  internal: true
+  device_class: power
+  state_class: measurement
+  unit_of_measurement: "W"
+  accuracy_decimals: 0
+  update_interval: 30s
+  lambda: |-
+    if (!id(flow_sensor_enabled).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    return fabsf(id(thermal_power).state);
+
+- platform: template
+  id: cop_electrical_power
+  internal: true
+  device_class: power
+  state_class: measurement
+  unit_of_measurement: "W"
+  accuracy_decimals: 0
+  update_interval: 30s
+  lambda: |-
+    if (!id(flow_sensor_enabled).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    return id(power_compressor).state;
+
+# Cumulative energy (restored across reboots) -> used for the seasonal SCOP.
+- platform: integration
+  name: "Thermische energie totaal"
+  id: thermal_energy_total
+  sensor: cop_thermal_power
+  time_unit: h
+  unit_of_measurement: "kWh"
+  device_class: energy
+  state_class: total_increasing
+  accuracy_decimals: 3
+  filters:
+    - multiply: 0.001
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: integration
+  name: "Elektrische energie totaal"
+  id: electrical_energy_total
+  sensor: cop_electrical_power
+  time_unit: h
+  unit_of_measurement: "kWh"
+  device_class: energy
+  state_class: total_increasing
+  accuracy_decimals: 3
+  filters:
+    - multiply: 0.001
+  web_server: 
+    sorting_group_id: diagnostic
+
+# Per-period energy buckets (kWh). Reset by the time: component.
+- platform: integration
+  id: thermal_energy_hour
+  internal: true
+  sensor: cop_thermal_power
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: electrical_energy_hour
+  internal: true
+  sensor: cop_electrical_power
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: thermal_energy_day
+  internal: true
+  sensor: cop_thermal_power
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: electrical_energy_day
+  internal: true
+  sensor: cop_electrical_power
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: thermal_energy_year
+  internal: true
+  sensor: cop_thermal_power
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: electrical_energy_year
+  internal: true
+  sensor: cop_electrical_power
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+# COP / SCOP per period = thermal energy / electrical energy.
+- platform: template
+  name: "COP (uur)"
+  id: cop_hour
+  accuracy_decimals: 2
+  state_class: measurement
+  update_interval: 60s
+  lambda: |-
+    float e = id(electrical_energy_hour).state;
+    float t = id(thermal_energy_hour).state;
+    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
+    return t / e;
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
+  name: "COP (dag)"
+  id: cop_day
+  accuracy_decimals: 2
+  state_class: measurement
+  update_interval: 60s
+  lambda: |-
+    float e = id(electrical_energy_day).state;
+    float t = id(thermal_energy_day).state;
+    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
+    return t / e;
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
+  name: "SCOP (seizoen)"
+  id: scop_year
+  accuracy_decimals: 2
+  state_class: measurement
+  update_interval: 60s
+  lambda: |-
+    float e = id(electrical_energy_year).state;
+    float t = id(thermal_energy_year).state;
+    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
+    return t / e;
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
+  name: "SCOP (totaal)"
+  id: scop_total
+  accuracy_decimals: 2
+  state_class: measurement
+  update_interval: 60s
+  lambda: |-
+    float e = id(electrical_energy_total).state;
+    float t = id(thermal_energy_total).state;
+    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
+    return t / e;
+  web_server: 
+    sorting_group_id: diagnostic
           
 - platform: uptime
   name: "Uptime"

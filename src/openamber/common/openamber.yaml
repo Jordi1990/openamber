@@ -221,6 +221,29 @@ time:
   - platform: sntp
     id: my_time
     timezone: "Europe/Amsterdam"
+    on_time:
+      # Reset the hourly COP energy buckets at the top of every hour.
+      - seconds: 0
+        minutes: 0
+        then:
+          - sensor.integration.reset: thermal_energy_hour
+          - sensor.integration.reset: electrical_energy_hour
+      # Reset the daily COP energy buckets at midnight.
+      - seconds: 0
+        minutes: 0
+        hours: 0
+        then:
+          - sensor.integration.reset: thermal_energy_day
+          - sensor.integration.reset: electrical_energy_day
+      # Reset the seasonal SCOP energy buckets at the start of the year.
+      - seconds: 0
+        minutes: 0
+        hours: 0
+        days_of_month: 1
+        months: 1
+        then:
+          - sensor.integration.reset: thermal_energy_year
+          - sensor.integration.reset: electrical_energy_year
 
 modbus:
   send_wait_time: 250ms
