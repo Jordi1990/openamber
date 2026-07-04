@@ -15,6 +15,7 @@ jobs:
       files: |
         src/openamber-leejow.yaml
         src/openamber-waveshare-display.yaml
+        src/openamber-waveshare-p4.yaml
       combined-name: openamber
       release-summary: ${{ github.event_name == 'release' && github.event.release.body || '' }}
       release-url: ${{ github.event_name == 'release' && github.event.release.html_url || '' }}
