@@ -809,7 +809,6 @@
   lambda: |-
     return id(error_flag_p03).state ||
            id(error_flag_p05).state ||
-           id(error_flag_p07).state ||
            id(error_flag_p08).state ||
            id(error_flag_p09).state ||
            id(error_flag_p10).state ||
@@ -847,6 +846,7 @@
   lambda: |-
     return id(error_flag_p01).state ||
            id(error_flag_p02).state ||
+           id(error_flag_p07).state ||
            id(oil_return_cycle_active).state ||
            id(error_flag_p06).state ||
            id(error_flag_p11).state ||

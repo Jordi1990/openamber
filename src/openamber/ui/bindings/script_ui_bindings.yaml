@@ -932,10 +932,14 @@
 - id: toggle_header_alert_blink
   mode: restart
   then:
-    - globals.set:
-        id: header_alert_blink_phase
-        value: !lambda 'return !id(header_alert_blink_phase);'
-    - script.execute: update_header_alert_icons
+    - if:
+        condition:
+          lambda: 'return id(error_active).state || id(warning_active).state;'
+        then:
+          - globals.set:
+              id: header_alert_blink_phase
+              value: !lambda 'return !id(header_alert_blink_phase);'
+          - script.execute: update_header_alert_icons
 
 - id: update_service_diag_summary_ui
   mode: restart
