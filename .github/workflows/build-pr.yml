@@ -1,0 +1,23 @@
+name: Build firmware on PR publish
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - src/**
+      - .github/workflows/**
+
+concurrency:
+  group: build-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  build-firmware:
+    name: Build Firmware
+    if: github.event.pull_request.draft == false
+    uses: ./.github/workflows/build-firmware.yml
+    with:
+      files: |
+        src/openamber-leejow.yaml
+        src/openamber-waveshare-display.yaml
+      combined-name: openamber-pr-validation
