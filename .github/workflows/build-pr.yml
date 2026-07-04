@@ -20,4 +20,5 @@ jobs:
       files: |
         src/openamber-leejow.yaml
         src/openamber-waveshare-display.yaml
+        src/openamber-waveshare-p4.yaml
       combined-name: openamber-pr-validation
