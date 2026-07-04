@@ -14,6 +14,7 @@ concurrency:
 jobs:
   build-firmware:
     name: Build Firmware
+    if: github.event.pull_request.draft == false
     uses: ./.github/workflows/build-firmware.yml
     with:
       files: |
