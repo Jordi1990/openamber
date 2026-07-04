@@ -142,6 +142,21 @@
   web_server:
     sorting_group_id: general_settings
 
+- platform: template
+  id: reset_start_timeout_errors_switch
+  name: "Reset systeem timeout fouten"
+  optimistic: true
+  restore_mode: ALWAYS_OFF
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: error_codes
+  turn_on_action:
+    - lambda: |-
+        id(error_pump_start_timeout).publish_state(false);
+        id(error_compressor_start_timeout).publish_state(false);
+        id(error_pump_stop_timeout).publish_state(false);
+    - switch.turn_off: reset_start_timeout_errors_switch
+
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: bottom_plate_heater_manual_switch

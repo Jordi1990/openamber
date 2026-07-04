@@ -34,10 +34,15 @@ static const uint32_t THREE_WAY_VALVE_SWITCH_TIME_S = 1 * 60;
 static const uint32_t COMPRESSOR_MIN_OFF_S = 2 * 60;
 static const uint32_t COMPRESSOR_MIN_ON_S = 10 * 60;
 static const uint32_t COMPRESSOR_SOFT_START_DURATION_S = 3 * 60;
+static const uint32_t COMPRESSOR_START_TIMEOUT_S = 2 * 60;
 static const uint32_t COMPRESSOR_MIN_TIME_PUMP_ON = 2 * 60;
 static const uint32_t COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 5 * 60;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_DOWN_S = 10;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_UP_S = 5 * 60;
+
+// Pump timing
+static const uint32_t PUMP_START_TIMEOUT_S = 2 * 60;
+static const uint32_t PUMP_STOP_TIMEOUT_S = 2 * 60;
 
 // Backup heater timing
 static const uint32_t BACKUP_HEATER_LOOKAHEAD_S = 2 * 60;

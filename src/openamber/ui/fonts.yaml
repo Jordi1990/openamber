@@ -106,6 +106,8 @@
         - "\U000F0238"  # mdi-flame
         - "\U000F0717"  # mdi-snowflake
         - "\U000F058F"  # mdi-water-pump
+        - "\U000F0026"  # mdi-alert
+        - "\U000F0F29"  # mdi-snowflake-alert
         - "\U000F091F"  # mdi-wifi-strength-1
         - "\U000F0922"  # mdi-wifi-strength-2
         - "\U000F0925"  # mdi-wifi-strength-3

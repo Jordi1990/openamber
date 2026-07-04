@@ -35,6 +35,9 @@ esp32:
 esphome:
   project:
     version: dev
+  platformio_options:
+    build_flags:
+      - -mauto-litpools
 
 uart:
   rx_pin:
@@ -119,6 +122,9 @@ api:
 interval:
  - interval: 5s
    then: !include openamber/ui/ui_update_loop.yaml
+ - interval: 700ms
+   then:
+    - script.execute: toggle_header_alert_blink
 
 image:
   - file: "openamber/ui/images/water_circuit.png"
