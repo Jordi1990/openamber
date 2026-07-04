@@ -1,0 +1,35 @@
+name: Build firmware (shared)
+
+on:
+  workflow_call:
+    inputs:
+      files:
+        required: true
+        type: string
+      combined-name:
+        required: true
+        type: string
+      release-summary:
+        required: false
+        default: ''
+        type: string
+      release-url:
+        required: false
+        default: ''
+        type: string
+      release-version:
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  build-firmware:
+    name: Build Firmware
+    uses: esphome/workflows/.github/workflows/build.yml@3c4e8446aa1029f1c346a482034b3ee1489077ca  # 2026.4.0
+    with:
+      files: ${{ inputs.files }}
+      esphome-version: 2026.6.2
+      combined-name: ${{ inputs.combined-name }}
+      release-summary: ${{ inputs.release-summary }}
+      release-url: ${{ inputs.release-url }}
+      release-version: ${{ inputs.release-version }}
