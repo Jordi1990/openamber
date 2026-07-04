@@ -9,6 +9,10 @@ on:
       combined-name:
         required: true
         type: string
+      esphome-version:
+        required: false
+        default: '2026.6.4'
+        type: string
       release-summary:
         required: false
         default: ''
@@ -28,7 +32,7 @@ jobs:
     uses: esphome/workflows/.github/workflows/build.yml@3c4e8446aa1029f1c346a482034b3ee1489077ca  # 2026.4.0
     with:
       files: ${{ inputs.files }}
-      esphome-version: 2026.6.2
+      esphome-version: ${{ inputs.esphome-version }}
       combined-name: ${{ inputs.combined-name }}
       release-summary: ${{ inputs.release-summary }}
       release-url: ${{ inputs.release-url }}
