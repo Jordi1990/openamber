@@ -11,7 +11,7 @@ on:
         type: string
       esphome-version:
         required: false
-        default: '2026.6.2'
+        default: '2026.6.3'
         type: string
       release-summary:
         required: false
