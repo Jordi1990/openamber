@@ -460,6 +460,14 @@
     sorting_group_id: error_codes
 
 - platform: template
+  id: oil_return_cycle_active_settled
+  internal: True
+  filters:
+    - delayed_off: 300s
+  lambda: |-
+    return id(oil_return_cycle_active).state;
+
+- platform: template
   id: error_flag_p05
   name: "Hogedrukbeveiliging (P05)"
   device_class: problem
