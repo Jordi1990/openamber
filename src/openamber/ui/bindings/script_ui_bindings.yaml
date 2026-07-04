@@ -1033,7 +1033,6 @@
         const AlertItem items[] = {
           {"P03 - Storing compressorstart", "De warmtepomp is geblokkeerd door een storing in de compressorstart.", id(error_flag_p03).state},
           {"P05 - Storing compressor - hogedrukbeveiliging", "Als de persdruk meer dan 32 bar bedraagt wordt de compressor uitgeschakeld.", id(error_flag_p05).state},
-          {"P07 - Compressor voorverwarming", "De compressor wordt voorverwarmd om te kunnen starten. Het zal maximaal 30 minuten duren voordat de compressor op bedrijfstemperatuur is. Daarna zal deze storing vanzelf verdwijnen en zal de compressor starten.", id(error_flag_p07).state},
           {"P08 - Storing sensor persgasdruk", "Storing sensor persgasdruk.", id(error_flag_p08).state},
           {"P09 - Storing sensor verdamper/condensor buitendeel", "Storing sensor verdamper/condensor buitendeel.", id(error_flag_p09).state},
           {"P10 - Voedingsspanning te hoog of te laag", "Voedingsspanning te hoog of te laag.", id(error_flag_p10).state},
@@ -1136,6 +1135,7 @@
           {"P02 - Bedrijfstroom warmtepomp", "De eerste keer wordt de normale werking van de warmtepomp na 5 minuten automatisch hervat. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart.", id(error_flag_p02).state},
           {"P04 - Beveiliging oliedruk compressor", "Als de compressor 2 uur met een laag toerental draait (30-43 Hz) wordt deze beveiliging geactiveerd om de compressorolie weer in de compressor te krijgen.", id(oil_return_cycle_active).state},
           {"P06 - Storing compressor - laag drukverschil", "De compressorfrequentie zal worden begrensd. De druk zal hierdoor zakken en een normale werking wordt voortgezet.", id(error_flag_p06).state},
+          {"P07 - Compressor voorverwarming", "De compressor wordt voorverwarmd om te kunnen starten. Het zal maximaal 30 minuten duren voordat de compressor op bedrijfstemperatuur is. Daarna zal deze storing vanzelf verdwijnen en zal de compressor starten.", id(error_flag_p07).state},
           {"P11 - Compressor frequentiebegrenzing op buitentemperatuur", "De warmtepomp is geblokkeerd. De buitentemperatuur (Ta) is te laag of te hoog om op maximale capaciteit te kunnen werken.", id(error_flag_p11).state},
           {"P12 - Compressor frequentiebegrenzing op buitentemperatuur", "Toerental compressor wordt verlaagd.", id(error_flag_p12).state},
           {"P13 - Storing compressor - laag drukverschil", "Toerental compressor wordt verlaagd. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart.", id(error_flag_p13).state}

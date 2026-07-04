@@ -424,7 +424,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2119_raw).state & 0x0001) != 0;
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0001) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -434,7 +436,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2119_raw).state & 0x0002) != 0;
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0002) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -444,7 +448,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2119_raw).state & 0x0004) != 0;
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0004) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -455,7 +461,9 @@
   device_class: running
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2119_raw).state & 0x0008) != 0;
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0008) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -473,7 +481,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2119_raw).state & 0x0010) != 0;
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0010) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -483,7 +493,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2119_raw).state & 0x0020) != 0;
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0020) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -493,7 +505,9 @@
   device_class: running
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2119_raw).state & 0x0040) != 0;
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0040) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -503,7 +517,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2119_raw).state & 0x0080) != 0;
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0080) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -513,7 +529,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2119_raw).state & 0x0100) != 0;
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0100) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -523,7 +541,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2119_raw).state & 0x0200) != 0;
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0200) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -533,7 +553,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2119_raw).state & 0x0400) != 0;
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0400) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -543,7 +565,9 @@
   device_class: running
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2119_raw).state & 0x0800) != 0;
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0800) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -553,7 +577,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2119_raw).state & 0x1000) != 0;
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x1000) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -563,7 +589,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2120_raw).state & 0x0001) != 0;
+    if (!id(error_register_2120_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2120_raw).state;
+    return (raw & 0x0001) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -573,7 +601,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2120_raw).state & 0x0002) != 0;
+    if (!id(error_register_2120_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2120_raw).state;
+    return (raw & 0x0002) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -583,7 +613,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2120_raw).state & 0x0004) != 0;
+    if (!id(error_register_2120_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2120_raw).state;
+    return (raw & 0x0004) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -593,7 +625,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2120_raw).state & 0x0008) != 0;
+    if (!id(error_register_2120_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2120_raw).state;
+    return (raw & 0x0008) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -603,7 +637,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2120_raw).state & 0x0010) != 0;
+    if (!id(error_register_2120_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2120_raw).state;
+    return (raw & 0x0010) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -613,7 +649,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2120_raw).state & 0x0020) != 0;
+    if (!id(error_register_2120_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2120_raw).state;
+    return (raw & 0x0020) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -623,7 +661,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2120_raw).state & 0x0040) != 0;
+    if (!id(error_register_2120_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2120_raw).state;
+    return (raw & 0x0040) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -633,7 +673,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2120_raw).state & 0x0100) != 0;
+    if (!id(error_register_2120_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2120_raw).state;
+    return (raw & 0x0100) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -643,7 +685,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2121_raw).state & 0x0001) != 0;
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0001) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -653,7 +697,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2121_raw).state & 0x0002) != 0;
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0002) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -663,7 +709,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2121_raw).state & 0x0004) != 0;
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0004) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -673,7 +721,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2121_raw).state & 0x0008) != 0;
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0008) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -683,7 +733,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2121_raw).state & 0x0010) != 0;
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0010) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -693,7 +745,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2121_raw).state & 0x0020) != 0;
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0020) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -703,7 +757,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2121_raw).state & 0x0040) != 0;
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0040) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -713,7 +769,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2121_raw).state & 0x0080) != 0;
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0080) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -723,7 +781,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2121_raw).state & 0x0100) != 0;
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0100) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -733,7 +793,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2121_raw).state & 0x0200) != 0;
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0200) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -743,7 +805,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2121_raw).state & 0x0400) != 0;
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0400) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -753,7 +817,9 @@
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    return ((uint16_t) id(error_register_2121_raw).state & 0x0800) != 0;
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0800) != 0;
   web_server: 
     sorting_group_id: error_codes
 
