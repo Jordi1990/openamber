@@ -35,6 +35,9 @@ esp32:
 esphome:
   project:
     version: dev
+  platformio_options:
+    build_flags:
+      - -mauto-litpools
 
 uart:
   rx_pin:
