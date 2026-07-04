@@ -87,15 +87,6 @@ output:
     inverted: true
     frequency: 1000Hz
 
-light:
-  - platform: monochromatic
-    output: backlight
-    name: Display Backlight
-    icon: mdi:lightbulb-on
-    id: display_backlight
-    restore_mode: ALWAYS_ON
-    default_transition_length: 250ms
-
 i2c:
   - id: bus_a
     sda: GPIO07
