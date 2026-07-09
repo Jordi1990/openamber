@@ -1,4 +1,4 @@
-obj:
+﻿obj:
   id: service_warnings_panel
   width: 100%
   height: 100%
@@ -27,7 +27,7 @@ obj:
           type: FLEX
           flex_flow: COLUMN
           flex_align_main: START
-          flex_align_cross: STRETCH
+          flex_align_cross: CENTER
           pad_row: 8
         widgets:
           - label:
@@ -129,3 +129,4 @@ obj:
                           text_color: 0xFFFFFF
                           text_font: font_text_20
                           align: CENTER
+
