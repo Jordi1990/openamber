@@ -11,8 +11,8 @@ obj:
   scrollable: false
   pad_left: 24
   pad_right: 24
-  pad_top: 10
-  pad_bottom: 10
+  pad_top: 4
+  pad_bottom: 4
 
   widgets:
     - obj:
@@ -24,8 +24,8 @@ obj:
         radius: 18
         pad_left: 16
         pad_right: 16
-        pad_top: 12
-        pad_bottom: 12
+        pad_top: 8
+        pad_bottom: 8
         border_width: 0
         border_opa: 0%
         shadow_width: 10
@@ -34,215 +34,27 @@ obj:
         shadow_opa: 20%
         scrollbar_mode: "OFF"
         scrollable: false
+        layout:
+          type: GRID
+          grid_rows: [FR(1)]
+          grid_columns: [210, FR(1)]
+          pad_column: 12
 
         widgets:
+          - !include system/page_system_sidebar.yaml
           - obj:
-              id: service_updates_panel
-              width: 100%
-              height: 100%
-              align: TOP_LEFT
-              y: 0
-              hidden: false
+              id: system_content
+              grid_cell_row_pos: 0
+              grid_cell_column_pos: 1
+              grid_cell_x_align: STRETCH
+              grid_cell_y_align: STRETCH
               bg_opa: 0%
               border_opa: 0%
-              pad_all: 0
+              scrollbar_mode: "OFF"
+              scrollable: false
               widgets:
-                - label:
-                    id: service_update_status
-                    width: 62%
-                    text: "Controleren op update..."
-                    text_color: 0x1F2933
-                    text_font: font_mdi_24
-                    long_mode: WRAP
-                    align: TOP_LEFT
-
-                - obj:
-                    id: service_update_button
-                    width: 180
-                    height: 52
-                    align: BOTTOM_RIGHT
-                    y: 0
-                    hidden: true
-                    bg_color: 0x0072CE
-                    bg_opa: 100%
-                    radius: 14
-                    border_width: 0
-                    border_opa: 0%
-                    pad_all: 0
-                    on_click:
-                      - globals.set:
-                          id: service_confirm_action
-                          value: '2'
-                      - lvgl.label.update:
-                          id: service_confirm_title
-                          text: "Update bevestigen"
-                      - lvgl.label.update:
-                          id: service_confirm_text
-                          text: "Wil je de firmware update nu starten?"
-                      - lvgl.label.update:
-                          id: service_confirm_button_label
-                          text: "Update starten"
-                      - lvgl.widget.update:
-                          id: service_confirm_button
-                          bg_color: 0x0072CE
-                      - lvgl.widget.show:
-                          id: service_confirm_modal
-                    widgets:
-                      - label:
-                          id: service_update_button_label
-                          text: "Update"
-                          text_color: 0xFFFFFF
-                          text_font: font_mdi_24
-                          align: CENTER
-
-                - obj:
-                    id: service_check_update_button
-                    width: 250
-                    height: 52
-                    align: TOP_RIGHT
-                    y: -2
-                    hidden: false
-                    bg_color: 0x0072CE
-                    bg_opa: 100%
-                    radius: 14
-                    border_width: 0
-                    border_opa: 0%
-                    pad_all: 0
-                    on_click:
-                      - globals.set:
-                          id: service_update_check_failed
-                          value: 'false'
-                      - globals.set:
-                          id: service_update_check_in_progress
-                          value: 'true'
-                      - lvgl.widget.disable:
-                          id: service_check_update_button
-                      - lvgl.widget.update:
-                          id: service_check_update_button
-                          bg_color: 0xC7CDD6
-                      - lvgl.label.update:
-                          id: service_check_update_button_label
-                          text: "Ophalen..."
-                      - lvgl.widget.update:
-                          id: service_check_update_button_label
-                          text_color: 0x4B5563
-                      - update.check:
-                          id: firmware_update
-                      - delay: 30s
-                      - if:
-                          condition:
-                            and:
-                              - not:
-                                  update.is_available: firmware_update
-                              - lambda: |-
-                                  const auto &info = id(firmware_update).update_info;
-                                  return info.latest_version.empty() && info.release_url.empty();
-                          then:
-                            - globals.set:
-                                id: service_update_check_failed
-                                value: 'true'
-                          else:
-                            - globals.set:
-                                id: service_update_check_failed
-                                value: 'false'
-                      - globals.set:
-                          id: service_update_check_in_progress
-                          value: 'false'
-                      - lvgl.widget.enable:
-                          id: service_check_update_button
-                      - lvgl.widget.update:
-                          id: service_check_update_button
-                          bg_color: 0x0072CE
-                      - lvgl.label.update:
-                          id: service_check_update_button_label
-                          text: "Controleer updates"
-                      - lvgl.widget.update:
-                          id: service_check_update_button_label
-                          text_color: 0xFFFFFF
-                    widgets:
-                      - label:
-                          id: service_check_update_button_label
-                          text: "Controleer updates"
-                          text_color: 0xFFFFFF
-                          text_font: font_mdi_24
-                          align: CENTER
-
-                - label:
-                    id: service_update_version
-                    width: 96%
-                    text: "Versie informatie wordt geladen..."
-                    text_color: 0x1F2933
-                    text_font: font_mdi_24
-                    long_mode: WRAP
-                    align: TOP_LEFT
-                    y: 10
-
-                - label:
-                    id: service_update_error
-                    width: 96%
-                    text: ""
-                    hidden: true
-                    text_color: 0xEF4444
-                    text_font: font_mdi_24
-                    long_mode: WRAP
-                    align: TOP_LEFT
-                    y: 68
-
-                - label:
-                    id: service_release_qr_hint
-                    text: "Scan QR voor release info"
-                    hidden: true
-                    text_color: 0x1F2933
-                    text_font: font_mdi_24
-                    align: TOP_LEFT
-                    y: 110
-
-                - qrcode:
-                    id: service_release_qr
-                    hidden: true
-                    align: TOP_MID
-                    y: 138
-                    size: 180
-                    dark_color: 0x000000
-                    light_color: 0xFFFFFF
-                    text: "https://github.com/Jordi1990/openamber/releases"
-
-                - obj:
-                    id: service_restart_button
-                    width: 250
-                    height: 52
-                    align: BOTTOM_LEFT
-                    bg_color: 0xE5E7EB
-                    bg_opa: 100%
-                    radius: 14
-                    border_width: 0
-                    border_opa: 0%
-                    pad_all: 0
-                    on_click:
-                      - globals.set:
-                          id: service_confirm_action
-                          value: '1'
-                      - lvgl.label.update:
-                          id: service_confirm_title
-                          text: "Herstarten bevestigen"
-                      - lvgl.label.update:
-                          id: service_confirm_text
-                          text: "Wil je OpenAmber nu herstarten?"
-                      - lvgl.label.update:
-                          id: service_confirm_button_label
-                          text: "Herstarten"
-                      - lvgl.widget.update:
-                          id: service_confirm_button
-                          bg_color: 0x0072CE
-                      - lvgl.widget.show:
-                          id: service_confirm_modal
-                    widgets:
-                      - label:
-                          id: service_restart_button_label
-                          text: "Herstarten"
-                          text_color: 0x1F2933
-                          text_font: font_mdi_24
-                          align: CENTER
+                - !include system/page_system_tab_updates.yaml
+                - !include system/page_system_tab_diagnostics.yaml
 
     - obj:
         id: service_confirm_modal

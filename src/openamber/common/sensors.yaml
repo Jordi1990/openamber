@@ -70,6 +70,20 @@
   web_server: 
     sorting_group_id: diagnostic
 
+- platform: debug
+  free:
+    name: "Heap Free"
+    id: system_heap_free
+  fragmentation:
+    name: "Heap Fragmentation"
+    id: system_heap_fragmentation
+  block:
+    name: "Heap Max Block"
+    id: system_heap_max_block
+  psram:
+    name: "Free PSRAM"
+    id: system_psram_free
+
 - platform: template
   id: temperature_outside_ta_avg_1h
   name: "Buiten temperatuur (1h gemiddelde)"
