@@ -83,10 +83,6 @@
     name: "Heap Max Block"
     id: system_heap_max_block
     disabled_by_default: true
-  psram:
-    name: "Free PSRAM"
-    id: system_psram_free
-    disabled_by_default: true
 
 - platform: template
   id: temperature_outside_ta_avg_1h

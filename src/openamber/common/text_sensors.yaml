@@ -105,15 +105,9 @@
   device:
     id: system_debug_device_info
     internal: true
-    on_value:
-      then:
-        - script.execute: update_system_diagnostics_ui
   reset_reason:
     id: system_debug_reset_reason
     internal: true
-    on_value:
-      then:
-        - script.execute: update_system_diagnostics_ui
 
 - platform: template
   name: "Analytics device ID"
