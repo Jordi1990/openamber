@@ -39,6 +39,8 @@ obj:
         on_click:
           - lvgl.widget.show: { id: service_maintenance_panel }
           - lvgl.widget.hide: { id: service_sensors_panel }
+          - lvgl.widget.hide: { id: service_errors_panel }
+          - lvgl.widget.hide: { id: service_warnings_panel }
           - lvgl.widget.show: { id: service_maintenance_header }
           - lvgl.widget.show: { id: service_maintenance_title }
           - lvgl.widget.show: { id: service_maintenance_state }
@@ -72,6 +74,8 @@ obj:
         on_click:
           - lvgl.widget.show: { id: service_maintenance_panel }
           - lvgl.widget.hide: { id: service_sensors_panel }
+          - lvgl.widget.hide: { id: service_errors_panel }
+          - lvgl.widget.hide: { id: service_warnings_panel }
           - lvgl.widget.hide: { id: service_maintenance_header }
           - lvgl.widget.hide: { id: service_maintenance_title }
           - lvgl.widget.hide: { id: service_maintenance_state }
@@ -105,6 +109,8 @@ obj:
         on_click:
           - lvgl.widget.show: { id: service_maintenance_panel }
           - lvgl.widget.hide: { id: service_sensors_panel }
+          - lvgl.widget.hide: { id: service_errors_panel }
+          - lvgl.widget.hide: { id: service_warnings_panel }
           - lvgl.widget.hide: { id: service_maintenance_header }
           - lvgl.widget.hide: { id: service_maintenance_title }
           - lvgl.widget.hide: { id: service_maintenance_state }
@@ -138,6 +144,8 @@ obj:
         on_click:
           - lvgl.widget.show: { id: service_maintenance_panel }
           - lvgl.widget.hide: { id: service_sensors_panel }
+          - lvgl.widget.hide: { id: service_errors_panel }
+          - lvgl.widget.hide: { id: service_warnings_panel }
           - lvgl.widget.hide: { id: service_maintenance_header }
           - lvgl.widget.hide: { id: service_maintenance_title }
           - lvgl.widget.hide: { id: service_maintenance_state }
@@ -171,6 +179,8 @@ obj:
         on_click:
           - lvgl.widget.show: { id: service_maintenance_panel }
           - lvgl.widget.hide: { id: service_sensors_panel }
+          - lvgl.widget.hide: { id: service_errors_panel }
+          - lvgl.widget.hide: { id: service_warnings_panel }
           - lvgl.widget.hide: { id: service_maintenance_header }
           - lvgl.widget.hide: { id: service_maintenance_title }
           - lvgl.widget.hide: { id: service_maintenance_state }
@@ -204,6 +214,8 @@ obj:
         on_click:
           - lvgl.widget.hide: { id: service_maintenance_panel }
           - lvgl.widget.show: { id: service_sensors_panel }
+          - lvgl.widget.hide: { id: service_errors_panel }
+          - lvgl.widget.hide: { id: service_warnings_panel }
           - lvgl.widget.hide: { id: service_mpanel_compressor }
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
@@ -213,6 +225,68 @@ obj:
           - label:
               id: service_tab_sensors_lbl
               text: "Sensoren"
+              text_color: 0x4B5563
+              text_font: font_text_20
+              align: LEFT_MID
+
+    - obj:
+        id: service_tab_errors
+        width: 100%
+        height: 40
+        bg_color: 0xE8ECF1
+        bg_opa: 100%
+        radius: 10
+        border_width: 0
+        border_opa: 0%
+        pad_left: 12
+        pad_top: 2
+        pad_bottom: 2
+        on_click:
+          - lvgl.widget.hide: { id: service_maintenance_panel }
+          - lvgl.widget.hide: { id: service_sensors_panel }
+          - lvgl.widget.show: { id: service_errors_panel }
+          - lvgl.widget.hide: { id: service_warnings_panel }
+          - lvgl.widget.hide: { id: service_mpanel_compressor }
+          - lvgl.widget.hide: { id: service_mpanel_pumps }
+          - lvgl.widget.hide: { id: service_mpanel_valve }
+          - lvgl.widget.hide: { id: service_mpanel_backup }
+          - script.execute: update_service_mode_ui
+          - script.execute: update_service_errors_ui
+        widgets:
+          - label:
+              id: service_tab_errors_lbl
+              text: "Foutmeldingen"
+              text_color: 0x4B5563
+              text_font: font_text_20
+              align: LEFT_MID
+
+    - obj:
+        id: service_tab_warnings
+        width: 100%
+        height: 40
+        bg_color: 0xE8ECF1
+        bg_opa: 100%
+        radius: 10
+        border_width: 0
+        border_opa: 0%
+        pad_left: 12
+        pad_top: 2
+        pad_bottom: 2
+        on_click:
+          - lvgl.widget.hide: { id: service_maintenance_panel }
+          - lvgl.widget.hide: { id: service_sensors_panel }
+          - lvgl.widget.hide: { id: service_errors_panel }
+          - lvgl.widget.show: { id: service_warnings_panel }
+          - lvgl.widget.hide: { id: service_mpanel_compressor }
+          - lvgl.widget.hide: { id: service_mpanel_pumps }
+          - lvgl.widget.hide: { id: service_mpanel_valve }
+          - lvgl.widget.hide: { id: service_mpanel_backup }
+          - script.execute: update_service_mode_ui
+          - script.execute: update_service_warnings_ui
+        widgets:
+          - label:
+              id: service_tab_warnings_lbl
+              text: "Waarschuwingen"
               text_color: 0x4B5563
               text_font: font_text_20
               align: LEFT_MID
