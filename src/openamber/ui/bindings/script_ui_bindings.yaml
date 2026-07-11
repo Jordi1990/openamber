@@ -1032,7 +1032,7 @@
           char heap_block_buf[20];
           char psram_buf[20];
           if (id(system_heap_free).has_state()) {
-            snprintf(heap_free_buf, sizeof(heap_free_buf), "%.0f kB", id(system_heap_free).state);
+            snprintf(heap_free_buf, sizeof(heap_free_buf), "%.0f kB", id(system_heap_free).state / 1024.0f);
           } else {
             snprintf(heap_free_buf, sizeof(heap_free_buf), "-");
           }
@@ -1042,12 +1042,12 @@
             snprintf(heap_frag_buf, sizeof(heap_frag_buf), "-");
           }
           if (id(system_heap_max_block).has_state()) {
-            snprintf(heap_block_buf, sizeof(heap_block_buf), "%.0f kB", id(system_heap_max_block).state);
+            snprintf(heap_block_buf, sizeof(heap_block_buf), "%.0f kB", id(system_heap_max_block).state / 1024.0f);
           } else {
             snprintf(heap_block_buf, sizeof(heap_block_buf), "-");
           }
           if (id(system_psram_free).has_state()) {
-            snprintf(psram_buf, sizeof(psram_buf), "%.0f kB", id(system_psram_free).state);
+            snprintf(psram_buf, sizeof(psram_buf), "%.0f kB", id(system_psram_free).state / 1024.0f);
           } else {
             snprintf(psram_buf, sizeof(psram_buf), "-");
           }
