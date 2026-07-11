@@ -16,6 +16,8 @@ openamber_component:
   id: amber_ctrl
   update_interval: 5s
 
+debug:
+
 esphome:
   name: ${device_name}
   friendly_name: ${device_friendly_name}

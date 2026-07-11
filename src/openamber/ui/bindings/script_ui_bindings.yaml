@@ -1009,6 +1009,95 @@
             + (id(external_heat_demand_wired).state ? "AAN" : "UIT") + " / "
             + (id(external_cool_demand_wired).state ? "AAN" : "UIT");
 
+- id: update_system_diagnostics_ui
+  mode: restart
+  then:
+    - lvgl.label.update:
+        id: system_diag_runtime_values
+        text: !lambda |-
+          char uptime_buf[24];
+          if (id(sensor_uptime).has_state()) {
+            snprintf(uptime_buf, sizeof(uptime_buf), "%.0f min", id(sensor_uptime).state / 60.0f);
+          } else {
+            snprintf(uptime_buf, sizeof(uptime_buf), "-");
+          }
+          char value_buf[96];
+          snprintf(value_buf, sizeof(value_buf), "%s\n%s", ESPHOME_VERSION, uptime_buf);
+          return std::string(value_buf);
+    - lvgl.label.update:
+        id: system_diag_memory_values
+        text: !lambda |-
+          char heap_free_buf[20];
+          char heap_frag_buf[20];
+          char heap_block_buf[20];
+          char psram_buf[20];
+          if (id(system_heap_free).has_state()) {
+            snprintf(heap_free_buf, sizeof(heap_free_buf), "%.0f kB", id(system_heap_free).state / 1024.0f);
+          } else {
+            snprintf(heap_free_buf, sizeof(heap_free_buf), "-");
+          }
+          if (id(system_heap_fragmentation).has_state()) {
+            snprintf(heap_frag_buf, sizeof(heap_frag_buf), "%.0f %%", id(system_heap_fragmentation).state);
+          } else {
+            snprintf(heap_frag_buf, sizeof(heap_frag_buf), "-");
+          }
+          if (id(system_heap_max_block).has_state()) {
+            snprintf(heap_block_buf, sizeof(heap_block_buf), "%.0f kB", id(system_heap_max_block).state / 1024.0f);
+          } else {
+            snprintf(heap_block_buf, sizeof(heap_block_buf), "-");
+          }
+          if (id(system_psram_free).has_state()) {
+            snprintf(psram_buf, sizeof(psram_buf), "%.0f kB", id(system_psram_free).state / 1024.0f);
+          } else {
+            snprintf(psram_buf, sizeof(psram_buf), "-");
+          }
+          return std::string(heap_free_buf) + "\n" + heap_frag_buf + "\n" + heap_block_buf + "\n" + psram_buf;
+    - lvgl.label.update:
+        id: system_diag_esp_values
+        text: !lambda |-
+          auto trim_copy = [](std::string s) -> std::string {
+            size_t start = s.find_first_not_of(" \t\r\n");
+            if (start == std::string::npos) return std::string("");
+            size_t end = s.find_last_not_of(" \t\r\n");
+            return s.substr(start, end - start + 1);
+          };
+          auto extract_section = [&](const std::string &source, const std::string &marker) -> std::string {
+            size_t begin = source.find(marker);
+            if (begin == std::string::npos) return std::string("");
+            begin += marker.size();
+            size_t end = source.find('|', begin);
+            if (end == std::string::npos) return trim_copy(source.substr(begin));
+            return trim_copy(source.substr(begin, end - begin));
+          };
+
+          std::string chip = "-";
+          if (id(system_debug_device_info).has_state()) {
+            std::string info = id(system_debug_device_info).state;
+            std::string chip_section = extract_section(info, "|Chip:");
+            if (chip_section.empty()) {
+              chip_section = extract_section(info, "Chip:");
+            }
+            if (!chip_section.empty()) {
+              size_t features_pos = chip_section.find(" Features:");
+              if (features_pos != std::string::npos) {
+                chip_section = trim_copy(chip_section.substr(0, features_pos));
+              }
+              if (!chip_section.empty()) {
+                chip = chip_section;
+              }
+            }
+          }
+
+          std::string reset_reason = "-";
+          if (id(system_debug_reset_reason).has_state()) {
+            std::string raw = trim_copy(id(system_debug_reset_reason).state);
+            if (!raw.empty()) {
+              reset_reason = raw;
+            }
+          }
+
+          return chip + "\n" + reset_reason;
+
 - id: update_service_errors_ui
   mode: restart
   then:
