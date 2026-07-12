@@ -101,6 +101,14 @@
   internal: True
   update_interval: never
 
+- platform: debug
+  device:
+    id: system_debug_device_info
+    internal: true
+  reset_reason:
+    id: system_debug_reset_reason
+    internal: true
+
 - platform: template
   name: "Analytics device ID"
   id: analytics_device_id

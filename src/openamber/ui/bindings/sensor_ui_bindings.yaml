@@ -171,6 +171,11 @@
     then:
       - script.execute: update_water_mode_temperature_display
 
+- id: !extend sensor_uptime
+  on_value:
+    then:
+      - script.execute: update_system_diagnostics_ui
+
 - id: !extend suction_pressure_ps
   on_value:
     then:
@@ -218,6 +223,7 @@
                 id: wifi_status_label
                 text_color: 0xEF4444
       - script.execute: update_wifi_connected_summary_ui
+      - script.execute: update_system_diagnostics_ui
       - if:
           condition:
             lambda: 'return isnan(x);'
@@ -227,3 +233,4 @@
           else:
             - lvgl.widget.show: { id: wifi_connected_section }
             - lvgl.widget.hide: { id: wifi_disconnected_section }
+

@@ -29,6 +29,8 @@ class PumpController
 private:
   uint32_t pump_start_time_ = 0;
   uint32_t next_pump_cycle_ = 0;
+  uint32_t start_wait_started_ms_ = 0;
+  uint32_t stop_wait_started_ms_ = 0;
 
 public:
   PumpController() {}
@@ -76,13 +78,37 @@ public:
 
     SetPwmDutyCycle(pump_speed_preference);
     pump_start_time_ = App.get_loop_component_start_time();
+    start_wait_started_ms_ = pump_start_time_;
+    ClearStopWaitTimer();
   }
 
   void Stop()
   {
+    ClearStartWaitTimer();
+    stop_wait_started_ms_ = App.get_loop_component_start_time();
     SetPwmDutyCycle(0);
 
     RestartPumpInterval();
+  }
+
+  void ClearStartWaitTimer()
+  {
+    start_wait_started_ms_ = 0;
+  }
+
+  uint32_t GetStartWaitStartedTime()
+  {
+    return start_wait_started_ms_;
+  }
+
+  void ClearStopWaitTimer()
+  {
+    stop_wait_started_ms_ = 0;
+  }
+
+  uint32_t GetStopWaitStartedTime()
+  {
+    return stop_wait_started_ms_;
   }
 
   bool IsIntervalCycleFinished()

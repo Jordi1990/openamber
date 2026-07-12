@@ -87,6 +87,50 @@ obj:
                     text: "\U000F058F"
                     text_color: 0x22D3EE
                     text_font: font_mdi_36
+                - obj:
+                    id: nav_status_warning_btn
+                    hidden: true
+                    width: 34
+                    height: 34
+                    pad_left: 4
+                    pad_right: 4
+                    pad_top: 2
+                    pad_bottom: 2
+                    radius: 8
+                    bg_color: 0xF59E0B
+                    bg_opa: 100%
+                    border_opa: 0%
+                    on_click:
+                      - script.execute: open_service_warnings_tab
+                    widgets:
+                      - label:
+                          id: nav_status_warning_icon
+                          text: "\U000F0026"
+                          text_color: 0xFFFFFF
+                          text_font: font_mdi_24
+                          align: CENTER
+                - obj:
+                    id: nav_status_error_btn
+                    hidden: true
+                    width: 34
+                    height: 34
+                    pad_left: 4
+                    pad_right: 4
+                    pad_top: 2
+                    pad_bottom: 2
+                    radius: 8
+                    bg_color: 0xEF4444
+                    bg_opa: 100%
+                    border_opa: 0%
+                    on_click:
+                      - script.execute: open_service_errors_tab
+                    widgets:
+                      - label:
+                          id: nav_status_error_icon
+                          text: "\U000F0026"
+                          text_color: 0xFFFFFF
+                          text_font: font_mdi_24
+                          align: CENTER
 
           - obj:
               id: header_connectivity_group

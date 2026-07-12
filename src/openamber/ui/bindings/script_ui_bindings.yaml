@@ -719,7 +719,7 @@
           - lvgl.widget.disable: { id: service_tab_backup }
           - if:
               condition:
-                lambda: 'return lv_obj_has_flag(id(service_sensors_panel), LV_OBJ_FLAG_HIDDEN);'
+                lambda: 'return lv_obj_has_flag(id(service_sensors_panel), LV_OBJ_FLAG_HIDDEN) && lv_obj_has_flag(id(service_errors_panel), LV_OBJ_FLAG_HIDDEN) && lv_obj_has_flag(id(service_warnings_panel), LV_OBJ_FLAG_HIDDEN);'
               then:
                 - lvgl.widget.show: { id: service_maintenance_panel }
                 - lvgl.widget.show: { id: service_maintenance_header }
@@ -775,6 +775,10 @@
           - lvgl.widget.update: { id: service_tab_backup_lbl, text_color: 0x4B5563 }
     - lvgl.widget.update: { id: service_tab_sensors, bg_color: 0xE8ECF1 }
     - lvgl.widget.update: { id: service_tab_sensors_lbl, text_color: 0x4B5563 }
+    - lvgl.widget.update: { id: service_tab_errors, bg_color: 0xE8ECF1 }
+    - lvgl.widget.update: { id: service_tab_errors_lbl, text_color: 0x4B5563 }
+    - lvgl.widget.update: { id: service_tab_warnings, bg_color: 0xE8ECF1 }
+    - lvgl.widget.update: { id: service_tab_warnings_lbl, text_color: 0x4B5563 }
     - if:
         condition:
           lambda: 'return !lv_obj_has_flag(id(service_sensors_panel), LV_OBJ_FLAG_HIDDEN);'
@@ -784,34 +788,158 @@
         else:
           - if:
               condition:
-                lambda: 'return !lv_obj_has_flag(id(service_mpanel_compressor), LV_OBJ_FLAG_HIDDEN);'
+                lambda: 'return !lv_obj_has_flag(id(service_errors_panel), LV_OBJ_FLAG_HIDDEN);'
               then:
-                - lvgl.widget.update: { id: service_tab_compressor, bg_color: 0x1F3B68 }
-                - lvgl.widget.update: { id: service_tab_compressor_lbl, text_color: 0xFFFFFF }
+                - lvgl.widget.update: { id: service_tab_errors, bg_color: 0x1F3B68 }
+                - lvgl.widget.update: { id: service_tab_errors_lbl, text_color: 0xFFFFFF }
               else:
                 - if:
                     condition:
-                      lambda: 'return !lv_obj_has_flag(id(service_mpanel_pumps), LV_OBJ_FLAG_HIDDEN);'
+                      lambda: 'return !lv_obj_has_flag(id(service_warnings_panel), LV_OBJ_FLAG_HIDDEN);'
                     then:
-                      - lvgl.widget.update: { id: service_tab_pumps, bg_color: 0x1F3B68 }
-                      - lvgl.widget.update: { id: service_tab_pumps_lbl, text_color: 0xFFFFFF }
+                      - lvgl.widget.update: { id: service_tab_warnings, bg_color: 0x1F3B68 }
+                      - lvgl.widget.update: { id: service_tab_warnings_lbl, text_color: 0xFFFFFF }
                     else:
                       - if:
                           condition:
-                            lambda: 'return !lv_obj_has_flag(id(service_mpanel_valve), LV_OBJ_FLAG_HIDDEN);'
+                            lambda: 'return !lv_obj_has_flag(id(service_mpanel_compressor), LV_OBJ_FLAG_HIDDEN);'
                           then:
-                            - lvgl.widget.update: { id: service_tab_valve, bg_color: 0x1F3B68 }
-                            - lvgl.widget.update: { id: service_tab_valve_lbl, text_color: 0xFFFFFF }
+                            - lvgl.widget.update: { id: service_tab_compressor, bg_color: 0x1F3B68 }
+                            - lvgl.widget.update: { id: service_tab_compressor_lbl, text_color: 0xFFFFFF }
                           else:
                             - if:
                                 condition:
-                                  lambda: 'return !lv_obj_has_flag(id(service_mpanel_backup), LV_OBJ_FLAG_HIDDEN);'
+                                  lambda: 'return !lv_obj_has_flag(id(service_mpanel_pumps), LV_OBJ_FLAG_HIDDEN);'
                                 then:
-                                  - lvgl.widget.update: { id: service_tab_backup, bg_color: 0x1F3B68 }
-                                  - lvgl.widget.update: { id: service_tab_backup_lbl, text_color: 0xFFFFFF }
+                                  - lvgl.widget.update: { id: service_tab_pumps, bg_color: 0x1F3B68 }
+                                  - lvgl.widget.update: { id: service_tab_pumps_lbl, text_color: 0xFFFFFF }
                                 else:
-                                  - lvgl.widget.update: { id: service_tab_maintenance, bg_color: 0x1F3B68 }
-                                  - lvgl.widget.update: { id: service_tab_maintenance_lbl, text_color: 0xFFFFFF }
+                                  - if:
+                                      condition:
+                                        lambda: 'return !lv_obj_has_flag(id(service_mpanel_valve), LV_OBJ_FLAG_HIDDEN);'
+                                      then:
+                                        - lvgl.widget.update: { id: service_tab_valve, bg_color: 0x1F3B68 }
+                                        - lvgl.widget.update: { id: service_tab_valve_lbl, text_color: 0xFFFFFF }
+                                      else:
+                                        - if:
+                                            condition:
+                                              lambda: 'return !lv_obj_has_flag(id(service_mpanel_backup), LV_OBJ_FLAG_HIDDEN);'
+                                            then:
+                                              - lvgl.widget.update: { id: service_tab_backup, bg_color: 0x1F3B68 }
+                                              - lvgl.widget.update: { id: service_tab_backup_lbl, text_color: 0xFFFFFF }
+                                            else:
+                                              - lvgl.widget.update: { id: service_tab_maintenance, bg_color: 0x1F3B68 }
+                                              - lvgl.widget.update: { id: service_tab_maintenance_lbl, text_color: 0xFFFFFF }
+
+- id: open_service_errors_tab
+  mode: restart
+  then:
+    - lvgl.widget.update: { id: page_home, hidden: true }
+    - lvgl.widget.update: { id: page_service, hidden: false }
+    - lvgl.widget.update: { id: page_system, hidden: true }
+    - lvgl.widget.update: { id: page_settings, hidden: true }
+    - lvgl.widget.show: { id: service_tabs_bar }
+    - lvgl.widget.hide: { id: service_maintenance_panel }
+    - lvgl.widget.hide: { id: service_sensors_panel }
+    - lvgl.widget.show: { id: service_errors_panel }
+    - lvgl.widget.hide: { id: service_warnings_panel }
+    - lvgl.widget.hide: { id: service_mpanel_compressor }
+    - lvgl.widget.hide: { id: service_mpanel_pumps }
+    - lvgl.widget.hide: { id: service_mpanel_valve }
+    - lvgl.widget.hide: { id: service_mpanel_backup }
+    - lvgl.widget.hide: { id: service_maintenance_header }
+    - lvgl.widget.hide: { id: service_maintenance_title }
+    - lvgl.widget.hide: { id: service_maintenance_state }
+    - lvgl.widget.hide: { id: set_service_mode_switch_ui }
+    - script.execute: update_service_mode_ui
+    - script.execute: update_service_errors_ui
+    - script.execute: update_service_top_tabs_ui
+    - lvgl.widget.update: { id: nav_service, bg_opa: 100% }
+    - lvgl.widget.update: { id: nav_service_icon, text_color: 0xFFFFFF }
+    - lvgl.widget.update: { id: nav_service_label, text_color: 0xFFFFFF }
+    - lvgl.widget.update: { id: nav_home, bg_opa: 0% }
+    - lvgl.widget.update: { id: nav_home_icon, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_home_label, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_settings, bg_opa: 0% }
+    - lvgl.widget.update: { id: nav_settings_icon, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_settings_label, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_system, bg_opa: 0% }
+    - lvgl.widget.update: { id: nav_system_icon, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_system_label, text_color: 0xD1D5DB }
+
+- id: open_service_warnings_tab
+  mode: restart
+  then:
+    - lvgl.widget.update: { id: page_home, hidden: true }
+    - lvgl.widget.update: { id: page_service, hidden: false }
+    - lvgl.widget.update: { id: page_system, hidden: true }
+    - lvgl.widget.update: { id: page_settings, hidden: true }
+    - lvgl.widget.show: { id: service_tabs_bar }
+    - lvgl.widget.hide: { id: service_maintenance_panel }
+    - lvgl.widget.hide: { id: service_sensors_panel }
+    - lvgl.widget.hide: { id: service_errors_panel }
+    - lvgl.widget.show: { id: service_warnings_panel }
+    - lvgl.widget.hide: { id: service_mpanel_compressor }
+    - lvgl.widget.hide: { id: service_mpanel_pumps }
+    - lvgl.widget.hide: { id: service_mpanel_valve }
+    - lvgl.widget.hide: { id: service_mpanel_backup }
+    - lvgl.widget.hide: { id: service_maintenance_header }
+    - lvgl.widget.hide: { id: service_maintenance_title }
+    - lvgl.widget.hide: { id: service_maintenance_state }
+    - lvgl.widget.hide: { id: set_service_mode_switch_ui }
+    - script.execute: update_service_mode_ui
+    - script.execute: update_service_warnings_ui
+    - script.execute: update_service_top_tabs_ui
+    - lvgl.widget.update: { id: nav_service, bg_opa: 100% }
+    - lvgl.widget.update: { id: nav_service_icon, text_color: 0xFFFFFF }
+    - lvgl.widget.update: { id: nav_service_label, text_color: 0xFFFFFF }
+    - lvgl.widget.update: { id: nav_home, bg_opa: 0% }
+    - lvgl.widget.update: { id: nav_home_icon, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_home_label, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_settings, bg_opa: 0% }
+    - lvgl.widget.update: { id: nav_settings_icon, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_settings_label, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_system, bg_opa: 0% }
+    - lvgl.widget.update: { id: nav_system_icon, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_system_label, text_color: 0xD1D5DB }
+
+- id: update_header_alert_icons
+  mode: restart
+  then:
+    - lvgl.widget.update:
+        id: nav_status_error_btn
+        hidden: !lambda 'return !id(error_active).state;'
+    - lvgl.widget.update:
+        id: nav_status_warning_btn
+        hidden: !lambda 'return !id(warning_active).state;'
+    - lvgl.widget.update:
+        id: nav_status_error_btn
+        bg_color: !lambda |-
+          return id(header_alert_blink_phase) ? lv_color_hex(0xEF4444) : lv_color_hex(0xB91C1C);
+    - lvgl.widget.update:
+        id: nav_status_warning_btn
+        bg_color: !lambda |-
+          return id(header_alert_blink_phase) ? lv_color_hex(0xF59E0B) : lv_color_hex(0xD97706);
+    - lvgl.widget.update:
+        id: nav_status_error_icon
+        text_color: !lambda |-
+          return lv_color_hex(0xFFFFFF);
+    - lvgl.widget.update:
+        id: nav_status_warning_icon
+        text_color: !lambda |-
+          return lv_color_hex(0xFFFFFF);
+
+- id: toggle_header_alert_blink
+  mode: restart
+  then:
+    - if:
+        condition:
+          lambda: 'return id(error_active).state || id(warning_active).state;'
+        then:
+          - globals.set:
+              id: header_alert_blink_phase
+              value: !lambda 'return !id(header_alert_blink_phase);'
+          - script.execute: update_header_alert_icons
 
 - id: update_service_diag_summary_ui
   mode: restart
@@ -881,6 +1009,296 @@
             + (id(external_heat_demand_wired).state ? "AAN" : "UIT") + " / "
             + (id(external_cool_demand_wired).state ? "AAN" : "UIT");
 
+- id: update_system_diagnostics_ui
+  mode: restart
+  then:
+    - lvgl.label.update:
+        id: system_diag_runtime_values
+        text: !lambda |-
+          char uptime_buf[24];
+          if (id(sensor_uptime).has_state()) {
+            snprintf(uptime_buf, sizeof(uptime_buf), "%.0f min", id(sensor_uptime).state / 60.0f);
+          } else {
+            snprintf(uptime_buf, sizeof(uptime_buf), "-");
+          }
+          char value_buf[96];
+          snprintf(value_buf, sizeof(value_buf), "%s\n%s", ESPHOME_VERSION, uptime_buf);
+          return std::string(value_buf);
+    - lvgl.label.update:
+        id: system_diag_memory_values
+        text: !lambda |-
+          char heap_free_buf[20];
+          char heap_frag_buf[20];
+          char heap_block_buf[20];
+          char psram_buf[20];
+          if (id(system_heap_free).has_state()) {
+            snprintf(heap_free_buf, sizeof(heap_free_buf), "%.0f kB", id(system_heap_free).state / 1024.0f);
+          } else {
+            snprintf(heap_free_buf, sizeof(heap_free_buf), "-");
+          }
+          if (id(system_heap_fragmentation).has_state()) {
+            snprintf(heap_frag_buf, sizeof(heap_frag_buf), "%.0f %%", id(system_heap_fragmentation).state);
+          } else {
+            snprintf(heap_frag_buf, sizeof(heap_frag_buf), "-");
+          }
+          if (id(system_heap_max_block).has_state()) {
+            snprintf(heap_block_buf, sizeof(heap_block_buf), "%.0f kB", id(system_heap_max_block).state / 1024.0f);
+          } else {
+            snprintf(heap_block_buf, sizeof(heap_block_buf), "-");
+          }
+          if (id(system_psram_free).has_state()) {
+            snprintf(psram_buf, sizeof(psram_buf), "%.0f kB", id(system_psram_free).state / 1024.0f);
+          } else {
+            snprintf(psram_buf, sizeof(psram_buf), "-");
+          }
+          return std::string(heap_free_buf) + "\n" + heap_frag_buf + "\n" + heap_block_buf + "\n" + psram_buf;
+    - lvgl.label.update:
+        id: system_diag_esp_values
+        text: !lambda |-
+          auto trim_copy = [](std::string s) -> std::string {
+            size_t start = s.find_first_not_of(" \t\r\n");
+            if (start == std::string::npos) return std::string("");
+            size_t end = s.find_last_not_of(" \t\r\n");
+            return s.substr(start, end - start + 1);
+          };
+          auto extract_section = [&](const std::string &source, const std::string &marker) -> std::string {
+            size_t begin = source.find(marker);
+            if (begin == std::string::npos) return std::string("");
+            begin += marker.size();
+            size_t end = source.find('|', begin);
+            if (end == std::string::npos) return trim_copy(source.substr(begin));
+            return trim_copy(source.substr(begin, end - begin));
+          };
+
+          std::string chip = "-";
+          if (id(system_debug_device_info).has_state()) {
+            std::string info = id(system_debug_device_info).state;
+            std::string chip_section = extract_section(info, "|Chip:");
+            if (chip_section.empty()) {
+              chip_section = extract_section(info, "Chip:");
+            }
+            if (!chip_section.empty()) {
+              size_t features_pos = chip_section.find(" Features:");
+              if (features_pos != std::string::npos) {
+                chip_section = trim_copy(chip_section.substr(0, features_pos));
+              }
+              if (!chip_section.empty()) {
+                chip = chip_section;
+              }
+            }
+          }
+
+          std::string reset_reason = "-";
+          if (id(system_debug_reset_reason).has_state()) {
+            std::string raw = trim_copy(id(system_debug_reset_reason).state);
+            if (!raw.empty()) {
+              reset_reason = raw;
+            }
+          }
+
+          return chip + "\n" + reset_reason;
+
+- id: update_service_errors_ui
+  mode: restart
+  then:
+    - lambda: |-
+        if (id(service_errors_status) == nullptr ||
+            id(service_errors_code_title) == nullptr ||
+            id(service_errors_explanation_value) == nullptr ||
+            id(service_errors_reset_timeout_btn) == nullptr ||
+            id(service_errors_counter) == nullptr ||
+            id(service_errors_nav_row) == nullptr ||
+            id(service_errors_prev_btn) == nullptr ||
+            id(service_errors_next_btn) == nullptr) {
+          return;
+        }
+
+        struct AlertItem {
+          const char *title;
+          const char *explanation;
+          bool active;
+        };
+
+        const AlertItem items[] = {
+          {"P03 - Storing compressorstart", "De warmtepomp is geblokkeerd door een storing in de compressorstart.", id(error_flag_p03).state},
+          {"P05 - Storing compressor - hogedrukbeveiliging", "Als de persdruk meer dan 32 bar bedraagt wordt de compressor uitgeschakeld.", id(error_flag_p05).state},
+          {"P08 - Storing sensor persgasdruk", "Storing sensor persgasdruk.", id(error_flag_p08).state},
+          {"P09 - Storing sensor verdamper/condensor buitendeel", "Storing sensor verdamper/condensor buitendeel.", id(error_flag_p09).state},
+          {"P10 - Voedingsspanning te hoog of te laag", "Voedingsspanning te hoog of te laag.", id(error_flag_p10).state},
+          {"F01 - Storing buitentemperatuursensor", "Storing buitentemperatuursensor.", id(error_flag_f01).state},
+          {"F02 - Storing sensor verdamper/condensor buitendeel", "Storing sensor verdamper/condensor buitendeel.", id(error_flag_f02).state},
+          {"F03 - Storing persgas temp sensor", "Storing persgas temp sensor.", id(error_flag_f03).state},
+          {"F04 - Storing zuiggas temp sensor", "Storing zuiggas temp sensor.", id(error_flag_f04).state},
+          {"F05 - Storing zuiggas druk sensor", "Storing zuiggas druk sensor.", id(error_flag_f05).state},
+          {"F06 - Storing sensor persgasdruk", "Storing sensor persgasdruk.", id(error_flag_f06).state},
+          {"F07 - Storing hogedrukbeveiliging", "Storing hogedrukbeveiliging.", id(error_flag_f07).state},
+          {"F09 - Storing ventilatormotor DC", "Storing ventilatormotor DC.", id(error_flag_f09).state},
+          {"E01 - Communicatiestoring", "Communicatiestoring tussen printplaten en/of bedieningspaneel.", id(error_flag_e01).state},
+          {"E02 - Communicatiestoring", "Er is een communicatiestoring tussen beide printplaten in de warmtepomp.", id(error_flag_e02).state},
+          {"E03 - Voedingsspanning", "De voedingsspanning is niet in orde.", id(error_flag_e03).state},
+          {"E04 - Overbelasting voedingsspanning", "Er is een overbelasting van de voedingsspanning.", id(error_flag_e04).state},
+          {"E05 - Probleem inverter PCB", "Er is een probleem met de inverter PCB.", id(error_flag_e05).state},
+          {"E06 - VDC-module voedingsspanning", "De voedingsspanning in de VDC-module (24 Volt-omvormer) is te hoog of te laag.", id(error_flag_e06).state},
+          {"E07 - Voedingsspanning te hoog of te laag", "Voedingsspanning te hoog of te laag.", id(error_flag_e07).state},
+          {"E08 - Storing EEPROM warmtepomp", "Storing EEPROM warmtepomp.", id(error_flag_e08).state},
+          {"F10 - Storing ventilatormotor DC", "Storing ventilatormotor DC.", id(error_flag_f10).state},
+          {"TO01 - Pomp start timeout", "De pomp startte niet binnen de verwachte tijd. Controleer pompaansturing, relais, bedrijfstoestand en de flow (flow switch), omdat deze timeout op flow-detectie wordt bepaald.", id(error_pump_start_timeout).state},
+          {"TO02 - Compressor start timeout", "De compressor startte niet binnen de verwachte tijd. Controleer permissies, beveiligingen en startcondities.", id(error_compressor_start_timeout).state},
+          {"TO03 - Pomp stop timeout", "De pomp stopte niet binnen de verwachte tijd. Controleer relaisstatus, besturingslogica en de flow (flow switch), omdat deze timeout op flow-detectie wordt bepaald.", id(error_pump_stop_timeout).state},
+          {"F16 - Storing sensor aanvoertemperatuur Tuo", "Storing sensor aanvoertemperatuur Tuo.", id(error_flag_f16).state},
+          {"F17 - Storing sensor retourtemperatuur Tui", "Storing sensor retourtemperatuur Tui.", id(error_flag_f17).state},
+          {"F18 - Storing sensor condensortemperatuur Tup", "Storing sensor condensortemperatuur Tup.", id(error_flag_f18).state}
+        };
+
+        const int total = sizeof(items) / sizeof(items[0]);
+        int active_indices[32];
+        int active_count = 0;
+        for (int i = 0; i < total; i++) {
+          if (items[i].active) {
+            active_indices[active_count++] = i;
+          }
+        }
+
+        const bool timeout_error_active =
+            id(error_pump_start_timeout).state ||
+            id(error_compressor_start_timeout).state ||
+            id(error_pump_stop_timeout).state;
+
+        if (timeout_error_active) lv_obj_clear_flag(id(service_errors_reset_timeout_btn), LV_OBJ_FLAG_HIDDEN);
+        else lv_obj_add_flag(id(service_errors_reset_timeout_btn), LV_OBJ_FLAG_HIDDEN);
+
+        if (active_count == 0) {
+          id(service_error_page_index) = 0;
+          lv_label_set_text(id(service_errors_status), "Geen actieve foutmeldingen");
+          lv_label_set_text(id(service_errors_code_title), "");
+          lv_label_set_text(id(service_errors_explanation_value), "");
+          lv_label_set_text(id(service_errors_counter), "");
+          lv_obj_add_flag(id(service_errors_nav_row), LV_OBJ_FLAG_HIDDEN);
+          return;
+        }
+
+        lv_obj_clear_flag(id(service_errors_nav_row), LV_OBJ_FLAG_HIDDEN);
+
+        int index = id(service_error_page_index);
+        if (index < 0) index = 0;
+        if (index >= active_count) index = active_count - 1;
+        id(service_error_page_index) = index;
+
+        const AlertItem &item = items[active_indices[index]];
+        std::string status = "Actieve foutmelding " + std::to_string(index + 1) + " van " + std::to_string(active_count);
+        std::string counter = std::to_string(index + 1) + "/" + std::to_string(active_count);
+
+        lv_label_set_text(id(service_errors_status), status.c_str());
+        lv_label_set_text(id(service_errors_code_title), item.title);
+        lv_label_set_text(id(service_errors_explanation_value), item.explanation);
+        lv_label_set_text(id(service_errors_counter), counter.c_str());
+
+        if (index > 0) lv_obj_clear_flag(id(service_errors_prev_btn), LV_OBJ_FLAG_HIDDEN);
+        else lv_obj_add_flag(id(service_errors_prev_btn), LV_OBJ_FLAG_HIDDEN);
+
+        if (index < (active_count - 1)) lv_obj_clear_flag(id(service_errors_next_btn), LV_OBJ_FLAG_HIDDEN);
+        else lv_obj_add_flag(id(service_errors_next_btn), LV_OBJ_FLAG_HIDDEN);
+
+- id: update_service_warnings_ui
+  mode: restart
+  then:
+    - lambda: |-
+        if (id(service_warnings_status) == nullptr ||
+            id(service_warnings_code_title) == nullptr ||
+            id(service_warnings_explanation_value) == nullptr ||
+            id(service_warnings_counter) == nullptr ||
+            id(service_warnings_nav_row) == nullptr ||
+            id(service_warnings_prev_btn) == nullptr ||
+            id(service_warnings_next_btn) == nullptr) {
+          return;
+        }
+
+        struct AlertItem {
+          const char *title;
+          const char *explanation;
+          bool active;
+        };
+
+        const AlertItem items[] = {
+          {"P01 - Bedrijfstroom warmtepomp", "De eerste keer wordt de normale werking van de warmtepomp na 5 minuten automatisch hervat.", id(error_flag_p01).state},
+          {"P02 - Bedrijfstroom warmtepomp", "De eerste keer wordt de normale werking van de warmtepomp na 5 minuten automatisch hervat. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart.", id(error_flag_p02).state},
+          {"P04 - Beveiliging oliedruk compressor", "Als de compressor 2 uur met een laag toerental draait (30-43 Hz) wordt deze beveiliging geactiveerd om de compressorolie weer in de compressor te krijgen.", id(oil_return_cycle_active).state},
+          {"P06 - Storing compressor - laag drukverschil", "De compressorfrequentie zal worden begrensd. De druk zal hierdoor zakken en een normale werking wordt voortgezet.", id(error_flag_p06).state},
+          {"P07 - Compressor voorverwarming", "De compressor wordt voorverwarmd om te kunnen starten. Het zal maximaal 30 minuten duren voordat de compressor op bedrijfstemperatuur is. Daarna zal deze storing vanzelf verdwijnen en zal de compressor starten.", id(error_flag_p07).state},
+          {"P11 - Compressor frequentiebegrenzing op buitentemperatuur", "De warmtepomp is geblokkeerd. De buitentemperatuur (Ta) is te laag of te hoog om op maximale capaciteit te kunnen werken.", id(error_flag_p11).state},
+          {"P12 - Compressor frequentiebegrenzing op buitentemperatuur", "Toerental compressor wordt verlaagd.", id(error_flag_p12).state},
+          {"P13 - Storing compressor - laag drukverschil", "Toerental compressor wordt verlaagd. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart.", id(error_flag_p13).state}
+        };
+
+        const int total = sizeof(items) / sizeof(items[0]);
+        int active_indices[8];
+        int active_count = 0;
+        for (int i = 0; i < total; i++) {
+          if (items[i].active) {
+            active_indices[active_count++] = i;
+          }
+        }
+
+        if (active_count == 0) {
+          id(service_warning_page_index) = 0;
+          lv_label_set_text(id(service_warnings_status), "Geen actieve waarschuwingen");
+          lv_label_set_text(id(service_warnings_code_title), "");
+          lv_label_set_text(id(service_warnings_explanation_value), "");
+          lv_label_set_text(id(service_warnings_counter), "");
+          lv_obj_add_flag(id(service_warnings_nav_row), LV_OBJ_FLAG_HIDDEN);
+          return;
+        }
+
+        lv_obj_clear_flag(id(service_warnings_nav_row), LV_OBJ_FLAG_HIDDEN);
+
+        int index = id(service_warning_page_index);
+        if (index < 0) index = 0;
+        if (index >= active_count) index = active_count - 1;
+        id(service_warning_page_index) = index;
+
+        const AlertItem &item = items[active_indices[index]];
+        std::string status = "Actieve waarschuwing " + std::to_string(index + 1) + " van " + std::to_string(active_count);
+        std::string counter = std::to_string(index + 1) + "/" + std::to_string(active_count);
+
+        lv_label_set_text(id(service_warnings_status), status.c_str());
+        lv_label_set_text(id(service_warnings_code_title), item.title);
+        lv_label_set_text(id(service_warnings_explanation_value), item.explanation);
+        lv_label_set_text(id(service_warnings_counter), counter.c_str());
+
+        if (index > 0) lv_obj_clear_flag(id(service_warnings_prev_btn), LV_OBJ_FLAG_HIDDEN);
+        else lv_obj_add_flag(id(service_warnings_prev_btn), LV_OBJ_FLAG_HIDDEN);
+
+        if (index < (active_count - 1)) lv_obj_clear_flag(id(service_warnings_next_btn), LV_OBJ_FLAG_HIDDEN);
+        else lv_obj_add_flag(id(service_warnings_next_btn), LV_OBJ_FLAG_HIDDEN);
+
+- id: service_errors_prev_item
+  mode: restart
+  then:
+    - lambda: |-
+        id(service_error_page_index)--;
+    - script.execute: update_service_errors_ui
+
+- id: service_errors_next_item
+  mode: restart
+  then:
+    - lambda: |-
+        id(service_error_page_index)++;
+    - script.execute: update_service_errors_ui
+
+- id: service_warnings_prev_item
+  mode: restart
+  then:
+    - lambda: |-
+        id(service_warning_page_index)--;
+    - script.execute: update_service_warnings_ui
+
+- id: service_warnings_next_item
+  mode: restart
+  then:
+    - lambda: |-
+        id(service_warning_page_index)++;
+    - script.execute: update_service_warnings_ui
+
 - id: update_service_mode_ui
   mode: restart
   then:
@@ -921,6 +1339,9 @@
         state:
           checked: !lambda 'return id(bottom_plate_heater_manual_switch).state;'
     - script.execute: update_service_diag_summary_ui
+    - script.execute: update_service_errors_ui
+    - script.execute: update_service_warnings_ui
+    - script.execute: update_header_alert_icons
     - script.execute: update_service_valve_ui
     - lvgl.label.update:
         id: service_p0_pwm_slider_value
