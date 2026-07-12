@@ -17,29 +17,6 @@
       float pw = qv * dT * 998 * 4190;
       return pw;
 
-- platform: template
-  id: estimated_cop
-  internal: true
-  accuracy_decimals: 2
-  state_class: measurement
-  lambda: |-
-      if (!id(flow_sensor_enabled).state)
-      {
-        return 0.0;
-      }
-
-      float power = id(power_compressor).state;
-      float thermalPower = id(thermal_power).state;
-      int compressorFrequency = id(current_compressor_frequency).state;
-      bool defrostActive = id(defrost_active_sensor).state;
-      if (compressorFrequency > 0 && !defrostActive)
-      {
-        return thermalPower / power;
-      }
-      else {
-        return 0;
-      }
-
 - platform: pid
   name: "PID Controller Verwarmen"
   climate_id: pid_heat_temperature_control

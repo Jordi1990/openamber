@@ -176,7 +176,31 @@
                       - lvgl.label.update: { id: general_stab_sensor_kalibratie_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: general_stab_hardware, bg_color: 0x1F3B68 }
                       - lvgl.label.update: { id: general_stab_hardware_lbl, text_color: 0xFFFFFF }
+                      - script.execute: update_flow_sensor_calibration_ui
     - script.execute: update_emergency_mode_ui
+
+- id: update_flow_sensor_calibration_ui
+  mode: restart
+  then:
+    - if:
+        condition:
+          switch.is_on: flow_sensor_enabled
+        then:
+          - lvgl.widget.update:
+              id: set_general_hardware_flow_sensor_calibration
+              state:
+                disabled: false
+          - lvgl.widget.update:
+              id: set_general_hardware_flow_sensor_calibration
+              opa: 100%
+        else:
+          - lvgl.widget.update:
+              id: set_general_hardware_flow_sensor_calibration
+              state:
+                disabled: true
+          - lvgl.widget.update:
+              id: set_general_hardware_flow_sensor_calibration
+              opa: 40%
 
 - id: update_header_mode_badge
   mode: restart

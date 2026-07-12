@@ -159,6 +159,29 @@ sensor:
       id: system_psram_free
       disabled_by_default: true
 
+# TODO: No default wiring determined yet for this sensor.
+  - platform: pulse_counter
+    pin:
+      number: GPIO2
+      mode:
+        input: true
+        pullup: false
+    internal_filter: 
+      milliseconds: 1
+    use_pcnt: false
+    name: Pulse meter
+    id: water_flow_rate
+    device_class: volume_flow_rate
+    unit_of_measurement: L/min
+    filters:
+      - lambda: return (x / id(flow_sensor_calibration).state);
+    total:
+      name: Total pulses
+      unit_of_measurement: l
+      filters:
+        - lambda: return x / id(flow_sensor_calibration).state;
+        - delta: 1
+
 font: !include openamber/ui/fonts.yaml
 
 lvgl:

@@ -32,6 +32,15 @@
             format: "%.1f°C"
             args: ['x']
 
+- id: !extend flow_sensor_calibration
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_flow_sensor_calibration_val
+          text:
+            format: "%.0f p/l"
+            args: ['x']
+
 # ── Vorstbescherming ──
 - id: !extend frost_protection_stage_1_temp_ta
   on_value:

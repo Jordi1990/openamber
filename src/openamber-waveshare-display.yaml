@@ -169,7 +169,7 @@ sensor:
     filters:
       - lambda: return (x / id(flow_sensor_calibration).state);
     total:
-      name: Total pulses
+      name: Total liters
       unit_of_measurement: l
       filters:
         - lambda: return x / id(flow_sensor_calibration).state;
