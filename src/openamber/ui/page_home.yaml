@@ -98,6 +98,12 @@ obj:
                           text: "Verwarmen"
                           text_color: 0xFFFFFF
                           text_font: font_mdi_24
+                      - label:
+                          id: water_mode_efficiency_text
+                          text: ""
+                          text_color: 0xFFFFFF
+                          text_font: font_text_20
+                          hidden: true
 
                 - image:
                     id: water_diagram_img
@@ -499,7 +505,7 @@ obj:
                     id: tile_pump_state
                     text: "UIT"
                     align: BOTTOM_MID
-                    y: -4
+                    y: -2
 
           - obj:
               id: tile_defrost

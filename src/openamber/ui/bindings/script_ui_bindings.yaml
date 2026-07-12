@@ -1405,6 +1405,79 @@
     - script.execute: update_header_mode_badge
     - script.execute: update_service_top_tabs_ui
 
+- id: update_home_pump_tile_state
+  mode: restart
+  then:
+    - lvgl.label.update:
+        id: tile_pump_state
+        text: !lambda |-
+          const int pwm = (int) id(pump_p0_current_pwm_sensor).state;
+          const bool pump_running = pwm > 0;
+          if (!id(flow_sensor_enabled).state) {
+            return pump_running ? str_sprintf("%d%%", pwm) : std::string("UIT");
+          }
+
+          std::string pwm_line = pump_running ? str_sprintf("%d%%", pwm) : std::string("UIT");
+          float flow_lpm = id(water_flow_rate).state;
+          if (isnan(flow_lpm)) {
+            return pwm_line + "\n- l/u";
+          }
+          return pwm_line + "\n" + str_sprintf("%.0f l/u", flow_lpm * 60.0f);
+
+- id: update_water_mode_efficiency_display
+  mode: restart
+  then:
+    - if:
+        condition:
+          lambda: 'return !id(flow_sensor_enabled).state;'
+        then:
+          - lvgl.widget.update:
+              id: water_mode_efficiency_text
+              hidden: true
+        else:
+          - if:
+              condition:
+                lambda: 'return id(state_machine_state_main).state == "DHW" && !isnan(id(cop_hour_dhw).state);'
+              then:
+                - lvgl.label.update:
+                    id: water_mode_efficiency_text
+                    text:
+                      format: "COP %.1f"
+                      args: ['id(cop_hour_dhw).state']
+                - lvgl.widget.update:
+                    id: water_mode_efficiency_text
+                    hidden: false
+              else:
+                - if:
+                    condition:
+                      lambda: 'return id(working_mode_switch).current_option() == "Koelen" && !isnan(id(eer_hour_cooling).state);'
+                    then:
+                      - lvgl.label.update:
+                          id: water_mode_efficiency_text
+                          text:
+                            format: "EER %.1f"
+                            args: ['id(eer_hour_cooling).state']
+                      - lvgl.widget.update:
+                          id: water_mode_efficiency_text
+                          hidden: false
+                    else:
+                      - if:
+                          condition:
+                            lambda: 'return id(working_mode_switch).current_option() == "Verwarmen" && !isnan(id(cop_hour_heating).state);'
+                          then:
+                            - lvgl.label.update:
+                                id: water_mode_efficiency_text
+                                text:
+                                  format: "COP %.1f"
+                                  args: ['id(cop_hour_heating).state']
+                            - lvgl.widget.update:
+                                id: water_mode_efficiency_text
+                                hidden: false
+                          else:
+                            - lvgl.widget.update:
+                                id: water_mode_efficiency_text
+                                hidden: true
+
 - id: update_water_mode_temperature_display
   mode: restart
   then:

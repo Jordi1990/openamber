@@ -228,15 +228,23 @@ time:
       - seconds: 0
         minutes: 0
         then:
-          - sensor.integration.reset: thermal_energy_hour
-          - sensor.integration.reset: electrical_energy_hour
+          - sensor.integration.reset: thermal_energy_hour_heating
+          - sensor.integration.reset: electrical_energy_hour_heating
+          - sensor.integration.reset: thermal_energy_hour_cooling
+          - sensor.integration.reset: electrical_energy_hour_cooling
+          - sensor.integration.reset: thermal_energy_hour_dhw
+          - sensor.integration.reset: electrical_energy_hour_dhw
       # Reset the daily COP energy buckets at midnight.
       - seconds: 0
         minutes: 0
         hours: 0
         then:
-          - sensor.integration.reset: thermal_energy_day
-          - sensor.integration.reset: electrical_energy_day
+          - sensor.integration.reset: thermal_energy_day_heating
+          - sensor.integration.reset: electrical_energy_day_heating
+          - sensor.integration.reset: thermal_energy_day_cooling
+          - sensor.integration.reset: electrical_energy_day_cooling
+          - sensor.integration.reset: thermal_energy_day_dhw
+          - sensor.integration.reset: electrical_energy_day_dhw
       # Reset the seasonal SCOP energy buckets at the start of the year.
       - seconds: 0
         minutes: 0
@@ -244,8 +252,12 @@ time:
         days_of_month: 1
         months: 1
         then:
-          - sensor.integration.reset: thermal_energy_year
-          - sensor.integration.reset: electrical_energy_year
+          - sensor.integration.reset: thermal_energy_year_heating
+          - sensor.integration.reset: electrical_energy_year_heating
+          - sensor.integration.reset: thermal_energy_year_cooling
+          - sensor.integration.reset: electrical_energy_year_cooling
+          - sensor.integration.reset: thermal_energy_year_dhw
+          - sensor.integration.reset: electrical_energy_year_dhw
 
 modbus:
   send_wait_time: 250ms

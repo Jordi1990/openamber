@@ -60,19 +60,7 @@
           bg_color: !lambda |-
             if (x > 0) return lv_color_hex(0xF5F8FC);
             return lv_color_hex(0x919191);
-      - if:
-          condition:
-            lambda: 'return x > 0;'
-          then:
-            - lvgl.label.update:
-                id: tile_pump_state
-                text:
-                  format: "%d%%"
-                  args: ['(int)x']
-          else:
-            - lvgl.label.update:
-                id: tile_pump_state
-                text: "UIT"
+      - script.execute: update_home_pump_tile_state
       - script.execute: update_service_diag_summary_ui
       - lvgl.label.update:
           id: service_p0_pwm_slider_value
@@ -83,6 +71,26 @@
           if (id(service_p0_pwm_slider) != nullptr) {
             lv_slider_set_value(id(service_p0_pwm_slider), (int) x, LV_ANIM_OFF);
           }
+
+- id: !extend water_flow_rate
+  on_value:
+    then:
+      - script.execute: update_home_pump_tile_state
+
+- id: !extend cop_hour_heating
+  on_value:
+    then:
+      - script.execute: update_water_mode_efficiency_display
+
+- id: !extend eer_hour_cooling
+  on_value:
+    then:
+      - script.execute: update_water_mode_efficiency_display
+
+- id: !extend cop_hour_dhw
+  on_value:
+    then:
+      - script.execute: update_water_mode_efficiency_display
 
 - id: !extend current_compressor_frequency
   on_value:
