@@ -119,12 +119,15 @@
           - lvgl.widget.show: { id: panel_general_page_systeem }
           - lvgl.widget.hide: { id: panel_general_page_noodbedrijf }
           - lvgl.widget.hide: { id: panel_general_page_sensor_kalibratie }
+          - lvgl.widget.hide: { id: panel_general_page_hardware }
           - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0x1F3B68 }
           - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0xFFFFFF }
           - lvgl.widget.update: { id: general_stab_noodbedrijf, bg_color: 0xCBD5E1 }
           - lvgl.label.update: { id: general_stab_noodbedrijf_lbl, text_color: 0x4B5563 }
           - lvgl.widget.update: { id: general_stab_sensor_kalibratie, bg_color: 0xCBD5E1 }
           - lvgl.label.update: { id: general_stab_sensor_kalibratie_lbl, text_color: 0x4B5563 }
+          - lvgl.widget.update: { id: general_stab_hardware, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: general_stab_hardware_lbl, text_color: 0x4B5563 }
           - script.execute: update_advanced_settings_ui
         else:
           - if:
@@ -134,22 +137,45 @@
                 - lvgl.widget.hide: { id: panel_general_page_systeem }
                 - lvgl.widget.show: { id: panel_general_page_noodbedrijf }
                 - lvgl.widget.hide: { id: panel_general_page_sensor_kalibratie }
+                - lvgl.widget.hide: { id: panel_general_page_hardware }
                 - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0xCBD5E1 }
                 - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0x4B5563 }
                 - lvgl.widget.update: { id: general_stab_noodbedrijf, bg_color: 0x1F3B68 }
                 - lvgl.label.update: { id: general_stab_noodbedrijf_lbl, text_color: 0xFFFFFF }
                 - lvgl.widget.update: { id: general_stab_sensor_kalibratie, bg_color: 0xCBD5E1 }
                 - lvgl.label.update: { id: general_stab_sensor_kalibratie_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: general_stab_hardware, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: general_stab_hardware_lbl, text_color: 0x4B5563 }
               else:
-                - lvgl.widget.hide: { id: panel_general_page_systeem }
-                - lvgl.widget.hide: { id: panel_general_page_noodbedrijf }
-                - lvgl.widget.show: { id: panel_general_page_sensor_kalibratie }
-                - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: general_stab_noodbedrijf, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: general_stab_noodbedrijf_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: general_stab_sensor_kalibratie, bg_color: 0x1F3B68 }
-                - lvgl.label.update: { id: general_stab_sensor_kalibratie_lbl, text_color: 0xFFFFFF }
+                - if:
+                    condition:
+                      lambda: 'return tab_index == 2;'
+                    then:
+                      - lvgl.widget.hide: { id: panel_general_page_systeem }
+                      - lvgl.widget.hide: { id: panel_general_page_noodbedrijf }
+                      - lvgl.widget.show: { id: panel_general_page_sensor_kalibratie }
+                      - lvgl.widget.hide: { id: panel_general_page_hardware }
+                      - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0xCBD5E1 }
+                      - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: general_stab_noodbedrijf, bg_color: 0xCBD5E1 }
+                      - lvgl.label.update: { id: general_stab_noodbedrijf_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: general_stab_sensor_kalibratie, bg_color: 0x1F3B68 }
+                      - lvgl.label.update: { id: general_stab_sensor_kalibratie_lbl, text_color: 0xFFFFFF }
+                      - lvgl.widget.update: { id: general_stab_hardware, bg_color: 0xCBD5E1 }
+                      - lvgl.label.update: { id: general_stab_hardware_lbl, text_color: 0x4B5563 }
+                    else:
+                      - lvgl.widget.hide: { id: panel_general_page_systeem }
+                      - lvgl.widget.hide: { id: panel_general_page_noodbedrijf }
+                      - lvgl.widget.hide: { id: panel_general_page_sensor_kalibratie }
+                      - lvgl.widget.show: { id: panel_general_page_hardware }
+                      - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0xCBD5E1 }
+                      - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: general_stab_noodbedrijf, bg_color: 0xCBD5E1 }
+                      - lvgl.label.update: { id: general_stab_noodbedrijf_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: general_stab_sensor_kalibratie, bg_color: 0xCBD5E1 }
+                      - lvgl.label.update: { id: general_stab_sensor_kalibratie_lbl, text_color: 0x4B5563 }
+                      - lvgl.widget.update: { id: general_stab_hardware, bg_color: 0x1F3B68 }
+                      - lvgl.label.update: { id: general_stab_hardware_lbl, text_color: 0xFFFFFF }
     - script.execute: update_emergency_mode_ui
 
 - id: update_header_mode_badge
