@@ -381,7 +381,6 @@ public:
 
         if (id(defrost_active_sensor).state)
         {
-          heating_rate_below_min_since_ms_ = 0;
           SetNextState(DHWState::DEFROSTING);
           break;
         }
@@ -412,7 +411,6 @@ public:
         if(IsHeatingSlowerThanMinimumAverageRate())
         {
           ESP_LOGI("amber", "Enabling backup heater");
-          heating_rate_below_min_since_ms_ = 0;
           TurnOnBackupHeater();
           SetNextState(DHWState::WAIT_BACKUP_HEATER_RUNNING);
           break;
