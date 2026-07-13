@@ -348,7 +348,7 @@
   modbus_controller_id: modbus_outside_unit
   name: "Bodemplaat verwarming"
   id: bottom_heater_active_sensor
-  device_class: heat
+  device_class: running
   register_type: holding
   address: 2108
   bitmask: 0x4
@@ -358,7 +358,7 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   name: "Carterverwarming"
-  device_class: heat
+  device_class: running
   register_type: holding
   address: 2108
   bitmask: 0x8
