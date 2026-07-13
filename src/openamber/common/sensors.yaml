@@ -66,6 +66,7 @@
   disabled_by_default: true
   id: wifi_signal_db
   update_interval: 20s
+  device_class: signal_strength
   entity_category: diagnostic
   web_server: 
     sorting_group_id: diagnostic
@@ -105,6 +106,8 @@
   id: current_setpoint
   name: "Huidig setpoint"
   unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
   accuracy_decimals: 0
   lambda: |-
     float setpoint = 0.0;
@@ -149,6 +152,8 @@
   id: current_dhw_setpoint_sensor
   name: "Huidig tapwater setpoint"
   unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
   accuracy_decimals: 0
   lambda: |-
     float setpoint = 0.0;
@@ -205,7 +210,7 @@
 - platform: template
   id: heat_exchanger_delta_t
   name: "∆T Warmtewisselaar"
-  device_class: temperature
+  device_class: temperature_delta
   state_class: measurement
   unit_of_measurement: °C
   update_interval: never
