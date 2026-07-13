@@ -409,6 +409,15 @@
             format: "%.2f °C/min"
             args: ['x']
 
+- id: !extend dhw_backup_min_avg_rate_delay_minutes
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_dhw_rate_delay_val
+          text:
+            format: "%.0f min"
+            args: ['x']
+
 # ── Legionella ──
 - id: !extend legio_repeat_days_number
   on_value:

@@ -186,6 +186,52 @@ obj:
                         - number.increment: dhw_backup_min_avg_rate
                       widgets:
                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+      - obj:
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Backupvertraging (Tapwater)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Tijd onder minimale verwarmsnelheid voordat backup inschakelt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - obj:
+                width: SIZE_CONTENT
+                height: SIZE_CONTENT
+                align: TOP_RIGHT
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                widgets:
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.decrement: dhw_backup_min_avg_rate_delay_minutes
+                      widgets:
+                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { id: set_dhw_rate_delay_val, text: "5 min", text_color: 0x1F2933, text_font: font_text_24 }
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.increment: dhw_backup_min_avg_rate_delay_minutes
+                      widgets:
+                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
 # ------------------------------------------------------------
 
