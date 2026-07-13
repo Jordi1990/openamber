@@ -162,6 +162,7 @@
 - platform: template
   name: "Vorstbescherming 1e trap"
   id: frost_protection_stage1_active
+  device_class: running
   filters:
     - delayed_on_off: 300s
   lambda: |-
@@ -179,6 +180,7 @@
 - platform: template
   name: "Vorstbescherming 2e trap"
   id: frost_protection_stage2_active
+  device_class: running
   filters:
     - delayed_on_off: 300s
   lambda: |-
@@ -336,6 +338,7 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   name: "Fan Low Speed Mode"
+  device_class: running
   disabled_by_default: true
   register_type: holding
   address: 2108
@@ -345,6 +348,7 @@
   modbus_controller_id: modbus_outside_unit
   name: "Bodemplaat verwarming"
   id: bottom_heater_active_sensor
+  device_class: heat
   register_type: holding
   address: 2108
   bitmask: 0x4
@@ -354,6 +358,7 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   name: "Carterverwarming"
+  device_class: heat
   register_type: holding
   address: 2108
   bitmask: 0x8
@@ -373,6 +378,7 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   name: "Fan High Speed Mode"
+  device_class: running
   disabled_by_default: true
   register_type: holding
   address: 2108
@@ -383,6 +389,7 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   name: "4-weg klep switching"
+  device_class: moving
   disabled_by_default: true
   register_type: holding
   address: 2108
@@ -393,6 +400,7 @@
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   name: "Expansion Valve Lock"
+  device_class: lock
   disabled_by_default: true
   register_type: holding
   address: 2108
@@ -412,6 +420,7 @@
   modbus_controller_id: modbus_outside_unit
   name: "Defrost"
   id: defrost_active_sensor
+  device_class: running
   icon: mdi:snowflake
   register_type: holding
   address: 2118
