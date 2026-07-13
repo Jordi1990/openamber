@@ -343,6 +343,9 @@ obj:
             - lvgl.widget.hide: { id: panel_cooling }
             - lvgl.widget.hide: { id: panel_dhw }
             - lvgl.widget.show: { id: panel_bijverwarmen }
+            - script.execute:
+                id: bijverwarmen_select_tab
+                tab_index: 0
             - lvgl.widget.hide: { id: panel_smartgrid }
             - lvgl.widget.hide: { id: panel_wifi }
             - lvgl.widget.hide: { id: panel_thermostat }
