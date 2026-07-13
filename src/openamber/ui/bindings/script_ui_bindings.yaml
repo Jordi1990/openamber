@@ -534,6 +534,49 @@
                       - lvgl.label.update: { id: dhw_stab_legionella_lbl, text_color: 0xFFFFFF }
                       - script.execute: update_legio_ui
 
+- id: bijverwarmen_select_tab
+  mode: restart
+  parameters:
+    tab_index: int
+  then:
+    - if:
+        condition:
+          lambda: 'return tab_index == 0;'
+        then:
+          - lvgl.widget.show: { id: panel_bijverwarmen_page_algemeen }
+          - lvgl.widget.hide: { id: panel_bijverwarmen_page_verwarmen }
+          - lvgl.widget.hide: { id: panel_bijverwarmen_page_tapwater }
+          - lvgl.widget.update: { id: bijverwarmen_stab_algemeen, bg_color: 0x1F3B68 }
+          - lvgl.label.update: { id: bijverwarmen_stab_algemeen_lbl, text_color: 0xFFFFFF }
+          - lvgl.widget.update: { id: bijverwarmen_stab_verwarmen, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: bijverwarmen_stab_verwarmen_lbl, text_color: 0x4B5563 }
+          - lvgl.widget.update: { id: bijverwarmen_stab_tapwater, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: bijverwarmen_stab_tapwater_lbl, text_color: 0x4B5563 }
+        else:
+          - if:
+              condition:
+                lambda: 'return tab_index == 1;'
+              then:
+                - lvgl.widget.hide: { id: panel_bijverwarmen_page_algemeen }
+                - lvgl.widget.show: { id: panel_bijverwarmen_page_verwarmen }
+                - lvgl.widget.hide: { id: panel_bijverwarmen_page_tapwater }
+                - lvgl.widget.update: { id: bijverwarmen_stab_algemeen, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: bijverwarmen_stab_algemeen_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: bijverwarmen_stab_verwarmen, bg_color: 0x1F3B68 }
+                - lvgl.label.update: { id: bijverwarmen_stab_verwarmen_lbl, text_color: 0xFFFFFF }
+                - lvgl.widget.update: { id: bijverwarmen_stab_tapwater, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: bijverwarmen_stab_tapwater_lbl, text_color: 0x4B5563 }
+              else:
+                - lvgl.widget.hide: { id: panel_bijverwarmen_page_algemeen }
+                - lvgl.widget.hide: { id: panel_bijverwarmen_page_verwarmen }
+                - lvgl.widget.show: { id: panel_bijverwarmen_page_tapwater }
+                - lvgl.widget.update: { id: bijverwarmen_stab_algemeen, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: bijverwarmen_stab_algemeen_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: bijverwarmen_stab_verwarmen, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: bijverwarmen_stab_verwarmen_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: bijverwarmen_stab_tapwater, bg_color: 0x1F3B68 }
+                - lvgl.label.update: { id: bijverwarmen_stab_tapwater_lbl, text_color: 0xFFFFFF }
+
 - id: update_advanced_settings_ui
   mode: restart
   then:

@@ -1,237 +1,157 @@
 ﻿# Panel: Bijverwarmen
 # ------------------------------------------------------------
 obj:
-    id: panel_bijverwarmen
-    width: 100%
-    height: 100%
-    hidden: true
-    bg_opa: 0%
-    border_opa: 0%
-    pad_left: 4
-    pad_right: 4
-    pad_top: 4
-    pad_bottom: 4
-    scrollbar_mode: "OFF"
-    scrollable: true
-    layout:
-      type: FLEX
-      flex_flow: COLUMN
-      flex_align_main: START
-      flex_align_cross: STRETCH
-      pad_row: 6
-      
-    widgets:
-      - obj:
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
-          widgets:
-            - label: { text: "Backup element", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-            - label: { text: "Extern is voor Hybride opstellingen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-            - dropdown:
-                id: set_backup_heating_mode_dd
-                symbol: "\U000F0140"
-                width: 320
-                align: TOP_RIGHT
-                y: 0
-                options:
-                  - "Intern verwarmingselement"
-                  - "Externe backup verwarming"
-                text_font: font_text_20
-                dropdown_list:
-                  text_font: font_text_20
-                on_value:
-                  then:
-                    - lambda: |-
-                        auto val = lv_dropdown_get_selected(id(set_backup_heating_mode_dd)->obj);
-                        if (val == 0) id(backup_heating_mode).make_call().set_option("Intern verwarmingselement").perform();
-                        else id(backup_heating_mode).make_call().set_option("Externe backup verwarming").perform();
+  id: panel_bijverwarmen
+  width: 100%
+  height: 100%
+  hidden: true
+  bg_opa: 0%
+  border_opa: 0%
+  pad_left: 4
+  pad_right: 4
+  pad_top: 4
+  pad_bottom: 4
+  scrollbar_mode: "OFF"
+  scrollable: true
+  layout:
+    type: FLEX
+    flex_flow: COLUMN
+    flex_align_main: START
+    flex_align_cross: STRETCH
+    pad_row: 4
 
-      - obj:
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
-          widgets:
-            - label: { text: "Boosttemperatuur bij ontdooien", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-            - label: { text: "Buitentemperatuur voor backup bij ontdooien", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-            - obj:
-                width: SIZE_CONTENT
-                height: SIZE_CONTENT
-                align: TOP_RIGHT
-                bg_opa: 0%
-                border_opa: 0%
-                pad_all: 0
-                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-                widgets:
-                  - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
-                      scrollable: false
-                      on_click:
-                        - number.decrement: defrost_backup_heater_boost_temperature_sensor
-                      widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                  - label: { id: set_defrost_boost_val, text: "-3°C", text_color: 0x1F2933, text_font: font_text_24 }
-                  - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
-                      scrollable: false
-                      on_click:
-                        - number.increment: defrost_backup_heater_boost_temperature_sensor
-                      widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-      
-      - obj:
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
-          widgets:
-            - label: { text: "Backup °min drempel (verwarmen)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-            - label: { text: "Graadminuten drempel voor backup element tijdens verwarmen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-            - obj:
-                width: SIZE_CONTENT
-                height: SIZE_CONTENT
-                align: TOP_RIGHT
-                bg_opa: 0%
-                border_opa: 0%
-                pad_all: 0
-                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-                widgets:
-                  - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
-                      scrollable: false
-                      on_click:
-                        - number.decrement: backup_heater_degmin_threshold
-                      widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                  - label: { id: set_degmin_val, text: "40 °C·min", text_color: 0x1F2933, text_font: font_text_24 }
-                  - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
-                      scrollable: false
-                      on_click:
-                        - number.increment: backup_heater_degmin_threshold
-                      widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-      
-      - obj:
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
-          widgets:
-            - label: { text: "Min. verwarmsnelheid (Tapwater)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-            - label: { text: "Minimale Tapwater-verwarmsnelheid; lager schakelt backup in", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-            - obj:
-                width: SIZE_CONTENT
-                height: SIZE_CONTENT
-                align: TOP_RIGHT
-                bg_opa: 0%
-                border_opa: 0%
-                pad_all: 0
-                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-                widgets:
-                  - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
-                      scrollable: false
-                      on_click:
-                        - number.decrement: dhw_backup_min_avg_rate
-                      widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                  - label: { id: set_dhw_rate_val, text: "0.12 °C/min", text_color: 0x1F2933, text_font: font_text_24 }
-                  - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
-                      scrollable: false
-                      on_click:
-                        - number.increment: dhw_backup_min_avg_rate
-                      widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+  widgets:
+    - obj:
+        id: panel_bijverwarmen_tab_bar
+        width: 100%
+        height: 40
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: ROW
+          flex_align_main: START
+          flex_align_cross: CENTER
+          pad_column: 6
+        widgets:
+          - obj:
+              id: bijverwarmen_stab_algemeen
+              width: SIZE_CONTENT
+              height: 34
+              bg_color: 0x1F3B68
+              bg_opa: 100%
+              radius: 8
+              border_opa: 0%
+              pad_left: 12
+              pad_right: 12
+              pad_top: 4
+              pad_bottom: 4
+              scrollbar_mode: "OFF"
+              scrollable: false
+              on_click:
+                - script.execute:
+                    id: bijverwarmen_select_tab
+                    tab_index: 0
+              widgets:
+                - label: { id: bijverwarmen_stab_algemeen_lbl, text: "Algemeen", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
 
-      - obj:
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
-          widgets:
-            - label: { text: "Backupvertraging (Tapwater)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-            - label: { text: "Tijd onder minimale verwarmsnelheid voordat backup inschakelt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-            - obj:
-                width: SIZE_CONTENT
-                height: SIZE_CONTENT
-                align: TOP_RIGHT
-                bg_opa: 0%
-                border_opa: 0%
-                pad_all: 0
-                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-                widgets:
-                  - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
-                      scrollable: false
-                      on_click:
-                        - number.decrement: dhw_backup_min_avg_rate_delay_minutes
-                      widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                  - label: { id: set_dhw_rate_delay_val, text: "5 min", text_color: 0x1F2933, text_font: font_text_24 }
-                  - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
-                      scrollable: false
-                      on_click:
-                        - number.increment: dhw_backup_min_avg_rate_delay_minutes
-                      widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+          - obj:
+              id: bijverwarmen_stab_verwarmen
+              width: SIZE_CONTENT
+              height: 34
+              bg_color: 0xCBD5E1
+              bg_opa: 100%
+              radius: 8
+              border_opa: 0%
+              pad_left: 12
+              pad_right: 12
+              pad_top: 4
+              pad_bottom: 4
+              scrollbar_mode: "OFF"
+              scrollable: false
+              on_click:
+                - script.execute:
+                    id: bijverwarmen_select_tab
+                    tab_index: 1
+              widgets:
+                - label: { id: bijverwarmen_stab_verwarmen_lbl, text: "Verwarmen", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
+
+          - obj:
+              id: bijverwarmen_stab_tapwater
+              width: SIZE_CONTENT
+              height: 34
+              bg_color: 0xCBD5E1
+              bg_opa: 100%
+              radius: 8
+              border_opa: 0%
+              pad_left: 12
+              pad_right: 12
+              pad_top: 4
+              pad_bottom: 4
+              scrollbar_mode: "OFF"
+              scrollable: false
+              on_click:
+                - script.execute:
+                    id: bijverwarmen_select_tab
+                    tab_index: 2
+              widgets:
+                - label: { id: bijverwarmen_stab_tapwater_lbl, text: "Tapwater", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
+
+    - obj:
+        id: panel_bijverwarmen_page_algemeen
+        width: 100%
+        height: SIZE_CONTENT
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: COLUMN
+          flex_align_main: START
+          flex_align_cross: STRETCH
+          pad_row: 6
+        widgets: !include page_settings_tab_bijverwarmen_algemeen_content.yaml
+
+    - obj:
+        id: panel_bijverwarmen_page_verwarmen
+        hidden: true
+        width: 100%
+        height: SIZE_CONTENT
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: COLUMN
+          flex_align_main: START
+          flex_align_cross: STRETCH
+          pad_row: 6
+        widgets: !include page_settings_tab_bijverwarmen_verwarmen_content.yaml
+
+    - obj:
+        id: panel_bijverwarmen_page_tapwater
+        hidden: true
+        width: 100%
+        height: SIZE_CONTENT
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: COLUMN
+          flex_align_main: START
+          flex_align_cross: STRETCH
+          pad_row: 6
+        widgets: !include page_settings_tab_bijverwarmen_tapwater_content.yaml
       
 # ------------------------------------------------------------
 
