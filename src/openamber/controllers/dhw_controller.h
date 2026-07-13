@@ -339,6 +339,7 @@ public:
         {
           ESP_LOGW("amber", "Emergency mode enabled, not starting compressor but switching on backup heater");
           TurnOnBackupHeater();
+          heating_rate_below_min_since_ms_ = 0;
           SetNextState(DHWState::WAIT_BACKUP_HEATER_RUNNING);
         }
         else
@@ -404,6 +405,7 @@ public:
         {
           ESP_LOGI("amber", "Enabling backup heater (SG Ready max boost active)");
           TurnOnBackupHeater();
+          heating_rate_below_min_since_ms_ = 0;
           SetNextState(DHWState::WAIT_BACKUP_HEATER_RUNNING);
           break;
         }
@@ -412,6 +414,7 @@ public:
         {
           ESP_LOGI("amber", "Enabling backup heater");
           TurnOnBackupHeater();
+          heating_rate_below_min_since_ms_ = 0;
           SetNextState(DHWState::WAIT_BACKUP_HEATER_RUNNING);
           break;
         }

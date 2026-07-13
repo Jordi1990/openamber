@@ -88,7 +88,6 @@ protected:
   void TurnOnBackupHeater()
   {
     backup_heater_start_time_ms_ = App.get_loop_component_start_time();
-    heating_rate_below_min_since_ms_ = 0;
     if(id(backup_heating_mode).active_index().value() == 0)
     {      
       id(backup_heater_relay).turn_on();
