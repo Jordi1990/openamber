@@ -264,6 +264,21 @@
     sorting_group_id: dhw_settings
 
 - platform: template
+  id: dhw_backup_min_avg_rate_delay_minutes
+  name: "Tapwater backup heater vertraging"
+  unit_of_measurement: "min"
+  device_class: "duration"
+  min_value: 0
+  max_value: 60
+  step: 1
+  initial_value: 5
+  optimistic: true
+  restore_value: true
+  entity_category: config
+  web_server:
+    sorting_group_id: dhw_settings
+
+- platform: template
   id: backup_heater_degmin_threshold
   name: "Backup element graadminuten"
   unit_of_measurement: "°C·min"

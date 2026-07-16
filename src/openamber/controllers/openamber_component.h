@@ -68,6 +68,11 @@ void OpenAmberComponent::update()
 
   switch (state_)
   {
+    case State::UNKNOWN:
+    {
+      break;
+    }
+
     case State::INITIALIZING:
     {
       id(initialize_relay_switch).turn_on();

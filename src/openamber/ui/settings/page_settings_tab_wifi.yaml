@@ -17,7 +17,7 @@ obj:
       type: FLEX
       flex_flow: COLUMN
       flex_align_main: START
-      flex_align_cross: STRETCH
+      flex_align_cross: CENTER
       pad_row: 6
       
     widgets:
@@ -50,7 +50,7 @@ obj:
             type: FLEX
             flex_flow: COLUMN
             flex_align_main: START
-            flex_align_cross: STRETCH
+            flex_align_cross: CENTER
             pad_row: 6
           widgets:
             # Verbinding details
@@ -105,7 +105,7 @@ obj:
             type: FLEX
             flex_flow: COLUMN
             flex_align_main: START
-            flex_align_cross: STRETCH
+            flex_align_cross: CENTER
             pad_row: 6
           widgets:
             # Waarschuwing
@@ -154,14 +154,7 @@ obj:
                               text_font: font_text_20
                             on_value:
                               then:
-                                - lambda: |-
-                                    char buf[64];
-                                    lv_dropdown_get_selected_str(id(wifi_network_dd)->obj, buf, sizeof(buf));
-                                    if (std::string(buf) == "Handmatig...") {
-                                      lv_obj_clear_flag(id(wifi_hidden_ssid_section), LV_OBJ_FLAG_HIDDEN);
-                                    } else {
-                                      lv_obj_add_flag(id(wifi_hidden_ssid_section), LV_OBJ_FLAG_HIDDEN);
-                                    }
+                                - script.execute: wifi_network_dropdown_changed
                         - button:
                             id: wifi_scan_btn
                             width: SIZE_CONTENT
@@ -199,11 +192,11 @@ obj:
                       bg_color: 0xFFFFFF
                       bg_opa: 100%
                       on_focus:
-                        - lvgl.widget.show: { id: wifi_keyboard }
-                        - lambda: |-
-                            lv_keyboard_set_textarea(id(wifi_keyboard)->obj, id(wifi_hidden_ssid_ta));
+                        - script.execute:
+                            id: wifi_focus_text_input
+                            input_index: 1
                       on_defocus:
-                        - lvgl.widget.hide: { id: wifi_keyboard }
+                        - script.execute: wifi_unfocus_text_input
 
             # Wachtwoord
             - obj:
@@ -222,10 +215,7 @@ obj:
                       bg_color: 0xE5E7EB
                       radius: 6
                       on_click:
-                        - lambda: |-
-                            bool current = lv_textarea_get_password_mode(id(wifi_password_ta));
-                            lv_textarea_set_password_mode(id(wifi_password_ta), !current);
-                            lv_label_set_text(id(wifi_password_toggle_label), current ? "\U000F0208" : "\U000F0209");
+                        - script.execute: wifi_password_visibility_toggle
                       widgets:
                         - label:
                             id: wifi_password_toggle_label
@@ -249,11 +239,11 @@ obj:
                       bg_color: 0xFFFFFF
                       bg_opa: 100%
                       on_focus:
-                        - lvgl.widget.show: { id: wifi_keyboard }
-                        - lambda: |-
-                            lv_keyboard_set_textarea(id(wifi_keyboard)->obj, id(wifi_password_ta));
+                        - script.execute:
+                            id: wifi_focus_text_input
+                            input_index: 0
                       on_defocus:
-                        - lvgl.widget.hide: { id: wifi_keyboard }
+                        - script.execute: wifi_unfocus_text_input
 
             # Verbinden knop
             - obj:
@@ -288,4 +278,5 @@ obj:
                 mode: TEXT_LOWER
 
 # ------------------------------------------------------------
+
 

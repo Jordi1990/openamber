@@ -51,10 +51,6 @@ esphome:
             then:
               - mqtt.enable:
 
-esp32:
-  framework:
-    type: esp-idf
-
 interval:
   - interval: 5min
     then:
@@ -258,9 +254,6 @@ time:
           - sensor.integration.reset: electrical_energy_year_cooling
           - sensor.integration.reset: thermal_energy_year_dhw
           - sensor.integration.reset: electrical_energy_year_dhw
-
-modbus:
-  send_wait_time: 250ms
 
 modbus_controller:
 - id: modbus_outside_unit

@@ -1,4 +1,4 @@
-obj:
+﻿obj:
     id: settings_sidebar
     grid_cell_row_pos: 0
     grid_cell_column_pos: 0
@@ -19,7 +19,7 @@ obj:
       type: FLEX
       flex_flow: COLUMN
       flex_align_main: START
-      flex_align_cross: STRETCH
+      flex_align_cross: CENTER
       pad_row: 2
     widgets:
       - obj:
@@ -99,9 +99,6 @@ obj:
             - lvgl.widget.show: { id: panel_thermostat }
             - script.execute: update_thermostat_settings_ui
             - script.execute: update_thermostat_mode_ui
-            - script.execute:
-                id: thermostat_select_tab
-                tab_index: 0
             - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
             - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
             - lvgl.widget.update: { id: stab_pump, bg_color: 0xE8ECF1 }
@@ -343,6 +340,9 @@ obj:
             - lvgl.widget.hide: { id: panel_cooling }
             - lvgl.widget.hide: { id: panel_dhw }
             - lvgl.widget.show: { id: panel_bijverwarmen }
+            - script.execute:
+                id: bijverwarmen_select_tab
+                tab_index: 0
             - lvgl.widget.hide: { id: panel_smartgrid }
             - lvgl.widget.hide: { id: panel_wifi }
             - lvgl.widget.hide: { id: panel_thermostat }
@@ -506,3 +506,4 @@ obj:
             - lvgl.widget.update: { id: stab_advanced_lbl, text_color: 0xFFFFFF }
           widgets:
             - label: { id: stab_advanced_lbl, text: "Geavanceerd", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
+

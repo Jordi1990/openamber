@@ -64,7 +64,7 @@
           - lvgl.widget.update: { id: thermostat_row_cool_deadband, state: { disabled: true }, opa: 40% }
           - lvgl.widget.update: { id: thermostat_row_cool_overrun, state: { disabled: true }, opa: 40% }
 
-- id: thermostat_select_tab
+- id: nav_select_tab
   mode: restart
   parameters:
     tab_index: int
@@ -73,39 +73,67 @@
         condition:
           lambda: 'return tab_index == 0;'
         then:
-          - lvgl.widget.show: { id: panel_thermostat_page_setpoint }
-          - lvgl.widget.hide: { id: panel_thermostat_page_verwarmen }
-          - lvgl.widget.hide: { id: panel_thermostat_page_koelen }
-          - lvgl.widget.update: { id: thermostat_stab_setpoint, bg_color: 0x1F3B68 }
-          - lvgl.label.update: { id: thermostat_stab_setpoint_lbl, text_color: 0xFFFFFF }
-          - lvgl.widget.update: { id: thermostat_stab_verwarmen, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: thermostat_stab_verwarmen_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: thermostat_stab_koelen, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: thermostat_stab_koelen_lbl, text_color: 0x4B5563 }
+          - lvgl.widget.update: { id: page_home, hidden: false }
+          - lvgl.widget.update: { id: page_service, hidden: true }
+          - lvgl.widget.update: { id: page_system, hidden: true }
+          - lvgl.widget.update: { id: page_settings, hidden: true }
         else:
           - if:
               condition:
                 lambda: 'return tab_index == 1;'
               then:
-                - lvgl.widget.hide: { id: panel_thermostat_page_setpoint }
-                - lvgl.widget.show: { id: panel_thermostat_page_verwarmen }
-                - lvgl.widget.hide: { id: panel_thermostat_page_koelen }
-                - lvgl.widget.update: { id: thermostat_stab_setpoint, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: thermostat_stab_setpoint_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: thermostat_stab_verwarmen, bg_color: 0x1F3B68 }
-                - lvgl.label.update: { id: thermostat_stab_verwarmen_lbl, text_color: 0xFFFFFF }
-                - lvgl.widget.update: { id: thermostat_stab_koelen, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: thermostat_stab_koelen_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: page_home, hidden: true }
+                - lvgl.widget.update: { id: page_service, hidden: true }
+                - lvgl.widget.update: { id: page_system, hidden: true }
+                - lvgl.widget.update: { id: page_settings, hidden: false }
               else:
-                - lvgl.widget.hide: { id: panel_thermostat_page_setpoint }
-                - lvgl.widget.hide: { id: panel_thermostat_page_verwarmen }
-                - lvgl.widget.show: { id: panel_thermostat_page_koelen }
-                - lvgl.widget.update: { id: thermostat_stab_setpoint, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: thermostat_stab_setpoint_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: thermostat_stab_verwarmen, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: thermostat_stab_verwarmen_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: thermostat_stab_koelen, bg_color: 0x1F3B68 }
-                - lvgl.label.update: { id: thermostat_stab_koelen_lbl, text_color: 0xFFFFFF }
+                - if:
+                    condition:
+                      lambda: 'return tab_index == 2;'
+                    then:
+                      - lvgl.widget.update: { id: page_home, hidden: true }
+                      - lvgl.widget.update: { id: page_service, hidden: false }
+                      - lvgl.widget.update: { id: page_system, hidden: true }
+                      - lvgl.widget.update: { id: page_settings, hidden: true }
+                      - lvgl.widget.show: { id: service_tabs_bar }
+                      - lvgl.widget.update: { id: service_maintenance_panel, width: 100%, align: TOP_LEFT }
+                      - lvgl.widget.update: { id: service_sensors_panel, width: 100%, align: TOP_LEFT }
+                      - lvgl.widget.hide: { id: service_errors_panel }
+                      - lvgl.widget.hide: { id: service_warnings_panel }
+                      - lvgl.widget.show: { id: service_maintenance_panel }
+                      - lvgl.widget.update: { id: service_maintenance_layout, y: 112, height: 72% }
+                      - lvgl.widget.show: { id: service_maintenance_header }
+                      - lvgl.widget.show: { id: service_maintenance_title }
+                      - lvgl.widget.show: { id: service_maintenance_state }
+                      - lvgl.widget.hide: { id: service_sensors_panel }
+                      - lvgl.widget.show: { id: set_service_mode_switch_ui }
+                      - lvgl.widget.hide: { id: service_mpanel_compressor }
+                      - lvgl.widget.hide: { id: service_mpanel_pumps }
+                      - lvgl.widget.hide: { id: service_mpanel_valve }
+                      - lvgl.widget.hide: { id: service_mpanel_backup }
+                      - script.execute: update_service_mode_ui
+                      - script.execute: update_service_top_tabs_ui
+                    else:
+                      - lvgl.widget.update: { id: page_home, hidden: true }
+                      - lvgl.widget.update: { id: page_service, hidden: true }
+                      - lvgl.widget.update: { id: page_system, hidden: false }
+                      - lvgl.widget.update: { id: page_settings, hidden: true }
+
+    - lvgl.widget.update: { id: nav_home, bg_opa: !lambda 'return tab_index == 0 ? 100 : 0;' }
+    - lvgl.label.update: { id: nav_home_icon, text_color: !lambda 'return lv_color_hex(tab_index == 0 ? 0xFFFFFF : 0xD1D5DB);' }
+    - lvgl.label.update: { id: nav_home_label, text_color: !lambda 'return lv_color_hex(tab_index == 0 ? 0xFFFFFF : 0xD1D5DB);' }
+
+    - lvgl.widget.update: { id: nav_settings, bg_opa: !lambda 'return tab_index == 1 ? 100 : 0;' }
+    - lvgl.label.update: { id: nav_settings_icon, text_color: !lambda 'return lv_color_hex(tab_index == 1 ? 0xFFFFFF : 0xD1D5DB);' }
+    - lvgl.label.update: { id: nav_settings_label, text_color: !lambda 'return lv_color_hex(tab_index == 1 ? 0xFFFFFF : 0xD1D5DB);' }
+
+    - lvgl.widget.update: { id: nav_service, bg_opa: !lambda 'return tab_index == 2 ? 100 : 0;' }
+    - lvgl.label.update: { id: nav_service_icon, text_color: !lambda 'return lv_color_hex(tab_index == 2 ? 0xFFFFFF : 0xD1D5DB);' }
+    - lvgl.label.update: { id: nav_service_label, text_color: !lambda 'return lv_color_hex(tab_index == 2 ? 0xFFFFFF : 0xD1D5DB);' }
+
+    - lvgl.widget.update: { id: nav_system, bg_opa: !lambda 'return tab_index == 3 ? 100 : 0;' }
+    - lvgl.label.update: { id: nav_system_icon, text_color: !lambda 'return lv_color_hex(tab_index == 3 ? 0xFFFFFF : 0xD1D5DB);' }
+    - lvgl.label.update: { id: nav_system_label, text_color: !lambda 'return lv_color_hex(tab_index == 3 ? 0xFFFFFF : 0xD1D5DB);' }
 
 - id: general_select_tab
   mode: restart
@@ -583,6 +611,49 @@
                       - lvgl.widget.update: { id: dhw_stab_legionella, bg_color: 0x1F3B68 }
                       - lvgl.label.update: { id: dhw_stab_legionella_lbl, text_color: 0xFFFFFF }
                       - script.execute: update_legio_ui
+
+- id: bijverwarmen_select_tab
+  mode: restart
+  parameters:
+    tab_index: int
+  then:
+    - if:
+        condition:
+          lambda: 'return tab_index == 0;'
+        then:
+          - lvgl.widget.show: { id: panel_bijverwarmen_page_algemeen }
+          - lvgl.widget.hide: { id: panel_bijverwarmen_page_verwarmen }
+          - lvgl.widget.hide: { id: panel_bijverwarmen_page_tapwater }
+          - lvgl.widget.update: { id: bijverwarmen_stab_algemeen, bg_color: 0x1F3B68 }
+          - lvgl.label.update: { id: bijverwarmen_stab_algemeen_lbl, text_color: 0xFFFFFF }
+          - lvgl.widget.update: { id: bijverwarmen_stab_verwarmen, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: bijverwarmen_stab_verwarmen_lbl, text_color: 0x4B5563 }
+          - lvgl.widget.update: { id: bijverwarmen_stab_tapwater, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: bijverwarmen_stab_tapwater_lbl, text_color: 0x4B5563 }
+        else:
+          - if:
+              condition:
+                lambda: 'return tab_index == 1;'
+              then:
+                - lvgl.widget.hide: { id: panel_bijverwarmen_page_algemeen }
+                - lvgl.widget.show: { id: panel_bijverwarmen_page_verwarmen }
+                - lvgl.widget.hide: { id: panel_bijverwarmen_page_tapwater }
+                - lvgl.widget.update: { id: bijverwarmen_stab_algemeen, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: bijverwarmen_stab_algemeen_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: bijverwarmen_stab_verwarmen, bg_color: 0x1F3B68 }
+                - lvgl.label.update: { id: bijverwarmen_stab_verwarmen_lbl, text_color: 0xFFFFFF }
+                - lvgl.widget.update: { id: bijverwarmen_stab_tapwater, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: bijverwarmen_stab_tapwater_lbl, text_color: 0x4B5563 }
+              else:
+                - lvgl.widget.hide: { id: panel_bijverwarmen_page_algemeen }
+                - lvgl.widget.hide: { id: panel_bijverwarmen_page_verwarmen }
+                - lvgl.widget.show: { id: panel_bijverwarmen_page_tapwater }
+                - lvgl.widget.update: { id: bijverwarmen_stab_algemeen, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: bijverwarmen_stab_algemeen_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: bijverwarmen_stab_verwarmen, bg_color: 0xCBD5E1 }
+                - lvgl.label.update: { id: bijverwarmen_stab_verwarmen_lbl, text_color: 0x4B5563 }
+                - lvgl.widget.update: { id: bijverwarmen_stab_tapwater, bg_color: 0x1F3B68 }
+                - lvgl.label.update: { id: bijverwarmen_stab_tapwater_lbl, text_color: 0xFFFFFF }
 
 - id: update_advanced_settings_ui
   mode: restart
@@ -1974,6 +2045,37 @@
           }
           wifi::global_wifi_component->start_scanning();
         }
+
+- id: wifi_network_dropdown_changed
+  then:
+    - lambda: |-
+        char buf[64];
+        lv_dropdown_get_selected_str(id(wifi_network_dd)->obj, buf, sizeof(buf));
+        if (strcmp(buf, "Handmatig...") == 0) {
+          lv_obj_clear_flag(id(wifi_hidden_ssid_section), LV_OBJ_FLAG_HIDDEN);
+        } else {
+          lv_obj_add_flag(id(wifi_hidden_ssid_section), LV_OBJ_FLAG_HIDDEN);
+        }
+
+- id: wifi_password_visibility_toggle
+  then:
+    - lambda: |-
+        bool current = lv_textarea_get_password_mode(id(wifi_password_ta));
+        lv_textarea_set_password_mode(id(wifi_password_ta), !current);
+        lv_label_set_text(id(wifi_password_toggle_label), current ? "\U000F0208" : "\U000F0209");
+
+- id: wifi_focus_text_input
+  parameters:
+    input_index: int
+  then:
+    - lvgl.widget.show: { id: wifi_keyboard }
+    - lambda: |-
+        lv_obj_t *ta = (input_index == 0) ? id(wifi_password_ta) : id(wifi_hidden_ssid_ta);
+        lv_keyboard_set_textarea(id(wifi_keyboard)->obj, ta);
+
+- id: wifi_unfocus_text_input
+  then:
+    - lvgl.widget.hide: { id: wifi_keyboard }
 
 - id: update_wifi_connected_summary_ui
   then:

@@ -43,6 +43,7 @@ class DHWController : public BaseController<DHWState>
 {
 private:
   uint32_t last_rate_measured_time_ = 0;
+  uint32_t heating_rate_below_min_since_ms_ = 0;
   float last_temperature_rate_ = 0.0f;
   float last_measured_temperature_ = 0.0f;
   float dhw_pump_settled_time_ = 0.0f;
@@ -117,6 +118,7 @@ private:
     ESP_LOGI("amber", "Stopping DHW pump.");
     id(dhw_pump_relay_switch).turn_off();
     dhw_pump_settled_time_ = 0.0f;
+    heating_rate_below_min_since_ms_ = 0;
   }
 
   bool IsPredictedTemperatureAboveTarget()
@@ -191,22 +193,46 @@ private:
 
   bool IsHeatingSlowerThanMinimumAverageRate()
   {  
+    uint32_t now = App.get_loop_component_start_time();
+
     // Don't enable backup heater based when DHW pump is not started yet.
     if(!id(dhw_pump_relay_switch).state)
     {
+      heating_rate_below_min_since_ms_ = 0;
       return false;
     }
 
     // Start calculations after grace period to let the average sensor gather enough data.
-    if(App.get_loop_component_start_time() - dhw_pump_settled_time_ < DHW_BACKUP_HEATER_GRACE_PERIOD_S * 1000UL)
+    if(now - dhw_pump_settled_time_ < DHW_BACKUP_HEATER_GRACE_PERIOD_S * 1000UL)
     {
+      heating_rate_below_min_since_ms_ = 0;
       return false;
     }
   
     float min_avg_rate = id(dhw_backup_min_avg_rate).state;
-    if (id(dhw_backup_current_avg_rate_sensor).state < min_avg_rate && min_avg_rate > 0.0f)
+    if (min_avg_rate <= 0.0f)
     {
-      ESP_LOGI("amber", "DHW backup enable: avg_rate=%.3f°C/min < min=%.3f°C/min", id(dhw_backup_current_avg_rate_sensor).state, min_avg_rate);
+      heating_rate_below_min_since_ms_ = 0;
+      return false;
+    }
+
+    float current_avg_rate = id(dhw_backup_current_avg_rate_sensor).state;
+    if (current_avg_rate >= min_avg_rate)
+    {
+      heating_rate_below_min_since_ms_ = 0;
+      return false;
+    }
+
+    if (heating_rate_below_min_since_ms_ == 0)
+    {
+      heating_rate_below_min_since_ms_ = now;
+      ESP_LOGI("amber", "DHW backup delay started: avg_rate=%.3f C/min < min=%.3f C/min", current_avg_rate, min_avg_rate);
+    }
+
+    uint32_t required_duration_ms = static_cast<uint32_t>(id(dhw_backup_min_avg_rate_delay_minutes).state * 60000.0f);
+    if (now - heating_rate_below_min_since_ms_ >= required_duration_ms)
+    {
+      ESP_LOGI("amber", "DHW backup enable: avg_rate=%.3f C/min < min=%.3f C/min for %.1f min", current_avg_rate, min_avg_rate, id(dhw_backup_min_avg_rate_delay_minutes).state);
       return true;
     }
 
@@ -272,6 +298,9 @@ public:
 
     switch (state_)
     {
+      case DHWState::UNKNOWN:
+        break;
+
       case DHWState::IDLE:
         requested_to_stop_ = false;
 
@@ -297,7 +326,7 @@ public:
           const uint32_t timeout_ms = PUMP_START_TIMEOUT_S * 1000UL;
           if ((now - pump_controller_->GetStartWaitStartedTime()) >= timeout_ms)
           {
-            ESP_LOGE("amber", "DHW pump start timeout reached after %u seconds, stopping system.", PUMP_START_TIMEOUT_S);
+            ESP_LOGE("amber", "DHW pump start timeout reached after %lu seconds, stopping system.", (unsigned long) PUMP_START_TIMEOUT_S);
             id(error_pump_start_timeout).publish_state(true);
             pump_controller_->Stop();
             StopDhwPump();
@@ -313,6 +342,7 @@ public:
         {
           ESP_LOGW("amber", "Emergency mode enabled, not starting compressor but switching on backup heater");
           TurnOnBackupHeater();
+          heating_rate_below_min_since_ms_ = 0;
           SetNextState(DHWState::WAIT_BACKUP_HEATER_RUNNING);
         }
         else
@@ -334,7 +364,7 @@ public:
           const uint32_t timeout_ms = COMPRESSOR_START_TIMEOUT_S * 1000UL;
           if ((now - compressor_controller_->GetStartWaitStartedTime()) >= timeout_ms)
           {
-            ESP_LOGE("amber", "DHW compressor start timeout reached after %u seconds, stopping system.", COMPRESSOR_START_TIMEOUT_S);
+            ESP_LOGE("amber", "DHW compressor start timeout reached after %lu seconds, stopping system.", (unsigned long) COMPRESSOR_START_TIMEOUT_S);
             id(error_compressor_start_timeout).publish_state(true);
             compressor_controller_->Stop();
             SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
@@ -378,6 +408,7 @@ public:
         {
           ESP_LOGI("amber", "Enabling backup heater (SG Ready max boost active)");
           TurnOnBackupHeater();
+          heating_rate_below_min_since_ms_ = 0;
           SetNextState(DHWState::WAIT_BACKUP_HEATER_RUNNING);
           break;
         }
@@ -386,6 +417,7 @@ public:
         {
           ESP_LOGI("amber", "Enabling backup heater");
           TurnOnBackupHeater();
+          heating_rate_below_min_since_ms_ = 0;
           SetNextState(DHWState::WAIT_BACKUP_HEATER_RUNNING);
           break;
         }
@@ -413,6 +445,7 @@ public:
         last_measured_temperature_ = id(dhw_temperature_tw_sensor).state;
         last_rate_measured_time_ = now;
         dhw_pump_settled_time_ = now;
+        heating_rate_below_min_since_ms_ = 0;
         SetNextState(id(emergency_mode_enabled).state ? DHWState::BACKUP_HEATER_RUNNING : DHWState::COMPRESSOR_RUNNING);
         break;
 
@@ -438,7 +471,7 @@ public:
           const uint32_t timeout_ms = PUMP_STOP_TIMEOUT_S * 1000UL;
           if ((now - pump_controller_->GetStopWaitStartedTime()) >= timeout_ms)
           {
-            ESP_LOGE("amber", "DHW pump stop timeout reached after %u seconds, forcing idle state.", PUMP_STOP_TIMEOUT_S);
+            ESP_LOGE("amber", "DHW pump stop timeout reached after %lu seconds, forcing idle state.", (unsigned long) PUMP_STOP_TIMEOUT_S);
             id(error_pump_stop_timeout).publish_state(true);
             pump_controller_->Stop();
             StopDhwPump();

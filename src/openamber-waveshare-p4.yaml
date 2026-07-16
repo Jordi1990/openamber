@@ -132,22 +132,26 @@ interval:
    then: !include openamber/ui/ui_update_loop.yaml
 
 image:
-  - file: "openamber/ui/images/water_circuit.png"
+  - platform: file
+    file: openamber/ui/images/water_circuit.png
     id: img_water_circuit
     type: RGB565
     transparency: alpha_channel
     resize: 420x420
-  - file: "openamber/ui/images/icon.png"
+  - platform: file
+    file: openamber/ui/images/icon.png
     id: openamber_icon
     type: RGB565
     resize: 57x70
     transparency: alpha_channel
-  - file: "openamber/ui/images/dhw_tank.png"
+  - platform: file
+    file: openamber/ui/images/dhw_tank.png
     id: img_dhw_tank
     type: RGB565
     transparency: alpha_channel
     resize: 130x260
-  - file: "openamber/ui/images/logo-512x512.png"
+  - platform: file
+    file: openamber/ui/images/logo-512x512.png
     id: openamber_logo
     type: RGB565
     transparency: alpha_channel

@@ -420,6 +420,9 @@ public:
 
     switch (state_)
     {
+      case HeatCoolState::UNKNOWN:
+        break;
+
       case HeatCoolState::IDLE:
       {
         requested_to_stop_ = false;
@@ -451,7 +454,7 @@ public:
           const uint32_t timeout_ms = PUMP_START_TIMEOUT_S * 1000UL;
           if ((now - pump_controller_->GetStartWaitStartedTime()) >= timeout_ms)
           {
-            ESP_LOGE("amber", "Heat/cool pump start timeout reached after %u seconds, stopping system.", PUMP_START_TIMEOUT_S);
+            ESP_LOGE("amber", "Heat/cool pump start timeout reached after %lu seconds, stopping system.", (unsigned long) PUMP_START_TIMEOUT_S);
             id(error_pump_start_timeout).publish_state(true);
             StopPumps();
             SetNextState(HeatCoolState::WAIT_PUMP_STOP);
@@ -549,7 +552,7 @@ public:
           const uint32_t timeout_ms = COMPRESSOR_START_TIMEOUT_S * 1000UL;
           if ((now - compressor_controller_->GetStartWaitStartedTime()) >= timeout_ms)
           {
-            ESP_LOGE("amber", "Heat/cool compressor start timeout reached after %u seconds, stopping system.", COMPRESSOR_START_TIMEOUT_S);
+            ESP_LOGE("amber", "Heat/cool compressor start timeout reached after %lu seconds, stopping system.", (unsigned long) COMPRESSOR_START_TIMEOUT_S);
             id(error_compressor_start_timeout).publish_state(true);
             compressor_controller_->Stop();
             SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
@@ -653,7 +656,7 @@ public:
           const uint32_t timeout_ms = PUMP_STOP_TIMEOUT_S * 1000UL;
           if ((now - pump_controller_->GetStopWaitStartedTime()) >= timeout_ms)
           {
-            ESP_LOGE("amber", "Heat/cool pump stop timeout reached after %u seconds, forcing idle state.", PUMP_STOP_TIMEOUT_S);
+            ESP_LOGE("amber", "Heat/cool pump stop timeout reached after %lu seconds, forcing idle state.", (unsigned long) PUMP_STOP_TIMEOUT_S);
             id(error_pump_stop_timeout).publish_state(true);
             StopPumps();
             SetWorkingMode(WORKING_MODE_STANDBY);
