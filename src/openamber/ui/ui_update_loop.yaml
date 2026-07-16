@@ -159,3 +159,4 @@
       else:
         - lvgl.widget.hide:
             id: service_update_progress_overlay
+
