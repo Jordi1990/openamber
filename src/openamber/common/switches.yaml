@@ -138,6 +138,7 @@
   id: flow_sensor_enabled
   name: "Flow sensor aanwezig"
   optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
   entity_category: config
   web_server:
     sorting_group_id: general_settings
