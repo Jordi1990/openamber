@@ -442,7 +442,7 @@
   on_value:
     then:
       - lvgl.label.update:
-          id: set_therm_sp_val
+          id: home_therm_setpoint_value
           text:
             format: "%.1f°C"
             args: ['x']

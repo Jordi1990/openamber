@@ -48,6 +48,7 @@ obj:
           - lvgl.widget.update:
               id: page_settings
               hidden: true
+          - script.execute: update_home_thermostat_mode_ui
           - lvgl.widget.update:
               id: nav_home
               bg_opa: 100%

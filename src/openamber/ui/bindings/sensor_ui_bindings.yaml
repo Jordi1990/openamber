@@ -166,6 +166,23 @@
       - script.execute: update_water_mode_temperature_display
       - script.execute: update_service_diag_summary_ui
 
+- id: !extend room_temperature
+  on_value:
+    then:
+      - if:
+          condition:
+            lambda: 'return isnan(x);'
+          then:
+            - lvgl.label.update:
+                id: home_therm_current_temp_value
+                text: "-.-°C"
+          else:
+            - lvgl.label.update:
+                id: home_therm_current_temp_value
+                text:
+                  format: "%.1f°C"
+                  args: ['x']
+
 - id: !extend current_setpoint
   on_value:
     then:

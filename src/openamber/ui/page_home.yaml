@@ -57,14 +57,6 @@ obj:
               scrollbar_mode: "OFF"
               scrollable: false
               widgets:
-                - label:
-                    id: water_title
-                    text: "Water circuit"
-                    text_color: 0x1F2933
-                    text_font: font_mdi_24
-                    align: TOP_LEFT
-                    y: 0
-
                 - obj:
                     id: water_mode_chip
                     align: TOP_RIGHT
@@ -103,23 +95,28 @@ obj:
                     id: water_diagram_img
                     src: img_water_circuit
                     align: CENTER
-                    y: -35
+                    y: -30
 
                 - obj:
                     id: water_aanvoer_group
                     align: LEFT_MID
-                    x: 10
-                    y: -30
+                    x: 5
+                    y: -24
                     width: SIZE_CONTENT
                     height: SIZE_CONTENT
+                    bg_color: 0xF2F5F8
                     bg_opa: 0%
+                    radius: 14
                     border_opa: 0%
-                    pad_all: 0
+                    pad_left: 12
+                    pad_right: 12
+                    pad_top: 10
+                    pad_bottom: 8
                     layout:
                       type: FLEX
                       flex_flow: COLUMN
                       flex_align_cross: START
-                      pad_row: 2
+                      pad_row: 4
                     widgets:
                       - label:
                           id: water_aanvoer_label
@@ -129,24 +126,52 @@ obj:
                       - label:
                           id: water_aanvoer_value
                           text: "-°C"
-                          text_color: 0x1F2933
+                          text_color: 0xE84A2A
                           text_font: font_value_big
+                      - obj:
+                          id: water_aanvoer_target_badge
+                          width: SIZE_CONTENT
+                          height: SIZE_CONTENT
+                          bg_color: 0xE9EEF3
+                          bg_opa: 100%
+                          radius: 12
+                          border_opa: 0%
+                          pad_left: 0
+                          pad_right: 10
+                          pad_top: 2
+                          pad_bottom: 2
+                          layout:
+                            type: FLEX
+                            flex_flow: ROW
+                            flex_align_cross: CENTER
+                          widgets:
+                            - label:
+                                id: water_aanvoer_target_value
+                                text: "Doel: -°C"
+                                text_align: LEFT
+                                text_color: 0xE84A2A
+                                text_font: font_mdi_24
 
                 - obj:
                     id: water_retour_group
                     align: RIGHT_MID
-                    x: 10
-                    y: -30
+                    x: 25
+                    y: -24
                     width: SIZE_CONTENT
                     height: SIZE_CONTENT
+                    bg_color: 0xF2F5F8
                     bg_opa: 0%
+                    radius: 14
                     border_opa: 0%
-                    pad_all: 0
+                    pad_left: 12
+                    pad_right: 12
+                    pad_top: 10
+                    pad_bottom: 8
                     layout:
                       type: FLEX
                       flex_flow: COLUMN
-                      flex_align_cross: END
-                      pad_row: 2
+                      flex_align_cross: START
+                      pad_row: 4
                     widgets:
                       - label:
                           id: water_retour_label
@@ -156,14 +181,37 @@ obj:
                       - label:
                           id: water_retour_value
                           text: "-°C"
-                          text_color: 0x1F2933
+                          text_color: 0x1B61B8
                           text_font: font_value_big
+                      - obj:
+                          id: water_retour_target_badge
+                          width: SIZE_CONTENT
+                          height: SIZE_CONTENT
+                          bg_color: 0xE9EEF3
+                          bg_opa: 100%
+                          radius: 12
+                          border_opa: 0%
+                          pad_left: 0
+                          pad_right: 10
+                          pad_top: 2
+                          pad_bottom: 2
+                          layout:
+                            type: FLEX
+                            flex_flow: ROW
+                            flex_align_cross: CENTER
+                          widgets:
+                            - label:
+                                id: water_retour_target_value
+                                text: "Doel: -°C"
+                                text_align: LEFT
+                                text_color: 0x1B61B8
+                                text_font: font_mdi_24
 
                 - obj:
                     id: water_delta_group
                     align: CENTER
                     x: 40
-                    y: 50
+                    y: 58
                     bg_opa: 0%
                     border_opa: 0%
                     pad_all: 0
@@ -177,18 +225,18 @@ obj:
                           id: water_delta_label
                           text: "\U000F01C2T"
                           text_color: 0x1F2933
-                          text_font: font_value_big
+                          text_font: font_mdi_24
                       - label:
                           id: water_delta_value
                           text: "4,7°C"
                           text_color: 0x1F2933
-                          text_font: font_value_big
+                          text_font: font_text_24
 
                 - obj:
                     id: water_outdoor_group
-                    align: BOTTOM_LEFT
+                    align: TOP_LEFT
                     x: 0
-                    y: 0
+                    y: 8
                     width: SIZE_CONTENT
                     height: SIZE_CONTENT
                     pad_all: 0
@@ -213,31 +261,156 @@ obj:
                           text_font: font_mdi_24
 
                 - obj:
-                    id: water_mode_temperature_group
-                    align: BOTTOM_RIGHT
+                    id: home_thermostat_group
+                    align: BOTTOM_MID
                     x: 0
                     y: 0
-                    width: SIZE_CONTENT
+                    width: 100%
                     height: SIZE_CONTENT
-                    pad_all: 0
                     bg_opa: 0%
                     border_opa: 0%
-                    layout:
-                      type: FLEX
-                      flex_flow: COLUMN
-                      flex_align_cross: END
-                      pad_row: 2
+                    pad_all: 0
+                    scrollbar_mode: "OFF"
+                    scrollable: false
                     widgets:
-                      - label:
-                          id: water_mode_temperature_caption
-                          text: "Huidig / Doel"
-                          text_color: 0x1F2933
-                          text_font: font_mdi_24
-                      - label:
-                          id: water_mode_temperature_values
-                          text: "-°C / -°C"
-                          text_color: 0x1F2933
-                          text_font: font_mdi_24
+                      - obj:
+                          id: home_thermostat_controls_panel
+                          width: 100%
+                          height: SIZE_CONTENT
+                          hidden: true
+                          bg_color: 0xEAF1F8
+                          bg_opa: 100%
+                          radius: 14
+                          border_width: 1
+                          border_color: 0xD7E0EA
+                          border_opa: 100%
+                          pad_left: 8
+                          pad_right: 8
+                          pad_top: 8
+                          pad_bottom: 8
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          layout:
+                            type: FLEX
+                            flex_flow: COLUMN
+                            flex_align_cross: CENTER
+                            pad_row: 6
+                          widgets:
+                            - label:
+                                id: home_thermostat_section_title
+                                text: "Thermostaat"
+                                text_color: 0x4B5563
+                                text_font: font_text_20
+
+                            - obj:
+                                width: 100%
+                                height: SIZE_CONTENT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                scrollbar_mode: "OFF"
+                                scrollable: false
+                                layout:
+                                  type: FLEX
+                                  flex_flow: ROW
+                                  flex_align_main: CENTER
+                                  flex_align_cross: CENTER
+                                  pad_column: 6
+                                widgets:
+                                  - dropdown:
+                                      id: home_thermostat_mode_dd
+                                      symbol: "\U000F0140"
+                                      width: 170
+                                      options:
+                                        - "Uit"
+                                        - "Koelen"
+                                        - "Verwarmen"
+                                      text_font: font_text_20
+                                      dropdown_list:
+                                        text_font: font_text_20
+                                      on_value:
+                                        then:
+                                          - lambda: |-
+                                              auto val = lv_dropdown_get_selected(id(home_thermostat_mode_dd)->obj);
+                                              auto idx = id(thermostat_control_mode_select).active_index();
+                                              if (idx.has_value() && idx.value() == (int) val) {
+                                                return;
+                                              }
+                                              static const char *opts[] = {"Uit", "Koelen", "Verwarmen"};
+                                              id(thermostat_control_mode_select).make_call().set_option(opts[val]).perform();
+
+                                  - obj:
+                                      id: home_therm_setpoint_dec
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_width: 0
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.decrement: thermostat_setpoint_number
+                                      widgets:
+                                        - label:
+                                            id: home_therm_setpoint_dec_lbl
+                                            text: "\U000F0374"
+                                            text_color: 0xFFFFFF
+                                            text_font: font_mdi_24
+                                            align: CENTER
+
+                                  - label:
+                                      id: home_therm_setpoint_value
+                                      text: "20.5°C"
+                                      text_color: 0x1F2933
+                                      text_font: font_text_24
+
+                                  - obj:
+                                      id: home_therm_setpoint_inc
+                                      width: 40
+                                      height: 40
+                                      bg_color: 0x1F3B68
+                                      bg_opa: 100%
+                                      radius: 10
+                                      border_width: 0
+                                      border_opa: 0%
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - number.increment: thermostat_setpoint_number
+                                      widgets:
+                                        - label:
+                                            id: home_therm_setpoint_inc_lbl
+                                            text: "\U000F0415"
+                                            text_color: 0xFFFFFF
+                                            text_font: font_mdi_24
+                                            align: CENTER
+
+                            - obj:
+                                width: 100%
+                                height: SIZE_CONTENT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                scrollbar_mode: "OFF"
+                                scrollable: false
+                                layout:
+                                  type: FLEX
+                                  flex_flow: ROW
+                                  flex_align_main: CENTER
+                                  flex_align_cross: CENTER
+                                  pad_column: 6
+                                widgets:
+                                  - label:
+                                      text: "Kamertemperatuur:"
+                                      text_color: 0x1F2933
+                                      text_font: font_text_20
+                                  - label:
+                                      id: home_therm_current_temp_value
+                                      text: "-.-°C"
+                                      text_color: 0x1F2933
+                                      text_font: font_text_20
 
           # ── DHW Tank Card (greyed out when DHW not enabled) ──
           - obj:
@@ -664,3 +837,4 @@ obj:
                     text: "UIT"
                     align: BOTTOM_MID
                     y: -4
+

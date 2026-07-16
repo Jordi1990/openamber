@@ -6,11 +6,6 @@
   mode: restart
   then:
     - lvgl.label.update:
-        id: set_therm_sp_val
-        text:
-          format: "%.1f°C"
-          args: ['id(thermostat_setpoint_number).state']
-    - lvgl.label.update:
         id: set_therm_def_heat_val
         text:
           format: "%.1f°C"
@@ -40,6 +35,25 @@
         text:
           format: "%.1f°C"
           args: ['id(thermostat_cool_overrun).state']
+    - lvgl.label.update:
+        id: home_therm_setpoint_value
+        text:
+          format: "%.1f°C"
+          args: ['id(thermostat_setpoint_number).state']
+    - if:
+        condition:
+          lambda: 'return isnan(id(room_temperature).state);'
+        then:
+          - lvgl.label.update:
+              id: home_therm_current_temp_value
+              text: "-.-°C"
+        else:
+          - lvgl.label.update:
+              id: home_therm_current_temp_value
+              text:
+                format: "%.1f°C"
+                args: ['id(room_temperature).state']
+    - script.execute: update_home_thermostat_mode_ui
 
 - id: update_thermostat_mode_ui
   mode: restart
@@ -50,14 +64,12 @@
             auto idx = id(thermostat_mode_select).active_index();
             return idx.has_value() && idx.value() == 0;
         then:
-          - lvgl.widget.update: { id: thermostat_row_default_heat, state: { disabled: false }, opa: 100% }
           - lvgl.widget.update: { id: thermostat_row_default_cool, state: { disabled: false }, opa: 100% }
           - lvgl.widget.update: { id: thermostat_row_heat_deadband, state: { disabled: false }, opa: 100% }
           - lvgl.widget.update: { id: thermostat_row_heat_overrun, state: { disabled: false }, opa: 100% }
           - lvgl.widget.update: { id: thermostat_row_cool_deadband, state: { disabled: false }, opa: 100% }
           - lvgl.widget.update: { id: thermostat_row_cool_overrun, state: { disabled: false }, opa: 100% }
         else:
-          - lvgl.widget.update: { id: thermostat_row_default_heat, state: { disabled: true }, opa: 40% }
           - lvgl.widget.update: { id: thermostat_row_default_cool, state: { disabled: true }, opa: 40% }
           - lvgl.widget.update: { id: thermostat_row_heat_deadband, state: { disabled: true }, opa: 40% }
           - lvgl.widget.update: { id: thermostat_row_heat_overrun, state: { disabled: true }, opa: 40% }
@@ -106,6 +118,34 @@
                 - lvgl.label.update: { id: thermostat_stab_verwarmen_lbl, text_color: 0x4B5563 }
                 - lvgl.widget.update: { id: thermostat_stab_koelen, bg_color: 0x1F3B68 }
                 - lvgl.label.update: { id: thermostat_stab_koelen_lbl, text_color: 0xFFFFFF }
+
+- id: update_home_thermostat_visibility
+  mode: restart
+  then:
+    - if:
+        condition:
+          lambda: 'return id(thermostat_mode_select).current_option() == "Intern";'
+        then:
+          - lvgl.widget.show: { id: home_thermostat_controls_panel }
+        else:
+          - lvgl.widget.hide: { id: home_thermostat_controls_panel }
+
+- id: update_home_thermostat_mode_ui
+  mode: restart
+  then:
+    - script.execute: update_home_thermostat_visibility
+    - if:
+        condition:
+          lambda: |-
+            auto idx = id(thermostat_control_mode_select).active_index();
+            if (!idx.has_value()) return false;
+            return lv_dropdown_get_selected(id(home_thermostat_mode_dd)->obj) != (uint16_t) idx.value();
+        then:
+          - lvgl.dropdown.update:
+              id: home_thermostat_mode_dd
+              selected_index: !lambda |-
+                auto idx = id(thermostat_control_mode_select).active_index();
+                return idx.has_value() ? idx.value() : 0;
 
 - id: general_select_tab
   mode: restart
@@ -1453,27 +1493,25 @@
   then:
     - if:
         condition:
-          lambda: 'return id(state_machine_state_main).state == "DHW" && !isnan(id(dhw_temperature_tw_sensor).state) && !isnan(id(current_dhw_setpoint_sensor).state);'
+          lambda: 'return !isnan(id(current_setpoint).state);'
         then:
           - lvgl.label.update:
-              id: water_mode_temperature_values
+              id: water_aanvoer_target_value
               text:
-                format: "%.1f°C / %.1f°C"
-                args: ['id(dhw_temperature_tw_sensor).state', 'id(current_dhw_setpoint_sensor).state']
+                format: "Doel: %.1f°C"
+                args: ['id(current_setpoint).state']
+          - lvgl.label.update:
+              id: water_retour_target_value
+              text:
+                format: "Doel: %.1f°C"
+                args: ['id(current_setpoint).state']
         else:
-          - if:
-              condition:
-                lambda: 'return id(state_machine_state_main).state == "Heat/Cool" && !isnan(id(heat_cool_temperature_tc).state) && !isnan(id(current_setpoint).state);'
-              then:
-                - lvgl.label.update:
-                    id: water_mode_temperature_values
-                    text:
-                      format: "%.1f°C / %.1f°C"
-                      args: ['id(heat_cool_temperature_tc).state', 'id(current_setpoint).state']
-              else:
-                - lvgl.label.update:
-                    id: water_mode_temperature_values
-                    text: "-°C / -°C"
+          - lvgl.label.update:
+              id: water_aanvoer_target_value
+              text: "Doel: -°C"
+          - lvgl.label.update:
+              id: water_retour_target_value
+              text: "Doel: -°C"
 
 - id: update_manual_setpoint_ui
   mode: restart
