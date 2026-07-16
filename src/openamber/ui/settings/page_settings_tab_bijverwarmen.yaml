@@ -17,7 +17,7 @@ obj:
     type: FLEX
     flex_flow: COLUMN
     flex_align_main: START
-    flex_align_cross: STRETCH
+    flex_align_cross: CENTER
     pad_row: 4
 
   widgets:
@@ -113,7 +113,7 @@ obj:
           type: FLEX
           flex_flow: COLUMN
           flex_align_main: START
-          flex_align_cross: STRETCH
+          flex_align_cross: CENTER
           pad_row: 6
         widgets: !include page_settings_tab_bijverwarmen_algemeen_content.yaml
 
@@ -131,7 +131,7 @@ obj:
           type: FLEX
           flex_flow: COLUMN
           flex_align_main: START
-          flex_align_cross: STRETCH
+          flex_align_cross: CENTER
           pad_row: 6
         widgets: !include page_settings_tab_bijverwarmen_verwarmen_content.yaml
 
@@ -149,9 +149,10 @@ obj:
           type: FLEX
           flex_flow: COLUMN
           flex_align_main: START
-          flex_align_cross: STRETCH
+          flex_align_cross: CENTER
           pad_row: 6
         widgets: !include page_settings_tab_bijverwarmen_tapwater_content.yaml
       
 # ------------------------------------------------------------
+
 

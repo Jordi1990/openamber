@@ -1,4 +1,4 @@
-substitutions:
+﻿substitutions:
   device_model: waveshare-5-1024x600
 
 packages:
@@ -35,9 +35,12 @@ esp32:
 esphome:
   project:
     version: dev
-  platformio_options:
-    build_flags:
-      - -mauto-litpools
+
+# Workaround: native ESP-IDF esphome.build_flags filters out -m... Xtensa compiler options.
+# -mauto-litpools is required because ESPHome's generated setup() exceeds the L32R literal range due to large amount of LVGL elements.
+native_build_flags:
+  cxx_flags:
+    - -mauto-litpools
 
 uart:
   rx_pin:
@@ -127,22 +130,26 @@ interval:
     - script.execute: toggle_header_alert_blink
 
 image:
-  - file: "openamber/ui/images/water_circuit.png"
+  - platform: file
+    file: openamber/ui/images/water_circuit.png
     id: img_water_circuit
     type: RGB565
     transparency: alpha_channel
     resize: 420x420
-  - file: "openamber/ui/images/icon.png"
+  - platform: file
+    file: openamber/ui/images/icon.png
     id: openamber_icon
     type: RGB565
     resize: 57x70
     transparency: alpha_channel
-  - file: "openamber/ui/images/dhw_tank.png"
+  - platform: file
+    file: openamber/ui/images/dhw_tank.png
     id: img_dhw_tank
     type: RGB565
     transparency: alpha_channel
     resize: 130x260
-  - file: "openamber/ui/images/logo-512x512.png"
+  - platform: file
+    file: openamber/ui/images/logo-512x512.png
     id: openamber_logo
     type: RGB565
     transparency: alpha_channel
@@ -181,3 +188,4 @@ lvgl:
     - !include openamber/ui/nav_bar.yaml
     - !include openamber/ui/boot_screen.yaml
     - !include openamber/ui/idle_screen_overlay.yaml
+

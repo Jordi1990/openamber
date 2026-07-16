@@ -16,7 +16,7 @@ obj:
     type: FLEX
     flex_flow: COLUMN
     flex_align_main: START
-    flex_align_cross: STRETCH
+    flex_align_cross: CENTER
     pad_row: 4
 
   widgets:
@@ -112,7 +112,7 @@ obj:
           type: FLEX
           flex_flow: COLUMN
           flex_align_main: START
-          flex_align_cross: STRETCH
+          flex_align_cross: CENTER
           pad_row: 6
         widgets:
           - obj:
@@ -233,7 +233,7 @@ obj:
           type: FLEX
           flex_flow: COLUMN
           flex_align_main: START
-          flex_align_cross: STRETCH
+          flex_align_cross: CENTER
           pad_row: 6
         widgets:
           - obj:
@@ -388,7 +388,7 @@ obj:
           type: FLEX
           flex_flow: COLUMN
           flex_align_main: START
-          flex_align_cross: STRETCH
+          flex_align_cross: CENTER
           pad_row: 6
         widgets:
           - obj:
@@ -419,3 +419,4 @@ obj:
                             - switch.turn_on: emergency_mode_enabled
 
 # ------------------------------------------------------------
+

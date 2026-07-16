@@ -1,4 +1,4 @@
-- obj:
+﻿- obj:
     id: set_cool_pid_section
     width: 100%
     height: SIZE_CONTENT
@@ -9,7 +9,7 @@
       type: FLEX
       flex_flow: COLUMN
       flex_align_main: START
-      flex_align_cross: STRETCH
+      flex_align_cross: CENTER
       pad_row: 6
     widgets:
       - obj:
@@ -210,3 +210,4 @@
           pad_all: 0
           scrollbar_mode: "OFF"
           scrollable: false
+

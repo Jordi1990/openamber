@@ -51,10 +51,6 @@ esphome:
             then:
               - mqtt.enable:
 
-esp32:
-  framework:
-    type: esp-idf
-
 interval:
   - interval: 5min
     then:
@@ -223,9 +219,6 @@ time:
   - platform: sntp
     id: my_time
     timezone: "Europe/Amsterdam"
-
-modbus:
-  send_wait_time: 250ms
 
 modbus_controller:
 - id: modbus_outside_unit
