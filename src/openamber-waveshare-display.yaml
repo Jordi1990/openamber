@@ -36,6 +36,12 @@ esphome:
   project:
     version: dev
 
+# Workaround: native ESP-IDF esphome.build_flags filters out -m... Xtensa compiler options.
+# -mauto-litpools is required because ESPHome's generated setup() exceeds the L32R literal range due to large amount of LVGL elements.
+native_build_flags:
+  cxx_flags:
+    - -mauto-litpools
+
 uart:
   rx_pin:
     number: GPIO43
