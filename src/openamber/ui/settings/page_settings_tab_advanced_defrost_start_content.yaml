@@ -45,7 +45,7 @@
                   - number.decrement: enter_defrost_temperature
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-            - label: { id: set_defrost_enter1_val, text: "27.0Â°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_defrost_enter1_val, text: "27.0°C", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 width: 40
                 height: 40
@@ -104,7 +104,7 @@
                         - number.decrement: enter_defrost_temperature_2
                       widgets:
                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                  - label: { id: set_defrost_enter2_val, text: "-3.0Â°C", text_color: 0x1F2933, text_font: font_text_24 }
+                  - label: { id: set_defrost_enter2_val, text: "-3.0°C", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
                       width: 40
                       height: 40
@@ -149,7 +149,7 @@
                         - number.decrement: enter_defrost_temperature_3
                       widgets:
                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                  - label: { id: set_defrost_enter3_val, text: "-3.0Â°C", text_color: 0x1F2933, text_font: font_text_24 }
+                  - label: { id: set_defrost_enter3_val, text: "-3.0°C", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
                       width: 40
                       height: 40
@@ -194,7 +194,7 @@
                         - number.decrement: enter_defrost_temperature_4
                       widgets:
                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                  - label: { id: set_defrost_enter4_val, text: "-10.0Â°C", text_color: 0x1F2933, text_font: font_text_24 }
+                  - label: { id: set_defrost_enter4_val, text: "-10.0°C", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
                       width: 40
                       height: 40

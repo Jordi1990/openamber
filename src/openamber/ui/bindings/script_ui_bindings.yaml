@@ -98,6 +98,8 @@
                       - lvgl.widget.show: { id: service_tabs_bar }
                       - lvgl.widget.update: { id: service_maintenance_panel, width: 100%, align: TOP_LEFT }
                       - lvgl.widget.update: { id: service_sensors_panel, width: 100%, align: TOP_LEFT }
+                      - lvgl.widget.hide: { id: service_errors_panel }
+                      - lvgl.widget.hide: { id: service_warnings_panel }
                       - lvgl.widget.show: { id: service_maintenance_panel }
                       - lvgl.widget.update: { id: service_maintenance_layout, y: 112, height: 72% }
                       - lvgl.widget.show: { id: service_maintenance_header }
@@ -110,6 +112,7 @@
                       - lvgl.widget.hide: { id: service_mpanel_valve }
                       - lvgl.widget.hide: { id: service_mpanel_backup }
                       - script.execute: update_service_mode_ui
+                      - script.execute: update_service_top_tabs_ui
                     else:
                       - lvgl.widget.update: { id: page_home, hidden: true }
                       - lvgl.widget.update: { id: page_service, hidden: true }
