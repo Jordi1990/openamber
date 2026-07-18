@@ -1,3 +1,22 @@
+- platform: template
+  name: Thermisch vermogen
+  id: thermal_power
+  accuracy_decimals: 0
+  device_class: power
+  state_class: measurement
+  unit_of_measurement: W
+  entity_category: diagnostic
+  lambda: |-
+      if (!id(flow_sensor_enabled).state)
+      {
+        return 0.0;
+      }
+
+      float qv = id(water_flow_rate).state / 60 / 1000;
+      float dT = id(heat_exchanger_delta_t).state;
+      float pw = qv * dT * 998 * 4190;
+      return pw;
+
 - platform: pid
   name: "PID Controller Verwarmen"
   climate_id: pid_heat_temperature_control
@@ -42,12 +61,301 @@
 
 - platform: template
   id: power_compressor
-  internal: True
+  name: "Stroomverbruik compressor"
   device_class: power
   state_class: measurement
   unit_of_measurement: "W"
   lambda: |-
     return id(voltage_outside_unit).state * id(current_outside_unit).state;
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
+  id: cop_thermal_power_heating
+  internal: true
+  device_class: power
+  state_class: measurement
+  unit_of_measurement: "W"
+  accuracy_decimals: 0
+  update_interval: 30s
+  lambda: |-
+    if (!id(flow_sensor_enabled).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (id(dhw_active).state) return 0.0f;
+    if (!id(heat_demand_active_sensor).state) return 0.0f;
+    return fabsf(id(thermal_power).state);
+
+- platform: template
+  id: cop_electrical_power_heating
+  internal: true
+  device_class: power
+  state_class: measurement
+  unit_of_measurement: "W"
+  accuracy_decimals: 0
+  update_interval: 30s
+  lambda: |-
+    if (!id(flow_sensor_enabled).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (id(dhw_active).state) return 0.0f;
+    if (!id(heat_demand_active_sensor).state) return 0.0f;
+    return id(power_compressor).state;
+
+# Cooling-only power samples for EER/SEER energy tracking.
+- platform: template
+  id: cop_thermal_power_cooling
+  internal: true
+  device_class: power
+  state_class: measurement
+  unit_of_measurement: "W"
+  accuracy_decimals: 0
+  update_interval: 30s
+  lambda: |-
+    if (!id(flow_sensor_enabled).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (id(dhw_active).state) return 0.0f;
+    if (!id(cool_demand_active_sensor).state) return 0.0f;
+    return fabsf(id(thermal_power).state);
+
+- platform: template
+  id: cop_electrical_power_cooling
+  internal: true
+  device_class: power
+  state_class: measurement
+  unit_of_measurement: "W"
+  accuracy_decimals: 0
+  update_interval: 30s
+  lambda: |-
+    if (!id(flow_sensor_enabled).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (id(dhw_active).state) return 0.0f;
+    if (!id(cool_demand_active_sensor).state) return 0.0f;
+    return id(power_compressor).state;
+
+# DHW-only power samples for COP energy tracking.
+- platform: template
+  id: cop_thermal_power_dhw
+  internal: true
+  device_class: power
+  state_class: measurement
+  unit_of_measurement: "W"
+  accuracy_decimals: 0
+  update_interval: 30s
+  lambda: |-
+    if (!id(flow_sensor_enabled).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (!id(dhw_active).state) return 0.0f;
+    return fabsf(id(thermal_power).state);
+
+- platform: template
+  id: cop_electrical_power_dhw
+  internal: true
+  device_class: power
+  state_class: measurement
+  unit_of_measurement: "W"
+  accuracy_decimals: 0
+  update_interval: 30s
+  lambda: |-
+    if (!id(flow_sensor_enabled).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (!id(dhw_active).state) return 0.0f;
+    return id(power_compressor).state;
+
+# Per-mode energy buckets (kWh). Reset by the time: component.
+- platform: integration
+  id: thermal_energy_hour_heating
+  internal: true
+  restore: false
+  sensor: cop_thermal_power_heating
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: electrical_energy_hour_heating
+  internal: true
+  restore: false
+  sensor: cop_electrical_power_heating
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: thermal_energy_day_heating
+  internal: true
+  restore: false
+  sensor: cop_thermal_power_heating
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: electrical_energy_day_heating
+  internal: true
+  restore: false
+  sensor: cop_electrical_power_heating
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: thermal_energy_hour_cooling
+  internal: true
+  restore: false
+  sensor: cop_thermal_power_cooling
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: electrical_energy_hour_cooling
+  internal: true
+  restore: false
+  sensor: cop_electrical_power_cooling
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: thermal_energy_day_cooling
+  internal: true
+  restore: false
+  sensor: cop_thermal_power_cooling
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: electrical_energy_day_cooling
+  internal: true
+  restore: false
+  sensor: cop_electrical_power_cooling
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: thermal_energy_hour_dhw
+  internal: true
+  restore: false
+  sensor: cop_thermal_power_dhw
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: electrical_energy_hour_dhw
+  internal: true
+  restore: false
+  sensor: cop_electrical_power_dhw
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: thermal_energy_day_dhw
+  internal: true
+  restore: false
+  sensor: cop_thermal_power_dhw
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: electrical_energy_day_dhw
+  internal: true
+  restore: false
+  sensor: cop_electrical_power_dhw
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+# COP / EER / SEER per period = thermal energy / electrical energy.
+- platform: template
+  name: "COP verwarmen (uur)"
+  id: cop_hour_heating
+  accuracy_decimals: 2
+  state_class: measurement
+  update_interval: 60s
+  lambda: |-
+    float e = id(electrical_energy_hour_heating).state;
+    float t = id(thermal_energy_hour_heating).state;
+    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
+    return t / e;
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
+  name: "COP verwarmen (dag)"
+  id: cop_day_heating
+  accuracy_decimals: 2
+  state_class: measurement
+  update_interval: 60s
+  lambda: |-
+    float e = id(electrical_energy_day_heating).state;
+    float t = id(thermal_energy_day_heating).state;
+    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
+    return t / e;
+  web_server: 
+    sorting_group_id: diagnostic
+
+
+- platform: template
+  name: "EER koelen (uur)"
+  id: eer_hour_cooling
+  accuracy_decimals: 2
+  state_class: measurement
+  update_interval: 60s
+  lambda: |-
+    float e = id(electrical_energy_hour_cooling).state;
+    float t = id(thermal_energy_hour_cooling).state;
+    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
+    return t / e;
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
+  name: "EER koelen (dag)"
+  id: eer_day_cooling
+  accuracy_decimals: 2
+  state_class: measurement
+  update_interval: 60s
+  lambda: |-
+    float e = id(electrical_energy_day_cooling).state;
+    float t = id(thermal_energy_day_cooling).state;
+    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
+    return t / e;
+  web_server: 
+    sorting_group_id: diagnostic
+
+
+- platform: template
+  name: "COP tapwater (uur)"
+  id: cop_hour_dhw
+  accuracy_decimals: 2
+  state_class: measurement
+  update_interval: 60s
+  lambda: |-
+    float e = id(electrical_energy_hour_dhw).state;
+    float t = id(thermal_energy_hour_dhw).state;
+    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
+    return t / e;
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
+  name: "COP tapwater (dag)"
+  id: cop_day_dhw
+  accuracy_decimals: 2
+  state_class: measurement
+  update_interval: 60s
+  lambda: |-
+    float e = id(electrical_energy_day_dhw).state;
+    float t = id(thermal_energy_day_dhw).state;
+    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
+    return t / e;
+  web_server: 
+    sorting_group_id: diagnostic
+
           
 - platform: uptime
   name: "Uptime"

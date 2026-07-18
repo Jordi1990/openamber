@@ -160,6 +160,30 @@ sensor:
       name: "Free PSRAM"
       id: system_psram_free
       disabled_by_default: true
+  - platform: pulse_counter
+    pin:
+      number: GPIO16
+      mode:
+        input: true
+        pullup: false
+    internal_filter: 
+      milliseconds: 1
+    use_pcnt: false
+    count_mode:
+      falling_edge: INCREMENT
+      rising_edge: DISABLE
+    name: Pulse meter
+    id: water_flow_rate
+    device_class: volume_flow_rate
+    unit_of_measurement: L/min
+    filters:
+      - lambda: return (x / id(flow_sensor_calibration).state);
+    total:
+      name: Total liters
+      unit_of_measurement: l
+      filters:
+        - lambda: return x / id(flow_sensor_calibration).state;
+        - delta: 1
 
 font: !include openamber/ui/fonts.yaml
 

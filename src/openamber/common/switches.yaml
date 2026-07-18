@@ -135,6 +135,15 @@
     sorting_group_id: manual_control
 
 - platform: template
+  id: flow_sensor_enabled
+  name: "Flow sensor aanwezig"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server:
+    sorting_group_id: general_settings
+
+- platform: template
   id: emergency_mode_enabled
   name: "Noodbedrijf"
   optimistic: True
