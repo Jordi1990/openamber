@@ -164,6 +164,7 @@
 - platform: integration
   id: thermal_energy_hour_heating
   internal: true
+  restore: false
   sensor: cop_thermal_power_heating
   time_unit: h
   filters:
@@ -172,6 +173,7 @@
 - platform: integration
   id: electrical_energy_hour_heating
   internal: true
+  restore: false
   sensor: cop_electrical_power_heating
   time_unit: h
   filters:
@@ -180,6 +182,7 @@
 - platform: integration
   id: thermal_energy_day_heating
   internal: true
+  restore: false
   sensor: cop_thermal_power_heating
   time_unit: h
   filters:
@@ -188,56 +191,16 @@
 - platform: integration
   id: electrical_energy_day_heating
   internal: true
+  restore: false
   sensor: cop_electrical_power_heating
   time_unit: h
-  filters:
-    - multiply: 0.001
-
-- platform: integration
-  id: thermal_energy_year_heating
-  internal: true
-  sensor: cop_thermal_power_heating
-  time_unit: h
-  filters:
-    - multiply: 0.001
-
-- platform: integration
-  id: electrical_energy_year_heating
-  internal: true
-  sensor: cop_electrical_power_heating
-  time_unit: h
-  filters:
-    - multiply: 0.001
-
-- platform: integration
-  id: thermal_energy_total_heating
-  internal: true
-  restore: true
-  sensor: cop_thermal_power_heating
-  time_unit: h
-  unit_of_measurement: "kWh"
-  device_class: energy
-  state_class: total_increasing
-  accuracy_decimals: 3
-  filters:
-    - multiply: 0.001
-
-- platform: integration
-  id: electrical_energy_total_heating
-  internal: true
-  restore: true
-  sensor: cop_electrical_power_heating
-  time_unit: h
-  unit_of_measurement: "kWh"
-  device_class: energy
-  state_class: total_increasing
-  accuracy_decimals: 3
   filters:
     - multiply: 0.001
 
 - platform: integration
   id: thermal_energy_hour_cooling
   internal: true
+  restore: false
   sensor: cop_thermal_power_cooling
   time_unit: h
   filters:
@@ -246,6 +209,7 @@
 - platform: integration
   id: electrical_energy_hour_cooling
   internal: true
+  restore: false
   sensor: cop_electrical_power_cooling
   time_unit: h
   filters:
@@ -254,6 +218,7 @@
 - platform: integration
   id: thermal_energy_day_cooling
   internal: true
+  restore: false
   sensor: cop_thermal_power_cooling
   time_unit: h
   filters:
@@ -262,56 +227,16 @@
 - platform: integration
   id: electrical_energy_day_cooling
   internal: true
+  restore: false
   sensor: cop_electrical_power_cooling
   time_unit: h
-  filters:
-    - multiply: 0.001
-
-- platform: integration
-  id: thermal_energy_year_cooling
-  internal: true
-  sensor: cop_thermal_power_cooling
-  time_unit: h
-  filters:
-    - multiply: 0.001
-
-- platform: integration
-  id: electrical_energy_year_cooling
-  internal: true
-  sensor: cop_electrical_power_cooling
-  time_unit: h
-  filters:
-    - multiply: 0.001
-
-- platform: integration
-  id: thermal_energy_total_cooling
-  internal: true
-  restore: true
-  sensor: cop_thermal_power_cooling
-  time_unit: h
-  unit_of_measurement: "kWh"
-  device_class: energy
-  state_class: total_increasing
-  accuracy_decimals: 3
-  filters:
-    - multiply: 0.001
-
-- platform: integration
-  id: electrical_energy_total_cooling
-  internal: true
-  restore: true
-  sensor: cop_electrical_power_cooling
-  time_unit: h
-  unit_of_measurement: "kWh"
-  device_class: energy
-  state_class: total_increasing
-  accuracy_decimals: 3
   filters:
     - multiply: 0.001
 
 - platform: integration
   id: thermal_energy_hour_dhw
   internal: true
+  restore: false
   sensor: cop_thermal_power_dhw
   time_unit: h
   filters:
@@ -320,6 +245,7 @@
 - platform: integration
   id: electrical_energy_hour_dhw
   internal: true
+  restore: false
   sensor: cop_electrical_power_dhw
   time_unit: h
   filters:
@@ -328,6 +254,7 @@
 - platform: integration
   id: thermal_energy_day_dhw
   internal: true
+  restore: false
   sensor: cop_thermal_power_dhw
   time_unit: h
   filters:
@@ -336,50 +263,9 @@
 - platform: integration
   id: electrical_energy_day_dhw
   internal: true
+  restore: false
   sensor: cop_electrical_power_dhw
   time_unit: h
-  filters:
-    - multiply: 0.001
-
-- platform: integration
-  id: thermal_energy_year_dhw
-  internal: true
-  sensor: cop_thermal_power_dhw
-  time_unit: h
-  filters:
-    - multiply: 0.001
-
-- platform: integration
-  id: electrical_energy_year_dhw
-  internal: true
-  sensor: cop_electrical_power_dhw
-  time_unit: h
-  filters:
-    - multiply: 0.001
-
-- platform: integration
-  id: thermal_energy_total_dhw
-  internal: true
-  restore: true
-  sensor: cop_thermal_power_dhw
-  time_unit: h
-  unit_of_measurement: "kWh"
-  device_class: energy
-  state_class: total_increasing
-  accuracy_decimals: 3
-  filters:
-    - multiply: 0.001
-
-- platform: integration
-  id: electrical_energy_total_dhw
-  internal: true
-  restore: true
-  sensor: cop_electrical_power_dhw
-  time_unit: h
-  unit_of_measurement: "kWh"
-  device_class: energy
-  state_class: total_increasing
-  accuracy_decimals: 3
   filters:
     - multiply: 0.001
 
@@ -412,33 +298,6 @@
   web_server: 
     sorting_group_id: diagnostic
 
-- platform: template
-  name: "SCOP verwarmen (seizoen)"
-  id: scop_year_heating
-  accuracy_decimals: 2
-  state_class: measurement
-  update_interval: 60s
-  lambda: |-
-    float e = id(electrical_energy_year_heating).state;
-    float t = id(thermal_energy_year_heating).state;
-    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
-    return t / e;
-  web_server: 
-    sorting_group_id: diagnostic
-
-- platform: template
-  name: "SCOP verwarmen (totaal)"
-  id: scop_total_heating
-  accuracy_decimals: 2
-  state_class: measurement
-  update_interval: 60s
-  lambda: |-
-    float e = id(electrical_energy_total_heating).state;
-    float t = id(thermal_energy_total_heating).state;
-    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
-    return t / e;
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: template
   name: "EER koelen (uur)"
@@ -468,33 +327,6 @@
   web_server: 
     sorting_group_id: diagnostic
 
-- platform: template
-  name: "SEER koelen (seizoen)"
-  id: seer_year_cooling
-  accuracy_decimals: 2
-  state_class: measurement
-  update_interval: 60s
-  lambda: |-
-    float e = id(electrical_energy_year_cooling).state;
-    float t = id(thermal_energy_year_cooling).state;
-    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
-    return t / e;
-  web_server: 
-    sorting_group_id: diagnostic
-
-- platform: template
-  name: "SEER koelen (totaal)"
-  id: seer_total_cooling
-  accuracy_decimals: 2
-  state_class: measurement
-  update_interval: 60s
-  lambda: |-
-    float e = id(electrical_energy_total_cooling).state;
-    float t = id(thermal_energy_total_cooling).state;
-    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
-    return t / e;
-  web_server: 
-    sorting_group_id: diagnostic
 
 - platform: template
   name: "COP tapwater (uur)"
@@ -524,33 +356,6 @@
   web_server: 
     sorting_group_id: diagnostic
 
-- platform: template
-  name: "COP tapwater (jaar)"
-  id: cop_year_dhw
-  accuracy_decimals: 2
-  state_class: measurement
-  update_interval: 60s
-  lambda: |-
-    float e = id(electrical_energy_year_dhw).state;
-    float t = id(thermal_energy_year_dhw).state;
-    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
-    return t / e;
-  web_server: 
-    sorting_group_id: diagnostic
-
-- platform: template
-  name: "COP tapwater (totaal)"
-  id: cop_total_dhw
-  accuracy_decimals: 2
-  state_class: measurement
-  update_interval: 60s
-  lambda: |-
-    float e = id(electrical_energy_total_dhw).state;
-    float t = id(thermal_energy_total_dhw).state;
-    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
-    return t / e;
-  web_server: 
-    sorting_group_id: diagnostic
           
 - platform: uptime
   name: "Uptime"

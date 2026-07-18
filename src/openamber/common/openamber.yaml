@@ -241,20 +241,6 @@ time:
           - sensor.integration.reset: electrical_energy_day_cooling
           - sensor.integration.reset: thermal_energy_day_dhw
           - sensor.integration.reset: electrical_energy_day_dhw
-      # Reset the seasonal SCOP energy buckets at the start of the year.
-      - seconds: 0
-        minutes: 0
-        hours: 0
-        days_of_month: 1
-        months: 1
-        then:
-          - sensor.integration.reset: thermal_energy_year_heating
-          - sensor.integration.reset: electrical_energy_year_heating
-          - sensor.integration.reset: thermal_energy_year_cooling
-          - sensor.integration.reset: electrical_energy_year_cooling
-          - sensor.integration.reset: thermal_energy_year_dhw
-          - sensor.integration.reset: electrical_energy_year_dhw
-
 modbus_controller:
 - id: modbus_outside_unit
   address: 0x2
