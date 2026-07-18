@@ -169,6 +169,8 @@ sensor:
     internal_filter: 
       milliseconds: 1
     use_pcnt: false
+    count_mode:
+      falling_edge: INCREASE
     name: Pulse meter
     id: water_flow_rate
     device_class: volume_flow_rate

@@ -212,6 +212,7 @@
 - platform: integration
   id: thermal_energy_total_heating
   internal: true
+  restore: true
   sensor: cop_thermal_power_heating
   time_unit: h
   unit_of_measurement: "kWh"
@@ -224,6 +225,7 @@
 - platform: integration
   id: electrical_energy_total_heating
   internal: true
+  restore: true
   sensor: cop_electrical_power_heating
   time_unit: h
   unit_of_measurement: "kWh"
@@ -284,6 +286,7 @@
 - platform: integration
   id: thermal_energy_total_cooling
   internal: true
+  restore: true
   sensor: cop_thermal_power_cooling
   time_unit: h
   unit_of_measurement: "kWh"
@@ -296,6 +299,7 @@
 - platform: integration
   id: electrical_energy_total_cooling
   internal: true
+  restore: true
   sensor: cop_electrical_power_cooling
   time_unit: h
   unit_of_measurement: "kWh"
@@ -356,6 +360,7 @@
 - platform: integration
   id: thermal_energy_total_dhw
   internal: true
+  restore: true
   sensor: cop_thermal_power_dhw
   time_unit: h
   unit_of_measurement: "kWh"
@@ -368,6 +373,7 @@
 - platform: integration
   id: electrical_energy_total_dhw
   internal: true
+  restore: true
   sensor: cop_electrical_power_dhw
   time_unit: h
   unit_of_measurement: "kWh"
