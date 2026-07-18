@@ -1125,3 +1125,18 @@
           id(climate_controller).set_cool_overrun(x);
   web_server:
     sorting_group_id: heating_settings
+
+- platform: template
+  name: Flow sensor calibration
+  id: flow_sensor_calibration
+  min_value: 1
+  max_value: 1000
+  initial_value: 476
+  mode: box
+  step: 1
+  restore_value: true
+  optimistic: true
+  unit_of_measurement: pulses/l
+  entity_category: config
+  web_server: 
+      sorting_group_id: general_settings

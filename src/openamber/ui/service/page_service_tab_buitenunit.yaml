@@ -40,7 +40,7 @@ obj:
           then:
             - lambda: |-
                 const auto duty = lv_slider_get_value(id(service_fan_slider));
-                lv_label_set_text_fmt(id(service_fan_slider_value), "%d RPM", duty);
+                lv_label_set_text_fmt(id(service_fan_slider_value), "%ld RPM", (long) duty);
         on_release:
           then:
             - if:

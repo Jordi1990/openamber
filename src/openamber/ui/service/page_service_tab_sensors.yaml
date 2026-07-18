@@ -1,4 +1,4 @@
-obj:
+﻿obj:
   id: service_sensors_panel
   width: 100%
   height: 100%
@@ -14,7 +14,7 @@ obj:
     type: FLEX
     flex_flow: ROW_WRAP
     flex_align_main: START
-    flex_align_cross: STRETCH
+    flex_align_cross: CENTER
     pad_row: 10
     pad_column: 10
   widgets:
@@ -85,4 +85,5 @@ obj:
           - label: { text: "Systeem", text_color: 0x111827, text_font: font_text_20, align: TOP_LEFT }
           - label: { width: 44%, text: "Defrost / Bodemplaat\nModbus binnen\nModbus buiten\nSG contacten A / B\nWarmte/koude vraag", text_color: 0x6B7280, text_font: font_text_20, long_mode: WRAP, align: TOP_LEFT, y: 30 }
           - label: { id: service_diag_system_values, width: 54%, text: "- / -\n-\n-\n- / -\n- / -", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: WRAP, align: TOP_RIGHT, y: 30 }
+
 

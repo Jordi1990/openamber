@@ -1,4 +1,4 @@
-# Panel: Pomp
+﻿# Panel: Pomp
 # ------------------------------------------------------------
 obj:
   id: panel_pump
@@ -17,7 +17,7 @@ obj:
     type: FLEX
     flex_flow: COLUMN
     flex_align_main: START
-    flex_align_cross: STRETCH
+    flex_align_cross: CENTER
     pad_row: 4
 
   widgets:
@@ -113,7 +113,7 @@ obj:
           type: FLEX
           flex_flow: COLUMN
           flex_align_main: START
-          flex_align_cross: STRETCH
+          flex_align_cross: CENTER
           pad_row: 6
         widgets: !include page_settings_tab_pump_algemeen_content.yaml
 
@@ -131,8 +131,9 @@ obj:
           type: FLEX
           flex_flow: COLUMN
           flex_align_main: START
-          flex_align_cross: STRETCH
+          flex_align_cross: CENTER
           pad_row: 6
         widgets: !include page_settings_tab_pump_pompsnelheid_content.yaml
 
     - !include page_settings_tab_frost.yaml
+

@@ -133,6 +133,8 @@ public:
       unknown_state_(unknown_state),
       idle_state_(idle_state) {}
 
+  virtual ~BaseController() = default;
+
   void RequestToStop()
   {
     requested_to_stop_ = true;

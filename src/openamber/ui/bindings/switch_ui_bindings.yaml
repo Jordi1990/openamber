@@ -38,6 +38,17 @@
     then:
       - script.execute: update_service_mode_ui
 
+- id: !extend flow_sensor_enabled
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_flow_sensor_enabled_switch_ui
+          state:
+            checked: !lambda 'return x;'
+      - script.execute: update_flow_sensor_calibration_ui
+      - script.execute: update_home_pump_tile_state
+      - script.execute: update_water_mode_efficiency_display
+
 - id: !extend pump_p0_relay_switch
   on_state:
     then:

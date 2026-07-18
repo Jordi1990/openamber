@@ -36,58 +36,10 @@ obj:
         pad_top: 4
         pad_bottom: 4
         on_click:
-          - lvgl.widget.update:
-              id: page_home
-              hidden: false
-          - lvgl.widget.update:
-              id: page_service
-              hidden: true
-          - lvgl.widget.update:
-              id: page_system
-              hidden: true
-          - lvgl.widget.update:
-              id: page_settings
-              hidden: true
+          - script.execute:
+              id: nav_select_tab
+              tab_index: 0
           - script.execute: update_home_thermostat_mode_ui
-          - lvgl.widget.update:
-              id: nav_home
-              bg_opa: 100%
-          - lvgl.widget.update:
-              id: nav_home_icon
-              text_color: 0xFFFFFF
-          - lvgl.widget.update:
-              id: nav_home_label
-              text_color: 0xFFFFFF
-
-          - lvgl.widget.update:
-              id: nav_settings
-              bg_opa: 0%
-          - lvgl.widget.update:
-              id: nav_settings_icon
-              text_color: 0xD1D5DB
-          - lvgl.widget.update:
-              id: nav_settings_label
-              text_color: 0xD1D5DB
-
-          - lvgl.widget.update:
-              id: nav_service
-              bg_opa: 0%
-          - lvgl.widget.update:
-              id: nav_service_icon
-              text_color: 0xD1D5DB
-          - lvgl.widget.update:
-              id: nav_service_label
-              text_color: 0xD1D5DB
-          - lvgl.widget.update:
-              id: nav_system
-              bg_opa: 0%
-          - lvgl.widget.update:
-              id: nav_system_icon
-              text_color: 0xD1D5DB
-          - lvgl.widget.update:
-              id: nav_system_label
-              text_color: 0xD1D5DB
-
         widgets:
           - label:
               id: nav_home_icon
@@ -159,58 +111,9 @@ obj:
         pad_top: 4
         pad_bottom: 4
         on_click:
-          - lvgl.widget.update:
-              id: page_home
-              hidden: true
-          - lvgl.widget.update:
-              id: page_service
-              hidden: true
-          - lvgl.widget.update:
-              id: page_system
-              hidden: true
-          - lvgl.widget.update:
-              id: page_settings
-              hidden: false
-
-          - lvgl.widget.update:
-              id: nav_settings
-              bg_opa: 100%
-          - lvgl.widget.update:
-              id: nav_settings_icon
-              text_color: 0xFFFFFF
-          - lvgl.widget.update:
-              id: nav_settings_label
-              text_color: 0xFFFFFF
-
-          - lvgl.widget.update:
-              id: nav_home
-              bg_opa: 0%
-          - lvgl.widget.update:
-              id: nav_home_icon
-              text_color: 0xD1D5DB
-          - lvgl.widget.update:
-              id: nav_home_label
-              text_color: 0xD1D5DB
-
-          - lvgl.widget.update:
-              id: nav_service
-              bg_opa: 0%
-          - lvgl.widget.update:
-              id: nav_service_icon
-              text_color: 0xD1D5DB
-          - lvgl.widget.update:
-              id: nav_service_label
-              text_color: 0xD1D5DB
-          - lvgl.widget.update:
-              id: nav_system
-              bg_opa: 0%
-          - lvgl.widget.update:
-              id: nav_system_icon
-              text_color: 0xD1D5DB
-          - lvgl.widget.update:
-              id: nav_system_label
-              text_color: 0xD1D5DB
-
+          - script.execute:
+              id: nav_select_tab
+              tab_index: 1
         widgets:
           - label:
               id: nav_settings_icon
@@ -246,92 +149,9 @@ obj:
         border_opa: 0%
         radius: 24
         on_click:
-          - lvgl.widget.update:
-              id: page_home
-              hidden: true
-          - lvgl.widget.update:
-              id: page_service
-              hidden: false
-          - lvgl.widget.update:
-              id: page_system
-              hidden: true
-          - lvgl.widget.update:
-              id: page_settings
-              hidden: true
-          - lvgl.widget.show:
-              id: service_tabs_bar
-          - lvgl.widget.update:
-              id: service_maintenance_panel
-              width: 100%
-              align: TOP_LEFT
-          - lvgl.widget.update:
-              id: service_sensors_panel
-              width: 100%
-              align: TOP_LEFT
-          - lvgl.widget.show:
-              id: service_maintenance_panel
-          - lvgl.widget.update:
-              id: service_maintenance_layout
-              y: 112
-              height: 72%
-          - lvgl.widget.show:
-              id: service_maintenance_header
-          - lvgl.widget.show:
-              id: service_maintenance_title
-          - lvgl.widget.show:
-              id: service_maintenance_state
-          - lvgl.widget.hide:
-              id: service_sensors_panel
-          - lvgl.widget.show:
-              id: set_service_mode_switch_ui
-          - lvgl.widget.hide:
-              id: service_mpanel_compressor
-          - lvgl.widget.hide:
-              id: service_mpanel_pumps
-          - lvgl.widget.hide:
-              id: service_mpanel_valve
-          - lvgl.widget.hide:
-              id: service_mpanel_backup
-          - script.execute: update_service_mode_ui
-
-          - lvgl.widget.update:
-              id: nav_service
-              bg_opa: 100%
-          - lvgl.widget.update:
-              id: nav_service_icon
-              text_color: 0xFFFFFF
-          - lvgl.widget.update:
-              id: nav_service_label
-              text_color: 0xFFFFFF
-
-          - lvgl.widget.update:
-              id: nav_home
-              bg_opa: 0%
-          - lvgl.widget.update:
-              id: nav_home_icon
-              text_color: 0xD1D5DB
-          - lvgl.widget.update:
-              id: nav_home_label
-              text_color: 0xD1D5DB
-
-          - lvgl.widget.update:
-              id: nav_settings
-              bg_opa: 0%
-          - lvgl.widget.update:
-              id: nav_settings_icon
-              text_color: 0xD1D5DB
-          - lvgl.widget.update:
-              id: nav_settings_label
-              text_color: 0xD1D5DB
-          - lvgl.widget.update:
-              id: nav_system
-              bg_opa: 0%
-          - lvgl.widget.update:
-              id: nav_system_icon
-              text_color: 0xD1D5DB
-          - lvgl.widget.update:
-              id: nav_system_label
-              text_color: 0xD1D5DB
+          - script.execute:
+              id: nav_select_tab
+              tab_index: 2
         widgets:
           - label:
               id: nav_service_icon
@@ -367,58 +187,9 @@ obj:
         border_opa: 0%
         radius: 24
         on_click:
-          - lvgl.widget.update:
-              id: page_home
-              hidden: true
-          - lvgl.widget.update:
-              id: page_service
-              hidden: true
-          - lvgl.widget.update:
-              id: page_system
-              hidden: false
-          - lvgl.widget.update:
-              id: page_settings
-              hidden: true
-
-          - lvgl.widget.update:
-              id: nav_system
-              bg_opa: 100%
-          - lvgl.widget.update:
-              id: nav_system_icon
-              text_color: 0xFFFFFF
-          - lvgl.widget.update:
-              id: nav_system_label
-              text_color: 0xFFFFFF
-
-          - lvgl.widget.update:
-              id: nav_home
-              bg_opa: 0%
-          - lvgl.widget.update:
-              id: nav_home_icon
-              text_color: 0xD1D5DB
-          - lvgl.widget.update:
-              id: nav_home_label
-              text_color: 0xD1D5DB
-
-          - lvgl.widget.update:
-              id: nav_settings
-              bg_opa: 0%
-          - lvgl.widget.update:
-              id: nav_settings_icon
-              text_color: 0xD1D5DB
-          - lvgl.widget.update:
-              id: nav_settings_label
-              text_color: 0xD1D5DB
-
-          - lvgl.widget.update:
-              id: nav_service
-              bg_opa: 0%
-          - lvgl.widget.update:
-              id: nav_service_icon
-              text_color: 0xD1D5DB
-          - lvgl.widget.update:
-              id: nav_service_label
-              text_color: 0xD1D5DB
+          - script.execute:
+              id: nav_select_tab
+              tab_index: 3
         widgets:
           - label:
               id: nav_system_icon

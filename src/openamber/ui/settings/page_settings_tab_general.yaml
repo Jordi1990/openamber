@@ -16,7 +16,7 @@ obj:
     type: FLEX
     flex_flow: COLUMN
     flex_align_main: START
-    flex_align_cross: STRETCH
+    flex_align_cross: CENTER
     pad_row: 4
 
   widgets:
@@ -99,6 +99,27 @@ obj:
               widgets:
                 - label: { id: general_stab_noodbedrijf_lbl, text: "Noodbedrijf", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
 
+          - obj:
+              id: general_stab_hardware
+              width: SIZE_CONTENT
+              height: 34
+              bg_color: 0xCBD5E1
+              bg_opa: 100%
+              radius: 8
+              border_opa: 0%
+              pad_left: 12
+              pad_right: 12
+              pad_top: 4
+              pad_bottom: 4
+              scrollbar_mode: "OFF"
+              scrollable: false
+              on_click:
+                - script.execute:
+                    id: general_select_tab
+                    tab_index: 3
+              widgets:
+                - label: { id: general_stab_hardware_lbl, text: "Opties", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
+
     - obj:
         id: panel_general_page_systeem
         width: 100%
@@ -112,7 +133,7 @@ obj:
           type: FLEX
           flex_flow: COLUMN
           flex_align_main: START
-          flex_align_cross: STRETCH
+          flex_align_cross: CENTER
           pad_row: 6
         widgets:
           - obj:
@@ -233,7 +254,7 @@ obj:
           type: FLEX
           flex_flow: COLUMN
           flex_align_main: START
-          flex_align_cross: STRETCH
+          flex_align_cross: CENTER
           pad_row: 6
         widgets:
           - obj:
@@ -388,7 +409,7 @@ obj:
           type: FLEX
           flex_flow: COLUMN
           flex_align_main: START
-          flex_align_cross: STRETCH
+          flex_align_cross: CENTER
           pad_row: 6
         widgets:
           - obj:
@@ -418,4 +439,96 @@ obj:
                           else:
                             - switch.turn_on: emergency_mode_enabled
 
+    - obj:
+        id: panel_general_page_hardware
+        hidden: true
+        width: 100%
+        height: SIZE_CONTENT
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: COLUMN
+          flex_align_main: START
+          flex_align_cross: CENTER
+          pad_row: 6
+        widgets:
+          - obj:
+              id: set_general_hardware_flow_sensor
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Flow sensor aanwezig", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Gebruik de flowsensor voor flow en energie-berekeningen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - switch:
+                    id: set_flow_sensor_enabled_switch_ui
+                    align: TOP_RIGHT
+                    bg_color: 0x9CA3AF
+                    indicator:
+                      bg_color: 0x16A34A
+                    knob:
+                      bg_color: 0xFFFFFF
+                    on_click:
+                      - if:
+                          condition:
+                            switch.is_on: flow_sensor_enabled
+                          then:
+                            - switch.turn_off: flow_sensor_enabled
+                          else:
+                            - switch.turn_on: flow_sensor_enabled
+
+          - obj:
+              id: set_general_hardware_flow_sensor_calibration
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Flow sensor kalibratie", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Aantal pulses per liter voor de flowsensor", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - obj:
+                    width: SIZE_CONTENT
+                    height: SIZE_CONTENT
+                    align: TOP_RIGHT
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_all: 0
+                    layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                    widgets:
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.decrement: flow_sensor_calibration
+                          widgets:
+                            - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                      - label: { id: set_flow_sensor_calibration_val, text: "476 p/l", text_color: 0x1F2933, text_font: font_text_24 }
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.increment: flow_sensor_calibration
+                          widgets:
+                            - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
 # ------------------------------------------------------------
+

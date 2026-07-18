@@ -35,6 +35,7 @@
               default: return lv_color_hex(0xE5E7EB);
             }
       - script.execute: update_water_mode_temperature_display
+      - script.execute: update_water_mode_efficiency_display
 
 # ── Settings: Thermostat dropdown ──
 - id: !extend thermostat_mode_select
