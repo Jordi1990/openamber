@@ -1,0 +1,304 @@
+obj:
+  id: page_thermostat
+  width: 100%
+  height: 76%
+  x: 0
+  y: 70
+  hidden: true
+  bg_opa: 0%
+  border_opa: 0%
+  scrollbar_mode: "OFF"
+  scrollable: false
+  pad_left: 24
+  pad_right: 24
+  pad_top: 10
+  pad_bottom: 10
+
+  widgets:
+    - obj:
+        id: thermostat_page_card
+        width: 100%
+        height: 100%
+        bg_color: 0xF5F8FC
+        bg_opa: 100%
+        radius: 18
+        border_width: 0
+        border_opa: 0%
+        shadow_width: 10
+        shadow_spread: 0
+        shadow_color: 0x000000
+        shadow_opa: 20%
+        pad_left: 24
+        pad_right: 24
+        pad_top: 20
+        pad_bottom: 20
+        scrollbar_mode: "OFF"
+        scrollable: false
+
+        widgets:
+          - obj:
+              id: home_thermostat_group
+              align: TOP_LEFT
+              x: 0
+              y: 0
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 0
+              scrollbar_mode: "OFF"
+              scrollable: false
+              widgets:
+                - obj:
+                    id: home_thermostat_controls_panel
+                    width: 100%
+                    height: SIZE_CONTENT
+                    hidden: true
+                    bg_color: 0xEAF1F8
+                    bg_opa: 100%
+                    radius: 14
+                    border_width: 1
+                    border_color: 0xD7E0EA
+                    border_opa: 100%
+                    pad_left: 8
+                    pad_right: 8
+                    pad_top: 8
+                    pad_bottom: 8
+                    scrollbar_mode: "OFF"
+                    scrollable: false
+                    layout:
+                      type: FLEX
+                      flex_flow: COLUMN
+                      flex_align_cross: STRETCH
+                      pad_row: 8
+                    widgets:
+                      - obj:
+                          id: home_therm_compact_row
+                          width: 100%
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          layout:
+                            type: FLEX
+                            flex_flow: ROW
+                            flex_align_main: SPACE_BETWEEN
+                            flex_align_cross: START
+                            pad_column: 14
+                          widgets:
+                            - obj:
+                                id: home_therm_mode_column
+                                width: SIZE_CONTENT
+                                height: SIZE_CONTENT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                layout:
+                                  type: FLEX
+                                  flex_flow: COLUMN
+                                  flex_align_cross: START
+                                  pad_row: 6
+                                widgets:
+                                  - label:
+                                      id: home_thermostat_section_title
+                                      text: "Thermostaat"
+                                      text_color: 0x0F172A
+                                      text_font: font_text_20
+                                  - obj:
+                                      id: home_therm_mode_group
+                                      width: SIZE_CONTENT
+                                      height: SIZE_CONTENT
+                                      bg_color: 0xFFFFFF
+                                      bg_opa: 100%
+                                      radius: 12
+                                      border_width: 1
+                                      border_color: 0xD1D9E3
+                                      border_opa: 100%
+                                      pad_all: 0
+                                      layout:
+                                        type: FLEX
+                                        flex_flow: ROW
+                                        flex_align_cross: CENTER
+                                        pad_column: 0
+                                      widgets:
+                                        - obj:
+                                            id: home_therm_mode_heat_btn
+                                            width: 58
+                                            height: 46
+                                            bg_color: 0xFFFFFF
+                                            bg_opa: 100%
+                                            radius: 10
+                                            border_width: 1
+                                            border_color: 0xD1D9E3
+                                            border_opa: 100%
+                                            pad_left: 0
+                                            pad_right: 0
+                                            pad_top: 0
+                                            pad_bottom: 0
+                                            on_click:
+                                              - lambda: |-
+                                                  id(thermostat_control_mode_select).make_call().set_option("Verwarmen").perform();
+                                            layout:
+                                              type: FLEX
+                                              flex_flow: ROW
+                                              flex_align_main: CENTER
+                                              flex_align_cross: CENTER
+                                              pad_column: 6
+                                            widgets:
+                                              - label:
+                                                  id: home_therm_mode_heat_icon
+                                                  text: "\U000F0238"
+                                                  text_color: 0x4B5563
+                                                  text_font: font_mdi_30
+                                                  align: CENTER
+                                                  y: 1
+                                        - obj:
+                                            id: home_therm_mode_cool_btn
+                                            width: 58
+                                            height: 46
+                                            bg_color: 0xFFFFFF
+                                            bg_opa: 100%
+                                            radius: 0
+                                            border_width: 1
+                                            border_color: 0xD1D9E3
+                                            border_opa: 100%
+                                            pad_left: 0
+                                            pad_right: 0
+                                            pad_top: 0
+                                            pad_bottom: 0
+                                            on_click:
+                                              - lambda: |-
+                                                  id(thermostat_control_mode_select).make_call().set_option("Koelen").perform();
+                                            layout:
+                                              type: FLEX
+                                              flex_flow: ROW
+                                              flex_align_main: CENTER
+                                              flex_align_cross: CENTER
+                                              pad_column: 6
+                                            widgets:
+                                              - label:
+                                                  id: home_therm_mode_cool_icon
+                                                  text: "\U000F0759"
+                                                  text_color: 0x4B5563
+                                                  text_font: font_mdi_30
+                                                  align: CENTER
+                                        - obj:
+                                            id: home_therm_mode_off_btn
+                                            width: 58
+                                            height: 46
+                                            bg_color: 0xFFFFFF
+                                            bg_opa: 100%
+                                            radius: 10
+                                            border_width: 1
+                                            border_color: 0xD1D9E3
+                                            border_opa: 100%
+                                            pad_left: 0
+                                            pad_right: 0
+                                            pad_top: 0
+                                            pad_bottom: 0
+                                            on_click:
+                                              - lambda: |-
+                                                  id(thermostat_control_mode_select).make_call().set_option("Uit").perform();
+                                            layout:
+                                              type: FLEX
+                                              flex_flow: ROW
+                                              flex_align_main: CENTER
+                                              flex_align_cross: CENTER
+                                              pad_column: 6
+                                            widgets:
+                                              - label:
+                                                  id: home_therm_mode_off_icon
+                                                  text: "\U000F0902"
+                                                  text_color: 0x4B5563
+                                                  text_font: font_mdi_30
+                                                  align: CENTER
+
+                            - obj:
+                                id: home_therm_setpoint_column
+                                width: SIZE_CONTENT
+                                height: SIZE_CONTENT
+                                bg_opa: 0%
+                                border_width: 0
+                                border_opa: 0%
+                                pad_all: 0
+                                layout:
+                                  type: FLEX
+                                  flex_flow: COLUMN
+                                  flex_align_main: START
+                                  flex_align_cross: CENTER
+                                  pad_row: 6
+                                widgets:
+                                  - label:
+                                      id: home_therm_setpoint_title
+                                      text: "Ingestelde temperatuur"
+                                      text_color: 0x0F172A
+                                      text_font: font_text_20
+                                  - obj:
+                                      id: home_therm_setpoint_row
+                                      width: SIZE_CONTENT
+                                      height: SIZE_CONTENT
+                                      bg_opa: 0%
+                                      border_opa: 0%
+                                      pad_all: 0
+                                      layout:
+                                        type: FLEX
+                                        flex_flow: ROW
+                                        flex_align_cross: CENTER
+                                        pad_column: 8
+                                      widgets:
+                                        - obj:
+                                            id: home_therm_setpoint_dec
+                                            width: 46
+                                            height: 46
+                                            bg_color: 0xFFFFFF
+                                            bg_opa: 100%
+                                            radius: 10
+                                            border_width: 1
+                                            border_color: 0xD1D9E3
+                                            border_opa: 100%
+                                            scrollbar_mode: "OFF"
+                                            scrollable: false
+                                            on_click:
+                                              - number.decrement: thermostat_setpoint_number
+                                            widgets:
+                                              - label:
+                                                  id: home_therm_setpoint_dec_lbl
+                                                  text: "\U000F0374"
+                                                  text_color: 0x1E293B
+                                                  text_font: font_mdi_24
+                                                  align: CENTER
+
+                                        - label:
+                                            id: home_therm_setpoint_value
+                                            text: "20.5°C"
+                                            text_color: 0x0F2547
+                                            text_font: font_value_big
+
+                                        - obj:
+                                            id: home_therm_setpoint_inc
+                                            width: 46
+                                            height: 46
+                                            bg_color: 0xFFFFFF
+                                            bg_opa: 100%
+                                            radius: 10
+                                            border_width: 1
+                                            border_color: 0xD1D9E3
+                                            border_opa: 100%
+                                            scrollbar_mode: "OFF"
+                                            scrollable: false
+                                            on_click:
+                                              - number.increment: thermostat_setpoint_number
+                                            widgets:
+                                              - label:
+                                                  id: home_therm_setpoint_inc_lbl
+                                                  text: "\U000F0415"
+                                                  text_color: 0x1E293B
+                                                  text_font: font_mdi_24
+                                                  align: CENTER
+
+                      - label:
+                          id: home_therm_current_temp_value
+                          text: "-.-°C"
+                          hidden: true

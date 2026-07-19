@@ -206,6 +206,7 @@ lvgl:
     - !include openamber/ui/root_bg.yaml
     - !include openamber/ui/header_bar.yaml
     - !include openamber/ui/page_home.yaml
+    - !include openamber/ui/page_thermostat.yaml
     - !include openamber/ui/page_service.yaml
     - !include openamber/ui/page_system.yaml
     - !include openamber/ui/page_settings.yaml

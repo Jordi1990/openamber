@@ -54,7 +54,13 @@
                   auto idx = id(thermostat_mode_select).active_index();
                   return idx.has_value() ? idx.value() : 0;
       - script.execute: update_thermostat_mode_ui
-      - script.execute: update_home_thermostat_visibility
+      - script.execute: update_home_thermostat_mode_ui
+
+# ── Thermostaat mode select: update thermostat control panel state ──
+- id: !extend thermostat_control_mode_select
+  on_value:
+    then:
+      - script.execute: update_home_thermostat_mode_ui
 
 # ── Settings: Heat mode dropdown + heat curve visibility ──
 - id: !extend heat_mode_select

@@ -86,6 +86,7 @@
           lambda: 'return tab_index == 0;'
         then:
           - lvgl.widget.update: { id: page_home, hidden: false }
+          - lvgl.widget.update: { id: page_thermostat, hidden: true }
           - lvgl.widget.update: { id: page_service, hidden: true }
           - lvgl.widget.update: { id: page_system, hidden: true }
           - lvgl.widget.update: { id: page_settings, hidden: true }
@@ -95,57 +96,75 @@
                 lambda: 'return tab_index == 1;'
               then:
                 - lvgl.widget.update: { id: page_home, hidden: true }
+                - lvgl.widget.update: { id: page_thermostat, hidden: false }
                 - lvgl.widget.update: { id: page_service, hidden: true }
                 - lvgl.widget.update: { id: page_system, hidden: true }
-                - lvgl.widget.update: { id: page_settings, hidden: false }
+                - lvgl.widget.update: { id: page_settings, hidden: true }
+                - script.execute: update_home_thermostat_mode_ui
               else:
                 - if:
                     condition:
                       lambda: 'return tab_index == 2;'
                     then:
                       - lvgl.widget.update: { id: page_home, hidden: true }
-                      - lvgl.widget.update: { id: page_service, hidden: false }
-                      - lvgl.widget.update: { id: page_system, hidden: true }
-                      - lvgl.widget.update: { id: page_settings, hidden: true }
-                      - lvgl.widget.show: { id: service_tabs_bar }
-                      - lvgl.widget.update: { id: service_maintenance_panel, width: 100%, align: TOP_LEFT }
-                      - lvgl.widget.update: { id: service_sensors_panel, width: 100%, align: TOP_LEFT }
-                      - lvgl.widget.hide: { id: service_errors_panel }
-                      - lvgl.widget.hide: { id: service_warnings_panel }
-                      - lvgl.widget.show: { id: service_maintenance_panel }
-                      - lvgl.widget.update: { id: service_maintenance_layout, y: 112, height: 72% }
-                      - lvgl.widget.show: { id: service_maintenance_header }
-                      - lvgl.widget.show: { id: service_maintenance_title }
-                      - lvgl.widget.show: { id: service_maintenance_state }
-                      - lvgl.widget.hide: { id: service_sensors_panel }
-                      - lvgl.widget.show: { id: set_service_mode_switch_ui }
-                      - lvgl.widget.hide: { id: service_mpanel_compressor }
-                      - lvgl.widget.hide: { id: service_mpanel_pumps }
-                      - lvgl.widget.hide: { id: service_mpanel_valve }
-                      - lvgl.widget.hide: { id: service_mpanel_backup }
-                      - script.execute: update_service_mode_ui
-                      - script.execute: update_service_top_tabs_ui
-                    else:
-                      - lvgl.widget.update: { id: page_home, hidden: true }
+                      - lvgl.widget.update: { id: page_thermostat, hidden: true }
                       - lvgl.widget.update: { id: page_service, hidden: true }
-                      - lvgl.widget.update: { id: page_system, hidden: false }
-                      - lvgl.widget.update: { id: page_settings, hidden: true }
+                      - lvgl.widget.update: { id: page_system, hidden: true }
+                      - lvgl.widget.update: { id: page_settings, hidden: false }
+                    else:
+                      - if:
+                          condition:
+                            lambda: 'return tab_index == 3;'
+                          then:
+                            - lvgl.widget.update: { id: page_home, hidden: true }
+                            - lvgl.widget.update: { id: page_thermostat, hidden: true }
+                            - lvgl.widget.update: { id: page_service, hidden: false }
+                            - lvgl.widget.update: { id: page_system, hidden: true }
+                            - lvgl.widget.update: { id: page_settings, hidden: true }
+                            - lvgl.widget.show: { id: service_tabs_bar }
+                            - lvgl.widget.update: { id: service_maintenance_panel, width: 100%, align: TOP_LEFT }
+                            - lvgl.widget.update: { id: service_sensors_panel, width: 100%, align: TOP_LEFT }
+                            - lvgl.widget.hide: { id: service_errors_panel }
+                            - lvgl.widget.hide: { id: service_warnings_panel }
+                            - lvgl.widget.show: { id: service_maintenance_panel }
+                            - lvgl.widget.update: { id: service_maintenance_layout, y: 112, height: 72% }
+                            - lvgl.widget.show: { id: service_maintenance_header }
+                            - lvgl.widget.show: { id: service_maintenance_title }
+                            - lvgl.widget.show: { id: service_maintenance_state }
+                            - lvgl.widget.hide: { id: service_sensors_panel }
+                            - lvgl.widget.show: { id: set_service_mode_switch_ui }
+                            - lvgl.widget.hide: { id: service_mpanel_compressor }
+                            - lvgl.widget.hide: { id: service_mpanel_pumps }
+                            - lvgl.widget.hide: { id: service_mpanel_valve }
+                            - lvgl.widget.hide: { id: service_mpanel_backup }
+                            - script.execute: update_service_mode_ui
+                            - script.execute: update_service_top_tabs_ui
+                          else:
+                            - lvgl.widget.update: { id: page_home, hidden: true }
+                            - lvgl.widget.update: { id: page_thermostat, hidden: true }
+                            - lvgl.widget.update: { id: page_service, hidden: true }
+                            - lvgl.widget.update: { id: page_system, hidden: false }
+                            - lvgl.widget.update: { id: page_settings, hidden: true }
 
     - lvgl.widget.update: { id: nav_home, bg_opa: !lambda 'return tab_index == 0 ? 100 : 0;' }
     - lvgl.label.update: { id: nav_home_icon, text_color: !lambda 'return lv_color_hex(tab_index == 0 ? 0xFFFFFF : 0xD1D5DB);' }
     - lvgl.label.update: { id: nav_home_label, text_color: !lambda 'return lv_color_hex(tab_index == 0 ? 0xFFFFFF : 0xD1D5DB);' }
 
-    - lvgl.widget.update: { id: nav_settings, bg_opa: !lambda 'return tab_index == 1 ? 100 : 0;' }
-    - lvgl.label.update: { id: nav_settings_icon, text_color: !lambda 'return lv_color_hex(tab_index == 1 ? 0xFFFFFF : 0xD1D5DB);' }
-    - lvgl.label.update: { id: nav_settings_label, text_color: !lambda 'return lv_color_hex(tab_index == 1 ? 0xFFFFFF : 0xD1D5DB);' }
+    - lvgl.widget.update: { id: nav_thermostat, bg_opa: !lambda 'return tab_index == 1 ? 100 : 0;' }
+    - lvgl.label.update: { id: nav_thermostat_icon, text_color: !lambda 'return lv_color_hex(tab_index == 1 ? 0xFFFFFF : 0xD1D5DB);' }
+    - lvgl.label.update: { id: nav_thermostat_label, text_color: !lambda 'return lv_color_hex(tab_index == 1 ? 0xFFFFFF : 0xD1D5DB);' }
 
-    - lvgl.widget.update: { id: nav_service, bg_opa: !lambda 'return tab_index == 2 ? 100 : 0;' }
-    - lvgl.label.update: { id: nav_service_icon, text_color: !lambda 'return lv_color_hex(tab_index == 2 ? 0xFFFFFF : 0xD1D5DB);' }
-    - lvgl.label.update: { id: nav_service_label, text_color: !lambda 'return lv_color_hex(tab_index == 2 ? 0xFFFFFF : 0xD1D5DB);' }
+    - lvgl.widget.update: { id: nav_settings, bg_opa: !lambda 'return tab_index == 2 ? 100 : 0;' }
+    - lvgl.label.update: { id: nav_settings_icon, text_color: !lambda 'return lv_color_hex(tab_index == 2 ? 0xFFFFFF : 0xD1D5DB);' }
+    - lvgl.label.update: { id: nav_settings_label, text_color: !lambda 'return lv_color_hex(tab_index == 2 ? 0xFFFFFF : 0xD1D5DB);' }
 
-    - lvgl.widget.update: { id: nav_system, bg_opa: !lambda 'return tab_index == 3 ? 100 : 0;' }
-    - lvgl.label.update: { id: nav_system_icon, text_color: !lambda 'return lv_color_hex(tab_index == 3 ? 0xFFFFFF : 0xD1D5DB);' }
-    - lvgl.label.update: { id: nav_system_label, text_color: !lambda 'return lv_color_hex(tab_index == 3 ? 0xFFFFFF : 0xD1D5DB);' }
+    - lvgl.widget.update: { id: nav_service, bg_opa: !lambda 'return tab_index == 3 ? 100 : 0;' }
+    - lvgl.label.update: { id: nav_service_icon, text_color: !lambda 'return lv_color_hex(tab_index == 3 ? 0xFFFFFF : 0xD1D5DB);' }
+    - lvgl.label.update: { id: nav_service_label, text_color: !lambda 'return lv_color_hex(tab_index == 3 ? 0xFFFFFF : 0xD1D5DB);' }
+
+    - lvgl.widget.update: { id: nav_system, bg_opa: !lambda 'return tab_index == 4 ? 100 : 0;' }
+    - lvgl.label.update: { id: nav_system_icon, text_color: !lambda 'return lv_color_hex(tab_index == 4 ? 0xFFFFFF : 0xD1D5DB);' }
+    - lvgl.label.update: { id: nav_system_label, text_color: !lambda 'return lv_color_hex(tab_index == 4 ? 0xFFFFFF : 0xD1D5DB);' }
 
 - id: update_home_thermostat_visibility
   mode: restart
@@ -154,9 +173,83 @@
         condition:
           lambda: 'return id(thermostat_mode_select).current_option() == "Intern";'
         then:
+          - lvgl.widget.show: { id: nav_sep_thermostat }
+          - lvgl.widget.show: { id: nav_thermostat }
           - lvgl.widget.show: { id: home_thermostat_controls_panel }
         else:
+          - if:
+              condition:
+                lambda: 'return !lv_obj_has_flag(id(page_thermostat), LV_OBJ_FLAG_HIDDEN);'
+              then:
+                - script.execute:
+                    id: nav_select_tab
+                    tab_index: 0
+          - lvgl.widget.hide: { id: nav_sep_thermostat }
+          - lvgl.widget.hide: { id: nav_thermostat }
+          - lvgl.widget.update: { id: page_thermostat, hidden: true }
           - lvgl.widget.hide: { id: home_thermostat_controls_panel }
+
+- id: update_home_thermostat_mode_ui
+  mode: restart
+  then:
+    - script.execute: update_home_thermostat_visibility
+    - lvgl.widget.update:
+        id: home_therm_mode_off_btn
+        bg_color: !lambda |-
+          auto idx = id(thermostat_control_mode_select).active_index();
+          if (!idx.has_value()) return lv_color_hex(0xF8FAFC);
+          return lv_color_hex(idx.value() == 0 ? 0x475569 : 0xF8FAFC);
+        border_color: !lambda |-
+          auto idx = id(thermostat_control_mode_select).active_index();
+          if (!idx.has_value()) return lv_color_hex(0xCBD5E1);
+          return lv_color_hex(idx.value() == 0 ? 0x334155 : 0xCBD5E1);
+        border_width: !lambda |-
+          auto idx = id(thermostat_control_mode_select).active_index();
+          return (idx.has_value() && idx.value() == 0) ? 2 : 1;
+    - lvgl.label.update:
+        id: home_therm_mode_off_icon
+        text_color: !lambda |-
+          auto idx = id(thermostat_control_mode_select).active_index();
+          if (!idx.has_value()) return lv_color_hex(0x64748B);
+          return lv_color_hex(idx.value() == 0 ? 0xFFFFFF : 0x64748B);
+    - lvgl.widget.update:
+        id: home_therm_mode_cool_btn
+        bg_color: !lambda |-
+          auto idx = id(thermostat_control_mode_select).active_index();
+          if (!idx.has_value()) return lv_color_hex(0xF8FAFC);
+          return lv_color_hex(idx.value() == 1 ? 0x0284C7 : 0xF8FAFC);
+        border_color: !lambda |-
+          auto idx = id(thermostat_control_mode_select).active_index();
+          if (!idx.has_value()) return lv_color_hex(0xCBD5E1);
+          return lv_color_hex(idx.value() == 1 ? 0x0369A1 : 0xCBD5E1);
+        border_width: !lambda |-
+          auto idx = id(thermostat_control_mode_select).active_index();
+          return (idx.has_value() && idx.value() == 1) ? 2 : 1;
+    - lvgl.label.update:
+        id: home_therm_mode_cool_icon
+        text_color: !lambda |-
+          auto idx = id(thermostat_control_mode_select).active_index();
+          if (!idx.has_value()) return lv_color_hex(0x64748B);
+          return lv_color_hex(idx.value() == 1 ? 0xFFFFFF : 0x64748B);
+    - lvgl.widget.update:
+        id: home_therm_mode_heat_btn
+        bg_color: !lambda |-
+          auto idx = id(thermostat_control_mode_select).active_index();
+          if (!idx.has_value()) return lv_color_hex(0xF8FAFC);
+          return lv_color_hex(idx.value() == 2 ? 0xEA580C : 0xF8FAFC);
+        border_color: !lambda |-
+          auto idx = id(thermostat_control_mode_select).active_index();
+          if (!idx.has_value()) return lv_color_hex(0xCBD5E1);
+          return lv_color_hex(idx.value() == 2 ? 0xC2410C : 0xCBD5E1);
+        border_width: !lambda |-
+          auto idx = id(thermostat_control_mode_select).active_index();
+          return (idx.has_value() && idx.value() == 2) ? 2 : 1;
+    - lvgl.label.update:
+        id: home_therm_mode_heat_icon
+        text_color: !lambda |-
+          auto idx = id(thermostat_control_mode_select).active_index();
+          if (!idx.has_value()) return lv_color_hex(0x64748B);
+          return lv_color_hex(idx.value() == 2 ? 0xFFFFFF : 0x64748B);
 
 - id: general_select_tab
   mode: restart
@@ -979,6 +1072,7 @@
   mode: restart
   then:
     - lvgl.widget.update: { id: page_home, hidden: true }
+    - lvgl.widget.update: { id: page_thermostat, hidden: true }
     - lvgl.widget.update: { id: page_service, hidden: false }
     - lvgl.widget.update: { id: page_system, hidden: true }
     - lvgl.widget.update: { id: page_settings, hidden: true }
@@ -1004,6 +1098,9 @@
     - lvgl.widget.update: { id: nav_home, bg_opa: 0% }
     - lvgl.widget.update: { id: nav_home_icon, text_color: 0xD1D5DB }
     - lvgl.widget.update: { id: nav_home_label, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_thermostat, bg_opa: 0% }
+    - lvgl.widget.update: { id: nav_thermostat_icon, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_thermostat_label, text_color: 0xD1D5DB }
     - lvgl.widget.update: { id: nav_settings, bg_opa: 0% }
     - lvgl.widget.update: { id: nav_settings_icon, text_color: 0xD1D5DB }
     - lvgl.widget.update: { id: nav_settings_label, text_color: 0xD1D5DB }
@@ -1015,6 +1112,7 @@
   mode: restart
   then:
     - lvgl.widget.update: { id: page_home, hidden: true }
+    - lvgl.widget.update: { id: page_thermostat, hidden: true }
     - lvgl.widget.update: { id: page_service, hidden: false }
     - lvgl.widget.update: { id: page_system, hidden: true }
     - lvgl.widget.update: { id: page_settings, hidden: true }
@@ -1040,6 +1138,9 @@
     - lvgl.widget.update: { id: nav_home, bg_opa: 0% }
     - lvgl.widget.update: { id: nav_home_icon, text_color: 0xD1D5DB }
     - lvgl.widget.update: { id: nav_home_label, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_thermostat, bg_opa: 0% }
+    - lvgl.widget.update: { id: nav_thermostat_icon, text_color: 0xD1D5DB }
+    - lvgl.widget.update: { id: nav_thermostat_label, text_color: 0xD1D5DB }
     - lvgl.widget.update: { id: nav_settings, bg_opa: 0% }
     - lvgl.widget.update: { id: nav_settings_icon, text_color: 0xD1D5DB }
     - lvgl.widget.update: { id: nav_settings_label, text_color: 0xD1D5DB }
