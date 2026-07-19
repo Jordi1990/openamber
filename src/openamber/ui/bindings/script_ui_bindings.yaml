@@ -158,23 +158,6 @@
         else:
           - lvgl.widget.hide: { id: home_thermostat_controls_panel }
 
-- id: update_home_thermostat_mode_ui
-  mode: restart
-  then:
-    - script.execute: update_home_thermostat_visibility
-    - if:
-        condition:
-          lambda: |-
-            auto idx = id(thermostat_control_mode_select).active_index();
-            if (!idx.has_value()) return false;
-            return lv_dropdown_get_selected(id(home_thermostat_mode_dd)->obj) != (uint16_t) idx.value();
-        then:
-          - lvgl.dropdown.update:
-              id: home_thermostat_mode_dd
-              selected_index: !lambda |-
-                auto idx = id(thermostat_control_mode_select).active_index();
-                return idx.has_value() ? idx.value() : 0;
-
 - id: general_select_tab
   mode: restart
   parameters:
@@ -1644,25 +1627,25 @@
   then:
     - if:
         condition:
-          lambda: 'return !isnan(id(current_setpoint).state);'
+          lambda: 'return !isnan(id(current_setpoint).state) && !isnan(id(heat_cool_temperature_tc).state);'
         then:
           - lvgl.label.update:
               id: water_aanvoer_target_value
               text:
-                format: "Doel: %.1f°C"
+                format: "%.1f°C"
                 args: ['id(current_setpoint).state']
           - lvgl.label.update:
-              id: water_retour_target_value
+              id: water_tc_value
               text:
-                format: "Doel: %.1f°C"
-                args: ['id(current_setpoint).state']
+                format: "%.1f°C"
+                args: ['id(heat_cool_temperature_tc).state']
         else:
           - lvgl.label.update:
               id: water_aanvoer_target_value
-              text: "Doel: -°C"
+              text: "-°C"
           - lvgl.label.update:
-              id: water_retour_target_value
-              text: "Doel: -°C"
+              id: water_tc_value
+              text: "-°C"
 
 - id: update_manual_setpoint_ui
   mode: restart

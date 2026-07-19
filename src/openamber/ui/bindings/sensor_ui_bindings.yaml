@@ -123,12 +123,12 @@
             - lvgl.label.update:
                 id: header_outdoor
                 text:
-                  format: "Buiten %.1f°C"
+                  format: "%.1f°C"
                   args: ['x']
           else:
             - lvgl.label.update:
                 id: header_outdoor
-                text: "Buiten -.-°C"
+                text: "-.-°C"
       - script.execute: update_service_diag_summary_ui
 
 # ── Home page: Mode temperature values ──

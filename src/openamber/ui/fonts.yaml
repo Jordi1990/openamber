@@ -16,6 +16,7 @@
         - "\U000F0238"  # mdi-flame
         - "\U000F0717"  # mdi-snowflake
         - "\U000F058F"  # mdi-water-pump
+        - "\U000F058C"  # mdi-water
         - "\U000F1AAF"  # mdi-heating-coil
         - "\U000F01C2"  # mdi-delta
         - "\U000F0210"  # mdi-fan
@@ -93,7 +94,10 @@
       glyphs:
         - "\U000F0238"  # mdi-flame
         - "\U000F0717"  # mdi-snowflake
+        - "\U000F0759"  # mdi-snowflake-variant
         - "\U000F058F"  # mdi-water-pump
+        - "\U000F058C"  # mdi-water
+        - "\U000F0902"  # mdi-power-off
         - "\U000F0026"  # mdi-alert
         - "\U000F0F29"  # mdi-snowflake-alert
         - "\U000F091F"  # mdi-wifi-strength-1
