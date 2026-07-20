@@ -11,7 +11,7 @@ obj:
   pad_top: 4
   pad_bottom: 4
   scrollbar_mode: "OFF"
-  scrollable: true
+  scrollable: false
   layout:
     type: FLEX
     flex_flow: COLUMN
