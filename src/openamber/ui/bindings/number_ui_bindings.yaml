@@ -197,6 +197,15 @@
             format: "%.0f min"
             args: ['x']
 
+- id: !extend flow_switch_safety_delay_minutes
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_pump_flow_switch_safety_delay_val
+          text:
+            format: "%.0f min"
+            args: ['x']
+
 # ── Compressor ──
 - id: !extend compressor_start_delta_heating
   on_value:

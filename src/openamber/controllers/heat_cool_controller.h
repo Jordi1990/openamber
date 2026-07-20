@@ -48,6 +48,7 @@ private:
   float compressor_heat_pid_ = 0.0f;
   float compressor_cool_pid_ = 0.0f;
   float start_current_temperature_ = 0.0f;
+  uint32_t pump_flow_missing_since_ms_ = 0;
 
   const char* StateToString(HeatCoolState state) const override
   {
@@ -282,15 +283,31 @@ private:
       return;
     }
 
-    // If pump is not active while compressor is running, stop compressor to avoid damage
+    // Stop compressor only if pump flow stays missing for the configured delay while compressor runs.
     if (compressor_controller_->IsRunning() && !pump_controller_->IsRunning())
     {
-      ESP_LOGW("amber", "Safety check: Pump is not active while compressor is running, stopping compressor to avoid damage.");
-      compressor_controller_->Stop();
-      TurnOffBackupHeater();
-      StopPumps();
-      SetNextState(HeatCoolState::IDLE);
-      return;
+      const uint32_t now = App.get_loop_component_start_time();
+      const uint32_t flow_switch_delay_ms = static_cast<uint32_t>(id(flow_switch_safety_delay_minutes).state * 60000.0f);
+
+      if (pump_flow_missing_since_ms_ == 0)
+      {
+        pump_flow_missing_since_ms_ = now;
+        ESP_LOGW("amber", "Safety check: Pump flow missing while compressor is running, waiting %.0f min before shutdown.", id(flow_switch_safety_delay_minutes).state);
+      }
+
+      if ((now - pump_flow_missing_since_ms_) >= flow_switch_delay_ms)
+      {
+        ESP_LOGW("amber", "Safety check: Pump flow missing for %.0f min while compressor is running, stopping compressor to avoid damage.", id(flow_switch_safety_delay_minutes).state);
+        compressor_controller_->Stop();
+        TurnOffBackupHeater();
+        StopPumps();
+        SetNextState(HeatCoolState::IDLE);
+        return;
+      }
+    }
+    else
+    {
+      pump_flow_missing_since_ms_ = 0;
     }
 
     // If temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stop compressor to avoid damage

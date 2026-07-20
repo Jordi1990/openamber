@@ -872,6 +872,21 @@
     return x + 30;
 
 - platform: template
+  name: "Flow switch uitvalvertraging (minuten)"
+  id: flow_switch_safety_delay_minutes
+  optimistic: True
+  restore_value: True
+  min_value: 0
+  max_value: 10
+  step: 1
+  unit_of_measurement: "min"
+  icon: "mdi:timer-alert-outline"
+  initial_value: 0
+  entity_category: config
+  web_server:
+      sorting_group_id: general_settings
+
+- platform: template
   name: "Pomp interval (minuten)"
   id: pump_interval
   optimistic: True
