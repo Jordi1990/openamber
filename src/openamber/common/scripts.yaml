@@ -48,11 +48,30 @@
         id(climate_controller).set_cool_overrun(id(thermostat_cool_overrun).state);
     - climate.control:
         id: climate_controller
+        mode: !lambda |-
+          auto idx = id(thermostat_control_mode_select).active_index();
+          if (!idx.has_value()) {
+            return climate::CLIMATE_MODE_OFF;
+          }
+
+          switch (idx.value()) {
+            case 1:
+              return climate::CLIMATE_MODE_COOL;
+            case 2:
+              return climate::CLIMATE_MODE_HEAT;
+            default:
+              return climate::CLIMATE_MODE_OFF;
+          }
         target_temperature_low: !lambda 'return id(thermostat_default_heat_setpoint).state;'
         target_temperature_high: !lambda 'return id(thermostat_default_cool_setpoint).state;'
     - number.set:
         id: thermostat_setpoint_number
-        value: !lambda 'return id(thermostat_default_heat_setpoint).state;'
+        value: !lambda |-
+          auto idx = id(thermostat_control_mode_select).active_index();
+          if (idx.has_value() && idx.value() == 1) {
+            return id(thermostat_default_cool_setpoint).state;
+          }
+          return id(thermostat_default_heat_setpoint).state;
 
 - id: send_device_info
   then:

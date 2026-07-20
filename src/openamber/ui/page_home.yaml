@@ -57,13 +57,33 @@ obj:
               scrollbar_mode: "OFF"
               scrollable: false
               widgets:
-                - label:
-                    id: water_title
-                    text: "Water circuit"
-                    text_color: 0x1F2933
-                    text_font: font_mdi_24
+                - obj:
+                    id: water_circuit_header_group
                     align: TOP_LEFT
+                    x: -4
                     y: 0
+                    width: SIZE_CONTENT
+                    height: SIZE_CONTENT
+                    pad_all: 0
+                    bg_opa: 0%
+                    border_opa: 0%
+                    layout:
+                      type: FLEX
+                      flex_flow: ROW
+                      flex_align_cross: CENTER
+                      pad_column: 8
+                    widgets:
+                      - label:
+                          id: water_circuit_header_icon
+                          text: "\U000F058C"
+                          text_color: 0x0072CE
+                          text_font: font_mdi_30
+                          y: 2
+                      - label:
+                          id: water_circuit_header_text
+                          text: "Watercircuit"
+                          text_color: 0x1F2933
+                          text_font: font_mdi_24
 
                 - obj:
                     id: water_mode_chip
@@ -109,67 +129,150 @@ obj:
                     id: water_diagram_img
                     src: img_water_circuit
                     align: CENTER
-                    y: -35
+                    y: -48
 
                 - obj:
                     id: water_aanvoer_group
                     align: LEFT_MID
-                    x: 10
-                    y: -30
+                    x: 8
+                    y: -52
                     width: SIZE_CONTENT
                     height: SIZE_CONTENT
-                    bg_opa: 0%
-                    border_opa: 0%
-                    pad_all: 0
+                    bg_color: 0xFFFFFF
+                    bg_opa: 100%
+                    radius: 12
+                    border_width: 1
+                    border_color: 0xD7E0EA
+                    border_opa: 100%
+                    pad_left: 7
+                    pad_right: 7
+                    pad_top: 6
+                    pad_bottom: 6
                     layout:
                       type: FLEX
-                      flex_flow: COLUMN
-                      flex_align_cross: START
-                      pad_row: 2
+                      flex_flow: ROW
+                      flex_align_cross: CENTER
+                      pad_column: 8
                     widgets:
-                      - label:
-                          id: water_aanvoer_label
-                          text: "Aanvoer"
-                          text_color: 0x1F2933
-                          text_font: font_mdi_24
-                      - label:
-                          id: water_aanvoer_value
-                          text: "-°C"
-                          text_color: 0x1F2933
-                          text_font: font_value_big
+                      - obj:
+                          id: water_aanvoer_icon_ring
+                          width: 40
+                          height: 40
+                          bg_color: 0xFFFFFF
+                          bg_opa: 100%
+                          radius: 20
+                          border_width: 2
+                          border_color: 0xE84A2A
+                          border_opa: 100%
+                          pad_left: 0
+                          pad_right: 0
+                          pad_top: 0
+                          pad_bottom: 0
+                          widgets:
+                            - label:
+                                id: water_aanvoer_icon
+                                text: "\U000F050F"
+                                text_color: 0xE84A2A
+                                text_font: font_mdi_24
+                                align: CENTER
+                      - obj:
+                          id: water_aanvoer_text_col
+                          width: SIZE_CONTENT
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          layout:
+                            type: FLEX
+                            flex_flow: COLUMN
+                            flex_align_cross: START
+                            pad_row: 4
+                          widgets:
+                            - label:
+                                id: water_aanvoer_label
+                                text: "Aanvoer"
+                                text_color: 0x1F2933
+                                text_font: font_text_20
+                            - label:
+                                id: water_aanvoer_value
+                                text: "-°C"
+                                text_color: 0xE84A2A
+                                text_font: font_text_24
 
                 - obj:
                     id: water_retour_group
                     align: RIGHT_MID
-                    x: 10
-                    y: -30
+                    x: -8
+                    y: -52
                     width: SIZE_CONTENT
                     height: SIZE_CONTENT
-                    bg_opa: 0%
-                    border_opa: 0%
-                    pad_all: 0
+                    bg_color: 0xFFFFFF
+                    bg_opa: 100%
+                    radius: 12
+                    border_width: 1
+                    border_color: 0xD7E0EA
+                    border_opa: 100%
+                    pad_left: 7
+                    pad_right: 7
+                    pad_top: 6
+                    pad_bottom: 6
                     layout:
                       type: FLEX
-                      flex_flow: COLUMN
-                      flex_align_cross: END
-                      pad_row: 2
+                      flex_flow: ROW
+                      flex_align_cross: CENTER
+                      flex_align_main: SPACE_BETWEEN
+                      pad_column: 8
                     widgets:
-                      - label:
-                          id: water_retour_label
-                          text: "Retour"
-                          text_color: 0x1F2933
-                          text_font: font_mdi_24
-                      - label:
-                          id: water_retour_value
-                          text: "-°C"
-                          text_color: 0x1F2933
-                          text_font: font_value_big
+                      - obj:
+                          id: water_retour_text_col
+                          width: SIZE_CONTENT
+                          height: SIZE_CONTENT
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          layout:
+                            type: FLEX
+                            flex_flow: COLUMN
+                            flex_align_cross: START
+                            pad_row: 4
+                          widgets:
+                            - label:
+                                id: water_retour_label
+                                text: "Retour"
+                                text_color: 0x1F2933
+                                text_font: font_text_20
+                            - label:
+                                id: water_retour_value
+                                text: "-°C"
+                                text_color: 0x1B61B8
+                                text_font: font_text_24
+                      - obj:
+                          id: water_retour_icon_ring
+                          width: 40
+                          height: 40
+                          bg_color: 0xFFFFFF
+                          bg_opa: 100%
+                          radius: 20
+                          border_width: 2
+                          border_color: 0x1B61B8
+                          border_opa: 100%
+                          pad_left: 0
+                          pad_right: 0
+                          pad_top: 0
+                          pad_bottom: 0
+                          widgets:
+                            - label:
+                                id: water_retour_icon
+                                text: "\U000F050F"
+                                text_color: 0x1B61B8
+                                text_font: font_mdi_24
+                                align: CENTER
 
                 - obj:
                     id: water_delta_group
                     align: CENTER
-                    x: 40
-                    y: 50
+                    x: 20
+                    y: 52
                     bg_opa: 0%
                     border_opa: 0%
                     pad_all: 0
@@ -177,26 +280,239 @@ obj:
                       type: FLEX
                       flex_flow: COLUMN
                       flex_align_cross: CENTER
-                      pad_row: 4
+                      pad_row: 2
                     widgets:
                       - label:
                           id: water_delta_label
-                          text: "\U000F01C2T"
+                          text: "\U000F01C2 T"
                           text_color: 0x1F2933
-                          text_font: font_value_big
+                          text_font: font_mdi_24
                       - label:
                           id: water_delta_value
-                          text: "4,7°C"
+                          text: "-°C"
                           text_color: 0x1F2933
-                          text_font: font_value_big
+                          text_font: font_text_24
+
+                - obj:
+                    id: water_tc_panel
+                    align: BOTTOM_MID
+                    x: 0
+                    y: -14
+                    width: 640
+                    height: SIZE_CONTENT
+                    scrollbar_mode: "OFF"
+                    scrollable: false
+                    bg_color: 0xFFFFFF
+                    bg_opa: 100%
+                    radius: 14
+                    border_width: 1
+                    border_color: 0xD7E0EA
+                    border_opa: 100%
+                    pad_left: 14
+                    pad_right: 14
+                    pad_top: 10
+                    pad_bottom: 10
+                    layout:
+                      type: FLEX
+                      flex_flow: ROW
+                      flex_align_main: CENTER
+                      flex_align_cross: CENTER
+                      pad_column: 6
+                    widgets:
+                      - obj:
+                          id: water_tc_current_col
+                          width: 190
+                          height: SIZE_CONTENT
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_left: 32
+                          pad_right: 0
+                          pad_top: 0
+                          pad_bottom: 0
+                          layout:
+                            type: FLEX
+                            flex_flow: ROW
+                            flex_align_cross: CENTER
+                            pad_column: 10
+                          widgets:
+                            - obj:
+                                id: water_tc_current_icon_ring
+                                width: 34
+                                height: 34
+                                bg_color: 0xFFFFFF
+                                bg_opa: 100%
+                                radius: 17
+                                border_width: 2
+                                border_color: 0x5C4CC2
+                                border_opa: 100%
+                                pad_all: 0
+                                widgets:
+                                  - label:
+                                      id: water_tc_current_icon
+                                      text: "\U000F050F"
+                                      text_color: 0x5C4CC2
+                                      text_font: font_mdi_24
+                                      align: CENTER
+                            - obj:
+                                id: water_tc_current_text_col
+                                width: SIZE_CONTENT
+                                height: SIZE_CONTENT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                layout:
+                                  type: FLEX
+                                  flex_flow: COLUMN
+                                  flex_align_cross: START
+                                  pad_row: 2
+                                widgets:
+                                  - label:
+                                      id: water_tc_current_label
+                                      text: "Afgifte (Tc)"
+                                      text_color: 0x1F2933
+                                      text_font: font_text_20
+                                  - label:
+                                      id: water_tc_value
+                                      text: "-°C"
+                                      text_color: 0x5C4CC2
+                                      text_font: font_text_24
+                      - obj:
+                          id: water_tc_divider
+                          width: 1
+                          height: 54
+                          bg_color: 0xD7E0EA
+                          bg_opa: 100%
+                          border_opa: 0%
+                      - obj:
+                          id: water_tc_target_col
+                          width: 150
+                          height: SIZE_CONTENT
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          layout:
+                            type: FLEX
+                            flex_flow: ROW
+                            flex_align_cross: CENTER
+                            pad_column: 8
+                          widgets:
+                            - obj:
+                                id: water_tc_target_icon_ring
+                                width: 34
+                                height: 34
+                                bg_color: 0xFFFFFF
+                                bg_opa: 100%
+                                radius: 17
+                                border_width: 2
+                                border_color: 0x5C4CC2
+                                border_opa: 100%
+                                pad_all: 0
+                                widgets:
+                                  - label:
+                                      id: water_tc_target_icon
+                                      text: "\U000F0493"
+                                      text_color: 0x5C4CC2
+                                      text_font: font_mdi_24
+                                      align: CENTER
+                            - obj:
+                                id: water_tc_target_text_col
+                                width: SIZE_CONTENT
+                                height: SIZE_CONTENT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                layout:
+                                  type: FLEX
+                                  flex_flow: COLUMN
+                                  flex_align_cross: START
+                                  pad_row: 2
+                                widgets:
+                                  - label:
+                                      id: water_tc_target_label
+                                      text: "Doel"
+                                      text_color: 0x1F2933
+                                      text_font: font_text_20
+                                  - label:
+                                      id: water_aanvoer_target_value
+                                      text: "-°C"
+                                      text_color: 0x5C4CC2
+                                      text_font: font_text_24
+                      - obj:
+                          id: water_tc_divider_2
+                          width: 1
+                          height: 54
+                          bg_color: 0xD7E0EA
+                          bg_opa: 100%
+                          border_opa: 0%
+                      - obj:
+                          id: water_tc_outdoor_col
+                          width: 170
+                          height: SIZE_CONTENT
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          bg_opa: 0%
+                          border_opa: 0%
+                          pad_all: 0
+                          layout:
+                            type: FLEX
+                            flex_flow: ROW
+                            flex_align_cross: CENTER
+                            pad_column: 10
+                          widgets:
+                            - obj:
+                                id: water_tc_outdoor_icon_ring
+                                width: 34
+                                height: 34
+                                bg_color: 0xFFFFFF
+                                bg_opa: 100%
+                                radius: 17
+                                border_width: 2
+                                border_color: 0x0072CE
+                                border_opa: 100%
+                                pad_all: 0
+                                widgets:
+                                  - label:
+                                      id: water_tc_outdoor_icon
+                                      text: "\U000F050F"
+                                      text_color: 0x0072CE
+                                      text_font: font_mdi_24
+                                      align: CENTER
+                            - obj:
+                                id: water_tc_outdoor_text_col
+                                width: SIZE_CONTENT
+                                height: SIZE_CONTENT
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                layout:
+                                  type: FLEX
+                                  flex_flow: COLUMN
+                                  flex_align_cross: START
+                                  pad_row: 2
+                                widgets:
+                                  - label:
+                                      id: water_tc_outdoor_label
+                                      text: "Buiten"
+                                      text_color: 0x1F2933
+                                      text_font: font_text_20
+                                  - label:
+                                      id: header_outdoor
+                                      text: "-.-°C"
+                                      text_color: 0x0072CE
+                                      text_font: font_text_24
 
                 - obj:
                     id: water_outdoor_group
                     align: BOTTOM_LEFT
                     x: 0
-                    y: 0
+                    y: -8
                     width: SIZE_CONTENT
                     height: SIZE_CONTENT
+                    hidden: true
                     pad_all: 0
                     bg_opa: 0%
                     border_opa: 0%
@@ -213,35 +529,8 @@ obj:
                           text_font: font_mdi_24
                           y: 2
                       - label:
-                          id: header_outdoor
+                          id: header_outdoor_legacy
                           text: "Buiten -°C"
-                          text_color: 0x1F2933
-                          text_font: font_mdi_24
-
-                - obj:
-                    id: water_mode_temperature_group
-                    align: BOTTOM_RIGHT
-                    x: 0
-                    y: 0
-                    width: SIZE_CONTENT
-                    height: SIZE_CONTENT
-                    pad_all: 0
-                    bg_opa: 0%
-                    border_opa: 0%
-                    layout:
-                      type: FLEX
-                      flex_flow: COLUMN
-                      flex_align_cross: END
-                      pad_row: 2
-                    widgets:
-                      - label:
-                          id: water_mode_temperature_caption
-                          text: "Huidig / Doel"
-                          text_color: 0x1F2933
-                          text_font: font_mdi_24
-                      - label:
-                          id: water_mode_temperature_values
-                          text: "-°C / -°C"
                           text_color: 0x1F2933
                           text_font: font_mdi_24
 
@@ -670,3 +959,4 @@ obj:
                     text: "UIT"
                     align: BOTTOM_MID
                     y: -4
+

@@ -995,13 +995,32 @@
   unit_of_measurement: "°C"
   device_class: "temperature"
   initial_value: 20.5
-  restore_value: True
   entity_category: config
   on_value:
     then:
       - lambda: |-
+          auto mode_idx = id(thermostat_control_mode_select).active_index();
+          if (!mode_idx.has_value()) {
+            return;
+          }
+
           auto call = id(climate_controller).make_call();
-          call.set_target_temperature_low(x);
+          switch (mode_idx.value()) {
+            case 0:
+              call.set_mode(climate::CLIMATE_MODE_OFF);
+              break;
+            case 1:
+              call.set_mode(climate::CLIMATE_MODE_COOL);
+              call.set_target_temperature_high(x);
+              break;
+            case 2:
+              call.set_mode(climate::CLIMATE_MODE_HEAT);
+              call.set_target_temperature_low(x);
+              break;
+            default:
+              call.set_mode(climate::CLIMATE_MODE_OFF);
+              break;
+          }
           call.perform();
   web_server:
     sorting_group_id: heating_settings
@@ -1024,7 +1043,7 @@
   id: thermostat_default_cool_setpoint
   optimistic: True
   min_value: 18
-  max_value: 35
+  max_value: 30
   step: 0.1
   unit_of_measurement: "°C"
   device_class: "temperature"

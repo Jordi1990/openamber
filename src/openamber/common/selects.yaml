@@ -139,6 +139,60 @@
     sorting_group_id: heating_settings
 
 - platform: template
+  id: thermostat_control_mode_select
+  name: "Thermostaat modus"
+  optimistic: True
+  options:
+    - "Uit"
+    - "Koelen"
+    - "Verwarmen"
+  initial_option: "Verwarmen"
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - lambda: |-
+          auto idx = id(thermostat_control_mode_select).active_index();
+          if (!idx.has_value()) {
+            return;
+          }
+
+          float mode_setpoint = id(thermostat_setpoint_number).state;
+          switch (idx.value()) {
+            case 1:
+              mode_setpoint = id(thermostat_default_cool_setpoint).state;
+              id(thermostat_setpoint_number).publish_state(mode_setpoint);
+              break;
+            case 2:
+              mode_setpoint = id(thermostat_default_heat_setpoint).state;
+              id(thermostat_setpoint_number).publish_state(mode_setpoint);
+              break;
+            default:
+              break;
+          }
+
+          auto call = id(climate_controller).make_call();
+          switch (idx.value()) {
+            case 0:
+              call.set_mode(climate::CLIMATE_MODE_OFF);
+              break;
+            case 1:
+              call.set_mode(climate::CLIMATE_MODE_COOL);
+              call.set_target_temperature_high(mode_setpoint);
+              break;
+            case 2:
+              call.set_mode(climate::CLIMATE_MODE_HEAT);
+              call.set_target_temperature_low(mode_setpoint);
+              break;
+            default:
+              call.set_mode(climate::CLIMATE_MODE_OFF);
+              break;
+          }
+          call.perform();
+
+- platform: template
   id: sg_ready_mode_select
   name: "SG-Ready modus"
   optimistic: True

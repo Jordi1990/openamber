@@ -135,7 +135,7 @@ image:
     id: img_water_circuit
     type: RGB565
     transparency: alpha_channel
-    resize: 420x420
+    resize: 350x420
   - platform: file
     file: openamber/ui/images/icon.png
     id: openamber_icon
@@ -206,6 +206,7 @@ lvgl:
     - !include openamber/ui/root_bg.yaml
     - !include openamber/ui/header_bar.yaml
     - !include openamber/ui/page_home.yaml
+    - !include openamber/ui/page_thermostat.yaml
     - !include openamber/ui/page_service.yaml
     - !include openamber/ui/page_system.yaml
     - !include openamber/ui/page_settings.yaml
