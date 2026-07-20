@@ -99,6 +99,9 @@
             - lvgl.widget.show: { id: panel_thermostat }
             - script.execute: update_thermostat_settings_ui
             - script.execute: update_thermostat_mode_ui
+            - script.execute:
+                id: thermostat_select_tab
+                tab_index: 0
             - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
             - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
             - lvgl.widget.update: { id: stab_pump, bg_color: 0xE8ECF1 }

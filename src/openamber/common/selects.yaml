@@ -159,6 +159,20 @@
             return;
           }
 
+          float mode_setpoint = id(thermostat_setpoint_number).state;
+          switch (idx.value()) {
+            case 1:
+              mode_setpoint = id(thermostat_default_cool_setpoint).state;
+              id(thermostat_setpoint_number).publish_state(mode_setpoint);
+              break;
+            case 2:
+              mode_setpoint = id(thermostat_default_heat_setpoint).state;
+              id(thermostat_setpoint_number).publish_state(mode_setpoint);
+              break;
+            default:
+              break;
+          }
+
           auto call = id(climate_controller).make_call();
           switch (idx.value()) {
             case 0:
@@ -166,11 +180,11 @@
               break;
             case 1:
               call.set_mode(climate::CLIMATE_MODE_COOL);
-              call.set_target_temperature_high(id(thermostat_setpoint_number).state);
+              call.set_target_temperature_high(mode_setpoint);
               break;
             case 2:
               call.set_mode(climate::CLIMATE_MODE_HEAT);
-              call.set_target_temperature_low(id(thermostat_setpoint_number).state);
+              call.set_target_temperature_low(mode_setpoint);
               break;
             default:
               call.set_mode(climate::CLIMATE_MODE_OFF);

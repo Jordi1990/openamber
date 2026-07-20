@@ -1043,7 +1043,7 @@
   id: thermostat_default_cool_setpoint
   optimistic: True
   min_value: 18
-  max_value: 35
+  max_value: 30
   step: 0.1
   unit_of_measurement: "°C"
   device_class: "temperature"

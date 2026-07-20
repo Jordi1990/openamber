@@ -81,7 +81,7 @@ obj:
                           y: 2
                       - label:
                           id: water_circuit_header_text
-                          text: "Warmtepomp circuit"
+                          text: "Watercircuit"
                           text_color: 0x1F2933
                           text_font: font_mdi_24
 
