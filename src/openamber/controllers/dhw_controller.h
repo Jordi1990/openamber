@@ -255,7 +255,7 @@ private:
     }
 
     // Stop compressor only if pump flow stays missing for the configured delay while compressor runs.
-    if (compressor_controller_->IsRunning() && !pump_controller_->IsRunning())
+    if (state_ != DHWState::IDLE && compressor_controller_->IsRunning() && !pump_controller_->IsRunning())
     {
       const uint32_t now = App.get_loop_component_start_time();
       const uint32_t flow_switch_delay_ms = static_cast<uint32_t>(id(flow_switch_safety_delay_minutes).state * 60000.0f);
@@ -270,6 +270,7 @@ private:
       {
         ESP_LOGW("amber", "Safety check: Pump flow missing for %.0f min while compressor is running, stopping compressor to avoid damage.", id(flow_switch_safety_delay_minutes).state);
         compressor_controller_->Stop();
+        pump_controller_->Stop();
         StopDhwPump();
         TurnOffBackupHeater();
         id(dhw_active).publish_state(false);
