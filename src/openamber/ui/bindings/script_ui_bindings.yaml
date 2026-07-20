@@ -197,12 +197,12 @@
         id: home_therm_mode_off_btn
         bg_color: !lambda |-
           auto idx = id(thermostat_control_mode_select).active_index();
-          if (!idx.has_value()) return lv_color_hex(0xF8FAFC);
-          return lv_color_hex(idx.value() == 0 ? 0x475569 : 0xF8FAFC);
+          if (!idx.has_value()) return lv_color_hex(0xFFFFFF);
+          return lv_color_hex(idx.value() == 0 ? 0xE5EAF1 : 0xFFFFFF);
         border_color: !lambda |-
           auto idx = id(thermostat_control_mode_select).active_index();
-          if (!idx.has_value()) return lv_color_hex(0xCBD5E1);
-          return lv_color_hex(idx.value() == 0 ? 0x334155 : 0xCBD5E1);
+          if (!idx.has_value()) return lv_color_hex(0xD1D9E3);
+          return lv_color_hex(idx.value() == 0 ? 0x475569 : 0xD1D9E3);
         border_width: !lambda |-
           auto idx = id(thermostat_control_mode_select).active_index();
           return (idx.has_value() && idx.value() == 0) ? 2 : 1;
@@ -211,17 +211,23 @@
         text_color: !lambda |-
           auto idx = id(thermostat_control_mode_select).active_index();
           if (!idx.has_value()) return lv_color_hex(0x64748B);
-          return lv_color_hex(idx.value() == 0 ? 0xFFFFFF : 0x64748B);
+          return lv_color_hex(idx.value() == 0 ? 0x0F172A : 0x64748B);
+    - lvgl.label.update:
+        id: home_therm_mode_off_lbl
+        text_color: !lambda |-
+          auto idx = id(thermostat_control_mode_select).active_index();
+          if (!idx.has_value()) return lv_color_hex(0x64748B);
+          return lv_color_hex(idx.value() == 0 ? 0x0F172A : 0x64748B);
     - lvgl.widget.update:
         id: home_therm_mode_cool_btn
         bg_color: !lambda |-
           auto idx = id(thermostat_control_mode_select).active_index();
-          if (!idx.has_value()) return lv_color_hex(0xF8FAFC);
-          return lv_color_hex(idx.value() == 1 ? 0x0284C7 : 0xF8FAFC);
+          if (!idx.has_value()) return lv_color_hex(0xFFFFFF);
+          return lv_color_hex(idx.value() == 1 ? 0xE0F2FE : 0xFFFFFF);
         border_color: !lambda |-
           auto idx = id(thermostat_control_mode_select).active_index();
-          if (!idx.has_value()) return lv_color_hex(0xCBD5E1);
-          return lv_color_hex(idx.value() == 1 ? 0x0369A1 : 0xCBD5E1);
+          if (!idx.has_value()) return lv_color_hex(0xD1D9E3);
+          return lv_color_hex(idx.value() == 1 ? 0x0284C7 : 0xCBD5E1);
         border_width: !lambda |-
           auto idx = id(thermostat_control_mode_select).active_index();
           return (idx.has_value() && idx.value() == 1) ? 2 : 1;
@@ -230,17 +236,23 @@
         text_color: !lambda |-
           auto idx = id(thermostat_control_mode_select).active_index();
           if (!idx.has_value()) return lv_color_hex(0x64748B);
-          return lv_color_hex(idx.value() == 1 ? 0xFFFFFF : 0x64748B);
+          return lv_color_hex(idx.value() == 1 ? 0x0C4A6E : 0x64748B);
+    - lvgl.label.update:
+        id: home_therm_mode_cool_lbl
+        text_color: !lambda |-
+          auto idx = id(thermostat_control_mode_select).active_index();
+          if (!idx.has_value()) return lv_color_hex(0x64748B);
+          return lv_color_hex(idx.value() == 1 ? 0x0C4A6E : 0x64748B);
     - lvgl.widget.update:
         id: home_therm_mode_heat_btn
         bg_color: !lambda |-
           auto idx = id(thermostat_control_mode_select).active_index();
-          if (!idx.has_value()) return lv_color_hex(0xF8FAFC);
-          return lv_color_hex(idx.value() == 2 ? 0xEA580C : 0xF8FAFC);
+          if (!idx.has_value()) return lv_color_hex(0xFFFFFF);
+          return lv_color_hex(idx.value() == 2 ? 0xFFEDD5 : 0xFFFFFF);
         border_color: !lambda |-
           auto idx = id(thermostat_control_mode_select).active_index();
-          if (!idx.has_value()) return lv_color_hex(0xCBD5E1);
-          return lv_color_hex(idx.value() == 2 ? 0xC2410C : 0xCBD5E1);
+          if (!idx.has_value()) return lv_color_hex(0xD1D9E3);
+          return lv_color_hex(idx.value() == 2 ? 0xF97316 : 0xD1D9E3);
         border_width: !lambda |-
           auto idx = id(thermostat_control_mode_select).active_index();
           return (idx.has_value() && idx.value() == 2) ? 2 : 1;
@@ -249,7 +261,13 @@
         text_color: !lambda |-
           auto idx = id(thermostat_control_mode_select).active_index();
           if (!idx.has_value()) return lv_color_hex(0x64748B);
-          return lv_color_hex(idx.value() == 2 ? 0xFFFFFF : 0x64748B);
+          return lv_color_hex(idx.value() == 2 ? 0x9A3412 : 0x64748B);
+    - lvgl.label.update:
+        id: home_therm_mode_heat_lbl
+        text_color: !lambda |-
+          auto idx = id(thermostat_control_mode_select).active_index();
+          if (!idx.has_value()) return lv_color_hex(0x64748B);
+          return lv_color_hex(idx.value() == 2 ? 0x9A3412 : 0x64748B);
 
 - id: general_select_tab
   mode: restart

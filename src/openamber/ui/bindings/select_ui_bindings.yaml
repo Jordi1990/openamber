@@ -18,7 +18,7 @@
             auto idx = id(working_mode_switch).active_index();
             if (!idx.has_value()) return (std::string) "\U000F0906";
             switch (idx.value()) {
-              case 0: return (std::string) "\U000F0902";
+              case 0: return (std::string) "\U000F0906";
               case 1: return (std::string) "\U000F0759";
               case 2: return (std::string) "\U000F0238";
               default: return (std::string) "\U000F0906";

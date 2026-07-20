@@ -97,7 +97,10 @@
         - "\U000F0759"  # mdi-snowflake-variant
         - "\U000F058F"  # mdi-water-pump
         - "\U000F058C"  # mdi-water
+        - "\U000F0906"  # mdi-power-standby
         - "\U000F0902"  # mdi-power-off
+        - "\U000F0374"  # mdi-minus
+        - "\U000F0415"  # mdi-plus
         - "\U000F0026"  # mdi-alert
         - "\U000F0F29"  # mdi-snowflake-alert
         - "\U000F091F"  # mdi-wifi-strength-1
