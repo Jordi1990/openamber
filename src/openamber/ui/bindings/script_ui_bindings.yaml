@@ -1336,18 +1336,49 @@
 - id: update_system_diagnostics_ui
   mode: restart
   then:
-    - lvgl.label.update:
-        id: system_diag_runtime_values
-        text: !lambda |-
-          char uptime_buf[24];
-          if (id(sensor_uptime).has_state()) {
-            snprintf(uptime_buf, sizeof(uptime_buf), "%.0f min", id(sensor_uptime).state / 60.0f);
-          } else {
-            snprintf(uptime_buf, sizeof(uptime_buf), "-");
-          }
-          char value_buf[96];
-          snprintf(value_buf, sizeof(value_buf), "%s\n%s", ESPHOME_VERSION, uptime_buf);
-          return std::string(value_buf);
+    - if:
+        condition:
+          lambda: 'return id(sensor_uptime).has_state();'
+        then:
+          - if:
+              condition:
+                lambda: 'return (static_cast<uint32_t>(id(sensor_uptime).state) / 60U) >= 1440U;'
+              then:
+                - lvgl.label.update:
+                    id: system_diag_runtime_values
+                    text:
+                      format: "%s\n%u d %u u"
+                      args:
+                        - 'ESPHOME_VERSION'
+                        - '(static_cast<uint32_t>(id(sensor_uptime).state) / 60U) / 1440U'
+                        - '((static_cast<uint32_t>(id(sensor_uptime).state) / 60U) / 60U) % 24U'
+              else:
+                - if:
+                    condition:
+                      lambda: 'return (static_cast<uint32_t>(id(sensor_uptime).state) / 60U) >= 60U;'
+                    then:
+                      - lvgl.label.update:
+                          id: system_diag_runtime_values
+                          text:
+                            format: "%s\n%u u %u m"
+                            args:
+                              - 'ESPHOME_VERSION'
+                              - '(static_cast<uint32_t>(id(sensor_uptime).state) / 60U) / 60U'
+                              - '(static_cast<uint32_t>(id(sensor_uptime).state) / 60U) % 60U'
+                    else:
+                      - lvgl.label.update:
+                          id: system_diag_runtime_values
+                          text:
+                            format: "%s\n%u m"
+                            args:
+                              - 'ESPHOME_VERSION'
+                              - 'static_cast<uint32_t>(id(sensor_uptime).state) / 60U'
+        else:
+          - lvgl.label.update:
+              id: system_diag_runtime_values
+              text:
+                format: "%s\n-"
+                args: ['ESPHOME_VERSION']
     - lvgl.label.update:
         id: system_diag_memory_values
         text: !lambda |-
@@ -1375,7 +1406,9 @@
           } else {
             snprintf(psram_buf, sizeof(psram_buf), "-");
           }
-          return std::string(heap_free_buf) + "\n" + heap_frag_buf + "\n" + heap_block_buf + "\n" + psram_buf;
+          char value_buf[96];
+          snprintf(value_buf, sizeof(value_buf), "%s\n%s\n%s\n%s", heap_free_buf, heap_frag_buf, heap_block_buf, psram_buf);
+          return std::string(value_buf);
     - lvgl.label.update:
         id: system_diag_esp_values
         text: !lambda |-
