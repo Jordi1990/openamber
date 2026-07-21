@@ -1347,7 +1347,7 @@
                 - lvgl.label.update:
                     id: system_diag_runtime_values
                     text:
-                      format: "%s\n%u d %u u"
+                      format: "%s\n%lu d %lu u"
                       args:
                         - 'ESPHOME_VERSION'
                         - '(static_cast<uint32_t>(id(sensor_uptime).state) / 60U) / 1440U'
@@ -1360,7 +1360,7 @@
                       - lvgl.label.update:
                           id: system_diag_runtime_values
                           text:
-                            format: "%s\n%u u %u m"
+                            format: "%s\n%lu u %lu m"
                             args:
                               - 'ESPHOME_VERSION'
                               - '(static_cast<uint32_t>(id(sensor_uptime).state) / 60U) / 60U'
@@ -1369,7 +1369,7 @@
                       - lvgl.label.update:
                           id: system_diag_runtime_values
                           text:
-                            format: "%s\n%u m"
+                            format: "%s\n%lu m"
                             args:
                               - 'ESPHOME_VERSION'
                               - 'static_cast<uint32_t>(id(sensor_uptime).state) / 60U'
