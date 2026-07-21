@@ -909,6 +909,13 @@
           - lvgl.widget.update:
               id: set_defrost_advanced_section
               opa: 100%
+          - lvgl.widget.update:
+              id: set_pump_flow_switch_safety_row
+              state:
+                disabled: false
+          - lvgl.widget.update:
+              id: set_pump_flow_switch_safety_row
+              opa: 100%
           - script.execute: update_bottomplate_mode_ui
         else:
           - lvgl.widget.hide: { id: panel_advanced }
@@ -975,6 +982,13 @@
                 disabled: true
           - lvgl.widget.update:
               id: set_defrost_advanced_section
+              opa: 40%
+          - lvgl.widget.update:
+              id: set_pump_flow_switch_safety_row
+              state:
+                disabled: true
+          - lvgl.widget.update:
+              id: set_pump_flow_switch_safety_row
               opa: 40%
 
 - id: update_service_valve_ui

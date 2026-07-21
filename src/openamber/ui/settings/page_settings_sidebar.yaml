@@ -171,6 +171,7 @@
             - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
             - lvgl.widget.update: { id: stab_thermostat, bg_color: 0xE8ECF1 }
             - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0x4B5563 }
+            - script.execute: update_advanced_settings_ui
           widgets:
             - label: { id: stab_pump_lbl, text: "Pomp", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
       - obj:
