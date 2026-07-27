@@ -585,7 +585,8 @@ public:
       ESP_LOGW("amber", "WARNING: Time is not synchronized, skipping legionella cycle check.");
       return;
     }
-    if(!id(dhw_legionella_run_active_sensor).state && now >= legionella_time)
+  
+    if(!id(dhw_legionella_run_active_sensor).state && now >= legionella_time && id(dhw_schedule_active_sensor).state)
     {
       ESP_LOGI("amber", "Starting legionella cycle.");
       id(dhw_legionella_run_active_sensor).publish_state(true);
