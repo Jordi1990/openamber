@@ -33,6 +33,10 @@
     - name: Comfort
       default_target_temperature_low: 20.5 °C
       default_target_temperature_high: 24 °C
+  on_state:
+    then:
+      - script.execute: update_home_thermostat_mode_ui
+
   web_server: 
     sorting_group_id: overview
 
