@@ -236,8 +236,7 @@
           - lvgl.widget.update: { id: page_thermostat, hidden: true }
           - lvgl.widget.hide: { id: home_thermostat_controls_panel }
 
-- id: update_home_thermostat_mode_ui
-  mode: restart
+- id: !extend update_home_thermostat_mode_ui
   then:
     - script.execute: update_home_thermostat_visibility
     - lvgl.widget.update:

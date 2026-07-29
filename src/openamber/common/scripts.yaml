@@ -1,3 +1,7 @@
+- id: update_home_thermostat_mode_ui
+  mode: restart
+  then: []
+
 - id: fetch_analytics_device_id
   then:
     - if:
