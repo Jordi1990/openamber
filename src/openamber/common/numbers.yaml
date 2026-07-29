@@ -1014,21 +1014,17 @@
   on_value:
     then:
       - lambda: |-
-          auto mode_idx = id(thermostat_control_mode_select).active_index();
-          if (!mode_idx.has_value()) {
-            return;
-          }
-
+          auto mode = id(climate_controller).mode;
           auto call = id(climate_controller).make_call();
-          switch (mode_idx.value()) {
-            case 0:
+          switch (mode) {
+            case climate::CLIMATE_MODE_OFF:
               call.set_mode(climate::CLIMATE_MODE_OFF);
               break;
-            case 1:
+            case climate::CLIMATE_MODE_COOL:
               call.set_mode(climate::CLIMATE_MODE_COOL);
               call.set_target_temperature_high(x);
               break;
-            case 2:
+            case climate::CLIMATE_MODE_HEAT:
               call.set_mode(climate::CLIMATE_MODE_HEAT);
               call.set_target_temperature_low(x);
               break;

@@ -1,3 +1,7 @@
+- id: update_home_thermostat_mode_ui
+  mode: restart
+  then: []
+
 - id: fetch_analytics_device_id
   then:
     - if:
@@ -49,15 +53,11 @@
     - climate.control:
         id: climate_controller
         mode: !lambda |-
-          auto idx = id(thermostat_control_mode_select).active_index();
-          if (!idx.has_value()) {
-            return climate::CLIMATE_MODE_OFF;
-          }
-
-          switch (idx.value()) {
-            case 1:
+          auto mode = id(climate_controller).mode;
+          switch (mode) {
+            case climate::CLIMATE_MODE_COOL:
               return climate::CLIMATE_MODE_COOL;
-            case 2:
+            case climate::CLIMATE_MODE_HEAT:
               return climate::CLIMATE_MODE_HEAT;
             default:
               return climate::CLIMATE_MODE_OFF;
@@ -67,8 +67,8 @@
     - number.set:
         id: thermostat_setpoint_number
         value: !lambda |-
-          auto idx = id(thermostat_control_mode_select).active_index();
-          if (idx.has_value() && idx.value() == 1) {
+          auto mode = id(climate_controller).mode;
+          if (mode == climate::CLIMATE_MODE_COOL) {
             return id(thermostat_default_cool_setpoint).state;
           }
           return id(thermostat_default_heat_setpoint).state;
@@ -172,6 +172,40 @@
           root["cj"] = id(compressor_start_delta_cooling).state;
           root["ck"] = id(compressor_stop_delta_cooling).state;
 
+- id: send_config_4
+  then:
+    - mqtt.publish_json:
+        topic: !lambda 'return id(analytics_topic);'
+        qos: 0
+        retain: true
+        payload: |-
+          root["ts"] = id(analytics_batch_timestamp);
+
+          root["qd"] = id(pid_heat_deadband).state;
+          root["rd"] = id(pid_cool_deadband).state;
+
+          root["xa"] = id(thermostat_setpoint_number).state;
+          root["xb"] = id(thermostat_default_heat_setpoint).state;
+          root["xc"] = id(thermostat_default_cool_setpoint).state;
+          root["xd"] = id(thermostat_heat_deadband).state;
+          root["xe"] = id(thermostat_heat_overrun).state;
+          root["xf"] = id(thermostat_cool_deadband).state;
+          root["xg"] = id(thermostat_cool_overrun).state;
+
+          root["xh"] = id(flow_sensor_calibration).state;
+          root["xi"] = id(flow_switch_safety_delay_minutes).state;
+
+          root["xj"] = id(bottomplate_heater_ambient_temperature_start).state;
+          root["xk"] = id(bottomplate_heater_ambient_hysteresis_stop).state;
+
+          root["xl"] = id(enter_defrost_temperature).state;
+          root["xm"] = id(exit_defrost_temperature).state;
+          root["xn"] = id(max_defrost_time).state;
+
+          root["xo"] = id(enter_defrost_temperature_2).state;
+          root["xp"] = id(enter_defrost_temperature_3).state;
+          root["xq"] = id(enter_defrost_temperature_4).state;
+
 - id: send_modes
   then:
     - mqtt.publish_json:
@@ -225,11 +259,20 @@
             root["mb"] = idx.has_value() ? idx.value() : -1;
           }
 
+          {
+            auto idx = id(bottomplate_heater_mode).active_index();
+            root["xr"] = idx.has_value() ? idx.value() : -1;
+          }
+
           root["wh"] = id(heat_demand_switch).state;
           root["wc"] = id(cool_demand_switch).state;
 
           root["ws"] = id(dhw_schedule_enabled_switch).state;
           root["wp"] = id(pump_p1_enabled).state;
+
+          root["xs"] = id(emergency_mode_enabled).state;
+          root["xt"] = id(service_mode_enabled).state;
+          root["xu"] = id(flow_sensor_enabled).state;
 
 - id: send_telemetry_1
   then:
@@ -274,6 +317,7 @@
           root["uh"] = id(power_compressor).state;
 
           root["ui"] = id(current_compressor_frequency).state;
+          root["uj"] = id(compressor_setpoint_frequency).state;
 
 - id: send_telemetry_3
   then:
@@ -313,6 +357,20 @@
             root["vr"] = idx.has_value() ? idx.value() : -1;
           }
 
+- id: send_telemetry_4
+  then:
+    - mqtt.publish_json:
+        topic: !lambda 'return id(analytics_topic);'
+        qos: 0
+        retain: true
+        payload: |-
+          root["ts"] = id(analytics_batch_timestamp);
+          root["ya"] = id(wifi_signal_db).state;
+          root["yb"] = id(system_heap_free).state;
+          root["yc"] = id(system_heap_fragmentation).state;
+          root["yd"] = id(system_heap_max_block).state;
+          root["ye"] = id(water_flow_rate).state;
+
 - id: schedule_send_errors_realtime
   mode: restart
   then:
@@ -347,6 +405,8 @@
     - delay: 150ms
     - script.execute: send_config_3
     - delay: 150ms
+    - script.execute: send_config_4
+    - delay: 150ms
     - script.execute: send_modes
     - delay: 150ms
     - script.execute: send_telemetry_1
@@ -354,5 +414,7 @@
     - script.execute: send_telemetry_2
     - delay: 150ms
     - script.execute: send_telemetry_3
+    - delay: 150ms
+    - script.execute: send_telemetry_4
     - delay: 150ms
     - script.execute: fetch_analytics_device_id

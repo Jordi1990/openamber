@@ -141,7 +141,11 @@ obj:
                                             pad_bottom: 0
                                             on_click:
                                               - lambda: |-
-                                                  id(thermostat_control_mode_select).make_call().set_option("Verwarmen").perform();
+                                                  id(thermostat_setpoint_number).publish_state(id(thermostat_default_heat_setpoint).state);
+                                                  auto call = id(climate_controller).make_call();
+                                                  call.set_mode(climate::CLIMATE_MODE_HEAT);
+                                                  call.set_target_temperature_low(id(thermostat_default_heat_setpoint).state);
+                                                  call.perform();
                                             layout:
                                               type: FLEX
                                               flex_flow: ROW
@@ -162,7 +166,11 @@ obj:
                                                   pad_bottom: 4
                                                   on_click:
                                                     - lambda: |-
-                                                        id(thermostat_control_mode_select).make_call().set_option("Verwarmen").perform();
+                                                        id(thermostat_setpoint_number).publish_state(id(thermostat_default_heat_setpoint).state);
+                                                        auto call = id(climate_controller).make_call();
+                                                        call.set_mode(climate::CLIMATE_MODE_HEAT);
+                                                        call.set_target_temperature_low(id(thermostat_default_heat_setpoint).state);
+                                                        call.perform();
                                                   layout:
                                                     type: FLEX
                                                     flex_flow: ROW
@@ -198,7 +206,11 @@ obj:
                                             pad_bottom: 0
                                             on_click:
                                               - lambda: |-
-                                                  id(thermostat_control_mode_select).make_call().set_option("Koelen").perform();
+                                                  id(thermostat_setpoint_number).publish_state(id(thermostat_default_cool_setpoint).state);
+                                                  auto call = id(climate_controller).make_call();
+                                                  call.set_mode(climate::CLIMATE_MODE_COOL);
+                                                  call.set_target_temperature_high(id(thermostat_default_cool_setpoint).state);
+                                                  call.perform();
                                             layout:
                                               type: FLEX
                                               flex_flow: ROW
@@ -219,7 +231,11 @@ obj:
                                                   pad_bottom: 4
                                                   on_click:
                                                     - lambda: |-
-                                                        id(thermostat_control_mode_select).make_call().set_option("Koelen").perform();
+                                                        id(thermostat_setpoint_number).publish_state(id(thermostat_default_cool_setpoint).state);
+                                                        auto call = id(climate_controller).make_call();
+                                                        call.set_mode(climate::CLIMATE_MODE_COOL);
+                                                        call.set_target_temperature_high(id(thermostat_default_cool_setpoint).state);
+                                                        call.perform();
                                                   layout:
                                                     type: FLEX
                                                     flex_flow: ROW
@@ -255,7 +271,9 @@ obj:
                                             pad_bottom: 0
                                             on_click:
                                               - lambda: |-
-                                                  id(thermostat_control_mode_select).make_call().set_option("Uit").perform();
+                                                  auto call = id(climate_controller).make_call();
+                                                  call.set_mode(climate::CLIMATE_MODE_OFF);
+                                                  call.perform();
                                             layout:
                                               type: FLEX
                                               flex_flow: ROW
@@ -276,7 +294,9 @@ obj:
                                                   pad_bottom: 4
                                                   on_click:
                                                     - lambda: |-
-                                                        id(thermostat_control_mode_select).make_call().set_option("Uit").perform();
+                                                        auto call = id(climate_controller).make_call();
+                                                        call.set_mode(climate::CLIMATE_MODE_OFF);
+                                                        call.perform();
                                                   layout:
                                                     type: FLEX
                                                     flex_flow: ROW
