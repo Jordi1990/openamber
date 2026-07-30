@@ -1002,41 +1002,6 @@
 
 # ── Interne thermostaat ──
 - platform: template
-  id: thermostat_setpoint_number
-  optimistic: True
-  min_value: 10
-  max_value: 30
-  step: 0.1
-  unit_of_measurement: "°C"
-  device_class: "temperature"
-  initial_value: 20.5
-  entity_category: config
-  on_value:
-    then:
-      - lambda: |-
-          auto mode = id(climate_controller).mode;
-          auto call = id(climate_controller).make_call();
-          switch (mode) {
-            case climate::CLIMATE_MODE_OFF:
-              call.set_mode(climate::CLIMATE_MODE_OFF);
-              break;
-            case climate::CLIMATE_MODE_COOL:
-              call.set_mode(climate::CLIMATE_MODE_COOL);
-              call.set_target_temperature_high(x);
-              break;
-            case climate::CLIMATE_MODE_HEAT:
-              call.set_mode(climate::CLIMATE_MODE_HEAT);
-              call.set_target_temperature_low(x);
-              break;
-            default:
-              call.set_mode(climate::CLIMATE_MODE_OFF);
-              break;
-          }
-          call.perform();
-  web_server:
-    sorting_group_id: heating_settings
-
-- platform: template
   id: thermostat_default_heat_setpoint
   optimistic: True
   min_value: 10
