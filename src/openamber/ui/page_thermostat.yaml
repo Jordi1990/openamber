@@ -141,11 +141,10 @@ obj:
                                             pad_bottom: 0
                                             on_click:
                                               - lambda: |-
-                                                  id(thermostat_setpoint_number).publish_state(id(thermostat_default_heat_setpoint).state);
                                                   auto call = id(climate_controller).make_call();
                                                   call.set_mode(climate::CLIMATE_MODE_HEAT);
-                                                  call.set_target_temperature_low(id(thermostat_default_heat_setpoint).state);
                                                   call.perform();
+                                              - script.execute: update_thermostat_settings_ui
                                             layout:
                                               type: FLEX
                                               flex_flow: ROW
@@ -166,11 +165,10 @@ obj:
                                                   pad_bottom: 4
                                                   on_click:
                                                     - lambda: |-
-                                                        id(thermostat_setpoint_number).publish_state(id(thermostat_default_heat_setpoint).state);
                                                         auto call = id(climate_controller).make_call();
                                                         call.set_mode(climate::CLIMATE_MODE_HEAT);
-                                                        call.set_target_temperature_low(id(thermostat_default_heat_setpoint).state);
                                                         call.perform();
+                                                    - script.execute: update_thermostat_settings_ui
                                                   layout:
                                                     type: FLEX
                                                     flex_flow: ROW
@@ -206,11 +204,10 @@ obj:
                                             pad_bottom: 0
                                             on_click:
                                               - lambda: |-
-                                                  id(thermostat_setpoint_number).publish_state(id(thermostat_default_cool_setpoint).state);
                                                   auto call = id(climate_controller).make_call();
                                                   call.set_mode(climate::CLIMATE_MODE_COOL);
-                                                  call.set_target_temperature_high(id(thermostat_default_cool_setpoint).state);
                                                   call.perform();
+                                              - script.execute: update_thermostat_settings_ui
                                             layout:
                                               type: FLEX
                                               flex_flow: ROW
@@ -231,11 +228,10 @@ obj:
                                                   pad_bottom: 4
                                                   on_click:
                                                     - lambda: |-
-                                                        id(thermostat_setpoint_number).publish_state(id(thermostat_default_cool_setpoint).state);
                                                         auto call = id(climate_controller).make_call();
                                                         call.set_mode(climate::CLIMATE_MODE_COOL);
-                                                        call.set_target_temperature_high(id(thermostat_default_cool_setpoint).state);
                                                         call.perform();
+                                                    - script.execute: update_thermostat_settings_ui
                                                   layout:
                                                     type: FLEX
                                                     flex_flow: ROW
@@ -361,7 +357,19 @@ obj:
                                             scrollbar_mode: "OFF"
                                             scrollable: false
                                             on_click:
-                                              - number.decrement: thermostat_setpoint_number
+                                              - lambda: |-
+                                                  auto mode = id(climate_controller).mode;
+                                                  auto call = id(climate_controller).make_call();
+                                                  float target = 0.0f;
+                                                  if (mode == climate::CLIMATE_MODE_COOL) {
+                                                    target = id(climate_controller).target_temperature_high - 0.1f;
+                                                    call.set_target_temperature_high(target);
+                                                  } else {
+                                                    target = id(climate_controller).target_temperature_low - 0.1f;
+                                                    call.set_target_temperature_low(target);
+                                                  }
+                                                  call.perform();
+                                              - script.execute: update_thermostat_settings_ui
                                             widgets:
                                               - label:
                                                   id: home_therm_setpoint_dec_lbl
@@ -389,7 +397,19 @@ obj:
                                             scrollbar_mode: "OFF"
                                             scrollable: false
                                             on_click:
-                                              - number.increment: thermostat_setpoint_number
+                                              - lambda: |-
+                                                  auto mode = id(climate_controller).mode;
+                                                  auto call = id(climate_controller).make_call();
+                                                  float target = 0.0f;
+                                                  if (mode == climate::CLIMATE_MODE_COOL) {
+                                                    target = id(climate_controller).target_temperature_high + 0.1f;
+                                                    call.set_target_temperature_high(target);
+                                                  } else {
+                                                    target = id(climate_controller).target_temperature_low + 0.1f;
+                                                    call.set_target_temperature_low(target);
+                                                  }
+                                                  call.perform();
+                                              - script.execute: update_thermostat_settings_ui
                                             widgets:
                                               - label:
                                                   id: home_therm_setpoint_inc_lbl

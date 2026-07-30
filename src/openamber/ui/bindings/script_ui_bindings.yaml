@@ -35,11 +35,21 @@
         text:
           format: "%.1f°C"
           args: ['id(thermostat_cool_overrun).state']
-    - lvgl.label.update:
-        id: home_therm_setpoint_value
-        text:
-          format: "%.1f°C"
-          args: ['id(thermostat_setpoint_number).state']
+    - if:
+        condition:
+          lambda: 'return id(climate_controller).mode == climate::CLIMATE_MODE_COOL;'
+        then:
+          - lvgl.label.update:
+              id: home_therm_setpoint_value
+              text:
+                format: "%.1f°C"
+                args: ['id(climate_controller).target_temperature_high']
+        else:
+          - lvgl.label.update:
+              id: home_therm_setpoint_value
+              text:
+                format: "%.1f°C"
+                args: ['id(climate_controller).target_temperature_low']
     - if:
         condition:
           lambda: 'return isnan(id(room_temperature).state);'

@@ -64,14 +64,6 @@
           }
         target_temperature_low: !lambda 'return id(thermostat_default_heat_setpoint).state;'
         target_temperature_high: !lambda 'return id(thermostat_default_cool_setpoint).state;'
-    - number.set:
-        id: thermostat_setpoint_number
-        value: !lambda |-
-          auto mode = id(climate_controller).mode;
-          if (mode == climate::CLIMATE_MODE_COOL) {
-            return id(thermostat_default_cool_setpoint).state;
-          }
-          return id(thermostat_default_heat_setpoint).state;
 
 - id: send_device_info
   then:
@@ -184,7 +176,7 @@
           root["qd"] = id(pid_heat_deadband).state;
           root["rd"] = id(pid_cool_deadband).state;
 
-          root["xa"] = id(thermostat_setpoint_number).state;
+          root["xa"] = id(climate_controller).mode == climate::CLIMATE_MODE_COOL ? id(climate_controller).target_temperature_high : id(climate_controller).target_temperature_low;
           root["xb"] = id(thermostat_default_heat_setpoint).state;
           root["xc"] = id(thermostat_default_cool_setpoint).state;
           root["xd"] = id(thermostat_heat_deadband).state;
