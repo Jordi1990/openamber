@@ -37,8 +37,6 @@
                     - lvgl.widget.hide: { id: set_heat_curve_title }
                     - lvgl.widget.hide: { id: set_heat_curve_chart_container }
                     - lvgl.widget.hide: { id: set_heat_curve_controls_container }
-      
-
 - obj:
     width: 100%
     height: SIZE_CONTENT

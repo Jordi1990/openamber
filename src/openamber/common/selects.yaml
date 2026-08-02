@@ -110,6 +110,19 @@
       - component.update: current_setpoint
 
 - platform: template
+  id: heat_cool_control_temperature_source_select
+  name: "Regeltemperatuur bron"
+  optimistic: True
+  options:
+    - "CV-aanvoer (Tc)"
+    - "CV-aanvoer zone 1 (Tv1)"
+  initial_option: "CV-aanvoer (Tc)"
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
   id: cool_mode_select
   name: "Koelmodus"
   optimistic: True

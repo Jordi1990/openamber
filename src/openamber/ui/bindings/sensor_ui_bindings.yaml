@@ -168,7 +168,7 @@
                   format: "%.1f°C"
                   args: ['x']
 
-- id: !extend heat_cool_temperature_tc
+- id: !extend heat_cool_control_temperature
   on_value:
     then:
       - script.execute: update_water_mode_temperature_display
