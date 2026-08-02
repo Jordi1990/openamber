@@ -583,6 +583,23 @@
     - lambda: return x + id(tc_offset).state;
     - throttle: 30s # Throttle because PID loop depends on this
 
+- platform: template
+  id: heat_cool_control_temperature
+  name: "Regeltemperatuur"
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  accuracy_decimals: 1
+  update_interval: 30s
+  lambda: |-
+    auto selected_source = id(heat_cool_control_temperature_source_select).active_index();
+    int source = (selected_source.has_value() && selected_source.value() == 1) ? 1 : 0;
+    if (source == 1)
+    {
+      return id(heat_cool_temperature_tv1).state;
+    }
+    return id(heat_cool_temperature_tc).state;
+
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
   id: outlet_temperature_tuo
@@ -648,6 +665,7 @@
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
+  id: heat_cool_temperature_tv1
   name: "Cv-aanvoertemperatuur zone 1 (Tv1)"
   address: 1207
   register_type: holding

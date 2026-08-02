@@ -58,6 +58,27 @@ obj:
                 - label: { id: general_stab_systeem_lbl, text: "Systeem", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
 
           - obj:
+              id: general_stab_analytics
+              width: SIZE_CONTENT
+              height: 34
+              bg_color: 0xCBD5E1
+              bg_opa: 100%
+              radius: 8
+              border_opa: 0%
+              pad_left: 12
+              pad_right: 12
+              pad_top: 4
+              pad_bottom: 4
+              scrollbar_mode: "OFF"
+              scrollable: false
+              on_click:
+                - script.execute:
+                    id: general_select_tab
+                    tab_index: 4
+              widgets:
+                - label: { id: general_stab_analytics_lbl, text: "Analytics", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
+
+          - obj:
               id: general_stab_sensor_kalibratie
               width: SIZE_CONTENT
               height: 34
@@ -166,51 +187,37 @@ obj:
                             - lvgl.widget.show: { id: stab_dhw }
 
           - obj:
-              id: set_general_system_analytics
+              id: set_general_system_control_temp_source
               width: 100%
               height: SIZE_CONTENT
               bg_opa: 0%
               border_opa: 0%
               pad_all: 6
               widgets:
-                - label: { text: "Analytics versturen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-                - label: { text: "Deel anonieme gebruiksdata voor het OpenAmber dashboard", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-                - switch:
-                    id: set_analytics_enabled_switch_ui
+                - label: { text: "Regeltemperatuur bron", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Kies de sensor die de regeling gebruikt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - dropdown:
+                    id: set_heat_control_temp_source_dd
+                    symbol: "\U000F0140"
+                    width: 220
                     align: TOP_RIGHT
-                    bg_color: 0x9CA3AF
-                    indicator:
-                      bg_color: 0x16A34A
-                    knob:
-                      bg_color: 0xFFFFFF
-                    on_click:
-                      - if:
-                          condition:
-                            switch.is_on: analytics_enabled_switch
-                          then:
-                            - switch.turn_off: analytics_enabled_switch
-                          else:
-                            - switch.turn_on: analytics_enabled_switch
-
-          - obj:
-              id: set_analytics_id_row
-              width: 100%
-              height: SIZE_CONTENT
-              hidden: true
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 6
-              widgets:
-                - label: { text: "Analytics ID", text_color: 0x9CA3AF, text_font: font_text_24, align: TOP_LEFT }
-                - label:
-                    id: set_analytics_id_value
-                    width: 100%
-                    text: "Onbekend"
-                    text_color: 0x9CA3AF
+                    y: 0
+                    options:
+                      - "CV-aanvoer (Tc)"
+                      - "CV-aanvoer zone 1 (Tv1)"
                     text_font: font_text_20
-                    long_mode: WRAP
-                    align: TOP_LEFT
-                    y: 36
+                    dropdown_list:
+                      text_font: font_text_20
+                    on_value:
+                      then:
+                        - lambda: |-
+                            auto val = lv_dropdown_get_selected(id(set_heat_control_temp_source_dd)->obj);
+                            auto idx = id(heat_cool_control_temperature_source_select).active_index();
+                            if (idx.has_value() && idx.value() == (int) val) {
+                              return;
+                            }
+                            if (val == 0) id(heat_cool_control_temperature_source_select).make_call().set_option("CV-aanvoer (Tc)").perform();
+                            else id(heat_cool_control_temperature_source_select).make_call().set_option("CV-aanvoer zone 1 (Tv1)").perform();
 
 
           - obj:
@@ -438,6 +445,70 @@ obj:
                             - switch.turn_off: emergency_mode_enabled
                           else:
                             - switch.turn_on: emergency_mode_enabled
+
+    - obj:
+        id: panel_general_page_analytics
+        hidden: true
+        width: 100%
+        height: SIZE_CONTENT
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: COLUMN
+          flex_align_main: START
+          flex_align_cross: CENTER
+          pad_row: 6
+        widgets:
+          - obj:
+              id: set_general_system_analytics
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Analytics versturen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Deel anonieme gebruiksdata voor het OpenAmber dashboard", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - switch:
+                    id: set_analytics_enabled_switch_ui
+                    align: TOP_RIGHT
+                    bg_color: 0x9CA3AF
+                    indicator:
+                      bg_color: 0x16A34A
+                    knob:
+                      bg_color: 0xFFFFFF
+                    on_click:
+                      - if:
+                          condition:
+                            switch.is_on: analytics_enabled_switch
+                          then:
+                            - switch.turn_off: analytics_enabled_switch
+                          else:
+                            - switch.turn_on: analytics_enabled_switch
+
+          - obj:
+              id: set_analytics_id_row
+              width: 100%
+              height: SIZE_CONTENT
+              hidden: true
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Analytics ID", text_color: 0x9CA3AF, text_font: font_text_24, align: TOP_LEFT }
+                - label:
+                    id: set_analytics_id_value
+                    width: 100%
+                    text: "Onbekend"
+                    text_color: 0x9CA3AF
+                    text_font: font_text_20
+                    long_mode: WRAP
+                    align: TOP_LEFT
+                    y: 36
 
     - obj:
         id: panel_general_page_hardware

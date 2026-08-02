@@ -80,6 +80,23 @@
             - lvgl.widget.hide: { id: set_heat_curve_chart_container }
             - lvgl.widget.hide: { id: set_heat_curve_controls_container }
 
+# ── Settings: Control temperature source dropdown ──
+- id: !extend heat_cool_control_temperature_source_select
+  on_value:
+    then:
+      - if:
+          condition:
+            lambda: |-
+              auto idx = id(heat_cool_control_temperature_source_select).active_index();
+              if (!idx.has_value()) return false;
+              return lv_dropdown_get_selected(id(set_heat_control_temp_source_dd)->obj) != (uint16_t) idx.value();
+          then:
+            - lvgl.dropdown.update:
+                id: set_heat_control_temp_source_dd
+                selected_index: !lambda |-
+                  auto idx = id(heat_cool_control_temperature_source_select).active_index();
+                  return idx.has_value() ? idx.value() : 0;
+
 # ── Settings: Backup heating mode dropdown ──
 - id: !extend backup_heating_mode
   on_value:
