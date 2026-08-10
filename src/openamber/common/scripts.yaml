@@ -411,10 +411,16 @@
     - delay: 150ms
     - script.execute: fetch_analytics_device_id
 
+- id: dump_eeprom_parameters_ui_disable
+  then: []
+
+- id: dump_eeprom_parameters_ui_enable
+  then: []
+
 - id: dump_eeprom_parameters
   mode: single
   then:
-    - lvgl.widget.disable: { id: service_eeprom_dump_button }
+    - script.execute: dump_eeprom_parameters_ui_disable
     - if:
         condition:
           lambda: 'return id(modbus_outside_is_online);'
@@ -429,7 +435,7 @@
                     static int pending_chunks = 0;
                     if (in_progress) {
                       ESP_LOGW("amber", "EEPROM dump overgeslagen: er loopt al een dump");
-                      lv_obj_clear_state(id(service_eeprom_dump_button), LV_STATE_DISABLED);
+                      id(dump_eeprom_parameters_ui_enable).execute();
                       return;
                     }
                     in_progress = true;
@@ -446,7 +452,7 @@
                       if (--pending_chunks <= 0) {
                         pending_chunks = 0;
                         in_progress = false;
-                        lv_obj_clear_state(id(service_eeprom_dump_button), LV_STATE_DISABLED);
+                        id(dump_eeprom_parameters_ui_enable).execute();
                       }
                     };
                     auto queue_chunk = [request_seq, request_ts, complete_chunk](uint16_t start_address, uint16_t register_count, uint8_t chunk_index) {
@@ -510,7 +516,7 @@
                 - logger.log: "EEPROM dump gestart (3000 t/m 3511)"
               else:
                 - logger.log: "EEPROM dump geannuleerd: MQTT niet verbonden"
-                - lvgl.widget.enable: { id: service_eeprom_dump_button }
+                - script.execute: dump_eeprom_parameters_ui_enable
         else:
           - logger.log: "EEPROM dump geannuleerd: buitenunit Modbus offline"
-          - lvgl.widget.enable: { id: service_eeprom_dump_button }
+          - script.execute: dump_eeprom_parameters_ui_enable
