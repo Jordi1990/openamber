@@ -2,6 +2,14 @@
 # UI helper scripts used by event-driven bindings
 # ══════════════════════════════════════════════════════════════
 
+- id: !extend dump_eeprom_parameters_ui_disable
+  then:
+    - lvgl.widget.disable: { id: service_eeprom_dump_button }
+
+- id: !extend dump_eeprom_parameters_ui_enable
+  then:
+    - lvgl.widget.enable: { id: service_eeprom_dump_button }
+
 - id: update_thermostat_settings_ui
   mode: restart
   then:
