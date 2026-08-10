@@ -45,11 +45,13 @@
           - lvgl.widget.show: { id: service_maintenance_title }
           - lvgl.widget.show: { id: service_maintenance_state }
           - lvgl.widget.show: { id: set_service_mode_switch_ui }
+          - lvgl.widget.show: { id: service_maintenance_lock_hint }
           - lvgl.widget.update: { id: service_maintenance_layout, y: 112, height: 72% }
           - lvgl.widget.hide: { id: service_mpanel_compressor }
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
           - lvgl.widget.hide: { id: service_mpanel_backup }
+          - lvgl.widget.hide: { id: service_eeprom_panel }
           - script.execute: update_service_mode_ui
         widgets:
           - label:
@@ -80,11 +82,13 @@
           - lvgl.widget.hide: { id: service_maintenance_title }
           - lvgl.widget.hide: { id: service_maintenance_state }
           - lvgl.widget.hide: { id: set_service_mode_switch_ui }
+          - lvgl.widget.hide: { id: service_maintenance_lock_hint }
           - lvgl.widget.update: { id: service_maintenance_layout, y: 0, height: 100% }
           - lvgl.widget.show: { id: service_mpanel_compressor }
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
           - lvgl.widget.hide: { id: service_mpanel_backup }
+          - lvgl.widget.hide: { id: service_eeprom_panel }
           - script.execute: update_service_mode_ui
         widgets:
           - label:
@@ -120,6 +124,7 @@
           - lvgl.widget.show: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
           - lvgl.widget.hide: { id: service_mpanel_backup }
+          - lvgl.widget.hide: { id: service_eeprom_panel }
           - script.execute: update_service_mode_ui
         widgets:
           - label:
@@ -155,6 +160,7 @@
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.show: { id: service_mpanel_valve }
           - lvgl.widget.hide: { id: service_mpanel_backup }
+          - lvgl.widget.hide: { id: service_eeprom_panel }
           - script.execute: update_service_mode_ui
         widgets:
           - label:
@@ -190,11 +196,48 @@
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
           - lvgl.widget.show: { id: service_mpanel_backup }
+          - lvgl.widget.hide: { id: service_eeprom_panel }
           - script.execute: update_service_mode_ui
         widgets:
           - label:
               id: service_tab_backup_lbl
               text: "Back-up"
+              text_color: 0x4B5563
+              text_font: font_text_20
+              align: LEFT_MID
+
+    - obj:
+        id: service_tab_eeprom
+        width: 100%
+        height: 40
+        bg_color: 0xE8ECF1
+        bg_opa: 100%
+        radius: 10
+        border_width: 0
+        border_opa: 0%
+        pad_left: 12
+        pad_top: 2
+        pad_bottom: 2
+        on_click:
+          - lvgl.widget.hide: { id: service_maintenance_panel }
+          - lvgl.widget.hide: { id: service_sensors_panel }
+          - lvgl.widget.hide: { id: service_errors_panel }
+          - lvgl.widget.hide: { id: service_warnings_panel }
+          - lvgl.widget.hide: { id: service_maintenance_header }
+          - lvgl.widget.hide: { id: service_maintenance_title }
+          - lvgl.widget.hide: { id: service_maintenance_state }
+          - lvgl.widget.hide: { id: set_service_mode_switch_ui }
+          - lvgl.widget.update: { id: service_maintenance_layout, y: 0, height: 100% }
+          - lvgl.widget.show: { id: service_eeprom_panel }
+          - lvgl.widget.hide: { id: service_mpanel_compressor }
+          - lvgl.widget.hide: { id: service_mpanel_pumps }
+          - lvgl.widget.hide: { id: service_mpanel_valve }
+          - lvgl.widget.hide: { id: service_mpanel_backup }
+          - script.execute: update_service_mode_ui
+        widgets:
+          - label:
+              id: service_tab_eeprom_lbl
+              text: "EEPROM"
               text_color: 0x4B5563
               text_font: font_text_20
               align: LEFT_MID
@@ -220,6 +263,7 @@
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
           - lvgl.widget.hide: { id: service_mpanel_backup }
+          - lvgl.widget.hide: { id: service_eeprom_panel }
           - script.execute: update_service_mode_ui
         widgets:
           - label:
@@ -250,6 +294,7 @@
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
           - lvgl.widget.hide: { id: service_mpanel_backup }
+          - lvgl.widget.hide: { id: service_eeprom_panel }
           - script.execute: update_service_mode_ui
           - script.execute: update_service_errors_ui
         widgets:
@@ -281,6 +326,7 @@
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
           - lvgl.widget.hide: { id: service_mpanel_backup }
+          - lvgl.widget.hide: { id: service_eeprom_panel }
           - script.execute: update_service_mode_ui
           - script.execute: update_service_warnings_ui
         widgets:
