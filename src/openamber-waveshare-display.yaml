@@ -122,6 +122,27 @@ api:
         id: nav_status_ha_icon
         text_color: 0xEF4444
 
+# EEBus warmtepomp-apparaat (native SHIP/SPINE PoC). Zie docs/eebus-native-poc.md
+# Pairing-SKI komt uit het ingebedde certificaat (log: "EEBus certificate").
+eebus:
+  device_sku: "OpenAmber-Waveshare"
+  brand: "OpenAmber"
+  model: "Amber"
+  failsafe_duration: 2h
+  read_power: "return id(power_compressor).state;"
+  read_dhw_temp: "return id(dhw_temperature_tw_sensor).state;"
+  apply_optional: |-
+    auto call = id(sg_ready_mode_select).make_call();
+    call.set_index(value ? 2 : 0); // Boost / Normaal
+    call.perform();
+    return true;
+  apply_dim: |-
+    auto call = id(sg_ready_mode_select).make_call();
+    call.set_index(value ? 1 : 0); // Blokkeren / Normaal
+    call.perform();
+    return true;
+
+
 interval:
  - interval: 5s
    then: !include openamber/ui/ui_update_loop.yaml
