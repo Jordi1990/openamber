@@ -1205,6 +1205,7 @@
     - lvgl.widget.show: { id: service_tabs_bar }
     - lvgl.widget.hide: { id: service_maintenance_panel }
     - lvgl.widget.hide: { id: service_sensors_panel }
+    - lvgl.widget.hide: { id: service_eeprom_panel }
     - lvgl.widget.show: { id: service_errors_panel }
     - lvgl.widget.hide: { id: service_warnings_panel }
     - lvgl.widget.hide: { id: service_mpanel_compressor }
@@ -1245,6 +1246,7 @@
     - lvgl.widget.show: { id: service_tabs_bar }
     - lvgl.widget.hide: { id: service_maintenance_panel }
     - lvgl.widget.hide: { id: service_sensors_panel }
+    - lvgl.widget.hide: { id: service_eeprom_panel }
     - lvgl.widget.hide: { id: service_errors_panel }
     - lvgl.widget.show: { id: service_warnings_panel }
     - lvgl.widget.hide: { id: service_mpanel_compressor }
@@ -1798,6 +1800,11 @@
                 - lvgl.widget.update:
                     id: service_maintenance_state
                     text_color: 0x6B7280
+                - if:
+                    condition:
+                      lambda: 'return !id(service_mode_enabled).state && !lv_obj_has_flag(id(service_maintenance_panel), LV_OBJ_FLAG_HIDDEN);'
+                    then:
+                      - lvgl.widget.show: { id: service_maintenance_lock_hint }
           - lvgl.widget.hide: { id: service_mpanel_compressor }
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }

@@ -412,7 +412,7 @@
     - script.execute: fetch_analytics_device_id
 
 - id: dump_eeprom_parameters
-  mode: restart
+  mode: single
   then:
     - lvgl.widget.disable: { id: service_eeprom_dump_button }
     - if:
@@ -424,40 +424,51 @@
                 lambda: 'return id(mqtt_client).is_connected();'
               then:
                 - lambda: |-
-                    static int dump_request_sequence = 0;
+                    static bool in_progress = false;
+                    static int request_sequence = 0;
                     static int pending_chunks = 0;
-                    const int request_seq = ++dump_request_sequence;
+                    if (in_progress) {
+                      ESP_LOGW("amber", "EEPROM dump overgeslagen: er loopt al een dump");
+                      lv_obj_clear_state(id(service_eeprom_dump_button), LV_STATE_DISABLED);
+                      return;
+                    }
+                    in_progress = true;
+                    const int request_seq = ++request_sequence;
                     pending_chunks = 5;
                     const int64_t request_ts = id(my_time).timestamp_now();
-                    auto queue_chunk = [request_seq, request_ts](uint16_t start_address, uint16_t register_count, uint8_t chunk_index) {
+                    auto complete_chunk = [request_seq](bool failed) {
+                      if (request_seq != request_sequence) {
+                        return;
+                      }
+                      if (failed) {
+                        ESP_LOGE("amber", "EEPROM dump chunk mislukt");
+                      }
+                      if (--pending_chunks <= 0) {
+                        pending_chunks = 0;
+                        in_progress = false;
+                        lv_obj_clear_state(id(service_eeprom_dump_button), LV_STATE_DISABLED);
+                      }
+                    };
+                    auto queue_chunk = [request_seq, request_ts, complete_chunk](uint16_t start_address, uint16_t register_count, uint8_t chunk_index) {
                       auto command = esphome::modbus_controller::ModbusCommandItem::create_read_command(
                         id(modbus_outside_unit),
                         esphome::modbus_controller::ModbusRegisterType::HOLDING,
                         start_address,
                         register_count,
-                        [request_seq, request_ts, start_address, register_count, chunk_index](
+                            [request_seq, request_ts, start_address, register_count, chunk_index, complete_chunk](
                             esphome::modbus_controller::ModbusRegisterType register_type,
                             uint16_t response_start_address,
                             const std::vector<uint8_t> &data) {
                           (void) register_type;
                           (void) response_start_address;
-                            auto complete_chunk = [request_seq]() {
-                              if (request_seq != dump_request_sequence) {
-                                return;
-                              }
-                              if (--pending_chunks <= 0) {
-                                pending_chunks = 0;
-                                lv_obj_clear_state(id(service_eeprom_dump_button), LV_STATE_DISABLED);
-                              }
-                            };
-                          if (request_seq != dump_request_sequence) {
+                          if (request_seq != request_sequence) {
                             return;
                           }
                           const size_t expected_bytes = register_count * 2;
                           if (data.size() < expected_bytes) {
                             ESP_LOGE("amber", "EEPROM dump chunk %u mislukt: verwachtte %u bytes, kreeg %u",
                                      chunk_index, expected_bytes, data.size());
-                            complete_chunk();
+                            complete_chunk(true);
                             return;
                           }
 
@@ -480,13 +491,13 @@
                           const std::string topic = id(analytics_topic) + "/eeprom_dump/chunk/" + std::to_string(chunk_index);
                           if (!id(mqtt_client).publish(topic, payload, 0, false)) {
                             ESP_LOGE("amber", "EEPROM dump chunk %u kon niet naar MQTT worden gepubliceerd", chunk_index);
-                            complete_chunk();
+                            complete_chunk(true);
                             return;
                           }
 
                           ESP_LOGI("amber", "EEPROM dump chunk %u gepubliceerd (%u-%u)", chunk_index, start_address + 1,
                                    start_address + register_count);
-                          complete_chunk();
+                          complete_chunk(false);
                         });
                       id(modbus_outside_unit)->queue_command(command);
                     };
