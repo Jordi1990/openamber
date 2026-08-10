@@ -410,3 +410,96 @@
     - script.execute: send_telemetry_4
     - delay: 150ms
     - script.execute: fetch_analytics_device_id
+
+- id: dump_eeprom_parameters
+  mode: restart
+  then:
+    - lvgl.widget.disable: { id: service_eeprom_dump_button }
+    - if:
+        condition:
+          lambda: 'return id(modbus_outside_is_online);'
+        then:
+          - if:
+              condition:
+                lambda: 'return id(mqtt_client).is_connected();'
+              then:
+                - lambda: |-
+                    static int dump_request_sequence = 0;
+                    static int pending_chunks = 0;
+                    const int request_seq = ++dump_request_sequence;
+                    pending_chunks = 5;
+                    const int64_t request_ts = id(my_time).timestamp_now();
+                    auto queue_chunk = [request_seq, request_ts](uint16_t start_address, uint16_t register_count, uint8_t chunk_index) {
+                      auto command = esphome::modbus_controller::ModbusCommandItem::create_read_command(
+                        id(modbus_outside_unit),
+                        esphome::modbus_controller::ModbusRegisterType::HOLDING,
+                        start_address,
+                        register_count,
+                        [request_seq, request_ts, start_address, register_count, chunk_index](
+                            esphome::modbus_controller::ModbusRegisterType register_type,
+                            uint16_t response_start_address,
+                            const std::vector<uint8_t> &data) {
+                          (void) register_type;
+                          (void) response_start_address;
+                            auto complete_chunk = [request_seq]() {
+                              if (request_seq != dump_request_sequence) {
+                                return;
+                              }
+                              if (--pending_chunks <= 0) {
+                                pending_chunks = 0;
+                                lv_obj_clear_state(id(service_eeprom_dump_button), LV_STATE_DISABLED);
+                              }
+                            };
+                          if (request_seq != dump_request_sequence) {
+                            return;
+                          }
+                          const size_t expected_bytes = register_count * 2;
+                          if (data.size() < expected_bytes) {
+                            ESP_LOGE("amber", "EEPROM dump chunk %u mislukt: verwachtte %u bytes, kreeg %u",
+                                     chunk_index, expected_bytes, data.size());
+                            complete_chunk();
+                            return;
+                          }
+
+                          std::string payload = "{\"ts\":";
+                          payload += std::to_string(request_ts);
+                          payload += ",\"start\":";
+                          payload += std::to_string(start_address + 1);
+                          payload += ",\"count\":";
+                          payload += std::to_string(register_count);
+                          payload += ",\"values\":[";
+                          for (size_t i = 0; i < register_count; i++) {
+                            const size_t offset = i * 2;
+                            const uint16_t value = (static_cast<uint16_t>(data[offset]) << 8) |
+                                                   static_cast<uint16_t>(data[offset + 1]);
+                            if (i > 0) payload += ",";
+                            payload += std::to_string(value);
+                          }
+                          payload += "]}";
+
+                          const std::string topic = id(analytics_topic) + "/eeprom_dump/chunk/" + std::to_string(chunk_index);
+                          if (!id(mqtt_client).publish(topic, payload, 0, false)) {
+                            ESP_LOGE("amber", "EEPROM dump chunk %u kon niet naar MQTT worden gepubliceerd", chunk_index);
+                            complete_chunk();
+                            return;
+                          }
+
+                          ESP_LOGI("amber", "EEPROM dump chunk %u gepubliceerd (%u-%u)", chunk_index, start_address + 1,
+                                   start_address + register_count);
+                          complete_chunk();
+                        });
+                      id(modbus_outside_unit)->queue_command(command);
+                    };
+
+                    queue_chunk(2999, 125, 0);
+                    queue_chunk(3124, 125, 1);
+                    queue_chunk(3249, 125, 2);
+                    queue_chunk(3374, 125, 3);
+                    queue_chunk(3499, 12, 4);
+                - logger.log: "EEPROM dump gestart (3000 t/m 3511)"
+              else:
+                - logger.log: "EEPROM dump geannuleerd: MQTT niet verbonden"
+                - lvgl.widget.enable: { id: service_eeprom_dump_button }
+        else:
+          - logger.log: "EEPROM dump geannuleerd: buitenunit Modbus offline"
+          - lvgl.widget.enable: { id: service_eeprom_dump_button }
