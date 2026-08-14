@@ -465,13 +465,13 @@
                     auto queue_chunk = [request_seq, request_ts, complete_chunk](uint16_t start_address, uint16_t register_count, uint8_t chunk_index) {
                       auto command = esphome::modbus_controller::ModbusCommandItem::create_read_command(
                         id(modbus_outside_unit),
-                        esphome::modbus_controller::ModbusRegisterType::HOLDING,
+                        esphome::modbus::EntityType::HOLDING,
                         start_address,
                         register_count,
                             [request_seq, request_ts, start_address, register_count, chunk_index, complete_chunk](
-                            esphome::modbus_controller::ModbusRegisterType register_type,
+                            esphome::modbus::EntityType register_type,
                             uint16_t response_start_address,
-                            const std::vector<uint8_t> &data) {
+                            std::span<const uint8_t> data) {
                           (void) register_type;
                           (void) response_start_address;
                           if (request_seq != request_sequence) {
