@@ -176,10 +176,6 @@ private:
       return false; 
   }
 
-  float GetPreferredPumpSpeed() {
-    return IsCoolingDemand() ? id(pump_speed_cooling_number).state : id(pump_speed_heating_number).state;
-  }
-
   void CalculateAccumulatedDegreeMinutes()
   {
     uint32_t now = App.get_loop_component_start_time();
@@ -464,7 +460,7 @@ public:
         // Start pump on interval or if there is compressor demand.
         if (pump_controller_->ShouldStartNextPumpCycle() || HasCompressorDemand())
         {
-          pump_controller_->Start(GetPreferredPumpSpeed());
+          pump_controller_->Start();
           StartPumpP1IfNeeded();
           SetNextState(HeatCoolState::WAIT_PUMP_RUNNING);
         }
@@ -494,7 +490,7 @@ public:
 
       case HeatCoolState::PUMP_RUNNING:
       {
-        pump_controller_->ApplySpeedChangeIfNeeded(GetPreferredPumpSpeed());
+          pump_controller_->ApplySpeedChangeIfNeeded(false);
 
         // Stop if there is no demand and pump interval is finished.
         if (!HasCompressorDemand() && pump_controller_->IsIntervalCycleFinished())
@@ -592,6 +588,8 @@ public:
 
       case HeatCoolState::COMPRESSOR_SOFTSTART:
       {
+        pump_controller_->ApplySpeedChangeIfNeeded(false);
+
         if (compressor_controller_->HasPassedSoftStartDuration())
         {
           backup_degmin_last_ms_ = App.get_loop_component_start_time();
@@ -602,7 +600,8 @@ public:
 
       case HeatCoolState::COMPRESSOR_RUNNING:
       {
-        pump_controller_->ApplySpeedChangeIfNeeded(GetPreferredPumpSpeed());
+        pump_controller_->ApplySpeedChangeIfNeeded(true);
+
         if(start_current_temperature_ == 0.0f)
         {
           start_current_temperature_ = GetControlTemperature();

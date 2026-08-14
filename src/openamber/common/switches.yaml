@@ -8,6 +8,15 @@
     sorting_group_id: heating_settings
 
 - platform: template
+  id: pump_p0_pid_enabled
+  name: "Pomp P0 PID regeling"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
   id: legio_enabled_switch
   name: "Legionellapreventie"
   optimistic: True

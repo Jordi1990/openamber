@@ -206,6 +206,60 @@
             format: "%.0f min"
             args: ['x']
 
+- id: !extend pump_p0_pid_target_delta_t
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_pump_pid_target_delta_t_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+- id: !extend pump_p0_pid_min_pwm
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_pump_pid_min_pwm_val
+          text:
+            format: "%.0f%%"
+            args: ['x']
+
+- id: !extend pump_p0_pid_max_pwm
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_pump_pid_max_pwm_val
+          text:
+            format: "%.0f%%"
+            args: ['x']
+
+- id: !extend pump_p0_pid_kp
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_pump_pid_kp_val
+          text:
+            format: "%.2f"
+            args: ['x']
+
+- id: !extend pump_p0_pid_ki
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_pump_pid_ki_val
+          text:
+            format: "%.4f"
+            args: ['x']
+
+- id: !extend pump_p0_pid_kd
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_pump_pid_kd_val
+          text:
+            format: "%.2f"
+            args: ['x']
+
 # ── Compressor ──
 - id: !extend compressor_start_delta_heating
   on_value:

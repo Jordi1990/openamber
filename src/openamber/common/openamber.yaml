@@ -297,6 +297,13 @@ output:
       - lambda: |-
           id(amber_ctrl).write_cool_pid_value(state);
 
+  - platform: template
+    id: pump_p0_pid_output
+    type: float
+    write_action:
+      - lambda: |-
+          id(amber_ctrl).write_pump_p0_pid_value(state);
+
 button:
   - platform: factory_reset
     disabled_by_default: true

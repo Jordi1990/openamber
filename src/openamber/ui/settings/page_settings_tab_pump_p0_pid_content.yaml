@@ -1,0 +1,301 @@
+﻿- obj:
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "P0 PID-regeling", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Regel pomp P0 automatisch op basis van warmtewisselaar-delta-T tijdens verwarmen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - switch:
+          id: set_pump_pid_enabled_switch_ui
+          align: TOP_RIGHT
+          bg_color: 0x9CA3AF
+          indicator:
+            bg_color: 0x16A34A
+          knob:
+            bg_color: 0xFFFFFF
+          on_click:
+            - if:
+                condition:
+                  switch.is_on: pump_p0_pid_enabled
+                then:
+                  - switch.turn_off: pump_p0_pid_enabled
+                else:
+                  - switch.turn_on: pump_p0_pid_enabled
+
+- obj:
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Gewenste delta-T", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Doelwaarde voor Tuo - Tui tijdens verwarmen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: pump_p0_pid_target_delta_t
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_pump_pid_target_delta_t_val, text: "5.0°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: pump_p0_pid_target_delta_t
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Minimale pomp PWM", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Ondergrens voor automatische P0-regeling", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: pump_p0_pid_min_pwm
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_pump_pid_min_pwm_val, text: "55%", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: pump_p0_pid_min_pwm
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Maximale pomp PWM", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Bovengrens voor automatische P0-regeling", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: pump_p0_pid_max_pwm
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_pump_pid_max_pwm_val, text: "90%", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: pump_p0_pid_max_pwm
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "PID P (Kp)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Hoger: sneller meer pompcapaciteit bij oplopende delta-T", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: pump_p0_pid_kp
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_pump_pid_kp_val, text: "0.12", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: pump_p0_pid_kp
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "PID I (Ki)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Lage integrale correctie voor trage vloerverwarming zonder jagen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: pump_p0_pid_ki
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_pump_pid_ki_val, text: "0.0015", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: pump_p0_pid_ki
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "PID D (Kd)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Standaard uit voor een traag systeem; alleen gebruiken voor extra demping", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: pump_p0_pid_kd
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_pump_pid_kd_val, text: "0.00", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: pump_p0_pid_kd
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }

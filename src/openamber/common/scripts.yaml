@@ -265,6 +265,13 @@
           root["xs"] = id(emergency_mode_enabled).state;
           root["xt"] = id(service_mode_enabled).state;
           root["xu"] = id(flow_sensor_enabled).state;
+          root["xv"] = id(pump_p0_pid_enabled).state;
+          root["xw"] = id(pump_p0_pid_target_delta_t).state;
+          root["xx"] = id(pump_p0_pid_min_pwm).state;
+          root["xy"] = id(pump_p0_pid_max_pwm).state;
+          root["xz"] = id(pump_p0_pid_kp).state;
+          root["za"] = id(pump_p0_pid_ki).state;
+          root["zb"] = id(pump_p0_pid_kd).state;
 
 - id: send_telemetry_1
   then:

@@ -74,6 +74,7 @@ public:
   
   void write_heat_pid_value(float value);
   void write_cool_pid_value(float value);
+  void write_pump_p0_pid_value(float value);
   void reset_pump_interval();
   bool is_maintenance_state() const;
 };
