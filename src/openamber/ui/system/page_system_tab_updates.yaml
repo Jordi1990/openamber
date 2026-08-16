@@ -123,6 +123,7 @@ obj:
           - lvgl.widget.update:
               id: service_check_update_button_label
               text_color: 0xFFFFFF
+          - script.execute: update_firmware_ui
         widgets:
           - label:
               id: service_check_update_button_label

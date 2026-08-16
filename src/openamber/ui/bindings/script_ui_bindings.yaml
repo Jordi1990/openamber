@@ -13,65 +13,73 @@
 - id: update_thermostat_settings_ui
   mode: restart
   then:
-    - lvgl.label.update:
-        id: set_therm_def_heat_val
-        text:
-          format: "%.1f°C"
-          args: ['id(thermostat_default_heat_setpoint).state']
-    - lvgl.label.update:
-        id: set_therm_def_cool_val
-        text:
-          format: "%.1f°C"
-          args: ['id(thermostat_default_cool_setpoint).state']
-    - lvgl.label.update:
-        id: set_therm_heat_db_val
-        text:
-          format: "%.1f°C"
-          args: ['id(thermostat_heat_deadband).state']
-    - lvgl.label.update:
-        id: set_therm_heat_or_val
-        text:
-          format: "%.1f°C"
-          args: ['id(thermostat_heat_overrun).state']
-    - lvgl.label.update:
-        id: set_therm_cool_db_val
-        text:
-          format: "%.1f°C"
-          args: ['id(thermostat_cool_deadband).state']
-    - lvgl.label.update:
-        id: set_therm_cool_or_val
-        text:
-          format: "%.1f°C"
-          args: ['id(thermostat_cool_overrun).state']
     - if:
         condition:
-          lambda: 'return id(climate_controller).mode == climate::CLIMATE_MODE_COOL;'
+          lambda: 'return !lv_obj_has_flag(id(page_settings), LV_OBJ_FLAG_HIDDEN) || !lv_obj_has_flag(id(page_thermostat), LV_OBJ_FLAG_HIDDEN);'
         then:
           - lvgl.label.update:
-              id: home_therm_setpoint_value
+              id: set_therm_def_heat_val
               text:
                 format: "%.1f°C"
-                args: ['id(climate_controller).target_temperature_high']
-        else:
+                args: ['id(thermostat_default_heat_setpoint).state']
           - lvgl.label.update:
-              id: home_therm_setpoint_value
+              id: set_therm_def_cool_val
               text:
                 format: "%.1f°C"
-                args: ['id(climate_controller).target_temperature_low']
+                args: ['id(thermostat_default_cool_setpoint).state']
+          - lvgl.label.update:
+              id: set_therm_heat_db_val
+              text:
+                format: "%.1f°C"
+                args: ['id(thermostat_heat_deadband).state']
+          - lvgl.label.update:
+              id: set_therm_heat_or_val
+              text:
+                format: "%.1f°C"
+                args: ['id(thermostat_heat_overrun).state']
+          - lvgl.label.update:
+              id: set_therm_cool_db_val
+              text:
+                format: "%.1f°C"
+                args: ['id(thermostat_cool_deadband).state']
+          - lvgl.label.update:
+              id: set_therm_cool_or_val
+              text:
+                format: "%.1f°C"
+                args: ['id(thermostat_cool_overrun).state']
     - if:
         condition:
-          lambda: 'return isnan(id(room_temperature).state);'
+          lambda: 'return !lv_obj_has_flag(id(page_home), LV_OBJ_FLAG_HIDDEN);'
         then:
-          - lvgl.label.update:
-              id: home_therm_current_temp_value
-              text: "-.-°C"
-        else:
-          - lvgl.label.update:
-              id: home_therm_current_temp_value
-              text:
-                format: "%.1f°C"
-                args: ['id(room_temperature).state']
-    - script.execute: update_home_thermostat_mode_ui
+          - if:
+              condition:
+                lambda: 'return id(climate_controller).mode == climate::CLIMATE_MODE_COOL;'
+              then:
+                - lvgl.label.update:
+                    id: home_therm_setpoint_value
+                    text:
+                      format: "%.1f°C"
+                      args: ['id(climate_controller).target_temperature_high']
+              else:
+                - lvgl.label.update:
+                    id: home_therm_setpoint_value
+                    text:
+                      format: "%.1f°C"
+                      args: ['id(climate_controller).target_temperature_low']
+          - if:
+              condition:
+                lambda: 'return isnan(id(room_temperature).state);'
+              then:
+                - lvgl.label.update:
+                    id: home_therm_current_temp_value
+                    text: "-.-°C"
+              else:
+                - lvgl.label.update:
+                    id: home_therm_current_temp_value
+                    text:
+                      format: "%.1f°C"
+                      args: ['id(room_temperature).state']
+          - script.execute: update_home_thermostat_mode_ui
 
 - id: update_thermostat_mode_ui
   mode: restart
@@ -84,6 +92,7 @@
         then:
           - lvgl.widget.update: { id: thermostat_row_default_heat, state: { disabled: false }, opa: 100% }
           - lvgl.widget.update: { id: thermostat_row_default_cool, state: { disabled: false }, opa: 100% }
+          - lvgl.widget.update: { id: thermostat_row_default_heat, state: { disabled: false }, opa: 100% }
           - lvgl.widget.update: { id: thermostat_row_heat_deadband, state: { disabled: false }, opa: 100% }
           - lvgl.widget.update: { id: thermostat_row_heat_overrun, state: { disabled: false }, opa: 100% }
           - lvgl.widget.update: { id: thermostat_row_cool_deadband, state: { disabled: false }, opa: 100% }
@@ -155,6 +164,10 @@
           - lvgl.widget.update: { id: page_service, hidden: true }
           - lvgl.widget.update: { id: page_system, hidden: true }
           - lvgl.widget.update: { id: page_settings, hidden: true }
+          - script.execute: update_water_mode_temperature_display
+          - script.execute: update_water_mode_efficiency_display
+          - script.execute: update_home_pump_tile_state
+          - script.execute: update_home_thermostat_mode_ui
         else:
           - if:
               condition:
@@ -165,6 +178,8 @@
                 - lvgl.widget.update: { id: page_service, hidden: true }
                 - lvgl.widget.update: { id: page_system, hidden: true }
                 - lvgl.widget.update: { id: page_settings, hidden: true }
+                - script.execute: update_thermostat_settings_ui
+                - script.execute: update_thermostat_mode_ui
                 - script.execute: update_home_thermostat_mode_ui
               else:
                 - if:
@@ -176,6 +191,12 @@
                       - lvgl.widget.update: { id: page_service, hidden: true }
                       - lvgl.widget.update: { id: page_system, hidden: true }
                       - lvgl.widget.update: { id: page_settings, hidden: false }
+                      - script.execute: update_wifi_connected_summary_ui
+                      - script.execute: update_manual_setpoint_ui
+                      - script.execute: update_heat_curve_chart
+                      - script.execute: update_legio_ui
+                      - script.execute: update_dhw_schedule_ui
+                      - script.execute: update_thermostat_settings_ui
                     else:
                       - if:
                           condition:
@@ -205,12 +226,15 @@
                             - lvgl.widget.hide: { id: service_eeprom_panel }
                             - script.execute: update_service_mode_ui
                             - script.execute: update_service_top_tabs_ui
+                            - script.execute: update_service_diag_summary_ui
                           else:
                             - lvgl.widget.update: { id: page_home, hidden: true }
                             - lvgl.widget.update: { id: page_thermostat, hidden: true }
                             - lvgl.widget.update: { id: page_service, hidden: true }
                             - lvgl.widget.update: { id: page_system, hidden: false }
                             - lvgl.widget.update: { id: page_settings, hidden: true }
+                            - script.execute: update_system_diagnostics_ui
+                            - script.execute: update_firmware_ui
 
     - lvgl.widget.update: { id: nav_home, bg_opa: !lambda 'return tab_index == 0 ? 100 : 0;' }
     - lvgl.label.update: { id: nav_home_icon, text_color: !lambda 'return lv_color_hex(tab_index == 0 ? 0xFFFFFF : 0xD1D5DB);' }
@@ -1325,192 +1349,279 @@
 - id: update_service_diag_summary_ui
   mode: restart
   then:
-    - lvgl.label.update:
-        id: service_diag_status_values
-        text: !lambda |-
-          std::string main_state = id(state_machine_state_main).state;
-          std::string heat_cool_state = id(state_machine_state_heat_cool).state;
-          std::string dhw_state = id(state_machine_state_dhw).state;
-          if (main_state.empty()) main_state = "-";
-          if (heat_cool_state.empty()) heat_cool_state = "-";
-          if (dhw_state.empty()) dhw_state = "-";
-          return main_state + "\n" + heat_cool_state + "\n" + dhw_state;
-    - lvgl.label.update:
-        id: service_diag_temp_values
-        text: !lambda |-
-          auto format_temp = [](float value) -> std::string {
-            if (isnan(value)) return "-";
-            char buffer[24];
-            snprintf(buffer, sizeof(buffer), "%.1f°C", value);
-            return std::string(buffer);
-          };
-          auto format_pressure = [](float value) -> std::string {
-            if (isnan(value)) return "-";
-            char buffer[24];
-            snprintf(buffer, sizeof(buffer), "%.1f", value);
-            return std::string(buffer);
-          };
-          return format_temp(id(temperature_outside_ta).state) + " / " + format_temp(id(heat_cool_control_temperature).state) + "\n"
-            + format_temp(id(outlet_temperature_tuo).state) + " / " + format_temp(id(inlet_temperature_tui).state) + "\n"
-            + format_pressure(id(suction_pressure_ps).state) + " / " + format_pressure(id(discharge_pressure_pd).state) + " bar";
-    - lvgl.label.update:
-        id: service_diag_control_values
-        text: !lambda |-
-          auto format_hz = [](float value) -> std::string {
-            if (isnan(value)) return "- Hz";
-            char buffer[24];
-            snprintf(buffer, sizeof(buffer), "%.0f Hz", value);
-            return std::string(buffer);
-          };
-          auto format_pct = [](float value) -> std::string {
-            if (isnan(value)) return "- %";
-            char buffer[24];
-            snprintf(buffer, sizeof(buffer), "%.0f %%", value);
-            return std::string(buffer);
-          };
-          auto format_rpm = [](float value) -> std::string {
-            if (isnan(value)) return "- rpm";
-            char buffer[24];
-            snprintf(buffer, sizeof(buffer), "%.0f rpm", value);
-            return std::string(buffer);
-          };
-          return format_hz(id(current_compressor_frequency).state) + "\n"
-            + format_pct(id(pump_p0_current_pwm_sensor).state) + "\n"
-            + format_rpm(id(fan_rpm_sensor).state) + "\n"
-            + format_pct(id(expansion_valve_position).state);
-    - lvgl.label.update:
-        id: service_diag_system_values
-        text: !lambda |-
-          return std::string(id(defrost_active_sensor).state ? "AAN" : "UIT") + " / "
-            + (id(bottom_heater_active_sensor).state ? "AAN" : "UIT") + "\n"
-            + (id(modbus_inside_online).state ? "Online" : "Offline") + "\n"
-            + (id(modbus_outside_online).state ? "Online" : "Offline") + "\n"
-            + (id(sg_ready_a_active_sensor).state ? "AAN" : "UIT") + " / "
-            + (id(sg_ready_b_active_sensor).state ? "AAN" : "UIT") + "\n"
-            + (id(external_heat_demand_wired).state ? "AAN" : "UIT") + " / "
-            + (id(external_cool_demand_wired).state ? "AAN" : "UIT");
+    - if:
+        condition:
+          lambda: 'return !lv_obj_has_flag(id(page_service), LV_OBJ_FLAG_HIDDEN);'
+        then:
+          - lvgl.label.update:
+              id: service_diag_status_values
+              text:
+                format: "%s\n%s\n%s"
+                args:
+                  - 'id(state_machine_state_main).state.empty() ? "-" : id(state_machine_state_main).state.c_str()'
+                  - 'id(state_machine_state_heat_cool).state.empty() ? "-" : id(state_machine_state_heat_cool).state.c_str()'
+                  - 'id(state_machine_state_dhw).state.empty() ? "-" : id(state_machine_state_dhw).state.c_str()'
+          - lvgl.label.update:
+              id: service_diag_temp_values
+              text:
+                format: "%.1f°C / %.1f°C\n%.1f°C / %.1f°C\n%.1f / %.1f bar"
+                args:
+                  - 'id(temperature_outside_ta).state'
+                  - 'id(heat_cool_control_temperature).state'
+                  - 'id(outlet_temperature_tuo).state'
+                  - 'id(inlet_temperature_tui).state'
+                  - 'id(suction_pressure_ps).state'
+                  - 'id(discharge_pressure_pd).state'
+          - lvgl.label.update:
+              id: service_diag_control_values
+              text:
+                format: "%.0f Hz\n%.0f %%\n%.0f rpm\n%.0f %%"
+                args:
+                  - 'id(current_compressor_frequency).state'
+                  - 'id(pump_p0_current_pwm_sensor).state'
+                  - 'id(fan_rpm_sensor).state'
+                  - 'id(expansion_valve_position).state'
+          - lvgl.label.update:
+              id: service_diag_system_values
+              text:
+                format: "%s / %s\n%s\n%s\n%s / %s\n%s / %s"
+                args:
+                  - 'id(defrost_active_sensor).state ? "AAN" : "UIT"'
+                  - 'id(bottom_heater_active_sensor).state ? "AAN" : "UIT"'
+                  - 'id(modbus_inside_online).state ? "Online" : "Offline"'
+                  - 'id(modbus_outside_online).state ? "Online" : "Offline"'
+                  - 'id(sg_ready_a_active_sensor).state ? "AAN" : "UIT"'
+                  - 'id(sg_ready_b_active_sensor).state ? "AAN" : "UIT"'
+                  - 'id(external_heat_demand_wired).state ? "AAN" : "UIT"'
+                  - 'id(external_cool_demand_wired).state ? "AAN" : "UIT"'
 
 - id: update_system_diagnostics_ui
   mode: restart
   then:
     - if:
         condition:
-          lambda: 'return id(sensor_uptime).has_state();'
+          lambda: 'return !lv_obj_has_flag(id(page_system), LV_OBJ_FLAG_HIDDEN);'
         then:
           - if:
               condition:
-                lambda: 'return (static_cast<uint32_t>(id(sensor_uptime).state) / 60U) >= 1440U;'
+                lambda: 'return id(sensor_uptime).has_state();'
               then:
-                - lvgl.label.update:
-                    id: system_diag_runtime_values
-                    text:
-                      format: "%s\n%lu d %lu u"
-                      args:
-                        - 'ESPHOME_VERSION'
-                        - '(static_cast<uint32_t>(id(sensor_uptime).state) / 60U) / 1440U'
-                        - '((static_cast<uint32_t>(id(sensor_uptime).state) / 60U) / 60U) % 24U'
-              else:
                 - if:
                     condition:
-                      lambda: 'return (static_cast<uint32_t>(id(sensor_uptime).state) / 60U) >= 60U;'
+                      lambda: 'return (static_cast<uint32_t>(id(sensor_uptime).state) / 60U) >= 1440U;'
                     then:
                       - lvgl.label.update:
                           id: system_diag_runtime_values
                           text:
-                            format: "%s\n%lu u %lu m"
+                            format: "%s\n%lu d %lu u"
                             args:
                               - 'ESPHOME_VERSION'
-                              - '(static_cast<uint32_t>(id(sensor_uptime).state) / 60U) / 60U'
-                              - '(static_cast<uint32_t>(id(sensor_uptime).state) / 60U) % 60U'
+                              - '(static_cast<uint32_t>(id(sensor_uptime).state) / 60U) / 1440U'
+                              - '((static_cast<uint32_t>(id(sensor_uptime).state) / 60U) / 60U) % 24U'
                     else:
-                      - lvgl.label.update:
-                          id: system_diag_runtime_values
-                          text:
-                            format: "%s\n%lu m"
-                            args:
-                              - 'ESPHOME_VERSION'
-                              - 'static_cast<uint32_t>(id(sensor_uptime).state) / 60U'
-        else:
+                      - if:
+                          condition:
+                            lambda: 'return (static_cast<uint32_t>(id(sensor_uptime).state) / 60U) >= 60U;'
+                          then:
+                            - lvgl.label.update:
+                                id: system_diag_runtime_values
+                                text:
+                                  format: "%s\n%lu u %lu m"
+                                  args:
+                                    - 'ESPHOME_VERSION'
+                                    - '(static_cast<uint32_t>(id(sensor_uptime).state) / 60U) / 60U'
+                                    - '(static_cast<uint32_t>(id(sensor_uptime).state) / 60U) % 60U'
+                          else:
+                            - lvgl.label.update:
+                                id: system_diag_runtime_values
+                                text:
+                                  format: "%s\n%lu m"
+                                  args:
+                                    - 'ESPHOME_VERSION'
+                                    - 'static_cast<uint32_t>(id(sensor_uptime).state) / 60U'
+              else:
+                - lvgl.label.update:
+                    id: system_diag_runtime_values
+                    text:
+                      format: "%s\n-"
+                      args: ['ESPHOME_VERSION']
           - lvgl.label.update:
-              id: system_diag_runtime_values
+              id: system_diag_memory_values
               text:
-                format: "%s\n-"
-                args: ['ESPHOME_VERSION']
-    - lvgl.label.update:
-        id: system_diag_memory_values
-        text: !lambda |-
-          char heap_free_buf[20];
-          char heap_frag_buf[20];
-          char heap_block_buf[20];
-          char psram_buf[20];
-          if (id(system_heap_free).has_state()) {
-            snprintf(heap_free_buf, sizeof(heap_free_buf), "%.0f kB", id(system_heap_free).state / 1024.0f);
-          } else {
-            snprintf(heap_free_buf, sizeof(heap_free_buf), "-");
-          }
-          if (id(system_heap_fragmentation).has_state()) {
-            snprintf(heap_frag_buf, sizeof(heap_frag_buf), "%.0f %%", id(system_heap_fragmentation).state);
-          } else {
-            snprintf(heap_frag_buf, sizeof(heap_frag_buf), "-");
-          }
-          if (id(system_heap_max_block).has_state()) {
-            snprintf(heap_block_buf, sizeof(heap_block_buf), "%.0f kB", id(system_heap_max_block).state / 1024.0f);
-          } else {
-            snprintf(heap_block_buf, sizeof(heap_block_buf), "-");
-          }
-          if (id(system_psram_free).has_state()) {
-            snprintf(psram_buf, sizeof(psram_buf), "%.0f kB", id(system_psram_free).state / 1024.0f);
-          } else {
-            snprintf(psram_buf, sizeof(psram_buf), "-");
-          }
-          char value_buf[96];
-          snprintf(value_buf, sizeof(value_buf), "%s\n%s\n%s\n%s", heap_free_buf, heap_frag_buf, heap_block_buf, psram_buf);
-          return std::string(value_buf);
-    - lvgl.label.update:
-        id: system_diag_esp_values
-        text: !lambda |-
-          auto trim_copy = [](std::string s) -> std::string {
-            size_t start = s.find_first_not_of(" \t\r\n");
-            if (start == std::string::npos) return std::string("");
-            size_t end = s.find_last_not_of(" \t\r\n");
-            return s.substr(start, end - start + 1);
-          };
-          auto extract_section = [&](const std::string &source, const std::string &marker) -> std::string {
-            size_t begin = source.find(marker);
-            if (begin == std::string::npos) return std::string("");
-            begin += marker.size();
-            size_t end = source.find('|', begin);
-            if (end == std::string::npos) return trim_copy(source.substr(begin));
-            return trim_copy(source.substr(begin, end - begin));
-          };
+                format: "%s\n%s\n%s\n%s"
+                args:
+                  - 'id(system_heap_free).has_state() ? str_sprintf("%.0f kB", id(system_heap_free).state / 1024.0f).c_str() : "-"'
+                  - 'id(system_heap_fragmentation).has_state() ? str_sprintf("%.0f %%", id(system_heap_fragmentation).state).c_str() : "-"'
+                  - 'id(system_heap_max_block).has_state() ? str_sprintf("%.0f kB", id(system_heap_max_block).state / 1024.0f).c_str() : "-"'
+                  - 'id(system_psram_free).has_state() ? str_sprintf("%.0f kB", id(system_psram_free).state / 1024.0f).c_str() : "-"'
+          - lvgl.label.update:
+              id: system_diag_esp_values
+              text:
+                format: "%s\n%s"
+                args:
+                  - 'id(system_debug_device_info).state.empty() ? "-" : id(system_debug_device_info).state.c_str()'
+                  - 'id(system_debug_reset_reason).state.empty() ? "-" : id(system_debug_reset_reason).state.c_str()'
 
-          std::string chip = "-";
-          if (id(system_debug_device_info).has_state()) {
-            std::string info = id(system_debug_device_info).state;
-            std::string chip_section = extract_section(info, "|Chip:");
-            if (chip_section.empty()) {
-              chip_section = extract_section(info, "Chip:");
-            }
-            if (!chip_section.empty()) {
-              size_t features_pos = chip_section.find(" Features:");
-              if (features_pos != std::string::npos) {
-                chip_section = trim_copy(chip_section.substr(0, features_pos));
-              }
-              if (!chip_section.empty()) {
-                chip = chip_section;
-              }
-            }
-          }
-
-          std::string reset_reason = "-";
-          if (id(system_debug_reset_reason).has_state()) {
-            std::string raw = trim_copy(id(system_debug_reset_reason).state);
-            if (!raw.empty()) {
-              reset_reason = raw;
-            }
-          }
-
-          return chip + "\n" + reset_reason;
+- id: update_firmware_ui
+  mode: restart
+  then:
+    - if:
+        condition:
+          update.is_available: firmware_update
+        then:
+          - globals.set:
+              id: service_update_check_failed
+              value: 'false'
+          - lvgl.widget.show: { id: nav_system_badge }
+          - if:
+              condition:
+                lambda: 'return !lv_obj_has_flag(id(page_system), LV_OBJ_FLAG_HIDDEN);'
+              then:
+                - lvgl.label.update:
+                    id: service_update_status
+                    text: ""
+                - lvgl.widget.hide:
+                    id: service_update_error
+                - lvgl.label.update:
+                    id: service_update_version
+                    text:
+                      format: "Beschikbaar: %s (huidig: %s)"
+                      args:
+                        - 'id(firmware_update).update_info.latest_version.empty() ? "onbekend" : id(firmware_update).update_info.latest_version.c_str()'
+                        - 'id(firmware_update).update_info.current_version.empty() ? ESPHOME_PROJECT_VERSION : id(firmware_update).update_info.current_version.c_str()'
+                - if:
+                    condition:
+                      lambda: |-
+                        const auto &info = id(firmware_update).update_info;
+                        std::string release_url = !info.release_url.empty()
+                          ? info.release_url
+                          : std::string("https://github.com/Jordi1990/openamber/releases");
+                        return id(service_release_qr_url_cache) != release_url;
+                    then:
+                      - lambda: |-
+                          const auto &info = id(firmware_update).update_info;
+                          id(service_release_qr_url_cache) = !info.release_url.empty()
+                            ? info.release_url
+                            : std::string("https://github.com/Jordi1990/openamber/releases");
+                      - lvgl.qrcode.update:
+                          id: service_release_qr
+                          text: !lambda 'return id(service_release_qr_url_cache);'
+                - lvgl.widget.show: { id: service_release_qr_hint }
+                - lvgl.widget.show: { id: service_release_qr }
+                - lvgl.widget.show: { id: service_update_button }
+                - if:
+                    condition:
+                      lambda: |-
+                        return id(service_update_check_in_progress);
+                    then:
+                      - lvgl.widget.enable:
+                          id: service_check_update_button
+                      - lvgl.widget.show:
+                          id: service_check_update_button
+                      - lvgl.widget.disable:
+                          id: service_check_update_button
+                      - lvgl.widget.update:
+                          id: service_check_update_button
+                          bg_color: 0xC7CDD6
+                      - lvgl.label.update:
+                          id: service_check_update_button_label
+                          text: "Ophalen..."
+                      - lvgl.widget.update:
+                          id: service_check_update_button_label
+                          text_color: 0x4B5563
+                    else:
+                      - lvgl.widget.enable:
+                          id: service_check_update_button
+                      - lvgl.widget.hide:
+                          id: service_check_update_button
+                      - lvgl.widget.update:
+                          id: service_check_update_button
+                          bg_color: 0x0072CE
+                      - lvgl.label.update:
+                          id: service_check_update_button_label
+                          text: "Controleer updates"
+                      - lvgl.widget.update:
+                          id: service_check_update_button_label
+                          text_color: 0xFFFFFF
+        else:
+          - lvgl.widget.hide: { id: nav_system_badge }
+          - if:
+              condition:
+                lambda: 'return !lv_obj_has_flag(id(page_system), LV_OBJ_FLAG_HIDDEN);'
+              then:
+                - if:
+                    condition:
+                      lambda: |-
+                        return id(service_update_check_failed);
+                    then:
+                      - lvgl.label.update:
+                          id: service_update_error
+                          text: "Geen verbinding mogelijk met update server"
+                      - lvgl.widget.show:
+                          id: service_update_error
+                    else:
+                      - lvgl.widget.hide:
+                          id: service_update_error
+                - lvgl.label.update:
+                    id: service_update_status
+                    text: ""
+                - lvgl.label.update:
+                    id: service_update_version
+                    text:
+                      format: "Geen nieuwe software beschikbaar\nHuidige versie: %s"
+                      args:
+                        - 'id(firmware_update).update_info.current_version.empty() ? ESPHOME_PROJECT_VERSION : id(firmware_update).update_info.current_version.c_str()'
+                - lvgl.widget.hide: { id: service_release_qr_hint }
+                - lvgl.widget.hide: { id: service_release_qr }
+                - lvgl.widget.hide: { id: service_update_button }
+                - if:
+                    condition:
+                      lambda: |-
+                        return id(service_update_check_in_progress);
+                    then:
+                      - lvgl.widget.enable:
+                          id: service_check_update_button
+                      - lvgl.widget.show:
+                          id: service_check_update_button
+                      - lvgl.widget.disable:
+                          id: service_check_update_button
+                      - lvgl.widget.update:
+                          id: service_check_update_button
+                          bg_color: 0xC7CDD6
+                      - lvgl.label.update:
+                          id: service_check_update_button_label
+                          text: "Ophalen..."
+                      - lvgl.widget.update:
+                          id: service_check_update_button_label
+                          text_color: 0x4B5563
+                    else:
+                      - lvgl.widget.show:
+                          id: service_check_update_button
+                      - lvgl.widget.enable:
+                          id: service_check_update_button
+                      - lvgl.widget.update:
+                          id: service_check_update_button
+                          bg_color: 0x0072CE
+                      - lvgl.label.update:
+                          id: service_check_update_button_label
+                          text: "Controleer updates"
+                      - lvgl.widget.update:
+                          id: service_check_update_button_label
+                          text_color: 0xFFFFFF
+    - if:
+        condition:
+          lambda: 'return !lv_obj_has_flag(id(page_system), LV_OBJ_FLAG_HIDDEN);'
+        then:
+          - if:
+              condition:
+                lambda: |-
+                  return id(service_update_install_in_progress);
+              then:
+                - lvgl.widget.show:
+                    id: service_update_progress_overlay
+              else:
+                - lvgl.widget.hide:
+                    id: service_update_progress_overlay
 
 - id: update_service_errors_ui
   mode: restart
@@ -1524,6 +1635,9 @@
             id(service_errors_nav_row) == nullptr ||
             id(service_errors_prev_btn) == nullptr ||
             id(service_errors_next_btn) == nullptr) {
+          return;
+        }
+        if (lv_obj_has_flag(id(page_service), LV_OBJ_FLAG_HIDDEN)) {
           return;
         }
 
@@ -1626,6 +1740,9 @@
             id(service_warnings_next_btn) == nullptr) {
           return;
         }
+        if (lv_obj_has_flag(id(page_service), LV_OBJ_FLAG_HIDDEN)) {
+          return;
+        }
 
         struct AlertItem {
           const char *title;
@@ -1716,210 +1833,260 @@
 - id: update_service_mode_ui
   mode: restart
   then:
-    - lvgl.widget.update:
-        id: set_service_mode_switch_ui
-        state:
-          checked: !lambda 'return id(service_mode_enabled).state;'
-    - lvgl.widget.update:
-        id: service_pump_p0_switch_ui
-        state:
-          checked: !lambda 'return id(pump_p0_relay_switch).state;'
-    - lvgl.widget.update:
-        id: service_pump_p1_switch_ui
-        state:
-          checked: !lambda 'return id(pump_p1_relay_switch).state;'
-    - lvgl.widget.update:
-        id: service_pump_p2_switch_ui
-        state:
-          checked: !lambda 'return id(pump_p2_relay_switch).state;'
-    - lvgl.widget.update:
-        id: service_dhw_pump_switch_ui
-        state:
-          checked: !lambda 'return id(dhw_pump_relay_switch).state;'
-    - lvgl.widget.update:
-        id: service_backup_heater_relay_switch_ui
-        state:
-          checked: !lambda 'return id(backup_heater_relay).state;'
-    - lvgl.widget.update:
-        id: service_external_backup_heating_relay_switch_ui
-        state:
-          checked: !lambda 'return id(external_backup_heating_relay).state;'
-    - lvgl.widget.update:
-        id: service_crankcase_heater_switch_ui
-        state:
-          checked: !lambda 'return id(compressor_crankcase_heater_manual_switch).state;'
-    - lvgl.widget.update:
-        id: service_bottom_plate_heater_switch_ui
-        state:
-          checked: !lambda 'return id(bottom_plate_heater_manual_switch).state;'
-    - script.execute: update_service_diag_summary_ui
-    - script.execute: update_service_errors_ui
-    - script.execute: update_service_warnings_ui
-    - script.execute: update_header_alert_icons
-    - script.execute: update_service_valve_ui
-    - lvgl.label.update:
-        id: service_p0_pwm_slider_value
-        text:
-          format: "%.0f %%"
-          args: ['id(pump_p0_current_pwm_sensor).state']
-    - lvgl.label.update:
-        id: service_fan_slider_value
-        text:
-          format: "%.0f RPM"
-          args: ['id(fan_speed_manual_number).state']
-    - lambda: |-
-        if (id(service_p0_pwm_slider) != nullptr) {
-          lv_slider_set_value(id(service_p0_pwm_slider), (int) id(pump_p0_current_pwm_sensor).state, LV_ANIM_OFF);
-        }
-        if (id(service_fan_slider) != nullptr) {
-          lv_slider_set_value(id(service_fan_slider), (int) id(fan_speed_manual_number).state, LV_ANIM_OFF);
-        }
-    - lvgl.widget.show: { id: service_maintenance_layout }
-    - script.execute: update_service_section_options_ui
+    - script.execute: update_header_mode_badge
     - if:
         condition:
-          lambda: 'return id(service_mode_enabled).state && id(state_machine_state_main).state == "Maintenance";'
+          lambda: 'return !lv_obj_has_flag(id(page_service), LV_OBJ_FLAG_HIDDEN);'
         then:
+          - lvgl.widget.update:
+              id: set_service_mode_switch_ui
+              state:
+                checked: !lambda 'return id(service_mode_enabled).state;'
+          - lvgl.widget.update:
+              id: service_pump_p0_switch_ui
+              state:
+                checked: !lambda 'return id(pump_p0_relay_switch).state;'
+          - lvgl.widget.update:
+              id: service_pump_p1_switch_ui
+              state:
+                checked: !lambda 'return id(pump_p1_relay_switch).state;'
+          - lvgl.widget.update:
+              id: service_pump_p2_switch_ui
+              state:
+                checked: !lambda 'return id(pump_p2_relay_switch).state;'
+          - lvgl.widget.update:
+              id: service_dhw_pump_switch_ui
+              state:
+                checked: !lambda 'return id(dhw_pump_relay_switch).state;'
+          - lvgl.widget.update:
+              id: service_backup_heater_relay_switch_ui
+              state:
+                checked: !lambda 'return id(backup_heater_relay).state;'
+          - lvgl.widget.update:
+              id: service_external_backup_heating_relay_switch_ui
+              state:
+                checked: !lambda 'return id(external_backup_heating_relay).state;'
+          - lvgl.widget.update:
+              id: service_crankcase_heater_switch_ui
+              state:
+                checked: !lambda 'return id(compressor_crankcase_heater_manual_switch).state;'
+          - lvgl.widget.update:
+              id: service_bottom_plate_heater_switch_ui
+              state:
+                checked: !lambda 'return id(bottom_plate_heater_manual_switch).state;'
+          - script.execute: update_service_diag_summary_ui
+          - script.execute: update_service_errors_ui
+          - script.execute: update_service_warnings_ui
+          - script.execute: update_header_alert_icons
+          - script.execute: update_service_valve_ui
           - lvgl.label.update:
-              id: service_maintenance_state
-              text: "Onderhoudsmodus actief"
-          - lvgl.widget.update:
-              id: service_maintenance_state
-              text_color: 0x166534
-          - lvgl.widget.hide: { id: service_maintenance_lock_hint }
-          - lvgl.widget.update:
-              id: service_maintenance_layout
-              opa: 100%
-        else:
+              id: service_p0_pwm_slider_value
+              text:
+                format: "%.0f %%"
+                args: ['id(pump_p0_current_pwm_sensor).state']
+          - lvgl.label.update:
+              id: service_fan_slider_value
+              text:
+                format: "%.0f RPM"
+                args: ['id(fan_speed_manual_number).state']
+          - lambda: |-
+              if (id(service_p0_pwm_slider) != nullptr) {
+                lv_slider_set_value(id(service_p0_pwm_slider), (int) id(pump_p0_current_pwm_sensor).state, LV_ANIM_OFF);
+              }
+              if (id(service_fan_slider) != nullptr) {
+                lv_slider_set_value(id(service_fan_slider), (int) id(fan_speed_manual_number).state, LV_ANIM_OFF);
+              }
+          - lvgl.widget.show: { id: service_maintenance_layout }
+          - script.execute: update_service_section_options_ui
           - if:
               condition:
-                switch.is_on: service_mode_enabled
+                lambda: 'return id(service_mode_enabled).state && id(state_machine_state_main).state == "Maintenance";'
               then:
                 - lvgl.label.update:
                     id: service_maintenance_state
-                    text: "Regeling aan het pauzeren..."
+                    text: "Onderhoudsmodus actief"
                 - lvgl.widget.update:
                     id: service_maintenance_state
-                    text_color: 0xB45309
+                    text_color: 0x166534
+                - lvgl.widget.hide: { id: service_maintenance_lock_hint }
+                - lvgl.widget.update:
+                    id: service_maintenance_layout
+                    opa: 100%
               else:
-                - lvgl.label.update:
-                    id: service_maintenance_state
-                    text: "Onderhoudsmodus niet actief"
-                - lvgl.widget.update:
-                    id: service_maintenance_state
-                    text_color: 0x6B7280
                 - if:
                     condition:
-                      lambda: 'return !id(service_mode_enabled).state && !lv_obj_has_flag(id(service_maintenance_panel), LV_OBJ_FLAG_HIDDEN);'
+                      switch.is_on: service_mode_enabled
                     then:
-                      - lvgl.widget.show: { id: service_maintenance_lock_hint }
-          - lvgl.widget.hide: { id: service_mpanel_compressor }
-          - lvgl.widget.hide: { id: service_mpanel_pumps }
-          - lvgl.widget.hide: { id: service_mpanel_valve }
-          - lvgl.widget.hide: { id: service_mpanel_backup }
-          - lvgl.widget.update:
-              id: service_maintenance_layout
-              opa: 100%
-    - script.execute: update_header_mode_badge
-    - script.execute: update_service_top_tabs_ui
+                      - lvgl.label.update:
+                          id: service_maintenance_state
+                          text: "Regeling aan het pauzeren..."
+                      - lvgl.widget.update:
+                          id: service_maintenance_state
+                          text_color: 0xB45309
+                    else:
+                      - lvgl.label.update:
+                          id: service_maintenance_state
+                          text: "Onderhoudsmodus niet actief"
+                      - lvgl.widget.update:
+                          id: service_maintenance_state
+                          text_color: 0x6B7280
+                      - if:
+                          condition:
+                            lambda: 'return !id(service_mode_enabled).state && !lv_obj_has_flag(id(service_maintenance_panel), LV_OBJ_FLAG_HIDDEN);'
+                          then:
+                            - lvgl.widget.show: { id: service_maintenance_lock_hint }
+                - lvgl.widget.hide: { id: service_mpanel_compressor }
+                - lvgl.widget.hide: { id: service_mpanel_pumps }
+                - lvgl.widget.hide: { id: service_mpanel_valve }
+                - lvgl.widget.hide: { id: service_mpanel_backup }
+                - lvgl.widget.update:
+                    id: service_maintenance_layout
+                    opa: 100%
+          - script.execute: update_service_top_tabs_ui
 
 - id: update_home_pump_tile_state
   mode: restart
   then:
-    - lvgl.label.update:
-        id: tile_pump_state
-        text: !lambda |-
-          const int pwm = (int) id(pump_p0_current_pwm_sensor).state;
-          const bool pump_running = pwm > 0;
-          if (!id(flow_sensor_enabled).state) {
-            return pump_running ? str_sprintf("%d%%", pwm) : std::string("UIT");
-          }
-
-          std::string pwm_line = pump_running ? str_sprintf("%d%%", pwm) : std::string("UIT");
-          float flow_lpm = id(water_flow_rate).state;
-          if (isnan(flow_lpm)) {
-            return pwm_line + "\n- l/u";
-          }
-          return pwm_line + "\n" + str_sprintf("%.0f l/u", flow_lpm * 60.0f);
+    - if:
+        condition:
+          lambda: 'return !lv_obj_has_flag(id(page_home), LV_OBJ_FLAG_HIDDEN);'
+        then:
+          - if:
+              condition:
+                switch.is_on: flow_sensor_enabled
+              then:
+                - if:
+                    condition:
+                      lambda: 'return id(pump_p0_current_pwm_sensor).state > 0;'
+                    then:
+                      - if:
+                          condition:
+                            lambda: 'return isnan(id(water_flow_rate).state);'
+                          then:
+                            - lvgl.label.update:
+                                id: tile_pump_state
+                                text:
+                                  format: "%.0f%%\n- l/u"
+                                  args: ['id(pump_p0_current_pwm_sensor).state']
+                          else:
+                            - lvgl.label.update:
+                                id: tile_pump_state
+                                text:
+                                  format: "%.0f%%\n%.0f l/u"
+                                  args:
+                                    - 'id(pump_p0_current_pwm_sensor).state'
+                                    - 'id(water_flow_rate).state * 60.0f'
+                    else:
+                      - if:
+                          condition:
+                            lambda: 'return isnan(id(water_flow_rate).state);'
+                          then:
+                            - lvgl.label.update: { id: tile_pump_state, text: "UIT\n- l/u" }
+                          else:
+                            - lvgl.label.update:
+                                id: tile_pump_state
+                                text:
+                                  format: "UIT\n%.0f l/u"
+                                  args: ['id(water_flow_rate).state * 60.0f']
+              else:
+                - if:
+                    condition:
+                      lambda: 'return id(pump_p0_current_pwm_sensor).state > 0;'
+                    then:
+                      - lvgl.label.update:
+                          id: tile_pump_state
+                          text:
+                            format: "%.0f%%"
+                            args: ['id(pump_p0_current_pwm_sensor).state']
+                    else:
+                      - lvgl.label.update: { id: tile_pump_state, text: "UIT" }
 
 - id: update_water_mode_efficiency_display
   mode: restart
   then:
     - if:
         condition:
-          lambda: 'return !id(flow_sensor_enabled).state;'
+          lambda: 'return !lv_obj_has_flag(id(page_home), LV_OBJ_FLAG_HIDDEN);'
         then:
-          - lvgl.widget.update:
-              id: water_mode_efficiency_text
-              hidden: true
-        else:
           - if:
               condition:
-                lambda: 'return id(state_machine_state_main).state == "DHW" && !isnan(id(cop_hour_dhw).state);'
+                lambda: 'return !id(flow_sensor_enabled).state;'
               then:
-                - lvgl.label.update:
-                    id: water_mode_efficiency_text
-                    text:
-                      format: "COP %.1f"
-                      args: ['id(cop_hour_dhw).state']
                 - lvgl.widget.update:
                     id: water_mode_efficiency_text
-                    hidden: false
+                    hidden: true
               else:
                 - if:
                     condition:
-                      lambda: 'return id(working_mode_switch).current_option() == "Koelen" && !isnan(id(eer_hour_cooling).state);'
+                      lambda: 'return id(state_machine_state_main).state == "DHW" && !isnan(id(cop_hour_dhw).state);'
                     then:
                       - lvgl.label.update:
                           id: water_mode_efficiency_text
                           text:
-                            format: "EER %.1f"
-                            args: ['id(eer_hour_cooling).state']
+                            format: "COP %.1f"
+                            args: ['id(cop_hour_dhw).state']
                       - lvgl.widget.update:
                           id: water_mode_efficiency_text
                           hidden: false
                     else:
                       - if:
                           condition:
-                            lambda: 'return id(working_mode_switch).current_option() == "Verwarmen" && !isnan(id(cop_hour_heating).state);'
+                            lambda: 'return id(working_mode_switch).current_option() == "Koelen" && !isnan(id(eer_hour_cooling).state);'
                           then:
                             - lvgl.label.update:
                                 id: water_mode_efficiency_text
                                 text:
-                                  format: "COP %.1f"
-                                  args: ['id(cop_hour_heating).state']
+                                  format: "EER %.1f"
+                                  args: ['id(eer_hour_cooling).state']
                             - lvgl.widget.update:
                                 id: water_mode_efficiency_text
                                 hidden: false
                           else:
-                            - lvgl.widget.update:
-                                id: water_mode_efficiency_text
-                                hidden: true
+                            - if:
+                                condition:
+                                  lambda: 'return id(working_mode_switch).current_option() == "Verwarmen" && !isnan(id(cop_hour_heating).state);'
+                                then:
+                                  - lvgl.label.update:
+                                      id: water_mode_efficiency_text
+                                      text:
+                                        format: "COP %.1f"
+                                        args: ['id(cop_hour_heating).state']
+                                  - lvgl.widget.update:
+                                      id: water_mode_efficiency_text
+                                      hidden: false
+                                else:
+                                  - lvgl.widget.update:
+                                      id: water_mode_efficiency_text
+                                      hidden: true
 
 - id: update_water_mode_temperature_display
   mode: restart
   then:
     - if:
         condition:
-          lambda: 'return !isnan(id(current_setpoint).state) && !isnan(id(heat_cool_control_temperature).state);'
+          lambda: 'return !lv_obj_has_flag(id(page_home), LV_OBJ_FLAG_HIDDEN);'
         then:
-          - lvgl.label.update:
-              id: water_aanvoer_target_value
-              text:
-                format: "%.1f°C"
-                args: ['id(current_setpoint).state']
-          - lvgl.label.update:
-              id: water_tc_value
-              text:
-                format: "%.1f°C"
-                args: ['id(heat_cool_control_temperature).state']
-        else:
-          - lvgl.label.update:
-              id: water_aanvoer_target_value
-              text: "-°C"
-          - lvgl.label.update:
-              id: water_tc_value
-              text: "-°C"
+          - if:
+              condition:
+                lambda: 'return !isnan(id(current_setpoint).state) && !isnan(id(heat_cool_control_temperature).state);'
+              then:
+                - lvgl.label.update:
+                    id: water_aanvoer_target_value
+                    text:
+                      format: "%.1f°C"
+                      args: ['id(current_setpoint).state']
+                - lvgl.label.update:
+                    id: water_tc_value
+                    text:
+                      format: "%.1f°C"
+                      args: ['id(heat_cool_control_temperature).state']
+              else:
+                - lvgl.label.update:
+                    id: water_aanvoer_target_value
+                    text: "-°C"
+                - lvgl.label.update:
+                    id: water_tc_value
+                    text: "-°C"
 
 - id: update_manual_setpoint_ui
   mode: restart
@@ -2374,28 +2541,19 @@
 
 - id: update_wifi_connected_summary_ui
   then:
-    - lvgl.label.update:
-        id: wifi_connected_values_label
-        text: !lambda |-
-          std::string ssid = id(wifi_ssid_ui).state.empty() ? "-" : id(wifi_ssid_ui).state;
-          std::string ip = id(wifi_ip_ui).state.empty() ? "-" : id(wifi_ip_ui).state;
-          std::string mac = id(wifi_mac_ui).state.empty() ? "-" : id(wifi_mac_ui).state;
-          char signal_buf[24];
-          if (isnan(id(wifi_signal_db).state)) {
-            snprintf(signal_buf, sizeof(signal_buf), "Geen signaal");
-          } else {
-            snprintf(signal_buf, sizeof(signal_buf), "%.0f dBm", id(wifi_signal_db).state);
-          }
-          std::string summary;
-          summary.reserve(ssid.size() + ip.size() + mac.size() + strlen(signal_buf) + 8);
-          summary += ssid;
-          summary += "\n";
-          summary += ip;
-          summary += "\n";
-          summary += mac;
-          summary += "\n";
-          summary += signal_buf;
-          return summary;
+    - if:
+        condition:
+          lambda: 'return !lv_obj_has_flag(id(page_settings), LV_OBJ_FLAG_HIDDEN);'
+        then:
+          - lvgl.label.update:
+              id: wifi_connected_values_label
+              text:
+                format: "%s\n%s\n%s\n%s"
+                args:
+                  - 'id(wifi_ssid_ui).state.empty() ? "-" : id(wifi_ssid_ui).state.c_str()'
+                  - 'id(wifi_ip_ui).state.empty() ? "-" : id(wifi_ip_ui).state.c_str()'
+                  - 'id(wifi_mac_ui).state.empty() ? "-" : id(wifi_mac_ui).state.c_str()'
+                  - 'isnan(id(wifi_signal_db).state) ? "Geen signaal" : str_sprintf("%.0f dBm", id(wifi_signal_db).state).c_str()'
 
 - id: wifi_connect_selected
   then:
