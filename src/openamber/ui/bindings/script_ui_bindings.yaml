@@ -92,7 +92,6 @@
         then:
           - lvgl.widget.update: { id: thermostat_row_default_heat, state: { disabled: false }, opa: 100% }
           - lvgl.widget.update: { id: thermostat_row_default_cool, state: { disabled: false }, opa: 100% }
-          - lvgl.widget.update: { id: thermostat_row_default_heat, state: { disabled: false }, opa: 100% }
           - lvgl.widget.update: { id: thermostat_row_heat_deadband, state: { disabled: false }, opa: 100% }
           - lvgl.widget.update: { id: thermostat_row_heat_overrun, state: { disabled: false }, opa: 100% }
           - lvgl.widget.update: { id: thermostat_row_cool_deadband, state: { disabled: false }, opa: 100% }
@@ -168,6 +167,7 @@
           - script.execute: update_water_mode_efficiency_display
           - script.execute: update_home_pump_tile_state
           - script.execute: update_home_thermostat_mode_ui
+          - script.execute: update_thermostat_settings_ui
         else:
           - if:
               condition:
@@ -1364,23 +1364,23 @@
           - lvgl.label.update:
               id: service_diag_temp_values
               text:
-                format: "%.1f°C / %.1f°C\n%.1f°C / %.1f°C\n%.1f / %.1f bar"
+                format: "%s / %s\n%s / %s\n%s / %s bar"
                 args:
-                  - 'id(temperature_outside_ta).state'
-                  - 'id(heat_cool_control_temperature).state'
-                  - 'id(outlet_temperature_tuo).state'
-                  - 'id(inlet_temperature_tui).state'
-                  - 'id(suction_pressure_ps).state'
-                  - 'id(discharge_pressure_pd).state'
+                  - 'id(temperature_outside_ta).has_state() ? str_sprintf("%.1f°C", id(temperature_outside_ta).state).c_str() : "-"'
+                  - 'id(heat_cool_control_temperature).has_state() ? str_sprintf("%.1f°C", id(heat_cool_control_temperature).state).c_str() : "-"'
+                  - 'id(outlet_temperature_tuo).has_state() ? str_sprintf("%.1f°C", id(outlet_temperature_tuo).state).c_str() : "-"'
+                  - 'id(inlet_temperature_tui).has_state() ? str_sprintf("%.1f°C", id(inlet_temperature_tui).state).c_str() : "-"'
+                  - 'id(suction_pressure_ps).has_state() ? str_sprintf("%.1f", id(suction_pressure_ps).state).c_str() : "-"'
+                  - 'id(discharge_pressure_pd).has_state() ? str_sprintf("%.1f", id(discharge_pressure_pd).state).c_str() : "-"'
           - lvgl.label.update:
               id: service_diag_control_values
               text:
-                format: "%.0f Hz\n%.0f %%\n%.0f rpm\n%.0f %%"
+                format: "%s\n%s\n%s\n%s"
                 args:
-                  - 'id(current_compressor_frequency).state'
-                  - 'id(pump_p0_current_pwm_sensor).state'
-                  - 'id(fan_rpm_sensor).state'
-                  - 'id(expansion_valve_position).state'
+                  - 'id(current_compressor_frequency).has_state() ? str_sprintf("%.0f Hz", id(current_compressor_frequency).state).c_str() : "- Hz"'
+                  - 'id(pump_p0_current_pwm_sensor).has_state() ? str_sprintf("%.0f %%", id(pump_p0_current_pwm_sensor).state).c_str() : "- %"'
+                  - 'id(fan_rpm_sensor).has_state() ? str_sprintf("%.0f rpm", id(fan_rpm_sensor).state).c_str() : "- rpm"'
+                  - 'id(expansion_valve_position).has_state() ? str_sprintf("%.0f %%", id(expansion_valve_position).state).c_str() : "- %"'
           - lvgl.label.update:
               id: service_diag_system_values
               text:
@@ -1532,7 +1532,7 @@
                     else:
                       - lvgl.widget.enable:
                           id: service_check_update_button
-                      - lvgl.widget.hide:
+                      - lvgl.widget.show:
                           id: service_check_update_button
                       - lvgl.widget.update:
                           id: service_check_update_button
@@ -1834,6 +1834,7 @@
   mode: restart
   then:
     - script.execute: update_header_mode_badge
+    - script.execute: update_header_alert_icons
     - if:
         condition:
           lambda: 'return !lv_obj_has_flag(id(page_service), LV_OBJ_FLAG_HIDDEN);'
@@ -1877,7 +1878,6 @@
           - script.execute: update_service_diag_summary_ui
           - script.execute: update_service_errors_ui
           - script.execute: update_service_warnings_ui
-          - script.execute: update_header_alert_icons
           - script.execute: update_service_valve_ui
           - lvgl.label.update:
               id: service_p0_pwm_slider_value
