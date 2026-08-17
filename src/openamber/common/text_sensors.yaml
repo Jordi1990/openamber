@@ -39,6 +39,13 @@
   icon: "mdi:state-machine"
   update_interval: never
 
+- platform: template
+  id: state_machine_state_routine
+  entity_category: diagnostic
+  name: "Control loop state ROUTINE"
+  icon: "mdi:state-machine"
+  update_interval: never
+
 - platform: wifi_info
   mac_address:
     id: mac_address

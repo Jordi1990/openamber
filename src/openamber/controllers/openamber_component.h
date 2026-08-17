@@ -20,6 +20,7 @@
 #include "constants.h"
 #include "dhw_controller.h"
 #include "heat_cool_controller.h"
+#include "deaeration_routine.h"
 
 using namespace esphome;
 
@@ -32,12 +33,14 @@ OpenAmberComponent::OpenAmberComponent()
   compressor_controller_ = new CompressorController();
   dhw_controller_ = new DHWController(pump_controller_, compressor_controller_);
   heat_cool_controller_ = new HeatCoolController(pump_controller_, compressor_controller_);
+  deaeration_routine_ = new DeaerationRoutine();
 }
 
 OpenAmberComponent::~OpenAmberComponent()
 {
   delete dhw_controller_;
   delete heat_cool_controller_;
+  delete deaeration_routine_;
   delete pump_controller_;
   delete compressor_controller_;
 }
@@ -174,10 +177,24 @@ void OpenAmberComponent::update()
 
     case State::MAINTENANCE:
     {
+      // Update active routines
+      if (!deaeration_routine_->IsIdle())
+      {
+        deaeration_routine_->UpdateStateMachine();
+      }
+
       if (!maintenance_requested)
       {
-        // Go to initializing state so we also reset all relays and working mode.
-        SetNextState(State::INITIALIZING);
+        // Stop running routines before leaving maintenance
+        if (!deaeration_routine_->IsIdle())
+        {
+          deaeration_routine_->RequestToStop();
+        }
+        else
+        {
+          // Only transition to INITIALIZING when all routines are idle
+          SetNextState(State::INITIALIZING);
+        }
       }
       break;
     }
@@ -218,6 +235,52 @@ void OpenAmberComponent::reset_pump_interval()
 bool OpenAmberComponent::is_maintenance_state() const
 {
   return state_ == State::MAINTENANCE;
+}
+
+void OpenAmberComponent::start_deaeration_routine(bool extended)
+{
+  if (state_ == State::MAINTENANCE && deaeration_routine_->IsIdle())
+  {
+    deaeration_routine_->Start(extended);
+  }
+}
+
+void OpenAmberComponent::stop_deaeration_routine()
+{
+  if (!deaeration_routine_->IsIdle())
+  {
+    deaeration_routine_->RequestToStop();
+  }
+}
+
+bool OpenAmberComponent::is_deaeration_running() const
+{
+  return !deaeration_routine_->IsIdle();
+}
+
+bool OpenAmberComponent::is_deaeration_extended() const
+{
+  return deaeration_routine_->is_extended();
+}
+
+std::string OpenAmberComponent::get_deaeration_phase_text() const
+{
+  return deaeration_routine_->GetPhaseText();
+}
+
+std::string OpenAmberComponent::get_deaeration_time_text() const
+{
+  return deaeration_routine_->GetTimeText();
+}
+
+int OpenAmberComponent::get_deaeration_progress_percent() const
+{
+  return deaeration_routine_->GetProgressPercent();
+}
+
+uint32_t OpenAmberComponent::get_deaeration_remaining_seconds() const
+{
+  return deaeration_routine_->GetRemainingSeconds();
 }
 
 // Privates

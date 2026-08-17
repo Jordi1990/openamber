@@ -160,3 +160,10 @@
         - lvgl.widget.hide:
             id: service_update_progress_overlay
 
+  # ── Service: Deaeration progress live timer update ──
+  - if:
+      condition:
+        lambda: 'return id(amber_ctrl).is_deaeration_running() && !lv_obj_has_flag(id(service_maintenance_panel), LV_OBJ_FLAG_HIDDEN);'
+      then:
+        - script.execute: update_service_deaeration_ui
+

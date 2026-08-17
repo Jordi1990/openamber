@@ -78,6 +78,7 @@ obj:
         scrollbar_mode: "OFF"
         scrollable: false
         widgets:
+          - !include page_service_tab_general.yaml
           - !include page_service_tab_buitenunit.yaml
           - !include page_service_tab_pumps.yaml
           - !include page_service_tab_valve.yaml
