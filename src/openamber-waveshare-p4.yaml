@@ -31,6 +31,10 @@ esp32:
 esphome:
   project:
     version: dev
+  on_boot:
+    - priority: -100
+      then:
+        - script.execute: update_firmware_ui
 
 esp32_hosted:
   variant: ESP32C6
@@ -127,9 +131,6 @@ api:
         id: nav_status_ha_icon
         text_color: 0xEF4444
 
-interval:
- - interval: 5s
-   then: !include openamber/ui/ui_update_loop.yaml
 
 image:
   - platform: file

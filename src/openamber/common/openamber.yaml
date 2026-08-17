@@ -245,7 +245,6 @@ modbus_controller:
 - id: modbus_outside_unit
   address: 0x2
   update_interval: 30s
-  command_throttle: 250ms
   max_cmd_retries: 2
   on_offline:
     then:
@@ -260,7 +259,6 @@ modbus_controller:
 - id: modbus_inside_unit
   address: 0x0B
   update_interval: 30s
-  command_throttle: 250ms
   max_cmd_retries: 2
   on_offline:
     then:
@@ -304,6 +302,15 @@ button:
   - platform: restart
     id: restart_openamber
     name: Restart OpenAmber
+  - platform: template
+    id: dump_eeprom_parameters_button
+    name: "Dump EEPROM parameters"
+    disabled_by_default: true
+    entity_category: diagnostic
+    web_server:
+      sorting_group_id: diagnostic
+    on_press:
+      - script.execute: dump_eeprom_parameters
 
 preferences:
  flash_write_interval: 5min

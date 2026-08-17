@@ -57,3 +57,4 @@ obj:
                 - !include service/page_service_tab_sensors.yaml
                 - !include service/page_service_tab_errors.yaml
                 - !include service/page_service_tab_warnings.yaml
+                - !include service/page_service_tab_eeprom.yaml

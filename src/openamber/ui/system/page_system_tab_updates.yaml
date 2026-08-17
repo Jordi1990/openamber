@@ -112,17 +112,7 @@ obj:
           - globals.set:
               id: service_update_check_in_progress
               value: 'false'
-          - lvgl.widget.enable:
-              id: service_check_update_button
-          - lvgl.widget.update:
-              id: service_check_update_button
-              bg_color: 0x0072CE
-          - lvgl.label.update:
-              id: service_check_update_button_label
-              text: "Controleer updates"
-          - lvgl.widget.update:
-              id: service_check_update_button_label
-              text_color: 0xFFFFFF
+          - script.execute: update_firmware_ui
         widgets:
           - label:
               id: service_check_update_button_label

@@ -105,6 +105,17 @@
   device:
     id: system_debug_device_info
     internal: true
+    filters:
+      - lambda: |-
+          size_t pos = x.find("Chip: ");
+          if (pos != std::string::npos) {
+            pos += 6;
+            size_t end = x.find(" Features:", pos);
+            if (end == std::string::npos) end = x.find("|", pos);
+            if (end == std::string::npos) end = x.size();
+            return x.substr(pos, end - pos);
+          }
+          return x;
   reset_reason:
     id: system_debug_reset_reason
     internal: true
