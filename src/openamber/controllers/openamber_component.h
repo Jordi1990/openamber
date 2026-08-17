@@ -383,10 +383,10 @@ ThreeWayValvePosition OpenAmberComponent::GetDesiredThreeWayValvePosition()
 void OpenAmberComponent::WriteHeatingFrequencyTable()
 {
     // Patch heating frequency table to have more control in low load situations.
-    id(heating_frequency_index_1).make_call().set_value(20).perform();
-    id(heating_frequency_index_2).make_call().set_value(26).perform();
-    id(heating_frequency_index_3).make_call().set_value(30).perform();
-    id(heating_frequency_index_4).make_call().set_value(36).perform();
+    id(heating_frequency_index_1).make_call().set_value(28).perform();
+    id(heating_frequency_index_2).make_call().set_value(36).perform();
+    id(heating_frequency_index_3).make_call().set_value(43).perform();
+    id(heating_frequency_index_4).make_call().set_value(55).perform();
     id(heating_frequency_index_5).make_call().set_value(43).perform();
     id(heating_frequency_index_6).make_call().set_value(48).perform();
     id(heating_frequency_index_7).make_call().set_value(55).perform();
