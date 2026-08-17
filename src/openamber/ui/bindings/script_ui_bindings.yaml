@@ -1106,6 +1106,7 @@
                 - lvgl.widget.show: { id: service_maintenance_state }
                 - lvgl.widget.show: { id: set_service_mode_switch_ui }
                 - lvgl.widget.update: { id: service_maintenance_layout, y: 112, height: 72% }
+                - lvgl.widget.show: { id: service_mpanel_general }
           - lvgl.widget.hide: { id: service_mpanel_compressor }
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
@@ -1830,11 +1831,102 @@
         id(service_warning_page_index)++;
     - script.execute: update_service_warnings_ui
 
+- id: update_service_deaeration_ui
+  mode: restart
+  then:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_deaeration_running();'
+        then:
+          - lvgl.label.update:
+              id: service_deaeration_status_val
+              text:
+                format: "%s"
+                args:
+                  - 'id(amber_ctrl).get_deaeration_phase_text().c_str()'
+          - lvgl.widget.update:
+              id: service_deaeration_status_val
+              text_color: 0x166534
+          - lvgl.label.update:
+              id: service_deaeration_time_val
+              text:
+                format: "Nog %02lu:%02lu (%d%%)"
+                args:
+                  - 'id(amber_ctrl).get_deaeration_remaining_seconds() / 60UL'
+                  - 'id(amber_ctrl).get_deaeration_remaining_seconds() % 60UL'
+                  - 'id(amber_ctrl).get_deaeration_progress_percent()'
+          - lvgl.widget.update:
+              id: service_deaeration_time_val
+              text_color: 0x1F3B68
+          - lambda: |-
+              if (id(service_deaeration_progress_bar) != nullptr) {
+                lv_bar_set_value(id(service_deaeration_progress_bar), id(amber_ctrl).get_deaeration_progress_percent(), LV_ANIM_ON);
+              }
+          - if:
+              condition:
+                lambda: 'return !id(amber_ctrl).is_deaeration_extended();'
+              then:
+                - lvgl.widget.update: { id: service_deaeration_short_btn, bg_color: 0x1F3B68 }
+                - lvgl.widget.update: { id: service_deaeration_short_btn_lbl, text_color: 0xFFFFFF }
+                - lvgl.label.update: { id: service_deaeration_short_btn_lbl, text: "Stoppen (Kort)" }
+                - lvgl.widget.update: { id: service_deaeration_extended_btn, bg_color: 0xEDF1F6 }
+                - lvgl.widget.update: { id: service_deaeration_extended_btn_lbl, text_color: 0x9CA3AF }
+                - lvgl.label.update:
+                    id: service_deaeration_extended_btn_lbl
+                    text:
+                      format: "Uitgebreid (~%lu min)"
+                      args: ['(id(amber_ctrl).get_deaeration_duration_seconds(true) + 30UL) / 60UL']
+              else:
+                - lvgl.widget.update: { id: service_deaeration_extended_btn, bg_color: 0x1F3B68 }
+                - lvgl.widget.update: { id: service_deaeration_extended_btn_lbl, text_color: 0xFFFFFF }
+                - lvgl.label.update: { id: service_deaeration_extended_btn_lbl, text: "Stoppen (Uitgebreid)" }
+                - lvgl.widget.update: { id: service_deaeration_short_btn, bg_color: 0xEDF1F6 }
+                - lvgl.widget.update: { id: service_deaeration_short_btn_lbl, text_color: 0x9CA3AF }
+                - lvgl.label.update:
+                    id: service_deaeration_short_btn_lbl
+                    text:
+                      format: "Kort (~%lu min)"
+                      args: ['(id(amber_ctrl).get_deaeration_duration_seconds(false) + 30UL) / 60UL']
+        else:
+          - lvgl.label.update:
+              id: service_deaeration_status_val
+              text: "Inactief"
+          - lvgl.widget.update:
+              id: service_deaeration_status_val
+              text_color: 0x6B7280
+          - lvgl.label.update:
+              id: service_deaeration_time_val
+              text: "Resterend: -"
+          - lvgl.widget.update:
+              id: service_deaeration_time_val
+              text_color: 0x6B7280
+          - lambda: |-
+              if (id(service_deaeration_progress_bar) != nullptr) {
+                lv_bar_set_value(id(service_deaeration_progress_bar), 0, LV_ANIM_OFF);
+              }
+          - lvgl.widget.update: { id: service_deaeration_short_btn, bg_color: 0xE8ECF1 }
+          - lvgl.widget.update: { id: service_deaeration_short_btn_lbl, text_color: 0x4B5563 }
+          - lvgl.label.update:
+              id: service_deaeration_short_btn_lbl
+              text:
+                format: "Kort (~%lu min)"
+                args: ['(id(amber_ctrl).get_deaeration_duration_seconds(false) + 30UL) / 60UL']
+          - lvgl.widget.update: { id: service_deaeration_extended_btn, bg_color: 0xE8ECF1 }
+          - lvgl.widget.update: { id: service_deaeration_extended_btn_lbl, text_color: 0x4B5563 }
+          - lvgl.label.update:
+              id: service_deaeration_extended_btn_lbl
+              text:
+                format: "Uitgebreid (~%lu min)"
+                args: ['(id(amber_ctrl).get_deaeration_duration_seconds(true) + 30UL) / 60UL']
+
 - id: update_service_mode_ui
   mode: restart
   then:
-    - script.execute: update_header_mode_badge
     - script.execute: update_header_alert_icons
+    - script.execute: update_service_diag_summary_ui
+    - script.execute: update_service_errors_ui
+    - script.execute: update_service_warnings_ui
+    - script.execute: update_service_section_options_ui
     - if:
         condition:
           lambda: 'return !lv_obj_has_flag(id(page_service), LV_OBJ_FLAG_HIDDEN);'
@@ -1875,10 +1967,8 @@
               id: service_bottom_plate_heater_switch_ui
               state:
                 checked: !lambda 'return id(bottom_plate_heater_manual_switch).state;'
-          - script.execute: update_service_diag_summary_ui
-          - script.execute: update_service_errors_ui
-          - script.execute: update_service_warnings_ui
           - script.execute: update_service_valve_ui
+          - script.execute: update_service_deaeration_ui
           - lvgl.label.update:
               id: service_p0_pwm_slider_value
               text:
@@ -1897,7 +1987,6 @@
                 lv_slider_set_value(id(service_fan_slider), (int) id(fan_speed_manual_number).state, LV_ANIM_OFF);
               }
           - lvgl.widget.show: { id: service_maintenance_layout }
-          - script.execute: update_service_section_options_ui
           - if:
               condition:
                 lambda: 'return id(service_mode_enabled).state && id(state_machine_state_main).state == "Maintenance";'
@@ -1912,11 +2001,14 @@
                 - lvgl.widget.update:
                     id: service_maintenance_layout
                     opa: 100%
+                - lvgl.widget.enable: { id: service_deaeration_short_btn }
+                - lvgl.widget.enable: { id: service_deaeration_extended_btn }
               else:
                 - if:
                     condition:
                       switch.is_on: service_mode_enabled
                     then:
+                      - lvgl.widget.show: { id: service_maintenance_lock_hint }
                       - lvgl.label.update:
                           id: service_maintenance_state
                           text: "Regeling aan het pauzeren..."
@@ -1941,8 +2033,11 @@
                 - lvgl.widget.hide: { id: service_mpanel_backup }
                 - lvgl.widget.update:
                     id: service_maintenance_layout
-                    opa: 100%
-          - script.execute: update_service_top_tabs_ui
+                    opa: 45%
+                - lvgl.widget.disable: { id: service_deaeration_short_btn }
+                - lvgl.widget.disable: { id: service_deaeration_extended_btn }
+    - script.execute: update_header_mode_badge
+    - script.execute: update_service_top_tabs_ui
 
 - id: update_home_pump_tile_state
   mode: restart

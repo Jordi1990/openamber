@@ -135,6 +135,42 @@
     sorting_group_id: manual_control
 
 - platform: template
+  id: deaeration_short_switch
+  name: "Ontluchting kort"
+  entity_category: config
+  disabled_by_default: true
+  web_server:
+    sorting_group_id: manual_control
+  lambda: |-
+    return id(amber_ctrl).is_deaeration_running() && !id(amber_ctrl).is_deaeration_extended();
+  turn_on_action:
+    - lambda: |-
+        id(amber_ctrl).start_deaeration_routine(false);
+  turn_off_action:
+    - lambda: |-
+        if (id(amber_ctrl).is_deaeration_running() && !id(amber_ctrl).is_deaeration_extended()) {
+          id(amber_ctrl).stop_deaeration_routine();
+        }
+
+- platform: template
+  id: deaeration_extended_switch
+  name: "Ontluchting uitgebreid"
+  entity_category: config
+  disabled_by_default: true
+  web_server:
+    sorting_group_id: manual_control
+  lambda: |-
+    return id(amber_ctrl).is_deaeration_running() && id(amber_ctrl).is_deaeration_extended();
+  turn_on_action:
+    - lambda: |-
+        id(amber_ctrl).start_deaeration_routine(true);
+  turn_off_action:
+    - lambda: |-
+        if (id(amber_ctrl).is_deaeration_running() && id(amber_ctrl).is_deaeration_extended()) {
+          id(amber_ctrl).stop_deaeration_routine();
+        }
+
+- platform: template
   id: flow_sensor_enabled
   name: "Flow sensor aanwezig"
   optimistic: True

@@ -27,10 +27,12 @@ esphome:
     - openamber/controllers/constants.h
     - openamber/controllers/pump_controller.h
     - openamber/controllers/compressor_controller.h
-    - openamber/controllers/dhw_controller.h
-    - openamber/controllers/openamber_component.h
-    - openamber/controllers/heat_cool_controller.h
     - openamber/controllers/base_controller.h
+    - openamber/controllers/dhw_controller.h
+    - openamber/controllers/heat_cool_controller.h
+    - openamber/controllers/routine_controller.h
+    - openamber/controllers/deaeration_routine.h
+    - openamber/controllers/openamber_component.h
   on_boot:
     - priority: 600
       then:

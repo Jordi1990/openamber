@@ -1,0 +1,33 @@
+# ══════════════════════════════════════════════════════════════
+# Periodic UI update loop (5s interval)
+# Only contains items that cannot be event-driven:
+# - Firmware update status via update_firmware_ui
+# - Service update progress overlay
+# - Service deaeration progress live timer
+#
+# All sensor/switch/select value → LVGL updates are handled
+# via event-driven !extend bindings in ui/bindings/
+# ══════════════════════════════════════════════════════════════
+
+  # ── Firmware update status ──
+  - script.execute: update_firmware_ui
+
+  # ── Service update progress overlay ──
+  - if:
+      condition:
+        lambda: |-
+          return id(service_update_install_in_progress);
+      then:
+        - lvgl.widget.show:
+            id: service_update_progress_overlay
+      else:
+        - lvgl.widget.hide:
+            id: service_update_progress_overlay
+
+  # ── Service: Deaeration progress live timer update ──
+  - if:
+      condition:
+        lambda: 'return id(amber_ctrl).is_deaeration_running() && !lv_obj_has_flag(id(service_maintenance_panel), LV_OBJ_FLAG_HIDDEN);'
+      then:
+        - script.execute: update_service_deaeration_ui
+
