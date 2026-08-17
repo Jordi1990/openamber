@@ -82,7 +82,7 @@ obj:
         on_click:
           - if:
               condition:
-                lambda: 'return id(state_machine_state_main).state == "Maintenance";'
+                lambda: 'return id(amber_ctrl).is_maintenance_state();'
               then:
                 - if:
                     condition:
@@ -117,7 +117,7 @@ obj:
         on_click:
           - if:
               condition:
-                lambda: 'return id(state_machine_state_main).state == "Maintenance";'
+                lambda: 'return id(amber_ctrl).is_maintenance_state();'
               then:
                 - if:
                     condition:

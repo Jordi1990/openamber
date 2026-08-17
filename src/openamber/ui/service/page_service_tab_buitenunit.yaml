@@ -2,7 +2,7 @@ obj:
   id: service_mpanel_compressor
   width: 100%
   height: 100%
-  hidden: false
+  hidden: true
   bg_opa: 0%
   border_opa: 0%
   pad_all: 0

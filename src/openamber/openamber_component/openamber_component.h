@@ -82,8 +82,10 @@ public:
   void stop_deaeration_routine();
   bool is_deaeration_running() const;
   bool is_deaeration_extended() const;
-  std::string get_deaeration_phase_text() const;
-  std::string get_deaeration_time_text() const;
+  int get_deaeration_state() const;
+  bool is_deaeration_dhw_circuit() const;
+  int get_deaeration_current_cycle() const;
+  int get_deaeration_cycle_count() const;
   int get_deaeration_progress_percent() const;
   uint32_t get_deaeration_remaining_seconds() const;
 };

@@ -177,24 +177,20 @@ void OpenAmberComponent::update()
 
     case State::MAINTENANCE:
     {
+      if (!maintenance_requested)
+      {
+        if (!deaeration_routine_->IsIdle())
+        {
+          deaeration_routine_->Stop();
+        }
+        SetNextState(State::INITIALIZING);
+        break;
+      }
+
       // Update active routines
       if (!deaeration_routine_->IsIdle())
       {
         deaeration_routine_->UpdateStateMachine();
-      }
-
-      if (!maintenance_requested)
-      {
-        // Stop running routines before leaving maintenance
-        if (!deaeration_routine_->IsIdle())
-        {
-          deaeration_routine_->RequestToStop();
-        }
-        else
-        {
-          // Only transition to INITIALIZING when all routines are idle
-          SetNextState(State::INITIALIZING);
-        }
       }
       break;
     }
@@ -249,7 +245,7 @@ void OpenAmberComponent::stop_deaeration_routine()
 {
   if (!deaeration_routine_->IsIdle())
   {
-    deaeration_routine_->RequestToStop();
+    deaeration_routine_->Stop();
   }
 }
 
@@ -263,14 +259,24 @@ bool OpenAmberComponent::is_deaeration_extended() const
   return deaeration_routine_->is_extended();
 }
 
-std::string OpenAmberComponent::get_deaeration_phase_text() const
+int OpenAmberComponent::get_deaeration_state() const
 {
-  return deaeration_routine_->GetPhaseText();
+  return deaeration_routine_->GetStateId();
 }
 
-std::string OpenAmberComponent::get_deaeration_time_text() const
+bool OpenAmberComponent::is_deaeration_dhw_circuit() const
 {
-  return deaeration_routine_->GetTimeText();
+  return deaeration_routine_->IsDhwCircuit();
+}
+
+int OpenAmberComponent::get_deaeration_current_cycle() const
+{
+  return deaeration_routine_->GetCurrentCycle();
+}
+
+int OpenAmberComponent::get_deaeration_cycle_count() const
+{
+  return deaeration_routine_->GetCycleCount();
 }
 
 int OpenAmberComponent::get_deaeration_progress_percent() const
