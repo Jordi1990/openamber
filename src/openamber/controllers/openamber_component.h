@@ -289,6 +289,16 @@ uint32_t OpenAmberComponent::get_deaeration_remaining_seconds() const
   return deaeration_routine_->GetRemainingSeconds();
 }
 
+std::string OpenAmberComponent::get_deaeration_phase_text() const
+{
+  return deaeration_routine_->GetPhaseText();
+}
+
+uint32_t OpenAmberComponent::get_deaeration_duration_seconds(bool extended) const
+{
+  return deaeration_routine_->GetTotalDurationS(extended);
+}
+
 // Privates
 void OpenAmberComponent::SetNextState(State state)
 {

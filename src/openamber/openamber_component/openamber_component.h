@@ -88,6 +88,8 @@ public:
   int get_deaeration_cycle_count() const;
   int get_deaeration_progress_percent() const;
   uint32_t get_deaeration_remaining_seconds() const;
+  std::string get_deaeration_phase_text() const;
+  uint32_t get_deaeration_duration_seconds(bool extended) const;
 };
 
 }  // namespace openamber

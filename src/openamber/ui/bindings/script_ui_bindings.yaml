@@ -1843,7 +1843,7 @@
               text:
                 format: "%s"
                 args:
-                  - 'id(amber_ctrl).get_deaeration_state() == 1 ? "Pomp starten..." : id(amber_ctrl).get_deaeration_state() == 2 ? str_sprintf("%s: Hoog (%d/%d)", id(amber_ctrl).is_deaeration_dhw_circuit() ? "Tapwater" : "CV/Koelen", id(amber_ctrl).get_deaeration_current_cycle(), id(amber_ctrl).get_deaeration_cycle_count()).c_str() : id(amber_ctrl).get_deaeration_state() == 3 ? str_sprintf("%s: Laag (%d/%d)", id(amber_ctrl).is_deaeration_dhw_circuit() ? "Tapwater" : "CV/Koelen", id(amber_ctrl).get_deaeration_current_cycle(), id(amber_ctrl).get_deaeration_cycle_count()).c_str() : id(amber_ctrl).get_deaeration_state() == 4 ? "Klep wisselen naar Tapwater..." : id(amber_ctrl).get_deaeration_state() == 5 ? "Pomp uitschakelen..." : "Wachten..."'
+                  - 'id(amber_ctrl).get_deaeration_phase_text().c_str()'
           - lvgl.widget.update:
               id: service_deaeration_status_val
               text_color: 0x166534
@@ -1874,8 +1874,8 @@
                 - lvgl.label.update:
                     id: service_deaeration_extended_btn_lbl
                     text:
-                      format: "%s"
-                      args: ['id(dhw_enabled_switch).state ? "Uitgebreid (~31 min)" : "Uitgebreid (~15 min)"']
+                      format: "Uitgebreid (~%lu min)"
+                      args: ['(id(amber_ctrl).get_deaeration_duration_seconds(true) + 30UL) / 60UL']
               else:
                 - lvgl.widget.update: { id: service_deaeration_extended_btn, bg_color: 0x1F3B68 }
                 - lvgl.widget.update: { id: service_deaeration_extended_btn_lbl, text_color: 0xFFFFFF }
@@ -1885,8 +1885,8 @@
                 - lvgl.label.update:
                     id: service_deaeration_short_btn_lbl
                     text:
-                      format: "%s"
-                      args: ['id(dhw_enabled_switch).state ? "Kort (~10 min)" : "Kort (~5 min)"']
+                      format: "Kort (~%lu min)"
+                      args: ['(id(amber_ctrl).get_deaeration_duration_seconds(false) + 30UL) / 60UL']
         else:
           - lvgl.label.update:
               id: service_deaeration_status_val
@@ -1909,125 +1909,133 @@
           - lvgl.label.update:
               id: service_deaeration_short_btn_lbl
               text:
-                format: "%s"
-                args: ['id(dhw_enabled_switch).state ? "Kort (~10 min)" : "Kort (~5 min)"']
+                format: "Kort (~%lu min)"
+                args: ['(id(amber_ctrl).get_deaeration_duration_seconds(false) + 30UL) / 60UL']
           - lvgl.widget.update: { id: service_deaeration_extended_btn, bg_color: 0xE8ECF1 }
           - lvgl.widget.update: { id: service_deaeration_extended_btn_lbl, text_color: 0x4B5563 }
           - lvgl.label.update:
               id: service_deaeration_extended_btn_lbl
               text:
-                format: "%s"
-                args: ['id(dhw_enabled_switch).state ? "Uitgebreid (~31 min)" : "Uitgebreid (~15 min)"']
+                format: "Uitgebreid (~%lu min)"
+                args: ['(id(amber_ctrl).get_deaeration_duration_seconds(true) + 30UL) / 60UL']
 
 - id: update_service_mode_ui
   mode: restart
   then:
-    - lvgl.widget.update:
-        id: set_service_mode_switch_ui
-        state:
-          checked: !lambda 'return id(service_mode_enabled).state;'
-    - lvgl.widget.update:
-        id: service_pump_p0_switch_ui
-        state:
-          checked: !lambda 'return id(pump_p0_relay_switch).state;'
-    - lvgl.widget.update:
-        id: service_pump_p1_switch_ui
-        state:
-          checked: !lambda 'return id(pump_p1_relay_switch).state;'
-    - lvgl.widget.update:
-        id: service_pump_p2_switch_ui
-        state:
-          checked: !lambda 'return id(pump_p2_relay_switch).state;'
-    - lvgl.widget.update:
-        id: service_dhw_pump_switch_ui
-        state:
-          checked: !lambda 'return id(dhw_pump_relay_switch).state;'
-    - lvgl.widget.update:
-        id: service_backup_heater_relay_switch_ui
-        state:
-          checked: !lambda 'return id(backup_heater_relay).state;'
-    - lvgl.widget.update:
-        id: service_external_backup_heating_relay_switch_ui
-        state:
-          checked: !lambda 'return id(external_backup_heating_relay).state;'
-    - lvgl.widget.update:
-        id: service_crankcase_heater_switch_ui
-        state:
-          checked: !lambda 'return id(compressor_crankcase_heater_manual_switch).state;'
-    - lvgl.widget.update:
-        id: service_bottom_plate_heater_switch_ui
-        state:
-          checked: !lambda 'return id(bottom_plate_heater_manual_switch).state;'
+    - script.execute: update_header_alert_icons
     - script.execute: update_service_diag_summary_ui
     - script.execute: update_service_errors_ui
     - script.execute: update_service_warnings_ui
-    - script.execute: update_header_alert_icons
-    - script.execute: update_service_valve_ui
-    - script.execute: update_service_deaeration_ui
-    - lvgl.label.update:
-        id: service_p0_pwm_slider_value
-        text:
-          format: "%.0f %%"
-          args: ['id(pump_p0_current_pwm_sensor).state']
-    - lvgl.label.update:
-        id: service_fan_slider_value
-        text:
-          format: "%.0f RPM"
-          args: ['id(fan_speed_manual_number).state']
-    - lambda: |-
-        if (id(service_p0_pwm_slider) != nullptr) {
-          lv_slider_set_value(id(service_p0_pwm_slider), (int) id(pump_p0_current_pwm_sensor).state, LV_ANIM_OFF);
-        }
-        if (id(service_fan_slider) != nullptr) {
-          lv_slider_set_value(id(service_fan_slider), (int) id(fan_speed_manual_number).state, LV_ANIM_OFF);
-        }
-    - lvgl.widget.show: { id: service_maintenance_layout }
     - script.execute: update_service_section_options_ui
     - if:
         condition:
-          lambda: 'return id(service_mode_enabled).state && id(state_machine_state_main).state == "Maintenance";'
+          lambda: 'return !lv_obj_has_flag(id(page_service), LV_OBJ_FLAG_HIDDEN);'
         then:
+          - lvgl.widget.update:
+              id: set_service_mode_switch_ui
+              state:
+                checked: !lambda 'return id(service_mode_enabled).state;'
+          - lvgl.widget.update:
+              id: service_pump_p0_switch_ui
+              state:
+                checked: !lambda 'return id(pump_p0_relay_switch).state;'
+          - lvgl.widget.update:
+              id: service_pump_p1_switch_ui
+              state:
+                checked: !lambda 'return id(pump_p1_relay_switch).state;'
+          - lvgl.widget.update:
+              id: service_pump_p2_switch_ui
+              state:
+                checked: !lambda 'return id(pump_p2_relay_switch).state;'
+          - lvgl.widget.update:
+              id: service_dhw_pump_switch_ui
+              state:
+                checked: !lambda 'return id(dhw_pump_relay_switch).state;'
+          - lvgl.widget.update:
+              id: service_backup_heater_relay_switch_ui
+              state:
+                checked: !lambda 'return id(backup_heater_relay).state;'
+          - lvgl.widget.update:
+              id: service_external_backup_heating_relay_switch_ui
+              state:
+                checked: !lambda 'return id(external_backup_heating_relay).state;'
+          - lvgl.widget.update:
+              id: service_crankcase_heater_switch_ui
+              state:
+                checked: !lambda 'return id(compressor_crankcase_heater_manual_switch).state;'
+          - lvgl.widget.update:
+              id: service_bottom_plate_heater_switch_ui
+              state:
+                checked: !lambda 'return id(bottom_plate_heater_manual_switch).state;'
+          - script.execute: update_service_valve_ui
+          - script.execute: update_service_deaeration_ui
           - lvgl.label.update:
-              id: service_maintenance_state
-              text: "Onderhoudsmodus actief"
-          - lvgl.widget.update:
-              id: service_maintenance_state
-              text_color: 0x166534
-          - lvgl.widget.hide: { id: service_maintenance_lock_hint }
-          - lvgl.widget.update:
-              id: service_maintenance_layout
-              opa: 100%
-        else:
+              id: service_p0_pwm_slider_value
+              text:
+                format: "%.0f %%"
+                args: ['id(pump_p0_current_pwm_sensor).state']
+          - lvgl.label.update:
+              id: service_fan_slider_value
+              text:
+                format: "%.0f RPM"
+                args: ['id(fan_speed_manual_number).state']
+          - lambda: |-
+              if (id(service_p0_pwm_slider) != nullptr) {
+                lv_slider_set_value(id(service_p0_pwm_slider), (int) id(pump_p0_current_pwm_sensor).state, LV_ANIM_OFF);
+              }
+              if (id(service_fan_slider) != nullptr) {
+                lv_slider_set_value(id(service_fan_slider), (int) id(fan_speed_manual_number).state, LV_ANIM_OFF);
+              }
+          - lvgl.widget.show: { id: service_maintenance_layout }
           - if:
               condition:
-                switch.is_on: service_mode_enabled
+                lambda: 'return id(service_mode_enabled).state && id(state_machine_state_main).state == "Maintenance";'
               then:
-                - lvgl.widget.show: { id: service_maintenance_lock_hint }
                 - lvgl.label.update:
                     id: service_maintenance_state
-                    text: "Regeling aan het pauzeren..."
+                    text: "Onderhoudsmodus actief"
                 - lvgl.widget.update:
                     id: service_maintenance_state
-                    text_color: 0xB45309
+                    text_color: 0x166534
+                - lvgl.widget.hide: { id: service_maintenance_lock_hint }
+                - lvgl.widget.update:
+                    id: service_maintenance_layout
+                    opa: 100%
+                - lvgl.widget.enable: { id: service_deaeration_short_btn }
+                - lvgl.widget.enable: { id: service_deaeration_extended_btn }
               else:
-                - lvgl.label.update:
-                    id: service_maintenance_state
-                    text: "Onderhoudsmodus niet actief"
-                - lvgl.widget.update:
-                    id: service_maintenance_state
-                    text_color: 0x6B7280
                 - if:
                     condition:
-                      lambda: 'return !id(service_mode_enabled).state && !lv_obj_has_flag(id(service_maintenance_panel), LV_OBJ_FLAG_HIDDEN);'
+                      switch.is_on: service_mode_enabled
                     then:
                       - lvgl.widget.show: { id: service_maintenance_lock_hint }
-          - lvgl.widget.hide: { id: service_mpanel_compressor }
-          - lvgl.widget.hide: { id: service_mpanel_pumps }
-          - lvgl.widget.hide: { id: service_mpanel_valve }
-          - lvgl.widget.hide: { id: service_mpanel_backup }
-          - lvgl.widget.update:
-              id: service_maintenance_layout
-              opa: 45%
+                      - lvgl.label.update:
+                          id: service_maintenance_state
+                          text: "Regeling aan het pauzeren..."
+                      - lvgl.widget.update:
+                          id: service_maintenance_state
+                          text_color: 0xB45309
+                    else:
+                      - lvgl.label.update:
+                          id: service_maintenance_state
+                          text: "Onderhoudsmodus niet actief"
+                      - lvgl.widget.update:
+                          id: service_maintenance_state
+                          text_color: 0x6B7280
+                      - if:
+                          condition:
+                            lambda: 'return !id(service_mode_enabled).state && !lv_obj_has_flag(id(service_maintenance_panel), LV_OBJ_FLAG_HIDDEN);'
+                          then:
+                            - lvgl.widget.show: { id: service_maintenance_lock_hint }
+                - lvgl.widget.hide: { id: service_mpanel_compressor }
+                - lvgl.widget.hide: { id: service_mpanel_pumps }
+                - lvgl.widget.hide: { id: service_mpanel_valve }
+                - lvgl.widget.hide: { id: service_mpanel_backup }
+                - lvgl.widget.update:
+                    id: service_maintenance_layout
+                    opa: 45%
+                - lvgl.widget.disable: { id: service_deaeration_short_btn }
+                - lvgl.widget.disable: { id: service_deaeration_extended_btn }
     - script.execute: update_header_mode_badge
     - script.execute: update_service_top_tabs_ui
 

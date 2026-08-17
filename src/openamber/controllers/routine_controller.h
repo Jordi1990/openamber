@@ -58,9 +58,10 @@ protected:
   bool ProcessDeferredStateChange()
   {
     uint32_t now = App.get_loop_component_start_time();
-    if (defer_state_change_until_ms_ > now)
+    int32_t remaining_ms = static_cast<int32_t>(defer_state_change_until_ms_ - now);
+    if (remaining_ms > 0)
     {
-      ESP_LOGD("amber", "%s waiting for state switch, transitioning in %lu ms", LogTag(), defer_state_change_until_ms_ - now);
+      ESP_LOGD("amber", "%s waiting for state switch, transitioning in %ld ms", LogTag(), static_cast<long>(remaining_ms));
       return false;
     }
     defer_state_change_until_ms_ = 0;
