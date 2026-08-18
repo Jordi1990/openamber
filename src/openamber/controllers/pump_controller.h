@@ -83,8 +83,9 @@ public:
   void SetPwmDutyCycle(float duty_cycle)
   {
     const uint32_t now = App.get_loop_component_start_time();
+    const bool is_pwm_endpoint = duty_cycle <= 0.0f || duty_cycle >= 100.0f;
 
-    if (abs(id(pump_p0_current_pwm_sensor).state - duty_cycle) < PUMP_PID_DELTA_TOLERANCE_C)
+    if (!is_pwm_endpoint && abs(id(pump_p0_current_pwm_sensor).state - duty_cycle) < PUMP_PID_DELTA_TOLERANCE_C)
     {
       ESP_LOGD("amber", "P0 PWM change suppressed because requested change %.2f is within delta tolerance %.2f", math::abs(id(pump_p0_current_pwm_sensor).state - duty_cycle), PUMP_PID_DELTA_TOLERANCE_C);
       return;
