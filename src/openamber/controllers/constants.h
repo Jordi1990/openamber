@@ -85,3 +85,23 @@ static const uint32_t DHW_START_PUMP_MODE_DIRECT = 1;
 // ============================================================================
 static const uint32_t EEPROM_VERSION_AMBER = 114;
 static const uint32_t EEPROM_VERSION_HPS = 29184;
+
+// ============================================================================
+// DEAERATION ROUTINE
+// ============================================================================
+
+// Shared
+static const uint32_t DEAERATION_HIGH_SPEED_PWM = 100;      // % pump speed high phase
+static const uint32_t DEAERATION_LOW_SPEED_PWM = 30;        // % pump speed low phase
+static const uint32_t DEAERATION_PUMP_START_TIMEOUT_S = 2 * 60;
+static const uint32_t DEAERATION_PUMP_STOP_WAIT_S = 5;      // Timed wait instead of flow switch
+
+// Short mode (~10 min total)
+static const uint32_t DEAERATION_SHORT_CYCLES = 3;
+static const uint32_t DEAERATION_SHORT_HIGH_SPEED_DURATION_S = 60;
+static const uint32_t DEAERATION_SHORT_LOW_SPEED_DURATION_S = 30;
+
+// Extended mode (~31 min total)
+static const uint32_t DEAERATION_EXTENDED_CYCLES = 5;
+static const uint32_t DEAERATION_EXTENDED_HIGH_SPEED_DURATION_S = 2 * 60;
+static const uint32_t DEAERATION_EXTENDED_LOW_SPEED_DURATION_S = 60;

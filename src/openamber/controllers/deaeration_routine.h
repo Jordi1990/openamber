@@ -1,0 +1,416 @@
+/*
+ * Open Amber - Itho Daalderop Amber heat pump controller for ESPHome
+ *
+ * Copyright (C) 2025 Jordi Epema
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "routine_controller.h"
+
+using namespace esphome;
+
+enum class DeaerationState
+{
+  IDLE,
+  STARTING_PUMP,
+  HIGH_SPEED,
+  LOW_SPEED,
+  SWITCHING_VALVE,
+  STOPPING_PUMP,
+  WAIT_FOR_STATE_SWITCH,
+};
+
+/// @brief Deaeration routine.
+/// Cycles the circulation pump between high and low speed to purge air from
+class DeaerationRoutine : public RoutineController<DeaerationState>
+{
+private:
+  int cycles_remaining_ = 0;
+  bool first_circuit_done_ = false;
+  bool extended_mode_ = false;
+  uint32_t start_wait_started_ms_ = 0;
+  uint32_t routine_start_time_ms_ = 0;
+
+  int GetCycles() const
+  {
+    return extended_mode_ ? DEAERATION_EXTENDED_CYCLES : DEAERATION_SHORT_CYCLES;
+  }
+
+  uint32_t GetHighSpeedDurationS() const
+  {
+    return extended_mode_ ? DEAERATION_EXTENDED_HIGH_SPEED_DURATION_S : DEAERATION_SHORT_HIGH_SPEED_DURATION_S;
+  }
+
+  uint32_t GetLowSpeedDurationS() const
+  {
+    return extended_mode_ ? DEAERATION_EXTENDED_LOW_SPEED_DURATION_S : DEAERATION_SHORT_LOW_SPEED_DURATION_S;
+  }
+
+  void SetPwmDutyCycle(uint32_t duty_cycle_percent)
+  {
+    float control_speed = ((duty_cycle_percent * 10.0f) * -1.0f) + 1000.0f;
+    auto pump_call = id(pump_control_pwm_number).make_call();
+    pump_call.set_value(control_speed);
+    pump_call.perform();
+  }
+
+  void StartPumps()
+  {
+    if (!id(pump_p0_relay_switch).state)
+    {
+      id(pump_p0_relay_switch).turn_on();
+    }
+    if (id(pump_p1_enabled).state && !id(pump_p1_relay_switch).state)
+    {
+      id(pump_p1_relay_switch).turn_on();
+    }
+  }
+
+  void StopPumps()
+  {
+    SetPwmDutyCycle(0);
+    id(pump_p0_relay_switch).turn_off();
+    if (id(pump_p1_enabled).state)
+    {
+      id(pump_p1_relay_switch).turn_off();
+    }
+  }
+
+  void SetValveToHeatingCooling()
+  {
+    id(three_way_valve_dhw_switch).turn_off();
+    id(three_way_valve_heat_cool_switch).turn_on();
+    ESP_LOGI("amber", "DEAERATION: 3-way valve set to Heating/Cooling");
+  }
+
+  void SetValveToDhw()
+  {
+    id(three_way_valve_heat_cool_switch).turn_off();
+    id(three_way_valve_dhw_switch).turn_on();
+    ESP_LOGI("amber", "DEAERATION: 3-way valve set to DHW");
+  }
+
+  void SetNextState(DeaerationState new_state)
+  {
+    if (new_state == DeaerationState::IDLE)
+    {
+      SetValveToHeatingCooling();
+      routine_start_time_ms_ = 0;
+    }
+    RoutineController::SetNextState(new_state);
+  }
+
+  const char* StateToString(DeaerationState state) const override
+  {
+    switch (state)
+    {
+      case DeaerationState::IDLE:                   return "Idle";
+      case DeaerationState::STARTING_PUMP:          return "Starting pump";
+      case DeaerationState::HIGH_SPEED:             return "High speed";
+      case DeaerationState::LOW_SPEED:              return "Low speed";
+      case DeaerationState::SWITCHING_VALVE:        return "Switching valve";
+      case DeaerationState::STOPPING_PUMP:          return "Stopping pump";
+      case DeaerationState::WAIT_FOR_STATE_SWITCH:  return "Waiting";
+      default:                                      return "Unknown";
+    }
+  }
+
+  void PublishState(const char* state_text) override
+  {
+    if (state_ == DeaerationState::IDLE)
+    {
+      id(state_machine_state_routine).publish_state("Inactief");
+      return;
+    }
+    id(state_machine_state_routine).publish_state(GetPhaseText());
+  }
+
+  const char* LogTag() const override
+  {
+    return "DEAERATION";
+  }
+
+public:
+  bool is_extended() const { return extended_mode_; }
+
+  bool IsDhwEnabled() const
+  {
+    return id(dhw_enabled_switch).state;
+  }
+
+  uint32_t GetTotalDurationS(bool extended) const
+  {
+    uint32_t cycles = extended ? DEAERATION_EXTENDED_CYCLES : DEAERATION_SHORT_CYCLES;
+    uint32_t high_s = extended ? DEAERATION_EXTENDED_HIGH_SPEED_DURATION_S : DEAERATION_SHORT_HIGH_SPEED_DURATION_S;
+    uint32_t low_s = extended ? DEAERATION_EXTENDED_LOW_SPEED_DURATION_S : DEAERATION_SHORT_LOW_SPEED_DURATION_S;
+    uint32_t circuits = IsDhwEnabled() ? 2 : 1;
+    uint32_t valve_time = IsDhwEnabled() ? THREE_WAY_VALVE_SWITCH_TIME_S : 0;
+    return (circuits * cycles * (high_s + low_s)) + valve_time;
+  }
+
+  uint32_t GetTotalDurationS() const
+  {
+    return GetTotalDurationS(extended_mode_);
+  }
+
+  std::string GetPhaseText() const
+  {
+    switch (state_)
+    {
+      case DeaerationState::IDLE:
+        return "Inactief";
+      case DeaerationState::STARTING_PUMP:
+        return "Pomp starten...";
+      case DeaerationState::HIGH_SPEED:
+      {
+        const char* circuit = first_circuit_done_ ? "Tapwater" : (IsDhwEnabled() ? "CV/Koelen" : "CV");
+        int current_cycle = GetCycles() - cycles_remaining_ + 1;
+        char buf[64];
+        snprintf(buf, sizeof(buf), "%s: Hoog (%d/%d)", circuit, current_cycle, GetCycles());
+        return std::string(buf);
+      }
+      case DeaerationState::LOW_SPEED:
+      {
+        const char* circuit = first_circuit_done_ ? "Tapwater" : (IsDhwEnabled() ? "CV/Koelen" : "CV");
+        int current_cycle = GetCycles() - cycles_remaining_;
+        char buf[64];
+        snprintf(buf, sizeof(buf), "%s: Laag (%d/%d)", circuit, current_cycle, GetCycles());
+        return std::string(buf);
+      }
+      case DeaerationState::SWITCHING_VALVE:
+        return "Klep wisselen naar Tapwater...";
+      case DeaerationState::STOPPING_PUMP:
+        return "Pomp uitschakelen...";
+      case DeaerationState::WAIT_FOR_STATE_SWITCH:
+        return deferred_machine_state_ == DeaerationState::IDLE ? "Pomp uitschakelen..." : "Wachten...";
+      default:
+        return "Wachten...";
+    }
+  }
+
+  uint32_t GetElapsedSeconds() const
+  {
+    if (IsIdle() || routine_start_time_ms_ == 0) return 0;
+    return (App.get_loop_component_start_time() - routine_start_time_ms_) / 1000UL;
+  }
+
+  uint32_t GetRemainingSeconds() const
+  {
+    uint32_t el = GetElapsedSeconds();
+    uint32_t tot = GetTotalDurationS();
+    return (el >= tot) ? 0 : (tot - el);
+  }
+
+  int GetProgressPercent() const
+  {
+    if (IsIdle()) return 0;
+    uint32_t el = GetElapsedSeconds();
+    uint32_t tot = GetTotalDurationS();
+    if (tot == 0) return 0;
+    int pct = (el * 100) / tot;
+    return pct > 100 ? 100 : pct;
+  }
+
+  int GetStateId() const
+  {
+    return static_cast<int>(state_);
+  }
+
+  bool IsDhwCircuit() const { return first_circuit_done_; }
+
+  int GetCurrentCycle() const
+  {
+    return GetCycles() - cycles_remaining_ + (state_ == DeaerationState::HIGH_SPEED ? 1 : 0);
+  }
+
+  int GetCycleCount() const { return GetCycles(); }
+
+  DeaerationRoutine()
+    : RoutineController(DeaerationState::IDLE, DeaerationState::WAIT_FOR_STATE_SWITCH) {}
+
+  /// @brief Start the deaeration routine.
+  /// @param extended If true, uses extended mode (more cycles, longer durations).
+  void Start(bool extended)
+  {
+    if (!IsIdle()) return;
+    StartRoutine();
+
+    extended_mode_ = extended;
+    cycles_remaining_ = GetCycles();
+    first_circuit_done_ = false;
+    routine_start_time_ms_ = App.get_loop_component_start_time();
+
+    ESP_LOGI("amber", "DEAERATION: Starting %s mode (%d cycles per circuit)",
+             extended ? "extended" : "short", cycles_remaining_);
+
+    // Start on heating/cooling circuit
+    SetValveToHeatingCooling();
+    StartPumps();
+    SetPwmDutyCycle(DEAERATION_HIGH_SPEED_PWM);
+
+    start_wait_started_ms_ = App.get_loop_component_start_time();
+    SetNextState(DeaerationState::STARTING_PUMP);
+  }
+
+  /// @brief Immediately stops the deaeration routine, turns off pumps, restores valve, and resets state to IDLE.
+  void Stop()
+  {
+    if (IsIdle()) return;
+    ESP_LOGI("amber", "DEAERATION: Stopping routine");
+    requested_to_stop_ = false;
+    defer_state_change_until_ms_ = 0;
+    start_wait_started_ms_ = 0;
+    StopPumps();
+    SetNextState(DeaerationState::IDLE);
+  }
+
+  void RequestToStop()
+  {
+    Stop();
+  }
+
+  void UpdateStateMachine() override
+  {
+    switch (state_)
+    {
+      case DeaerationState::IDLE:
+      {
+        break;
+      }
+
+      case DeaerationState::STARTING_PUMP:
+      {
+        if (requested_to_stop_)
+        {
+          Stop();
+          break;
+        }
+
+        if (id(internal_pump_active).state)
+        {
+          start_wait_started_ms_ = 0;
+          ESP_LOGI("amber", "DEAERATION: Pump running, starting cycles (%d remaining)", cycles_remaining_);
+          SetNextState(DeaerationState::HIGH_SPEED);
+          break;
+        }
+
+        // Timeout — continue anyway, pump may be running below flow switch threshold
+        uint32_t now = App.get_loop_component_start_time();
+        if (start_wait_started_ms_ > 0 &&
+            now - start_wait_started_ms_ >= DEAERATION_PUMP_START_TIMEOUT_S * 1000UL)
+        {
+          ESP_LOGW("amber", "DEAERATION: Pump start timeout, continuing anyway");
+          start_wait_started_ms_ = 0;
+          SetNextState(DeaerationState::HIGH_SPEED);
+        }
+        break;
+      }
+
+      case DeaerationState::HIGH_SPEED:
+      {
+        if (requested_to_stop_)
+        {
+          Stop();
+          break;
+        }
+
+        SetPwmDutyCycle(DEAERATION_HIGH_SPEED_PWM);
+        ESP_LOGI("amber", "DEAERATION: High speed phase (%lu s), cycles remaining: %d, circuit: %s",
+                 GetHighSpeedDurationS(), cycles_remaining_, first_circuit_done_ ? "DHW" : "Heat/Cool");
+        LeaveStateAndSetNextStateAfterWaitTime(DeaerationState::LOW_SPEED, GetHighSpeedDurationS() * 1000UL);
+        break;
+      }
+
+      case DeaerationState::LOW_SPEED:
+      {
+        if (requested_to_stop_)
+        {
+          Stop();
+          break;
+        }
+
+        SetPwmDutyCycle(DEAERATION_LOW_SPEED_PWM);
+        cycles_remaining_--;
+
+        // Determine what happens after this low-speed phase
+        DeaerationState next_state;
+        if (cycles_remaining_ > 0)
+        {
+          next_state = DeaerationState::HIGH_SPEED;
+        }
+        else if (!first_circuit_done_ && IsDhwEnabled())
+        {
+          next_state = DeaerationState::SWITCHING_VALVE;
+        }
+        else
+        {
+          next_state = DeaerationState::STOPPING_PUMP;
+        }
+
+        ESP_LOGI("amber", "DEAERATION: Low speed phase (%lu s), cycles remaining: %d",
+                 GetLowSpeedDurationS(), cycles_remaining_);
+        LeaveStateAndSetNextStateAfterWaitTime(next_state, GetLowSpeedDurationS() * 1000UL);
+        break;
+      }
+
+      case DeaerationState::SWITCHING_VALVE:
+      {
+        if (requested_to_stop_)
+        {
+          Stop();
+          break;
+        }
+
+        first_circuit_done_ = true;
+        cycles_remaining_ = GetCycles();
+        SetValveToDhw();
+
+        ESP_LOGI("amber", "DEAERATION: Switching to DHW circuit, waiting %lu s for valve",
+                 THREE_WAY_VALVE_SWITCH_TIME_S);
+        LeaveStateAndSetNextStateAfterWaitTime(DeaerationState::HIGH_SPEED, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);
+        break;
+      }
+
+      case DeaerationState::STOPPING_PUMP:
+      {
+        if (requested_to_stop_)
+        {
+          Stop();
+          break;
+        }
+
+        ESP_LOGI("amber", "DEAERATION: Cycles complete, stopping pumps and waiting %lu s before restoring valve",
+                 DEAERATION_PUMP_STOP_WAIT_S);
+        StopPumps();
+        LeaveStateAndSetNextStateAfterWaitTime(DeaerationState::IDLE, DEAERATION_PUMP_STOP_WAIT_S * 1000UL);
+        break;
+      }
+
+      case DeaerationState::WAIT_FOR_STATE_SWITCH:
+      {
+        // Check for stop request during wait — override deferred transition
+        if (requested_to_stop_)
+        {
+          Stop();
+          break;
+        }
+        ProcessDeferredStateChange();
+        break;
+      }
+    }
+  }
+};

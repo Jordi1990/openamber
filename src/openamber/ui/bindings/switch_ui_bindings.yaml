@@ -38,6 +38,16 @@
     then:
       - script.execute: update_service_mode_ui
 
+- id: !extend deaeration_short_switch
+  on_state:
+    then:
+      - script.execute: update_service_mode_ui
+
+- id: !extend deaeration_extended_switch
+  on_state:
+    then:
+      - script.execute: update_service_mode_ui
+
 - id: !extend flow_sensor_enabled
   on_state:
     then:
@@ -158,6 +168,7 @@
             - lvgl.widget.update:
                 id: dhw_tank_card
                 opa: 40%
+      - script.execute: update_service_deaeration_ui
 
 # ── Settings: DHW schedule toggle ──
 # ── Settings: Legionella toggle ──

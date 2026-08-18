@@ -20,6 +20,7 @@
 #include "constants.h"
 #include "dhw_controller.h"
 #include "heat_cool_controller.h"
+#include "deaeration_routine.h"
 
 using namespace esphome;
 
@@ -32,12 +33,14 @@ OpenAmberComponent::OpenAmberComponent()
   compressor_controller_ = new CompressorController();
   dhw_controller_ = new DHWController(pump_controller_, compressor_controller_);
   heat_cool_controller_ = new HeatCoolController(pump_controller_, compressor_controller_);
+  deaeration_routine_ = new DeaerationRoutine();
 }
 
 OpenAmberComponent::~OpenAmberComponent()
 {
   delete dhw_controller_;
   delete heat_cool_controller_;
+  delete deaeration_routine_;
   delete pump_controller_;
   delete compressor_controller_;
 }
@@ -176,8 +179,18 @@ void OpenAmberComponent::update()
     {
       if (!maintenance_requested)
       {
-        // Go to initializing state so we also reset all relays and working mode.
+        if (!deaeration_routine_->IsIdle())
+        {
+          deaeration_routine_->Stop();
+        }
         SetNextState(State::INITIALIZING);
+        break;
+      }
+
+      // Update active routines
+      if (!deaeration_routine_->IsIdle())
+      {
+        deaeration_routine_->UpdateStateMachine();
       }
       break;
     }
@@ -223,6 +236,72 @@ void OpenAmberComponent::reset_pump_interval()
 bool OpenAmberComponent::is_maintenance_state() const
 {
   return state_ == State::MAINTENANCE;
+}
+
+void OpenAmberComponent::start_deaeration_routine(bool extended)
+{
+  if (state_ == State::MAINTENANCE && deaeration_routine_->IsIdle())
+  {
+    deaeration_routine_->Start(extended);
+  }
+}
+
+void OpenAmberComponent::stop_deaeration_routine()
+{
+  if (!deaeration_routine_->IsIdle())
+  {
+    deaeration_routine_->Stop();
+  }
+}
+
+bool OpenAmberComponent::is_deaeration_running() const
+{
+  return !deaeration_routine_->IsIdle();
+}
+
+bool OpenAmberComponent::is_deaeration_extended() const
+{
+  return deaeration_routine_->is_extended();
+}
+
+int OpenAmberComponent::get_deaeration_state() const
+{
+  return deaeration_routine_->GetStateId();
+}
+
+bool OpenAmberComponent::is_deaeration_dhw_circuit() const
+{
+  return deaeration_routine_->IsDhwCircuit();
+}
+
+int OpenAmberComponent::get_deaeration_current_cycle() const
+{
+  return deaeration_routine_->GetCurrentCycle();
+}
+
+int OpenAmberComponent::get_deaeration_cycle_count() const
+{
+  return deaeration_routine_->GetCycleCount();
+}
+
+int OpenAmberComponent::get_deaeration_progress_percent() const
+{
+  return deaeration_routine_->GetProgressPercent();
+}
+
+uint32_t OpenAmberComponent::get_deaeration_remaining_seconds() const
+{
+  return deaeration_routine_->GetRemainingSeconds();
+}
+
+std::string OpenAmberComponent::get_deaeration_phase_text() const
+{
+  return deaeration_routine_->GetPhaseText();
+}
+
+uint32_t OpenAmberComponent::get_deaeration_duration_seconds(bool extended) const
+{
+  return deaeration_routine_->GetTotalDurationS(extended);
 }
 
 // Privates
@@ -309,15 +388,15 @@ ThreeWayValvePosition OpenAmberComponent::GetDesiredThreeWayValvePosition()
 void OpenAmberComponent::WriteHeatingFrequencyTable()
 {
     // Patch heating frequency table to have more control in low load situations.
-    id(heating_frequency_index_1).make_call().set_value(20).perform();
-    id(heating_frequency_index_2).make_call().set_value(26).perform();
-    id(heating_frequency_index_3).make_call().set_value(30).perform();
-    id(heating_frequency_index_4).make_call().set_value(36).perform();
-    id(heating_frequency_index_5).make_call().set_value(43).perform();
-    id(heating_frequency_index_6).make_call().set_value(48).perform();
-    id(heating_frequency_index_7).make_call().set_value(55).perform();
-    id(heating_frequency_index_8).make_call().set_value(69).perform();
-    id(heating_frequency_index_9).make_call().set_value(82).perform();
+    id(heating_frequency_index_1).make_call().set_value(28).perform();
+    id(heating_frequency_index_2).make_call().set_value(36).perform();
+    id(heating_frequency_index_3).make_call().set_value(43).perform();
+    id(heating_frequency_index_4).make_call().set_value(55).perform();
+    id(heating_frequency_index_5).make_call().set_value(61).perform();
+    id(heating_frequency_index_6).make_call().set_value(67).perform();
+    id(heating_frequency_index_7).make_call().set_value(72).perform();
+    id(heating_frequency_index_8).make_call().set_value(79).perform();
+    id(heating_frequency_index_9).make_call().set_value(85).perform();
     id(heating_frequency_index_10).make_call().set_value(90).perform();
 }
 
