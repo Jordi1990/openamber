@@ -48,7 +48,8 @@ private:
       max_pwm = 100.0f;
     }
 
-    const float requested_pwm = min_pwm + ((max_pwm - min_pwm) * pump_p0_pid_output_);
+    const float normalized_output = 1.0f - pump_p0_pid_output_;
+    const float requested_pwm = min_pwm + ((max_pwm - min_pwm) * normalized_output);
     ESP_LOGD("amber", "P0 climate PID output=%.2f -> %.0f%% PWM", pump_p0_pid_output_, requested_pwm);
     return requested_pwm;
   }
@@ -145,10 +146,10 @@ public:
       id(pump_p0_relay_switch).turn_on();
     }
 
-    SetPwmDutyCycle(GetPreferredPumpSpeed());
     pump_start_time_ = App.get_loop_component_start_time();
     start_wait_started_ms_ = pump_start_time_;
     ResetHeatingPidState();
+    SetPwmDutyCycle(GetPreferredPumpSpeed());
     ClearStopWaitTimer();
   }
 
