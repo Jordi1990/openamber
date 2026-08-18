@@ -387,11 +387,11 @@ void OpenAmberComponent::WriteHeatingFrequencyTable()
     id(heating_frequency_index_2).make_call().set_value(36).perform();
     id(heating_frequency_index_3).make_call().set_value(43).perform();
     id(heating_frequency_index_4).make_call().set_value(55).perform();
-    id(heating_frequency_index_5).make_call().set_value(43).perform();
-    id(heating_frequency_index_6).make_call().set_value(48).perform();
-    id(heating_frequency_index_7).make_call().set_value(55).perform();
-    id(heating_frequency_index_8).make_call().set_value(69).perform();
-    id(heating_frequency_index_9).make_call().set_value(82).perform();
+    id(heating_frequency_index_5).make_call().set_value(61).perform();
+    id(heating_frequency_index_6).make_call().set_value(67).perform();
+    id(heating_frequency_index_7).make_call().set_value(72).perform();
+    id(heating_frequency_index_8).make_call().set_value(79).perform();
+    id(heating_frequency_index_9).make_call().set_value(85).perform();
     id(heating_frequency_index_10).make_call().set_value(90).perform();
 }
 
