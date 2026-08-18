@@ -5,8 +5,8 @@
     border_opa: 0%
     pad_all: 6
     widgets:
-      - label: { text: "P0 PID-regeling", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Regel pomp P0 automatisch op basis van warmtewisselaar-delta-T tijdens verwarmen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Pomp P0 Dynamisch PWM (Verwarmen)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Regel P0 automatisch op basis van delta-T tijdens verwarmen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
       - switch:
           id: set_pump_pid_enabled_switch_ui
           align: TOP_RIGHT
@@ -25,6 +25,7 @@
                   - switch.turn_on: pump_p0_pid_enabled
 
 - obj:
+    id: set_pump_pid_target_delta_t_row
     width: 100%
     height: SIZE_CONTENT
     bg_opa: 0%
@@ -71,6 +72,7 @@
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
 - obj:
+    id: set_pump_pid_min_pwm_row
     width: 100%
     height: SIZE_CONTENT
     bg_opa: 0%
@@ -117,6 +119,7 @@
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
 - obj:
+    id: set_pump_pid_max_pwm_row
     width: 100%
     height: SIZE_CONTENT
     bg_opa: 0%

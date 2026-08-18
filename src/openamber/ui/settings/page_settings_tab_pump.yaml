@@ -98,7 +98,7 @@ obj:
                     id: pump_select_tab
                     tab_index: 2
               widgets:
-                - label: { id: pump_stab_p0_pid_lbl, text: "P0 PID", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
+                - label: { id: pump_stab_p0_pid_lbl, text: "Dynamisch PWM P0", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
 
           - obj:
               id: pump_stab_vorstbescherming

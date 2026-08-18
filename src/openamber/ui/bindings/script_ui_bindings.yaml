@@ -528,6 +528,27 @@
           switch.is_on: pump_p0_pid_enabled
         then:
           - lvgl.widget.update:
+              id: set_pump_pid_target_delta_t_row
+              state:
+                disabled: false
+          - lvgl.widget.update:
+              id: set_pump_pid_target_delta_t_row
+              opa: 100%
+          - lvgl.widget.update:
+              id: set_pump_pid_min_pwm_row
+              state:
+                disabled: false
+          - lvgl.widget.update:
+              id: set_pump_pid_min_pwm_row
+              opa: 100%
+          - lvgl.widget.update:
+              id: set_pump_pid_max_pwm_row
+              state:
+                disabled: false
+          - lvgl.widget.update:
+              id: set_pump_pid_max_pwm_row
+              opa: 100%
+          - lvgl.widget.update:
               id: set_pump_heat_row
               state:
                 disabled: true
@@ -535,6 +556,27 @@
               id: set_pump_heat_row
               opa: 40%
         else:
+          - lvgl.widget.update:
+              id: set_pump_pid_target_delta_t_row
+              state:
+                disabled: true
+          - lvgl.widget.update:
+              id: set_pump_pid_target_delta_t_row
+              opa: 40%
+          - lvgl.widget.update:
+              id: set_pump_pid_min_pwm_row
+              state:
+                disabled: true
+          - lvgl.widget.update:
+              id: set_pump_pid_min_pwm_row
+              opa: 40%
+          - lvgl.widget.update:
+              id: set_pump_pid_max_pwm_row
+              state:
+                disabled: true
+          - lvgl.widget.update:
+              id: set_pump_pid_max_pwm_row
+              opa: 40%
           - lvgl.widget.update:
               id: set_pump_heat_row
               state:
