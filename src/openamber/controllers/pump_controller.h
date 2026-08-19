@@ -35,7 +35,6 @@ private:
   uint32_t start_wait_started_ms_ = 0;
   uint32_t stop_wait_started_ms_ = 0;
   float pump_p0_pid_output_ = 0.0f;
-  uint32_t last_pwm_change_ms_ = 0;
 
   float CalculateHeatingPidPumpSpeed()
   {
@@ -84,21 +83,7 @@ public:
   void SetPwmDutyCycle(float duty_cycle)
   {
     const uint32_t now = App.get_loop_component_start_time();
-    const bool is_pwm_endpoint = duty_cycle <= 0.0f || duty_cycle >= 100.0f;
 
-    if (!is_pwm_endpoint && abs(id(pump_p0_current_pwm_sensor).state - duty_cycle) < PUMP_PID_DELTA_TOLERANCE_C)
-    {
-      ESP_LOGD("amber", "P0 PWM change suppressed because requested change %.2f is within delta tolerance %.2f", math::abs(id(pump_p0_current_pwm_sensor).state - duty_cycle), PUMP_PID_DELTA_TOLERANCE_C);
-      return;
-    }
-
-    if (last_pwm_change_ms_ != 0 && now - last_pwm_change_ms_ < PWM_CHANGE_COOLDOWN_S * 1000UL)
-    {
-      ESP_LOGD("amber", "P0 PWM change suppressed by 5-minute cooldown (now=%lu last=%lu)", now, last_pwm_change_ms_);
-      return;
-    }
-
-    last_pwm_change_ms_ = now;
     const float control_speed = ((duty_cycle * 10.0f) * -1.0f) + 1000.0f;
     if (id(pump_p0_current_pwm_sensor).get_raw_state() != control_speed)
     {
@@ -134,7 +119,7 @@ public:
   void ResetHeatingPidState()
   {
     pump_p0_pid_output_ = 0.0f;
-    last_pwm_change_ms_ = 0;
+    id(pump_p0_pid_temperature_control).reset_integral_term();
   }
 
   void Start()

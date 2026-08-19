@@ -23,6 +23,15 @@
 
 - id: apply_pid_settings
   then:
+    - lambda: |-
+        auto call = id(pump_p0_pid_temperature_control).make_call();
+        call.set_target_temperature(id(pump_p0_pid_target_delta_t).state);
+        call.perform();
+    - climate.pid.set_control_parameters:
+        id: pump_p0_pid_temperature_control
+        kp: !lambda 'return id(pump_p0_pid_kp).state;'
+        ki: !lambda 'return id(pump_p0_pid_ki).state;'
+        kd: !lambda 'return id(pump_p0_pid_kd).state;'
     - climate.pid.set_control_parameters:
         id: pid_heat_temperature_control
         kp: !lambda 'return id(pid_heat_kp).state;'
