@@ -223,6 +223,11 @@ void OpenAmberComponent::write_cool_pid_value(float value)
   heat_cool_controller_->SetCoolPIDValue(value);
 }
 
+void OpenAmberComponent::write_pump_p0_pid_value(float value)
+{
+  pump_controller_->SetPumpP0PidOutput(value);
+}
+
 void OpenAmberComponent::reset_pump_interval()
 {
   pump_controller_->ResetInterval();

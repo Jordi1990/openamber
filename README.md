@@ -19,7 +19,7 @@ Open source control firmware based on ESPHome for Itho Daalderop Amber heat pump
 - Domestic Hot Water/Three way valve control
 - Heating
 - Cooling
-- Pump P0 full PWM control on customizable interval/duration/speed.
+- Pump P0 full PWM control on customizable interval/duration/speed, including optional PID control on heating delta-T.
 - Compressor modulation based on PID controller.
 - Configure maximum power modes
 - Frost protection in 2 stages (similair to original software).

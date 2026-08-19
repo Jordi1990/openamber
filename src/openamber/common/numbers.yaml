@@ -322,6 +322,115 @@
     sorting_group_id: cooling_settings
 
 - platform: template
+  id: pump_p0_pid_target_delta_t
+  name: "Pomp P0 PID gewenste delta-T"
+  optimistic: True
+  min_value: 2.0
+  max_value: 10.0
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 3.0
+  restore_value: True
+  entity_category: config
+  on_value:
+    then:
+      - lambda: |-
+          auto call = id(pump_p0_pid_temperature_control).make_call();
+          call.set_target_temperature(id(pump_p0_pid_target_delta_t).state);
+          call.perform();
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: pump_p0_pid_min_pwm
+  name: "Pomp P0 PID minimum PWM"
+  optimistic: True
+  min_value: 20
+  max_value: 100
+  step: 1
+  unit_of_measurement: "%"
+  initial_value: 70
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: pump_p0_pid_max_pwm
+  name: "Pomp P0 PID maximum PWM"
+  optimistic: True
+  min_value: 20
+  max_value: 100
+  step: 1
+  unit_of_measurement: "%"
+  initial_value: 100
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: pump_p0_pid_kp
+  name: "Pomp P0 PID Kp"
+  optimistic: True
+  min_value: 0.00
+  max_value: 1.00
+  step: 0.01
+  initial_value: 0.12
+  restore_value: True
+  entity_category: config
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pump_p0_pid_temperature_control
+          kp: !lambda 'return id(pump_p0_pid_kp).state;'
+          ki: !lambda 'return id(pump_p0_pid_ki).state;'
+          kd: !lambda 'return id(pump_p0_pid_kd).state;'
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: pump_p0_pid_ki
+  name: "Pomp P0 PID Ki"
+  optimistic: True
+  min_value: 0.0000
+  max_value: 0.0100
+  step: 0.0001
+  initial_value: 0.0015
+  restore_value: True
+  entity_category: config
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pump_p0_pid_temperature_control
+          kp: !lambda 'return id(pump_p0_pid_kp).state;'
+          ki: !lambda 'return id(pump_p0_pid_ki).state;'
+          kd: !lambda 'return id(pump_p0_pid_kd).state;'
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: pump_p0_pid_kd
+  name: "Pomp P0 PID Kd"
+  optimistic: True
+  min_value: 0.00
+  max_value: 2.00
+  step: 0.01
+  initial_value: 0.00
+  restore_value: True
+  entity_category: config
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pump_p0_pid_temperature_control
+          kp: !lambda 'return id(pump_p0_pid_kp).state;'
+          ki: !lambda 'return id(pump_p0_pid_ki).state;'
+          kd: !lambda 'return id(pump_p0_pid_kd).state;'
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
   id: cooling_setpoint_number
   name: "Koelen setpoint"
   optimistic: True

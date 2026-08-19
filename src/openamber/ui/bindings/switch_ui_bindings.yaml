@@ -142,6 +142,11 @@
           state:
             checked: !lambda 'return x;'
 
+- id: !extend pump_p0_pid_enabled
+  on_state:
+    then:
+      - script.execute: update_pump_pid_ui
+
 # ── Settings: DHW enabled toggle ──
 - id: !extend dhw_enabled_switch
   on_state:
