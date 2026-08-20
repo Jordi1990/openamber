@@ -84,7 +84,7 @@ obj:
           - script.execute:
               id: nav_select_tab
               tab_index: 1
-          - script.execute: update_home_thermostat_mode_ui
+          - script.execute: update_thermostat_settings_ui
         widgets:
           - label:
               id: nav_thermostat_icon

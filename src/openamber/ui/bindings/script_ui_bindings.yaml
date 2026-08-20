@@ -165,7 +165,7 @@
                 - lvgl.widget.update: { id: page_service, hidden: true }
                 - lvgl.widget.update: { id: page_system, hidden: true }
                 - lvgl.widget.update: { id: page_settings, hidden: true }
-                - script.execute: update_home_thermostat_mode_ui
+                - script.execute: update_thermostat_settings_ui
               else:
                 - if:
                     condition:
