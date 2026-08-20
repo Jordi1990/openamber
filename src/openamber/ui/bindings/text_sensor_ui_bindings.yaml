@@ -25,6 +25,11 @@
       - script.execute: update_service_diag_summary_ui
       - script.execute: update_system_diagnostics_ui
 
+- id: !extend state_machine_state_routine
+  on_value:
+    then:
+      - script.execute: update_service_mode_ui
+
 # ── Settings page: Analytics device ID ──
 - id: !extend analytics_device_id
   on_value:

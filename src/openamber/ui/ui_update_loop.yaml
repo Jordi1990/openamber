@@ -1,152 +1,16 @@
 # ══════════════════════════════════════════════════════════════
 # Periodic UI update loop (5s interval)
 # Only contains items that cannot be event-driven:
-# - Firmware update status (complex multi-conditional with globals)
+# - Firmware update status via update_firmware_ui
 # - Service update progress overlay
+# - Service deaeration progress live timer
 #
-# All sensor/switch/select value → LVGL updates are now handled
+# All sensor/switch/select value → LVGL updates are handled
 # via event-driven !extend bindings in ui/bindings/
 # ══════════════════════════════════════════════════════════════
 
   # ── Firmware update status ──
-  - if:
-      condition:
-        update.is_available: firmware_update
-      then:
-        - globals.set:
-            id: service_update_check_failed
-            value: 'false'
-        - lvgl.widget.show: { id: nav_system_badge }
-        - lvgl.label.update:
-            id: service_update_status
-            text: ""
-        - lvgl.widget.hide:
-            id: service_update_error
-        - lvgl.label.update:
-            id: service_update_version
-            text:
-              format: "Beschikbaar: %s (huidig: %s)"
-              args:
-                - 'id(firmware_update).update_info.latest_version.empty() ? "onbekend" : id(firmware_update).update_info.latest_version.c_str()'
-                - 'id(firmware_update).update_info.current_version.empty() ? ESPHOME_PROJECT_VERSION : id(firmware_update).update_info.current_version.c_str()'
-        - if:
-            condition:
-              lambda: |-
-                const auto &info = id(firmware_update).update_info;
-                std::string release_url = !info.release_url.empty()
-                  ? info.release_url
-                  : std::string("https://github.com/Jordi1990/openamber/releases");
-                return id(service_release_qr_url_cache) != release_url;
-            then:
-              - lambda: |-
-                  const auto &info = id(firmware_update).update_info;
-                  id(service_release_qr_url_cache) = !info.release_url.empty()
-                    ? info.release_url
-                    : std::string("https://github.com/Jordi1990/openamber/releases");
-              - lvgl.qrcode.update:
-                  id: service_release_qr
-                  text: !lambda 'return id(service_release_qr_url_cache);'
-        - lvgl.widget.show:
-            id: service_release_qr_hint
-        - lvgl.widget.show:
-            id: service_release_qr
-        - lvgl.widget.show:
-            id: service_update_button
-        - if:
-            condition:
-              lambda: |-
-                return id(service_update_check_in_progress);
-            then:
-              - lvgl.widget.enable:
-                  id: service_check_update_button
-              - lvgl.widget.show:
-                  id: service_check_update_button
-              - lvgl.widget.disable:
-                  id: service_check_update_button
-              - lvgl.widget.update:
-                  id: service_check_update_button
-                  bg_color: 0xC7CDD6
-              - lvgl.label.update:
-                  id: service_check_update_button_label
-                  text: "Ophalen..."
-              - lvgl.widget.update:
-                  id: service_check_update_button_label
-                  text_color: 0x4B5563
-            else:
-              - lvgl.widget.enable:
-                  id: service_check_update_button
-              - lvgl.widget.hide:
-                  id: service_check_update_button
-              - lvgl.widget.update:
-                  id: service_check_update_button
-                  bg_color: 0x0072CE
-              - lvgl.label.update:
-                  id: service_check_update_button_label
-                  text: "Controleer updates"
-              - lvgl.widget.update:
-                  id: service_check_update_button_label
-                  text_color: 0xFFFFFF
-      else:
-        - lvgl.widget.hide: { id: nav_system_badge }
-        - if:
-            condition:
-              lambda: |-
-                return id(service_update_check_failed);
-            then:
-              - lvgl.label.update:
-                  id: service_update_error
-                  text: "Geen verbinding mogelijk met update server"
-              - lvgl.widget.show:
-                  id: service_update_error
-            else:
-              - lvgl.widget.hide:
-                  id: service_update_error
-        - lvgl.label.update:
-            id: service_update_status
-            text: ""
-        - lvgl.label.update:
-            id: service_update_version
-            text:
-              format: "Geen nieuwe software beschikbaar\nHuidige versie: %s"
-              args:
-                - 'id(firmware_update).update_info.current_version.empty() ? ESPHOME_PROJECT_VERSION : id(firmware_update).update_info.current_version.c_str()'
-        - lvgl.widget.hide: { id: service_release_qr_hint }
-        - lvgl.widget.hide: { id: service_release_qr }
-        - lvgl.widget.hide: { id: service_update_button }
-        - if:
-            condition:
-              lambda: |-
-                return id(service_update_check_in_progress);
-            then:
-              - lvgl.widget.enable:
-                  id: service_check_update_button
-              - lvgl.widget.show:
-                  id: service_check_update_button
-              - lvgl.widget.disable:
-                  id: service_check_update_button
-              - lvgl.widget.update:
-                  id: service_check_update_button
-                  bg_color: 0xC7CDD6
-              - lvgl.label.update:
-                  id: service_check_update_button_label
-                  text: "Ophalen..."
-              - lvgl.widget.update:
-                  id: service_check_update_button_label
-                  text_color: 0x4B5563
-            else:
-              - lvgl.widget.show:
-                  id: service_check_update_button
-              - lvgl.widget.enable:
-                  id: service_check_update_button
-              - lvgl.widget.update:
-                  id: service_check_update_button
-                  bg_color: 0x0072CE
-              - lvgl.label.update:
-                  id: service_check_update_button_label
-                  text: "Controleer updates"
-              - lvgl.widget.update:
-                  id: service_check_update_button_label
-                  text_color: 0xFFFFFF
+  - script.execute: update_firmware_ui
 
   # ── Service update progress overlay ──
   - if:
@@ -159,4 +23,11 @@
       else:
         - lvgl.widget.hide:
             id: service_update_progress_overlay
+
+  # ── Service: Deaeration progress live timer update ──
+  - if:
+      condition:
+        lambda: 'return id(amber_ctrl).is_deaeration_running() && !lv_obj_has_flag(id(service_maintenance_panel), LV_OBJ_FLAG_HIDDEN);'
+      then:
+        - script.execute: update_service_deaeration_ui
 

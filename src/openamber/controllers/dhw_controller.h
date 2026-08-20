@@ -328,7 +328,7 @@ public:
         }
 
         id(dhw_active).publish_state(true);
-        pump_controller_->Start(GetPreferredPumpSpeed());
+        pump_controller_->Start();
         SetNextState(DHWState::WAIT_PUMP_RUNNING);
         break;
 
@@ -391,7 +391,7 @@ public:
         break;
 
       case DHWState::COMPRESSOR_RUNNING:
-        pump_controller_->ApplySpeedChangeIfNeeded(GetPreferredPumpSpeed());
+        pump_controller_->ApplySpeedChangeIfNeeded(true);
 
         if(ShouldStartDhwPump())
         {
