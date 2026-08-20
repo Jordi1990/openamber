@@ -52,6 +52,8 @@
         - "\U000F0026"  # mdi-alert (legionella)
         - "\U000F0045"  # mdi-arrow-down (flow)
         - "\U000F005D"  # mdi-arrow-up (flow)
+        - "\U000F0141"  # mdi-chevron-left (pagination)
+        - "\U000F0142"  # mdi-chevron-right (pagination)
 
 - file: "openamber/ui/fonts/Inter_28pt-SemiBold.ttf"
   #weight: 500
