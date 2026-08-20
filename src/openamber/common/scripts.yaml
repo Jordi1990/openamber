@@ -23,6 +23,15 @@
 
 - id: apply_pid_settings
   then:
+    - lambda: |-
+        auto call = id(pump_p0_pid_temperature_control).make_call();
+        call.set_target_temperature(id(pump_p0_pid_target_delta_t).state);
+        call.perform();
+    - climate.pid.set_control_parameters:
+        id: pump_p0_pid_temperature_control
+        kp: !lambda 'return id(pump_p0_pid_kp).state;'
+        ki: !lambda 'return id(pump_p0_pid_ki).state;'
+        kd: !lambda 'return id(pump_p0_pid_kd).state;'
     - climate.pid.set_control_parameters:
         id: pid_heat_temperature_control
         kp: !lambda 'return id(pid_heat_kp).state;'
@@ -265,6 +274,13 @@
           root["xs"] = id(emergency_mode_enabled).state;
           root["xt"] = id(service_mode_enabled).state;
           root["xu"] = id(flow_sensor_enabled).state;
+          root["xv"] = id(pump_p0_pid_enabled).state;
+          root["xw"] = id(pump_p0_pid_target_delta_t).state;
+          root["xx"] = id(pump_p0_pid_min_pwm).state;
+          root["xy"] = id(pump_p0_pid_max_pwm).state;
+          root["xz"] = id(pump_p0_pid_kp).state;
+          root["za"] = id(pump_p0_pid_ki).state;
+          root["zb"] = id(pump_p0_pid_kd).state;
 
 - id: send_telemetry_1
   then:
@@ -458,13 +474,13 @@
                     auto queue_chunk = [request_seq, request_ts, complete_chunk](uint16_t start_address, uint16_t register_count, uint8_t chunk_index) {
                       auto command = esphome::modbus_controller::ModbusCommandItem::create_read_command(
                         id(modbus_outside_unit),
-                        esphome::modbus_controller::ModbusRegisterType::HOLDING,
+                        esphome::modbus::EntityType::HOLDING,
                         start_address,
                         register_count,
                             [request_seq, request_ts, start_address, register_count, chunk_index, complete_chunk](
-                            esphome::modbus_controller::ModbusRegisterType register_type,
+                            esphome::modbus::EntityType register_type,
                             uint16_t response_start_address,
-                            const std::vector<uint8_t> &data) {
+                            std::span<const uint8_t> data) {
                           (void) register_type;
                           (void) response_start_address;
                           if (request_seq != request_sequence) {

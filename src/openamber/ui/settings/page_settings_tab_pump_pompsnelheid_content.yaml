@@ -1,4 +1,5 @@
 ﻿- obj:
+    id: set_pump_heat_row
     width: 100%
     height: SIZE_CONTENT
     bg_opa: 0%
@@ -138,4 +139,3 @@
                 widgets:
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       
-

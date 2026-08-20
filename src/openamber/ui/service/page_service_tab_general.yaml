@@ -1,0 +1,138 @@
+obj:
+  id: service_mpanel_general
+  width: 100%
+  height: 100%
+  hidden: false
+  bg_opa: 0%
+  border_opa: 0%
+  pad_all: 0
+  widgets:
+    - label:
+        id: service_deaeration_title
+        text: "Ontluchten"
+        text_color: 0x1F2933
+        text_font: font_text_24
+        align: TOP_LEFT
+
+    - label:
+        id: service_deaeration_desc
+        width: 100%
+        text: "Automatische ontluchtingsroutine."
+        text_color: 0x6B7280
+        text_font: font_text_20
+        long_mode: WRAP
+        align: TOP_LEFT
+        y: 24
+
+    - obj:
+        id: service_deaeration_status_box
+        width: 100%
+        height: 76
+        align: TOP_LEFT
+        y: 70
+        bg_color: 0xE8ECF1
+        bg_opa: 100%
+        radius: 12
+        border_opa: 0%
+        pad_left: 12
+        pad_right: 12
+        pad_top: 8
+        pad_bottom: 8
+        scrollbar_mode: "OFF"
+        scrollable: false
+        widgets:
+          - label:
+              id: service_deaeration_status_val
+              text: "Inactief"
+              text_color: 0x6B7280
+              text_font: font_text_20
+              align: TOP_LEFT
+          - label:
+              id: service_deaeration_time_val
+              text: "Resterend: -"
+              text_color: 0x6B7280
+              text_font: font_text_20
+              align: TOP_RIGHT
+          - bar:
+              id: service_deaeration_progress_bar
+              width: 100%
+              height: 10
+              align: BOTTOM_MID
+              min_value: 0
+              max_value: 100
+              value: 0
+              bg_color: 0xD1D5DB
+              radius: 5
+              indicator:
+                bg_color: 0x1F3B68
+                radius: 5
+
+    - obj:
+        id: service_deaeration_short_btn
+        width: 48%
+        height: 50
+        align: TOP_LEFT
+        y: 156
+        bg_color: 0xE8ECF1
+        bg_opa: 100%
+        radius: 10
+        border_opa: 0%
+        scrollbar_mode: "OFF"
+        scrollable: false
+        on_click:
+          - if:
+              condition:
+                lambda: 'return id(amber_ctrl).is_maintenance_state();'
+              then:
+                - if:
+                    condition:
+                      lambda: 'return id(amber_ctrl).is_deaeration_running();'
+                    then:
+                      - lambda: 'id(amber_ctrl).stop_deaeration_routine();'
+                    else:
+                      - lambda: 'id(amber_ctrl).start_deaeration_routine(false);'
+                - script.execute: update_service_mode_ui
+              else:
+                - script.execute: update_service_mode_ui
+        widgets:
+          - label:
+              id: service_deaeration_short_btn_lbl
+              text: "Kort (~10 min)"
+              text_color: 0x4B5563
+              text_font: font_text_20
+              align: CENTER
+
+    - obj:
+        id: service_deaeration_extended_btn
+        width: 48%
+        height: 50
+        align: TOP_RIGHT
+        y: 156
+        bg_color: 0xE8ECF1
+        bg_opa: 100%
+        radius: 10
+        border_opa: 0%
+        scrollbar_mode: "OFF"
+        scrollable: false
+        on_click:
+          - if:
+              condition:
+                lambda: 'return id(amber_ctrl).is_maintenance_state();'
+              then:
+                - if:
+                    condition:
+                      lambda: 'return id(amber_ctrl).is_deaeration_running();'
+                    then:
+                      - lambda: 'id(amber_ctrl).stop_deaeration_routine();'
+                    else:
+                      - lambda: 'id(amber_ctrl).start_deaeration_routine(true);'
+                - script.execute: update_service_mode_ui
+              else:
+                - script.execute: update_service_mode_ui
+        widgets:
+          - label:
+              id: service_deaeration_extended_btn_lbl
+              text: "Uitgebreid (~31 min)"
+              text_color: 0x4B5563
+              text_font: font_text_20
+              align: CENTER

@@ -6,8 +6,22 @@ packages:
  - !include openamber/ui/display_globals.yaml
  - !include openamber/ui/bindings/ui_bindings_package.yaml
  
+network:
+  priority:
+    - ethernet
+    - wifi
+
 wifi:
   use_psram: true
+
+ethernet:
+  type: W5500
+  clk_pin: 5
+  mosi_pin: 3
+  miso_pin: 2
+  cs_pin: 4
+  interrupt_pin: 29
+  reset_pin: 28
 
 esp32_ble_tracker:
 
@@ -31,6 +45,10 @@ esp32:
 esphome:
   project:
     version: dev
+  on_boot:
+    - priority: -100
+      then:
+        - script.execute: update_firmware_ui
 
 esp32_hosted:
   variant: ESP32C6
@@ -127,9 +145,6 @@ api:
         id: nav_status_ha_icon
         text_color: 0xEF4444
 
-interval:
- - interval: 5s
-   then: !include openamber/ui/ui_update_loop.yaml
 
 image:
   - platform: file
@@ -166,7 +181,7 @@ sensor:
 # TODO: No default wiring determined yet for this sensor.
   - platform: pulse_counter
     pin:
-      number: GPIO2
+      number: GPIO6
     name: Pulse meter
     id: water_flow_rate
     device_class: volume_flow_rate
