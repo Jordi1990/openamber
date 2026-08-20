@@ -251,7 +251,8 @@ obj:
         id: panel_general_page_sensor_kalibratie
         hidden: true
         width: 100%
-        height: SIZE_CONTENT
+        height: 0
+        flex_grow: 1
         bg_opa: 0%
         border_opa: 0%
         pad_all: 0
@@ -265,6 +266,7 @@ obj:
           pad_row: 6
         widgets:
           - obj:
+              id: sensor_calibration_page_1_row_tr
               width: 100%
               height: SIZE_CONTENT
               bg_opa: 0%
@@ -311,6 +313,7 @@ obj:
                             - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
           - obj:
+              id: sensor_calibration_page_1_row_tw
               width: 100%
               height: SIZE_CONTENT
               bg_opa: 0%
@@ -357,6 +360,7 @@ obj:
                             - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
           - obj:
+              id: sensor_calibration_page_1_row_tc
               width: 100%
               height: SIZE_CONTENT
               bg_opa: 0%
@@ -403,6 +407,7 @@ obj:
                             - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
           - obj:
+              id: sensor_calibration_page_1_row_tui
               width: 100%
               height: SIZE_CONTENT
               bg_opa: 0%
@@ -449,6 +454,7 @@ obj:
                             - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
           - obj:
+              id: sensor_calibration_page_2_row_tuo
               width: 100%
               height: SIZE_CONTENT
               bg_opa: 0%
