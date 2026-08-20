@@ -109,6 +109,7 @@
   parameters:
     tab_index: int
   then:
+    - lvgl.widget.hide: { id: sensor_calibration_pager }
     - if:
         condition:
           lambda: 'return tab_index == 0;'
@@ -360,6 +361,7 @@
           - lvgl.widget.hide: { id: panel_general_page_sensor_kalibratie }
           - lvgl.widget.hide: { id: panel_general_page_hardware }
           - lvgl.widget.hide: { id: panel_general_page_analytics }
+          - lvgl.widget.hide: { id: sensor_calibration_pager }
           - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0x1F3B68 }
           - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0xFFFFFF }
           - lvgl.widget.update: { id: general_stab_analytics, bg_color: 0xCBD5E1 }
@@ -381,6 +383,7 @@
                 - lvgl.widget.hide: { id: panel_general_page_sensor_kalibratie }
                 - lvgl.widget.hide: { id: panel_general_page_hardware }
                 - lvgl.widget.hide: { id: panel_general_page_analytics }
+                - lvgl.widget.hide: { id: sensor_calibration_pager }
                 - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0xCBD5E1 }
                 - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0x4B5563 }
                 - lvgl.widget.update: { id: general_stab_analytics, bg_color: 0xCBD5E1 }
@@ -399,6 +402,7 @@
                       - lvgl.widget.hide: { id: panel_general_page_systeem }
                       - lvgl.widget.hide: { id: panel_general_page_noodbedrijf }
                       - lvgl.widget.show: { id: panel_general_page_sensor_kalibratie }
+                      - lvgl.widget.show: { id: sensor_calibration_pager }
                       - lvgl.widget.hide: { id: panel_general_page_hardware }
                       - lvgl.widget.hide: { id: panel_general_page_analytics }
                       - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0xCBD5E1 }
@@ -411,6 +415,9 @@
                       - lvgl.label.update: { id: general_stab_sensor_kalibratie_lbl, text_color: 0xFFFFFF }
                       - lvgl.widget.update: { id: general_stab_hardware, bg_color: 0xCBD5E1 }
                       - lvgl.label.update: { id: general_stab_hardware_lbl, text_color: 0x4B5563 }
+                      - script.execute:
+                          id: sensor_calibration_select_page
+                          page: 1
                     else:
                       - if:
                           condition:
@@ -421,6 +428,7 @@
                             - lvgl.widget.hide: { id: panel_general_page_sensor_kalibratie }
                             - lvgl.widget.show: { id: panel_general_page_hardware }
                             - lvgl.widget.hide: { id: panel_general_page_analytics }
+                            - lvgl.widget.hide: { id: sensor_calibration_pager }
                             - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0xCBD5E1 }
                             - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0x4B5563 }
                             - lvgl.widget.update: { id: general_stab_analytics, bg_color: 0xCBD5E1 }
@@ -438,6 +446,7 @@
                             - lvgl.widget.hide: { id: panel_general_page_sensor_kalibratie }
                             - lvgl.widget.hide: { id: panel_general_page_hardware }
                             - lvgl.widget.show: { id: panel_general_page_analytics }
+                            - lvgl.widget.hide: { id: sensor_calibration_pager }
                             - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0xCBD5E1 }
                             - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0x4B5563 }
                             - lvgl.widget.update: { id: general_stab_analytics, bg_color: 0x1F3B68 }
@@ -449,6 +458,33 @@
                             - lvgl.widget.update: { id: general_stab_hardware, bg_color: 0xCBD5E1 }
                             - lvgl.label.update: { id: general_stab_hardware_lbl, text_color: 0x4B5563 }
     - script.execute: update_emergency_mode_ui
+
+- id: sensor_calibration_select_page
+  mode: restart
+  parameters:
+    page: int
+  then:
+    - if:
+        condition:
+          lambda: 'return page == 1;'
+        then:
+          - lvgl.widget.show: { id: sensor_calibration_page_1_row_tr }
+          - lvgl.widget.show: { id: sensor_calibration_page_1_row_tw }
+          - lvgl.widget.show: { id: sensor_calibration_page_1_row_tc }
+          - lvgl.widget.hide: { id: sensor_calibration_page_1_row_tui }
+          - lvgl.widget.hide: { id: sensor_calibration_page_2_row_tuo }
+          - lvgl.widget.update: { id: sensor_calibration_page_1_button, bg_color: 0x1F3B68 }
+          - lvgl.widget.update: { id: sensor_calibration_page_2_button, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: sensor_calibration_page_indicator, text: "Pagina 1 / 2" }
+        else:
+          - lvgl.widget.hide: { id: sensor_calibration_page_1_row_tr }
+          - lvgl.widget.hide: { id: sensor_calibration_page_1_row_tw }
+          - lvgl.widget.hide: { id: sensor_calibration_page_1_row_tc }
+          - lvgl.widget.show: { id: sensor_calibration_page_1_row_tui }
+          - lvgl.widget.show: { id: sensor_calibration_page_2_row_tuo }
+          - lvgl.widget.update: { id: sensor_calibration_page_1_button, bg_color: 0xCBD5E1 }
+          - lvgl.widget.update: { id: sensor_calibration_page_2_button, bg_color: 0x1F3B68 }
+          - lvgl.label.update: { id: sensor_calibration_page_indicator, text: "Pagina 2 / 2" }
 
 - id: update_flow_sensor_calibration_ui
   mode: restart

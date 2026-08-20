@@ -32,6 +32,24 @@
             format: "%.1f°C"
             args: ['x']
 
+- id: !extend tui_offset
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_tui_offset_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+- id: !extend tuo_offset
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_tuo_offset_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
 - id: !extend flow_sensor_calibration
   on_value:
     then:

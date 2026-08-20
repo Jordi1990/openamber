@@ -1,4 +1,4 @@
-﻿# Panel: Algemeen
+# Panel: Algemeen
 # ------------------------------------------------------------
 obj:
   id: panel_general
@@ -251,7 +251,8 @@ obj:
         id: panel_general_page_sensor_kalibratie
         hidden: true
         width: 100%
-        height: SIZE_CONTENT
+        height: 0
+        flex_grow: 1
         bg_opa: 0%
         border_opa: 0%
         pad_all: 0
@@ -265,6 +266,7 @@ obj:
           pad_row: 6
         widgets:
           - obj:
+              id: sensor_calibration_page_1_row_tr
               width: 100%
               height: SIZE_CONTENT
               bg_opa: 0%
@@ -311,6 +313,7 @@ obj:
                             - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
           - obj:
+              id: sensor_calibration_page_1_row_tw
               width: 100%
               height: SIZE_CONTENT
               bg_opa: 0%
@@ -357,6 +360,7 @@ obj:
                             - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
           - obj:
+              id: sensor_calibration_page_1_row_tc
               width: 100%
               height: SIZE_CONTENT
               bg_opa: 0%
@@ -399,6 +403,100 @@ obj:
                           scrollable: false
                           on_click:
                             - number.increment: tc_offset
+                          widgets:
+                            - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+          - obj:
+              id: sensor_calibration_page_1_row_tui
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "CV-retourtemperatuur (Tui) offset", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Correctie voor CV-retourtemperatuurmeting (Tui)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - obj:
+                    width: SIZE_CONTENT
+                    height: SIZE_CONTENT
+                    align: TOP_RIGHT
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_all: 0
+                    layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                    widgets:
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.decrement: tui_offset
+                          widgets:
+                            - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                      - label: { id: set_tui_offset_val, text: "0.0°C", text_color: 0x1F2933, text_font: font_text_24 }
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.increment: tui_offset
+                          widgets:
+                            - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+          - obj:
+              id: sensor_calibration_page_2_row_tuo
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "CV-aanvoertemperatuur (Tuo) offset", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Correctie voor CV-aanvoertemperatuurmeting (Tuo)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - obj:
+                    width: SIZE_CONTENT
+                    height: SIZE_CONTENT
+                    align: TOP_RIGHT
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_all: 0
+                    layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                    widgets:
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.decrement: tuo_offset
+                          widgets:
+                            - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                      - label: { id: set_tuo_offset_val, text: "0.0°C", text_color: 0x1F2933, text_font: font_text_24 }
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.increment: tuo_offset
                           widgets:
                             - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
