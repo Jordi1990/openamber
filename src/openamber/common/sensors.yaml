@@ -616,6 +616,7 @@
   filters:
     - offset: -3000
     - multiply: 0.01
+    - lambda: return x + id(tuo_offset).state;
   on_value: 
     then:
       - component.update: heat_exchanger_delta_t
@@ -636,6 +637,7 @@
   filters:
     - offset: -3000
     - multiply: 0.01
+    - lambda: return x + id(tui_offset).state;
   on_raw_value: 
     then:
       - number.set: 
