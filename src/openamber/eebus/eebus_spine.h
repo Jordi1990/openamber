@@ -82,7 +82,6 @@ class TinyJson {
   std::string &out_;
   bool need_comma_{false};
   bool in_value_{false};
-  void comma_or_space();
 };
 
 // Inbound command extracted from "datagram.payload.cmd[]".

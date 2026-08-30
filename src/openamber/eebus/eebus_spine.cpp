@@ -30,58 +30,51 @@ const char *cmd_classifier_str(CmdClassifier c) {
 }
 
 void SpineAddress::append_json(std::string &out) const {
-  char buf[64];
+  out += "{";
   if (!this->device_str.empty()) {
-    out += "{\"device\":\"";
+    out += "\"device\":\"";
     out += this->device_str;
-    out += "\",\"entity\":[";
-    // SPINE uses an entity path array
-    char ent[16];
-    snprintf(ent, sizeof(ent), "%u", static_cast<unsigned>(this->entity));
-    out += ent;
-    out += "],\"feature\":";
-    char feat[16];
-    snprintf(feat, sizeof(feat), "%u", static_cast<unsigned>(this->feature));
-    out += feat;
-    out += "}";
-    return;
+    out += "\",";
   }
-  snprintf(buf, sizeof(buf), "{\"device\":%u,\"entity\":[%u],\"feature\":%u}",
-           static_cast<unsigned>(this->device), static_cast<unsigned>(this->entity),
-           static_cast<unsigned>(this->feature));
-  out += buf;
+  out += "\"entity\":[";
+  char ent[16];
+  snprintf(ent, sizeof(ent), "%u", static_cast<unsigned>(this->entity));
+  out += ent;
+  out += "],\"feature\":";
+  char feat[16];
+  snprintf(feat, sizeof(feat), "%u", static_cast<unsigned>(this->feature));
+  out += feat;
+  out += "}";
 }
 
 // ---- TinyJson ----
 
-void TinyJson::comma_or_space() {
-  if (this->in_value_) {
-    this->out_ += ',';
-    this->in_value_ = false;
-  }
-  this->need_comma_ = false;
-}
-
 void TinyJson::begin_object() {
-  this->comma_or_space();
+  if (this->in_value_)
+    this->out_ += ',';
   this->out_ += '{';
-  this->in_value_ = true;
+  this->in_value_ = false;
   this->need_comma_ = false;
 }
 
 void TinyJson::end_object() {
   this->out_ += '}';
+  this->in_value_ = true;
+  this->need_comma_ = true;
 }
 
 void TinyJson::begin_array() {
-  this->comma_or_space();
+  if (this->in_value_)
+    this->out_ += ',';
   this->out_ += '[';
-  this->in_value_ = true;
+  this->in_value_ = false;
   this->need_comma_ = false;
 }
 
 void TinyJson::end_array() {
   this->out_ += ']';
+  this->in_value_ = true;
+  this->need_comma_ = true;
 }
 
 void TinyJson::key(const char *k) {
@@ -91,6 +84,7 @@ void TinyJson::key(const char *k) {
   this->out_ += k;
   this->out_ += "\":";
   this->need_comma_ = true;
+  this->in_value_ = false;
 }
 
 void TinyJson::value(const char *s) {
@@ -98,6 +92,7 @@ void TinyJson::value(const char *s) {
   this->out_ += s;
   this->out_ += '"';
   this->need_comma_ = true;
+  this->in_value_ = true;
 }
 
 void TinyJson::value(uint64_t n) {
@@ -105,6 +100,7 @@ void TinyJson::value(uint64_t n) {
   snprintf(buf, sizeof(buf), "%llu", static_cast<unsigned long long>(n));
   this->out_ += buf;
   this->need_comma_ = true;
+  this->in_value_ = true;
 }
 
 void TinyJson::value(bool b, bool quoted) {
@@ -114,11 +110,13 @@ void TinyJson::value(bool b, bool quoted) {
     this->out_ += b ? "true" : "false";
   }
   this->need_comma_ = true;
+  this->in_value_ = true;
 }
 
 void TinyJson::raw(const char *s) {
   this->out_ += s;
   this->need_comma_ = true;
+  this->in_value_ = true;
 }
 
 // ---- SpineDatagram ----
@@ -149,8 +147,9 @@ std::string SpineDatagram::to_json() const {
   j.key("payload");
   j.begin_object();
   j.key("cmd");
-  // SPINE nests each command as an array element: "cmd":[[ {...}, {...} ]]
-  j.begin_array();
+  // Standard SPINE: "cmd":[{cmd1},{cmd2}]  (single array)
+  // eebus_json_into will transform each {cmd} object into [{cmd}],
+  // producing the EEBUS wire format: "cmd":[[{cmd1}],[{cmd2}]]
   j.begin_array();
   for (const auto &cmd : this->cmds_) {
     j.begin_object();
@@ -158,7 +157,6 @@ std::string SpineDatagram::to_json() const {
     j.raw(cmd.json.c_str());
     j.end_object();
   }
-  j.end_array();  // inner array of commands
   j.end_array();  // cmd
   j.end_object();  // payload
   j.end_object();  // datagram

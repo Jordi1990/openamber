@@ -60,7 +60,6 @@ bool eebus_websocket_server_response(const std::string &req, std::string &respon
 
 void eebus_websocket_encode_server_frame(uint8_t opcode, const std::vector<uint8_t> &payload,
                                          std::vector<uint8_t> &frame_out) {
-  frame_out.clear();
   frame_out.push_back(0x80 | opcode);  // FIN + opcode
   size_t len = payload.size();
   if (len < 126) {

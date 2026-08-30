@@ -298,7 +298,7 @@ void EEBusShipListener::handle_connection(int fd) {
 
   // Frame loop: read, decode WS frames, echo frame data to the handler.
   EebusWsDecoder decoder;
-  std::vector<uint8_t> rbuf(512);
+  std::vector<uint8_t> rbuf(4096);
   while (true) {
     ret = mbedtls_ssl_read(&ssl, rbuf.data(), rbuf.size());
     if (ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE) {

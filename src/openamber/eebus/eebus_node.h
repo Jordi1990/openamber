@@ -16,6 +16,7 @@
 #include "eebus_spine.h"
 #include "eebus_ohpcf.h"
 #include "eebus_lpc.h"
+#include "eebus_measurements.h"
 #include <functional>
 #include <string>
 
@@ -28,19 +29,31 @@ class EebusNode {
 
   void set_ohpcf(OhpcfServer *ohpcf) { this->ohpcf_ = ohpcf; }
   void set_lpc(LpcServer *lpc) { this->lpc_ = lpc; }
+  void set_mpc(MpcServer *mpc) { this->mpc_ = mpc; }
+  void set_mdt(MdtServer *mdt) { this->mdt_ = mdt; }
   void set_device_id(const std::string &id) { this->device_id_ = id; }
 
   // Local addressing.
   const std::string &device_id() const { return this->device_id_; }
   const SpineAddress &compressor_entity() const { return this->compressor_; }
   const SpineAddress &cem_entity() const { return this->cem_; }
+  const std::string &remote_device() const { return this->remote_device_; }
 
   // Outbound datagrams (ready to send over SHIP).
   std::string build_device_classification_notification();
+  std::string build_device_classification_reply(uint32_t reply_to, const std::string &remote_device);
   std::string build_measurement_notification(float power_w, float dhw_temp_c);
+  std::string build_measurement_reply(uint32_t reply_to, const std::string &remote_device);
+  std::string build_measurement_description_reply(uint32_t reply_to, const std::string &remote_device);
+  std::string build_electrical_connection_reply(uint32_t reply_to, const std::string &remote_device);
+  std::string build_smart_energy_management_reply(uint32_t reply_to, const std::string &remote_device);
+  std::string build_load_control_reply(uint32_t reply_to, const std::string &remote_device);
   std::string build_ohpcf_state_notification();
+  std::string build_ohpcf_state_reply(uint32_t reply_to, const std::string &remote_device);
   std::string build_lpc_confirmation(uint32_t reply_to);
+  std::string build_result(uint32_t reply_to, const SpineAddress &dst, const SpineAddress &src);
   std::string build_node_discovery_reply(uint32_t reply_to, const std::string &remote_device);
+  std::string build_use_case_data_reply(uint32_t reply_to, const std::string &remote_device);
   std::string build_use_case_data_notify(uint32_t reply_to, const std::string &remote_device);
 
   // Handles an inbound datagram: routes OHPCF/LPC commands, returns an outbound
@@ -57,6 +70,9 @@ class EebusNode {
 
   OhpcfServer *ohpcf_{nullptr};
   LpcServer *lpc_{nullptr};
+  MpcServer *mpc_{nullptr};
+  MdtServer *mdt_{nullptr};
+  std::string remote_device_;  // peer (CEM) device address, learned from inbound discovery
 };
 
 }  // namespace openamber_eebus

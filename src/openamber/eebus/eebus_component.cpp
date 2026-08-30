@@ -71,6 +71,8 @@ void EEBusComponent::wire_use_cases() {
 
   this->node_.set_ohpcf(&this->ohpcf_);
   this->node_.set_lpc(&this->lpc_);
+  this->node_.set_mpc(&this->mpc_);
+  this->node_.set_mdt(&this->mdt_);
   this->node_.set_device_id(this->ship_id_);
 
   this->ship_listener_.set_frame_handler([this](const std::vector<uint8_t> &frame)
@@ -117,12 +119,6 @@ void EEBusComponent::wire_use_cases() {
         std::vector<uint8_t> payload = ship_data_frame(reply);
         ESP_LOGI(TAG, "SPINE reply framed (%u bytes)", static_cast<unsigned>(payload.size()));
         send_data(payload);
-        // Also announce our use cases as a separate NOTIFY; evcc's use-case
-        // layer activates OHPCF/MPC/MDT/LPC on a nodeManagementUseCaseData event.
-        std::string ucn = this->node_.build_use_case_data_notify(0, "");
-        std::vector<uint8_t> ucp = ship_data_frame(ucn);
-        ESP_LOGI(TAG, "Use-case notify framed (%u bytes)", static_cast<unsigned>(ucp.size()));
-        send_data(ucp);
       } else {
         ESP_LOGW(TAG, "SPINE DATA frame not handled (no reply)");
       }
