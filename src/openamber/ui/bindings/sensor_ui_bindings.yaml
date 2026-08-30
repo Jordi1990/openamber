@@ -259,3 +259,9 @@
             - lvgl.widget.show: { id: wifi_connected_section }
             - lvgl.widget.hide: { id: wifi_disconnected_section }
 
+# ── Header: Heat pump model badge ──
+- id: !extend model_identification_1
+  on_value:
+    then:
+      - script.execute: update_header_model_badge
+

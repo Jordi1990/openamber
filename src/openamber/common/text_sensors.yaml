@@ -19,6 +19,25 @@
   icon: "mdi:chip"
 
 - platform: template
+  id: heatpump_model_name
+  name: "Warmtepomp model"
+  entity_category: diagnostic
+  update_interval: 60s
+  lambda: |-
+    if (!id(model_identification_1).has_state()) {
+      return {};
+    }
+    int model = (int)id(model_identification_1).state;
+    switch (model) {
+      case 140: return std::string("Amber 65");
+      case 150: return std::string("Amber 95");
+      case 15:  return std::string("Amber 120");
+      case 145: return std::string("HP-S 95");
+      default:  return std::string("Onbekend model");
+    }
+  icon: "mdi:heat-pump-outline"
+
+- platform: template
   id: state_machine_state_dhw
   entity_category: diagnostic
   name: "Control loop state DHW"
