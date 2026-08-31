@@ -439,7 +439,7 @@ public:
   void UpdateStateMachine()
   {
     uint32_t now = App.get_loop_component_start_time();
-    if(!PerformSafetyChecks())
+    if(PerformSafetyChecks())
     {
       StopAndSetIdleState();
       return;

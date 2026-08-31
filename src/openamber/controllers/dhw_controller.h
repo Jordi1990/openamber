@@ -314,6 +314,10 @@ private:
           return true;
         }
       }
+      else
+      {
+        valve_safety_condition_since_ms_ = 0;
+      }
     }
     else 
     {
