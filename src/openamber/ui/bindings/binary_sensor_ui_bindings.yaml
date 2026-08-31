@@ -347,3 +347,8 @@
   on_state:
     then:
       - script.execute: update_service_errors_ui
+
+- id: !extend error_three_way_valve_state_timeout
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
