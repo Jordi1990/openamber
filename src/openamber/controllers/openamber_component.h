@@ -450,8 +450,9 @@ void OpenAmberComponent::CheckModbusConnectionTimeout()
     {
       ESP_LOGE("amber", "Modbus connection timeout reached after %lu seconds.", (unsigned long) MODBUS_CONNECTION_TIMEOUT_S);
       id(error_modbus_connection_timeout).publish_state(true);
-      modbus_disconnected_error_occurred_ = true;
     }
+
+    modbus_disconnected_error_occurred_ = true;
   }
 }
 }  // namespace openamber
