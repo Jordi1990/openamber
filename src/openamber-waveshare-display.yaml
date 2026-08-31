@@ -38,6 +38,11 @@ esphome:
   on_boot:
     - priority: -100
       then:
+        - lvgl.label.update:
+            id: header_title
+            text:
+              format: "OpenAmber %s"
+              args: ['ESPHOME_PROJECT_VERSION']
         - script.execute: update_firmware_ui
 
 # Workaround: native ESP-IDF esphome.build_flags filters out -m... Xtensa compiler options.
@@ -210,6 +215,5 @@ lvgl:
     - !include openamber/ui/page_system.yaml
     - !include openamber/ui/page_settings.yaml
     - !include openamber/ui/nav_bar.yaml
-    - !include openamber/ui/boot_screen.yaml
     - !include openamber/ui/idle_screen_overlay.yaml
 

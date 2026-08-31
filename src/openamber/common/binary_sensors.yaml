@@ -877,6 +877,14 @@
     sorting_group_id: error_codes
 
 - platform: template
+  id: error_modbus_connection_timeout
+  name: "Modbus verbinding timeout"
+  device_class: problem
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: error_codes
+
+- platform: template
   id: error_three_way_valve_state_timeout
   name: "3-weg klep status fout"
   device_class: problem
@@ -920,6 +928,7 @@
            id(error_pump_start_timeout).state ||
            id(error_compressor_start_timeout).state ||
            id(error_pump_stop_timeout).state ||
+           id(error_modbus_connection_timeout).state ||
            id(error_three_way_valve_state_timeout).state;
 
 - platform: template

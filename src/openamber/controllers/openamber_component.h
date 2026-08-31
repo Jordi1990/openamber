@@ -50,7 +50,7 @@ void OpenAmberComponent::setup()
   ESP_LOGI("amber", "OpenAmberController initialized");
   dhw_controller_->Init();
   heat_cool_controller_->Init();
-  SetNextState(State::INITIALIZING);
+  SetNextState(State::WAIT_MODBUS_CONNECTION);
 }
 
 void OpenAmberComponent::loop()
@@ -60,19 +60,36 @@ void OpenAmberComponent::loop()
 
 void OpenAmberComponent::update()
 {
-  if(!id(modbus_inside_online).state || !id(modbus_outside_online).state || !id(outside_unit_eeprom_version).has_state())
-  {
-    return;
-  }
-
+  bool modbus_connected = id(modbus_inside_online).state && id(modbus_outside_online).state && id(outside_unit_eeprom_version).has_state();
   ThreeWayValvePosition current_valve_position = GetThreeWayValvePosition();
   ThreeWayValvePosition desired_valve_position = GetDesiredThreeWayValvePosition();
+  State desired_state = modbus_disconnected_error_occurred_ ? State::WAIT_MODBUS_CONNECTION : (desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL);
   bool maintenance_requested = id(service_mode_enabled).state;
+
+  if(!modbus_connected)
+  {
+    CheckModbusConnectionTimeout();
+  }
+  else 
+  {
+    modbus_disconnected_since_ms_ = 0;
+  }
 
   switch (state_)
   {
     case State::UNKNOWN:
     {
+      break;
+    }
+
+    case State::WAIT_MODBUS_CONNECTION:
+    {
+      if(modbus_connected)
+      {
+        modbus_disconnected_error_occurred_ = false;
+        ESP_LOGI("amber", "Modbus connection established, transitioning to initialization.");
+        SetNextState(State::INITIALIZING);
+      }
       break;
     }
 
@@ -108,7 +125,7 @@ void OpenAmberComponent::update()
     case State::WAIT_INITIALIZATION:
     {
       SetThreeWayValve(desired_valve_position);
-      LeaveStateAndSetNextStateAfterWaitTime(desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);
+      LeaveStateAndSetNextStateAfterWaitTime(desired_state, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);
       break;
     }
 
@@ -135,7 +152,7 @@ void OpenAmberComponent::update()
         else if(desired_valve_position != current_valve_position)
         {
           SetThreeWayValve(desired_valve_position);
-          LeaveStateAndSetNextStateAfterWaitTime(desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);          
+          LeaveStateAndSetNextStateAfterWaitTime(desired_state, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);          
           break;
         }
       }
@@ -166,7 +183,7 @@ void OpenAmberComponent::update()
         else if(desired_valve_position != current_valve_position)
         {
           SetThreeWayValve(desired_valve_position);
-          LeaveStateAndSetNextStateAfterWaitTime(desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);          
+          LeaveStateAndSetNextStateAfterWaitTime(desired_state, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);          
           break;
         }
       }
@@ -183,7 +200,7 @@ void OpenAmberComponent::update()
         {
           deaeration_routine_->Stop();
         }
-        SetNextState(State::INITIALIZING);
+        SetNextState(State::WAIT_MODBUS_CONNECTION);
         break;
       }
 
@@ -324,6 +341,8 @@ const char* OpenAmberComponent::StateToString(State state)
 {
   switch (state)
   {
+    case State::WAIT_MODBUS_CONNECTION:
+      return "Waiting for Modbus connection";
     case State::INITIALIZING:
       return "Initializing";
     case State::WAIT_INITIALIZATION:
@@ -413,6 +432,28 @@ void OpenAmberComponent::WriteCoolingFrequencyTable()
     id(cooling_frequency_index_8).make_call().set_value(69).perform();
     id(cooling_frequency_index_9).make_call().set_value(74).perform();
     id(cooling_frequency_index_10).make_call().set_value(82).perform();
+}
+
+void OpenAmberComponent::CheckModbusConnectionTimeout()
+{
+  // Check for timeout
+  if(modbus_disconnected_since_ms_ == 0)
+  {
+    modbus_disconnected_since_ms_ = App.get_loop_component_start_time();
+  }
+
+  const uint32_t timeout_ms = MODBUS_CONNECTION_TIMEOUT_S * 1000UL;
+  const uint32_t now = App.get_loop_component_start_time();
+  if((now - modbus_disconnected_since_ms_) >= timeout_ms)
+  {
+    if(!id(error_modbus_connection_timeout).state)
+    {
+      ESP_LOGE("amber", "Modbus connection timeout reached after %lu seconds.", (unsigned long) MODBUS_CONNECTION_TIMEOUT_S);
+      id(error_modbus_connection_timeout).publish_state(true);
+    }
+
+    modbus_disconnected_error_occurred_ = true;
+  }
 }
 }  // namespace openamber
 }  // namespace esphome

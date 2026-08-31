@@ -34,6 +34,7 @@ enum ThreeWayValvePosition
 };
 enum State {
   UNKNOWN,
+  WAIT_MODBUS_CONNECTION,
   WAIT_INITIALIZATION,
   INITIALIZING,
   DHW_HEAT,
@@ -56,7 +57,9 @@ private:
   DeaerationRoutine *deaeration_routine_;
   State deferred_machine_state_;
   uint32_t defer_state_change_until_ms_;
-  State state_ = State::INITIALIZING;
+  uint32_t modbus_disconnected_since_ms_ = 0;
+  bool modbus_disconnected_error_occurred_ = false;
+  State state_ = State::WAIT_MODBUS_CONNECTION;
   void SetThreeWayValve(ThreeWayValvePosition position);
   ThreeWayValvePosition GetThreeWayValvePosition();
   ThreeWayValvePosition GetDesiredThreeWayValvePosition();
@@ -66,6 +69,7 @@ private:
   const char* StateToString(State state);
   void WriteHeatingFrequencyTable();
   void WriteCoolingFrequencyTable();
+  void CheckModbusConnectionTimeout();
 public:
   OpenAmberComponent();
   ~OpenAmberComponent();
