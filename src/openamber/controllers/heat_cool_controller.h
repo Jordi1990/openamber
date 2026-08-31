@@ -279,16 +279,20 @@ private:
     return true;
   }
 
-  void DoSafetyChecks()
+  void StopAndSetIdleState()
+  {
+    compressor_controller_->Stop();
+    TurnOffBackupHeater();
+    StopPumps();
+    SetNextState(HeatCoolState::IDLE);
+  }
+
+  bool PerformSafetyChecks()
   {
     if(id(error_active).state && state_ != HeatCoolState::IDLE)
     {
       ESP_LOGI("amber", "Error active, stopping heatpump.");
-      compressor_controller_->Stop();
-      TurnOffBackupHeater();
-      StopPumps();
-      SetNextState(HeatCoolState::IDLE);
-      return;
+      return true;
     }
 
     // Stop compressor only if pump flow stays missing for the configured delay while compressor runs.
@@ -306,11 +310,7 @@ private:
       if ((now - pump_flow_missing_since_ms_) >= flow_switch_delay_ms)
       {
         ESP_LOGW("amber", "Safety check: Pump flow missing for %.0f min while compressor is running, stopping compressor to avoid damage.", id(flow_switch_safety_delay_minutes).state);
-        compressor_controller_->Stop();
-        TurnOffBackupHeater();
-        StopPumps();
-        SetNextState(HeatCoolState::IDLE);
-        return;
+        return true;
       }
     }
     else
@@ -319,15 +319,13 @@ private:
     }
 
     // If temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stop compressor to avoid damage
-    if (fabsf(id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state) > 8.0f && compressor_controller_->IsRunning())
+    if (fabsf(id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state) > 8.0f && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) && state_ != HeatCoolState::IDLE)
     {
       ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stopping compressor to avoid damage.");
-      compressor_controller_->Stop();
-      TurnOffBackupHeater();
-      StopPumps();
-      SetNextState(HeatCoolState::IDLE);
-      return;
+      return true;
     }
+
+    return false;
   }
   
   void SetPidController(climate::ClimateMode climate_mode)
@@ -441,7 +439,11 @@ public:
   void UpdateStateMachine()
   {
     uint32_t now = App.get_loop_component_start_time();
-    DoSafetyChecks();
+    if(PerformSafetyChecks())
+    {
+      StopAndSetIdleState();
+      return;
+    }
 
     switch (state_)
     {
