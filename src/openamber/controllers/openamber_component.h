@@ -70,7 +70,8 @@ void OpenAmberComponent::update()
   {
     CheckModbusConnectionTimeout();
   }
-  else {
+  else 
+  {
     modbus_disconnected_since_ms_ = 0;
   }
 
@@ -85,6 +86,7 @@ void OpenAmberComponent::update()
     {
       if(modbus_connected)
       {
+        modbus_disconnected_error_occurred_ = false;
         ESP_LOGI("amber", "Modbus connection established, transitioning to initialization.");
         SetNextState(State::INITIALIZING);
       }
