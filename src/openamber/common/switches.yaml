@@ -274,6 +274,7 @@
   name: "Binnen unit relais onbekend"
   address: 1104
   register_type: holding
+  reuse_previous_range: true
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -289,6 +290,7 @@
   internal: True
   address: 1108
   register_type: holding
+  reuse_previous_range: true
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -313,6 +315,7 @@
   internal: True
   address: 1112
   register_type: holding
+  reuse_previous_range: true
 
 - platform: template
   optimistic: True
