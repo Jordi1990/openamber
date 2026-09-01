@@ -75,8 +75,6 @@ interval:
 logger:
   level: INFO
   baud_rate: 0
-  logs:
-    modbus: ERROR
 
 api:
   reboot_timeout: 0s
