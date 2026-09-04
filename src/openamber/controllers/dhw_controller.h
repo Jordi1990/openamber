@@ -481,7 +481,7 @@ public:
         if (!id(defrost_active_sensor).state)
         {
           pump_controller_->ResetHeatingPidState();
-          LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState::COMPRESSOR_RUNNING, COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
+          LeaveStateAndSetNextStateAfterWaitTime(DHWState::COMPRESSOR_RUNNING, COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
         }
         else 
         {
