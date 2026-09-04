@@ -59,6 +59,24 @@
     max_temperature: 45
 
 - platform: pid
+  id: pump_p0_pid_temperature_control
+  internal: True
+  sensor: heat_exchanger_delta_t
+  default_target_temperature: 3°C
+  heat_output: pump_p0_pid_output
+  control_parameters:
+    kp: 0.12
+    ki: 0.0015
+    kd: 0.00
+  deadband_parameters:
+    threshold_low: -0.5
+    threshold_high: 0.5
+    deadband_output_averaging_samples: 4
+  visual:
+    min_temperature: 2
+    max_temperature: 10
+
+- platform: pid
   id: pid_cool_temperature_control
   internal: True
   sensor: heat_cool_control_temperature

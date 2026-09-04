@@ -176,10 +176,6 @@ private:
       return false; 
   }
 
-  float GetPreferredPumpSpeed() {
-    return IsCoolingDemand() ? id(pump_speed_cooling_number).state : id(pump_speed_heating_number).state;
-  }
-
   void CalculateAccumulatedDegreeMinutes()
   {
     uint32_t now = App.get_loop_component_start_time();
@@ -283,16 +279,20 @@ private:
     return true;
   }
 
-  void DoSafetyChecks()
+  void StopAndSetIdleState()
+  {
+    compressor_controller_->Stop();
+    TurnOffBackupHeater();
+    StopPumps();
+    SetNextState(HeatCoolState::IDLE);
+  }
+
+  bool PerformSafetyChecks()
   {
     if(id(error_active).state && state_ != HeatCoolState::IDLE)
     {
       ESP_LOGI("amber", "Error active, stopping heatpump.");
-      compressor_controller_->Stop();
-      TurnOffBackupHeater();
-      StopPumps();
-      SetNextState(HeatCoolState::IDLE);
-      return;
+      return true;
     }
 
     // Stop compressor only if pump flow stays missing for the configured delay while compressor runs.
@@ -310,11 +310,7 @@ private:
       if ((now - pump_flow_missing_since_ms_) >= flow_switch_delay_ms)
       {
         ESP_LOGW("amber", "Safety check: Pump flow missing for %.0f min while compressor is running, stopping compressor to avoid damage.", id(flow_switch_safety_delay_minutes).state);
-        compressor_controller_->Stop();
-        TurnOffBackupHeater();
-        StopPumps();
-        SetNextState(HeatCoolState::IDLE);
-        return;
+        return true;
       }
     }
     else
@@ -323,15 +319,13 @@ private:
     }
 
     // If temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stop compressor to avoid damage
-    if (fabsf(id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state) > 8.0f && compressor_controller_->IsRunning())
+    if (fabsf(id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state) > 8.0f && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) && state_ != HeatCoolState::IDLE)
     {
       ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stopping compressor to avoid damage.");
-      compressor_controller_->Stop();
-      TurnOffBackupHeater();
-      StopPumps();
-      SetNextState(HeatCoolState::IDLE);
-      return;
+      return true;
     }
+
+    return false;
   }
   
   void SetPidController(climate::ClimateMode climate_mode)
@@ -445,7 +439,11 @@ public:
   void UpdateStateMachine()
   {
     uint32_t now = App.get_loop_component_start_time();
-    DoSafetyChecks();
+    if(PerformSafetyChecks())
+    {
+      StopAndSetIdleState();
+      return;
+    }
 
     switch (state_)
     {
@@ -464,7 +462,7 @@ public:
         // Start pump on interval or if there is compressor demand.
         if (pump_controller_->ShouldStartNextPumpCycle() || HasCompressorDemand())
         {
-          pump_controller_->Start(GetPreferredPumpSpeed());
+          pump_controller_->Start();
           StartPumpP1IfNeeded();
           SetNextState(HeatCoolState::WAIT_PUMP_RUNNING);
         }
@@ -494,7 +492,7 @@ public:
 
       case HeatCoolState::PUMP_RUNNING:
       {
-        pump_controller_->ApplySpeedChangeIfNeeded(GetPreferredPumpSpeed());
+          pump_controller_->ApplySpeedChangeIfNeeded(false);
 
         // Stop if there is no demand and pump interval is finished.
         if (!HasCompressorDemand() && pump_controller_->IsIntervalCycleFinished())
@@ -592,6 +590,8 @@ public:
 
       case HeatCoolState::COMPRESSOR_SOFTSTART:
       {
+        pump_controller_->ApplySpeedChangeIfNeeded(false);
+
         if (compressor_controller_->HasPassedSoftStartDuration())
         {
           backup_degmin_last_ms_ = App.get_loop_component_start_time();
@@ -602,7 +602,8 @@ public:
 
       case HeatCoolState::COMPRESSOR_RUNNING:
       {
-        pump_controller_->ApplySpeedChangeIfNeeded(GetPreferredPumpSpeed());
+        pump_controller_->ApplySpeedChangeIfNeeded(true);
+
         if(start_current_temperature_ == 0.0f)
         {
           start_current_temperature_ = GetControlTemperature();
@@ -752,11 +753,13 @@ public:
       case HeatCoolState::DEFROSTING:
       {
         if (id(defrost_active_sensor).state)
-        {
+        {          
+          pump_controller_->ApplySpeedChangeIfNeeded(false);
           ESP_LOGI("amber", "Defrost busy, waiting before making changes to compressor.");
           break;
         }
 
+        pump_controller_->ResetHeatingPidState();
         GetPidController().reset_integral_term();
         StartPumpP1IfNeeded();
 

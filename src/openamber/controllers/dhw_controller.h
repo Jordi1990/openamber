@@ -48,6 +48,7 @@ private:
   float last_measured_temperature_ = 0.0f;
   float dhw_pump_settled_time_ = 0.0f;
   uint32_t pump_flow_missing_since_ms_ = 0;
+  uint32_t valve_safety_condition_since_ms_ = 0;
 
   const char* StateToString(DHWState state) const override
   {
@@ -240,22 +241,27 @@ private:
     return false;
   }
 
-  void DoSafetyChecks()
+  void StopAndSetIdleState()
   {
+    compressor_controller_->Stop();
+    pump_controller_->Stop();
+    TurnOffBackupHeater();
+    StopDhwPump();
+    id(dhw_active).publish_state(false);
+    SetNextState(DHWState::IDLE);
+  }
+
+  bool PerformSafetyChecks()
+  {
+
     if(id(error_active).state && state_ != DHWState::IDLE)
     {
       ESP_LOGI("amber", "Error active, stopping heatpump.");
-      compressor_controller_->Stop();
-      pump_controller_->Stop();
-      TurnOffBackupHeater();
-      StopDhwPump();
-      id(dhw_active).publish_state(false);
-      SetNextState(DHWState::IDLE);
-      return;
+      return true;
     }
 
     // Stop compressor only if pump flow stays missing for the configured delay while compressor runs.
-    if (state_ != DHWState::IDLE && compressor_controller_->IsRunning() && !pump_controller_->IsRunning())
+    if (compressor_controller_->IsRunning() && !pump_controller_->IsRunning() && state_ != DHWState::IDLE)
     {
       const uint32_t now = App.get_loop_component_start_time();
       const uint32_t flow_switch_delay_ms = static_cast<uint32_t>(id(flow_switch_safety_delay_minutes).state * 60000.0f);
@@ -269,13 +275,7 @@ private:
       if ((now - pump_flow_missing_since_ms_) >= flow_switch_delay_ms)
       {
         ESP_LOGW("amber", "Safety check: Pump flow missing for %.0f min while compressor is running, stopping compressor to avoid damage.", id(flow_switch_safety_delay_minutes).state);
-        compressor_controller_->Stop();
-        pump_controller_->Stop();
-        StopDhwPump();
-        TurnOffBackupHeater();
-        id(dhw_active).publish_state(false);
-        SetNextState(DHWState::IDLE);
-        return;
+        return true;
       }
     }
     else
@@ -284,17 +284,47 @@ private:
     }
 
     // If Tuo - Tui is above 15 degrees while compressor is running, stop compressor to avoid damage
-    if (id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state > 15.0f && compressor_controller_->IsRunning())
+    if (id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state > 15.0f && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) && state_ != DHWState::IDLE)
     {
       ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 15 degrees while compressor is running, stopping compressor to avoid damage.");
-      compressor_controller_->Stop();
-      pump_controller_->Stop();
-      StopDhwPump();
-      TurnOffBackupHeater();
-      id(dhw_active).publish_state(false);
-      SetNextState(DHWState::IDLE);
-      return;
+      return true;
     }
+
+    // Check if 3-way valve is in expected DHW position (CV circuit should not receive high temperature water)
+    if ((compressor_controller_->IsRunning() || IsBackupHeaterActive()) && state_ != DHWState::IDLE)
+    {
+      const uint32_t now = App.get_loop_component_start_time();
+      float current_temperature = id(heat_cool_control_temperature).state;
+      float target_temperature = id(pid_heat_temperature_control).target_temperature;
+      float max_safe_temp = target_temperature + id(compressor_stop_delta_heating).state + THREE_WAY_VALVE_PROTECTION_DELTA_TEMPERATURE_C;
+      if (current_temperature >= max_safe_temp)
+      {
+        if (valve_safety_condition_since_ms_ == 0)
+        {
+          valve_safety_condition_since_ms_ = now;
+          ESP_LOGW("amber", "Safety check: CV supply temperature (%.2f°C) unexpectedly high during DHW (safe threshold: %.2f°C), waiting before triggering 3-way valve error.",
+                   current_temperature, max_safe_temp);
+        }
+        
+        if ((now - valve_safety_condition_since_ms_) >= THREE_WAY_VALVE_PROTECTION_HIGH_TEMPERATURE_TIME_S * 1000UL)
+        {
+          ESP_LOGE("amber", "Safety check: 3-way valve state timeout reached during DHW (CV temp %.2f°C >= %.2f°C), stopping system.",
+                   current_temperature, max_safe_temp);
+          id(error_three_way_valve_state_timeout).publish_state(true);
+          return true;
+        }
+      }
+      else
+      {
+        valve_safety_condition_since_ms_ = 0;
+      }
+    }
+    else 
+    {
+      valve_safety_condition_since_ms_ = 0;
+    }
+
+    return false;
   }
 
   bool HasDemand()
@@ -310,7 +340,11 @@ public:
   void UpdateStateMachine()
   {
     uint32_t now = App.get_loop_component_start_time();
-    DoSafetyChecks();
+    if (PerformSafetyChecks())
+    {
+      StopAndSetIdleState();
+      return;
+    }
 
     CalculateTemperatureIncreaseRate();
 
@@ -328,7 +362,7 @@ public:
         }
 
         id(dhw_active).publish_state(true);
-        pump_controller_->Start(GetPreferredPumpSpeed());
+        pump_controller_->Start();
         SetNextState(DHWState::WAIT_PUMP_RUNNING);
         break;
 
@@ -344,7 +378,7 @@ public:
           const uint32_t timeout_ms = PUMP_START_TIMEOUT_S * 1000UL;
           if ((now - pump_controller_->GetStartWaitStartedTime()) >= timeout_ms)
           {
-            ESP_LOGE("amber", "DHW pump start timeout reached after %lu seconds, stopping system.", (unsigned long) PUMP_START_TIMEOUT_S);
+            ESP_LOGE("amber", "Pump P0 start timeout reached after %lu seconds, stopping system.", (unsigned long) PUMP_START_TIMEOUT_S);
             id(error_pump_start_timeout).publish_state(true);
             pump_controller_->Stop();
             StopDhwPump();
@@ -391,7 +425,7 @@ public:
         break;
 
       case DHWState::COMPRESSOR_RUNNING:
-        pump_controller_->ApplySpeedChangeIfNeeded(GetPreferredPumpSpeed());
+        pump_controller_->ApplySpeedChangeIfNeeded(true);
 
         if(ShouldStartDhwPump())
         {
@@ -446,7 +480,12 @@ public:
       case DHWState::DEFROSTING:
         if (!id(defrost_active_sensor).state)
         {
-          SetNextState(DHWState::COMPRESSOR_RUNNING);
+          pump_controller_->ResetHeatingPidState();
+          LeaveStateAndSetNextStateAfterWaitTime(DHWState::COMPRESSOR_RUNNING, COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
+        }
+        else 
+        {
+          pump_controller_->ApplySpeedChangeIfNeeded(false);
         }
         break;
 

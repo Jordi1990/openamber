@@ -83,7 +83,7 @@
         scrollable: false
         widgets:
           - label: { text: "Systeem", text_color: 0x111827, text_font: font_text_20, align: TOP_LEFT }
-          - label: { width: 44%, text: "Defrost / Bodemplaat\nModbus binnen\nModbus buiten\nSG contacten A / B\nWarmte/koude vraag", text_color: 0x6B7280, text_font: font_text_20, long_mode: WRAP, align: TOP_LEFT, y: 30 }
-          - label: { id: service_diag_system_values, width: 54%, text: "- / -\n-\n-\n- / -\n- / -", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: WRAP, align: TOP_RIGHT, y: 30 }
+          - label: { width: 70%, text: "Defrost / Bodemplaat\nModbus binnen\nModbus buiten\nSG contacten A / B\nWarmte/koude vraag", text_color: 0x6B7280, text_font: font_text_20, long_mode: WRAP, align: TOP_LEFT, y: 30 }
+          - label: { id: service_diag_system_values, width: 28%, text: "- / -\n-\n-\n- / -\n- / -", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: WRAP, align: TOP_RIGHT, y: 30 }
 
 

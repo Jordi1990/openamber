@@ -312,6 +312,58 @@ obj:
                                                         text_font: font_text_20
 
                             - obj:
+                                id: home_therm_current_temp_column
+                                width: SIZE_CONTENT
+                                height: SIZE_CONTENT
+                                bg_opa: 0%
+                                border_width: 0
+                                border_opa: 0%
+                                pad_all: 0
+                                layout:
+                                  type: FLEX
+                                  flex_flow: COLUMN
+                                  flex_align_main: START
+                                  flex_align_cross: CENTER
+                                  pad_row: 6
+                                widgets:
+                                  - label:
+                                      id: home_therm_current_temp_title
+                                      text: "Kamertemperatuur"
+                                      text_color: 0x0F172A
+                                      text_font: font_text_20
+                                  - obj:
+                                      id: home_therm_current_temp_card
+                                      width: SIZE_CONTENT
+                                      height: 58
+                                      bg_opa: 0%
+                                      border_width: 0
+                                      border_opa: 0%
+                                      pad_left: 14
+                                      pad_right: 14
+                                      pad_top: 10
+                                      pad_bottom: 0
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      layout:
+                                        type: FLEX
+                                        flex_flow: ROW
+                                        flex_align_cross: CENTER
+                                        flex_align_main: CENTER
+                                        pad_column: 8
+                                      widgets:
+                                        - label:
+                                            id: home_therm_current_temp_icon
+                                            text: "\U000F050F"
+                                            text_color: 0x0072CE
+                                            text_font: font_mdi_24
+                                        - label:
+                                            id: home_therm_current_temp_value
+                                            text: "-.-°C"
+                                            text_color: 0x0F2547
+                                            text_font: font_value_big
+                                            align: CENTER
+
+                            - obj:
                                 id: home_therm_setpoint_column
                                 width: SIZE_CONTENT
                                 height: SIZE_CONTENT
@@ -417,8 +469,3 @@ obj:
                                                   text_color: 0x1E293B
                                                   text_font: font_mdi_30
                                                   align: CENTER
-
-                      - label:
-                          id: home_therm_current_temp_value
-                          text: "-.-°C"
-                          hidden: true

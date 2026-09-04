@@ -1,4 +1,4 @@
-﻿obj:
+obj:
   id: service_tabs_bar
   grid_cell_row_pos: 0
   grid_cell_column_pos: 0
@@ -47,6 +47,7 @@
           - lvgl.widget.show: { id: set_service_mode_switch_ui }
           - lvgl.widget.show: { id: service_maintenance_lock_hint }
           - lvgl.widget.update: { id: service_maintenance_layout, y: 112, height: 72% }
+          - lvgl.widget.show: { id: service_mpanel_general }
           - lvgl.widget.hide: { id: service_mpanel_compressor }
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
@@ -84,6 +85,7 @@
           - lvgl.widget.hide: { id: set_service_mode_switch_ui }
           - lvgl.widget.hide: { id: service_maintenance_lock_hint }
           - lvgl.widget.update: { id: service_maintenance_layout, y: 0, height: 100% }
+          - lvgl.widget.hide: { id: service_mpanel_general }
           - lvgl.widget.show: { id: service_mpanel_compressor }
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
@@ -120,6 +122,7 @@
           - lvgl.widget.hide: { id: service_maintenance_state }
           - lvgl.widget.hide: { id: set_service_mode_switch_ui }
           - lvgl.widget.update: { id: service_maintenance_layout, y: 0, height: 100% }
+          - lvgl.widget.hide: { id: service_mpanel_general }
           - lvgl.widget.hide: { id: service_mpanel_compressor }
           - lvgl.widget.show: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
@@ -156,6 +159,7 @@
           - lvgl.widget.hide: { id: service_maintenance_state }
           - lvgl.widget.hide: { id: set_service_mode_switch_ui }
           - lvgl.widget.update: { id: service_maintenance_layout, y: 0, height: 100% }
+          - lvgl.widget.hide: { id: service_mpanel_general }
           - lvgl.widget.hide: { id: service_mpanel_compressor }
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.show: { id: service_mpanel_valve }
@@ -192,6 +196,7 @@
           - lvgl.widget.hide: { id: service_maintenance_state }
           - lvgl.widget.hide: { id: set_service_mode_switch_ui }
           - lvgl.widget.update: { id: service_maintenance_layout, y: 0, height: 100% }
+          - lvgl.widget.hide: { id: service_mpanel_general }
           - lvgl.widget.hide: { id: service_mpanel_compressor }
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
@@ -229,6 +234,7 @@
           - lvgl.widget.hide: { id: set_service_mode_switch_ui }
           - lvgl.widget.update: { id: service_maintenance_layout, y: 0, height: 100% }
           - lvgl.widget.show: { id: service_eeprom_panel }
+          - lvgl.widget.hide: { id: service_mpanel_general }
           - lvgl.widget.hide: { id: service_mpanel_compressor }
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
@@ -259,6 +265,7 @@
           - lvgl.widget.show: { id: service_sensors_panel }
           - lvgl.widget.hide: { id: service_errors_panel }
           - lvgl.widget.hide: { id: service_warnings_panel }
+          - lvgl.widget.hide: { id: service_mpanel_general }
           - lvgl.widget.hide: { id: service_mpanel_compressor }
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
@@ -290,6 +297,7 @@
           - lvgl.widget.hide: { id: service_sensors_panel }
           - lvgl.widget.show: { id: service_errors_panel }
           - lvgl.widget.hide: { id: service_warnings_panel }
+          - lvgl.widget.hide: { id: service_mpanel_general }
           - lvgl.widget.hide: { id: service_mpanel_compressor }
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }
@@ -322,6 +330,7 @@
           - lvgl.widget.hide: { id: service_sensors_panel }
           - lvgl.widget.hide: { id: service_errors_panel }
           - lvgl.widget.show: { id: service_warnings_panel }
+          - lvgl.widget.hide: { id: service_mpanel_general }
           - lvgl.widget.hide: { id: service_mpanel_compressor }
           - lvgl.widget.hide: { id: service_mpanel_pumps }
           - lvgl.widget.hide: { id: service_mpanel_valve }

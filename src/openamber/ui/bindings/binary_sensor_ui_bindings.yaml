@@ -120,40 +120,18 @@
     then:
       - script.execute: update_service_diag_summary_ui
 
-# ── Boot screen: Hide when both modbus units online ──
+# ── Modbus connection status & header updates ──
 - id: !extend modbus_inside_online
   on_state:
     then:
       - script.execute: update_service_diag_summary_ui
-      - if:
-          condition:
-            - binary_sensor.is_on: modbus_inside_online
-            - binary_sensor.is_on: modbus_outside_online
-          then:
-            - lvgl.widget.hide:
-                id: boot_screen
-            - lvgl.label.update:
-                id: header_title
-                text:
-                  format: "OpenAmber %s"
-                  args: ['ESPHOME_PROJECT_VERSION']
+      - script.execute: update_header_model_badge
 
 - id: !extend modbus_outside_online
   on_state:
     then:
       - script.execute: update_service_diag_summary_ui
-      - if:
-          condition:
-            - binary_sensor.is_on: modbus_inside_online
-            - binary_sensor.is_on: modbus_outside_online
-          then:
-            - lvgl.widget.hide:
-                id: boot_screen
-            - lvgl.label.update:
-                id: header_title
-                text:
-                  format: "OpenAmber %s"
-                  args: ['ESPHOME_PROJECT_VERSION']
+      - script.execute: update_header_model_badge
 
 # ── Service page: error/warning cards with pagination ──
 - id: !extend error_active
@@ -344,6 +322,16 @@
       - script.execute: update_service_errors_ui
 
 - id: !extend error_pump_stop_timeout
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_modbus_connection_timeout
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
+- id: !extend error_three_way_valve_state_timeout
   on_state:
     then:
       - script.execute: update_service_errors_ui

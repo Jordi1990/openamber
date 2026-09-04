@@ -52,6 +52,8 @@
         - "\U000F0026"  # mdi-alert (legionella)
         - "\U000F0045"  # mdi-arrow-down (flow)
         - "\U000F005D"  # mdi-arrow-up (flow)
+        - "\U000F0141"  # mdi-chevron-left (pagination)
+        - "\U000F0142"  # mdi-chevron-right (pagination)
 
 - file: "openamber/ui/fonts/Inter_28pt-SemiBold.ttf"
   #weight: 500
@@ -127,3 +129,5 @@
         - "\U000F0928"  # mdi-wifi-strength-4
         - "\U000F092E"  # mdi-wifi-strength-off-outline
         - "\U000F07D0"  # mdi-home-assistant
+        - "\U000F035B"  # mdi-memory
+        - "\U000F1A44"  # mdi-heat-pump-outline

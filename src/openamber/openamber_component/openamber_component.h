@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Open Amber - Itho Daalderop Amber heat pump controller for ESPHome
  *
  * Copyright (C) 2025 Jordi Epema
@@ -26,6 +26,7 @@ class DHWController;
 class HeatCoolController;
 class PumpController;
 class CompressorController;
+class DeaerationRoutine;
 enum ThreeWayValvePosition
 {
   HEATING_COOLING,
@@ -33,6 +34,7 @@ enum ThreeWayValvePosition
 };
 enum State {
   UNKNOWN,
+  WAIT_MODBUS_CONNECTION,
   WAIT_INITIALIZATION,
   INITIALIZING,
   DHW_HEAT,
@@ -52,9 +54,12 @@ private:
   HeatCoolController* heat_cool_controller_;
   PumpController *pump_controller_;
   CompressorController *compressor_controller_;
+  DeaerationRoutine *deaeration_routine_;
   State deferred_machine_state_;
   uint32_t defer_state_change_until_ms_;
-  State state_ = State::INITIALIZING;
+  uint32_t modbus_disconnected_since_ms_ = 0;
+  bool modbus_disconnected_error_occurred_ = false;
+  State state_ = State::WAIT_MODBUS_CONNECTION;
   void SetThreeWayValve(ThreeWayValvePosition position);
   ThreeWayValvePosition GetThreeWayValvePosition();
   ThreeWayValvePosition GetDesiredThreeWayValvePosition();
@@ -64,6 +69,7 @@ private:
   const char* StateToString(State state);
   void WriteHeatingFrequencyTable();
   void WriteCoolingFrequencyTable();
+  void CheckModbusConnectionTimeout();
 public:
   OpenAmberComponent();
   ~OpenAmberComponent();
@@ -74,8 +80,21 @@ public:
   
   void write_heat_pid_value(float value);
   void write_cool_pid_value(float value);
+  void write_pump_p0_pid_value(float value);
   void reset_pump_interval();
   bool is_maintenance_state() const;
+  void start_deaeration_routine(bool extended);
+  void stop_deaeration_routine();
+  bool is_deaeration_running() const;
+  bool is_deaeration_extended() const;
+  int get_deaeration_state() const;
+  bool is_deaeration_dhw_circuit() const;
+  int get_deaeration_current_cycle() const;
+  int get_deaeration_cycle_count() const;
+  int get_deaeration_progress_percent() const;
+  uint32_t get_deaeration_remaining_seconds() const;
+  std::string get_deaeration_phase_text() const;
+  uint32_t get_deaeration_duration_seconds(bool extended) const;
 };
 
 }  // namespace openamber
