@@ -395,6 +395,21 @@
     sorting_group_id: heating_settings
 
 - platform: template
+  id: pump_p0_pid_defrost_pwm
+  name: "Pomp P0 PID defrost PWM"
+  optimistic: True
+  min_value: 20
+  max_value: 100
+  step: 1
+  unit_of_measurement: "%"
+  initial_value: 100
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+
+- platform: template
   id: pump_p0_pid_kp
   name: "Pomp P0 PID Kp"
   optimistic: True

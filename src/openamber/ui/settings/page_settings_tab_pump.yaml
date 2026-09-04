@@ -1,4 +1,4 @@
-﻿# Panel: Pomp
+# Panel: Pomp
 # ------------------------------------------------------------
 obj:
   id: panel_pump
@@ -160,7 +160,8 @@ obj:
         id: panel_pump_page_p0_pid
         hidden: true
         width: 100%
-        height: SIZE_CONTENT
+        height: 0
+        flex_grow: 1
         bg_opa: 0%
         border_opa: 0%
         pad_all: 0

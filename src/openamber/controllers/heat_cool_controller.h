@@ -753,11 +753,13 @@ public:
       case HeatCoolState::DEFROSTING:
       {
         if (id(defrost_active_sensor).state)
-        {
+        {          
+          pump_controller_->ApplySpeedChangeIfNeeded(false);
           ESP_LOGI("amber", "Defrost busy, waiting before making changes to compressor.");
           break;
         }
 
+        pump_controller_->ResetHeatingPidState();
         GetPidController().reset_integral_term();
         StartPumpP1IfNeeded();
 
