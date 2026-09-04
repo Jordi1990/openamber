@@ -251,6 +251,15 @@
             format: "%.0f%%"
             args: ['x']
 
+- id: !extend pump_p0_pid_defrost_pwm
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_pump_pid_defrost_pwm_val
+          text:
+            format: "%.0f%%"
+            args: ['x']
+
 - id: !extend pump_p0_pid_kp
   on_value:
     then:

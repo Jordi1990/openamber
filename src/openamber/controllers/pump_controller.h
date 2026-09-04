@@ -101,6 +101,12 @@ public:
       return;
     }
 
+    if (id(pump_p0_pid_enabled).state && id(defrost_active_sensor).state)
+    {
+      SetPwmDutyCycle(id(pump_p0_pid_defrost_pwm).state);
+      return;
+    }
+
     if(id(pump_p0_pid_enabled).state && compressor_settled && !id(dhw_active).state && !IsCoolingDemand())
     {
       SetPwmDutyCycle(CalculateHeatingPidPumpSpeed());

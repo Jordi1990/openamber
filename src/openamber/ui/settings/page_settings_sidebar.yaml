@@ -1,4 +1,4 @@
-﻿obj:
+obj:
     id: settings_sidebar
     grid_cell_row_pos: 0
     grid_cell_column_pos: 0
@@ -47,6 +47,8 @@
             - lvgl.widget.hide: { id: panel_smartgrid }
             - lvgl.widget.hide: { id: panel_wifi }
             - lvgl.widget.hide: { id: panel_thermostat }
+            - lvgl.widget.hide: { id: sensor_calibration_pager }
+            - lvgl.widget.hide: { id: pump_p0_pid_pager }
             - lvgl.widget.update: { id: stab_general, bg_color: 0x1F3B68 }
             - lvgl.widget.update: { id: stab_general_lbl, text_color: 0xFFFFFF }
             - lvgl.widget.update: { id: stab_pump, bg_color: 0xE8ECF1 }
@@ -96,6 +98,8 @@
             - lvgl.widget.hide: { id: panel_smartgrid }
             - lvgl.widget.hide: { id: panel_wifi }
             - lvgl.widget.hide: { id: panel_thermostat }
+            - lvgl.widget.hide: { id: sensor_calibration_pager }
+            - lvgl.widget.hide: { id: pump_p0_pid_pager }
             - lvgl.widget.show: { id: panel_thermostat }
             - script.execute: update_thermostat_settings_ui
             - script.execute: update_thermostat_mode_ui
@@ -153,6 +157,8 @@
             - lvgl.widget.hide: { id: panel_smartgrid }
             - lvgl.widget.hide: { id: panel_wifi }
             - lvgl.widget.hide: { id: panel_thermostat }
+            - lvgl.widget.hide: { id: sensor_calibration_pager }
+            - lvgl.widget.hide: { id: pump_p0_pid_pager }
             - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
             - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
             - lvgl.widget.update: { id: stab_pump, bg_color: 0x1F3B68 }
@@ -202,6 +208,8 @@
             - lvgl.widget.hide: { id: panel_smartgrid }
             - lvgl.widget.hide: { id: panel_wifi }
             - lvgl.widget.hide: { id: panel_thermostat }
+            - lvgl.widget.hide: { id: sensor_calibration_pager }
+            - lvgl.widget.hide: { id: pump_p0_pid_pager }
             - script.execute: update_heat_curve_chart
             - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
             - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
@@ -252,6 +260,8 @@
             - lvgl.widget.hide: { id: panel_smartgrid }
             - lvgl.widget.hide: { id: panel_wifi }
             - lvgl.widget.hide: { id: panel_thermostat }
+            - lvgl.widget.hide: { id: sensor_calibration_pager }
+            - lvgl.widget.hide: { id: pump_p0_pid_pager }
             - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
             - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
             - lvgl.widget.update: { id: stab_pump, bg_color: 0xE8ECF1 }
@@ -302,6 +312,8 @@
             - lvgl.widget.hide: { id: panel_smartgrid }
             - lvgl.widget.hide: { id: panel_wifi }
             - lvgl.widget.hide: { id: panel_thermostat }
+            - lvgl.widget.hide: { id: sensor_calibration_pager }
+            - lvgl.widget.hide: { id: pump_p0_pid_pager }
             - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
             - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
             - lvgl.widget.update: { id: stab_pump, bg_color: 0xE8ECF1 }
@@ -350,6 +362,8 @@
             - lvgl.widget.hide: { id: panel_smartgrid }
             - lvgl.widget.hide: { id: panel_wifi }
             - lvgl.widget.hide: { id: panel_thermostat }
+            - lvgl.widget.hide: { id: sensor_calibration_pager }
+            - lvgl.widget.hide: { id: pump_p0_pid_pager }
             - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
             - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
             - lvgl.widget.update: { id: stab_pump, bg_color: 0xE8ECF1 }
@@ -395,6 +409,8 @@
             - lvgl.widget.show: { id: panel_smartgrid }
             - lvgl.widget.hide: { id: panel_wifi }
             - lvgl.widget.hide: { id: panel_thermostat }
+            - lvgl.widget.hide: { id: sensor_calibration_pager }
+            - lvgl.widget.hide: { id: pump_p0_pid_pager }
             - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
             - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
             - lvgl.widget.update: { id: stab_pump, bg_color: 0xE8ECF1 }
@@ -440,6 +456,8 @@
             - lvgl.widget.hide: { id: panel_smartgrid }
             - lvgl.widget.show: { id: panel_wifi }
             - lvgl.widget.hide: { id: panel_thermostat }
+            - lvgl.widget.hide: { id: sensor_calibration_pager }
+            - lvgl.widget.hide: { id: pump_p0_pid_pager }
             - script.execute: wifi_scan_networks_if_empty
             - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
             - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
@@ -484,6 +502,8 @@
             - lvgl.widget.hide: { id: panel_smartgrid }
             - lvgl.widget.hide: { id: panel_wifi }
             - lvgl.widget.hide: { id: panel_thermostat }
+            - lvgl.widget.hide: { id: sensor_calibration_pager }
+            - lvgl.widget.hide: { id: pump_p0_pid_pager }
             - lvgl.widget.show: { id: panel_advanced }
             - script.execute:
                 id: advanced_select_tab
