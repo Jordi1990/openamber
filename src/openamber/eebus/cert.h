@@ -30,6 +30,7 @@ class EEBusCertificateStore {
   const std::string &get_ski() const { return this->ski_; }
 
  private:
+  bool generate_and_save();
   bool use_embedded();
   bool save_to_nvs();
   bool load_from_nvs();

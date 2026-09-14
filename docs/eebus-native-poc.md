@@ -190,66 +190,22 @@ onderzoek in chat.
 compile` op een minimale config die `eebus:` gebruikt). Alleen actief zodra
 `eebus:` wordt toegevoegd; bestaande builds worden niet geraakt.
 
-**Geïmplementeerd (compileerbaar):**
-- `__init__.py` — componentregistratie + configschema (sku/brand/model/
-  failsafe_duration + OpenAmber-bridge lambdas `read_power`, `read_dhw_temp`,
-  `apply_optional(value)`, `apply_dim(value)`).
+**Geïmplementeerd:**
+- `__init__.py` — componentregistratie + configschema (`sku`/`brand`/`model`/`failsafe_duration` + OpenAmber-bridge lambdas `read_power`, `read_dhw_temp`, `apply_optional(value)`, `apply_dim(value)`, en de uitgebreide `apply_limit(active, limit_w)`).
 - `cert.h/.cpp` — embedded EC P-256 self-signed pair + SKI, NVS-persistentie.
-  Random per-device generare met x509write is niet beschikbaar (mbedTLS
-  x509write-module is door ESPHome/IDF uitgesloten) → PoC embedd een
-  voorgegenereerd pair; regenereer vóór deployment.
 - `nvs_store.h/.cpp` — NVS-wrapper.
-- `mdns.h/.cpp` — `_ship._tcp`-advertentie met SHIP-TXT-set
-  (`txtvers=1`, `id`, `path=/ship/`, `ski`, `register=false`) via ESP-IDF mdns,
-  onder `#ifdef USE_MDNS`.
-- `ship_listener.h/.cpp` — FreeRTOS accept-task + mbedTLS TLS-serverconfig.
-  Accept→close placeholder; SHIP-handshake TODO.
-- `eebus_component.h/.cpp` — lifecycle + bridge + MPC/MDT-refresh + failsafe-hook.
-- `eebus_ohpcf.h/.cpp` — OHPCF server-state machine
-  (AVAILABLE/SCHEDULED/RUNNING/PAUSED + announce/schedule/resume/pause/abort).
-- `eebus_lpc.h/.cpp` — LPC-server (WriteConsumptionLimit → dimmer-callback).
-- `eebus_measurements.h` — MPC (vermogen) + MDT (tapwatertemp) waarde-houders.
-- `eebus_spine.h/.cpp` — SPINE JSON datagram model (TinyJson builder + feature
-  address + msgCounter + command-classificatie) en een minimale inkomende
-  respuesta (parse/dispatch) voor inspectie/bewerking tegen evcc-verkeer.
-- `eebus_node.h/.cpp` — SPINE device-node: lokale compressor/cem-adres,
-  outbound builders (device-classificatie, MPC/MDT-measurement, OHPCF-state,
-  LPC-confidence) en routing van inkomende OHPCF/LPC-commando's naar de servers.
-- `eebus_websocket.h/.cpp` — RFC 6455 WebSocket-server: upgrade-response
-  (Sec-WebSocket-Accept via mbedtls SHA-1) + frame encode (server) en
-  incrementele masked-frame decode (client).
-- `eebus_ship.h/.cpp` — SHIP-framing: `[msgType][EEBUS-JSON]` (1=control,
-  2=data), SPINE-envelop `{"data":{"header":{"protocolId":"ee1.0"},...}}`, en
-  standaard-JSON ↔ EEBUS-JSON conversie (object-array transform).
-- `ship_listener.*` — per-connection TLS-handshake (mbedTLS) → WebSocket
-  upgrade → SHIP-frame-loop, met frame-callback naar de component; SPINE-data
-  wordt naar `EebusNode::handle_inbound` gerouteerd.
+- `mdns.h/.cpp` — `_ship._tcp`-advertentie met SHIP-TXT-set (`txtvers=1`, `id`, `path=/ship/`, `ski`, `register=false`) via ESP-IDF mdns.
+- `ship_listener.h/.cpp` — FreeRTOS TLS-server taak met mbedTLS, WebSocket accept, en een draadveilige `queue_outbound_frame()` wachtrij om notificaties asynchroon over de actieve verbinding te zenden.
+- `eebus_component.h/.cpp` — lifecycle + bridge + MPC/MDT-refresh + change callbacks naar SpineNode + failsafe watchdog timer.
+- `eebus_ohpcf.h/.cpp` — OHPCF server-state machine (AVAILABLE/SCHEDULED/RUNNING/PAUSED) met realistische default vermogensvraag (1500 W / 3000 W max) voor evcc zonne-surplus scheduling.
+- `eebus_lpc.h/.cpp` — LPC-server (WriteConsumptionLimit / §14a dimmen) met ondersteuning voor zowel binaire dim als traploze/meertraps Watt-limieten (`LimitApplier`).
+- `eebus_measurements.h` — MPC (actueel vermogen) + MDT (tapwatertemperatuur) sensor-integratie.
+- `eebus_spine.h/.cpp` — SPINE 1.3.0 JSON datagram engine met recursieve JSON-parser (accolade-dieptetelling) om geneste structuren van evcc foutloos te parsen.
+- `eebus_node.h/.cpp` — SPINE device-node: lokale compressor/cem-adressen, discovery/binding responses, heartbeat ACK, en proactieve `NOTIFY` datagrammen bij status- en meetwaardewijzigingen.
+- `eebus_websocket.h/.cpp` — RFC 6455 WebSocket-server (Sec-WebSocket-Accept + frame encode/decode).
+- `eebus_ship.h/.cpp` — SHIP framing en JSON-transformatie.
 
-> **Boot-assert vastgesteld & opgelost:** `assert failed: xQueueSemaphoreTake`
-> direct na het cert-log was de mbedTLS **entropy-pool** (esp-IDF gebruikt daar
-> een lazy FreeRTOS-mutex → NULL-queue-assert in vroege boot). Oplossing:
-> CTR_DRBG seeden met `esp_fill_random` (geen entropy-pool) én
-> TLS/mDNS-start uitgesteld naar de eerste `update()` i.p.v. `setup()`.
-
-**Validatie in deze repo:** minimale `eebus-test` config compileert en linkt
-(`esphome compile`); firmware 0xb8780 bytes (~755 kB, 59% vrije app-partition).
-Er is GEEN functionele EEBus-validatie gedaan (vereist hardware + echte evcc +
-eebus-go `mtools`).
-
-**Nog te doen (startpunt volgende iteraties):**
-- **SHIP-pairing/trust-handshake** (besturingsberichten `HS_hello`, `HS_init`,
-  `HS_prot`, `HS_pin`, `HS_access` + `accessMethods*`) — momenteel alleen
-  gelogd, nog geen server-antwoorden incl. certificaat-/SKI-verificatie.
-- SPINE node-management DISCOVERY/BINDING replies + `result/reply`/control
-  semantics (evcc's flow omhoog: node-mgmt eerst, dan OHPCF/MPC/MDT/LPC-data).
-- Exacte SPINE data-class velden/namen afstemmen op spine-go bij live-testen
-  (classenamen `deviceClassificationDeviceData`, `measurementListData`,
-  `deviceOperations`, `consumptionLimitListData` etc. kunnen afwijken van de
-  echte schema-constanten).
-- OpenAmber-bridge lambdas koppelen aan `id(...)`/controllers (in een config,
-  niet in de component zelf) + de safety-resolutie in `apply_optional/apply_dim`.
-- Failsafe-lossedetectie en OHPCF async-scheduling-timer aansluiten.
-- sdkconfig/mbedTLS-features + PSRAM-budget meten (Waveshare-build).
+**Validatie in deze repo:** Volledige `openamber-waveshare-display.yaml` build compileert en linkt foutloos (`esphome compile`).
 
 ---
 
@@ -280,7 +236,7 @@ SPINE-berichten zijn **JSON-datagrams**:
 {
   "datagram": {
     "header": {
-      "specificationVersion": "1.8",
+      "specificationVersion": "1.3.0",
       "addressSource":      {"device": 1, "entity": 1, "feature": 1},
       "addressDestination": {"device": 2, "entity": 1, "feature": 1},
       "msgCounter": 1,

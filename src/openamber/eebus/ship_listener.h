@@ -42,11 +42,25 @@ class EEBusShipListener {
   // Serves a single accepted connection (TLS + WebSocket + SHIP frame loop).
   void handle_connection(int fd);
 
+  bool is_connected() const { return this->is_connected_; }
+
+  // Queue a WS-encoded frame to be sent out over the active connection.
+  bool queue_outbound_frame(const std::vector<uint8_t> &ws_frame);
+
+  // High-level helpers: frame as SHIP DATA / CONTROL and queue for sending.
+  bool send_ship_data(const std::string &spine_json);
+  bool send_ship_control(const std::string &control_json);
+
+  // Request active connection to be closed immediately after sending current frame.
+  void request_close() { this->close_requested_ = true; }
+
  private:
   void teardown();
 
   uint16_t port_{0};
   bool ready_{false};
+  bool is_connected_{false};
+  bool close_requested_{false};
   mbedtls_ssl_config ssl_conf_;
   mbedtls_x509_crt own_cert_;
   mbedtls_pk_context own_key_;
@@ -57,6 +71,9 @@ class EEBusShipListener {
   mbedtls_ssl_context ssl_;
   bool ssl_ready_{false};
   std::function<std::vector<uint8_t>(const std::vector<uint8_t> &)> frame_handler_;
+
+  void *queue_mutex_{nullptr};  // SemaphoreHandle_t created on begin()
+  std::vector<std::vector<uint8_t>> outbound_queue_;
 };
 
 }  // namespace openamber_eebus

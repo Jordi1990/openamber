@@ -30,11 +30,13 @@ enum class OhpcfState : uint8_t {
 class OhpcfServer {
  public:
   // Callbacks driven by the OpenAmber bridge / integration layer.
-  using Applier = std::function<void(bool enabled)>;
+  using Applier = std::function<bool(bool enabled)>;
+  using ChangeCallback = std::function<void(OhpcfState state)>;
 
   OhpcfServer() = default;
 
   void set_applier(Applier applier) { this->applier_ = std::move(applier); }
+  void set_change_callback(ChangeCallback cb) { this->change_cb_ = std::move(cb); }
 
   // Data exposed to the CEM.
   float get_requested_power_estimate_w() const { return this->requested_power_w_; }
@@ -48,6 +50,7 @@ class OhpcfServer {
   // A newly announced optional consumption (e.g. DHW boost) is made public so
   // the CEM can schedule it.
   void announce(float power_w, uint32_t min_run_s, uint32_t min_pause_s);
+  void set_requested_power(float estimate_w, float max_w = 0.0f);
 
   // Commands from the CEM (evcc).
   void schedule(uint32_t start_delta_s);
@@ -73,6 +76,7 @@ class OhpcfServer {
   uint32_t min_run_s_{600};
   uint32_t min_pause_s_{600};
   Applier applier_;
+  ChangeCallback change_cb_;
 };
 
 }  // namespace openamber_eebus

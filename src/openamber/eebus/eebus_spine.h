@@ -92,6 +92,7 @@ struct SpineInboundCommand {
   uint32_t msg_counter{0};
   uint32_t msg_counter_reference{0};
   bool valid{false};
+  std::string raw_json;
   std::vector<SpineCommand> cmds;  // raw <dataClass,json> pairs
 
   // Look up a raw JSON string for a data class.
@@ -101,6 +102,9 @@ struct SpineInboundCommand {
 // Splits a received datagram JSON into its header + payload commands.
 // Returns false when the frame is not a SPINE datagram we recognise.
 bool spine_parse_dispatch(const std::string &json, SpineInboundCommand &out);
+
+// Parses an address object (e.g. "clientAddress":{...} or "serverAddress":{...}) by key.
+bool spine_split_addr(const std::string &json, const char *key, SpineAddress &addr);
 
 }  // namespace openamber_eebus
 }  // namespace esphome

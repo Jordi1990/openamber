@@ -22,10 +22,14 @@ namespace openamber_eebus {
 class LpcServer {
  public:
   using Dimmer = std::function<void(bool dim)>;
+  using LimitApplier = std::function<void(bool active, float limit_w)>;
+  using ChangeCallback = std::function<void(bool active, float limit_w)>;
 
   LpcServer() = default;
 
   void set_dimmer(Dimmer dimmer) { this->dimmer_ = std::move(dimmer); }
+  void set_limit_applier(LimitApplier applier) { this->limit_applier_ = std::move(applier); }
+  void set_change_callback(ChangeCallback cb) { this->change_cb_ = std::move(cb); }
 
   // WriteConsumptionLimit from the CEM.
   void write_limit(float value_w, bool active);
@@ -40,6 +44,8 @@ class LpcServer {
   bool limit_active_{false};
   float limit_value_w_{0.0f};
   Dimmer dimmer_;
+  LimitApplier limit_applier_;
+  ChangeCallback change_cb_;
 };
 
 }  // namespace openamber_eebus

@@ -81,7 +81,7 @@ void EebusWsDecoder::reset() {
 }
 
 bool EebusWsDecoder::feed(const std::vector<uint8_t> &bytes,
-                          std::vector<std::vector<uint8_t>> &out_frames) {
+                          std::vector<EebusWsFrame> &out_frames) {
   size_t pos = 0;
   while (pos < bytes.size()) {
     uint8_t byte = bytes[pos++];
@@ -91,7 +91,7 @@ bool EebusWsDecoder::feed(const std::vector<uint8_t> &bytes,
           this->fin = (byte & 0x80) != 0;
           this->opcode = byte & 0x0f;
           if (this->opcode == 0x8) {  // close
-            out_frames.push_back({0x08});
+            out_frames.push_back({0x08, {}});
             this->phase = Phase::DONE;
             return true;
           }
@@ -118,6 +118,10 @@ bool EebusWsDecoder::feed(const std::vector<uint8_t> &bytes,
           } else {
             this->phase = masked ? Phase::MASK : Phase::PAYLOAD;
             this->i = 0;
+            if (this->payload_len == 0 && !masked) {
+              out_frames.push_back({this->opcode, this->payload});
+              this->phase = Phase::HEADER;
+            }
           }
         }
         break;
@@ -141,8 +145,14 @@ bool EebusWsDecoder::feed(const std::vector<uint8_t> &bytes,
       case Phase::MASK: {
         this->mask[this->i++] = byte;
         if (this->i >= 4) {
-          this->phase = Phase::PAYLOAD;
-          this->i = 0;
+          if (this->payload_len == 0) {
+            out_frames.push_back({this->opcode, this->payload});
+            this->phase = Phase::HEADER;
+            this->i = 0;
+          } else {
+            this->phase = Phase::PAYLOAD;
+            this->i = 0;
+          }
         }
         break;
       }
@@ -150,7 +160,7 @@ bool EebusWsDecoder::feed(const std::vector<uint8_t> &bytes,
         // apply mask
         this->payload.push_back(byte ^ this->mask[(this->i++) & 3]);
         if (this->i >= this->payload_len) {
-          out_frames.push_back(this->payload);
+          out_frames.push_back({this->opcode, this->payload});
           this->phase = Phase::HEADER;
           this->i = 0;
         }

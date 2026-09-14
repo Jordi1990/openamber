@@ -28,6 +28,11 @@ bool eebus_websocket_server_response(const std::string &client_request, std::str
 void eebus_websocket_encode_server_frame(uint8_t opcode, const std::vector<uint8_t> &payload,
                                          std::vector<uint8_t> &frame_out);
 
+struct EebusWsFrame {
+  uint8_t opcode{0};
+  std::vector<uint8_t> payload;
+};
+
 // Holds an incremental client->server frame decode state (masked frames).
 struct EebusWsDecoder {
   // State
@@ -39,10 +44,9 @@ struct EebusWsDecoder {
   std::vector<uint8_t> payload;
   bool fin{false};
 
-  // Feed raw TCP bytes; appends any completed frame payload to `out_frames`
-  // (each entry = one decoded payload, with SHIP msg-type byte first).
+  // Feed raw TCP bytes; appends completed frames (opcode + payload) to `out_frames`.
   // Returns false on protocol error.
-  bool feed(const std::vector<uint8_t> &bytes, std::vector<std::vector<uint8_t>> &out_frames);
+  bool feed(const std::vector<uint8_t> &bytes, std::vector<EebusWsFrame> &out_frames);
   void reset();
 };
 

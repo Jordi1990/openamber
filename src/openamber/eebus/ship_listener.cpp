@@ -18,6 +18,7 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/semphr.h"
 #include "lwip/sockets.h"
 #include "lwip/netdb.h"
 #include "errno.h"
@@ -82,6 +83,11 @@ static const uint32_t kShipTaskStackBytes = 32 * 1024;
 static void ship_accept_task(void *arg);
 
 void EEBusShipListener::teardown() {
+  this->is_connected_ = false;
+  if (this->queue_mutex_ != nullptr) {
+    vSemaphoreDelete(static_cast<SemaphoreHandle_t>(this->queue_mutex_));
+    this->queue_mutex_ = nullptr;
+  }
   if (this->ssl_ready_) {
     mbedtls_ssl_free(&this->ssl_);
     this->ssl_ready_ = false;
@@ -98,6 +104,9 @@ void EEBusShipListener::teardown() {
 void EEBusShipListener::begin(const EEBusCertificateStore &cert, uint16_t port) {
   this->port_ = port ? port : kShipPort;
   active_listener = this;
+  if (this->queue_mutex_ == nullptr) {
+    this->queue_mutex_ = xSemaphoreCreateMutex();
+  }
 
   mbedtls_ssl_config_init(&this->ssl_conf_);
   mbedtls_x509_crt_init(&this->own_cert_);
@@ -219,6 +228,7 @@ static void ship_accept_task(void *arg) {
 
 void EEBusShipListener::handle_connection(int fd) {
   ESP_LOGI(TAG, "Accepted SHIP connection");
+  this->close_requested_ = false;
 
   // Set socket timeouts so TLS/WS reads can't block forever (evcc times out).
   struct timeval tv;
@@ -243,14 +253,15 @@ void EEBusShipListener::handle_connection(int fd) {
   }
   mbedtls_ssl_set_bio(&this->ssl_, &net, mbedtls_net_send, mbedtls_net_recv, nullptr);
 
-  int ret;
+  int ret = -1;
   mbedtls_ssl_context &ssl = this->ssl_;
-  for (int tries = 0; tries < 20; tries++) {
+  uint32_t hs_start = millis();
+  while (millis() - hs_start < 4000) {
     ret = mbedtls_ssl_handshake(&ssl);
     if (ret == 0)
       break;
     if (ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE) {
-      vTaskDelay(2);
+      vTaskDelay(pdMS_TO_TICKS(10));
       continue;
     }
     break;
@@ -295,45 +306,88 @@ void EEBusShipListener::handle_connection(int fd) {
   }
   ssl_write_all(&ssl, reinterpret_cast<const unsigned char *>(ws_resp.data()), ws_resp.size());
   ESP_LOGI(TAG, "WebSocket upgrade accepted");
+  this->is_connected_ = true;
+
+  // Short timeout so we can poll outbound_queue_
+  tv.tv_sec = 0;
+  tv.tv_usec = 100000;
+  setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 
   // Frame loop: read, decode WS frames, echo frame data to the handler.
   EebusWsDecoder decoder;
   std::vector<uint8_t> rbuf(4096);
   while (true) {
+    // 1. Drain outbound queue
+    if (this->queue_mutex_ != nullptr) {
+      std::vector<std::vector<uint8_t>> to_send;
+      if (xSemaphoreTake(static_cast<SemaphoreHandle_t>(this->queue_mutex_), pdMS_TO_TICKS(5)) == pdTRUE) {
+        to_send.swap(this->outbound_queue_);
+        xSemaphoreGive(static_cast<SemaphoreHandle_t>(this->queue_mutex_));
+      }
+      for (const auto &out_frame : to_send) {
+        if (!out_frame.empty()) {
+          if (!ssl_write_all(&ssl, out_frame.data(), out_frame.size())) {
+            ESP_LOGE(TAG, "Failed to send outbound queued frame (%u bytes)",
+                     static_cast<unsigned>(out_frame.size()));
+          } else {
+            ESP_LOGD(TAG, "Sent outbound queued frame (%u bytes)",
+                     static_cast<unsigned>(out_frame.size()));
+          }
+        }
+      }
+    }
+
     ret = mbedtls_ssl_read(&ssl, rbuf.data(), rbuf.size());
-    if (ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE) {
-      vTaskDelay(2);
+    if (this->close_requested_) {
+      break;
+    }
+    if (ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE ||
+        ret == MBEDTLS_ERR_SSL_TIMEOUT) {
+      vTaskDelay(pdMS_TO_TICKS(10));
       continue;
     }
     if (ret <= 0) {
-      ESP_LOGW(TAG, "WS read ended ret=%d phase=%d", ret, static_cast<int>(decoder.phase));
+      if (ret == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY) {
+        ESP_LOGI(TAG, "Peer closed TLS session cleanly (close_notify)");
+      } else {
+        ESP_LOGW(TAG, "WS read ended ret=%d phase=%d", ret, static_cast<int>(decoder.phase));
+      }
       break;
     }
-    // Log the raw bytes we just read (trimmed to a reasonable prefix).
-    {
-      std::string hex;
-      size_t n = static_cast<size_t>(ret) > 96 ? 96 : static_cast<size_t>(ret);
-      for (size_t i = 0; i < n; i++) {
-        char b[4];
-        snprintf(b, sizeof(b), "%02x ", rbuf[i]);
-        hex += b;
-      }
-      ESP_LOGI(TAG, "read ret=%d phase=%d before-feed hex: %s", ret,
-               static_cast<int>(decoder.phase), hex.c_str());
-    }
-    std::vector<std::vector<uint8_t>> frames;
+    // Log the raw bytes we just read only at verbose log level
+    ESP_LOGV(TAG, "read ret=%d phase=%d", ret, static_cast<int>(decoder.phase));
+
+    std::vector<EebusWsFrame> frames;
     std::vector<uint8_t> chunk(rbuf.begin(), rbuf.begin() + ret);
     if (!decoder.feed(chunk, frames)) {
       ESP_LOGW(TAG, "WS frame decode error");
       break;
     }
     for (auto &frame : frames) {
-      ESP_LOGI(TAG, "WS frame received (%u bytes)", static_cast<unsigned>(frame.size()));
+      if (frame.opcode == 0x9) {  // WebSocket PING
+        ESP_LOGD(TAG, "WebSocket PING received (%u bytes payload) -> sending PONG",
+                 static_cast<unsigned>(frame.payload.size()));
+        std::vector<uint8_t> pong;
+        eebus_websocket_encode_server_frame(0x0A /*Pong*/, frame.payload, pong);
+        if (ssl_write_all(&ssl, pong.data(), pong.size())) {
+          ESP_LOGD(TAG, "WebSocket PONG sent");
+        } else {
+          ESP_LOGE(TAG, "Failed to send WebSocket PONG");
+        }
+        continue;
+      }
+      if (frame.opcode == 0x8) {  // WebSocket CLOSE
+        ESP_LOGI(TAG, "WebSocket CLOSE received");
+        this->close_requested_ = true;
+        break;
+      }
+      ESP_LOGD(TAG, "WS frame received (opcode=0x%02x, %u bytes)",
+               frame.opcode, static_cast<unsigned>(frame.payload.size()));
       if (this->frame_handler_) {
-        std::vector<uint8_t> out = this->frame_handler_(frame);
+        std::vector<uint8_t> out = this->frame_handler_(frame.payload);
         if (!out.empty()) {
           if (ssl_write_all(&ssl, out.data(), out.size())) {
-            ESP_LOGI(TAG, "reply sent (%u bytes)", static_cast<unsigned>(out.size()));
+            ESP_LOGD(TAG, "reply sent (%u bytes)", static_cast<unsigned>(out.size()));
           } else {
             ESP_LOGE(TAG, "ssl_write_all failed (%u bytes)",
                      static_cast<unsigned>(out.size()));
@@ -341,12 +395,52 @@ void EEBusShipListener::handle_connection(int fd) {
         }
       }
     }
-    if (decoder.phase == EebusWsDecoder::Phase::DONE)
+    if (this->close_requested_ || decoder.phase == EebusWsDecoder::Phase::DONE)
       break;
   }
 
+  this->is_connected_ = false;
+  if (this->queue_mutex_ != nullptr) {
+    if (xSemaphoreTake(static_cast<SemaphoreHandle_t>(this->queue_mutex_), pdMS_TO_TICKS(50)) == pdTRUE) {
+      this->outbound_queue_.clear();
+      xSemaphoreGive(static_cast<SemaphoreHandle_t>(this->queue_mutex_));
+    }
+  }
   close(fd);
+  mbedtls_ssl_session_reset(&this->ssl_);
   ESP_LOGI(TAG, "SHIP connection closed");
+}
+
+bool EEBusShipListener::queue_outbound_frame(const std::vector<uint8_t> &ws_frame) {
+  if (!this->is_connected_ || this->queue_mutex_ == nullptr)
+    return false;
+  if (xSemaphoreTake(static_cast<SemaphoreHandle_t>(this->queue_mutex_), pdMS_TO_TICKS(50)) == pdTRUE) {
+    if (this->outbound_queue_.size() < 16) {
+      this->outbound_queue_.push_back(ws_frame);
+      xSemaphoreGive(static_cast<SemaphoreHandle_t>(this->queue_mutex_));
+      return true;
+    }
+    xSemaphoreGive(static_cast<SemaphoreHandle_t>(this->queue_mutex_));
+  }
+  return false;
+}
+
+bool EEBusShipListener::send_ship_data(const std::string &spine_json) {
+  if (!this->is_connected_)
+    return false;
+  std::vector<uint8_t> ship_payload = ship_data_frame(spine_json);
+  std::vector<uint8_t> ws_frame;
+  eebus_websocket_encode_server_frame(0x2 /*binary*/, ship_payload, ws_frame);
+  return this->queue_outbound_frame(ws_frame);
+}
+
+bool EEBusShipListener::send_ship_control(const std::string &control_json) {
+  if (!this->is_connected_)
+    return false;
+  std::vector<uint8_t> ship_payload = ship_control_frame(control_json);
+  std::vector<uint8_t> ws_frame;
+  eebus_websocket_encode_server_frame(0x2 /*binary*/, ship_payload, ws_frame);
+  return this->queue_outbound_frame(ws_frame);
 }
 
 }  // namespace openamber_eebus
