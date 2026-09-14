@@ -281,6 +281,7 @@
           root["xz"] = id(pump_p0_pid_kp).state;
           root["za"] = id(pump_p0_pid_ki).state;
           root["zb"] = id(pump_p0_pid_kd).state;
+          root["zc"] = id(pump_p0_pid_defrost_pwm).state;
 
 - id: send_telemetry_1
   then:

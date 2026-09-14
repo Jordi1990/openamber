@@ -110,6 +110,7 @@
     tab_index: int
   then:
     - lvgl.widget.hide: { id: sensor_calibration_pager }
+    - lvgl.widget.hide: { id: pump_p0_pid_pager }
     - if:
         condition:
           lambda: 'return tab_index == 0;'
@@ -352,6 +353,7 @@
   parameters:
     tab_index: int
   then:
+    - lvgl.widget.hide: { id: pump_p0_pid_pager }
     - if:
         condition:
           lambda: 'return tab_index == 0;'
@@ -644,6 +646,13 @@
               id: set_pump_pid_max_pwm_row
               opa: 100%
           - lvgl.widget.update:
+              id: set_pump_pid_defrost_pwm_row
+              state:
+                disabled: false
+          - lvgl.widget.update:
+              id: set_pump_pid_defrost_pwm_row
+              opa: 100%
+          - lvgl.widget.update:
               id: set_pump_heat_row
               state:
                 disabled: true
@@ -673,6 +682,13 @@
               id: set_pump_pid_max_pwm_row
               opa: 40%
           - lvgl.widget.update:
+              id: set_pump_pid_defrost_pwm_row
+              state:
+                disabled: true
+          - lvgl.widget.update:
+              id: set_pump_pid_defrost_pwm_row
+              opa: 40%
+          - lvgl.widget.update:
               id: set_pump_heat_row
               state:
                 disabled: false
@@ -680,12 +696,45 @@
               id: set_pump_heat_row
               opa: 100%
 
+- id: pump_p0_pid_select_page
+  mode: restart
+  parameters:
+    page: int
+  then:
+    - if:
+        condition:
+          lambda: 'return page == 1;'
+        then:
+          - lvgl.widget.show: { id: pump_p0_pid_page_1_row_enable }
+          - lvgl.widget.show: { id: set_pump_pid_target_delta_t_row }
+          - lvgl.widget.show: { id: set_pump_pid_min_pwm_row }
+          - lvgl.widget.hide: { id: set_pump_pid_max_pwm_row }
+          - lvgl.widget.hide: { id: set_pump_pid_defrost_pwm_row }
+          - lvgl.widget.update: { id: pump_p0_pid_page_1_button, bg_color: 0x1F3B68 }
+          - lvgl.label.update: { id: pump_p0_pid_page_1_button_lbl, text_color: 0xFFFFFF }
+          - lvgl.widget.update: { id: pump_p0_pid_page_2_button, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: pump_p0_pid_page_2_button_lbl, text_color: 0x4B5563 }
+          - lvgl.label.update: { id: pump_p0_pid_page_indicator, text: "Pagina 1 / 2" }
+        else:
+          - lvgl.widget.hide: { id: pump_p0_pid_page_1_row_enable }
+          - lvgl.widget.hide: { id: set_pump_pid_target_delta_t_row }
+          - lvgl.widget.hide: { id: set_pump_pid_min_pwm_row }
+          - lvgl.widget.show: { id: set_pump_pid_max_pwm_row }
+          - lvgl.widget.show: { id: set_pump_pid_defrost_pwm_row }
+          - lvgl.widget.update: { id: pump_p0_pid_page_1_button, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: pump_p0_pid_page_1_button_lbl, text_color: 0x4B5563 }
+          - lvgl.widget.update: { id: pump_p0_pid_page_2_button, bg_color: 0x1F3B68 }
+          - lvgl.label.update: { id: pump_p0_pid_page_2_button_lbl, text_color: 0xFFFFFF }
+          - lvgl.label.update: { id: pump_p0_pid_page_indicator, text: "Pagina 2 / 2" }
+
 - id: pump_select_tab
   mode: restart
   parameters:
     tab_index: int
   then:
     - script.execute: update_pump_pid_ui
+    - lvgl.widget.hide: { id: sensor_calibration_pager }
+    - lvgl.widget.hide: { id: pump_p0_pid_pager }
     - if:
         condition:
           lambda: 'return tab_index == 0;'
@@ -728,6 +777,10 @@
                       - lvgl.widget.hide: { id: panel_pump_page_pompsnelheid }
                       - lvgl.widget.show: { id: panel_pump_page_p0_pid }
                       - lvgl.widget.hide: { id: panel_frost }
+                      - lvgl.widget.show: { id: pump_p0_pid_pager }
+                      - script.execute:
+                          id: pump_p0_pid_select_page
+                          page: 1
                       - lvgl.widget.update: { id: pump_stab_algemeen, bg_color: 0xCBD5E1 }
                       - lvgl.label.update: { id: pump_stab_algemeen_lbl, text_color: 0x4B5563 }
                       - lvgl.widget.update: { id: pump_stab_pompsnelheid, bg_color: 0xCBD5E1 }

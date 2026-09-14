@@ -480,7 +480,12 @@ public:
       case DHWState::DEFROSTING:
         if (!id(defrost_active_sensor).state)
         {
-          SetNextState(DHWState::COMPRESSOR_RUNNING);
+          pump_controller_->ResetHeatingPidState();
+          LeaveStateAndSetNextStateAfterWaitTime(DHWState::COMPRESSOR_RUNNING, COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
+        }
+        else 
+        {
+          pump_controller_->ApplySpeedChangeIfNeeded(false);
         }
         break;
 
