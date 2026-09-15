@@ -1574,47 +1574,48 @@
         condition:
           lambda: 'return !lv_obj_has_flag(id(page_service), LV_OBJ_FLAG_HIDDEN);'
         then:
-          - lvgl.label.update:
-              id: service_diag_status_values
-              text:
-                format: "%s\n%s\n%s"
-                args:
-                  - 'id(state_machine_state_main).state.empty() ? "-" : id(state_machine_state_main).state.c_str()'
-                  - 'id(state_machine_state_heat_cool).state.empty() ? "-" : id(state_machine_state_heat_cool).state.c_str()'
-                  - 'id(state_machine_state_dhw).state.empty() ? "-" : id(state_machine_state_dhw).state.c_str()'
-          - lvgl.label.update:
-              id: service_diag_temp_values
-              text:
-                format: "%s / %s\n%s / %s\n%s / %s bar"
-                args:
-                  - 'id(temperature_outside_ta).has_state() ? str_sprintf("%.1f°C", id(temperature_outside_ta).state).c_str() : "-"'
-                  - 'id(heat_cool_control_temperature).has_state() ? str_sprintf("%.1f°C", id(heat_cool_control_temperature).state).c_str() : "-"'
-                  - 'id(outlet_temperature_tuo).has_state() ? str_sprintf("%.1f°C", id(outlet_temperature_tuo).state).c_str() : "-"'
-                  - 'id(inlet_temperature_tui).has_state() ? str_sprintf("%.1f°C", id(inlet_temperature_tui).state).c_str() : "-"'
-                  - 'id(suction_pressure_ps).has_state() ? str_sprintf("%.1f", id(suction_pressure_ps).state).c_str() : "-"'
-                  - 'id(discharge_pressure_pd).has_state() ? str_sprintf("%.1f", id(discharge_pressure_pd).state).c_str() : "-"'
-          - lvgl.label.update:
-              id: service_diag_control_values
-              text:
-                format: "%s\n%s\n%s\n%s"
-                args:
-                  - 'id(current_compressor_frequency).has_state() ? str_sprintf("%.0f Hz", id(current_compressor_frequency).state).c_str() : "- Hz"'
-                  - 'id(pump_p0_current_pwm_sensor).has_state() ? str_sprintf("%.0f %%", id(pump_p0_current_pwm_sensor).state).c_str() : "- %"'
-                  - 'id(fan_rpm_sensor).has_state() ? str_sprintf("%.0f rpm", id(fan_rpm_sensor).state).c_str() : "- rpm"'
-                  - 'id(expansion_valve_position).has_state() ? str_sprintf("%.0f %%", id(expansion_valve_position).state).c_str() : "- %"'
-          - lvgl.label.update:
-              id: service_diag_system_values
-              text:
-                format: "%s / %s\n%s\n%s\n%s / %s\n%s / %s"
-                args:
-                  - 'id(defrost_active_sensor).state ? "AAN" : "UIT"'
-                  - 'id(bottom_heater_active_sensor).state ? "AAN" : "UIT"'
-                  - 'id(modbus_inside_online).state ? "Online" : "Offline"'
-                  - 'id(modbus_outside_online).state ? "Online" : "Offline"'
-                  - 'id(sg_ready_a_active_sensor).state ? "AAN" : "UIT"'
-                  - 'id(sg_ready_b_active_sensor).state ? "AAN" : "UIT"'
-                  - 'id(external_heat_demand_wired).state ? "AAN" : "UIT"'
-                  - 'id(external_cool_demand_wired).state ? "AAN" : "UIT"'
+          - lambda: |-
+              if (id(service_diag_status_table) == nullptr ||
+                  id(service_diag_temp_table) == nullptr ||
+                  id(service_diag_control_table) == nullptr ||
+                  id(service_diag_system_table) == nullptr) return;
+
+              auto *st = id(service_diag_status_table)->obj;
+              lv_table_set_cell_value(st, 0, 1, id(state_machine_state_main).state.empty() ? "-" : id(state_machine_state_main).state.c_str());
+              lv_table_set_cell_value(st, 1, 1, id(state_machine_state_heat_cool).state.empty() ? "-" : id(state_machine_state_heat_cool).state.c_str());
+              lv_table_set_cell_value(st, 2, 1, id(state_machine_state_dhw).state.empty() ? "-" : id(state_machine_state_dhw).state.c_str());
+
+              auto *tt = id(service_diag_temp_table)->obj;
+              std::string ta_tc = str_sprintf("%s / %s",
+                id(temperature_outside_ta).has_state() ? str_sprintf("%.1f°C", id(temperature_outside_ta).state).c_str() : "-",
+                id(heat_cool_control_temperature).has_state() ? str_sprintf("%.1f°C", id(heat_cool_control_temperature).state).c_str() : "-");
+              lv_table_set_cell_value(tt, 0, 1, ta_tc.c_str());
+
+              std::string tuo_tui = str_sprintf("%s / %s",
+                id(outlet_temperature_tuo).has_state() ? str_sprintf("%.1f°C", id(outlet_temperature_tuo).state).c_str() : "-",
+                id(inlet_temperature_tui).has_state() ? str_sprintf("%.1f°C", id(inlet_temperature_tui).state).c_str() : "-");
+              lv_table_set_cell_value(tt, 1, 1, tuo_tui.c_str());
+
+              std::string ps_pd = str_sprintf("%s / %s bar",
+                id(suction_pressure_ps).has_state() ? str_sprintf("%.1f", id(suction_pressure_ps).state).c_str() : "-",
+                id(discharge_pressure_pd).has_state() ? str_sprintf("%.1f", id(discharge_pressure_pd).state).c_str() : "-");
+              lv_table_set_cell_value(tt, 2, 1, ps_pd.c_str());
+
+              auto *ct = id(service_diag_control_table)->obj;
+              lv_table_set_cell_value(ct, 0, 1, id(current_compressor_frequency).has_state() ? str_sprintf("%.0f Hz", id(current_compressor_frequency).state).c_str() : "- Hz");
+              lv_table_set_cell_value(ct, 1, 1, id(pump_p0_current_pwm_sensor).has_state() ? str_sprintf("%.0f %%", id(pump_p0_current_pwm_sensor).state).c_str() : "- %");
+              lv_table_set_cell_value(ct, 2, 1, id(fan_rpm_sensor).has_state() ? str_sprintf("%.0f rpm", id(fan_rpm_sensor).state).c_str() : "- rpm");
+              lv_table_set_cell_value(ct, 3, 1, id(expansion_valve_position).has_state() ? str_sprintf("%.0f %%", id(expansion_valve_position).state).c_str() : "- %");
+
+              auto *sy = id(service_diag_system_table)->obj;
+              std::string def_bot = str_sprintf("%s / %s", id(defrost_active_sensor).state ? "AAN" : "UIT", id(bottom_heater_active_sensor).state ? "AAN" : "UIT");
+              lv_table_set_cell_value(sy, 0, 1, def_bot.c_str());
+              lv_table_set_cell_value(sy, 1, 1, id(modbus_inside_online).state ? "Online" : "Offline");
+              lv_table_set_cell_value(sy, 2, 1, id(modbus_outside_online).state ? "Online" : "Offline");
+              std::string sg_ab = str_sprintf("%s / %s", id(sg_ready_a_active_sensor).state ? "AAN" : "UIT", id(sg_ready_b_active_sensor).state ? "AAN" : "UIT");
+              lv_table_set_cell_value(sy, 3, 1, sg_ab.c_str());
+              std::string dem_hc = str_sprintf("%s / %s", id(external_heat_demand_wired).state ? "AAN" : "UIT", id(external_cool_demand_wired).state ? "AAN" : "UIT");
+              lv_table_set_cell_value(sy, 4, 1, dem_hc.c_str());
 
 - id: update_system_diagnostics_ui
   mode: restart
@@ -1623,65 +1624,36 @@
         condition:
           lambda: 'return !lv_obj_has_flag(id(page_system), LV_OBJ_FLAG_HIDDEN);'
         then:
-          - if:
-              condition:
-                lambda: 'return id(sensor_uptime).has_state();'
-              then:
-                - if:
-                    condition:
-                      lambda: 'return (static_cast<uint32_t>(id(sensor_uptime).state) / 60U) >= 1440U;'
-                    then:
-                      - lvgl.label.update:
-                          id: system_diag_runtime_values
-                          text:
-                            format: "%s\n%lu d %lu u"
-                            args:
-                              - 'ESPHOME_VERSION'
-                              - '(static_cast<uint32_t>(id(sensor_uptime).state) / 60U) / 1440U'
-                              - '((static_cast<uint32_t>(id(sensor_uptime).state) / 60U) / 60U) % 24U'
-                    else:
-                      - if:
-                          condition:
-                            lambda: 'return (static_cast<uint32_t>(id(sensor_uptime).state) / 60U) >= 60U;'
-                          then:
-                            - lvgl.label.update:
-                                id: system_diag_runtime_values
-                                text:
-                                  format: "%s\n%lu u %lu m"
-                                  args:
-                                    - 'ESPHOME_VERSION'
-                                    - '(static_cast<uint32_t>(id(sensor_uptime).state) / 60U) / 60U'
-                                    - '(static_cast<uint32_t>(id(sensor_uptime).state) / 60U) % 60U'
-                          else:
-                            - lvgl.label.update:
-                                id: system_diag_runtime_values
-                                text:
-                                  format: "%s\n%lu m"
-                                  args:
-                                    - 'ESPHOME_VERSION'
-                                    - 'static_cast<uint32_t>(id(sensor_uptime).state) / 60U'
-              else:
-                - lvgl.label.update:
-                    id: system_diag_runtime_values
-                    text:
-                      format: "%s\n-"
-                      args: ['ESPHOME_VERSION']
-          - lvgl.label.update:
-              id: system_diag_memory_values
-              text:
-                format: "%s\n%s\n%s\n%s"
-                args:
-                  - 'id(system_heap_free).has_state() ? str_sprintf("%.0f kB", id(system_heap_free).state / 1024.0f).c_str() : "-"'
-                  - 'id(system_heap_fragmentation).has_state() ? str_sprintf("%.0f %%", id(system_heap_fragmentation).state).c_str() : "-"'
-                  - 'id(system_heap_max_block).has_state() ? str_sprintf("%.0f kB", id(system_heap_max_block).state / 1024.0f).c_str() : "-"'
-                  - 'id(system_psram_free).has_state() ? str_sprintf("%.0f kB", id(system_psram_free).state / 1024.0f).c_str() : "-"'
-          - lvgl.label.update:
-              id: system_diag_esp_values
-              text:
-                format: "%s\n%s"
-                args:
-                  - 'id(system_debug_device_info).state.empty() ? "-" : id(system_debug_device_info).state.c_str()'
-                  - 'id(system_debug_reset_reason).state.empty() ? "-" : id(system_debug_reset_reason).state.c_str()'
+          - lambda: |-
+              if (id(system_diag_runtime_table) == nullptr ||
+                  id(system_diag_memory_table) == nullptr ||
+                  id(system_diag_esp_table) == nullptr) return;
+
+              auto *rt = id(system_diag_runtime_table)->obj;
+              lv_table_set_cell_value(rt, 0, 1, ESPHOME_VERSION);
+              if (id(sensor_uptime).has_state()) {
+                uint32_t mins = static_cast<uint32_t>(id(sensor_uptime).state) / 60U;
+                if (mins >= 1440U) {
+                  lv_table_set_cell_value(rt, 1, 1, str_sprintf("%lu d %lu u", mins / 1440U, (mins / 60U) % 24U).c_str());
+                } else if (mins >= 60U) {
+                  lv_table_set_cell_value(rt, 1, 1, str_sprintf("%lu u %lu m", mins / 60U, mins % 60U).c_str());
+                } else {
+                  lv_table_set_cell_value(rt, 1, 1, str_sprintf("%lu m", mins).c_str());
+                }
+              } else {
+                lv_table_set_cell_value(rt, 1, 1, "-");
+              }
+
+              auto *mt = id(system_diag_memory_table)->obj;
+              lv_table_set_cell_value(mt, 0, 1, id(system_heap_free).has_state() ? str_sprintf("%.0f kB", id(system_heap_free).state / 1024.0f).c_str() : "-");
+              lv_table_set_cell_value(mt, 1, 1, id(system_heap_fragmentation).has_state() ? str_sprintf("%.0f %%", id(system_heap_fragmentation).state).c_str() : "-");
+              lv_table_set_cell_value(mt, 2, 1, id(system_heap_max_block).has_state() ? str_sprintf("%.0f kB", id(system_heap_max_block).state / 1024.0f).c_str() : "-");
+              lv_table_set_cell_value(mt, 3, 1, id(system_psram_free).has_state() ? str_sprintf("%.0f kB", id(system_psram_free).state / 1024.0f).c_str() : "-");
+
+              auto *et = id(system_diag_esp_table)->obj;
+              lv_table_set_cell_value(et, 0, 1, id(system_debug_device_info).state.empty() ? "-" : id(system_debug_device_info).state.c_str());
+              lv_table_set_cell_value(et, 1, 1, id(system_debug_reset_reason).state.empty() ? "-" : id(system_debug_reset_reason).state.c_str());
+
 
 - id: update_firmware_ui
   mode: restart
@@ -1848,14 +1820,7 @@
   mode: restart
   then:
     - lambda: |-
-        if (id(service_errors_status) == nullptr ||
-            id(service_errors_code_title) == nullptr ||
-            id(service_errors_explanation_value) == nullptr ||
-            id(service_errors_reset_timeout_btn) == nullptr ||
-            id(service_errors_counter) == nullptr ||
-            id(service_errors_nav_row) == nullptr ||
-            id(service_errors_prev_btn) == nullptr ||
-            id(service_errors_next_btn) == nullptr) {
+        if (id(service_errors_list) == nullptr) {
           return;
         }
         if (lv_obj_has_flag(id(page_service), LV_OBJ_FLAG_HIDDEN)) {
@@ -1901,15 +1866,6 @@
           {"F18 - Storing sensor condensortemperatuur Tup", "Storing sensor condensortemperatuur Tup.", id(error_flag_f18).state}
         };
 
-        const int total = sizeof(items) / sizeof(items[0]);
-        int active_indices[total];
-        int active_count = 0;
-        for (int i = 0; i < total; i++) {
-          if (items[i].active) {
-            active_indices[active_count++] = i;
-          }
-        }
-
         const bool timeout_error_active =
             id(error_pump_start_timeout).state ||
             id(error_compressor_start_timeout).state ||
@@ -1917,57 +1873,32 @@
             id(error_modbus_connection_timeout).state ||
             id(error_three_way_valve_state_timeout).state;
 
-        if (timeout_error_active) lv_obj_clear_flag(id(service_errors_reset_timeout_btn), LV_OBJ_FLAG_HIDDEN);
-        else lv_obj_add_flag(id(service_errors_reset_timeout_btn), LV_OBJ_FLAG_HIDDEN);
-
-        if (active_count == 0) {
-          id(service_error_page_index) = 0;
-          lv_label_set_text(id(service_errors_status), "Geen actieve foutmeldingen");
-          lv_label_set_text(id(service_errors_code_title), "");
-          lv_label_set_text(id(service_errors_explanation_value), "");
-          lv_label_set_text(id(service_errors_counter), "");
-          lv_obj_add_flag(id(service_errors_nav_row), LV_OBJ_FLAG_HIDDEN);
-          return;
+        if (id(service_errors_reset_timeout_btn) != nullptr) {
+          if (timeout_error_active) lv_obj_clear_flag(id(service_errors_reset_timeout_btn), LV_OBJ_FLAG_HIDDEN);
+          else lv_obj_add_flag(id(service_errors_reset_timeout_btn), LV_OBJ_FLAG_HIDDEN);
         }
 
-        lv_obj_clear_flag(id(service_errors_nav_row), LV_OBJ_FLAG_HIDDEN);
-
-        int index = id(service_error_page_index);
-        if (index < 0) index = 0;
-        if (index >= active_count) index = active_count - 1;
-        id(service_error_page_index) = index;
-
-        const AlertItem &item = items[active_indices[index]];
-        std::string status = "Actieve foutmelding " + std::to_string(index + 1) + " van " + std::to_string(active_count);
-        std::string counter = std::to_string(index + 1) + "/" + std::to_string(active_count);
-
-        lv_label_set_text(id(service_errors_status), status.c_str());
-        lv_label_set_text(id(service_errors_code_title), item.title);
-        lv_label_set_text(id(service_errors_explanation_value), item.explanation);
-        lv_label_set_text(id(service_errors_counter), counter.c_str());
-
-        if (index > 0) lv_obj_clear_flag(id(service_errors_prev_btn), LV_OBJ_FLAG_HIDDEN);
-        else lv_obj_add_flag(id(service_errors_prev_btn), LV_OBJ_FLAG_HIDDEN);
-
-        if (index < (active_count - 1)) lv_obj_clear_flag(id(service_errors_next_btn), LV_OBJ_FLAG_HIDDEN);
-        else lv_obj_add_flag(id(service_errors_next_btn), LV_OBJ_FLAG_HIDDEN);
+        if (id(service_errors_list) == nullptr) return;
+        lv_obj_clean(id(service_errors_list));
+        int active_count = 0;
+        const int total = sizeof(items) / sizeof(items[0]);
+        for (int i = 0; i < total; i++) {
+          if (items[i].active) {
+            active_count++;
+            std::string entry = std::string(items[i].title) + "\n" + items[i].explanation;
+            lv_list_add_text(id(service_errors_list), entry.c_str());
+          }
+        }
+        if (active_count == 0) {
+          lv_list_add_text(id(service_errors_list), "Geen actieve foutmeldingen");
+        }
 
 - id: update_service_warnings_ui
   mode: restart
   then:
     - lambda: |-
-        if (id(service_warnings_status) == nullptr ||
-            id(service_warnings_code_title) == nullptr ||
-            id(service_warnings_explanation_value) == nullptr ||
-            id(service_warnings_counter) == nullptr ||
-            id(service_warnings_nav_row) == nullptr ||
-            id(service_warnings_prev_btn) == nullptr ||
-            id(service_warnings_next_btn) == nullptr) {
-          return;
-        }
-        if (lv_obj_has_flag(id(page_service), LV_OBJ_FLAG_HIDDEN)) {
-          return;
-        }
+        if (id(service_warnings_list) == nullptr) return;
+        if (lv_obj_has_flag(id(page_service), LV_OBJ_FLAG_HIDDEN)) return;
 
         struct AlertItem {
           const char *title;
@@ -1986,74 +1917,19 @@
           {"P13 - Storing compressor - laag drukverschil", "Toerental compressor wordt verlaagd. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart.", id(error_flag_p13).state}
         };
 
-        const int total = sizeof(items) / sizeof(items[0]);
-        int active_indices[8];
+        lv_obj_clean(id(service_warnings_list));
         int active_count = 0;
+        const int total = sizeof(items) / sizeof(items[0]);
         for (int i = 0; i < total; i++) {
           if (items[i].active) {
-            active_indices[active_count++] = i;
+            active_count++;
+            std::string entry = std::string(items[i].title) + "\n" + items[i].explanation;
+            lv_list_add_text(id(service_warnings_list), entry.c_str());
           }
         }
-
         if (active_count == 0) {
-          id(service_warning_page_index) = 0;
-          lv_label_set_text(id(service_warnings_status), "Geen actieve waarschuwingen");
-          lv_label_set_text(id(service_warnings_code_title), "");
-          lv_label_set_text(id(service_warnings_explanation_value), "");
-          lv_label_set_text(id(service_warnings_counter), "");
-          lv_obj_add_flag(id(service_warnings_nav_row), LV_OBJ_FLAG_HIDDEN);
-          return;
+          lv_list_add_text(id(service_warnings_list), "Geen actieve waarschuwingen");
         }
-
-        lv_obj_clear_flag(id(service_warnings_nav_row), LV_OBJ_FLAG_HIDDEN);
-
-        int index = id(service_warning_page_index);
-        if (index < 0) index = 0;
-        if (index >= active_count) index = active_count - 1;
-        id(service_warning_page_index) = index;
-
-        const AlertItem &item = items[active_indices[index]];
-        std::string status = "Actieve waarschuwing " + std::to_string(index + 1) + " van " + std::to_string(active_count);
-        std::string counter = std::to_string(index + 1) + "/" + std::to_string(active_count);
-
-        lv_label_set_text(id(service_warnings_status), status.c_str());
-        lv_label_set_text(id(service_warnings_code_title), item.title);
-        lv_label_set_text(id(service_warnings_explanation_value), item.explanation);
-        lv_label_set_text(id(service_warnings_counter), counter.c_str());
-
-        if (index > 0) lv_obj_clear_flag(id(service_warnings_prev_btn), LV_OBJ_FLAG_HIDDEN);
-        else lv_obj_add_flag(id(service_warnings_prev_btn), LV_OBJ_FLAG_HIDDEN);
-
-        if (index < (active_count - 1)) lv_obj_clear_flag(id(service_warnings_next_btn), LV_OBJ_FLAG_HIDDEN);
-        else lv_obj_add_flag(id(service_warnings_next_btn), LV_OBJ_FLAG_HIDDEN);
-
-- id: service_errors_prev_item
-  mode: restart
-  then:
-    - lambda: |-
-        id(service_error_page_index)--;
-    - script.execute: update_service_errors_ui
-
-- id: service_errors_next_item
-  mode: restart
-  then:
-    - lambda: |-
-        id(service_error_page_index)++;
-    - script.execute: update_service_errors_ui
-
-- id: service_warnings_prev_item
-  mode: restart
-  then:
-    - lambda: |-
-        id(service_warning_page_index)--;
-    - script.execute: update_service_warnings_ui
-
-- id: service_warnings_next_item
-  mode: restart
-  then:
-    - lambda: |-
-        id(service_warning_page_index)++;
-    - script.execute: update_service_warnings_ui
 
 - id: update_service_deaeration_ui
   mode: restart
@@ -2864,15 +2740,13 @@
         condition:
           lambda: 'return !lv_obj_has_flag(id(page_settings), LV_OBJ_FLAG_HIDDEN);'
         then:
-          - lvgl.label.update:
-              id: wifi_connected_values_label
-              text:
-                format: "%s\n%s\n%s\n%s"
-                args:
-                  - 'id(wifi_ssid_ui).state.empty() ? "-" : id(wifi_ssid_ui).state.c_str()'
-                  - 'id(wifi_ip_ui).state.empty() ? "-" : id(wifi_ip_ui).state.c_str()'
-                  - 'id(wifi_mac_ui).state.empty() ? "-" : id(wifi_mac_ui).state.c_str()'
-                  - 'isnan(id(wifi_signal_db).state) ? "Geen signaal" : str_sprintf("%.0f dBm", id(wifi_signal_db).state).c_str()'
+          - lambda: |-
+              if (id(wifi_connected_details_table) == nullptr) return;
+              auto *wt = id(wifi_connected_details_table)->obj;
+              lv_table_set_cell_value(wt, 0, 1, id(wifi_ssid_ui).state.empty() ? "-" : id(wifi_ssid_ui).state.c_str());
+              lv_table_set_cell_value(wt, 1, 1, id(wifi_ip_ui).state.empty() ? "-" : id(wifi_ip_ui).state.c_str());
+              lv_table_set_cell_value(wt, 2, 1, id(wifi_mac_ui).state.empty() ? "-" : id(wifi_mac_ui).state.c_str());
+              lv_table_set_cell_value(wt, 3, 1, isnan(id(wifi_signal_db).state) ? "Geen signaal" : str_sprintf("%.0f dBm", id(wifi_signal_db).state).c_str());
 
 - id: wifi_connect_selected
   then:
@@ -2894,9 +2768,15 @@
     - lambda: |-
         wifi::global_wifi_component->save_wifi_sta("", "");
         wifi::global_wifi_component->clear_sta();
+        if (id(wifi_connected_details_table) != nullptr) {
+          auto *wt = id(wifi_connected_details_table)->obj;
+          lv_table_set_cell_value(wt, 0, 1, "-");
+          lv_table_set_cell_value(wt, 1, 1, "-");
+          lv_table_set_cell_value(wt, 2, 1, "-");
+          lv_table_set_cell_value(wt, 3, 1, "-");
+        }
     - lvgl.label.update: { id: wifi_status_label, text: "Niet verbonden" }
     - lvgl.widget.update: { id: wifi_status_label, text_color: 0xEF4444 }
-    - lvgl.label.update: { id: wifi_connected_values_label, text: "-\n-\n-\n-" }
     - lvgl.label.update: { id: nav_status_wifi_icon, text: "\U000F092E" }
     - lvgl.widget.update: { id: nav_status_wifi_icon, text_color: 0x9CA3AF }
     - lvgl.widget.hide: { id: wifi_connected_section }

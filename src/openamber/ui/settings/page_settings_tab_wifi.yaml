@@ -1,4 +1,4 @@
-﻿# Panel: WiFi
+# Panel: WiFi
 # ------------------------------------------------------------
 obj:
     id: panel_wifi
@@ -61,17 +61,30 @@ obj:
                 border_opa: 0%
                 pad_all: 6
                 widgets:
-                  - label:
-                      text: "Netwerk (SSID)\nIP adres\nMAC adres\nSignaalsterkte"
-                      text_color: 0x1F2933
-                      text_font: font_text_24
-                      align: TOP_LEFT
-                  - label:
-                      id: wifi_connected_values_label
-                      text: "-\n-\n-\n-"
-                      text_color: 0x6B7280
-                      text_font: font_text_24
-                      align: TOP_RIGHT
+                  - table:
+                      id: wifi_connected_details_table
+                      width: 100%
+                      bg_opa: 0%
+                      border_width: 0
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      items:
+                        text_font: font_text_20
+                        text_color: 0x1F2933
+                        border_width: 0
+                        bg_opa: 0%
+                        pad_top: 4
+                        pad_bottom: 4
+                        pad_left: 0
+                        pad_right: 0
+                      columns:
+                        - width: 44%
+                        - width: 56%
+                      rows:
+                        - ["Netwerk (SSID)", "-"]
+                        - ["IP adres", "-"]
+                        - ["MAC adres", "-"]
+                        - ["Signaalsterkte", "-"]
 
             # Verbinding verbreken knop
             - obj:
