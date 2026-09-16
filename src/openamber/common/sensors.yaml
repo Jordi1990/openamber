@@ -1017,7 +1017,7 @@
 
 - platform: modbus_controller
   id: model_identification_1
-  modbus_controller_id: modbus_outside_unit_slow
+  modbus_controller_id: modbus_outside_unit
   internal: True
   address: 3257
   register_type: holding
@@ -1025,7 +1025,7 @@
 
 - platform: modbus_controller
   id: model_identification_2
-  modbus_controller_id: modbus_outside_unit_slow
+  modbus_controller_id: modbus_outside_unit
   internal: True
   address: 3300
   register_type: holding
@@ -1033,7 +1033,7 @@
 
 - platform: modbus_controller
   id: model_identification_3
-  modbus_controller_id: modbus_outside_unit_slow
+  modbus_controller_id: modbus_outside_unit
   internal: True
   address: 3343
   register_type: holding
@@ -1042,7 +1042,7 @@
 - platform: modbus_controller
   id: outside_unit_eeprom_version_part2
   internal: True
-  modbus_controller_id: modbus_outside_unit_slow
+  modbus_controller_id: modbus_outside_unit
   address: 3509
   register_type: holding
   value_type: S_WORD
@@ -1050,7 +1050,7 @@
 - platform: modbus_controller
   id: outside_unit_eeprom_version_part1
   internal: True
-  modbus_controller_id: modbus_outside_unit_slow
+  modbus_controller_id: modbus_outside_unit
   address: 3510
   register_type: holding
   value_type: S_WORD
