@@ -5,6 +5,8 @@
 
 #pragma once
 
+#ifdef USE_HOST
+
 #include "esphome/core/component.h"
 #include <string>
 
@@ -41,3 +43,6 @@ class OpenAmberComponent : public PollingComponent {
 
 }  // namespace openamber
 }  // namespace esphome
+
+#endif
+
