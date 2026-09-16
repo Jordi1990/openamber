@@ -32,8 +32,29 @@ obj:
         scrollable: false
         widgets:
           - label: { text: "Runtime", text_color: 0x111827, text_font: font_text_20, align: TOP_LEFT }
-          - label: { width: 42%, text: "ESPHome\nUptime", text_color: 0x6B7280, text_font: font_text_20, long_mode: WRAP, align: TOP_LEFT, y: 30 }
-          - label: { id: system_diag_runtime_values, width: 56%, text: "-\n-", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: WRAP, align: TOP_RIGHT, y: 30 }
+          - table:
+              id: system_diag_runtime_table
+              width: 100%
+              y: 28
+              bg_opa: 0%
+              border_width: 0
+              scrollbar_mode: "OFF"
+              scrollable: false
+              items:
+                text_font: font_text_20
+                text_color: 0x1F2933
+                border_width: 0
+                bg_opa: 0%
+                pad_top: 2
+                pad_bottom: 2
+                pad_left: 0
+                pad_right: 0
+              columns:
+                - width: 44%
+                - width: 56%
+              rows:
+                - ["ESPHome", "-"]
+                - ["Uptime", "-"]
 
     - obj:
         width: 100%
@@ -49,8 +70,31 @@ obj:
         scrollable: false
         widgets:
           - label: { text: "Geheugen", text_color: 0x111827, text_font: font_text_20, align: TOP_LEFT }
-          - label: { width: 42%, text: "Heap vrij\nHeap frag.\nHeap max\nPSRAM vrij", text_color: 0x6B7280, text_font: font_text_20, long_mode: WRAP, align: TOP_LEFT, y: 30 }
-          - label: { id: system_diag_memory_values, width: 56%, text: "-\n-\n-\n-", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: WRAP, align: TOP_RIGHT, y: 30 }
+          - table:
+              id: system_diag_memory_table
+              width: 100%
+              y: 28
+              bg_opa: 0%
+              border_width: 0
+              scrollbar_mode: "OFF"
+              scrollable: false
+              items:
+                text_font: font_text_20
+                text_color: 0x1F2933
+                border_width: 0
+                bg_opa: 0%
+                pad_top: 2
+                pad_bottom: 2
+                pad_left: 0
+                pad_right: 0
+              columns:
+                - width: 44%
+                - width: 56%
+              rows:
+                - ["Heap vrij", "-"]
+                - ["Heap frag.", "-"]
+                - ["Heap max", "-"]
+                - ["PSRAM vrij", "-"]
 
     - obj:
         width: 100%
@@ -66,5 +110,27 @@ obj:
         scrollable: false
         widgets:
           - label: { text: "ESP", text_color: 0x111827, text_font: font_text_20, align: TOP_LEFT }
-          - label: { width: 42%, text: "Chip\nReset reason", text_color: 0x6B7280, text_font: font_text_20, long_mode: WRAP, align: TOP_LEFT, y: 30 }
-          - label: { id: system_diag_esp_values, width: 56%, text: "-\n-", text_color: 0x1F2933, text_font: font_text_20, text_align: RIGHT, long_mode: WRAP, align: TOP_RIGHT, y: 30 }
+          - table:
+              id: system_diag_esp_table
+              width: 100%
+              y: 28
+              bg_opa: 0%
+              border_width: 0
+              scrollbar_mode: "OFF"
+              scrollable: false
+              items:
+                text_font: font_text_20
+                text_color: 0x1F2933
+                border_width: 0
+                bg_opa: 0%
+                pad_top: 2
+                pad_bottom: 2
+                pad_left: 0
+                pad_right: 0
+              columns:
+                - width: 44%
+                - width: 56%
+              rows:
+                - ["Chip", "-"]
+                - ["Reset reason", "-"]
+

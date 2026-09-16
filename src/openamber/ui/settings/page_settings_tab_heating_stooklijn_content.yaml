@@ -1,4 +1,4 @@
-﻿- label: { id: set_heat_curve_title, text: "Stooklijn", text_color: 0x1F2933, text_font: font_text_24, x: 6 }
+- label: { id: set_heat_curve_title, text: "Stooklijn", text_color: 0x1F2933, text_font: font_text_24, x: 6 }
 
 - obj:
     id: set_heat_curve_chart_container
@@ -49,16 +49,11 @@
           line_color: 0x1F3B68
           line_rounded: true
           points:
-            - x: 0
-              y: !lambda 'return (lv_coord_t)id(hc_y_m10);'
-            - x: 155
-              y: !lambda 'return (lv_coord_t)id(hc_y_0);'
-            - x: 310
-              y: !lambda 'return (lv_coord_t)id(hc_y_p5);'
-            - x: 465
-              y: !lambda 'return (lv_coord_t)id(hc_y_p10);'
-            - x: 620
-              y: !lambda 'return (lv_coord_t)id(hc_y_p15);'
+            - 0, 60
+            - 155, 60
+            - 310, 60
+            - 465, 60
+            - 620, 60
       
 
 - obj:
