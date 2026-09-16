@@ -242,6 +242,7 @@
   name: "SG-Ready A"
   address: 1211
   register_type: holding
+  reuse_previous_range: true
   device_class: running
   web_server: 
     sorting_group_id: diagnostic
@@ -285,6 +286,7 @@
   name: "SG-Ready B"
   address: 1220
   register_type: holding
+  reuse_previous_range: true
   device_class: running
   web_server: 
     sorting_group_id: diagnostic
@@ -343,7 +345,6 @@
   register_type: holding
   address: 2108
   bitmask: 0x1
-
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   name: "Bodemplaat verwarming"

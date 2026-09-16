@@ -60,11 +60,18 @@
 - id: !extend heat_mode_select
   on_value:
     then:
-      - lvgl.dropdown.update:
-          id: set_heat_mode_dd
-          selected_index: !lambda |-
-            auto idx = id(heat_mode_select).active_index();
-            return idx.has_value() ? idx.value() : 0;
+      - if:
+          condition:
+            lambda: |-
+              auto idx = id(heat_mode_select).active_index();
+              if (!idx.has_value()) return false;
+              return lv_dropdown_get_selected(id(set_heat_mode_dd)->obj) != (uint16_t) idx.value();
+          then:
+            - lvgl.dropdown.update:
+                id: set_heat_mode_dd
+                selected_index: !lambda |-
+                  auto idx = id(heat_mode_select).active_index();
+                  return idx.has_value() ? idx.value() : 0;
       - script.execute: update_manual_setpoint_ui
       - if:
           condition:
@@ -101,50 +108,85 @@
 - id: !extend backup_heating_mode
   on_value:
     then:
-      - lvgl.dropdown.update:
-          id: set_backup_heating_mode_dd
-          selected_index: !lambda |-
-            auto idx = id(backup_heating_mode).active_index();
-            return idx.has_value() ? idx.value() : 0;
+      - if:
+          condition:
+            lambda: |-
+              auto idx = id(backup_heating_mode).active_index();
+              if (!idx.has_value()) return false;
+              return lv_dropdown_get_selected(id(set_backup_heating_mode_dd)->obj) != (uint16_t) idx.value();
+          then:
+            - lvgl.dropdown.update:
+                id: set_backup_heating_mode_dd
+                selected_index: !lambda |-
+                  auto idx = id(backup_heating_mode).active_index();
+                  return idx.has_value() ? idx.value() : 0;
 
 # ── Settings: Bottomplate mode dropdown ──
 - id: !extend bottomplate_heater_mode
   on_value:
     then:
-      - lvgl.dropdown.update:
-          id: set_bottomplate_mode_dd
-          selected_index: !lambda |-
-            auto idx = id(bottomplate_heater_mode).active_index();
-            return idx.has_value() ? idx.value() : 0;
+      - if:
+          condition:
+            lambda: |-
+              auto idx = id(bottomplate_heater_mode).active_index();
+              if (!idx.has_value()) return false;
+              return lv_dropdown_get_selected(id(set_bottomplate_mode_dd)->obj) != (uint16_t) idx.value();
+          then:
+            - lvgl.dropdown.update:
+                id: set_bottomplate_mode_dd
+                selected_index: !lambda |-
+                  auto idx = id(bottomplate_heater_mode).active_index();
+                  return idx.has_value() ? idx.value() : 0;
       - script.execute: update_bottomplate_mode_ui
 
 # ── Settings: Heat power dropdown ──
 - id: !extend heat_compressor_mode
   on_value:
     then:
-      - lvgl.dropdown.update:
-          id: set_heat_power_dd
-          selected_index: !lambda |-
-            auto idx = id(heat_compressor_mode).active_index();
-            return idx.has_value() ? idx.value() : 0;
+      - if:
+          condition:
+            lambda: |-
+              auto idx = id(heat_compressor_mode).active_index();
+              if (!idx.has_value()) return false;
+              return lv_dropdown_get_selected(id(set_heat_power_dd)->obj) != (uint16_t) idx.value();
+          then:
+            - lvgl.dropdown.update:
+                id: set_heat_power_dd
+                selected_index: !lambda |-
+                  auto idx = id(heat_compressor_mode).active_index();
+                  return idx.has_value() ? idx.value() : 0;
 
 # ── Settings: Cooling mode dropdown ──
 - id: !extend cool_mode_select
   on_value:
     then:
-      - lvgl.dropdown.update:
-          id: set_cool_mode_dd
-          selected_index: !lambda |-
-            auto idx = id(cool_mode_select).active_index();
-            return idx.has_value() ? idx.value() : 0;
+      - if:
+          condition:
+            lambda: |-
+              auto idx = id(cool_mode_select).active_index();
+              if (!idx.has_value()) return false;
+              return lv_dropdown_get_selected(id(set_cool_mode_dd)->obj) != (uint16_t) idx.value();
+          then:
+            - lvgl.dropdown.update:
+                id: set_cool_mode_dd
+                selected_index: !lambda |-
+                  auto idx = id(cool_mode_select).active_index();
+                  return idx.has_value() ? idx.value() : 0;
       - script.execute: update_manual_setpoint_ui
 
 # ── Settings: Cooling power dropdown ──
 - id: !extend cool_compressor_mode
   on_value:
     then:
-      - lvgl.dropdown.update:
-          id: set_cool_power_dd
-          selected_index: !lambda |-
-            auto idx = id(cool_compressor_mode).active_index();
-            return idx.has_value() ? idx.value() : 0;
+      - if:
+          condition:
+            lambda: |-
+              auto idx = id(cool_compressor_mode).active_index();
+              if (!idx.has_value()) return false;
+              return lv_dropdown_get_selected(id(set_cool_power_dd)->obj) != (uint16_t) idx.value();
+          then:
+            - lvgl.dropdown.update:
+                id: set_cool_power_dd
+                selected_index: !lambda |-
+                  auto idx = id(cool_compressor_mode).active_index();
+                  return idx.has_value() ? idx.value() : 0;
