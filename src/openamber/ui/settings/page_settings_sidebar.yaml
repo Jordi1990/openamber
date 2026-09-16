@@ -35,44 +35,12 @@ obj:
           pad_top: 2
           pad_bottom: 2
           on_click:
-            - lvgl.widget.show: { id: panel_general }
-            - lvgl.widget.hide: { id: panel_advanced }
-            - lvgl.widget.update: { id: stab_advanced, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_advanced_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.hide: { id: panel_pump }
-            - lvgl.widget.hide: { id: panel_heating }
-            - lvgl.widget.hide: { id: panel_cooling }
-            - lvgl.widget.hide: { id: panel_dhw }
-            - lvgl.widget.hide: { id: panel_bijverwarmen }
-            - lvgl.widget.hide: { id: panel_smartgrid }
-            - lvgl.widget.hide: { id: panel_wifi }
-            - lvgl.widget.hide: { id: panel_thermostat }
-            - lvgl.widget.hide: { id: sensor_calibration_pager }
-            - lvgl.widget.hide: { id: pump_p0_pid_pager }
-            - lvgl.widget.update: { id: stab_general, bg_color: 0x1F3B68 }
-            - lvgl.widget.update: { id: stab_general_lbl, text_color: 0xFFFFFF }
-            - lvgl.widget.update: { id: stab_pump, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_pump_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_heating, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_heating_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_cooling, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_cooling_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_dhw, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_dhw_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_bijverwarmen, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_thermostat, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0x4B5563 }
             - script.execute:
-                id: general_select_tab
+                id: settings_select_tab
                 tab_index: 0
-            - script.execute: update_advanced_settings_ui
           widgets:
             - label: { id: stab_general_lbl, text: "Algemeen", text_color: 0xFFFFFF, text_font: font_text_20, align: LEFT_MID }
+
       - obj:
           id: stab_thermostat
           width: 100%
@@ -86,49 +54,12 @@ obj:
           pad_top: 2
           pad_bottom: 2
           on_click:
-            - lvgl.widget.hide: { id: panel_general }
-            - lvgl.widget.hide: { id: panel_advanced }
-            - lvgl.widget.update: { id: stab_advanced, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_advanced_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.hide: { id: panel_pump }
-            - lvgl.widget.hide: { id: panel_heating }
-            - lvgl.widget.hide: { id: panel_cooling }
-            - lvgl.widget.hide: { id: panel_dhw }
-            - lvgl.widget.hide: { id: panel_bijverwarmen }
-            - lvgl.widget.hide: { id: panel_smartgrid }
-            - lvgl.widget.hide: { id: panel_wifi }
-            - lvgl.widget.hide: { id: panel_thermostat }
-            - lvgl.widget.hide: { id: sensor_calibration_pager }
-            - lvgl.widget.hide: { id: pump_p0_pid_pager }
-            - lvgl.widget.show: { id: panel_thermostat }
-            - script.execute: update_thermostat_settings_ui
-            - script.execute: update_thermostat_mode_ui
             - script.execute:
-                id: thermostat_select_tab
-                tab_index: 0
-            - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_pump, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_pump_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_heating, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_heating_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_cooling, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_cooling_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_dhw, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_dhw_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_bijverwarmen, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_thermostat, bg_color: 0x1F3B68 }
-            - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0xFFFFFF }
-            - lvgl.widget.hide: { id: panel_advanced }
-            - lvgl.widget.update: { id: stab_advanced, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_advanced_lbl, text_color: 0x4B5563 }
+                id: settings_select_tab
+                tab_index: 1
           widgets:
             - label: { id: stab_thermostat_lbl, text: "Thermostaat", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
+
       - obj:
           id: stab_pump
           width: 100%
@@ -142,44 +73,12 @@ obj:
           pad_top: 2
           pad_bottom: 2
           on_click:
-            - lvgl.widget.hide: { id: panel_general }
-            - lvgl.widget.hide: { id: panel_advanced }
-            - lvgl.widget.update: { id: stab_advanced, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_advanced_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.show: { id: panel_pump }
             - script.execute:
-                id: pump_select_tab
-                tab_index: 0
-            - lvgl.widget.hide: { id: panel_heating }
-            - lvgl.widget.hide: { id: panel_cooling }
-            - lvgl.widget.hide: { id: panel_dhw }
-            - lvgl.widget.hide: { id: panel_bijverwarmen }
-            - lvgl.widget.hide: { id: panel_smartgrid }
-            - lvgl.widget.hide: { id: panel_wifi }
-            - lvgl.widget.hide: { id: panel_thermostat }
-            - lvgl.widget.hide: { id: sensor_calibration_pager }
-            - lvgl.widget.hide: { id: pump_p0_pid_pager }
-            - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_pump, bg_color: 0x1F3B68 }
-            - lvgl.widget.update: { id: stab_pump_lbl, text_color: 0xFFFFFF }
-            - lvgl.widget.update: { id: stab_heating, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_heating_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_cooling, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_cooling_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_dhw, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_dhw_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_bijverwarmen, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_thermostat, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0x4B5563 }
-            - script.execute: update_advanced_settings_ui
+                id: settings_select_tab
+                tab_index: 2
           widgets:
             - label: { id: stab_pump_lbl, text: "Pomp", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
+
       - obj:
           id: stab_heating
           width: 100%
@@ -193,45 +92,12 @@ obj:
           pad_top: 2
           pad_bottom: 2
           on_click:
-            - lvgl.widget.hide: { id: panel_general }
-            - lvgl.widget.hide: { id: panel_advanced }
-            - lvgl.widget.update: { id: stab_advanced, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_advanced_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.hide: { id: panel_pump }
-            - lvgl.widget.show: { id: panel_heating }
             - script.execute:
-                id: heating_select_tab
-                tab_index: 0
-            - lvgl.widget.hide: { id: panel_cooling }
-            - lvgl.widget.hide: { id: panel_dhw }
-            - lvgl.widget.hide: { id: panel_bijverwarmen }
-            - lvgl.widget.hide: { id: panel_smartgrid }
-            - lvgl.widget.hide: { id: panel_wifi }
-            - lvgl.widget.hide: { id: panel_thermostat }
-            - lvgl.widget.hide: { id: sensor_calibration_pager }
-            - lvgl.widget.hide: { id: pump_p0_pid_pager }
-            - script.execute: update_heat_curve_chart
-            - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_pump, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_pump_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_heating, bg_color: 0x1F3B68 }
-            - lvgl.widget.update: { id: stab_heating_lbl, text_color: 0xFFFFFF }
-            - lvgl.widget.update: { id: stab_cooling, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_cooling_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_dhw, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_dhw_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_bijverwarmen, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_thermostat, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0x4B5563 }
-            - script.execute: update_advanced_settings_ui
+                id: settings_select_tab
+                tab_index: 3
           widgets:
             - label: { id: stab_heating_lbl, text: "Verwarmen", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
+
       - obj:
           id: stab_cooling
           width: 100%
@@ -245,44 +111,12 @@ obj:
           pad_top: 2
           pad_bottom: 2
           on_click:
-            - lvgl.widget.hide: { id: panel_general }
-            - lvgl.widget.hide: { id: panel_advanced }
-            - lvgl.widget.update: { id: stab_advanced, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_advanced_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.hide: { id: panel_pump }
-            - lvgl.widget.hide: { id: panel_heating }
-            - lvgl.widget.show: { id: panel_cooling }
             - script.execute:
-                id: cooling_select_tab
-                tab_index: 0
-            - lvgl.widget.hide: { id: panel_dhw }
-            - lvgl.widget.hide: { id: panel_bijverwarmen }
-            - lvgl.widget.hide: { id: panel_smartgrid }
-            - lvgl.widget.hide: { id: panel_wifi }
-            - lvgl.widget.hide: { id: panel_thermostat }
-            - lvgl.widget.hide: { id: sensor_calibration_pager }
-            - lvgl.widget.hide: { id: pump_p0_pid_pager }
-            - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_pump, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_pump_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_heating, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_heating_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_cooling, bg_color: 0x1F3B68 }
-            - lvgl.widget.update: { id: stab_cooling_lbl, text_color: 0xFFFFFF }
-            - lvgl.widget.update: { id: stab_dhw, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_dhw_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_bijverwarmen, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_thermostat, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0x4B5563 }
-            - script.execute: update_advanced_settings_ui
+                id: settings_select_tab
+                tab_index: 4
           widgets:
             - label: { id: stab_cooling_lbl, text: "Koelen", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
+
       - obj:
           id: stab_dhw
           width: 100%
@@ -297,43 +131,12 @@ obj:
           pad_top: 2
           pad_bottom: 2
           on_click:
-            - lvgl.widget.hide: { id: panel_general }
-            - lvgl.widget.hide: { id: panel_advanced }
-            - lvgl.widget.update: { id: stab_advanced, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_advanced_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.hide: { id: panel_pump }
-            - lvgl.widget.hide: { id: panel_heating }
-            - lvgl.widget.hide: { id: panel_cooling }
-            - lvgl.widget.show: { id: panel_dhw }
             - script.execute:
-                id: dhw_select_tab
-                tab_index: 0
-            - lvgl.widget.hide: { id: panel_bijverwarmen }
-            - lvgl.widget.hide: { id: panel_smartgrid }
-            - lvgl.widget.hide: { id: panel_wifi }
-            - lvgl.widget.hide: { id: panel_thermostat }
-            - lvgl.widget.hide: { id: sensor_calibration_pager }
-            - lvgl.widget.hide: { id: pump_p0_pid_pager }
-            - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_pump, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_pump_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_heating, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_heating_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_cooling, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_cooling_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_dhw, bg_color: 0x1F3B68 }
-            - lvgl.widget.update: { id: stab_dhw_lbl, text_color: 0xFFFFFF }
-            - lvgl.widget.update: { id: stab_bijverwarmen, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_thermostat, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0x4B5563 }
+                id: settings_select_tab
+                tab_index: 5
           widgets:
             - label: { id: stab_dhw_lbl, text: "Tapwater", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
+
       - obj:
           id: stab_bijverwarmen
           width: 100%
@@ -347,43 +150,12 @@ obj:
           pad_top: 2
           pad_bottom: 2
           on_click:
-            - lvgl.widget.hide: { id: panel_general }
-            - lvgl.widget.hide: { id: panel_advanced }
-            - lvgl.widget.update: { id: stab_advanced, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_advanced_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.hide: { id: panel_pump }
-            - lvgl.widget.hide: { id: panel_heating }
-            - lvgl.widget.hide: { id: panel_cooling }
-            - lvgl.widget.hide: { id: panel_dhw }
-            - lvgl.widget.show: { id: panel_bijverwarmen }
             - script.execute:
-                id: bijverwarmen_select_tab
-                tab_index: 0
-            - lvgl.widget.hide: { id: panel_smartgrid }
-            - lvgl.widget.hide: { id: panel_wifi }
-            - lvgl.widget.hide: { id: panel_thermostat }
-            - lvgl.widget.hide: { id: sensor_calibration_pager }
-            - lvgl.widget.hide: { id: pump_p0_pid_pager }
-            - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_pump, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_pump_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_heating, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_heating_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_cooling, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_cooling_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_dhw, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_dhw_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_bijverwarmen, bg_color: 0x1F3B68 }
-            - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0xFFFFFF }
-            - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_thermostat, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0x4B5563 }
+                id: settings_select_tab
+                tab_index: 6
           widgets:
             - label: { id: stab_bijverwarmen_lbl, text: "Bijverwarmen", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
+
       - obj:
           id: stab_smartgrid
           width: 100%
@@ -397,40 +169,12 @@ obj:
           pad_top: 2
           pad_bottom: 2
           on_click:
-            - lvgl.widget.hide: { id: panel_general }
-            - lvgl.widget.hide: { id: panel_advanced }
-            - lvgl.widget.update: { id: stab_advanced, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_advanced_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.hide: { id: panel_pump }
-            - lvgl.widget.hide: { id: panel_heating }
-            - lvgl.widget.hide: { id: panel_cooling }
-            - lvgl.widget.hide: { id: panel_dhw }
-            - lvgl.widget.hide: { id: panel_bijverwarmen }
-            - lvgl.widget.show: { id: panel_smartgrid }
-            - lvgl.widget.hide: { id: panel_wifi }
-            - lvgl.widget.hide: { id: panel_thermostat }
-            - lvgl.widget.hide: { id: sensor_calibration_pager }
-            - lvgl.widget.hide: { id: pump_p0_pid_pager }
-            - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_pump, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_pump_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_heating, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_heating_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_cooling, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_cooling_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_dhw, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_dhw_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_bijverwarmen, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0x1F3B68 }
-            - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0xFFFFFF }
-            - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_thermostat, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0x4B5563 }
+            - script.execute:
+                id: settings_select_tab
+                tab_index: 7
           widgets:
             - label: { id: stab_smartgrid_lbl, text: "SmartGrid", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
+
       - obj:
           id: stab_wifi
           width: 100%
@@ -444,41 +188,12 @@ obj:
           pad_top: 2
           pad_bottom: 2
           on_click:
-            - lvgl.widget.hide: { id: panel_general }
-            - lvgl.widget.hide: { id: panel_advanced }
-            - lvgl.widget.update: { id: stab_advanced, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_advanced_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.hide: { id: panel_pump }
-            - lvgl.widget.hide: { id: panel_heating }
-            - lvgl.widget.hide: { id: panel_cooling }
-            - lvgl.widget.hide: { id: panel_dhw }
-            - lvgl.widget.hide: { id: panel_bijverwarmen }
-            - lvgl.widget.hide: { id: panel_smartgrid }
-            - lvgl.widget.show: { id: panel_wifi }
-            - lvgl.widget.hide: { id: panel_thermostat }
-            - lvgl.widget.hide: { id: sensor_calibration_pager }
-            - lvgl.widget.hide: { id: pump_p0_pid_pager }
-            - script.execute: wifi_scan_networks_if_empty
-            - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_pump, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_pump_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_heating, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_heating_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_cooling, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_cooling_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_dhw, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_dhw_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_bijverwarmen, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_thermostat, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_wifi, bg_color: 0x1F3B68 }
-            - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0xFFFFFF }
+            - script.execute:
+                id: settings_select_tab
+                tab_index: 8
           widgets:
             - label: { id: stab_wifi_lbl, text: "WiFi", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
+
       - obj:
           id: stab_advanced
           width: 100%
@@ -493,41 +208,10 @@ obj:
           pad_top: 2
           pad_bottom: 2
           on_click:
-            - lvgl.widget.hide: { id: panel_general }
-            - lvgl.widget.hide: { id: panel_pump }
-            - lvgl.widget.hide: { id: panel_heating }
-            - lvgl.widget.hide: { id: panel_cooling }
-            - lvgl.widget.hide: { id: panel_dhw }
-            - lvgl.widget.hide: { id: panel_bijverwarmen }
-            - lvgl.widget.hide: { id: panel_smartgrid }
-            - lvgl.widget.hide: { id: panel_wifi }
-            - lvgl.widget.hide: { id: panel_thermostat }
-            - lvgl.widget.hide: { id: sensor_calibration_pager }
-            - lvgl.widget.hide: { id: pump_p0_pid_pager }
-            - lvgl.widget.show: { id: panel_advanced }
             - script.execute:
-                id: advanced_select_tab
-                tab_index: 0
-            - lvgl.widget.update: { id: stab_general, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_general_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_pump, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_pump_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_heating, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_heating_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_cooling, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_cooling_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_dhw, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_dhw_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_bijverwarmen, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_bijverwarmen_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_smartgrid, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_smartgrid_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_wifi, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_wifi_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_thermostat, bg_color: 0xE8ECF1 }
-            - lvgl.widget.update: { id: stab_thermostat_lbl, text_color: 0x4B5563 }
-            - lvgl.widget.update: { id: stab_advanced, bg_color: 0x1F3B68 }
-            - lvgl.widget.update: { id: stab_advanced_lbl, text_color: 0xFFFFFF }
+                id: settings_select_tab
+                tab_index: 9
           widgets:
             - label: { id: stab_advanced_lbl, text: "Geavanceerd", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
+
 

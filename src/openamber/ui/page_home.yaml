@@ -505,35 +505,6 @@ obj:
                                       text_color: 0x0072CE
                                       text_font: font_text_24
 
-                - obj:
-                    id: water_outdoor_group
-                    align: BOTTOM_LEFT
-                    x: 0
-                    y: -8
-                    width: SIZE_CONTENT
-                    height: SIZE_CONTENT
-                    hidden: true
-                    pad_all: 0
-                    bg_opa: 0%
-                    border_opa: 0%
-                    layout:
-                      type: FLEX
-                      flex_flow: ROW
-                      flex_align_cross: CENTER
-                      pad_column: 8
-                    widgets:
-                      - label:
-                          id: water_outdoor_icon
-                          text: "\U000F050F"
-                          text_color: 0x0072CE
-                          text_font: font_mdi_24
-                          y: 2
-                      - label:
-                          id: header_outdoor_legacy
-                          text: "Buiten -°C"
-                          text_color: 0x1F2933
-                          text_font: font_mdi_24
-
           # ── DHW Tank Card (greyed out when DHW not enabled) ──
           - obj:
               id: dhw_tank_card

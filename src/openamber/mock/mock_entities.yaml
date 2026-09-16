@@ -1,0 +1,1387 @@
+# ==============================================================================
+# OpenAmber Mock Entities for Host SDL Simulation
+# ==============================================================================
+
+globals:
+  - id: analytics_topic
+    type: std::string
+    restore_value: no
+    initial_value: '"openamber/telemetry"'
+  - id: modbus_inside_is_online
+    type: bool
+    restore_value: no
+    initial_value: 'true'
+  - id: modbus_outside_is_online
+    type: bool
+    restore_value: no
+    initial_value: 'true'
+  - id: analytics_batch_timestamp
+    type: int64_t
+    restore_value: no
+    initial_value: '1726320000'
+
+openamber_component:
+  id: amber_ctrl
+
+update:
+  - platform: mock_update
+    id: firmware_update
+    name: Firmware Update
+
+output:
+  - platform: template
+    id: pid_heat_output
+    type: float
+    write_action: []
+  - platform: template
+    id: pid_cool_output
+    type: float
+    write_action: []
+  - platform: template
+    id: pump_p0_pid_output
+    type: float
+    write_action: []
+
+button:
+  - platform: template
+    id: restart_openamber
+    name: Restart OpenAmber
+
+datetime:
+  - platform: template
+    id: dhw_start_time
+    type: time
+    name: "Tapwater starttijd"
+    optimistic: true
+    initial_value: "10:00:00"
+  - platform: template
+    id: dhw_end_time
+    type: time
+    name: "Tapwater eindtijd"
+    optimistic: true
+    initial_value: "17:00:00"
+  - platform: template
+    id: next_legionella_run
+    name: "Volgende legionellapreventie"
+    type: datetime
+    optimistic: true
+    initial_value: "2030-01-01 10:00:00"
+
+climate:
+  - platform: thermostat
+    id: climate_controller
+    name: Amber thermostat
+    sensor: room_temperature
+    set_point_minimum_differential: 4.0
+    min_cooling_off_time: 15min
+    min_cooling_run_time: 1h
+    min_heating_off_time: 15min
+    min_heating_run_time: 1h
+    min_idle_time: 15min
+    default_preset: Comfort
+    heat_deadband: 0.3
+    heat_overrun: 0.2
+    cool_deadband: 0.5
+    cool_overrun: 3.0
+    heat_action: []
+    cool_action: []
+    idle_action: []
+    preset:
+      - name: Comfort
+        default_target_temperature_low: 20.5 °C
+        default_target_temperature_high: 24 °C
+  - platform: pid
+    id: pid_heat_temperature_control
+    internal: true
+    sensor: heat_cool_control_temperature
+    default_target_temperature: 35°C
+    heat_output: pid_heat_output
+    control_parameters:
+      kp: 0.6
+      ki: 0.002
+      kd: 0.7
+  - platform: pid
+    id: pid_cool_temperature_control
+    internal: true
+    sensor: heat_cool_control_temperature
+    default_target_temperature: 18°C
+    cool_output: pid_cool_output
+    control_parameters:
+      kp: 0.6
+      ki: 0.002
+      kd: 0.7
+  - platform: pid
+    id: pump_p0_pid_temperature_control
+    internal: true
+    sensor: heat_exchanger_delta_t
+    default_target_temperature: 5.0°C
+    heat_output: pump_p0_pid_output
+    control_parameters:
+      kp: 2.0
+      ki: 0.05
+      kd: 0.1
+
+sensor:
+  - platform: template
+    id: outlet_temperature_tuo
+    name: "Aanvoertemperatuur (Tuo)"
+    lambda: 'return 35.4f;'
+    update_interval: 5s
+  - platform: template
+    id: inlet_temperature_tui
+    name: "Retourtemperatuur (Tui)"
+    lambda: 'return 30.1f;'
+    update_interval: 5s
+  - platform: template
+    id: heat_exchanger_delta_t
+    name: "Warmtewisselaar Delta-T"
+    lambda: 'return 5.3f;'
+    update_interval: 5s
+  - platform: template
+    id: temperature_outside_ta
+    name: "Buitentemperatuur (Ta)"
+    lambda: 'return 7.2f;'
+    update_interval: 5s
+  - platform: template
+    id: outdoor_temperature_tp_sensor
+    name: "Buitencondensor (Tp)"
+    lambda: 'return 5.1f;'
+    update_interval: 5s
+  - platform: template
+    id: current_water_temperature_tc_sensor
+    name: "Water temperatuur (Tc)"
+    lambda: 'return 35.2f;'
+    update_interval: 5s
+  - platform: template
+    id: dhw_temperature_tw_sensor
+    name: "Tapwatertemperatuur (Tw)"
+    lambda: 'return 52.0f;'
+    update_interval: 5s
+  - platform: template
+    id: current_dhw_setpoint_sensor
+    name: "Huidig tapwater setpoint"
+    lambda: 'return 55.0f;'
+    update_interval: 5s
+  - platform: template
+    id: current_setpoint
+    name: "Huidig setpoint"
+    lambda: 'return 20.5f;'
+    update_interval: 5s
+  - platform: template
+    id: current_heating_temperature_setpoint
+    name: "Huidig verwarmingssetpoint"
+    lambda: 'return 36.0f;'
+    update_interval: 5s
+  - platform: template
+    id: current_cooling_temperature_setpoint
+    name: "Huidig koelsetpoint"
+    lambda: 'return 18.0f;'
+    update_interval: 5s
+  - platform: template
+    id: calculated_heat_curve_setpoint
+    name: "Berekend stooklijn setpoint"
+    lambda: 'return 35.8f;'
+    update_interval: 5s
+  - platform: template
+    id: room_temperature
+    name: "Kamertemperatuur (Tr)"
+    lambda: 'return 20.8f;'
+    update_interval: 5s
+  - platform: template
+    id: heat_cool_control_temperature
+    name: "Regeltemperatuur verwarmen/koelen"
+    lambda: 'return 35.4f;'
+    update_interval: 5s
+  - platform: template
+    id: fan_rpm_sensor
+    name: "Ventilator RPM"
+    lambda: 'return 450.0f;'
+    update_interval: 5s
+  - platform: template
+    id: pump_p0_current_pwm_sensor
+    name: "Pomp P0 PWM"
+    lambda: 'return 65.0f;'
+    update_interval: 5s
+  - platform: template
+    id: water_flow_rate
+    name: "Waterdebiet"
+    lambda: 'return 18.2f;'
+    update_interval: 5s
+  - platform: template
+    id: cop_hour_heating
+    name: "COP verwarmen uur"
+    lambda: 'return 4.3f;'
+    update_interval: 5s
+  - platform: template
+    id: eer_hour_cooling
+    name: "EER koelen uur"
+    lambda: 'return 3.8f;'
+    update_interval: 5s
+  - platform: template
+    id: cop_hour_dhw
+    name: "COP tapwater uur"
+    lambda: 'return 3.2f;'
+    update_interval: 5s
+  - platform: template
+    id: current_compressor_frequency
+    name: "Compressorfrequentie"
+    lambda: 'return 48.0f;'
+    update_interval: 5s
+  - platform: template
+    id: power_compressor
+    name: "Compressor vermogen"
+    lambda: 'return 850.0f;'
+    update_interval: 5s
+  - platform: template
+    id: suction_pressure_ps
+    name: "Zuigdruk (Ps)"
+    lambda: 'return 0.85f;'
+    update_interval: 5s
+  - platform: template
+    id: discharge_pressure_pd
+    name: "Persdruk (Pd)"
+    lambda: 'return 2.15f;'
+    update_interval: 5s
+  - platform: template
+    id: expansion_valve_position
+    name: "Expansieventiel"
+    lambda: 'return 180.0f;'
+    update_interval: 5s
+  - platform: template
+    id: model_identification_1
+    name: "Model identificatie"
+    lambda: 'return 150.0f;'
+    update_interval: 5s
+  - platform: template
+    id: system_heap_free
+    name: "Vrij RAM"
+    lambda: 'return 245000.0f;'
+    update_interval: 5s
+  - platform: template
+    id: system_psram_free
+    name: "Vrij PSRAM"
+    lambda: 'return 6500000.0f;'
+    update_interval: 5s
+  - platform: template
+    id: system_heap_fragmentation
+    name: "RAM Fragmentatie"
+    lambda: 'return 8.0f;'
+    update_interval: 5s
+  - platform: template
+    id: system_heap_max_block
+    name: "Grootste RAM blok"
+    lambda: 'return 180000.0f;'
+    update_interval: 5s
+  - platform: template
+    id: sensor_uptime
+    name: "Uptime"
+    lambda: 'return 86400.0f;'
+    update_interval: 5s
+  - platform: template
+    id: wifi_signal_db
+    name: "Wi-Fi RSSI"
+    lambda: 'return -62.0f;'
+    update_interval: 5s
+
+binary_sensor:
+  - platform: template
+    id: error_active
+    name: "Actieve fout"
+    lambda: 'return false;'
+  - platform: template
+    id: warning_active
+    name: "Actieve waarschuwing"
+    lambda: 'return false;'
+  - platform: template
+    id: modbus_inside_online
+    name: "Binnenunit online"
+    lambda: 'return true;'
+  - platform: template
+    id: modbus_outside_online
+    name: "Buitenunit online"
+    lambda: 'return true;'
+  - platform: template
+    id: backup_heater_active_sensor
+    name: "Bijverwarming actief"
+    lambda: 'return false;'
+  - platform: template
+    id: bottom_heater_active_sensor
+    name: "Bodemverwarming actief"
+    lambda: 'return false;'
+  - platform: template
+    id: heat_demand_active_sensor
+    name: "Warmtevraag"
+    lambda: 'return true;'
+  - platform: template
+    id: cool_demand_active_sensor
+    name: "Koudevraag"
+    lambda: 'return false;'
+  - platform: template
+    id: dhw_demand_active_sensor
+    name: "Tapwater vraag"
+    lambda: 'return false;'
+  - platform: template
+    id: dhw_pump_active_sensor
+    name: "Tapwater pomp actief"
+    lambda: 'return false;'
+  - platform: template
+    id: defrost_active_sensor
+    name: "Ontdooicyclus actief"
+    lambda: 'return false;'
+  - platform: template
+    id: oil_return_cycle_active
+    name: "Olieretourcyclus actief"
+    lambda: 'return false;'
+  - platform: template
+    id: external_heat_demand_wired
+    name: "Externe warmtevraag"
+    lambda: 'return false;'
+  - platform: template
+    id: external_cool_demand_wired
+    name: "Externe koelvraag"
+    lambda: 'return false;'
+  - platform: template
+    id: sg_ready_a_active_sensor
+    name: "SG Ready A actief"
+    lambda: 'return false;'
+  - platform: template
+    id: sg_ready_b_active_sensor
+    name: "SG Ready B actief"
+    lambda: 'return false;'
+  - platform: template
+    id: sg_ready_boost_mode_active_sensor
+    name: "SG Boost actief"
+    lambda: 'return false;'
+  - platform: template
+    id: sg_ready_max_boost_mode_active_sensor
+    name: "SG Max Boost actief"
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_e01
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_e02
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_e03
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_e04
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_e05
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_e06
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_e07
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_e08
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_f01
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_f02
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_f03
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_f04
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_f05
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_f06
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_f07
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_f09
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_f10
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_f16
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_f17
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_f18
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_p01
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_p02
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_p03
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_p05
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_p06
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_p07
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_p08
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_p09
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_p10
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_p11
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_p12
+    lambda: 'return false;'
+  - platform: template
+    id: error_flag_p13
+    lambda: 'return false;'
+  - platform: template
+    id: error_compressor_start_timeout
+    lambda: 'return false;'
+  - platform: template
+    id: error_pump_start_timeout
+    lambda: 'return false;'
+  - platform: template
+    id: error_pump_stop_timeout
+    lambda: 'return false;'
+  - platform: template
+    id: error_three_way_valve_state_timeout
+    lambda: 'return false;'
+  - platform: template
+    id: error_modbus_connection_timeout
+    lambda: 'return false;'
+
+number:
+  - platform: template
+    id: cooling_setpoint_number
+    name: "Gewenste koeltemperatuur"
+    optimistic: true
+    min_value: 18.0
+    max_value: 28.0
+    step: 0.5
+    initial_value: 24.0
+  - platform: template
+    id: manual_setpoint
+    name: "Handmatig watertemperatuur setpoint"
+    optimistic: true
+    min_value: 20.0
+    max_value: 55.0
+    step: 0.5
+    initial_value: 35.0
+  - platform: template
+    id: flow_sensor_calibration
+    name: "Flow sensor calibratie"
+    optimistic: true
+    min_value: 1.0
+    max_value: 10.0
+    step: 0.1
+    initial_value: 4.5
+  - platform: template
+    id: tr_offset
+    name: "Ruimte temperatuur offset"
+    optimistic: true
+    min_value: -5.0
+    max_value: 5.0
+    step: 0.1
+    initial_value: 0.0
+  - platform: template
+    id: tw_offset
+    name: "Tapwater temperatuur offset"
+    optimistic: true
+    min_value: -5.0
+    max_value: 5.0
+    step: 0.1
+    initial_value: 0.0
+  - platform: template
+    id: tc_offset
+    name: "Water temperatuur offset"
+    optimistic: true
+    min_value: -5.0
+    max_value: 5.0
+    step: 0.1
+    initial_value: 0.0
+  - platform: template
+    id: tui_offset
+    name: "Retour temperatuur offset"
+    optimistic: true
+    min_value: -5.0
+    max_value: 5.0
+    step: 0.1
+    initial_value: 0.0
+  - platform: template
+    id: tuo_offset
+    name: "Aanvoer temperatuur offset"
+    optimistic: true
+    min_value: -5.0
+    max_value: 5.0
+    step: 0.1
+    initial_value: 0.0
+  - platform: template
+    id: heat_curve_m10
+    name: "Stooklijn -10°C"
+    optimistic: true
+    min_value: 20.0
+    max_value: 55.0
+    step: 0.5
+    initial_value: 42.0
+  - platform: template
+    id: heat_curve_0
+    name: "Stooklijn 0°C"
+    optimistic: true
+    min_value: 20.0
+    max_value: 55.0
+    step: 0.5
+    initial_value: 36.0
+  - platform: template
+    id: heat_curve_p5
+    name: "Stooklijn 5°C"
+    optimistic: true
+    min_value: 20.0
+    max_value: 55.0
+    step: 0.5
+    initial_value: 33.0
+  - platform: template
+    id: heat_curve_p10
+    name: "Stooklijn 10°C"
+    optimistic: true
+    min_value: 20.0
+    max_value: 55.0
+    step: 0.5
+    initial_value: 30.0
+  - platform: template
+    id: heat_curve_p15
+    name: "Stooklijn 15°C"
+    optimistic: true
+    min_value: 20.0
+    max_value: 55.0
+    step: 0.5
+    initial_value: 26.0
+  - platform: template
+    id: thermostat_heat_deadband
+    name: "Thermostaat verwarmen deadband"
+    optimistic: true
+    min_value: 0.1
+    max_value: 2.0
+    step: 0.1
+    initial_value: 0.3
+  - platform: template
+    id: thermostat_heat_overrun
+    name: "Thermostaat verwarmen overrun"
+    optimistic: true
+    min_value: 0.0
+    max_value: 2.0
+    step: 0.1
+    initial_value: 0.2
+  - platform: template
+    id: thermostat_cool_deadband
+    name: "Thermostaat koelen deadband"
+    optimistic: true
+    min_value: 0.1
+    max_value: 2.0
+    step: 0.1
+    initial_value: 0.5
+  - platform: template
+    id: thermostat_cool_overrun
+    name: "Thermostaat koelen overrun"
+    optimistic: true
+    min_value: 0.0
+    max_value: 5.0
+    step: 0.1
+    initial_value: 3.0
+  - platform: template
+    id: thermostat_default_heat_setpoint
+    name: "Thermostaat standaard verwarmen"
+    optimistic: true
+    min_value: 15.0
+    max_value: 28.0
+    step: 0.5
+    initial_value: 20.5
+  - platform: template
+    id: thermostat_default_cool_setpoint
+    name: "Thermostaat standaard koelen"
+    optimistic: true
+    min_value: 18.0
+    max_value: 28.0
+    step: 0.5
+    initial_value: 24.0
+  - platform: template
+    id: defrost_backup_heater_boost_temperature_sensor
+    name: "Ontdooiing boost temperatuur"
+    optimistic: true
+    min_value: -15.0
+    max_value: 15.0
+    step: 1.0
+    initial_value: -3.0
+  - platform: template
+    id: bottomplate_heater_ambient_temperature_start
+    name: "Bodemplaatverwarming start temp"
+    optimistic: true
+    min_value: -10.0
+    max_value: 10.0
+    step: 1.0
+    initial_value: 2.0
+  - platform: template
+    id: bottomplate_heater_ambient_hysteresis_stop
+    name: "Bodemplaatverwarming stop temp"
+    optimistic: true
+    min_value: -10.0
+    max_value: 10.0
+    step: 1.0
+    initial_value: 5.0
+  - platform: template
+    id: enter_defrost_temperature
+    name: "Start ontdooitemperatuur"
+    optimistic: true
+    min_value: -15.0
+    max_value: 5.0
+    step: 1.0
+    initial_value: -5.0
+  - platform: template
+    id: exit_defrost_temperature
+    name: "Stop ontdooitemperatuur"
+    optimistic: true
+    min_value: 0.0
+    max_value: 25.0
+    step: 1.0
+    initial_value: 12.0
+  - platform: template
+    id: max_defrost_time
+    name: "Maximale ontdooitijd"
+    optimistic: true
+    min_value: 1.0
+    max_value: 30.0
+    step: 1.0
+    initial_value: 10.0
+  - platform: template
+    id: enter_defrost_temperature_2
+    optimistic: true
+    min_value: -3.0
+    max_value: 3.0
+    step: 0.1
+    initial_value: 0.0
+  - platform: template
+    id: enter_defrost_temperature_3
+    optimistic: true
+    min_value: -10.0
+    max_value: -3.0
+    step: 0.1
+    initial_value: -5.0
+  - platform: template
+    id: enter_defrost_temperature_4
+    optimistic: true
+    min_value: -10.0
+    max_value: -3.0
+    step: 0.1
+    initial_value: -7.0
+  - platform: template
+    id: frost_protection_stage_1_temp_ta
+    name: "Vorstbeveiliging Ta stap 1"
+    optimistic: true
+    min_value: -10.0
+    max_value: 10.0
+    step: 0.5
+    initial_value: 3.0
+  - platform: template
+    id: frost_protection_stage_2_temp_ta
+    name: "Vorstbeveiliging Ta stap 2"
+    optimistic: true
+    min_value: -15.0
+    max_value: 5.0
+    step: 0.5
+    initial_value: -3.0
+  - platform: template
+    id: frost_protection_stage_2_temp_tui
+    name: "Vorstbeveiliging Tui stap 2"
+    optimistic: true
+    min_value: 5.0
+    max_value: 25.0
+    step: 0.5
+    initial_value: 15.0
+  - platform: template
+    id: fan_speed_manual_number
+    name: "Ventilatorsnelheid handmatig"
+    optimistic: true
+    min_value: 0.0
+    max_value: 1000.0
+    step: 10.0
+    initial_value: 0.0
+  - platform: template
+    id: pump_speed_heating_number
+    optimistic: true
+    min_value: 0.0
+    max_value: 100.0
+    step: 1.0
+    initial_value: 100.0
+  - platform: template
+    id: pump_speed_cooling_number
+    optimistic: true
+    min_value: 0.0
+    max_value: 100.0
+    step: 1.0
+    initial_value: 100.0
+  - platform: template
+    id: pump_speed_dhw_number
+    optimistic: true
+    min_value: 0.0
+    max_value: 100.0
+    step: 1.0
+    initial_value: 100.0
+  - platform: template
+    id: pump_interval
+    optimistic: true
+    min_value: 5.0
+    max_value: 60.0
+    step: 1.0
+    initial_value: 15.0
+  - platform: template
+    id: pump_duration
+    optimistic: true
+    min_value: 2.0
+    max_value: 10.0
+    step: 1.0
+    initial_value: 3.0
+  - platform: template
+    id: flow_switch_safety_delay_minutes
+    optimistic: true
+    min_value: 0.0
+    max_value: 10.0
+    step: 1.0
+    initial_value: 2.0
+  - platform: template
+    id: pump_control_pwm_number
+    name: "Pomp P0 gewenste PWM"
+    optimistic: true
+    min_value: 0.0
+    max_value: 100.0
+    step: 1.0
+    initial_value: 65.0
+  - platform: template
+    id: pump_p0_pid_min_pwm
+    optimistic: true
+    min_value: 20.0
+    max_value: 100.0
+    step: 1.0
+    initial_value: 70.0
+  - platform: template
+    id: pump_p0_pid_max_pwm
+    optimistic: true
+    min_value: 20.0
+    max_value: 100.0
+    step: 1.0
+    initial_value: 100.0
+  - platform: template
+    id: pump_p0_pid_defrost_pwm
+    optimistic: true
+    min_value: 20.0
+    max_value: 100.0
+    step: 1.0
+    initial_value: 100.0
+  - platform: template
+    id: compressor_start_delta_heating
+    optimistic: true
+    min_value: 0.1
+    max_value: 10.0
+    step: 0.1
+    initial_value: 3.0
+  - platform: template
+    id: compressor_stop_delta_heating
+    optimistic: true
+    min_value: 0.1
+    max_value: 10.0
+    step: 0.1
+    initial_value: 2.0
+  - platform: template
+    id: compressor_start_delta_cooling
+    optimistic: true
+    min_value: 0.1
+    max_value: 10.0
+    step: 0.1
+    initial_value: 3.0
+  - platform: template
+    id: compressor_stop_delta_cooling
+    optimistic: true
+    min_value: 0.1
+    max_value: 10.0
+    step: 0.1
+    initial_value: 5.0
+  - platform: template
+    id: backup_heater_degmin_threshold
+    optimistic: true
+    min_value: 0.0
+    max_value: 100.0
+    step: 5.0
+    initial_value: 40.0
+  - platform: template
+    id: sg_ready_heating_boost_temperature_number
+    optimistic: true
+    min_value: 0.0
+    max_value: 10.0
+    step: 1.0
+    initial_value: 5.0
+  - platform: template
+    id: sg_ready_dhw_boost_temperature_number
+    optimistic: true
+    min_value: 0.0
+    max_value: 25.0
+    step: 1.0
+    initial_value: 5.0
+  - platform: template
+    id: dhw_setpoint_temperature
+    optimistic: true
+    min_value: 25.0
+    max_value: 75.0
+    step: 1.0
+    initial_value: 55.0
+  - platform: template
+    id: dhw_restart_dhw_delta
+    optimistic: true
+    min_value: 5.0
+    max_value: 25.0
+    step: 1.0
+    initial_value: 15.0
+  - platform: template
+    id: dhw_temperature_threshold_max_compressor_mode
+    optimistic: true
+    min_value: -20.0
+    max_value: 10.0
+    step: 1.0
+    initial_value: 5.0
+  - platform: template
+    id: dhw_backup_min_avg_rate
+    optimistic: true
+    min_value: 0.0
+    max_value: 5.0
+    step: 0.01
+    initial_value: 0.12
+  - platform: template
+    id: dhw_backup_min_avg_rate_delay_minutes
+    optimistic: true
+    min_value: 0.0
+    max_value: 60.0
+    step: 1.0
+    initial_value: 5.0
+  - platform: template
+    id: legio_repeat_days_number
+    optimistic: true
+    min_value: 7.0
+    max_value: 60.0
+    step: 1.0
+    initial_value: 7.0
+  - platform: template
+    id: legio_target_temperature_number
+    optimistic: true
+    min_value: 55.0
+    max_value: 65.0
+    step: 1.0
+    initial_value: 60.0
+  - platform: template
+    id: pid_heat_kp
+    optimistic: true
+    min_value: 0.0
+    max_value: 10.0
+    step: 0.1
+    initial_value: 0.6
+  - platform: template
+    id: pid_heat_ki
+    optimistic: true
+    min_value: 0.0
+    max_value: 1.0
+    step: 0.001
+    initial_value: 0.002
+  - platform: template
+    id: pid_heat_kd
+    optimistic: true
+    min_value: 0.0
+    max_value: 10.0
+    step: 0.1
+    initial_value: 0.7
+  - platform: template
+    id: pid_heat_deadband
+    optimistic: true
+    min_value: 0.0
+    max_value: 5.0
+    step: 0.1
+    initial_value: 0.5
+  - platform: template
+    id: pid_cool_kp
+    optimistic: true
+    min_value: 0.0
+    max_value: 10.0
+    step: 0.1
+    initial_value: 0.6
+  - platform: template
+    id: pid_cool_ki
+    optimistic: true
+    min_value: 0.0
+    max_value: 1.0
+    step: 0.001
+    initial_value: 0.002
+  - platform: template
+    id: pid_cool_kd
+    optimistic: true
+    min_value: 0.0
+    max_value: 10.0
+    step: 0.1
+    initial_value: 0.7
+  - platform: template
+    id: pid_cool_deadband
+    optimistic: true
+    min_value: 0.0
+    max_value: 5.0
+    step: 0.1
+    initial_value: 0.5
+  - platform: template
+    id: pump_p0_pid_kp
+    optimistic: true
+    min_value: 0.0
+    max_value: 10.0
+    step: 0.1
+    initial_value: 2.0
+  - platform: template
+    id: pump_p0_pid_ki
+    optimistic: true
+    min_value: 0.0
+    max_value: 1.0
+    step: 0.01
+    initial_value: 0.05
+  - platform: template
+    id: pump_p0_pid_kd
+    optimistic: true
+    min_value: 0.0
+    max_value: 10.0
+    step: 0.01
+    initial_value: 0.1
+  - platform: template
+    id: pump_p0_pid_target_delta_t
+    optimistic: true
+    min_value: 1.0
+    max_value: 15.0
+    step: 0.5
+    initial_value: 5.0
+  - platform: template
+    id: deaeration_cycle_count_short
+    optimistic: true
+    min_value: 1.0
+    max_value: 10.0
+    step: 1.0
+    initial_value: 3.0
+  - platform: template
+    id: deaeration_cycle_count_extended
+    optimistic: true
+    min_value: 1.0
+    max_value: 20.0
+    step: 1.0
+    initial_value: 6.0
+  - platform: template
+    id: deaeration_pump_run_time_seconds
+    optimistic: true
+    min_value: 10.0
+    max_value: 300.0
+    step: 5.0
+    initial_value: 30.0
+  - platform: template
+    id: deaeration_pump_off_time_seconds
+    optimistic: true
+    min_value: 5.0
+    max_value: 120.0
+    step: 5.0
+    initial_value: 10.0
+
+switch:
+  - platform: template
+    id: reset_start_timeout_errors_switch
+    name: "Reset systeem timeout fouten"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: analytics_enabled_switch
+    name: "Analytics ingeschakeld"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: advanced_settings_enabled
+    name: "Geavanceerde instellingen"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: emergency_mode_enabled
+    name: "Noodbedrijf"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: service_mode_enabled
+    name: "Onderhoudsmodus"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: deaeration_short_switch
+    name: "Ontluchting kort"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: deaeration_extended_switch
+    name: "Ontluchting lang"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: flow_sensor_enabled
+    name: "Flow sensor ingeschakeld"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: pump_p0_relay_switch
+    name: "Pomp P0 relais"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: pump_p1_relay_switch
+    name: "Pomp P1 relais"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: pump_p2_relay_switch
+    name: "Pomp P2 relais"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: dhw_pump_relay_switch
+    name: "Tapwater pomp relais"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: backup_heater_relay
+    name: "Bijverwarming relais"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: external_backup_heating_relay
+    name: "Externe bijverwarming relais"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: compressor_crankcase_heater_manual_switch
+    name: "Carterverwarming"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: bottom_plate_heater_manual_switch
+    name: "Bodemplaatverwarming"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: three_way_valve_heat_cool_switch
+    name: "Driewegklep verwarmen/koelen"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: three_way_valve_dhw_switch
+    name: "Driewegklep tapwater"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: pump_p1_enabled
+    name: "Pomp P1 ingeschakeld"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: pump_p0_pid_enabled
+    name: "Pomp P0 PID regeling"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: dhw_enabled_switch
+    name: "Tapwater ingeschakeld"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: legio_enabled_switch
+    name: "Legionellapreventie"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: dhw_schedule_enabled_switch
+    name: "Tapwaterschema actief"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: dhw_schedule_monday_enabled_switch
+    name: "Maandag"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: dhw_schedule_tuesday_enabled_switch
+    name: "Dinsdag"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: dhw_schedule_wednesday_enabled_switch
+    name: "Woensdag"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: dhw_schedule_thursday_enabled_switch
+    name: "Donderdag"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: dhw_schedule_friday_enabled_switch
+    name: "Vrijdag"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: dhw_schedule_saturday_enabled_switch
+    name: "Zaterdag"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: dhw_schedule_sunday_enabled_switch
+    name: "Zondag"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+
+select:
+  - platform: template
+    id: working_mode_switch
+    name: "Bedrijfsmodus"
+    optimistic: true
+    options:
+      - "Uit"
+      - "Verwarmen"
+      - "Koelen"
+      - "Tapwater"
+      - "Automatisch"
+    initial_option: "Verwarmen"
+  - platform: template
+    id: thermostat_mode_select
+    name: "Thermostaatmodus"
+    optimistic: true
+    options:
+      - "Uit"
+      - "Comfort"
+      - "Eco"
+      - "Vakantie"
+    initial_option: "Comfort"
+  - platform: template
+    id: heat_mode_select
+    name: "Verwarmingsmodus"
+    optimistic: true
+    options:
+      - "Handmatig"
+      - "Stooklijn"
+    initial_option: "Stooklijn"
+  - platform: template
+    id: heat_cool_control_temperature_source_select
+    name: "Temperatuurbron regeling"
+    optimistic: true
+    options:
+      - "Tuo"
+      - "Tc"
+      - "Tv1"
+    initial_option: "Tuo"
+  - platform: template
+    id: backup_heating_mode
+    name: "Bijverwarming modus"
+    optimistic: true
+    options:
+      - "Uit"
+      - "Automatisch"
+      - "Noodbedrijf"
+    initial_option: "Uit"
+  - platform: template
+    id: bottomplate_heater_mode
+    name: "Bodemplaatverwarming modus"
+    optimistic: true
+    options:
+      - "Uit"
+      - "Automatisch"
+      - "Handmatig"
+    initial_option: "Automatisch"
+  - platform: template
+    id: heat_compressor_mode
+    name: "Compressor vermogensstand verwarmen"
+    optimistic: true
+    options:
+      - "Stand 4"
+      - "Stand 5"
+      - "Stand 6"
+      - "Stand 7"
+      - "Stand 8"
+      - "Stand 9"
+      - "Stand 10"
+    initial_option: "Stand 7"
+  - platform: template
+    id: cool_mode_select
+    name: "Koelmodus"
+    optimistic: true
+    options:
+      - "Handmatig"
+    initial_option: "Handmatig"
+  - platform: template
+    id: cool_compressor_mode
+    name: "Compressor vermogensstand koelen"
+    optimistic: true
+    options:
+      - "Stand 4"
+      - "Stand 5"
+      - "Stand 6"
+      - "Stand 7"
+      - "Stand 8"
+      - "Stand 9"
+      - "Stand 10"
+    initial_option: "Stand 7"
+  - platform: template
+    id: dhw_compressor_mode
+    name: "Compressor vermogensstand tapwater"
+    optimistic: true
+    options:
+      - "Stand 4"
+      - "Stand 5"
+      - "Stand 6"
+      - "Stand 7"
+      - "Stand 8"
+      - "Stand 9"
+      - "Stand 10"
+    initial_option: "Stand 7"
+  - platform: template
+    id: dhw_compressor_mode_max
+    name: "Max compressor vermogensstand tapwater"
+    optimistic: true
+    options:
+      - "Stand 4"
+      - "Stand 5"
+      - "Stand 6"
+      - "Stand 7"
+      - "Stand 8"
+      - "Stand 9"
+      - "Stand 10"
+    initial_option: "Stand 10"
+  - platform: template
+    id: dhw_pump_start_mode_select
+    name: "Tapwater pomp startmodus"
+    optimistic: true
+    options:
+      - "Direct"
+      - "Vertraagd"
+    initial_option: "Direct"
+  - platform: template
+    id: sg_ready_mode_select
+    name: "SG Ready modus"
+    optimistic: true
+    options:
+      - "Normaal"
+      - "Blokkeren"
+      - "Boost"
+      - "Max Boost"
+    initial_option: "Normaal"
+
+text_sensor:
+  - platform: template
+    id: state_machine_state_main
+    name: "Status hoofdautomaat"
+    lambda: 'return std::string("Verwarmen");'
+  - platform: template
+    id: state_machine_state_heat_cool
+    name: "Status verwarmen/koelen"
+    lambda: 'return std::string("Compressor Actief");'
+  - platform: template
+    id: state_machine_state_dhw
+    name: "Status tapwater"
+    lambda: 'return std::string("Stand-by");'
+  - platform: template
+    id: state_machine_state_routine
+    name: "Status routine"
+    lambda: 'return std::string("Geen");'
+  - platform: template
+    id: analytics_device_id
+    name: "Analytics apparaat-ID"
+    lambda: 'return std::string("AMB95-001");'
+  - platform: template
+    id: wifi_mac_ui
+    name: "MAC Adres"
+    lambda: 'return std::string("98:35:69:AB:F6:79");'
+  - platform: template
+    id: wifi_ssid_ui
+    name: "Wi-Fi Netwerk"
+    lambda: 'return std::string("OpenAmber-Home");'
+  - platform: template
+    id: wifi_ip_ui
+    name: "IP-adres"
+    lambda: 'return std::string("192.168.1.150");'
+  - platform: template
+    id: wifi_scan_results_ui
+    name: "Gevonden netwerken"
+    lambda: 'return std::string("OpenAmber-Home (-62dBm)");'
+  - platform: template
+    id: system_debug_device_info
+    name: "Apparaatinfo"
+    lambda: 'return std::string("OpenAmber Host Simulator");'
+  - platform: template
+    id: system_debug_reset_reason
+    name: "Herstartreden"
+    lambda: 'return std::string("Power-on reset");'
+
+script:
+  - id: apply_pid_settings
+    then: []
+  - id: apply_thermostat_settings
+    then: []
+  - id: fetch_analytics_device_id
+    then: []
+  - id: send_analytics
+    then: []
+  - id: dump_eeprom_parameters
+    then: []
+  - id: dump_eeprom_parameters_ui_disable
+    then: []
+  - id: dump_eeprom_parameters_ui_enable
+    then: []
+  - id: update_home_thermostat_mode_ui
+    mode: restart
+    then: []

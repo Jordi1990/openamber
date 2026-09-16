@@ -20,55 +20,7 @@ globals:
     type: int
     restore_value: no
     initial_value: '0'
-  - id: service_error_page_index
-    type: int
-    restore_value: no
-    initial_value: '0'
-  - id: service_warning_page_index
-    type: int
-    restore_value: no
-    initial_value: '0'
   - id: header_alert_blink_phase
     type: bool
     restore_value: no
     initial_value: 'false'
-  - id: hc_y_m10
-    type: int
-    restore_value: no
-    initial_value: '60'
-  - id: hc_y_0
-    type: int
-    restore_value: no
-    initial_value: '60'
-  - id: hc_y_p5
-    type: int
-    restore_value: no
-    initial_value: '60'
-  - id: hc_y_p10
-    type: int
-    restore_value: no
-    initial_value: '60'
-  - id: hc_y_p15
-    type: int
-    restore_value: no
-    initial_value: '60'
-  - id: hc_axis_top
-    type: int
-    restore_value: no
-    initial_value: '35'
-  - id: hc_axis_upper_mid
-    type: int
-    restore_value: no
-    initial_value: '33'
-  - id: hc_axis_mid
-    type: int
-    restore_value: no
-    initial_value: '30'
-  - id: hc_axis_lower_mid
-    type: int
-    restore_value: no
-    initial_value: '28'
-  - id: hc_axis_bottom
-    type: int
-    restore_value: no
-    initial_value: '25'

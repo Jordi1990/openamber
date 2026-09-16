@@ -1,0 +1,45 @@
+# ==============================================================================
+# OpenAmber Shared UI Package (Images, Fonts, and LVGL Widget Hierarchy)
+# ==============================================================================
+
+image:
+  - platform: file
+    file: openamber/ui/images/water_circuit.png
+    id: img_water_circuit
+    type: RGB565
+    transparency: alpha_channel
+    resize: 350x420
+  - platform: file
+    file: openamber/ui/images/icon.png
+    id: openamber_icon
+    type: RGB565
+    resize: 57x70
+    transparency: alpha_channel
+  - platform: file
+    file: openamber/ui/images/dhw_tank.png
+    id: img_dhw_tank
+    type: RGB565
+    transparency: alpha_channel
+    resize: 130x260
+  - platform: file
+    file: openamber/ui/images/logo-512x512.png
+    id: openamber_logo
+    type: RGB565
+    transparency: alpha_channel
+
+font: !include fonts.yaml
+
+lvgl:
+  buffer_size: 100%
+  bottom_layer:
+    bg_color: 0x0A2747
+  widgets:
+    - !include root_bg.yaml
+    - !include header_bar.yaml
+    - !include page_home.yaml
+    - !include page_thermostat.yaml
+    - !include page_service.yaml
+    - !include page_system.yaml
+    - !include page_settings.yaml
+    - !include nav_bar.yaml
+    - !include idle_screen_overlay.yaml

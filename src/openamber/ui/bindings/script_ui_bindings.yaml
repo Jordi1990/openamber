@@ -84,72 +84,261 @@
 - id: update_thermostat_mode_ui
   mode: restart
   then:
-    - if:
-        condition:
-          lambda: |-
-            auto idx = id(thermostat_mode_select).active_index();
-            return idx.has_value() && idx.value() == 0;
-        then:
-          - lvgl.widget.update: { id: thermostat_row_default_heat, state: { disabled: false }, opa: 100% }
-          - lvgl.widget.update: { id: thermostat_row_default_cool, state: { disabled: false }, opa: 100% }
-          - lvgl.widget.update: { id: thermostat_row_heat_deadband, state: { disabled: false }, opa: 100% }
-          - lvgl.widget.update: { id: thermostat_row_heat_overrun, state: { disabled: false }, opa: 100% }
-          - lvgl.widget.update: { id: thermostat_row_cool_deadband, state: { disabled: false }, opa: 100% }
-          - lvgl.widget.update: { id: thermostat_row_cool_overrun, state: { disabled: false }, opa: 100% }
-        else:
-          - lvgl.widget.update: { id: thermostat_row_default_heat, state: { disabled: true }, opa: 40% }
-          - lvgl.widget.update: { id: thermostat_row_default_cool, state: { disabled: true }, opa: 40% }
-          - lvgl.widget.update: { id: thermostat_row_heat_deadband, state: { disabled: true }, opa: 40% }
-          - lvgl.widget.update: { id: thermostat_row_heat_overrun, state: { disabled: true }, opa: 40% }
-          - lvgl.widget.update: { id: thermostat_row_cool_deadband, state: { disabled: true }, opa: 40% }
-          - lvgl.widget.update: { id: thermostat_row_cool_overrun, state: { disabled: true }, opa: 40% }
+    - lambda: |-
+        auto idx = id(thermostat_mode_select).active_index();
+        bool enabled = idx.has_value() && idx.value() == 0;
+        lv_obj_t* rows[6] = {
+          id(thermostat_row_default_heat),
+          id(thermostat_row_default_cool),
+          id(thermostat_row_heat_deadband),
+          id(thermostat_row_heat_overrun),
+          id(thermostat_row_cool_deadband),
+          id(thermostat_row_cool_overrun)
+        };
+        for (int i = 0; i < 6; i++) {
+          if (enabled) {
+            lv_obj_clear_state(rows[i], LV_STATE_DISABLED);
+            lv_obj_set_style_opa(rows[i], LV_OPA_COVER, LV_PART_MAIN);
+          } else {
+            lv_obj_add_state(rows[i], LV_STATE_DISABLED);
+            lv_obj_set_style_opa(rows[i], LV_OPA_40, LV_PART_MAIN);
+          }
+        }
 
 - id: thermostat_select_tab
   mode: restart
   parameters:
     tab_index: int
   then:
-    - lvgl.widget.hide: { id: sensor_calibration_pager }
-    - lvgl.widget.hide: { id: pump_p0_pid_pager }
+    - lambda: |-
+        lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
+
+        lv_obj_t* panels[3] = {
+          id(panel_thermostat_page_setpoint),
+          id(panel_thermostat_page_verwarmen),
+          id(panel_thermostat_page_koelen)
+        };
+        lv_obj_t* tabs[3] = {
+          id(thermostat_stab_algemeen),
+          id(thermostat_stab_verwarmen),
+          id(thermostat_stab_koelen)
+        };
+        lv_obj_t* labels[3] = {
+          id(thermostat_stab_algemeen_lbl),
+          id(thermostat_stab_verwarmen_lbl),
+          id(thermostat_stab_koelen_lbl)
+        };
+        for (int i = 0; i < 3; i++) {
+          if (i == tab_index) {
+            lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+          } else {
+            lv_obj_add_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xCBD5E1), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
+          }
+        }
+    - script.execute: update_thermostat_settings_ui
+    - script.execute: update_thermostat_mode_ui
+
+
+- id: settings_select_tab
+  mode: restart
+  parameters:
+    tab_index: int
+  then:
+    - lambda: |-
+        lv_obj_t* panels[10] = {
+          id(panel_general),
+          id(panel_thermostat),
+          id(panel_pump),
+          id(panel_heating),
+          id(panel_cooling),
+          id(panel_dhw),
+          id(panel_bijverwarmen),
+          id(panel_smartgrid),
+          id(panel_wifi),
+          id(panel_advanced)
+        };
+        lv_obj_t* tabs[10] = {
+          id(stab_general),
+          id(stab_thermostat),
+          id(stab_pump),
+          id(stab_heating),
+          id(stab_cooling),
+          id(stab_dhw),
+          id(stab_bijverwarmen),
+          id(stab_smartgrid),
+          id(stab_wifi),
+          id(stab_advanced)
+        };
+        lv_obj_t* labels[10] = {
+          id(stab_general_lbl),
+          id(stab_thermostat_lbl),
+          id(stab_pump_lbl),
+          id(stab_heating_lbl),
+          id(stab_cooling_lbl),
+          id(stab_dhw_lbl),
+          id(stab_bijverwarmen_lbl),
+          id(stab_smartgrid_lbl),
+          id(stab_wifi_lbl),
+          id(stab_advanced_lbl)
+        };
+
+        lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
+
+        for (int i = 0; i < 10; i++) {
+          if (i == tab_index) {
+            lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+          } else {
+            lv_obj_add_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xE8ECF1), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
+          }
+        }
     - if:
         condition:
           lambda: 'return tab_index == 0;'
         then:
-          - lvgl.widget.show: { id: panel_thermostat_page_setpoint }
-          - lvgl.widget.hide: { id: panel_thermostat_page_verwarmen }
-          - lvgl.widget.hide: { id: panel_thermostat_page_koelen }
-          - lvgl.widget.update: { id: thermostat_stab_algemeen, bg_color: 0x1F3B68 }
-          - lvgl.label.update: { id: thermostat_stab_algemeen_lbl, text_color: 0xFFFFFF }
-          - lvgl.widget.update: { id: thermostat_stab_verwarmen, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: thermostat_stab_verwarmen_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: thermostat_stab_koelen, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: thermostat_stab_koelen_lbl, text_color: 0x4B5563 }
-        else:
-          - if:
-              condition:
-                lambda: 'return tab_index == 1;'
-              then:
-                - lvgl.widget.hide: { id: panel_thermostat_page_setpoint }
-                - lvgl.widget.show: { id: panel_thermostat_page_verwarmen }
-                - lvgl.widget.hide: { id: panel_thermostat_page_koelen }
-                - lvgl.widget.update: { id: thermostat_stab_algemeen, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: thermostat_stab_algemeen_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: thermostat_stab_verwarmen, bg_color: 0x1F3B68 }
-                - lvgl.label.update: { id: thermostat_stab_verwarmen_lbl, text_color: 0xFFFFFF }
-                - lvgl.widget.update: { id: thermostat_stab_koelen, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: thermostat_stab_koelen_lbl, text_color: 0x4B5563 }
-              else:
-                - lvgl.widget.hide: { id: panel_thermostat_page_setpoint }
-                - lvgl.widget.hide: { id: panel_thermostat_page_verwarmen }
-                - lvgl.widget.show: { id: panel_thermostat_page_koelen }
-                - lvgl.widget.update: { id: thermostat_stab_algemeen, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: thermostat_stab_algemeen_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: thermostat_stab_verwarmen, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: thermostat_stab_verwarmen_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: thermostat_stab_koelen, bg_color: 0x1F3B68 }
-                - lvgl.label.update: { id: thermostat_stab_koelen_lbl, text_color: 0xFFFFFF }
-    - script.execute: update_thermostat_settings_ui
-    - script.execute: update_thermostat_mode_ui
+          - script.execute:
+              id: general_select_tab
+              tab_index: 0
+          - script.execute: update_advanced_settings_ui
+    - if:
+        condition:
+          lambda: 'return tab_index == 1;'
+        then:
+          - script.execute: update_thermostat_settings_ui
+          - script.execute: update_thermostat_mode_ui
+          - script.execute:
+              id: thermostat_select_tab
+              tab_index: 0
+    - if:
+        condition:
+          lambda: 'return tab_index == 2;'
+        then:
+          - script.execute:
+              id: pump_select_tab
+              tab_index: 0
+          - script.execute: update_advanced_settings_ui
+    - if:
+        condition:
+          lambda: 'return tab_index == 3;'
+        then:
+          - script.execute:
+              id: heating_select_tab
+              tab_index: 0
+          - script.execute: update_heat_curve_chart
+          - script.execute: update_advanced_settings_ui
+    - if:
+        condition:
+          lambda: 'return tab_index == 4;'
+        then:
+          - script.execute:
+              id: cooling_select_tab
+              tab_index: 0
+          - script.execute: update_advanced_settings_ui
+    - if:
+        condition:
+          lambda: 'return tab_index == 5;'
+        then:
+          - script.execute:
+              id: dhw_select_tab
+              tab_index: 0
+    - if:
+        condition:
+          lambda: 'return tab_index == 6;'
+        then:
+          - script.execute:
+              id: bijverwarmen_select_tab
+              tab_index: 0
+    - if:
+        condition:
+          lambda: 'return tab_index == 8;'
+        then:
+          - script.execute: wifi_scan_networks_if_empty
+    - if:
+        condition:
+          lambda: 'return tab_index == 9;'
+        then:
+          - script.execute:
+              id: advanced_select_tab
+              tab_index: 0
+
+- id: service_select_tab
+  mode: restart
+  parameters:
+    tab_index: int
+  then:
+    - lambda: |-
+        // Hide all main panels
+        lv_obj_add_flag(id(service_maintenance_panel), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(service_sensors_panel), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(service_errors_panel), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(service_warnings_panel), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(service_eeprom_panel), LV_OBJ_FLAG_HIDDEN);
+
+        // Hide all maintenance subpanels
+        lv_obj_add_flag(id(service_mpanel_general), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(service_mpanel_compressor), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(service_mpanel_pumps), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(service_mpanel_valve), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(service_mpanel_backup), LV_OBJ_FLAG_HIDDEN);
+
+        if (tab_index == 0) {
+          lv_obj_clear_flag(id(service_maintenance_panel), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_clear_flag(id(service_mpanel_general), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_clear_flag(id(service_maintenance_header), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_clear_flag(id(service_maintenance_title), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_clear_flag(id(service_maintenance_state), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_clear_flag(id(set_service_mode_switch_ui), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_clear_flag(id(service_maintenance_lock_hint), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_set_y(id(service_maintenance_layout), 112);
+          lv_obj_set_height(id(service_maintenance_layout), lv_pct(72));
+        } else if (tab_index >= 1 && tab_index <= 4) {
+          lv_obj_clear_flag(id(service_maintenance_panel), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(id(service_maintenance_header), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(id(service_maintenance_title), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(id(service_maintenance_state), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(id(set_service_mode_switch_ui), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(id(service_maintenance_lock_hint), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_set_y(id(service_maintenance_layout), 0);
+          lv_obj_set_height(id(service_maintenance_layout), lv_pct(100));
+          if (tab_index == 1) lv_obj_clear_flag(id(service_mpanel_compressor), LV_OBJ_FLAG_HIDDEN);
+          else if (tab_index == 2) lv_obj_clear_flag(id(service_mpanel_pumps), LV_OBJ_FLAG_HIDDEN);
+          else if (tab_index == 3) lv_obj_clear_flag(id(service_mpanel_valve), LV_OBJ_FLAG_HIDDEN);
+          else if (tab_index == 4) lv_obj_clear_flag(id(service_mpanel_backup), LV_OBJ_FLAG_HIDDEN);
+        } else if (tab_index == 5) {
+          lv_obj_clear_flag(id(service_eeprom_panel), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(id(service_maintenance_header), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(id(service_maintenance_title), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(id(service_maintenance_state), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(id(set_service_mode_switch_ui), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_set_y(id(service_maintenance_layout), 0);
+          lv_obj_set_height(id(service_maintenance_layout), lv_pct(100));
+        } else if (tab_index == 6) {
+          lv_obj_clear_flag(id(service_sensors_panel), LV_OBJ_FLAG_HIDDEN);
+        } else if (tab_index == 7) {
+          lv_obj_clear_flag(id(service_errors_panel), LV_OBJ_FLAG_HIDDEN);
+        } else if (tab_index == 8) {
+          lv_obj_clear_flag(id(service_warnings_panel), LV_OBJ_FLAG_HIDDEN);
+        }
+    - script.execute: update_service_mode_ui
+    - if:
+        condition:
+          lambda: 'return tab_index == 7;'
+        then:
+          - script.execute: update_service_errors_ui
+    - if:
+        condition:
+          lambda: 'return tab_index == 8;'
+        then:
+          - script.execute: update_service_warnings_ui
 
 - id: nav_select_tab
   mode: restart
@@ -353,113 +542,67 @@
   parameters:
     tab_index: int
   then:
-    - lvgl.widget.hide: { id: pump_p0_pid_pager }
+    - lambda: |-
+        lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
+
+        lv_obj_t* panels[5] = {
+          id(panel_general_page_systeem),
+          id(panel_general_page_noodbedrijf),
+          id(panel_general_page_sensor_kalibratie),
+          id(panel_general_page_hardware),
+          id(panel_general_page_analytics)
+        };
+        lv_obj_t* tabs[5] = {
+          id(general_stab_systeem),
+          id(general_stab_noodbedrijf),
+          id(general_stab_sensor_kalibratie),
+          id(general_stab_hardware),
+          id(general_stab_analytics)
+        };
+        lv_obj_t* labels[5] = {
+          id(general_stab_systeem_lbl),
+          id(general_stab_noodbedrijf_lbl),
+          id(general_stab_sensor_kalibratie_lbl),
+          id(general_stab_hardware_lbl),
+          id(general_stab_analytics_lbl)
+        };
+
+        if (tab_index == 2) {
+          lv_obj_clear_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
+        } else {
+          lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
+        }
+
+        for (int i = 0; i < 5; i++) {
+          if (i == tab_index) {
+            lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+          } else {
+            lv_obj_add_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xCBD5E1), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
+          }
+        }
     - if:
         condition:
           lambda: 'return tab_index == 0;'
         then:
-          - lvgl.widget.show: { id: panel_general_page_systeem }
-          - lvgl.widget.hide: { id: panel_general_page_noodbedrijf }
-          - lvgl.widget.hide: { id: panel_general_page_sensor_kalibratie }
-          - lvgl.widget.hide: { id: panel_general_page_hardware }
-          - lvgl.widget.hide: { id: panel_general_page_analytics }
-          - lvgl.widget.hide: { id: sensor_calibration_pager }
-          - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0x1F3B68 }
-          - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0xFFFFFF }
-          - lvgl.widget.update: { id: general_stab_analytics, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: general_stab_analytics_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: general_stab_noodbedrijf, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: general_stab_noodbedrijf_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: general_stab_sensor_kalibratie, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: general_stab_sensor_kalibratie_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: general_stab_hardware, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: general_stab_hardware_lbl, text_color: 0x4B5563 }
           - script.execute: update_advanced_settings_ui
-        else:
-          - if:
-              condition:
-                lambda: 'return tab_index == 1;'
-              then:
-                - lvgl.widget.hide: { id: panel_general_page_systeem }
-                - lvgl.widget.show: { id: panel_general_page_noodbedrijf }
-                - lvgl.widget.hide: { id: panel_general_page_sensor_kalibratie }
-                - lvgl.widget.hide: { id: panel_general_page_hardware }
-                - lvgl.widget.hide: { id: panel_general_page_analytics }
-                - lvgl.widget.hide: { id: sensor_calibration_pager }
-                - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: general_stab_analytics, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: general_stab_analytics_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: general_stab_noodbedrijf, bg_color: 0x1F3B68 }
-                - lvgl.label.update: { id: general_stab_noodbedrijf_lbl, text_color: 0xFFFFFF }
-                - lvgl.widget.update: { id: general_stab_sensor_kalibratie, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: general_stab_sensor_kalibratie_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: general_stab_hardware, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: general_stab_hardware_lbl, text_color: 0x4B5563 }
-              else:
-                - if:
-                    condition:
-                      lambda: 'return tab_index == 2;'
-                    then:
-                      - lvgl.widget.hide: { id: panel_general_page_systeem }
-                      - lvgl.widget.hide: { id: panel_general_page_noodbedrijf }
-                      - lvgl.widget.show: { id: panel_general_page_sensor_kalibratie }
-                      - lvgl.widget.show: { id: sensor_calibration_pager }
-                      - lvgl.widget.hide: { id: panel_general_page_hardware }
-                      - lvgl.widget.hide: { id: panel_general_page_analytics }
-                      - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0x4B5563 }
-                      - lvgl.widget.update: { id: general_stab_analytics, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: general_stab_analytics_lbl, text_color: 0x4B5563 }
-                      - lvgl.widget.update: { id: general_stab_noodbedrijf, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: general_stab_noodbedrijf_lbl, text_color: 0x4B5563 }
-                      - lvgl.widget.update: { id: general_stab_sensor_kalibratie, bg_color: 0x1F3B68 }
-                      - lvgl.label.update: { id: general_stab_sensor_kalibratie_lbl, text_color: 0xFFFFFF }
-                      - lvgl.widget.update: { id: general_stab_hardware, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: general_stab_hardware_lbl, text_color: 0x4B5563 }
-                      - script.execute:
-                          id: sensor_calibration_select_page
-                          page: 1
-                    else:
-                      - if:
-                          condition:
-                            lambda: 'return tab_index == 3;'
-                          then:
-                            - lvgl.widget.hide: { id: panel_general_page_systeem }
-                            - lvgl.widget.hide: { id: panel_general_page_noodbedrijf }
-                            - lvgl.widget.hide: { id: panel_general_page_sensor_kalibratie }
-                            - lvgl.widget.show: { id: panel_general_page_hardware }
-                            - lvgl.widget.hide: { id: panel_general_page_analytics }
-                            - lvgl.widget.hide: { id: sensor_calibration_pager }
-                            - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0xCBD5E1 }
-                            - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0x4B5563 }
-                            - lvgl.widget.update: { id: general_stab_analytics, bg_color: 0xCBD5E1 }
-                            - lvgl.label.update: { id: general_stab_analytics_lbl, text_color: 0x4B5563 }
-                            - lvgl.widget.update: { id: general_stab_noodbedrijf, bg_color: 0xCBD5E1 }
-                            - lvgl.label.update: { id: general_stab_noodbedrijf_lbl, text_color: 0x4B5563 }
-                            - lvgl.widget.update: { id: general_stab_sensor_kalibratie, bg_color: 0xCBD5E1 }
-                            - lvgl.label.update: { id: general_stab_sensor_kalibratie_lbl, text_color: 0x4B5563 }
-                            - lvgl.widget.update: { id: general_stab_hardware, bg_color: 0x1F3B68 }
-                            - lvgl.label.update: { id: general_stab_hardware_lbl, text_color: 0xFFFFFF }
-                            - script.execute: update_flow_sensor_calibration_ui
-                          else:
-                            - lvgl.widget.hide: { id: panel_general_page_systeem }
-                            - lvgl.widget.hide: { id: panel_general_page_noodbedrijf }
-                            - lvgl.widget.hide: { id: panel_general_page_sensor_kalibratie }
-                            - lvgl.widget.hide: { id: panel_general_page_hardware }
-                            - lvgl.widget.show: { id: panel_general_page_analytics }
-                            - lvgl.widget.hide: { id: sensor_calibration_pager }
-                            - lvgl.widget.update: { id: general_stab_systeem, bg_color: 0xCBD5E1 }
-                            - lvgl.label.update: { id: general_stab_systeem_lbl, text_color: 0x4B5563 }
-                            - lvgl.widget.update: { id: general_stab_analytics, bg_color: 0x1F3B68 }
-                            - lvgl.label.update: { id: general_stab_analytics_lbl, text_color: 0xFFFFFF }
-                            - lvgl.widget.update: { id: general_stab_noodbedrijf, bg_color: 0xCBD5E1 }
-                            - lvgl.label.update: { id: general_stab_noodbedrijf_lbl, text_color: 0x4B5563 }
-                            - lvgl.widget.update: { id: general_stab_sensor_kalibratie, bg_color: 0xCBD5E1 }
-                            - lvgl.label.update: { id: general_stab_sensor_kalibratie_lbl, text_color: 0x4B5563 }
-                            - lvgl.widget.update: { id: general_stab_hardware, bg_color: 0xCBD5E1 }
-                            - lvgl.label.update: { id: general_stab_hardware_lbl, text_color: 0x4B5563 }
+    - if:
+        condition:
+          lambda: 'return tab_index == 2;'
+        then:
+          - script.execute:
+              id: sensor_calibration_select_page
+              page: 1
+    - if:
+        condition:
+          lambda: 'return tab_index == 3;'
+        then:
+          - script.execute: update_flow_sensor_calibration_ui
     - script.execute: update_emergency_mode_ui
+
 
 - id: sensor_calibration_select_page
   mode: restart
@@ -569,132 +712,66 @@
 - id: update_emergency_mode_ui
   mode: restart
   then:
-    - lvgl.widget.update:
-        id: set_emergency_mode_switch_ui
-        state:
-          checked: !lambda 'return id(emergency_mode_enabled).state;'
+    - lambda: |-
+        if (id(emergency_mode_enabled).state) {
+          lv_obj_add_state(id(set_emergency_mode_switch_ui), LV_STATE_CHECKED);
+        } else {
+          lv_obj_clear_state(id(set_emergency_mode_switch_ui), LV_STATE_CHECKED);
+        }
     - script.execute: update_header_mode_badge
 
 - id: update_bottomplate_mode_ui
   mode: restart
   then:
-    - if:
-        condition:
-          lambda: |-
-            return lv_dropdown_get_selected(id(set_bottomplate_mode_dd)->obj) == 1;
-        then:
-          - lvgl.widget.update:
-              id: set_general_bodemplaat_start_row
-              state:
-                disabled: false
-          - lvgl.widget.update:
-              id: set_general_bodemplaat_hysteresis_row
-              state:
-                disabled: false
-          - lvgl.widget.update:
-              id: set_general_bodemplaat_start_row
-              opa: 100%
-          - lvgl.widget.update:
-              id: set_general_bodemplaat_hysteresis_row
-              opa: 100%
-        else:
-          - lvgl.widget.update:
-              id: set_general_bodemplaat_start_row
-              state:
-                disabled: true
-          - lvgl.widget.update:
-              id: set_general_bodemplaat_hysteresis_row
-              state:
-                disabled: true
-          - lvgl.widget.update:
-              id: set_general_bodemplaat_start_row
-              opa: 40%
-          - lvgl.widget.update:
-              id: set_general_bodemplaat_hysteresis_row
-              opa: 40%
+    - lambda: |-
+        bool enabled = lv_dropdown_get_selected(id(set_bottomplate_mode_dd)->obj) == 1;
+        lv_obj_t* rows[2] = {
+          id(set_general_bodemplaat_start_row),
+          id(set_general_bodemplaat_hysteresis_row)
+        };
+        for (int i = 0; i < 2; i++) {
+          if (enabled) {
+            lv_obj_clear_state(rows[i], LV_STATE_DISABLED);
+            lv_obj_set_style_opa(rows[i], LV_OPA_COVER, LV_PART_MAIN);
+          } else {
+            lv_obj_add_state(rows[i], LV_STATE_DISABLED);
+            lv_obj_set_style_opa(rows[i], LV_OPA_40, LV_PART_MAIN);
+          }
+        }
 
 - id: update_pump_pid_ui
   mode: restart
   then:
-    - lvgl.widget.update:
-        id: set_pump_pid_enabled_switch_ui
-        state:
-          checked: !lambda 'return id(pump_p0_pid_enabled).state;'
-    - if:
-        condition:
-          switch.is_on: pump_p0_pid_enabled
-        then:
-          - lvgl.widget.update:
-              id: set_pump_pid_target_delta_t_row
-              state:
-                disabled: false
-          - lvgl.widget.update:
-              id: set_pump_pid_target_delta_t_row
-              opa: 100%
-          - lvgl.widget.update:
-              id: set_pump_pid_min_pwm_row
-              state:
-                disabled: false
-          - lvgl.widget.update:
-              id: set_pump_pid_min_pwm_row
-              opa: 100%
-          - lvgl.widget.update:
-              id: set_pump_pid_max_pwm_row
-              state:
-                disabled: false
-          - lvgl.widget.update:
-              id: set_pump_pid_max_pwm_row
-              opa: 100%
-          - lvgl.widget.update:
-              id: set_pump_pid_defrost_pwm_row
-              state:
-                disabled: false
-          - lvgl.widget.update:
-              id: set_pump_pid_defrost_pwm_row
-              opa: 100%
-          - lvgl.widget.update:
-              id: set_pump_heat_row
-              state:
-                disabled: true
-          - lvgl.widget.update:
-              id: set_pump_heat_row
-              opa: 40%
-        else:
-          - lvgl.widget.update:
-              id: set_pump_pid_target_delta_t_row
-              state:
-                disabled: true
-          - lvgl.widget.update:
-              id: set_pump_pid_target_delta_t_row
-              opa: 40%
-          - lvgl.widget.update:
-              id: set_pump_pid_min_pwm_row
-              state:
-                disabled: true
-          - lvgl.widget.update:
-              id: set_pump_pid_min_pwm_row
-              opa: 40%
-          - lvgl.widget.update:
-              id: set_pump_pid_max_pwm_row
-              state:
-                disabled: true
-          - lvgl.widget.update:
-              id: set_pump_pid_max_pwm_row
-              opa: 40%
-          - lvgl.widget.update:
-              id: set_pump_pid_defrost_pwm_row
-              state:
-                disabled: true
-          - lvgl.widget.update:
-              id: set_pump_pid_defrost_pwm_row
-              opa: 40%
-          - lvgl.widget.update:
-              id: set_pump_heat_row
-              state:
-                disabled: false
-          - lvgl.widget.update:
-              id: set_pump_heat_row
-              opa: 100%
+    - lambda: |-
+        bool enabled = id(pump_p0_pid_enabled).state;
+        if (enabled) {
+          lv_obj_add_state(id(set_pump_pid_enabled_switch_ui), LV_STATE_CHECKED);
+        } else {
+          lv_obj_clear_state(id(set_pump_pid_enabled_switch_ui), LV_STATE_CHECKED);
+        }
+        lv_obj_t* pid_rows[4] = {
+          id(set_pump_pid_target_delta_t_row),
+          id(set_pump_pid_min_pwm_row),
+          id(set_pump_pid_max_pwm_row),
+          id(set_pump_pid_defrost_pwm_row)
+        };
+        for (int i = 0; i < 4; i++) {
+          if (enabled) {
+            lv_obj_clear_state(pid_rows[i], LV_STATE_DISABLED);
+            lv_obj_set_style_opa(pid_rows[i], LV_OPA_COVER, LV_PART_MAIN);
+          } else {
+            lv_obj_add_state(pid_rows[i], LV_STATE_DISABLED);
+            lv_obj_set_style_opa(pid_rows[i], LV_OPA_40, LV_PART_MAIN);
+          }
+        }
+        if (enabled) {
+          lv_obj_add_state(id(set_pump_heat_row), LV_STATE_DISABLED);
+          lv_obj_set_style_opa(id(set_pump_heat_row), LV_OPA_40, LV_PART_MAIN);
+        } else {
+          lv_obj_clear_state(id(set_pump_heat_row), LV_STATE_DISABLED);
+          lv_obj_set_style_opa(id(set_pump_heat_row), LV_OPA_COVER, LV_PART_MAIN);
+        }
+
 
 - id: pump_p0_pid_select_page
   mode: restart
@@ -733,545 +810,321 @@
     tab_index: int
   then:
     - script.execute: update_pump_pid_ui
-    - lvgl.widget.hide: { id: sensor_calibration_pager }
-    - lvgl.widget.hide: { id: pump_p0_pid_pager }
+    - lambda: |-
+        lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
+
+        lv_obj_t* panels[4] = {
+          id(panel_pump_page_algemeen),
+          id(panel_pump_page_pompsnelheid),
+          id(panel_pump_page_p0_pid),
+          id(panel_frost)
+        };
+        lv_obj_t* tabs[4] = {
+          id(pump_stab_algemeen),
+          id(pump_stab_pompsnelheid),
+          id(pump_stab_p0_pid),
+          id(pump_stab_vorstbescherming)
+        };
+        lv_obj_t* labels[4] = {
+          id(pump_stab_algemeen_lbl),
+          id(pump_stab_pompsnelheid_lbl),
+          id(pump_stab_p0_pid_lbl),
+          id(pump_stab_vorstbescherming_lbl)
+        };
+
+        if (tab_index == 2) {
+          lv_obj_clear_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
+        }
+
+        for (int i = 0; i < 4; i++) {
+          if (i == tab_index) {
+            lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+          } else {
+            lv_obj_add_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xCBD5E1), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
+          }
+        }
+
+        if (tab_index == 3) {
+          lv_label_set_text_fmt(id(set_frost1_val), "%.1f°C", (double)id(frost_protection_stage_1_temp_ta).state);
+          lv_label_set_text_fmt(id(set_frost2_ta_val), "%.1f°C", (double)id(frost_protection_stage_2_temp_ta).state);
+          lv_label_set_text_fmt(id(set_frost2_tui_val), "%.1f°C", (double)id(frost_protection_stage_2_temp_tui).state);
+        }
     - if:
         condition:
-          lambda: 'return tab_index == 0;'
+          lambda: 'return tab_index == 2;'
         then:
-          - lvgl.widget.show: { id: panel_pump_page_algemeen }
-          - lvgl.widget.hide: { id: panel_pump_page_pompsnelheid }
-          - lvgl.widget.hide: { id: panel_pump_page_p0_pid }
-          - lvgl.widget.hide: { id: panel_frost }
-          - lvgl.widget.update: { id: pump_stab_algemeen, bg_color: 0x1F3B68 }
-          - lvgl.label.update: { id: pump_stab_algemeen_lbl, text_color: 0xFFFFFF }
-          - lvgl.widget.update: { id: pump_stab_pompsnelheid, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: pump_stab_pompsnelheid_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: pump_stab_p0_pid, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: pump_stab_p0_pid_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: pump_stab_vorstbescherming, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: pump_stab_vorstbescherming_lbl, text_color: 0x4B5563 }
-        else:
-          - if:
-              condition:
-                lambda: 'return tab_index == 1;'
-              then:
-                - lvgl.widget.hide: { id: panel_pump_page_algemeen }
-                - lvgl.widget.show: { id: panel_pump_page_pompsnelheid }
-                - lvgl.widget.hide: { id: panel_pump_page_p0_pid }
-                - lvgl.widget.hide: { id: panel_frost }
-                - lvgl.widget.update: { id: pump_stab_algemeen, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: pump_stab_algemeen_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: pump_stab_pompsnelheid, bg_color: 0x1F3B68 }
-                - lvgl.label.update: { id: pump_stab_pompsnelheid_lbl, text_color: 0xFFFFFF }
-                - lvgl.widget.update: { id: pump_stab_p0_pid, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: pump_stab_p0_pid_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: pump_stab_vorstbescherming, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: pump_stab_vorstbescherming_lbl, text_color: 0x4B5563 }
-              else:
-                - if:
-                    condition:
-                      lambda: 'return tab_index == 2;'
-                    then:
-                      - lvgl.widget.hide: { id: panel_pump_page_algemeen }
-                      - lvgl.widget.hide: { id: panel_pump_page_pompsnelheid }
-                      - lvgl.widget.show: { id: panel_pump_page_p0_pid }
-                      - lvgl.widget.hide: { id: panel_frost }
-                      - lvgl.widget.show: { id: pump_p0_pid_pager }
-                      - script.execute:
-                          id: pump_p0_pid_select_page
-                          page: 1
-                      - lvgl.widget.update: { id: pump_stab_algemeen, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: pump_stab_algemeen_lbl, text_color: 0x4B5563 }
-                      - lvgl.widget.update: { id: pump_stab_pompsnelheid, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: pump_stab_pompsnelheid_lbl, text_color: 0x4B5563 }
-                      - lvgl.widget.update: { id: pump_stab_p0_pid, bg_color: 0x1F3B68 }
-                      - lvgl.label.update: { id: pump_stab_p0_pid_lbl, text_color: 0xFFFFFF }
-                      - lvgl.widget.update: { id: pump_stab_vorstbescherming, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: pump_stab_vorstbescherming_lbl, text_color: 0x4B5563 }
-                    else:
-                      - lvgl.widget.hide: { id: panel_pump_page_algemeen }
-                      - lvgl.widget.hide: { id: panel_pump_page_pompsnelheid }
-                      - lvgl.widget.hide: { id: panel_pump_page_p0_pid }
-                      - lvgl.widget.show: { id: panel_frost }
-                      - lvgl.label.update:
-                          id: set_frost1_val
-                          text:
-                            format: "%.1f°C"
-                            args: ['id(frost_protection_stage_1_temp_ta).state']
-                      - lvgl.label.update:
-                          id: set_frost2_ta_val
-                          text:
-                            format: "%.1f°C"
-                            args: ['id(frost_protection_stage_2_temp_ta).state']
-                      - lvgl.label.update:
-                          id: set_frost2_tui_val
-                          text:
-                            format: "%.1f°C"
-                            args: ['id(frost_protection_stage_2_temp_tui).state']
-                      - lvgl.widget.update: { id: pump_stab_algemeen, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: pump_stab_algemeen_lbl, text_color: 0x4B5563 }
-                      - lvgl.widget.update: { id: pump_stab_pompsnelheid, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: pump_stab_pompsnelheid_lbl, text_color: 0x4B5563 }
-                      - lvgl.widget.update: { id: pump_stab_p0_pid, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: pump_stab_p0_pid_lbl, text_color: 0x4B5563 }
-                      - lvgl.widget.update: { id: pump_stab_vorstbescherming, bg_color: 0x1F3B68 }
-                      - lvgl.label.update: { id: pump_stab_vorstbescherming_lbl, text_color: 0xFFFFFF }
+          - script.execute:
+              id: pump_p0_pid_select_page
+              page: 1
+
 
 - id: heating_select_tab
   mode: restart
   parameters:
     tab_index: int
   then:
+    - lambda: |-
+        lv_obj_t* panels[3] = {
+          id(panel_heating_page_algemeen),
+          id(panel_heating_page_stooklijn),
+          id(panel_heating_page_start_stop)
+        };
+        lv_obj_t* tabs[3] = {
+          id(heating_stab_algemeen),
+          id(heating_stab_stooklijn),
+          id(heating_stab_start_stop)
+        };
+        lv_obj_t* labels[3] = {
+          id(heating_stab_algemeen_lbl),
+          id(heating_stab_stooklijn_lbl),
+          id(heating_stab_start_stop_lbl)
+        };
+        for (int i = 0; i < 3; i++) {
+          if (i == tab_index) {
+            lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+          } else {
+            lv_obj_add_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xCBD5E1), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
+          }
+        }
+        if (tab_index == 1) {
+          bool is_stooklijn = (id(heat_mode_select).current_option() == "Stooklijn");
+          if (is_stooklijn) {
+            lv_obj_clear_flag(id(set_heat_curve_title), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(id(set_heat_curve_chart_container), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(id(set_heat_curve_controls_container), LV_OBJ_FLAG_HIDDEN);
+          } else {
+            lv_obj_add_flag(id(set_heat_curve_title), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(id(set_heat_curve_chart_container), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(id(set_heat_curve_controls_container), LV_OBJ_FLAG_HIDDEN);
+          }
+        }
     - if:
         condition:
           lambda: 'return tab_index == 0;'
         then:
-          - lvgl.widget.show: { id: panel_heating_page_algemeen }
-          - lvgl.widget.hide: { id: panel_heating_page_stooklijn }
-          - lvgl.widget.hide: { id: panel_heating_page_start_stop }
-          - lvgl.widget.update: { id: heating_stab_algemeen, bg_color: 0x1F3B68 }
-          - lvgl.label.update: { id: heating_stab_algemeen_lbl, text_color: 0xFFFFFF }
-          - lvgl.widget.update: { id: heating_stab_stooklijn, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: heating_stab_stooklijn_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: heating_stab_start_stop, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: heating_stab_start_stop_lbl, text_color: 0x4B5563 }
           - script.execute: update_manual_setpoint_ui
-        else:
-          - if:
-              condition:
-                lambda: 'return tab_index == 1;'
-              then:
-                - lvgl.widget.hide: { id: panel_heating_page_algemeen }
-                - lvgl.widget.show: { id: panel_heating_page_stooklijn }
-                - lvgl.widget.hide: { id: panel_heating_page_start_stop }
-                - lvgl.widget.update: { id: heating_stab_algemeen, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: heating_stab_algemeen_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: heating_stab_stooklijn, bg_color: 0x1F3B68 }
-                - lvgl.label.update: { id: heating_stab_stooklijn_lbl, text_color: 0xFFFFFF }
-                - lvgl.widget.update: { id: heating_stab_start_stop, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: heating_stab_start_stop_lbl, text_color: 0x4B5563 }
-                - if:
-                    condition:
-                      lambda: 'return id(heat_mode_select).current_option() == "Stooklijn";'
-                    then:
-                      - lvgl.widget.show: { id: set_heat_curve_title }
-                      - lvgl.widget.show: { id: set_heat_curve_chart_container }
-                      - lvgl.widget.show: { id: set_heat_curve_controls_container }
-                    else:
-                      - lvgl.widget.hide: { id: set_heat_curve_title }
-                      - lvgl.widget.hide: { id: set_heat_curve_chart_container }
-                      - lvgl.widget.hide: { id: set_heat_curve_controls_container }
-                - script.execute: update_heat_curve_chart
-              else:
-                - lvgl.widget.hide: { id: panel_heating_page_algemeen }
-                - lvgl.widget.hide: { id: panel_heating_page_stooklijn }
-                - lvgl.widget.show: { id: panel_heating_page_start_stop }
-                - lvgl.widget.update: { id: heating_stab_algemeen, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: heating_stab_algemeen_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: heating_stab_stooklijn, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: heating_stab_stooklijn_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: heating_stab_start_stop, bg_color: 0x1F3B68 }
-                - lvgl.label.update: { id: heating_stab_start_stop_lbl, text_color: 0xFFFFFF }
+    - if:
+        condition:
+          lambda: 'return tab_index == 1;'
+        then:
+          - script.execute: update_heat_curve_chart
 
 - id: cooling_select_tab
   mode: restart
   parameters:
     tab_index: int
   then:
+    - lambda: |-
+        lv_obj_t* panels[2] = {
+          id(panel_cooling_page_algemeen),
+          id(panel_cooling_page_setpoint)
+        };
+        lv_obj_t* tabs[2] = {
+          id(cooling_stab_algemeen),
+          id(cooling_stab_setpoint)
+        };
+        lv_obj_t* labels[2] = {
+          id(cooling_stab_algemeen_lbl),
+          id(cooling_stab_setpoint_lbl)
+        };
+        for (int i = 0; i < 2; i++) {
+          if (i == tab_index) {
+            lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+          } else {
+            lv_obj_add_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xCBD5E1), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
+          }
+        }
     - if:
         condition:
-          lambda: 'return tab_index == 0;'
+          lambda: 'return tab_index == 1;'
         then:
-          - lvgl.widget.show: { id: panel_cooling_page_algemeen }
-          - lvgl.widget.hide: { id: panel_cooling_page_setpoint }
-          - lvgl.widget.update: { id: cooling_stab_algemeen, bg_color: 0x1F3B68 }
-          - lvgl.label.update: { id: cooling_stab_algemeen_lbl, text_color: 0xFFFFFF }
-          - lvgl.widget.update: { id: cooling_stab_setpoint, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: cooling_stab_setpoint_lbl, text_color: 0x4B5563 }
-        else:
-          - lvgl.widget.hide: { id: panel_cooling_page_algemeen }
-          - lvgl.widget.show: { id: panel_cooling_page_setpoint }
-          - lvgl.widget.update: { id: cooling_stab_algemeen, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: cooling_stab_algemeen_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: cooling_stab_setpoint, bg_color: 0x1F3B68 }
-          - lvgl.label.update: { id: cooling_stab_setpoint_lbl, text_color: 0xFFFFFF }
           - script.execute: update_manual_setpoint_ui
+
 
 - id: advanced_select_tab
   mode: restart
   parameters:
     tab_index: int
   then:
-    - if:
-        condition:
-          lambda: 'return tab_index == 0;'
-        then:
-          - lvgl.widget.show: { id: panel_advanced_page_heat_pid }
-          - lvgl.widget.hide: { id: panel_advanced_page_cool_pid }
-          - lvgl.widget.hide: { id: panel_advanced_page_bodemplaat }
-          - lvgl.widget.hide: { id: panel_advanced_page_defrost }
-          - lvgl.widget.hide: { id: panel_advanced_page_defrost_start }
-          - lvgl.widget.update: { id: advanced_stab_heat_pid, bg_color: 0x1F3B68 }
-          - lvgl.label.update: { id: advanced_stab_heat_pid_lbl, text_color: 0xFFFFFF }
-          - lvgl.widget.update: { id: advanced_stab_cool_pid, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: advanced_stab_cool_pid_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: advanced_stab_bodemplaat, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: advanced_stab_bodemplaat_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: advanced_stab_defrost, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: advanced_stab_defrost_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: advanced_stab_defrost_start, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: advanced_stab_defrost_start_lbl, text_color: 0x4B5563 }
-          - script.execute: update_advanced_settings_ui
-        else:
-          - if:
-              condition:
-                lambda: 'return tab_index == 1;'
-              then:
-                - lvgl.widget.hide: { id: panel_advanced_page_heat_pid }
-                - lvgl.widget.show: { id: panel_advanced_page_cool_pid }
-                - lvgl.widget.hide: { id: panel_advanced_page_bodemplaat }
-                - lvgl.widget.hide: { id: panel_advanced_page_defrost }
-                - lvgl.widget.hide: { id: panel_advanced_page_defrost_start }
-                - lvgl.widget.update: { id: advanced_stab_heat_pid, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: advanced_stab_heat_pid_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: advanced_stab_cool_pid, bg_color: 0x1F3B68 }
-                - lvgl.label.update: { id: advanced_stab_cool_pid_lbl, text_color: 0xFFFFFF }
-                - lvgl.widget.update: { id: advanced_stab_bodemplaat, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: advanced_stab_bodemplaat_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: advanced_stab_defrost, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: advanced_stab_defrost_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: advanced_stab_defrost_start, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: advanced_stab_defrost_start_lbl, text_color: 0x4B5563 }
-                - script.execute: update_advanced_settings_ui
-              else:
-                - if:
-                    condition:
-                      lambda: 'return tab_index == 2;'
-                    then:
-                      - lvgl.widget.hide: { id: panel_advanced_page_heat_pid }
-                      - lvgl.widget.hide: { id: panel_advanced_page_cool_pid }
-                      - lvgl.widget.show: { id: panel_advanced_page_bodemplaat }
-                      - lvgl.widget.hide: { id: panel_advanced_page_defrost }
-                      - lvgl.widget.hide: { id: panel_advanced_page_defrost_start }
-                      - lvgl.widget.update: { id: advanced_stab_heat_pid, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: advanced_stab_heat_pid_lbl, text_color: 0x4B5563 }
-                      - lvgl.widget.update: { id: advanced_stab_cool_pid, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: advanced_stab_cool_pid_lbl, text_color: 0x4B5563 }
-                      - lvgl.widget.update: { id: advanced_stab_bodemplaat, bg_color: 0x1F3B68 }
-                      - lvgl.label.update: { id: advanced_stab_bodemplaat_lbl, text_color: 0xFFFFFF }
-                      - lvgl.widget.update: { id: advanced_stab_defrost, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: advanced_stab_defrost_lbl, text_color: 0x4B5563 }
-                      - lvgl.widget.update: { id: advanced_stab_defrost_start, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: advanced_stab_defrost_start_lbl, text_color: 0x4B5563 }
-                      - script.execute: update_advanced_settings_ui
-                    else:
-                      - if:
-                          condition:
-                            lambda: 'return tab_index == 3;'
-                          then:
-                            - lvgl.widget.hide: { id: panel_advanced_page_heat_pid }
-                            - lvgl.widget.hide: { id: panel_advanced_page_cool_pid }
-                            - lvgl.widget.hide: { id: panel_advanced_page_bodemplaat }
-                            - lvgl.widget.show: { id: panel_advanced_page_defrost }
-                            - lvgl.widget.hide: { id: panel_advanced_page_defrost_start }
-                            - lvgl.widget.update: { id: advanced_stab_heat_pid, bg_color: 0xCBD5E1 }
-                            - lvgl.label.update: { id: advanced_stab_heat_pid_lbl, text_color: 0x4B5563 }
-                            - lvgl.widget.update: { id: advanced_stab_cool_pid, bg_color: 0xCBD5E1 }
-                            - lvgl.label.update: { id: advanced_stab_cool_pid_lbl, text_color: 0x4B5563 }
-                            - lvgl.widget.update: { id: advanced_stab_bodemplaat, bg_color: 0xCBD5E1 }
-                            - lvgl.label.update: { id: advanced_stab_bodemplaat_lbl, text_color: 0x4B5563 }
-                            - lvgl.widget.update: { id: advanced_stab_defrost, bg_color: 0x1F3B68 }
-                            - lvgl.label.update: { id: advanced_stab_defrost_lbl, text_color: 0xFFFFFF }
-                            - lvgl.widget.update: { id: advanced_stab_defrost_start, bg_color: 0xCBD5E1 }
-                            - lvgl.label.update: { id: advanced_stab_defrost_start_lbl, text_color: 0x4B5563 }
-                            - script.execute: update_advanced_settings_ui
-                          else:
-                            - lvgl.widget.hide: { id: panel_advanced_page_heat_pid }
-                            - lvgl.widget.hide: { id: panel_advanced_page_cool_pid }
-                            - lvgl.widget.hide: { id: panel_advanced_page_bodemplaat }
-                            - lvgl.widget.hide: { id: panel_advanced_page_defrost }
-                            - lvgl.widget.show: { id: panel_advanced_page_defrost_start }
-                            - lvgl.widget.update: { id: advanced_stab_heat_pid, bg_color: 0xCBD5E1 }
-                            - lvgl.label.update: { id: advanced_stab_heat_pid_lbl, text_color: 0x4B5563 }
-                            - lvgl.widget.update: { id: advanced_stab_cool_pid, bg_color: 0xCBD5E1 }
-                            - lvgl.label.update: { id: advanced_stab_cool_pid_lbl, text_color: 0x4B5563 }
-                            - lvgl.widget.update: { id: advanced_stab_bodemplaat, bg_color: 0xCBD5E1 }
-                            - lvgl.label.update: { id: advanced_stab_bodemplaat_lbl, text_color: 0x4B5563 }
-                            - lvgl.widget.update: { id: advanced_stab_defrost, bg_color: 0xCBD5E1 }
-                            - lvgl.label.update: { id: advanced_stab_defrost_lbl, text_color: 0x4B5563 }
-                            - lvgl.widget.update: { id: advanced_stab_defrost_start, bg_color: 0x1F3B68 }
-                            - lvgl.label.update: { id: advanced_stab_defrost_start_lbl, text_color: 0xFFFFFF }
-                            - script.execute: update_advanced_settings_ui
+    - lambda: |-
+        lv_obj_t* panels[5] = {
+          id(panel_advanced_page_heat_pid),
+          id(panel_advanced_page_cool_pid),
+          id(panel_advanced_page_bodemplaat),
+          id(panel_advanced_page_defrost),
+          id(panel_advanced_page_defrost_start)
+        };
+        lv_obj_t* tabs[5] = {
+          id(advanced_stab_heat_pid),
+          id(advanced_stab_cool_pid),
+          id(advanced_stab_bodemplaat),
+          id(advanced_stab_defrost),
+          id(advanced_stab_defrost_start)
+        };
+        lv_obj_t* labels[5] = {
+          id(advanced_stab_heat_pid_lbl),
+          id(advanced_stab_cool_pid_lbl),
+          id(advanced_stab_bodemplaat_lbl),
+          id(advanced_stab_defrost_lbl),
+          id(advanced_stab_defrost_start_lbl)
+        };
+        for (int i = 0; i < 5; i++) {
+          if (i == tab_index) {
+            lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+          } else {
+            lv_obj_add_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xCBD5E1), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
+          }
+        }
+    - script.execute: update_advanced_settings_ui
 
 - id: dhw_select_tab
   mode: restart
   parameters:
     tab_index: int
   then:
+    - lambda: |-
+        lv_obj_t* panels[4] = {
+          id(panel_dhw_page_algemeen),
+          id(panel_dhw_page_winter),
+          id(panel_dhw_page_schema),
+          id(panel_dhw_page_legionella)
+        };
+        lv_obj_t* tabs[4] = {
+          id(dhw_stab_algemeen),
+          id(dhw_stab_winter),
+          id(dhw_stab_schema),
+          id(dhw_stab_legionella)
+        };
+        lv_obj_t* labels[4] = {
+          id(dhw_stab_algemeen_lbl),
+          id(dhw_stab_winter_lbl),
+          id(dhw_stab_schema_lbl),
+          id(dhw_stab_legionella_lbl)
+        };
+        for (int i = 0; i < 4; i++) {
+          if (i == tab_index) {
+            lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+          } else {
+            lv_obj_add_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xCBD5E1), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
+          }
+        }
     - if:
         condition:
-          lambda: 'return tab_index == 0;'
+          lambda: 'return tab_index == 2;'
         then:
-          - lvgl.widget.show: { id: panel_dhw_page_algemeen }
-          - lvgl.widget.hide: { id: panel_dhw_page_winter }
-          - lvgl.widget.hide: { id: panel_dhw_page_schema }
-          - lvgl.widget.hide: { id: panel_dhw_page_legionella }
-          - lvgl.widget.update: { id: dhw_stab_algemeen, bg_color: 0x1F3B68 }
-          - lvgl.label.update: { id: dhw_stab_algemeen_lbl, text_color: 0xFFFFFF }
-          - lvgl.widget.update: { id: dhw_stab_winter, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: dhw_stab_winter_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: dhw_stab_schema, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: dhw_stab_schema_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: dhw_stab_legionella, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: dhw_stab_legionella_lbl, text_color: 0x4B5563 }
-        else:
-          - if:
-              condition:
-                lambda: 'return tab_index == 1;'
-              then:
-                - lvgl.widget.hide: { id: panel_dhw_page_algemeen }
-                - lvgl.widget.show: { id: panel_dhw_page_winter }
-                - lvgl.widget.hide: { id: panel_dhw_page_schema }
-                - lvgl.widget.hide: { id: panel_dhw_page_legionella }
-                - lvgl.widget.update: { id: dhw_stab_algemeen, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: dhw_stab_algemeen_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: dhw_stab_winter, bg_color: 0x1F3B68 }
-                - lvgl.label.update: { id: dhw_stab_winter_lbl, text_color: 0xFFFFFF }
-                - lvgl.widget.update: { id: dhw_stab_schema, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: dhw_stab_schema_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: dhw_stab_legionella, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: dhw_stab_legionella_lbl, text_color: 0x4B5563 }
-              else:
-                - if:
-                    condition:
-                      lambda: 'return tab_index == 2;'
-                    then:
-                      - lvgl.widget.hide: { id: panel_dhw_page_algemeen }
-                      - lvgl.widget.hide: { id: panel_dhw_page_winter }
-                      - lvgl.widget.show: { id: panel_dhw_page_schema }
-                      - lvgl.widget.hide: { id: panel_dhw_page_legionella }
-                      - lvgl.widget.update: { id: dhw_stab_algemeen, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: dhw_stab_algemeen_lbl, text_color: 0x4B5563 }
-                      - lvgl.widget.update: { id: dhw_stab_winter, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: dhw_stab_winter_lbl, text_color: 0x4B5563 }
-                      - lvgl.widget.update: { id: dhw_stab_schema, bg_color: 0x1F3B68 }
-                      - lvgl.label.update: { id: dhw_stab_schema_lbl, text_color: 0xFFFFFF }
-                      - lvgl.widget.update: { id: dhw_stab_legionella, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: dhw_stab_legionella_lbl, text_color: 0x4B5563 }
-                      - script.execute: update_dhw_schedule_ui
-                    else:
-                      - lvgl.widget.hide: { id: panel_dhw_page_algemeen }
-                      - lvgl.widget.hide: { id: panel_dhw_page_winter }
-                      - lvgl.widget.hide: { id: panel_dhw_page_schema }
-                      - lvgl.widget.show: { id: panel_dhw_page_legionella }
-                      - lvgl.widget.update: { id: dhw_stab_algemeen, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: dhw_stab_algemeen_lbl, text_color: 0x4B5563 }
-                      - lvgl.widget.update: { id: dhw_stab_winter, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: dhw_stab_winter_lbl, text_color: 0x4B5563 }
-                      - lvgl.widget.update: { id: dhw_stab_schema, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: dhw_stab_schema_lbl, text_color: 0x4B5563 }
-                      - lvgl.widget.update: { id: dhw_stab_legionella, bg_color: 0x1F3B68 }
-                      - lvgl.label.update: { id: dhw_stab_legionella_lbl, text_color: 0xFFFFFF }
-                      - script.execute: update_legio_ui
+          - script.execute: update_dhw_schedule_ui
+    - if:
+        condition:
+          lambda: 'return tab_index == 3;'
+        then:
+          - script.execute: update_legio_ui
 
 - id: bijverwarmen_select_tab
   mode: restart
   parameters:
     tab_index: int
   then:
-    - if:
-        condition:
-          lambda: 'return tab_index == 0;'
-        then:
-          - lvgl.widget.show: { id: panel_bijverwarmen_page_algemeen }
-          - lvgl.widget.hide: { id: panel_bijverwarmen_page_verwarmen }
-          - lvgl.widget.hide: { id: panel_bijverwarmen_page_tapwater }
-          - lvgl.widget.update: { id: bijverwarmen_stab_algemeen, bg_color: 0x1F3B68 }
-          - lvgl.label.update: { id: bijverwarmen_stab_algemeen_lbl, text_color: 0xFFFFFF }
-          - lvgl.widget.update: { id: bijverwarmen_stab_verwarmen, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: bijverwarmen_stab_verwarmen_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: bijverwarmen_stab_tapwater, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: bijverwarmen_stab_tapwater_lbl, text_color: 0x4B5563 }
-        else:
-          - if:
-              condition:
-                lambda: 'return tab_index == 1;'
-              then:
-                - lvgl.widget.hide: { id: panel_bijverwarmen_page_algemeen }
-                - lvgl.widget.show: { id: panel_bijverwarmen_page_verwarmen }
-                - lvgl.widget.hide: { id: panel_bijverwarmen_page_tapwater }
-                - lvgl.widget.update: { id: bijverwarmen_stab_algemeen, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: bijverwarmen_stab_algemeen_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: bijverwarmen_stab_verwarmen, bg_color: 0x1F3B68 }
-                - lvgl.label.update: { id: bijverwarmen_stab_verwarmen_lbl, text_color: 0xFFFFFF }
-                - lvgl.widget.update: { id: bijverwarmen_stab_tapwater, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: bijverwarmen_stab_tapwater_lbl, text_color: 0x4B5563 }
-              else:
-                - lvgl.widget.hide: { id: panel_bijverwarmen_page_algemeen }
-                - lvgl.widget.hide: { id: panel_bijverwarmen_page_verwarmen }
-                - lvgl.widget.show: { id: panel_bijverwarmen_page_tapwater }
-                - lvgl.widget.update: { id: bijverwarmen_stab_algemeen, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: bijverwarmen_stab_algemeen_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: bijverwarmen_stab_verwarmen, bg_color: 0xCBD5E1 }
-                - lvgl.label.update: { id: bijverwarmen_stab_verwarmen_lbl, text_color: 0x4B5563 }
-                - lvgl.widget.update: { id: bijverwarmen_stab_tapwater, bg_color: 0x1F3B68 }
-                - lvgl.label.update: { id: bijverwarmen_stab_tapwater_lbl, text_color: 0xFFFFFF }
+    - lambda: |-
+        lv_obj_t* panels[3] = {
+          id(panel_bijverwarmen_page_algemeen),
+          id(panel_bijverwarmen_page_verwarmen),
+          id(panel_bijverwarmen_page_tapwater)
+        };
+        lv_obj_t* tabs[3] = {
+          id(bijverwarmen_stab_algemeen),
+          id(bijverwarmen_stab_verwarmen),
+          id(bijverwarmen_stab_tapwater)
+        };
+        lv_obj_t* labels[3] = {
+          id(bijverwarmen_stab_algemeen_lbl),
+          id(bijverwarmen_stab_verwarmen_lbl),
+          id(bijverwarmen_stab_tapwater_lbl)
+        };
+        for (int i = 0; i < 3; i++) {
+          if (i == tab_index) {
+            lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+          } else {
+            lv_obj_add_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xCBD5E1), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
+          }
+        }
+
 
 - id: update_advanced_settings_ui
   mode: restart
   then:
-    - lvgl.widget.update:
-        id: set_advanced_settings_switch_ui
-        state:
-          checked: !lambda 'return id(advanced_settings_enabled).state;'
+    - lambda: |-
+        bool enabled = id(advanced_settings_enabled).state;
+        if (enabled) {
+          lv_obj_add_state(id(set_advanced_settings_switch_ui), LV_STATE_CHECKED);
+          lv_obj_clear_flag(id(stab_advanced), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(id(set_heat_pid_disabled_overlay), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(id(set_cool_pid_disabled_overlay), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_clear_state(id(set_heat_pid_section), LV_STATE_DISABLED);
+          lv_obj_clear_state(id(set_cool_pid_section), LV_STATE_DISABLED);
+        } else {
+          lv_obj_clear_state(id(set_advanced_settings_switch_ui), LV_STATE_CHECKED);
+          lv_obj_add_flag(id(panel_advanced), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(id(stab_advanced), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_set_style_bg_color(id(stab_advanced), lv_color_hex(0xE8ECF1), LV_PART_MAIN);
+          lv_obj_set_style_text_color(id(stab_advanced_lbl), lv_color_hex(0x4B5563), LV_PART_MAIN);
+          lv_obj_clear_flag(id(set_heat_pid_disabled_overlay), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_clear_flag(id(set_cool_pid_disabled_overlay), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_state(id(set_heat_pid_section), LV_STATE_DISABLED);
+          lv_obj_add_state(id(set_cool_pid_section), LV_STATE_DISABLED);
+        }
+        lv_obj_clear_flag(id(set_heat_pid_section), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(id(set_cool_pid_section), LV_OBJ_FLAG_HIDDEN);
+
+        lv_obj_t* adv_rows[8] = {
+          id(set_general_bodemplaat_mode_row),
+          id(set_general_bodemplaat_start_row),
+          id(set_general_bodemplaat_hysteresis_row),
+          id(set_general_defrost_exit_row),
+          id(set_general_defrost_max_time_row),
+          id(set_general_defrost_enter1_row),
+          id(set_defrost_advanced_section),
+          id(set_pump_flow_switch_safety_row)
+        };
+        for (int i = 0; i < 8; i++) {
+          if (enabled) {
+            lv_obj_clear_state(adv_rows[i], LV_STATE_DISABLED);
+            lv_obj_set_style_opa(adv_rows[i], LV_OPA_COVER, LV_PART_MAIN);
+          } else {
+            lv_obj_add_state(adv_rows[i], LV_STATE_DISABLED);
+            lv_obj_set_style_opa(adv_rows[i], LV_OPA_40, LV_PART_MAIN);
+          }
+        }
     - if:
         condition:
           switch.is_on: advanced_settings_enabled
         then:
-          - lvgl.widget.show: { id: stab_advanced }
-          - lvgl.widget.show: { id: set_heat_pid_section }
-          - lvgl.widget.show: { id: set_cool_pid_section }
-          - lvgl.widget.hide: { id: set_heat_pid_disabled_overlay }
-          - lvgl.widget.hide: { id: set_cool_pid_disabled_overlay }
-          - lvgl.widget.update:
-              id: set_heat_pid_section
-              state:
-                disabled: false
-          - lvgl.widget.update:
-              id: set_cool_pid_section
-              state:
-                disabled: false
-          - lvgl.widget.update:
-              id: set_general_bodemplaat_mode_row
-              state:
-                disabled: false
-          - lvgl.widget.update:
-              id: set_general_bodemplaat_start_row
-              state:
-                disabled: false
-          - lvgl.widget.update:
-              id: set_general_bodemplaat_hysteresis_row
-              state:
-                disabled: false
-          - lvgl.widget.update:
-              id: set_general_bodemplaat_mode_row
-              opa: 100%
-          - lvgl.widget.update:
-              id: set_general_bodemplaat_start_row
-              opa: 100%
-          - lvgl.widget.update:
-              id: set_general_bodemplaat_hysteresis_row
-              opa: 100%
-          - lvgl.widget.update:
-              id: set_general_defrost_exit_row
-              state:
-                disabled: false
-          - lvgl.widget.update:
-              id: set_general_defrost_exit_row
-              opa: 100%
-          - lvgl.widget.update:
-              id: set_general_defrost_max_time_row
-              state:
-                disabled: false
-          - lvgl.widget.update:
-              id: set_general_defrost_max_time_row
-              opa: 100%
-          - lvgl.widget.update:
-              id: set_general_defrost_enter1_row
-              state:
-                disabled: false
-          - lvgl.widget.update:
-              id: set_general_defrost_enter1_row
-              opa: 100%
-          - lvgl.widget.update:
-              id: set_defrost_advanced_section
-              state:
-                disabled: false
-          - lvgl.widget.update:
-              id: set_defrost_advanced_section
-              opa: 100%
-          - lvgl.widget.update:
-              id: set_pump_flow_switch_safety_row
-              state:
-                disabled: false
-          - lvgl.widget.update:
-              id: set_pump_flow_switch_safety_row
-              opa: 100%
           - script.execute: update_bottomplate_mode_ui
-        else:
-          - lvgl.widget.hide: { id: panel_advanced }
-          - lvgl.widget.hide: { id: stab_advanced }
-          - lvgl.widget.update: { id: stab_advanced, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: stab_advanced_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.show: { id: set_heat_pid_section }
-          - lvgl.widget.show: { id: set_cool_pid_section }
-          - lvgl.widget.show: { id: set_heat_pid_disabled_overlay }
-          - lvgl.widget.show: { id: set_cool_pid_disabled_overlay }
-          - lvgl.widget.update:
-              id: set_heat_pid_section
-              state:
-                disabled: true
-          - lvgl.widget.update:
-              id: set_cool_pid_section
-              state:
-                disabled: true
-          - lvgl.widget.update:
-              id: set_general_bodemplaat_mode_row
-              state:
-                disabled: true
-          - lvgl.widget.update:
-              id: set_general_bodemplaat_mode_row
-              opa: 40%
-          - lvgl.widget.update:
-              id: set_general_bodemplaat_start_row
-              state:
-                disabled: true
-          - lvgl.widget.update:
-              id: set_general_bodemplaat_start_row
-              opa: 40%
-          - lvgl.widget.update:
-              id: set_general_bodemplaat_hysteresis_row
-              state:
-                disabled: true
-          - lvgl.widget.update:
-              id: set_general_bodemplaat_hysteresis_row
-              opa: 40%
-          - lvgl.widget.update:
-              id: set_general_defrost_exit_row
-              state:
-                disabled: true
-          - lvgl.widget.update:
-              id: set_general_defrost_exit_row
-              opa: 40%
-          - lvgl.widget.update:
-              id: set_general_defrost_max_time_row
-              state:
-                disabled: true
-          - lvgl.widget.update:
-              id: set_general_defrost_max_time_row
-              opa: 40%
-          - lvgl.widget.update:
-              id: set_general_defrost_enter1_row
-              state:
-                disabled: true
-          - lvgl.widget.update:
-              id: set_general_defrost_enter1_row
-              opa: 40%
-          - lvgl.widget.update:
-              id: set_defrost_advanced_section
-              state:
-                disabled: true
-          - lvgl.widget.update:
-              id: set_defrost_advanced_section
-              opa: 40%
-          - lvgl.widget.update:
-              id: set_pump_flow_switch_safety_row
-              state:
-                disabled: true
-          - lvgl.widget.update:
-              id: set_pump_flow_switch_safety_row
-              opa: 40%
+
 
 - id: update_service_valve_ui
   mode: restart
@@ -1574,47 +1427,48 @@
         condition:
           lambda: 'return !lv_obj_has_flag(id(page_service), LV_OBJ_FLAG_HIDDEN);'
         then:
-          - lvgl.label.update:
-              id: service_diag_status_values
-              text:
-                format: "%s\n%s\n%s"
-                args:
-                  - 'id(state_machine_state_main).state.empty() ? "-" : id(state_machine_state_main).state.c_str()'
-                  - 'id(state_machine_state_heat_cool).state.empty() ? "-" : id(state_machine_state_heat_cool).state.c_str()'
-                  - 'id(state_machine_state_dhw).state.empty() ? "-" : id(state_machine_state_dhw).state.c_str()'
-          - lvgl.label.update:
-              id: service_diag_temp_values
-              text:
-                format: "%s / %s\n%s / %s\n%s / %s bar"
-                args:
-                  - 'id(temperature_outside_ta).has_state() ? str_sprintf("%.1f°C", id(temperature_outside_ta).state).c_str() : "-"'
-                  - 'id(heat_cool_control_temperature).has_state() ? str_sprintf("%.1f°C", id(heat_cool_control_temperature).state).c_str() : "-"'
-                  - 'id(outlet_temperature_tuo).has_state() ? str_sprintf("%.1f°C", id(outlet_temperature_tuo).state).c_str() : "-"'
-                  - 'id(inlet_temperature_tui).has_state() ? str_sprintf("%.1f°C", id(inlet_temperature_tui).state).c_str() : "-"'
-                  - 'id(suction_pressure_ps).has_state() ? str_sprintf("%.1f", id(suction_pressure_ps).state).c_str() : "-"'
-                  - 'id(discharge_pressure_pd).has_state() ? str_sprintf("%.1f", id(discharge_pressure_pd).state).c_str() : "-"'
-          - lvgl.label.update:
-              id: service_diag_control_values
-              text:
-                format: "%s\n%s\n%s\n%s"
-                args:
-                  - 'id(current_compressor_frequency).has_state() ? str_sprintf("%.0f Hz", id(current_compressor_frequency).state).c_str() : "- Hz"'
-                  - 'id(pump_p0_current_pwm_sensor).has_state() ? str_sprintf("%.0f %%", id(pump_p0_current_pwm_sensor).state).c_str() : "- %"'
-                  - 'id(fan_rpm_sensor).has_state() ? str_sprintf("%.0f rpm", id(fan_rpm_sensor).state).c_str() : "- rpm"'
-                  - 'id(expansion_valve_position).has_state() ? str_sprintf("%.0f %%", id(expansion_valve_position).state).c_str() : "- %"'
-          - lvgl.label.update:
-              id: service_diag_system_values
-              text:
-                format: "%s / %s\n%s\n%s\n%s / %s\n%s / %s"
-                args:
-                  - 'id(defrost_active_sensor).state ? "AAN" : "UIT"'
-                  - 'id(bottom_heater_active_sensor).state ? "AAN" : "UIT"'
-                  - 'id(modbus_inside_online).state ? "Online" : "Offline"'
-                  - 'id(modbus_outside_online).state ? "Online" : "Offline"'
-                  - 'id(sg_ready_a_active_sensor).state ? "AAN" : "UIT"'
-                  - 'id(sg_ready_b_active_sensor).state ? "AAN" : "UIT"'
-                  - 'id(external_heat_demand_wired).state ? "AAN" : "UIT"'
-                  - 'id(external_cool_demand_wired).state ? "AAN" : "UIT"'
+          - lambda: |-
+              if (id(service_diag_status_table) == nullptr ||
+                  id(service_diag_temp_table) == nullptr ||
+                  id(service_diag_control_table) == nullptr ||
+                  id(service_diag_system_table) == nullptr) return;
+
+              auto *st = id(service_diag_status_table)->obj;
+              lv_table_set_cell_value(st, 0, 1, id(state_machine_state_main).state.empty() ? "-" : id(state_machine_state_main).state.c_str());
+              lv_table_set_cell_value(st, 1, 1, id(state_machine_state_heat_cool).state.empty() ? "-" : id(state_machine_state_heat_cool).state.c_str());
+              lv_table_set_cell_value(st, 2, 1, id(state_machine_state_dhw).state.empty() ? "-" : id(state_machine_state_dhw).state.c_str());
+
+              auto *tt = id(service_diag_temp_table)->obj;
+              std::string ta_tc = str_sprintf("%s / %s",
+                id(temperature_outside_ta).has_state() ? str_sprintf("%.1f°C", id(temperature_outside_ta).state).c_str() : "-",
+                id(heat_cool_control_temperature).has_state() ? str_sprintf("%.1f°C", id(heat_cool_control_temperature).state).c_str() : "-");
+              lv_table_set_cell_value(tt, 0, 1, ta_tc.c_str());
+
+              std::string tuo_tui = str_sprintf("%s / %s",
+                id(outlet_temperature_tuo).has_state() ? str_sprintf("%.1f°C", id(outlet_temperature_tuo).state).c_str() : "-",
+                id(inlet_temperature_tui).has_state() ? str_sprintf("%.1f°C", id(inlet_temperature_tui).state).c_str() : "-");
+              lv_table_set_cell_value(tt, 1, 1, tuo_tui.c_str());
+
+              std::string ps_pd = str_sprintf("%s / %s bar",
+                id(suction_pressure_ps).has_state() ? str_sprintf("%.1f", id(suction_pressure_ps).state).c_str() : "-",
+                id(discharge_pressure_pd).has_state() ? str_sprintf("%.1f", id(discharge_pressure_pd).state).c_str() : "-");
+              lv_table_set_cell_value(tt, 2, 1, ps_pd.c_str());
+
+              auto *ct = id(service_diag_control_table)->obj;
+              lv_table_set_cell_value(ct, 0, 1, id(current_compressor_frequency).has_state() ? str_sprintf("%.0f Hz", id(current_compressor_frequency).state).c_str() : "- Hz");
+              lv_table_set_cell_value(ct, 1, 1, id(pump_p0_current_pwm_sensor).has_state() ? str_sprintf("%.0f %%", id(pump_p0_current_pwm_sensor).state).c_str() : "- %");
+              lv_table_set_cell_value(ct, 2, 1, id(fan_rpm_sensor).has_state() ? str_sprintf("%.0f rpm", id(fan_rpm_sensor).state).c_str() : "- rpm");
+              lv_table_set_cell_value(ct, 3, 1, id(expansion_valve_position).has_state() ? str_sprintf("%.0f %%", id(expansion_valve_position).state).c_str() : "- %");
+
+              auto *sy = id(service_diag_system_table)->obj;
+              std::string def_bot = str_sprintf("%s / %s", id(defrost_active_sensor).state ? "AAN" : "UIT", id(bottom_heater_active_sensor).state ? "AAN" : "UIT");
+              lv_table_set_cell_value(sy, 0, 1, def_bot.c_str());
+              lv_table_set_cell_value(sy, 1, 1, id(modbus_inside_online).state ? "Online" : "Offline");
+              lv_table_set_cell_value(sy, 2, 1, id(modbus_outside_online).state ? "Online" : "Offline");
+              std::string sg_ab = str_sprintf("%s / %s", id(sg_ready_a_active_sensor).state ? "AAN" : "UIT", id(sg_ready_b_active_sensor).state ? "AAN" : "UIT");
+              lv_table_set_cell_value(sy, 3, 1, sg_ab.c_str());
+              std::string dem_hc = str_sprintf("%s / %s", id(external_heat_demand_wired).state ? "AAN" : "UIT", id(external_cool_demand_wired).state ? "AAN" : "UIT");
+              lv_table_set_cell_value(sy, 4, 1, dem_hc.c_str());
 
 - id: update_system_diagnostics_ui
   mode: restart
@@ -1623,65 +1477,36 @@
         condition:
           lambda: 'return !lv_obj_has_flag(id(page_system), LV_OBJ_FLAG_HIDDEN);'
         then:
-          - if:
-              condition:
-                lambda: 'return id(sensor_uptime).has_state();'
-              then:
-                - if:
-                    condition:
-                      lambda: 'return (static_cast<uint32_t>(id(sensor_uptime).state) / 60U) >= 1440U;'
-                    then:
-                      - lvgl.label.update:
-                          id: system_diag_runtime_values
-                          text:
-                            format: "%s\n%lu d %lu u"
-                            args:
-                              - 'ESPHOME_VERSION'
-                              - '(static_cast<uint32_t>(id(sensor_uptime).state) / 60U) / 1440U'
-                              - '((static_cast<uint32_t>(id(sensor_uptime).state) / 60U) / 60U) % 24U'
-                    else:
-                      - if:
-                          condition:
-                            lambda: 'return (static_cast<uint32_t>(id(sensor_uptime).state) / 60U) >= 60U;'
-                          then:
-                            - lvgl.label.update:
-                                id: system_diag_runtime_values
-                                text:
-                                  format: "%s\n%lu u %lu m"
-                                  args:
-                                    - 'ESPHOME_VERSION'
-                                    - '(static_cast<uint32_t>(id(sensor_uptime).state) / 60U) / 60U'
-                                    - '(static_cast<uint32_t>(id(sensor_uptime).state) / 60U) % 60U'
-                          else:
-                            - lvgl.label.update:
-                                id: system_diag_runtime_values
-                                text:
-                                  format: "%s\n%lu m"
-                                  args:
-                                    - 'ESPHOME_VERSION'
-                                    - 'static_cast<uint32_t>(id(sensor_uptime).state) / 60U'
-              else:
-                - lvgl.label.update:
-                    id: system_diag_runtime_values
-                    text:
-                      format: "%s\n-"
-                      args: ['ESPHOME_VERSION']
-          - lvgl.label.update:
-              id: system_diag_memory_values
-              text:
-                format: "%s\n%s\n%s\n%s"
-                args:
-                  - 'id(system_heap_free).has_state() ? str_sprintf("%.0f kB", id(system_heap_free).state / 1024.0f).c_str() : "-"'
-                  - 'id(system_heap_fragmentation).has_state() ? str_sprintf("%.0f %%", id(system_heap_fragmentation).state).c_str() : "-"'
-                  - 'id(system_heap_max_block).has_state() ? str_sprintf("%.0f kB", id(system_heap_max_block).state / 1024.0f).c_str() : "-"'
-                  - 'id(system_psram_free).has_state() ? str_sprintf("%.0f kB", id(system_psram_free).state / 1024.0f).c_str() : "-"'
-          - lvgl.label.update:
-              id: system_diag_esp_values
-              text:
-                format: "%s\n%s"
-                args:
-                  - 'id(system_debug_device_info).state.empty() ? "-" : id(system_debug_device_info).state.c_str()'
-                  - 'id(system_debug_reset_reason).state.empty() ? "-" : id(system_debug_reset_reason).state.c_str()'
+          - lambda: |-
+              if (id(system_diag_runtime_table) == nullptr ||
+                  id(system_diag_memory_table) == nullptr ||
+                  id(system_diag_esp_table) == nullptr) return;
+
+              auto *rt = id(system_diag_runtime_table)->obj;
+              lv_table_set_cell_value(rt, 0, 1, ESPHOME_VERSION);
+              if (id(sensor_uptime).has_state()) {
+                uint32_t mins = static_cast<uint32_t>(id(sensor_uptime).state) / 60U;
+                if (mins >= 1440U) {
+                  lv_table_set_cell_value(rt, 1, 1, str_sprintf("%lu d %lu u", mins / 1440U, (mins / 60U) % 24U).c_str());
+                } else if (mins >= 60U) {
+                  lv_table_set_cell_value(rt, 1, 1, str_sprintf("%lu u %lu m", mins / 60U, mins % 60U).c_str());
+                } else {
+                  lv_table_set_cell_value(rt, 1, 1, str_sprintf("%lu m", mins).c_str());
+                }
+              } else {
+                lv_table_set_cell_value(rt, 1, 1, "-");
+              }
+
+              auto *mt = id(system_diag_memory_table)->obj;
+              lv_table_set_cell_value(mt, 0, 1, id(system_heap_free).has_state() ? str_sprintf("%.0f kB", id(system_heap_free).state / 1024.0f).c_str() : "-");
+              lv_table_set_cell_value(mt, 1, 1, id(system_heap_fragmentation).has_state() ? str_sprintf("%.0f %%", id(system_heap_fragmentation).state).c_str() : "-");
+              lv_table_set_cell_value(mt, 2, 1, id(system_heap_max_block).has_state() ? str_sprintf("%.0f kB", id(system_heap_max_block).state / 1024.0f).c_str() : "-");
+              lv_table_set_cell_value(mt, 3, 1, id(system_psram_free).has_state() ? str_sprintf("%.0f kB", id(system_psram_free).state / 1024.0f).c_str() : "-");
+
+              auto *et = id(system_diag_esp_table)->obj;
+              lv_table_set_cell_value(et, 0, 1, id(system_debug_device_info).state.empty() ? "-" : id(system_debug_device_info).state.c_str());
+              lv_table_set_cell_value(et, 1, 1, id(system_debug_reset_reason).state.empty() ? "-" : id(system_debug_reset_reason).state.c_str());
+
 
 - id: update_firmware_ui
   mode: restart
@@ -1848,14 +1673,7 @@
   mode: restart
   then:
     - lambda: |-
-        if (id(service_errors_status) == nullptr ||
-            id(service_errors_code_title) == nullptr ||
-            id(service_errors_explanation_value) == nullptr ||
-            id(service_errors_reset_timeout_btn) == nullptr ||
-            id(service_errors_counter) == nullptr ||
-            id(service_errors_nav_row) == nullptr ||
-            id(service_errors_prev_btn) == nullptr ||
-            id(service_errors_next_btn) == nullptr) {
+        if (id(service_errors_list) == nullptr) {
           return;
         }
         if (lv_obj_has_flag(id(page_service), LV_OBJ_FLAG_HIDDEN)) {
@@ -1901,15 +1719,6 @@
           {"F18 - Storing sensor condensortemperatuur Tup", "Storing sensor condensortemperatuur Tup.", id(error_flag_f18).state}
         };
 
-        const int total = sizeof(items) / sizeof(items[0]);
-        int active_indices[total];
-        int active_count = 0;
-        for (int i = 0; i < total; i++) {
-          if (items[i].active) {
-            active_indices[active_count++] = i;
-          }
-        }
-
         const bool timeout_error_active =
             id(error_pump_start_timeout).state ||
             id(error_compressor_start_timeout).state ||
@@ -1917,57 +1726,32 @@
             id(error_modbus_connection_timeout).state ||
             id(error_three_way_valve_state_timeout).state;
 
-        if (timeout_error_active) lv_obj_clear_flag(id(service_errors_reset_timeout_btn), LV_OBJ_FLAG_HIDDEN);
-        else lv_obj_add_flag(id(service_errors_reset_timeout_btn), LV_OBJ_FLAG_HIDDEN);
-
-        if (active_count == 0) {
-          id(service_error_page_index) = 0;
-          lv_label_set_text(id(service_errors_status), "Geen actieve foutmeldingen");
-          lv_label_set_text(id(service_errors_code_title), "");
-          lv_label_set_text(id(service_errors_explanation_value), "");
-          lv_label_set_text(id(service_errors_counter), "");
-          lv_obj_add_flag(id(service_errors_nav_row), LV_OBJ_FLAG_HIDDEN);
-          return;
+        if (id(service_errors_reset_timeout_btn) != nullptr) {
+          if (timeout_error_active) lv_obj_clear_flag(id(service_errors_reset_timeout_btn), LV_OBJ_FLAG_HIDDEN);
+          else lv_obj_add_flag(id(service_errors_reset_timeout_btn), LV_OBJ_FLAG_HIDDEN);
         }
 
-        lv_obj_clear_flag(id(service_errors_nav_row), LV_OBJ_FLAG_HIDDEN);
-
-        int index = id(service_error_page_index);
-        if (index < 0) index = 0;
-        if (index >= active_count) index = active_count - 1;
-        id(service_error_page_index) = index;
-
-        const AlertItem &item = items[active_indices[index]];
-        std::string status = "Actieve foutmelding " + std::to_string(index + 1) + " van " + std::to_string(active_count);
-        std::string counter = std::to_string(index + 1) + "/" + std::to_string(active_count);
-
-        lv_label_set_text(id(service_errors_status), status.c_str());
-        lv_label_set_text(id(service_errors_code_title), item.title);
-        lv_label_set_text(id(service_errors_explanation_value), item.explanation);
-        lv_label_set_text(id(service_errors_counter), counter.c_str());
-
-        if (index > 0) lv_obj_clear_flag(id(service_errors_prev_btn), LV_OBJ_FLAG_HIDDEN);
-        else lv_obj_add_flag(id(service_errors_prev_btn), LV_OBJ_FLAG_HIDDEN);
-
-        if (index < (active_count - 1)) lv_obj_clear_flag(id(service_errors_next_btn), LV_OBJ_FLAG_HIDDEN);
-        else lv_obj_add_flag(id(service_errors_next_btn), LV_OBJ_FLAG_HIDDEN);
+        if (id(service_errors_list) == nullptr) return;
+        lv_obj_clean(id(service_errors_list));
+        int active_count = 0;
+        const int total = sizeof(items) / sizeof(items[0]);
+        for (int i = 0; i < total; i++) {
+          if (items[i].active) {
+            active_count++;
+            std::string entry = std::string(items[i].title) + "\n" + items[i].explanation;
+            lv_list_add_text(id(service_errors_list), entry.c_str());
+          }
+        }
+        if (active_count == 0) {
+          lv_list_add_text(id(service_errors_list), "Geen actieve foutmeldingen");
+        }
 
 - id: update_service_warnings_ui
   mode: restart
   then:
     - lambda: |-
-        if (id(service_warnings_status) == nullptr ||
-            id(service_warnings_code_title) == nullptr ||
-            id(service_warnings_explanation_value) == nullptr ||
-            id(service_warnings_counter) == nullptr ||
-            id(service_warnings_nav_row) == nullptr ||
-            id(service_warnings_prev_btn) == nullptr ||
-            id(service_warnings_next_btn) == nullptr) {
-          return;
-        }
-        if (lv_obj_has_flag(id(page_service), LV_OBJ_FLAG_HIDDEN)) {
-          return;
-        }
+        if (id(service_warnings_list) == nullptr) return;
+        if (lv_obj_has_flag(id(page_service), LV_OBJ_FLAG_HIDDEN)) return;
 
         struct AlertItem {
           const char *title;
@@ -1986,74 +1770,19 @@
           {"P13 - Storing compressor - laag drukverschil", "Toerental compressor wordt verlaagd. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart.", id(error_flag_p13).state}
         };
 
-        const int total = sizeof(items) / sizeof(items[0]);
-        int active_indices[8];
+        lv_obj_clean(id(service_warnings_list));
         int active_count = 0;
+        const int total = sizeof(items) / sizeof(items[0]);
         for (int i = 0; i < total; i++) {
           if (items[i].active) {
-            active_indices[active_count++] = i;
+            active_count++;
+            std::string entry = std::string(items[i].title) + "\n" + items[i].explanation;
+            lv_list_add_text(id(service_warnings_list), entry.c_str());
           }
         }
-
         if (active_count == 0) {
-          id(service_warning_page_index) = 0;
-          lv_label_set_text(id(service_warnings_status), "Geen actieve waarschuwingen");
-          lv_label_set_text(id(service_warnings_code_title), "");
-          lv_label_set_text(id(service_warnings_explanation_value), "");
-          lv_label_set_text(id(service_warnings_counter), "");
-          lv_obj_add_flag(id(service_warnings_nav_row), LV_OBJ_FLAG_HIDDEN);
-          return;
+          lv_list_add_text(id(service_warnings_list), "Geen actieve waarschuwingen");
         }
-
-        lv_obj_clear_flag(id(service_warnings_nav_row), LV_OBJ_FLAG_HIDDEN);
-
-        int index = id(service_warning_page_index);
-        if (index < 0) index = 0;
-        if (index >= active_count) index = active_count - 1;
-        id(service_warning_page_index) = index;
-
-        const AlertItem &item = items[active_indices[index]];
-        std::string status = "Actieve waarschuwing " + std::to_string(index + 1) + " van " + std::to_string(active_count);
-        std::string counter = std::to_string(index + 1) + "/" + std::to_string(active_count);
-
-        lv_label_set_text(id(service_warnings_status), status.c_str());
-        lv_label_set_text(id(service_warnings_code_title), item.title);
-        lv_label_set_text(id(service_warnings_explanation_value), item.explanation);
-        lv_label_set_text(id(service_warnings_counter), counter.c_str());
-
-        if (index > 0) lv_obj_clear_flag(id(service_warnings_prev_btn), LV_OBJ_FLAG_HIDDEN);
-        else lv_obj_add_flag(id(service_warnings_prev_btn), LV_OBJ_FLAG_HIDDEN);
-
-        if (index < (active_count - 1)) lv_obj_clear_flag(id(service_warnings_next_btn), LV_OBJ_FLAG_HIDDEN);
-        else lv_obj_add_flag(id(service_warnings_next_btn), LV_OBJ_FLAG_HIDDEN);
-
-- id: service_errors_prev_item
-  mode: restart
-  then:
-    - lambda: |-
-        id(service_error_page_index)--;
-    - script.execute: update_service_errors_ui
-
-- id: service_errors_next_item
-  mode: restart
-  then:
-    - lambda: |-
-        id(service_error_page_index)++;
-    - script.execute: update_service_errors_ui
-
-- id: service_warnings_prev_item
-  mode: restart
-  then:
-    - lambda: |-
-        id(service_warning_page_index)--;
-    - script.execute: update_service_warnings_ui
-
-- id: service_warnings_next_item
-  mode: restart
-  then:
-    - lambda: |-
-        id(service_warning_page_index)++;
-    - script.execute: update_service_warnings_ui
 
 - id: update_service_deaeration_ui
   mode: restart
@@ -2500,6 +2229,7 @@
   mode: restart
   then:
     - lambda: |-
+        // Read sensor values with NaN fallback
         float vals[5] = {
           id(heat_curve_m10).state,
           id(heat_curve_0).state,
@@ -2519,67 +2249,35 @@
         if (vmax < 1.0f && vmin < 1.0f) { vmin = 25.0f; vmax = 35.0f; }
         float range = vmax - vmin;
         if (range < 0.5f) range = 0.5f;
-        int *ys[5] = {&id(hc_y_m10), &id(hc_y_0), &id(hc_y_p5), &id(hc_y_p10), &id(hc_y_p15)};
+
+        // Compute Y coordinates for the 5 data points
+        static lv_point_precise_t pts[5];
+        int xs[5] = {0, 155, 310, 465, 620};
         for (int i = 0; i < 5; i++) {
           float y = 114.0f - ((vals[i] - vmin) / range) * 108.0f;
           if (y < 6.0f) y = 6.0f;
           if (y > 114.0f) y = 114.0f;
-          *ys[i] = (int) y;
+          pts[i].x = xs[i];
+          pts[i].y = (lv_coord_t) y;
         }
+        lv_line_set_points(id(heat_curve_line)->obj, pts, 5);
+
+        // Update Y-axis labels
         float step = (vmax - vmin) / 4.0f;
-        id(hc_axis_top) = (int) (vmax + 0.5f);
-        id(hc_axis_upper_mid) = (int) ((vmax - step) + 0.5f);
-        id(hc_axis_mid) = (int) ((vmax - (2.0f * step)) + 0.5f);
-        id(hc_axis_lower_mid) = (int) ((vmax - (3.0f * step)) + 0.5f);
-        id(hc_axis_bottom) = (int) (vmin + 0.5f);
-    - lvgl.line.update:
-        id: heat_curve_line
-        points:
-          - x: 0
-            y: !lambda 'return (lv_coord_t)id(hc_y_m10);'
-          - x: 155
-            y: !lambda 'return (lv_coord_t)id(hc_y_0);'
-          - x: 310
-            y: !lambda 'return (lv_coord_t)id(hc_y_p5);'
-          - x: 465
-            y: !lambda 'return (lv_coord_t)id(hc_y_p10);'
-          - x: 620
-            y: !lambda 'return (lv_coord_t)id(hc_y_p15);'
-    - lvgl.label.update:
-        id: heat_curve_y_axis_labels
-        text:
-          format: "%d\n%d\n%d\n%d\n%d"
-          args:
-            - 'id(hc_axis_top)'
-            - 'id(hc_axis_upper_mid)'
-            - 'id(hc_axis_mid)'
-            - 'id(hc_axis_lower_mid)'
-            - 'id(hc_axis_bottom)'
-    - lvgl.label.update:
-        id: set_hc_m10_val
-        text:
-          format: "%.0f°C"
-          args: ['id(heat_curve_m10).state']
-    - lvgl.label.update:
-        id: set_hc_0_val
-        text:
-          format: "%.0f°C"
-          args: ['id(heat_curve_0).state']
-    - lvgl.label.update:
-        id: set_hc_p5_val
-        text:
-          format: "%.0f°C"
-          args: ['id(heat_curve_p5).state']
-    - lvgl.label.update:
-        id: set_hc_p10_val
-        text:
-          format: "%.0f°C"
-          args: ['id(heat_curve_p10).state']
-    - lvgl.label.update:
-        id: set_hc_p15_val
-        text:
-          format: "%.0f°C"
-          args: ['id(heat_curve_p15).state']
+        int ax_top = (int)(vmax + 0.5f);
+        int ax_umid = (int)((vmax - step) + 0.5f);
+        int ax_mid = (int)((vmax - 2.0f * step) + 0.5f);
+        int ax_lmid = (int)((vmax - 3.0f * step) + 0.5f);
+        int ax_bot = (int)(vmin + 0.5f);
+        lv_label_set_text_fmt(id(heat_curve_y_axis_labels), "%d\n%d\n%d\n%d\n%d",
+                              ax_top, ax_umid, ax_mid, ax_lmid, ax_bot);
+
+        // Update data point value labels
+        lv_label_set_text_fmt(id(set_hc_m10_val), "%.0f°C", (double)vals[0]);
+        lv_label_set_text_fmt(id(set_hc_0_val), "%.0f°C", (double)vals[1]);
+        lv_label_set_text_fmt(id(set_hc_p5_val), "%.0f°C", (double)vals[2]);
+        lv_label_set_text_fmt(id(set_hc_p10_val), "%.0f°C", (double)vals[3]);
+        lv_label_set_text_fmt(id(set_hc_p15_val), "%.0f°C", (double)vals[4]);
 
 - id: update_legio_ui
   mode: restart
@@ -2813,7 +2511,10 @@
         if (current_options == nullptr || std::string(current_options) != "Zoeken...") {
           lv_dropdown_set_options(id(wifi_network_dd)->obj, "Zoeken...");
         }
-    - lambda: wifi::global_wifi_component->start_scanning();
+    - lambda: |-
+        #ifdef USE_WIFI
+        wifi::global_wifi_component->start_scanning();
+        #endif
 
 - id: wifi_scan_networks_if_empty
   then:
@@ -2824,7 +2525,9 @@
           if (current_options == nullptr || std::string(current_options) != "Zoeken...") {
             lv_dropdown_set_options(id(wifi_network_dd)->obj, "Zoeken...");
           }
+          #ifdef USE_WIFI
           wifi::global_wifi_component->start_scanning();
+          #endif
         }
 
 - id: wifi_network_dropdown_changed
@@ -2864,15 +2567,13 @@
         condition:
           lambda: 'return !lv_obj_has_flag(id(page_settings), LV_OBJ_FLAG_HIDDEN);'
         then:
-          - lvgl.label.update:
-              id: wifi_connected_values_label
-              text:
-                format: "%s\n%s\n%s\n%s"
-                args:
-                  - 'id(wifi_ssid_ui).state.empty() ? "-" : id(wifi_ssid_ui).state.c_str()'
-                  - 'id(wifi_ip_ui).state.empty() ? "-" : id(wifi_ip_ui).state.c_str()'
-                  - 'id(wifi_mac_ui).state.empty() ? "-" : id(wifi_mac_ui).state.c_str()'
-                  - 'isnan(id(wifi_signal_db).state) ? "Geen signaal" : str_sprintf("%.0f dBm", id(wifi_signal_db).state).c_str()'
+          - lambda: |-
+              if (id(wifi_connected_details_table) == nullptr) return;
+              auto *wt = id(wifi_connected_details_table)->obj;
+              lv_table_set_cell_value(wt, 0, 1, id(wifi_ssid_ui).state.empty() ? "-" : id(wifi_ssid_ui).state.c_str());
+              lv_table_set_cell_value(wt, 1, 1, id(wifi_ip_ui).state.empty() ? "-" : id(wifi_ip_ui).state.c_str());
+              lv_table_set_cell_value(wt, 2, 1, id(wifi_mac_ui).state.empty() ? "-" : id(wifi_mac_ui).state.c_str());
+              lv_table_set_cell_value(wt, 3, 1, isnan(id(wifi_signal_db).state) ? "Geen signaal" : str_sprintf("%.0f dBm", id(wifi_signal_db).state).c_str());
 
 - id: wifi_connect_selected
   then:
@@ -2887,16 +2588,26 @@
         }
         if (ssid.empty() || ssid == "Geen netwerken gevonden" || ssid == "Zoeken..." || ssid == "Kies netwerk...") return;
         std::string password = lv_textarea_get_text(id(wifi_password_ta));
+        #ifdef USE_WIFI
         wifi::global_wifi_component->save_wifi_sta(ssid, password);
+        #endif
 
 - id: wifi_disconnect
   then:
     - lambda: |-
+        #ifdef USE_WIFI
         wifi::global_wifi_component->save_wifi_sta("", "");
         wifi::global_wifi_component->clear_sta();
+        if (id(wifi_connected_details_table) != nullptr) {
+          auto *wt = id(wifi_connected_details_table)->obj;
+          lv_table_set_cell_value(wt, 0, 1, "-");
+          lv_table_set_cell_value(wt, 1, 1, "-");
+          lv_table_set_cell_value(wt, 2, 1, "-");
+          lv_table_set_cell_value(wt, 3, 1, "-");
+        }
+        #endif
     - lvgl.label.update: { id: wifi_status_label, text: "Niet verbonden" }
     - lvgl.widget.update: { id: wifi_status_label, text_color: 0xEF4444 }
-    - lvgl.label.update: { id: wifi_connected_values_label, text: "-\n-\n-\n-" }
     - lvgl.label.update: { id: nav_status_wifi_icon, text: "\U000F092E" }
     - lvgl.widget.update: { id: nav_status_wifi_icon, text_color: 0x9CA3AF }
     - lvgl.widget.hide: { id: wifi_connected_section }
