@@ -246,7 +246,7 @@ time:
 modbus_controller:
 - id: modbus_outside_unit
   address: 0x2
-  update_interval: 30s
+  update_interval: 15s
   max_cmd_retries: 2
   on_offline:
     then:
@@ -260,7 +260,7 @@ modbus_controller:
       - logger.log: "Modbus outside unit ONLINE"
 - id: modbus_inside_unit
   address: 0x0B
-  update_interval: 30s
+  update_interval: 15s
   max_cmd_retries: 2
   on_offline:
     then:
