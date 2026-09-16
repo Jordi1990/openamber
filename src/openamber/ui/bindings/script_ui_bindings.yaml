@@ -2511,7 +2511,10 @@
         if (current_options == nullptr || std::string(current_options) != "Zoeken...") {
           lv_dropdown_set_options(id(wifi_network_dd)->obj, "Zoeken...");
         }
-    - lambda: wifi::global_wifi_component->start_scanning();
+    - lambda: |-
+        #ifdef USE_WIFI
+        wifi::global_wifi_component->start_scanning();
+        #endif
 
 - id: wifi_scan_networks_if_empty
   then:
@@ -2522,7 +2525,9 @@
           if (current_options == nullptr || std::string(current_options) != "Zoeken...") {
             lv_dropdown_set_options(id(wifi_network_dd)->obj, "Zoeken...");
           }
+          #ifdef USE_WIFI
           wifi::global_wifi_component->start_scanning();
+          #endif
         }
 
 - id: wifi_network_dropdown_changed
@@ -2583,11 +2588,14 @@
         }
         if (ssid.empty() || ssid == "Geen netwerken gevonden" || ssid == "Zoeken..." || ssid == "Kies netwerk...") return;
         std::string password = lv_textarea_get_text(id(wifi_password_ta));
+        #ifdef USE_WIFI
         wifi::global_wifi_component->save_wifi_sta(ssid, password);
+        #endif
 
 - id: wifi_disconnect
   then:
     - lambda: |-
+        #ifdef USE_WIFI
         wifi::global_wifi_component->save_wifi_sta("", "");
         wifi::global_wifi_component->clear_sta();
         if (id(wifi_connected_details_table) != nullptr) {
@@ -2597,6 +2605,7 @@
           lv_table_set_cell_value(wt, 2, 1, "-");
           lv_table_set_cell_value(wt, 3, 1, "-");
         }
+        #endif
     - lvgl.label.update: { id: wifi_status_label, text: "Niet verbonden" }
     - lvgl.widget.update: { id: wifi_status_label, text_color: 0xEF4444 }
     - lvgl.label.update: { id: nav_status_wifi_icon, text: "\U000F092E" }

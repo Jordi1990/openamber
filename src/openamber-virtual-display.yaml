@@ -1,0 +1,39 @@
+esphome:
+  name: openamber-test
+  project:
+    name: jordi.openamber
+    version: dev
+  on_boot:
+    - priority: -100
+      then:
+        - lvgl.label.update:
+            id: header_title
+            text: "OpenAmber Test"
+
+host:
+
+logger:
+  level: INFO
+
+external_components:
+  - source:
+      type: local
+      path: openamber
+
+display:
+  - platform: sdl
+    id: openamber_display
+    dimensions:
+      width: 1024
+      height: 600
+    snapshot_key: SDLK_F12
+
+touchscreen:
+  - platform: sdl
+    id: openamber_touchscreen
+
+packages:
+  - !include openamber/mock/mock_entities.yaml
+  - !include openamber/ui/display_globals.yaml
+  - !include openamber/ui/bindings/ui_bindings_package.yaml
+  - !include openamber/ui/ui_package.yaml
