@@ -74,7 +74,7 @@ interval:
 
 logger:
   level: INFO
-  #baud_rate: 0
+  baud_rate: 0
   logs:
     modbus: ERROR
 
