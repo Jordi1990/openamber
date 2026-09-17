@@ -37,11 +37,17 @@ class EEBusComponent : public PollingComponent {
   void set_read_dhw_temp(const std::function<float()> &fn) { this->read_dhw_temp_ = fn; }
   void set_read_power_estimate(const std::function<float()> &fn) { this->read_power_estimate_ = fn; }
   void set_is_boost_active(const std::function<bool()> &fn) { this->is_boost_active_ = fn; }
+  void set_is_enabled(const std::function<bool()> &fn) { this->is_enabled_ = fn; }
   void set_apply_optional(const std::function<bool(bool)> &fn) { this->apply_optional_ = fn; }
   void set_apply_dim(const std::function<bool(bool)> &fn) { this->apply_dim_ = fn; }
   void set_apply_limit(const std::function<bool(bool, float)> &fn) { this->apply_limit_ = fn; }
 
+  bool is_enabled() const { return this->is_enabled_ ? this->is_enabled_() : true; }
+  void start_eebus_subsystem();
+  void stop_eebus_subsystem();
+
   void setup() override;
+  void loop() override;
   void update() override;
 
   // Getters exposed to the SHIP/SPINE layer for outbound use-case data.
@@ -86,9 +92,11 @@ class EEBusComponent : public PollingComponent {
   std::function<float()> read_dhw_temp_;
   std::function<float()> read_power_estimate_;
   std::function<bool()> is_boost_active_;
+  std::function<bool()> is_enabled_;
   std::function<bool(bool)> apply_optional_;
   std::function<bool(bool)> apply_dim_;
   std::function<bool(bool, float)> apply_limit_;
+  bool initialized_{false};
 
   void init_certificate_and_keys();
   void start_ship_listener();

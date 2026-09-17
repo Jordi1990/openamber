@@ -19,6 +19,7 @@ namespace openamber_eebus {
 void eebus_mdns_start(const std::string &device_sku, const std::string &brand,
                       const std::string &model, const std::string &ski,
                       const std::string &ship_id, uint16_t ship_port);
+void eebus_mdns_stop();
 
 }  // namespace openamber_eebus
 }  // namespace esphome

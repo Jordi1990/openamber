@@ -2,6 +2,7 @@ substitutions:
   device_name: openamber
   device_friendly_name: OpenAmber
   device_project_name: jordi.openamber
+  device_model: generic
 
 packages:
   maintenance_proxy_switches: !include maintenance_proxy_switches.yaml
@@ -74,9 +75,9 @@ interval:
 
 logger:
   level: INFO
-  #baud_rate: 0
-  logs:
-    modbus: ERROR
+  baud_rate: 0
+  #logs:
+  #  modbus: ERROR
 
 api:
   reboot_timeout: 0s
@@ -282,6 +283,7 @@ number: !include numbers.yaml
 switch: !include switches.yaml
 select: !include selects.yaml
 script: !include scripts.yaml
+eebus: !include eebus.yaml
 
 output:
   - platform: template

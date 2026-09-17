@@ -18,6 +18,7 @@ CONF_READ_POWER = "read_power"
 CONF_READ_DHW_TEMP = "read_dhw_temp"
 CONF_READ_POWER_ESTIMATE = "read_power_estimate"
 CONF_IS_BOOST_ACTIVE = "is_boost_active"
+CONF_IS_ENABLED = "is_enabled"
 CONF_APPLY_OPTIONAL = "apply_optional"
 CONF_APPLY_DIM = "apply_dim"
 CONF_APPLY_LIMIT = "apply_limit"
@@ -43,6 +44,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_READ_DHW_TEMP): cv.returning_lambda,
             cv.Optional(CONF_READ_POWER_ESTIMATE): cv.returning_lambda,
             cv.Optional(CONF_IS_BOOST_ACTIVE): cv.returning_lambda,
+            cv.Optional(CONF_IS_ENABLED): cv.returning_lambda,
             cv.Optional(CONF_APPLY_OPTIONAL): cv.returning_lambda,
             cv.Optional(CONF_APPLY_DIM): cv.returning_lambda,
             cv.Optional(CONF_APPLY_LIMIT): cv.returning_lambda,
@@ -95,6 +97,7 @@ async def to_code(config):
         (CONF_READ_DHW_TEMP, [], float),
         (CONF_READ_POWER_ESTIMATE, [], float),
         (CONF_IS_BOOST_ACTIVE, [], bool),
+        (CONF_IS_ENABLED, [], bool),
         (CONF_APPLY_OPTIONAL, [(bool, "value")], bool),
         (CONF_APPLY_DIM, [(bool, "value")], bool),
         (CONF_APPLY_LIMIT, [(bool, "active"), (float, "limit_w")], bool),
@@ -106,6 +109,7 @@ async def to_code(config):
                 CONF_READ_DHW_TEMP: var.set_read_dhw_temp,
                 CONF_READ_POWER_ESTIMATE: var.set_read_power_estimate,
                 CONF_IS_BOOST_ACTIVE: var.set_is_boost_active,
+                CONF_IS_ENABLED: var.set_is_enabled,
                 CONF_APPLY_OPTIONAL: var.set_apply_optional,
                 CONF_APPLY_DIM: var.set_apply_dim,
                 CONF_APPLY_LIMIT: var.set_apply_limit,

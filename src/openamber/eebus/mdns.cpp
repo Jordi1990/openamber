@@ -59,5 +59,12 @@ void eebus_mdns_start(const std::string &device_sku, const std::string &brand,
 #endif
 }
 
+void eebus_mdns_stop() {
+#ifdef USE_MDNS
+  mdns_service_remove("_ship", "_tcp");
+  ESP_LOGI("eebus_mdns", "Stopped advertising _ship._tcp on mDNS");
+#endif
+}
+
 }  // namespace openamber_eebus
 }  // namespace esphome

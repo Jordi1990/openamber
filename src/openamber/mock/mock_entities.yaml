@@ -282,6 +282,11 @@ sensor:
     name: "Wi-Fi RSSI"
     lambda: 'return -62.0f;'
     update_interval: 5s
+  - platform: template
+    id: eebus_power_limit_sensor
+    name: "EEBUS Vermogenslimiet"
+    unit_of_measurement: "W"
+    lambda: 'return NAN;'
 
 binary_sensor:
   - platform: template
@@ -355,6 +360,10 @@ binary_sensor:
   - platform: template
     id: sg_ready_max_boost_mode_active_sensor
     name: "SG Max Boost actief"
+    lambda: 'return false;'
+  - platform: template
+    id: eebus_connected_sensor
+    name: "EEBUS Verbonden"
     lambda: 'return false;'
   - platform: template
     id: error_flag_e01
@@ -1024,6 +1033,18 @@ switch:
     turn_on_action: []
     turn_off_action: []
   - platform: template
+    id: eebus_enabled_switch
+    name: "EEBUS ingeschakeld"
+    optimistic: true
+    turn_on_action:
+      - lambda: |-
+          id(eebus_ski).publish_state("MOCK-0123456789ABCDEF0123456789ABCDEF01234567");
+          id(eebus_status_sensor).publish_state("Normaal bedrijf");
+    turn_off_action:
+      - lambda: |-
+          id(eebus_ski).publish_state("–");
+          id(eebus_status_sensor).publish_state("Uitgeschakeld");
+  - platform: template
     id: emergency_mode_enabled
     name: "Noodbedrijf"
     optimistic: true
@@ -1366,6 +1387,20 @@ text_sensor:
     id: system_debug_reset_reason
     name: "Herstartreden"
     lambda: 'return std::string("Power-on reset");'
+  - platform: template
+    id: eebus_ski
+    name: "EEBUS SKI"
+    update_interval: 1s
+    lambda: |-
+      if (!id(eebus_enabled_switch).state) return std::string("–");
+      return std::string("MOCK-0123456789ABCDEF0123456789ABCDEF01234567");
+  - platform: template
+    id: eebus_status_sensor
+    name: "EEBUS Status"
+    update_interval: 1s
+    lambda: |-
+      if (!id(eebus_enabled_switch).state) return std::string("Uitgeschakeld");
+      return std::string("Normaal bedrijf");
 
 script:
   - id: apply_pid_settings

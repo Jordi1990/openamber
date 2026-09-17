@@ -29,6 +29,7 @@ class EEBusShipListener {
   ~EEBusShipListener() { this->teardown(); }
 
   void begin(const EEBusCertificateStore &cert, uint16_t port);
+  void stop();
   uint16_t get_port() const { return this->port_; }
 
   // Called with each decoded SHIP WS-frame payload (msg-type byte first).

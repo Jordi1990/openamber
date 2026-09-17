@@ -79,6 +79,8 @@ static const uint16_t kEebusSigAlgs[] = {MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA2
 static StaticTask_t ship_task_tcb;
 static StackType_t *ship_task_stack = nullptr;
 static const uint32_t kShipTaskStackBytes = 32 * 1024;
+static TaskHandle_t ship_task_handle = nullptr;
+static int ship_listen_fd = -1;
 
 static void ship_accept_task(void *arg);
 
@@ -99,6 +101,28 @@ void EEBusShipListener::teardown() {
   mbedtls_pk_free(&this->own_key_);
   mbedtls_ctr_drbg_free(&this->ctr_drbg_);
   this->ready_ = false;
+}
+
+void EEBusShipListener::stop() {
+  this->request_close();
+  this->is_connected_ = false;
+  if (ship_listen_fd >= 0) {
+    int fd = ship_listen_fd;
+    ship_listen_fd = -1;
+    shutdown(fd, SHUT_RDWR);
+    close(fd);
+  }
+  if (ship_task_handle != nullptr) {
+    TaskHandle_t t = ship_task_handle;
+    ship_task_handle = nullptr;
+    vTaskDelete(t);
+  }
+  if (ship_task_stack != nullptr) {
+    free(ship_task_stack);
+    ship_task_stack = nullptr;
+  }
+  this->teardown();
+  active_listener = nullptr;
 }
 
 void EEBusShipListener::begin(const EEBusCertificateStore &cert, uint16_t port) {
@@ -179,8 +203,8 @@ void EEBusShipListener::begin(const EEBusCertificateStore &cert, uint16_t port) 
              static_cast<unsigned>(kShipTaskStackBytes));
     return;
   }
-  xTaskCreateStatic(ship_accept_task, "eebus_ship", stack_words, nullptr,
-                    tskIDLE_PRIORITY + 3, ship_task_stack, &ship_task_tcb);
+  ship_task_handle = xTaskCreateStatic(ship_accept_task, "eebus_ship", stack_words, nullptr,
+                                       tskIDLE_PRIORITY + 3, ship_task_stack, &ship_task_tcb);
 }
 
 static void ship_accept_task(void *arg) {
@@ -188,6 +212,7 @@ static void ship_accept_task(void *arg) {
   int listen_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (listen_fd < 0) {
     ESP_LOGE(TAG, "socket() failed: %d", errno);
+    ship_task_handle = nullptr;
     vTaskDelete(nullptr);
     return;
   }
@@ -204,26 +229,38 @@ static void ship_accept_task(void *arg) {
   if (bind(listen_fd, reinterpret_cast<struct sockaddr *>(&addr), sizeof(addr)) < 0) {
     ESP_LOGE(TAG, "bind() to port %u failed: %d", static_cast<unsigned>(active_listener->get_port()), errno);
     close(listen_fd);
+    ship_task_handle = nullptr;
     vTaskDelete(nullptr);
     return;
   }
   if (listen(listen_fd, kAcceptQueueSize) < 0) {
     ESP_LOGE(TAG, "listen() failed: %d", errno);
     close(listen_fd);
+    ship_task_handle = nullptr;
     vTaskDelete(nullptr);
     return;
   }
+  ship_listen_fd = listen_fd;
   ESP_LOGI(TAG, "SHIP TLS listener ready on port %u",
            static_cast<unsigned>(active_listener->get_port()));
 
   socklen_t addr_len = sizeof(addr);
-  while (true) {
+  while (ship_listen_fd >= 0) {
     int conn = accept(listen_fd, reinterpret_cast<struct sockaddr *>(&addr), &addr_len);
-    if (conn < 0)
+    if (conn < 0) {
+      if (ship_listen_fd < 0)
+        break;
       continue;
+    }
     if (active_listener != nullptr)
       active_listener->handle_connection(conn);
   }
+
+  if (listen_fd >= 0)
+    close(listen_fd);
+  ship_listen_fd = -1;
+  ship_task_handle = nullptr;
+  vTaskDelete(nullptr);
 }
 
 void EEBusShipListener::handle_connection(int fd) {

@@ -30,12 +30,37 @@ void EEBusComponent::record_action(const std::string &action) {
 }
 
 void EEBusComponent::setup() {
+  if (!this->is_enabled()) {
+    ESP_LOGI(TAG, "EEBus component is uitgeschakeld; initialisatie overgeslagen.");
+    if (this->status_sensor_ != nullptr) {
+      this->status_sensor_->publish_state("Uitgeschakeld");
+    }
+    if (this->connected_sensor_ != nullptr) {
+      this->connected_sensor_->publish_state(false);
+    }
+    if (this->last_action_sensor_ != nullptr) {
+      this->last_action_sensor_->publish_state("Uitgeschakeld");
+    }
+    if (this->power_limit_sensor_ != nullptr) {
+      this->power_limit_sensor_->publish_state(NAN);
+    }
+    if (this->ski_sensor_ != nullptr) {
+      this->ski_sensor_->publish_state("–");
+    }
+    return;
+  }
+
+  this->start_eebus_subsystem();
+}
+
+void EEBusComponent::start_eebus_subsystem() {
+  if (this->initialized_)
+    return;
   ESP_LOGI(TAG, "EEBus component initializing (sku=%s brand=%s model=%s)",
            this->device_sku_.c_str(), this->brand_.c_str(), this->model_.c_str());
   this->init_certificate_and_keys();
   this->wire_use_cases();
-  // TLS-listener/mDNS startup is deferred to the first update() so all
-  // ESPHome/ESP-IDF subsystems are fully initialised.
+  this->initialized_ = true;
 
   if (this->status_sensor_ != nullptr) {
     this->status_sensor_->publish_state("Initialiseren...");
@@ -54,7 +79,70 @@ void EEBusComponent::setup() {
   }
 }
 
+void EEBusComponent::stop_eebus_subsystem() {
+  if (!this->initialized_)
+    return;
+  ESP_LOGI(TAG, "EEBus component stopping (uitgeschakeld)...");
+
+  // Stop SHIP listener & mDNS
+  this->ship_listener_.stop();
+  eebus_mdns_stop();
+  this->listener_started_ = false;
+
+  // Release any active consumption limits / dimming / boost
+  if (this->lpc_.is_dimmed()) {
+    this->lpc_.release_limit();
+  }
+  if (this->apply_dim_) {
+    this->apply_dim_(false);
+  }
+  if (this->apply_optional_) {
+    this->apply_optional_(false);
+  }
+
+  this->last_connected_ = false;
+  this->initialized_ = false;
+  this->current_status_ = "Uitgeschakeld";
+
+  if (this->connected_sensor_ != nullptr) {
+    this->connected_sensor_->publish_state(false);
+  }
+  if (this->status_sensor_ != nullptr) {
+    this->status_sensor_->publish_state("Uitgeschakeld");
+  }
+  if (this->last_action_sensor_ != nullptr) {
+    this->last_action_sensor_->publish_state("Uitgeschakeld");
+  }
+  if (this->power_limit_sensor_ != nullptr) {
+    this->power_limit_sensor_->publish_state(NAN);
+  }
+  if (this->ski_sensor_ != nullptr) {
+    this->ski_sensor_->publish_state("–");
+  }
+}
+
+void EEBusComponent::loop() {
+  bool enabled = this->is_enabled();
+  if (enabled && !this->initialized_) {
+    this->start_eebus_subsystem();
+  } else if (!enabled && this->initialized_) {
+    this->stop_eebus_subsystem();
+  }
+}
+
 void EEBusComponent::update() {
+  bool enabled = this->is_enabled();
+  if (!enabled) {
+    if (this->initialized_) {
+      this->stop_eebus_subsystem();
+    }
+    return;
+  }
+
+  if (!this->initialized_) {
+    this->start_eebus_subsystem();
+  }
+
   if (!this->listener_started_) {
     this->listener_started_ = true;
     this->start_ship_listener();

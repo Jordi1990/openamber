@@ -1,0 +1,117 @@
+# Content: EEBUS instellingen (gepagineerd)
+# Included by page_settings_tab_smartgrid.yaml (EEBUS sub-tab)
+# ------------------------------------------------------------
+
+# ── Pagina 1: EEBUS inschakelen ──
+- obj:
+    id: eebus_page_1_row_enable
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "EEBUS inschakelen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Activeer EEBUS communicatie met EMS", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - switch:
+          id: set_eebus_enabled_switch_ui
+          align: TOP_RIGHT
+          bg_color: 0x9CA3AF
+          indicator:
+            bg_color: 0x16A34A
+          knob:
+            bg_color: 0xFFFFFF
+          on_click:
+            - if:
+                condition:
+                  switch.is_on: eebus_enabled_switch
+                then:
+                  - switch.turn_off: eebus_enabled_switch
+                else:
+                  - switch.turn_on: eebus_enabled_switch
+
+# ── Pagina 1: Verbinding met EMS ──
+- obj:
+    id: eebus_page_1_row_connection
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Verbinding met EMS", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Status van de EEBUS verbinding", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          y: 4
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - label: { id: eebus_connection_status_icon, text: "\U000F0338", text_color: 0xEF4444, text_font: font_mdi_24 }
+            - label: { id: eebus_connection_status_lbl, text: "Niet verbonden", text_color: 0xEF4444, text_font: font_text_20 }
+
+# ── Pagina 1: SKI (Subject Key Identifier) ──
+- obj:
+    id: eebus_page_1_row_ski
+    width: 100%
+    height: 125
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "SKI", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Subject Key Identifier voor pairing", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 34 }
+      - label:
+          id: eebus_ski_display_lbl
+          text: "–"
+          text_color: 0x1F2933
+          text_font: font_text_20
+          align: TOP_LEFT
+          y: 68
+          long_mode: WRAP
+          width: 100%
+
+# ── Pagina 2: EEBUS Status ──
+- obj:
+    id: eebus_page_2_row_status
+    hidden: true
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "EEBUS status", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Bedrijfstoestand van de EEBUS koppeling", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label:
+          id: eebus_status_lbl
+          text: "–"
+          text_color: 0x1F2933
+          text_font: font_text_20
+          align: TOP_RIGHT
+          y: 4
+
+# ── Pagina 2: Vermogenslimiet ──
+- obj:
+    id: eebus_page_2_row_power_limit
+    hidden: true
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Vermogenslimiet", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Actieve netbegrenzing vanuit het EMS", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label:
+          id: eebus_power_limit_lbl
+          text: "–"
+          text_color: 0x1F2933
+          text_font: font_text_20
+          align: TOP_RIGHT
+          y: 4
+
