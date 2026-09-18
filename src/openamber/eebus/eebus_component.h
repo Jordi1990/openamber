@@ -29,6 +29,7 @@ class EEBusComponent : public PollingComponent {
   void set_connected_sensor(binary_sensor::BinarySensor *sens) { this->connected_sensor_ = sens; }
   void set_power_limit_sensor(sensor::Sensor *sens) { this->power_limit_sensor_ = sens; }
   void set_ski_sensor(text_sensor::TextSensor *sens) { this->ski_sensor_ = sens; }
+  void set_ems_sensor(text_sensor::TextSensor *sens) { this->ems_sensor_ = sens; }
 
   void record_action(const std::string &action);
 
@@ -76,8 +77,10 @@ class EEBusComponent : public PollingComponent {
   binary_sensor::BinarySensor *connected_sensor_{nullptr};
   sensor::Sensor *power_limit_sensor_{nullptr};
   text_sensor::TextSensor *ski_sensor_{nullptr};
+  text_sensor::TextSensor *ems_sensor_{nullptr};
   std::string last_action_{"Initialisatie"};
   std::string current_status_{"Niet verbonden"};
+  std::string current_ems_{"–"};
   bool last_connected_{false};
 
   EEBusCertificateStore cert_store_;
@@ -103,6 +106,8 @@ class EEBusComponent : public PollingComponent {
   void advertise_mdns();
   void wire_use_cases();
   void check_failsafe();
+  void check_connection_state();
+  void update_ems_status();
 };
 
 }  // namespace openamber_eebus

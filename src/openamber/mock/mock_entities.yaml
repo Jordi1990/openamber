@@ -1401,6 +1401,14 @@ text_sensor:
     lambda: |-
       if (!id(eebus_enabled_switch).state) return std::string("Uitgeschakeld");
       return std::string("Normaal bedrijf");
+  - platform: template
+    id: eebus_ems_sensor
+    name: "EEBUS EMS"
+    update_interval: 1s
+    lambda: |-
+      if (!id(eebus_enabled_switch).state) return std::string("–");
+      if (!id(eebus_connected_sensor).state) return std::string("–");
+      return std::string("EVCC (192.168.1.100)");
 
 script:
   - id: apply_pid_settings

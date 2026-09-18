@@ -1149,6 +1149,7 @@
           - lvgl.widget.show: { id: eebus_page_1_row_ski }
           - lvgl.widget.hide: { id: eebus_page_2_row_status }
           - lvgl.widget.hide: { id: eebus_page_2_row_power_limit }
+          - lvgl.widget.hide: { id: eebus_page_2_row_ems }
           - lvgl.widget.update: { id: eebus_page_1_button, bg_color: 0x1F3B68 }
           - lvgl.label.update: { id: eebus_page_1_button_lbl, text_color: 0xFFFFFF }
           - lvgl.widget.update: { id: eebus_page_2_button, bg_color: 0xCBD5E1 }
@@ -1160,6 +1161,7 @@
           - lvgl.widget.hide: { id: eebus_page_1_row_ski }
           - lvgl.widget.show: { id: eebus_page_2_row_status }
           - lvgl.widget.show: { id: eebus_page_2_row_power_limit }
+          - lvgl.widget.show: { id: eebus_page_2_row_ems }
           - lvgl.widget.update: { id: eebus_page_1_button, bg_color: 0xCBD5E1 }
           - lvgl.label.update: { id: eebus_page_1_button_lbl, text_color: 0x4B5563 }
           - lvgl.widget.update: { id: eebus_page_2_button, bg_color: 0x1F3B68 }
@@ -1177,17 +1179,29 @@
           lv_obj_clear_state(id(set_eebus_enabled_switch_ui), LV_STATE_CHECKED);
         }
 
-        // Update connection status
+        // Update connection status and EMS info
         if (id(eebus_connected_sensor).state) {
           lv_label_set_text(id(eebus_connection_status_lbl), "Verbonden");
           lv_obj_set_style_text_color(id(eebus_connection_status_lbl), lv_color_hex(0x16A34A), LV_PART_MAIN);
           lv_label_set_text(id(eebus_connection_status_icon), "\U000F0337");
           lv_obj_set_style_text_color(id(eebus_connection_status_icon), lv_color_hex(0x16A34A), LV_PART_MAIN);
+          if (id(eebus_ems_sensor).has_state() && id(eebus_ems_sensor).state != "–" && !id(eebus_ems_sensor).state.empty()) {
+            std::string sub = "Verbonden met " + id(eebus_ems_sensor).state;
+            lv_label_set_text(id(eebus_connection_sub_lbl), sub.c_str());
+            lv_label_set_text(id(eebus_ems_lbl), id(eebus_ems_sensor).state.c_str());
+          } else {
+            lv_label_set_text(id(eebus_connection_sub_lbl), "Verbonden met EMS");
+            lv_label_set_text(id(eebus_ems_lbl), "EMS");
+          }
+          lv_obj_set_style_text_color(id(eebus_ems_lbl), lv_color_hex(0x16A34A), LV_PART_MAIN);
         } else {
           lv_label_set_text(id(eebus_connection_status_lbl), "Niet verbonden");
           lv_obj_set_style_text_color(id(eebus_connection_status_lbl), lv_color_hex(0xEF4444), LV_PART_MAIN);
           lv_label_set_text(id(eebus_connection_status_icon), "\U000F0338");
           lv_obj_set_style_text_color(id(eebus_connection_status_icon), lv_color_hex(0xEF4444), LV_PART_MAIN);
+          lv_label_set_text(id(eebus_connection_sub_lbl), "Status van de EEBUS verbinding");
+          lv_label_set_text(id(eebus_ems_lbl), "–");
+          lv_obj_set_style_text_color(id(eebus_ems_lbl), lv_color_hex(0x6B7280), LV_PART_MAIN);
         }
 
         // Update EEBUS status

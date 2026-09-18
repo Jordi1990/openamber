@@ -28,6 +28,7 @@ CONF_LAST_ACTION = "last_action"
 CONF_CONNECTED = "connected"
 CONF_POWER_LIMIT = "power_limit"
 CONF_SKI = "ski"
+CONF_EMS = "ems"
 
 eebus_ns = cg.esphome_ns.namespace("openamber_eebus")
 EEBusComponent = eebus_ns.class_("EEBusComponent", cg.PollingComponent)
@@ -69,6 +70,10 @@ CONFIG_SCHEMA = cv.All(
             ),
             cv.Optional(CONF_SKI): text_sensor.text_sensor_schema(
                 icon="mdi:certificate",
+                entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+            ),
+            cv.Optional(CONF_EMS): text_sensor.text_sensor_schema(
+                icon="mdi:server-network",
                 entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             ),
         }
@@ -135,5 +140,9 @@ async def to_code(config):
     if CONF_SKI in config:
         sens = await text_sensor.new_text_sensor(config[CONF_SKI])
         cg.add(var.set_ski_sensor(sens))
+
+    if CONF_EMS in config:
+        sens = await text_sensor.new_text_sensor(config[CONF_EMS])
+        cg.add(var.set_ems_sensor(sens))
 
     await cg.register_component(var, config)

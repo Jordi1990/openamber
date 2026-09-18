@@ -106,6 +106,9 @@ void EEBusShipListener::teardown() {
 void EEBusShipListener::stop() {
   this->request_close();
   this->is_connected_ = false;
+  this->remote_ip_.clear();
+  this->peer_ski_.clear();
+  this->peer_name_.clear();
   if (ship_listen_fd >= 0) {
     int fd = ship_listen_fd;
     ship_listen_fd = -1;
@@ -252,8 +255,10 @@ static void ship_accept_task(void *arg) {
         break;
       continue;
     }
+    char ip_str[INET_ADDRSTRLEN] = {0};
+    inet_ntop(AF_INET, &addr.sin_addr, ip_str, sizeof(ip_str));
     if (active_listener != nullptr)
-      active_listener->handle_connection(conn);
+      active_listener->handle_connection(conn, std::string(ip_str));
   }
 
   if (listen_fd >= 0)
@@ -263,9 +268,12 @@ static void ship_accept_task(void *arg) {
   vTaskDelete(nullptr);
 }
 
-void EEBusShipListener::handle_connection(int fd) {
-  ESP_LOGI(TAG, "Accepted SHIP connection");
+void EEBusShipListener::handle_connection(int fd, const std::string &remote_ip) {
+  ESP_LOGI(TAG, "Accepted SHIP connection from %s", remote_ip.c_str());
   this->close_requested_ = false;
+  this->remote_ip_ = remote_ip;
+  this->peer_ski_.clear();
+  this->peer_name_.clear();
 
   // Set socket timeouts so TLS/WS reads can't block forever (evcc times out).
   struct timeval tv;
@@ -312,6 +320,25 @@ void EEBusShipListener::handle_connection(int fd) {
   }
   ESP_LOGI(TAG, "TLS handshake OK (version=%s cipher=%s)",
            mbedtls_ssl_get_version(&ssl), mbedtls_ssl_get_ciphersuite(&ssl));
+
+  const mbedtls_x509_crt *peer = mbedtls_ssl_get_peer_cert(&ssl);
+  if (peer != nullptr) {
+    if (peer->subject_key_id.len == 20) {
+      char ski_buf[41];
+      for (size_t i = 0; i < 20; i++) {
+        snprintf(&ski_buf[i * 2], 3, "%02X", peer->subject_key_id.p[i]);
+      }
+      ski_buf[40] = '\0';
+      this->peer_ski_ = ski_buf;
+      ESP_LOGI(TAG, "Peer certificate SKI: %s", this->peer_ski_.c_str());
+    }
+    char dn_buf[128] = {0};
+    int dn_ret = mbedtls_x509_dn_gets(dn_buf, sizeof(dn_buf), &peer->subject);
+    if (dn_ret > 0) {
+      this->peer_name_ = dn_buf;
+      ESP_LOGI(TAG, "Peer certificate subject: %s", dn_buf);
+    }
+  }
 
   // Read the client WebSocket upgrade request.
   std::string req;
@@ -437,6 +464,9 @@ void EEBusShipListener::handle_connection(int fd) {
   }
 
   this->is_connected_ = false;
+  this->remote_ip_.clear();
+  this->peer_ski_.clear();
+  this->peer_name_.clear();
   if (this->queue_mutex_ != nullptr) {
     if (xSemaphoreTake(static_cast<SemaphoreHandle_t>(this->queue_mutex_), pdMS_TO_TICKS(50)) == pdTRUE) {
       this->outbound_queue_.clear();

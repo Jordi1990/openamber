@@ -272,7 +272,7 @@ std::string EebusNode::build_load_control_limit_reply(uint32_t reply_to, const S
 
   char buf[512];
   snprintf(buf, sizeof(buf),
-           "{\"loadControlLimitData\":[{\"limitId\":0,\"isLimitActive\":%s,\"value\":{\"number\":%lld,\"scale\":0}}]}",
+           "{\"loadControlLimitData\":[{\"limitId\":0,\"isLimitChangeable\":true,\"isLimitActive\":%s,\"value\":{\"number\":%lld,\"scale\":0}}]}",
            active ? "true" : "false", static_cast<long long>(limit_val));
 
   SpineCommand cmd;
@@ -297,7 +297,7 @@ std::string EebusNode::build_load_control_description_reply(uint32_t reply_to, c
 
   SpineCommand cmd;
   cmd.data_class = "loadControlLimitDescriptionListData";
-  cmd.json = "{\"loadControlLimitDescriptionData\":[{\"limitId\":0,\"limitType\":\"signOffCategory\",\"limitCategory\":\"obligation\",\"unit\":\"W\",\"scopeType\":\"heatPump\"}]}";
+  cmd.json = "{\"loadControlLimitDescriptionData\":[{\"limitId\":0,\"limitType\":\"signDependentAbsValueLimit\",\"limitDirection\":\"consume\",\"limitCategory\":\"obligation\",\"unit\":\"W\",\"scopeType\":\"activePowerLimit\"}]}";
   d.add_command(cmd);
 
   return d.to_json();
@@ -364,7 +364,7 @@ std::string EebusNode::build_load_control_limit_notification(bool active, float 
 
   char buf[512];
   snprintf(buf, sizeof(buf),
-           "{\"loadControlLimitData\":[{\"limitId\":0,\"isLimitActive\":%s,\"value\":{\"number\":%lld,\"scale\":0}}]}",
+           "{\"loadControlLimitData\":[{\"limitId\":0,\"isLimitChangeable\":true,\"isLimitActive\":%s,\"value\":{\"number\":%lld,\"scale\":0}}]}",
            active ? "true" : "false", static_cast<long long>(limit_val));
 
   SpineCommand cmd;
@@ -670,7 +670,12 @@ std::string EebusNode::handle_inbound(const std::string &json) {
   this->last_activity_ms_ = millis();
 
   if (!in.source.device_str.empty()) {
-    this->remote_device_ = in.source.device_str;
+    if (this->remote_device_ != in.source.device_str) {
+      this->remote_device_ = in.source.device_str;
+      if (this->on_remote_device_changed_) {
+        this->on_remote_device_changed_(this->remote_device_);
+      }
+    }
   }
 
   // Node management: answer a detailed discovery read with our device/entity

@@ -41,9 +41,12 @@ class EEBusShipListener {
   }
 
   // Serves a single accepted connection (TLS + WebSocket + SHIP frame loop).
-  void handle_connection(int fd);
+  void handle_connection(int fd, const std::string &remote_ip = "");
 
   bool is_connected() const { return this->is_connected_; }
+  const std::string &get_remote_ip() const { return this->remote_ip_; }
+  const std::string &get_peer_ski() const { return this->peer_ski_; }
+  const std::string &get_peer_name() const { return this->peer_name_; }
 
   // Queue a WS-encoded frame to be sent out over the active connection.
   bool queue_outbound_frame(const std::vector<uint8_t> &ws_frame);
@@ -62,6 +65,9 @@ class EEBusShipListener {
   bool ready_{false};
   bool is_connected_{false};
   bool close_requested_{false};
+  std::string remote_ip_;
+  std::string peer_ski_;
+  std::string peer_name_;
   mbedtls_ssl_config ssl_conf_;
   mbedtls_x509_crt own_cert_;
   mbedtls_pk_context own_key_;

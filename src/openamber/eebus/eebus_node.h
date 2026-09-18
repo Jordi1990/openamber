@@ -40,6 +40,9 @@ class EebusNode {
   const SpineAddress &compressor_entity() const { return this->compressor_; }
   const SpineAddress &cem_entity() const { return this->cem_; }
   const std::string &remote_device() const { return this->remote_device_; }
+  void set_on_remote_device_changed(std::function<void(const std::string &)> cb) {
+    this->on_remote_device_changed_ = std::move(cb);
+  }
 
   // Outbound datagrams (ready to send over SHIP).
   std::string build_device_classification_notification();
@@ -89,6 +92,9 @@ class EebusNode {
     this->subscriber_lpc_addr_ = SpineAddress();
     this->subscriber_nodemgmt_addr_ = SpineAddress();
     this->remote_device_.clear();
+    if (this->on_remote_device_changed_) {
+      this->on_remote_device_changed_("");
+    }
   }
 
   uint32_t get_last_activity_ms() const { return this->last_activity_ms_; }
@@ -110,6 +116,7 @@ class EebusNode {
   MpcServer *mpc_{nullptr};
   MdtServer *mdt_{nullptr};
   std::string remote_device_;  // peer (CEM) device address, learned from inbound discovery
+  std::function<void(const std::string &)> on_remote_device_changed_;
 
   std::function<bool(const std::string &)> ship_sender_;
   uint32_t last_activity_ms_{0};

@@ -15,6 +15,8 @@
 #include "eebus_websocket.h"
 #include "esphome/core/log.h"
 #include "esphome/core/hal.h"
+#include <algorithm>
+#include <cctype>
 
 namespace esphome {
 namespace openamber_eebus {
@@ -47,6 +49,9 @@ void EEBusComponent::setup() {
     if (this->ski_sensor_ != nullptr) {
       this->ski_sensor_->publish_state("–");
     }
+    if (this->ems_sensor_ != nullptr) {
+      this->ems_sensor_->publish_state("–");
+    }
     return;
   }
 
@@ -77,6 +82,9 @@ void EEBusComponent::start_eebus_subsystem() {
   if (this->ski_sensor_ != nullptr) {
     this->ski_sensor_->publish_state(this->cert_store_.get_ski());
   }
+  if (this->ems_sensor_ != nullptr) {
+    this->ems_sensor_->publish_state("–");
+  }
 }
 
 void EEBusComponent::stop_eebus_subsystem() {
@@ -103,6 +111,7 @@ void EEBusComponent::stop_eebus_subsystem() {
   this->last_connected_ = false;
   this->initialized_ = false;
   this->current_status_ = "Uitgeschakeld";
+  this->current_ems_ = "–";
 
   if (this->connected_sensor_ != nullptr) {
     this->connected_sensor_->publish_state(false);
@@ -119,6 +128,9 @@ void EEBusComponent::stop_eebus_subsystem() {
   if (this->ski_sensor_ != nullptr) {
     this->ski_sensor_->publish_state("–");
   }
+  if (this->ems_sensor_ != nullptr) {
+    this->ems_sensor_->publish_state("–");
+  }
 }
 
 void EEBusComponent::loop() {
@@ -127,6 +139,13 @@ void EEBusComponent::loop() {
     this->start_eebus_subsystem();
   } else if (!enabled && this->initialized_) {
     this->stop_eebus_subsystem();
+  }
+
+  if (this->initialized_) {
+    bool is_conn = this->ship_listener_.is_connected();
+    if (is_conn != this->last_connected_) {
+      this->check_connection_state();
+    }
   }
 }
 
@@ -152,45 +171,7 @@ void EEBusComponent::update() {
     }
   }
 
-  bool is_conn = this->ship_listener_.is_connected();
-  if (is_conn != this->last_connected_) {
-    this->last_connected_ = is_conn;
-    if (this->connected_sensor_ != nullptr) {
-      this->connected_sensor_->publish_state(is_conn);
-    }
-    if (is_conn) {
-      this->record_action("Verbonden met EMS (EVCC)");
-      this->last_measurement_notify_ms_ = 0;
-      this->last_ohpcf_notify_ms_ = 0;
-      this->last_use_case_notify_ms_ = 0;
-    } else {
-      this->record_action("Verbinding verbroken met EMS");
-    }
-  }
-
-  std::string new_status = "Niet verbonden";
-  if (is_conn) {
-    if (this->ohpcf_.get_state() == OhpcfState::RUNNING) {
-      new_status = "Boost actief (OHPCF)";
-    } else if (this->lpc_.is_dimmed()) {
-      if (this->lpc_.get_limit_value_w() <= 0.0f) {
-        new_status = "Gedimd / Geblokkeerd (0W)";
-      } else {
-        char buf[64];
-        snprintf(buf, sizeof(buf), "Begrensd op %.0f W", this->lpc_.get_limit_value_w());
-        new_status = buf;
-      }
-    } else {
-      new_status = "Normaal bedrijf";
-    }
-  }
-
-  if (new_status != this->current_status_) {
-    this->current_status_ = new_status;
-    if (this->status_sensor_ != nullptr) {
-      this->status_sensor_->publish_state(new_status);
-    }
-  }
+  this->check_connection_state();
 
   // Refresh MPC (power) + MDT (temperature) from the OpenAmber bridge.
   float power_w = 0.0f;
@@ -344,6 +325,9 @@ void EEBusComponent::wire_use_cases() {
   this->node_.set_mpc(&this->mpc_);
   this->node_.set_mdt(&this->mdt_);
   this->node_.set_device_id(this->ship_id_);
+  this->node_.set_on_remote_device_changed([this](const std::string &) {
+    this->update_ems_status();
+  });
 
   this->ship_listener_.set_frame_handler([this](const std::vector<uint8_t> &frame)
                                              -> std::vector<uint8_t> {
@@ -463,6 +447,90 @@ void EEBusComponent::check_failsafe() {
       ESP_LOGW(TAG, "EEBUS failsafe duration elapsed without peer activity; releasing consumption limit");
       this->record_action("Failsafe geactiveerd: limiet opgeheven");
       this->lpc_.release_limit();
+    }
+  }
+}
+
+void EEBusComponent::check_connection_state() {
+  bool is_conn = this->ship_listener_.is_connected();
+  if (is_conn != this->last_connected_) {
+    this->last_connected_ = is_conn;
+    if (this->connected_sensor_ != nullptr) {
+      this->connected_sensor_->publish_state(is_conn);
+    }
+    if (is_conn) {
+      this->record_action("Verbonden met EMS");
+      this->last_measurement_notify_ms_ = 0;
+      this->last_ohpcf_notify_ms_ = 0;
+      this->last_use_case_notify_ms_ = 0;
+    } else {
+      this->record_action("Verbinding verbroken met EMS");
+    }
+  }
+
+  this->update_ems_status();
+
+  std::string new_status = "Niet verbonden";
+  if (is_conn) {
+    if (this->ohpcf_.get_state() == OhpcfState::RUNNING) {
+      new_status = "Boost actief (OHPCF)";
+    } else if (this->lpc_.is_dimmed()) {
+      if (this->lpc_.get_limit_value_w() <= 0.0f) {
+        new_status = "Gedimd / Geblokkeerd (0W)";
+      } else {
+        char buf[64];
+        snprintf(buf, sizeof(buf), "Begrensd op %.0f W", this->lpc_.get_limit_value_w());
+        new_status = buf;
+      }
+    } else {
+      new_status = "Normaal bedrijf";
+    }
+  }
+
+  if (new_status != this->current_status_) {
+    this->current_status_ = new_status;
+    if (this->status_sensor_ != nullptr) {
+      this->status_sensor_->publish_state(new_status);
+    }
+  }
+}
+
+void EEBusComponent::update_ems_status() {
+  std::string ems_desc = "–";
+  if (this->ship_listener_.is_connected()) {
+    std::string name;
+    std::string rdev = this->node_.remote_device();
+    std::string ip = this->ship_listener_.get_remote_ip();
+
+    std::string lower_rdev = rdev;
+    for (auto &c : lower_rdev) c = std::tolower(c);
+    std::string lower_peer = this->ship_listener_.get_peer_name();
+    for (auto &c : lower_peer) c = std::tolower(c);
+
+    if (lower_rdev.find("evcc") != std::string::npos || lower_peer.find("evcc") != std::string::npos) {
+      name = "EVCC";
+    } else if (!rdev.empty()) {
+      std::string clean = rdev;
+      if (clean.rfind("d:_n:", 0) == 0) clean = clean.substr(5);
+      else if (clean.rfind("d:_i:", 0) == 0) clean = clean.substr(5);
+      name = clean;
+    } else if (!this->ship_listener_.get_peer_name().empty()) {
+      name = this->ship_listener_.get_peer_name();
+    } else {
+      name = "EMS";
+    }
+
+    if (!ip.empty()) {
+      ems_desc = name + " (" + ip + ")";
+    } else {
+      ems_desc = name;
+    }
+  }
+
+  if (ems_desc != this->current_ems_) {
+    this->current_ems_ = ems_desc;
+    if (this->ems_sensor_ != nullptr) {
+      this->ems_sensor_->publish_state(ems_desc);
     }
   }
 }

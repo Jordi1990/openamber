@@ -40,7 +40,7 @@
     pad_all: 6
     widgets:
       - label: { text: "Verbinding met EMS", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Status van de EEBUS verbinding", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { id: eebus_connection_sub_lbl, text: "Status van de EEBUS verbinding", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -109,6 +109,26 @@
       - label: { text: "Actieve netbegrenzing vanuit het EMS", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
       - label:
           id: eebus_power_limit_lbl
+          text: "–"
+          text_color: 0x1F2933
+          text_font: font_text_20
+          align: TOP_RIGHT
+          y: 4
+
+# ── Pagina 2: Verbonden EMS ──
+- obj:
+    id: eebus_page_2_row_ems
+    hidden: true
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Verbonden EMS", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Gekoppeld energiebeheersysteem", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label:
+          id: eebus_ems_lbl
           text: "–"
           text_color: 0x1F2933
           text_font: font_text_20

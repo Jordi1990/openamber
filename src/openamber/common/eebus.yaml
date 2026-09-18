@@ -11,17 +11,32 @@ is_boost_active: "return id(sg_ready_boost_mode_active_sensor).state || id(sg_re
 status:
   name: "EEBUS Status"
   id: eebus_status_sensor
+  on_value:
+    then:
+      - script.execute: update_eebus_settings_ui
 last_action:
   name: "EEBUS Laatste actie"
 connected:
   name: "EEBUS Verbonden"
   id: eebus_connected_sensor
+  on_state:
+    then:
+      - script.execute: update_eebus_settings_ui
 power_limit:
   name: "EEBUS Vermogenslimiet"
   id: eebus_power_limit_sensor
+  on_value:
+    then:
+      - script.execute: update_eebus_settings_ui
 ski:
   name: "EEBUS SKI"
   id: eebus_ski
+ems:
+  name: "EEBUS EMS"
+  id: eebus_ems_sensor
+  on_value:
+    then:
+      - script.execute: update_eebus_settings_ui
 apply_optional: |-
   if (value) {
     auto call = id(sg_ready_mode_select).make_call();
