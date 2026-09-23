@@ -32,6 +32,8 @@ class EebusNode {
   void set_mpc(MpcServer *mpc) { this->mpc_ = mpc; }
   void set_mdt(MdtServer *mdt) { this->mdt_ = mdt; }
   void set_device_id(const std::string &id) { this->device_id_ = id; }
+  void set_brand(const std::string &brand) { this->brand_ = brand; }
+  void set_model(const std::string &model) { this->model_ = model; }
 
   void set_ship_sender(const std::function<bool(const std::string &)> &sender) { this->ship_sender_ = sender; }
 
@@ -55,6 +57,10 @@ class EebusNode {
   std::string build_measurement_description_reply(uint32_t reply_to, const SpineAddress &dst, const SpineAddress &src_addr = {});
   std::string build_electrical_connection_description_reply(uint32_t reply_to, const SpineAddress &dst, const SpineAddress &src_addr = {});
   std::string build_electrical_connection_parameter_reply(uint32_t reply_to, const SpineAddress &dst, const SpineAddress &src_addr = {});
+  std::string build_electrical_connection_characteristic_reply(uint32_t reply_to, const SpineAddress &dst, const SpineAddress &src_addr = {});
+  std::string build_electrical_connection_permitted_value_set_reply(uint32_t reply_to, const SpineAddress &dst, const SpineAddress &src_addr = {});
+  std::string build_subscription_list_reply(uint32_t reply_to, const SpineAddress &dst);
+  std::string build_binding_list_reply(uint32_t reply_to, const SpineAddress &dst);
   std::string build_smart_energy_management_reply(uint32_t reply_to, const SpineAddress &dst, const SpineAddress &src_addr = {});
   std::string build_load_control_limit_reply(uint32_t reply_to, const SpineAddress &dst, const SpineAddress &src_addr = {});
   std::string build_load_control_description_reply(uint32_t reply_to, const SpineAddress &dst, const SpineAddress &src_addr = {});
@@ -108,6 +114,8 @@ class EebusNode {
 
   uint32_t msg_counter_{0};
   std::string device_id_{"OpenAmber"};
+  std::string brand_{"OpenAmber"};
+  std::string model_{"Amber"};
   SpineAddress compressor_{1, 1, 1};
   SpineAddress cem_{2, 1, 1};
 

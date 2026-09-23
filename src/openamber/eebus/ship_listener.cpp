@@ -445,13 +445,13 @@ void EEBusShipListener::handle_connection(int fd, const std::string &remote_ip) 
         this->close_requested_ = true;
         break;
       }
-      ESP_LOGD(TAG, "WS frame received (opcode=0x%02x, %u bytes)",
+      ESP_LOGI(TAG, "WS frame received (opcode=0x%02x, %u bytes)",
                frame.opcode, static_cast<unsigned>(frame.payload.size()));
       if (this->frame_handler_) {
         std::vector<uint8_t> out = this->frame_handler_(frame.payload);
         if (!out.empty()) {
           if (ssl_write_all(&ssl, out.data(), out.size())) {
-            ESP_LOGD(TAG, "reply sent (%u bytes)", static_cast<unsigned>(out.size()));
+            ESP_LOGI(TAG, "reply sent (%u bytes)", static_cast<unsigned>(out.size()));
           } else {
             ESP_LOGE(TAG, "ssl_write_all failed (%u bytes)",
                      static_cast<unsigned>(out.size()));

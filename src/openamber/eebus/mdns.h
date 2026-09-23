@@ -14,11 +14,13 @@ namespace esphome {
 namespace openamber_eebus {
 
 // Advertise the device as an EEBus HMS over mDNS (`_ship._tcp`) with the SHIP
-// TXT record set that eebus-go/evcc expects (see ship-go/mdns + SHIP 7.3.2):
-//   txtvers=1, id=<shipid>, path=/ship/, ski=<cert SKI>, register=<bool>
-void eebus_mdns_start(const std::string &device_sku, const std::string &brand,
+// TXT record set that eebus-go/evcc/VenusOS expects (see ship-go/mdns + SHIP 7.3.2):
+//   txtvers=1, id=<shipid>, path=/ship/, ski=<cert SKI>, register=<bool>,
+//   brand=<brand>, model=<model>, type=HeatPump
+bool eebus_mdns_start(const std::string &device_sku, const std::string &brand,
                       const std::string &model, const std::string &ski,
                       const std::string &ship_id, uint16_t ship_port);
+void eebus_mdns_set_registered(bool registered);
 void eebus_mdns_stop();
 
 }  // namespace openamber_eebus

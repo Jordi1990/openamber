@@ -15,6 +15,7 @@
 #include "eebus_websocket.h"
 #include "esphome/core/log.h"
 #include "esphome/core/hal.h"
+#include "esphome/components/network/util.h"
 #include <algorithm>
 #include <cctype>
 
@@ -25,10 +26,9 @@ static const char *const TAG = "eebus";
 
 void EEBusComponent::record_action(const std::string &action) {
   this->last_action_ = action;
+  this->pending_action_state_ = action;
+  this->pending_action_update_ = true;
   ESP_LOGI(TAG, "EEBUS Actie: %s", action.c_str());
-  if (this->last_action_sensor_ != nullptr) {
-    this->last_action_sensor_->publish_state(action);
-  }
 }
 
 void EEBusComponent::setup() {
@@ -61,21 +61,36 @@ void EEBusComponent::setup() {
 void EEBusComponent::start_eebus_subsystem() {
   if (this->initialized_)
     return;
+
+  // Check if model is already known via Modbus
+  if (this->read_model_) {
+    std::string detected = this->read_model_();
+    if (!detected.empty() && detected != "Onbekend model") {
+      this->model_ = detected;
+      this->device_sku_ = "OpenAmber-" + detected;
+      this->model_detected_ = true;
+      ESP_LOGI(TAG, "EEBUS model via Modbus: %s", this->model_.c_str());
+    } else {
+      this->model_detected_ = false;
+    }
+  } else {
+    this->model_detected_ = true;
+  }
+
   ESP_LOGI(TAG, "EEBus component initializing (sku=%s brand=%s model=%s)",
            this->device_sku_.c_str(), this->brand_.c_str(), this->model_.c_str());
   this->init_certificate_and_keys();
   this->wire_use_cases();
   this->initialized_ = true;
 
+  this->current_status_ = "Initialiseren...";
   if (this->status_sensor_ != nullptr) {
-    this->status_sensor_->publish_state("Initialiseren...");
+    this->status_sensor_->publish_state(this->current_status_);
   }
   if (this->connected_sensor_ != nullptr) {
     this->connected_sensor_->publish_state(false);
   }
-  if (this->last_action_sensor_ != nullptr) {
-    this->last_action_sensor_->publish_state("Opstarten");
-  }
+  this->record_action("Opstarten");
   if (this->power_limit_sensor_ != nullptr) {
     this->power_limit_sensor_->publish_state(NAN);
   }
@@ -96,6 +111,9 @@ void EEBusComponent::stop_eebus_subsystem() {
   this->ship_listener_.stop();
   eebus_mdns_stop();
   this->listener_started_ = false;
+  this->mdns_advertised_ = false;
+  this->model_detected_ = false;
+  this->last_mdns_reannounce_ms_ = 0;
 
   // Release any active consumption limits / dimming / boost
   if (this->lpc_.is_dimmed()) {
@@ -147,6 +165,41 @@ void EEBusComponent::loop() {
       this->check_connection_state();
     }
   }
+
+  if (this->pending_remote_changed_) {
+    this->pending_remote_changed_ = false;
+    this->update_ems_status();
+  }
+  if (this->pending_action_update_) {
+    this->pending_action_update_ = false;
+    if (this->last_action_sensor_ != nullptr) {
+      this->last_action_sensor_->publish_state(this->pending_action_state_);
+    }
+  }
+  if (this->pending_connected_update_) {
+    this->pending_connected_update_ = false;
+    if (this->connected_sensor_ != nullptr) {
+      this->connected_sensor_->publish_state(this->pending_connected_state_);
+    }
+  }
+  if (this->pending_status_update_) {
+    this->pending_status_update_ = false;
+    if (this->status_sensor_ != nullptr) {
+      this->status_sensor_->publish_state(this->pending_status_state_);
+    }
+  }
+  if (this->pending_limit_update_) {
+    this->pending_limit_update_ = false;
+    if (this->power_limit_sensor_ != nullptr) {
+      this->power_limit_sensor_->publish_state(this->pending_limit_state_);
+    }
+  }
+  if (this->pending_ems_update_) {
+    this->pending_ems_update_ = false;
+    if (this->ems_sensor_ != nullptr) {
+      this->ems_sensor_->publish_state(this->pending_ems_state_);
+    }
+  }
 }
 
 void EEBusComponent::update() {
@@ -162,13 +215,51 @@ void EEBusComponent::update() {
     this->start_eebus_subsystem();
   }
 
+  // Check / update model from Modbus
+  if (this->read_model_) {
+    std::string detected = this->read_model_();
+    if (!detected.empty() && detected != "Onbekend model") {
+      if (this->model_ != detected) {
+        this->model_ = detected;
+        this->device_sku_ = "OpenAmber-" + detected;
+        this->node_.set_model(this->model_);
+        ESP_LOGI(TAG, "EEBUS model geconfigureerd via Modbus: %s (sku=%s)",
+                 this->model_.c_str(), this->device_sku_.c_str());
+        this->mdns_advertised_ = false;  // Force re-advertisement with new model
+      }
+      this->model_detected_ = true;
+    }
+  } else {
+    this->model_detected_ = true;
+  }
+
   if (!this->listener_started_) {
     this->listener_started_ = true;
     this->start_ship_listener();
-    this->advertise_mdns();
-    if (this->last_action_ == "Opstarten") {
-      this->record_action("EEBUS listener gestart, wacht op EMS");
+  }
+
+  // Update action message
+  if (!this->model_detected_) {
+    if (this->last_action_ == "Opstarten" || this->last_action_ == "Initialisatie") {
+      this->record_action("Wachten op warmtepomp model via Modbus...");
     }
+  } else if (this->last_action_ == "Wachten op warmtepomp model via Modbus..." || this->last_action_ == "Opstarten") {
+    this->record_action("EEBUS listener gestart, wacht op EMS");
+  }
+
+  // Only advertise mDNS once network/WiFi is connected AND model is known!
+  if (network::is_connected() && this->model_detected_) {
+    uint32_t now = millis();
+    bool should_advertise = !this->mdns_advertised_ ||
+                            (!this->ship_listener_.is_connected() && (now - this->last_mdns_reannounce_ms_ >= 45000UL));
+    if (should_advertise) {
+      if (this->advertise_mdns()) {
+        this->mdns_advertised_ = true;
+        this->last_mdns_reannounce_ms_ = now;
+      }
+    }
+  } else {
+    this->mdns_advertised_ = false;
   }
 
   this->check_connection_state();
@@ -183,6 +274,18 @@ void EEBusComponent::update() {
   if (this->read_dhw_temp_) {
     temp_c = this->read_dhw_temp_();
     this->mdt_.set_temperature_c(temp_c);
+  }
+  if (this->read_voltage_) {
+    this->mpc_.set_voltage_v(this->read_voltage_());
+  }
+  if (this->read_current_) {
+    this->mpc_.set_current_a(this->read_current_());
+  }
+  if (this->read_energy_) {
+    float en = this->read_energy_();
+    if (en > 0.0f) {
+      this->mpc_.set_energy_wh(en);
+    }
   }
 
   // Refresh dynamic power estimate if configured.
@@ -213,8 +316,8 @@ void EEBusComponent::update() {
     }
   }
 
-  // If connected and peer has subscribed, push measurement updates periodically
-  if (this->ship_listener_.is_connected() && this->node_.is_subscribed_measurements()) {
+  // If connected, push measurement updates periodically (every 5s)
+  if (this->ship_listener_.is_connected() && this->node_.has_remote_device()) {
     uint32_t now = millis();
     if (now - this->last_measurement_notify_ms_ >= 5000) {
       this->last_measurement_notify_ms_ = now;
@@ -307,13 +410,8 @@ void EEBusComponent::wire_use_cases() {
 
   this->lpc_.set_change_callback([this](bool active, float limit_w) {
     this->node_.notify_lpc(active, limit_w);
-    if (this->power_limit_sensor_ != nullptr) {
-      if (active) {
-        this->power_limit_sensor_->publish_state(limit_w);
-      } else {
-        this->power_limit_sensor_->publish_state(NAN);
-      }
-    }
+    this->pending_limit_state_ = active ? limit_w : NAN;
+    this->pending_limit_update_ = true;
   });
 
   this->node_.set_ship_sender([this](const std::string &spine_json) -> bool {
@@ -325,18 +423,33 @@ void EEBusComponent::wire_use_cases() {
   this->node_.set_mpc(&this->mpc_);
   this->node_.set_mdt(&this->mdt_);
   this->node_.set_device_id(this->ship_id_);
+  this->node_.set_brand(this->brand_);
+  this->node_.set_model(this->model_);
   this->node_.set_on_remote_device_changed([this](const std::string &) {
-    this->update_ems_status();
+    this->pending_remote_changed_ = true;
   });
 
   this->ship_listener_.set_frame_handler([this](const std::vector<uint8_t> &frame)
                                              -> std::vector<uint8_t> {
     std::vector<uint8_t> out;  // WS-encoded bytes to send back (empty = none)
     auto send_data = [&out](const std::vector<uint8_t> &payload) {
+      if (!payload.empty()) {
+        if (payload[0] == SHIP_MSG_CONTROL || payload[0] == SHIP_MSG_DATA) {
+          if (payload.size() < 128) {
+            std::string raw(payload.begin() + 1, payload.end());
+            ESP_LOGI(TAG, "SHIP SEND msg_type=%u payload=[%s]", payload[0], raw.c_str());
+          } else {
+            ESP_LOGI(TAG, "SHIP SEND msg_type=%u (%u bytes)", payload[0], static_cast<unsigned>(payload.size()));
+          }
+        } else {
+          ESP_LOGI(TAG, "SHIP SEND msg_type=%u (%u bytes)", payload[0], static_cast<unsigned>(payload.size()));
+        }
+      }
       eebus_websocket_encode_server_frame(0x2 /*binary*/, payload, out);
     };
 
-    ESP_LOGV(TAG, "SHIP frame (%u bytes)", static_cast<unsigned>(frame.size()));
+    ESP_LOGI(TAG, "SHIP frame (%u bytes, type=%u)", static_cast<unsigned>(frame.size()),
+             frame.empty() ? 0 : frame[0]);
 
     uint8_t msg_type = 0;
     std::string json;
@@ -344,7 +457,11 @@ void EEBusComponent::wire_use_cases() {
       ESP_LOGW(TAG, "Could not decode SHIP frame");
       return out;
     }
-    ESP_LOGD(TAG, "SHIP msg_type=%u json=[%s]", static_cast<unsigned>(msg_type), json.c_str());
+    if (json.size() < 128) {
+      ESP_LOGI(TAG, "SHIP msg_type=%u json=[%s]", static_cast<unsigned>(msg_type), json.c_str());
+    } else {
+      ESP_LOGI(TAG, "SHIP msg_type=%u (%u bytes)", static_cast<unsigned>(msg_type), static_cast<unsigned>(json.size()));
+    }
 
     if (msg_type == 0) {
       // SHIP CMI (connection management initiation): ShipInit = {0x00,0x00}.
@@ -357,10 +474,10 @@ void EEBusComponent::wire_use_cases() {
 
     if (msg_type == SHIP_MSG_DATA) {
       std::string reply = this->node_.handle_inbound(json);
-      ESP_LOGD(TAG, "SPINE handled -> reply size=%u", static_cast<unsigned>(reply.size()));
+      ESP_LOGI(TAG, "SPINE handled -> reply size=%u", static_cast<unsigned>(reply.size()));
       if (!reply.empty()) {
         std::vector<uint8_t> payload = ship_data_frame(reply);
-        ESP_LOGD(TAG, "SPINE reply framed (%u bytes)", static_cast<unsigned>(payload.size()));
+        ESP_LOGI(TAG, "SPINE reply framed (%u bytes)", static_cast<unsigned>(payload.size()));
         send_data(payload);
       } else {
         ESP_LOGW(TAG, "SPINE DATA frame not handled (no reply)");
@@ -387,15 +504,15 @@ void EEBusComponent::wire_use_cases() {
     if (json.find("messageProtocolHandshake") != std::string::npos) {
       if (json.find("\"announceMax\"") != std::string::npos) {
         // PROT phase: peer announces its max protocol; select it back.
-        // Note: the SHIP protocol format value is literally "JSON-UTF8"
-        // (model.MessageProtocolFormatTypeUTF8).
+        // NOTE: HandshakeType MUST come first according to EEBUS SHIP schema order!
         send_data(ship_control_frame(
-            "{\"messageProtocolHandshake\":{\"version\":{\"major\":1,\"minor\":0},"
-            "\"formats\":{\"format\":[\"JSON-UTF8\"]},\"handshakeType\":\"select\"}}"));
+            "{\"messageProtocolHandshake\":{\"handshakeType\":\"select\","
+            "\"version\":{\"major\":1,\"minor\":0},"
+            "\"formats\":{\"format\":[\"JSON-UTF8\"]}}}"));
         ESP_LOGI(TAG, "Replied to messageProtocolHandshake (select)");
         return out;
       }
-      // The peer's select echo confirms our choice; no reply needed.
+      // The peer's select echo confirms our choice; wait for peer to initiate next phase.
       ESP_LOGI(TAG, "Received messageProtocolHandshake confirm (select echo)");
       return out;
     }
@@ -407,10 +524,14 @@ void EEBusComponent::wire_use_cases() {
       return out;
     }
 
-    if (json.find("accessMethodsRequest") != std::string::npos) {      // Respond with our SHIP ID so evcc can identify the device.
+    if (json.find("accessMethodsRequest") != std::string::npos) {      // Respond with our SHIP ID so evcc/Venus can identify the device.
       std::string model = "{\"accessMethods\":{\"id\":\"" + this->ship_id_ + "\"}}";
       send_data(ship_control_frame(model));
       ESP_LOGI(TAG, "Responded to accessMethodsRequest (shipId=%s)", this->ship_id_.c_str());
+      return out;
+    } else if (json.find("accessMethods") != std::string::npos) {
+      ESP_LOGI(TAG, "Received peer accessMethods: %s", json.c_str());
+      return out;
     } else if (json.find("connectionClose") != std::string::npos) {
       ESP_LOGI(TAG, "Peer closed connection (connectionClose)");
       this->node_.reset_subscriptions();
@@ -430,10 +551,10 @@ void EEBusComponent::start_ship_listener() {
   this->ship_listener_.begin(this->cert_store_, 44328);
 }
 
-void EEBusComponent::advertise_mdns() {
-  eebus_mdns_start(this->device_sku_, this->brand_, this->model_,
-                   this->cert_store_.get_ski(), this->ship_id_,
-                   this->ship_listener_.get_port());
+bool EEBusComponent::advertise_mdns() {
+  return eebus_mdns_start(this->device_sku_, this->brand_, this->model_,
+                          this->cert_store_.get_ski(), this->ship_id_,
+                          this->ship_listener_.get_port());
 }
 
 void EEBusComponent::check_failsafe() {
@@ -455,9 +576,9 @@ void EEBusComponent::check_connection_state() {
   bool is_conn = this->ship_listener_.is_connected();
   if (is_conn != this->last_connected_) {
     this->last_connected_ = is_conn;
-    if (this->connected_sensor_ != nullptr) {
-      this->connected_sensor_->publish_state(is_conn);
-    }
+    eebus_mdns_set_registered(is_conn);
+    this->pending_connected_state_ = is_conn;
+    this->pending_connected_update_ = true;
     if (is_conn) {
       this->record_action("Verbonden met EMS");
       this->last_measurement_notify_ms_ = 0;
@@ -489,9 +610,8 @@ void EEBusComponent::check_connection_state() {
 
   if (new_status != this->current_status_) {
     this->current_status_ = new_status;
-    if (this->status_sensor_ != nullptr) {
-      this->status_sensor_->publish_state(new_status);
-    }
+    this->pending_status_state_ = new_status;
+    this->pending_status_update_ = true;
   }
 }
 
@@ -529,9 +649,35 @@ void EEBusComponent::update_ems_status() {
 
   if (ems_desc != this->current_ems_) {
     this->current_ems_ = ems_desc;
-    if (this->ems_sensor_ != nullptr) {
-      this->ems_sensor_->publish_state(ems_desc);
-    }
+    this->pending_ems_state_ = ems_desc;
+    this->pending_ems_update_ = true;
+  }
+}
+
+static EEBusComponent *global_eebus_component = nullptr;
+
+EEBusComponent::EEBusComponent() {
+  global_eebus_component = this;
+}
+
+EEBusComponent::~EEBusComponent() {
+  if (global_eebus_component == this) {
+    global_eebus_component = nullptr;
+  }
+}
+
+void EEBusComponent::disconnect_ems() {
+  if (this->ship_listener_.is_connected()) {
+    ESP_LOGI(TAG, "Disconnect requested by user from UI");
+    this->record_action("Verbinding verbroken door gebruiker");
+    this->ship_listener_.send_ship_control("{\"connectionClose\":{\"phase\":\"announce\"}}");
+    this->ship_listener_.request_close();
+  }
+}
+
+void eebus_disconnect() {
+  if (global_eebus_component != nullptr) {
+    global_eebus_component->disconnect_ems();
   }
 }
 

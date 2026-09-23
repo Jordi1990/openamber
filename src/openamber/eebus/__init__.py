@@ -14,9 +14,13 @@ CONF_DEVICE_SKU = "device_sku"
 CONF_BRAND = "brand"
 CONF_MODEL = "model"
 CONF_FAILSAFE_DURATION = "failsafe_duration"
+CONF_READ_MODEL = "read_model"
 CONF_READ_POWER = "read_power"
 CONF_READ_DHW_TEMP = "read_dhw_temp"
 CONF_READ_POWER_ESTIMATE = "read_power_estimate"
+CONF_READ_VOLTAGE = "read_voltage"
+CONF_READ_CURRENT = "read_current"
+CONF_READ_ENERGY = "read_energy"
 CONF_IS_BOOST_ACTIVE = "is_boost_active"
 CONF_IS_ENABLED = "is_enabled"
 CONF_APPLY_OPTIONAL = "apply_optional"
@@ -41,9 +45,13 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_BRAND, default="OpenAmber"): cv.string,
             cv.Optional(CONF_MODEL, default="Amber"): cv.string,
             cv.Optional(CONF_FAILSAFE_DURATION, default="2h"): cv.positive_time_period,
+            cv.Optional(CONF_READ_MODEL): cv.returning_lambda,
             cv.Optional(CONF_READ_POWER): cv.returning_lambda,
             cv.Optional(CONF_READ_DHW_TEMP): cv.returning_lambda,
             cv.Optional(CONF_READ_POWER_ESTIMATE): cv.returning_lambda,
+            cv.Optional(CONF_READ_VOLTAGE): cv.returning_lambda,
+            cv.Optional(CONF_READ_CURRENT): cv.returning_lambda,
+            cv.Optional(CONF_READ_ENERGY): cv.returning_lambda,
             cv.Optional(CONF_IS_BOOST_ACTIVE): cv.returning_lambda,
             cv.Optional(CONF_IS_ENABLED): cv.returning_lambda,
             cv.Optional(CONF_APPLY_OPTIONAL): cv.returning_lambda,
@@ -90,6 +98,7 @@ async def to_code(config):
     esp32.add_idf_sdkconfig_option("CONFIG_MBEDTLS_SSL_IN_CONTENT_LEN", 8192)
     esp32.add_idf_sdkconfig_option("CONFIG_MBEDTLS_SSL_OUT_CONTENT_LEN", 8192)
     esp32.add_idf_sdkconfig_option("CONFIG_MBEDTLS_PEM_WRITE_C", True)
+    cg.add_define("USE_EEBUS")
 
     var = cg.new_Pvariable(config[CONF_ID])
     cg.add(var.set_device_sku(config[CONF_DEVICE_SKU]))
@@ -101,6 +110,10 @@ async def to_code(config):
         (CONF_READ_POWER, [], float),
         (CONF_READ_DHW_TEMP, [], float),
         (CONF_READ_POWER_ESTIMATE, [], float),
+        (CONF_READ_VOLTAGE, [], float),
+        (CONF_READ_CURRENT, [], float),
+        (CONF_READ_ENERGY, [], float),
+        (CONF_READ_MODEL, [], cg.std_string),
         (CONF_IS_BOOST_ACTIVE, [], bool),
         (CONF_IS_ENABLED, [], bool),
         (CONF_APPLY_OPTIONAL, [(bool, "value")], bool),
@@ -113,6 +126,10 @@ async def to_code(config):
                 CONF_READ_POWER: var.set_read_power,
                 CONF_READ_DHW_TEMP: var.set_read_dhw_temp,
                 CONF_READ_POWER_ESTIMATE: var.set_read_power_estimate,
+                CONF_READ_VOLTAGE: var.set_read_voltage,
+                CONF_READ_CURRENT: var.set_read_current,
+                CONF_READ_ENERGY: var.set_read_energy,
+                CONF_READ_MODEL: var.set_read_model,
                 CONF_IS_BOOST_ACTIVE: var.set_is_boost_active,
                 CONF_IS_ENABLED: var.set_is_enabled,
                 CONF_APPLY_OPTIONAL: var.set_apply_optional,

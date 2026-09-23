@@ -5,8 +5,31 @@ brand: "OpenAmber"
 model: "Amber"
 failsafe_duration: 2h
 is_enabled: "return id(eebus_enabled_switch).state;"
+read_model: |-
+  if (id(model_identification_1).has_state()) {
+    int model = (int)id(model_identification_1).state;
+    switch (model) {
+      case 140: return std::string("Amber 65");
+      case 150: return std::string("Amber 95");
+      case 15:  return std::string("Amber 120");
+      case 145: return std::string("HP-S 95");
+      default:  return std::string("Amber ") + std::to_string(model);
+    }
+  }
+  if (id(heatpump_model_name).has_state() && !id(heatpump_model_name).state.empty() && id(heatpump_model_name).state != "Onbekend model") {
+    return id(heatpump_model_name).state;
+  }
+  return std::string("");
 read_power: "return id(power_compressor).state;"
 read_dhw_temp: "return id(dhw_temperature_tw_sensor).state;"
+read_voltage: "return (id(voltage_outside_unit).has_state() && id(voltage_outside_unit).state > 50.0f) ? id(voltage_outside_unit).state : 230.0f;"
+read_current: "return (id(current_outside_unit).has_state() && !std::isnan(id(current_outside_unit).state)) ? id(current_outside_unit).state : (id(power_compressor).has_state() ? id(power_compressor).state / 230.0f : 0.0f);"
+read_energy: |-
+  float e = 0.0f;
+  if (id(electrical_energy_day_heating).has_state()) e += id(electrical_energy_day_heating).state;
+  if (id(electrical_energy_day_cooling).has_state()) e += id(electrical_energy_day_cooling).state;
+  if (id(electrical_energy_day_dhw).has_state()) e += id(electrical_energy_day_dhw).state;
+  return e * 1000.0f;
 is_boost_active: "return id(sg_ready_boost_mode_active_sensor).state || id(sg_ready_max_boost_mode_active_sensor).state;"
 status:
   name: "EEBUS Status"

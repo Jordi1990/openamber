@@ -1149,7 +1149,6 @@
           - lvgl.widget.show: { id: eebus_page_1_row_ski }
           - lvgl.widget.hide: { id: eebus_page_2_row_status }
           - lvgl.widget.hide: { id: eebus_page_2_row_power_limit }
-          - lvgl.widget.hide: { id: eebus_page_2_row_ems }
           - lvgl.widget.update: { id: eebus_page_1_button, bg_color: 0x1F3B68 }
           - lvgl.label.update: { id: eebus_page_1_button_lbl, text_color: 0xFFFFFF }
           - lvgl.widget.update: { id: eebus_page_2_button, bg_color: 0xCBD5E1 }
@@ -1161,7 +1160,6 @@
           - lvgl.widget.hide: { id: eebus_page_1_row_ski }
           - lvgl.widget.show: { id: eebus_page_2_row_status }
           - lvgl.widget.show: { id: eebus_page_2_row_power_limit }
-          - lvgl.widget.show: { id: eebus_page_2_row_ems }
           - lvgl.widget.update: { id: eebus_page_1_button, bg_color: 0xCBD5E1 }
           - lvgl.label.update: { id: eebus_page_1_button_lbl, text_color: 0x4B5563 }
           - lvgl.widget.update: { id: eebus_page_2_button, bg_color: 0x1F3B68 }
@@ -1179,8 +1177,15 @@
           lv_obj_clear_state(id(set_eebus_enabled_switch_ui), LV_STATE_CHECKED);
         }
 
-        // Update connection status and EMS info
-        if (id(eebus_connected_sensor).state) {
+        // Update connection status, EMS info and disconnect button
+        if (!id(eebus_enabled_switch).state) {
+          lv_label_set_text(id(eebus_connection_status_lbl), "Uitgeschakeld");
+          lv_obj_set_style_text_color(id(eebus_connection_status_lbl), lv_color_hex(0x6B7280), LV_PART_MAIN);
+          lv_label_set_text(id(eebus_connection_status_icon), "\U000F0338");
+          lv_obj_set_style_text_color(id(eebus_connection_status_icon), lv_color_hex(0x6B7280), LV_PART_MAIN);
+          lv_label_set_text(id(eebus_connection_sub_lbl), "EEBUS is uitgeschakeld");
+          lv_obj_add_flag(id(eebus_disconnect_btn), LV_OBJ_FLAG_HIDDEN);
+        } else if (id(eebus_connected_sensor).state) {
           lv_label_set_text(id(eebus_connection_status_lbl), "Verbonden");
           lv_obj_set_style_text_color(id(eebus_connection_status_lbl), lv_color_hex(0x16A34A), LV_PART_MAIN);
           lv_label_set_text(id(eebus_connection_status_icon), "\U000F0337");
@@ -1188,20 +1193,17 @@
           if (id(eebus_ems_sensor).has_state() && id(eebus_ems_sensor).state != "–" && !id(eebus_ems_sensor).state.empty()) {
             std::string sub = "Verbonden met " + id(eebus_ems_sensor).state;
             lv_label_set_text(id(eebus_connection_sub_lbl), sub.c_str());
-            lv_label_set_text(id(eebus_ems_lbl), id(eebus_ems_sensor).state.c_str());
           } else {
             lv_label_set_text(id(eebus_connection_sub_lbl), "Verbonden met EMS");
-            lv_label_set_text(id(eebus_ems_lbl), "EMS");
           }
-          lv_obj_set_style_text_color(id(eebus_ems_lbl), lv_color_hex(0x16A34A), LV_PART_MAIN);
+          lv_obj_clear_flag(id(eebus_disconnect_btn), LV_OBJ_FLAG_HIDDEN);
         } else {
           lv_label_set_text(id(eebus_connection_status_lbl), "Niet verbonden");
           lv_obj_set_style_text_color(id(eebus_connection_status_lbl), lv_color_hex(0xEF4444), LV_PART_MAIN);
           lv_label_set_text(id(eebus_connection_status_icon), "\U000F0338");
           lv_obj_set_style_text_color(id(eebus_connection_status_icon), lv_color_hex(0xEF4444), LV_PART_MAIN);
-          lv_label_set_text(id(eebus_connection_sub_lbl), "Status van de EEBUS verbinding");
-          lv_label_set_text(id(eebus_ems_lbl), "–");
-          lv_obj_set_style_text_color(id(eebus_ems_lbl), lv_color_hex(0x6B7280), LV_PART_MAIN);
+          lv_label_set_text(id(eebus_connection_sub_lbl), "Niet verbonden met een EMS");
+          lv_obj_add_flag(id(eebus_disconnect_btn), LV_OBJ_FLAG_HIDDEN);
         }
 
         // Update EEBUS status
@@ -1244,6 +1246,21 @@
         } else {
           lv_label_set_text(id(eebus_ski_display_lbl), "Laden...");
         }
+
+- id: eebus_disconnect
+  mode: restart
+  then:
+    - lambda: |-
+        #ifdef USE_EEBUS
+        openamber_eebus::eebus_disconnect();
+        #endif
+        if (id(eebus_connected_sensor) != nullptr) {
+          id(eebus_connected_sensor).publish_state(false);
+        }
+        if (id(eebus_ems_sensor) != nullptr) {
+          id(eebus_ems_sensor).publish_state("–");
+        }
+    - script.execute: update_eebus_settings_ui
 
 - id: update_advanced_settings_ui
   mode: restart

@@ -19,11 +19,38 @@ namespace openamber_eebus {
 
 class MpcServer {
  public:
-  void set_power_w(float w) { this->power_w_ = w; }
+  void set_power_w(float w) {
+    this->power_w_ = w;
+    uint32_t now = millis();
+    if (this->last_energy_calc_ms_ > 0 && now > this->last_energy_calc_ms_) {
+      float dt_hours = (now - this->last_energy_calc_ms_) / 3600000.0f;
+      if (w > 0.0f) {
+        this->energy_wh_ += w * dt_hours;
+      }
+    }
+    this->last_energy_calc_ms_ = now;
+  }
   float get_power_w() const { return this->power_w_; }
+
+  void set_energy_wh(float wh) {
+    if (wh > this->energy_wh_) {
+      this->energy_wh_ = wh;
+    }
+  }
+  float get_energy_wh() const { return this->energy_wh_; }
+
+  void set_voltage_v(float v) { this->voltage_v_ = v; }
+  float get_voltage_v() const { return this->voltage_v_; }
+
+  void set_current_a(float a) { this->current_a_ = a; }
+  float get_current_a() const { return this->current_a_; }
 
  private:
   float power_w_{0.0f};
+  float energy_wh_{100.0f};
+  float voltage_v_{230.0f};
+  float current_a_{0.0f};
+  uint32_t last_energy_calc_ms_{0};
 };
 
 class MdtServer {

@@ -48,7 +48,7 @@ static const char kEmbeddedKeyPem[] =
     "AArMflmYmgDG0ZfcY6TmM8kGwa2s0nraF8HWJmTX3fUqWvcsul5LlXMJ\n"
     "-----END PRIVATE KEY-----\n";
 
-static const char kEmbeddedSki[] = "F2F3C3CC66E962600117AC7110757401DC1178C5";
+static const char kEmbeddedSki[] = "f2f3c3cc66e962600117ac7110757401dc1178c5";
 
 static int cert_mbedtls_rng(void *, unsigned char *buf, size_t len) {
   esp_fill_random(buf, len);
@@ -122,7 +122,7 @@ bool EEBusCertificateStore::generate_and_save() {
 
   char ski_buf[41];
   for (size_t i = 0; i < 20; i++) {
-    snprintf(&ski_buf[i * 2], 3, "%02X", sha1_out[i]);
+    snprintf(&ski_buf[i * 2], 3, "%02x", sha1_out[i]);
   }
   ski_buf[40] = '\0';
   std::string generated_ski = ski_buf;
@@ -246,7 +246,7 @@ bool EEBusCertificateStore::load_from_nvs() {
     if (ret == 0 && crt.subject_key_id.len == 20) {
       char ski_buf[41];
       for (size_t i = 0; i < 20; i++) {
-        snprintf(&ski_buf[i * 2], 3, "%02X", crt.subject_key_id.p[i]);
+        snprintf(&ski_buf[i * 2], 3, "%02x", crt.subject_key_id.p[i]);
       }
       ski_buf[40] = '\0';
       this->ski_ = ski_buf;
@@ -255,6 +255,9 @@ bool EEBusCertificateStore::load_from_nvs() {
       this->ski_ = kEmbeddedSki;
     }
     mbedtls_x509_crt_free(&crt);
+  }
+  for (auto &c : this->ski_) {
+    c = std::tolower(static_cast<unsigned char>(c));
   }
   return true;
 }

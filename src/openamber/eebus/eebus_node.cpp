@@ -32,12 +32,12 @@ std::string EebusNode::build_device_classification_notification() {
 
   SpineCommand dev_cat;
   dev_cat.data_class = "deviceClassificationDeviceData";
-  dev_cat.json = "{\"deviceCategory\":\"heatPump\",\"entityType\":\"compressor\"}";
+  dev_cat.json = "{\"deviceCategory\":\"heatPump\",\"entityType\":\"heatPumpAppliance\"}";
   d.add_command(dev_cat);
 
   SpineCommand mfr;
   mfr.data_class = "deviceClassificationManufacturerData";
-  mfr.json = "{\"deviceName\":\"OpenAmber\",\"brandName\":\"OpenAmber\",\"model\":\"Amber\"}";
+  mfr.json = "{\"deviceName\":\"OpenAmber\",\"brandName\":\"" + this->brand_ + "\",\"model\":\"" + this->model_ + "\"}";
   d.add_command(mfr);
 
   return d.to_json();
@@ -57,7 +57,7 @@ std::string EebusNode::build_device_classification_device_reply(uint32_t reply_t
 
   SpineCommand dev_cat;
   dev_cat.data_class = "deviceClassificationDeviceData";
-  dev_cat.json = "{\"deviceCategory\":\"heatPump\",\"entityType\":\"compressor\"}";
+  dev_cat.json = "{\"deviceCategory\":\"heatPump\",\"entityType\":\"heatPumpAppliance\"}";
   d.add_command(dev_cat);
 
   return d.to_json();
@@ -77,7 +77,7 @@ std::string EebusNode::build_device_classification_manufacturer_reply(uint32_t r
 
   SpineCommand mfr;
   mfr.data_class = "deviceClassificationManufacturerData";
-  mfr.json = "{\"deviceName\":\"OpenAmber\",\"brandName\":\"OpenAmber\",\"model\":\"Amber\"}";
+  mfr.json = "{\"deviceName\":\"OpenAmber\",\"brandName\":\"" + this->brand_ + "\",\"model\":\"" + this->model_ + "\"}";
   d.add_command(mfr);
 
   return d.to_json();
@@ -93,23 +93,41 @@ std::string EebusNode::build_measurement_notification(float power_w, float dhw_t
   SpineAddress dst = this->subscriber_measurement_addr_;
   if (dst.empty()) {
     dst.device_str = this->remote_device_;
-    dst.entity = 1;
-    dst.feature = 1;
+    dst.entity = 0;
+    dst.feature = 0;
   }
   d.set_destination(dst);
   d.set_classifier(CmdClassifier::NOTIFY);
   d.set_msg_counter(this->next_counter());
 
+  float energy_wh = this->mpc_ ? this->mpc_->get_energy_wh() : 0.0f;
+  float current_a = this->mpc_ ? this->mpc_->get_current_a() : 0.0f;
+  float voltage_v = this->mpc_ ? this->mpc_->get_voltage_v() : 230.0f;
+
   int64_t p_num = std::isnan(power_w) ? 0 : static_cast<int64_t>(power_w);
+  int64_t e_num = std::isnan(energy_wh) ? 0 : static_cast<int64_t>(energy_wh);
+  int64_t i_num = std::isnan(current_a) ? 0 : static_cast<int64_t>(current_a * 10.0f);
+  int64_t v_num = std::isnan(voltage_v) ? 230 : static_cast<int64_t>(voltage_v);
   int64_t t_num = std::isnan(dhw_temp_c) ? 0 : static_cast<int64_t>(dhw_temp_c * 10.0f);
 
-  char buf[512];
+  char buf[896];
   SpineCommand mpc;
   mpc.data_class = "measurementListData";
   snprintf(buf, sizeof(buf),
-           "{\"measurementData\":[{\"measurementId\":0,\"value\":{\"number\":%lld,\"scale\":0},\"valueState\":\"normal\"},"
-           "{\"measurementId\":1,\"value\":{\"number\":%lld,\"scale\":-1},\"valueState\":\"normal\"}]}",
-           static_cast<long long>(p_num), static_cast<long long>(t_num));
+           "{\"measurementData\":["
+           "{\"measurementId\":0,\"value\":{\"number\":%lld,\"scale\":0},\"valueState\":\"normal\"},"
+           "{\"measurementId\":1,\"value\":{\"number\":%lld,\"scale\":0},\"valueState\":\"normal\"},"
+           "{\"measurementId\":2,\"value\":{\"number\":%lld,\"scale\":-1},\"valueState\":\"normal\"},"
+           "{\"measurementId\":3,\"value\":{\"number\":%lld,\"scale\":0},\"valueState\":\"normal\"},"
+           "{\"measurementId\":4,\"value\":{\"number\":%lld,\"scale\":-1},\"valueState\":\"normal\"},"
+           "{\"measurementId\":5,\"value\":{\"number\":%lld,\"scale\":0},\"valueState\":\"normal\"}"
+           "]}",
+           static_cast<long long>(p_num),
+           static_cast<long long>(e_num),
+           static_cast<long long>(i_num),
+           static_cast<long long>(v_num),
+           static_cast<long long>(t_num),
+           static_cast<long long>(p_num));
   mpc.json = buf;
   d.add_command(mpc);
 
@@ -129,17 +147,35 @@ std::string EebusNode::build_measurement_reply(uint32_t reply_to, const SpineAdd
   d.set_msg_counter_reference(reply_to);
 
   float power_w = this->mpc_ ? this->mpc_->get_power_w() : 0.0f;
+  float energy_wh = this->mpc_ ? this->mpc_->get_energy_wh() : 0.0f;
+  float current_a = this->mpc_ ? this->mpc_->get_current_a() : 0.0f;
+  float voltage_v = this->mpc_ ? this->mpc_->get_voltage_v() : 230.0f;
   float dhw_temp = this->mdt_ ? this->mdt_->get_temperature_c() : 0.0f;
+
   int64_t p_num = std::isnan(power_w) ? 0 : static_cast<int64_t>(power_w);
+  int64_t e_num = std::isnan(energy_wh) ? 0 : static_cast<int64_t>(energy_wh);
+  int64_t i_num = std::isnan(current_a) ? 0 : static_cast<int64_t>(current_a * 10.0f);
+  int64_t v_num = std::isnan(voltage_v) ? 230 : static_cast<int64_t>(voltage_v);
   int64_t t_num = std::isnan(dhw_temp) ? 0 : static_cast<int64_t>(dhw_temp * 10.0f);
 
-  char buf[512];
+  char buf[896];
   SpineCommand mpc;
   mpc.data_class = "measurementListData";
   snprintf(buf, sizeof(buf),
-           "{\"measurementData\":[{\"measurementId\":0,\"value\":{\"number\":%lld,\"scale\":0},\"valueState\":\"normal\"},"
-           "{\"measurementId\":1,\"value\":{\"number\":%lld,\"scale\":-1},\"valueState\":\"normal\"}]}",
-           static_cast<long long>(p_num), static_cast<long long>(t_num));
+           "{\"measurementData\":["
+           "{\"measurementId\":0,\"value\":{\"number\":%lld,\"scale\":0},\"valueState\":\"normal\"},"
+           "{\"measurementId\":1,\"value\":{\"number\":%lld,\"scale\":0},\"valueState\":\"normal\"},"
+           "{\"measurementId\":2,\"value\":{\"number\":%lld,\"scale\":-1},\"valueState\":\"normal\"},"
+           "{\"measurementId\":3,\"value\":{\"number\":%lld,\"scale\":0},\"valueState\":\"normal\"},"
+           "{\"measurementId\":4,\"value\":{\"number\":%lld,\"scale\":-1},\"valueState\":\"normal\"},"
+           "{\"measurementId\":5,\"value\":{\"number\":%lld,\"scale\":0},\"valueState\":\"normal\"}"
+           "]}",
+           static_cast<long long>(p_num),
+           static_cast<long long>(e_num),
+           static_cast<long long>(i_num),
+           static_cast<long long>(v_num),
+           static_cast<long long>(t_num),
+           static_cast<long long>(p_num));
   mpc.json = buf;
   d.add_command(mpc);
 
@@ -162,7 +198,11 @@ std::string EebusNode::build_measurement_description_reply(uint32_t reply_to, co
   desc.data_class = "measurementDescriptionListData";
   desc.json = "{\"measurementDescriptionData\":["
               "{\"measurementId\":0,\"measurementType\":\"power\",\"commodityType\":\"electricity\",\"unit\":\"W\",\"scopeType\":\"acPowerTotal\"},"
-              "{\"measurementId\":1,\"measurementType\":\"temperature\",\"commodityType\":\"hotWater\",\"unit\":\"degC\",\"scopeType\":\"heatAmount\"}"
+              "{\"measurementId\":1,\"measurementType\":\"energy\",\"commodityType\":\"electricity\",\"unit\":\"Wh\",\"scopeType\":\"acEnergyConsumed\"},"
+              "{\"measurementId\":2,\"measurementType\":\"current\",\"commodityType\":\"electricity\",\"unit\":\"A\",\"scopeType\":\"acCurrent\"},"
+              "{\"measurementId\":3,\"measurementType\":\"voltage\",\"commodityType\":\"electricity\",\"unit\":\"V\",\"scopeType\":\"acVoltage\"},"
+              "{\"measurementId\":4,\"measurementType\":\"temperature\",\"commodityType\":\"domesticHotWater\",\"unit\":\"degC\",\"scopeType\":\"dhwTemperature\"},"
+              "{\"measurementId\":5,\"measurementType\":\"power\",\"commodityType\":\"electricity\",\"unit\":\"W\",\"scopeType\":\"acPower\"}"
               "]}";
   d.add_command(desc);
 
@@ -203,7 +243,99 @@ std::string EebusNode::build_electrical_connection_parameter_reply(uint32_t repl
 
   SpineCommand cmd;
   cmd.data_class = "electricalConnectionParameterDescriptionListData";
-  cmd.json = "{\"electricalConnectionParameterDescriptionData\":[{\"electricalConnectionId\":0,\"parameterId\":0,\"measurementId\":0,\"acMeasuredPhases\":\"abc\"}]}";
+  cmd.json = "{\"electricalConnectionParameterDescriptionData\":["
+             "{\"electricalConnectionId\":0,\"parameterId\":0,\"measurementId\":0,\"acMeasuredPhases\":\"a\"},"
+             "{\"electricalConnectionId\":0,\"parameterId\":1,\"measurementId\":1,\"acMeasuredPhases\":\"a\"},"
+             "{\"electricalConnectionId\":0,\"parameterId\":2,\"measurementId\":2,\"acMeasuredPhases\":\"a\"},"
+             "{\"electricalConnectionId\":0,\"parameterId\":3,\"measurementId\":3,\"acMeasuredPhases\":\"a\"},"
+             "{\"electricalConnectionId\":0,\"parameterId\":4,\"measurementId\":5,\"acMeasuredPhases\":\"a\"}"
+             "]}";
+  d.add_command(cmd);
+
+  return d.to_json();
+}
+
+std::string EebusNode::build_electrical_connection_characteristic_reply(uint32_t reply_to, const SpineAddress &dst, const SpineAddress &src_addr) {
+  SpineDatagram d;
+  SpineAddress src;
+  src.device_str = "d:_n:OPENAMBER-" + this->device_id_;
+  src.entity = src_addr.entity ? src_addr.entity : 1;
+  src.feature = src_addr.feature ? src_addr.feature : 2;
+  d.set_source(src);
+  d.set_destination(dst);
+  d.set_classifier(CmdClassifier::REPLY);
+  d.set_msg_counter(this->next_counter());
+  d.set_msg_counter_reference(reply_to);
+
+  SpineCommand cmd;
+  cmd.data_class = "electricalConnectionCharacteristicListData";
+  cmd.json = "{\"electricalConnectionCharacteristicData\":["
+             "{\"electricalConnectionId\":0,\"parameterId\":0,\"characteristicId\":0,\"characteristicContext\":\"entity\",\"characteristicType\":\"powerConsumptionNominalMax\",\"characteristicValue\":{\"number\":3500,\"scale\":0},\"unit\":\"W\"},"
+             "{\"electricalConnectionId\":0,\"parameterId\":0,\"characteristicId\":1,\"characteristicContext\":\"entity\",\"characteristicType\":\"contractualConsumptionNominalMax\",\"characteristicValue\":{\"number\":3500,\"scale\":0},\"unit\":\"W\"},"
+             "{\"electricalConnectionId\":0,\"parameterId\":0,\"characteristicId\":2,\"characteristicContext\":\"entity\",\"characteristicType\":\"nominalVoltage\",\"characteristicValue\":{\"number\":230,\"scale\":0},\"unit\":\"V\"},"
+             "{\"electricalConnectionId\":0,\"parameterId\":0,\"characteristicId\":3,\"characteristicContext\":\"entity\",\"characteristicType\":\"maximumCurrent\",\"characteristicValue\":{\"number\":16,\"scale\":0},\"unit\":\"A\"},"
+             "{\"electricalConnectionId\":0,\"parameterId\":0,\"characteristicId\":4,\"characteristicContext\":\"entity\",\"characteristicType\":\"maximumPower\",\"characteristicValue\":{\"number\":3500,\"scale\":0},\"unit\":\"W\"}"
+             "]}";
+  d.add_command(cmd);
+
+  return d.to_json();
+}
+
+std::string EebusNode::build_electrical_connection_permitted_value_set_reply(uint32_t reply_to, const SpineAddress &dst, const SpineAddress &src_addr) {
+  SpineDatagram d;
+  SpineAddress src;
+  src.device_str = "d:_n:OPENAMBER-" + this->device_id_;
+  src.entity = src_addr.entity ? src_addr.entity : 1;
+  src.feature = src_addr.feature ? src_addr.feature : 2;
+  d.set_source(src);
+  d.set_destination(dst);
+  d.set_classifier(CmdClassifier::REPLY);
+  d.set_msg_counter(this->next_counter());
+  d.set_msg_counter_reference(reply_to);
+
+  SpineCommand cmd;
+  cmd.data_class = "electricalConnectionPermittedValueSetListData";
+  cmd.json = "{\"electricalConnectionPermittedValueSetData\":[{\"electricalConnectionId\":0,\"parameterId\":0,\"permittedValueSet\":[{\"range\":[{\"min\":{\"number\":0,\"scale\":0},\"max\":{\"number\":3500,\"scale\":0}}]}]}]}";
+  d.add_command(cmd);
+
+  return d.to_json();
+}
+
+std::string EebusNode::build_subscription_list_reply(uint32_t reply_to, const SpineAddress &dst) {
+  SpineDatagram d;
+  SpineAddress src;
+  src.device_str = "d:_n:OPENAMBER-" + this->device_id_;
+  src.entity = 0;
+  src.feature = 0;
+  d.set_source(src);
+  d.set_destination(dst);
+  d.set_classifier(CmdClassifier::REPLY);
+  d.set_msg_counter(this->next_counter());
+  d.set_msg_counter_reference(reply_to);
+
+  SpineCommand cmd;
+  cmd.data_class = "nodeManagementSubscriptionData";
+  cmd.json = "{\"subscriptionInformation\":[]}";
+  d.add_command(cmd);
+
+  return d.to_json();
+}
+
+std::string EebusNode::build_binding_list_reply(uint32_t reply_to, const SpineAddress &dst) {
+  SpineDatagram d;
+  SpineAddress src;
+  src.device_str = "d:_n:OPENAMBER-" + this->device_id_;
+  src.entity = 0;
+  src.feature = 0;
+  d.set_source(src);
+  d.set_destination(dst);
+  d.set_classifier(CmdClassifier::REPLY);
+  d.set_msg_counter(this->next_counter());
+  d.set_msg_counter_reference(reply_to);
+
+  SpineCommand cmd;
+  cmd.data_class = "nodeManagementBindingData";
+  cmd.json = "{\"bindingInformation\":[]}";
   d.add_command(cmd);
 
   return d.to_json();
@@ -297,7 +429,7 @@ std::string EebusNode::build_load_control_description_reply(uint32_t reply_to, c
 
   SpineCommand cmd;
   cmd.data_class = "loadControlLimitDescriptionListData";
-  cmd.json = "{\"loadControlLimitDescriptionData\":[{\"limitId\":0,\"limitType\":\"signDependentAbsValueLimit\",\"limitDirection\":\"consume\",\"limitCategory\":\"obligation\",\"unit\":\"W\",\"scopeType\":\"activePowerLimit\"}]}";
+  cmd.json = "{\"loadControlLimitDescriptionData\":[{\"limitId\":0,\"limitType\":\"signDependentAbsValueLimit\",\"limitDirection\":\"consume\",\"limitCategory\":\"obligation\",\"measurementId\":0,\"unit\":\"W\",\"scopeType\":\"activePowerLimit\"}]}";
   d.add_command(cmd);
 
   return d.to_json();
@@ -317,7 +449,10 @@ std::string EebusNode::build_device_configuration_description_reply(uint32_t rep
 
   SpineCommand cmd;
   cmd.data_class = "deviceConfigurationKeyValueDescriptionListData";
-  cmd.json = "{\"deviceConfigurationKeyValueDescriptionData\":[{\"keyId\":0,\"valueType\":\"string\"}]}";
+  cmd.json = "{\"deviceConfigurationKeyValueDescriptionData\":["
+             "{\"keyId\":0,\"keyName\":\"failsafeConsumptionActivePowerLimit\",\"valueType\":\"scaledNumber\",\"unit\":\"W\"},"
+             "{\"keyId\":1,\"keyName\":\"failsafeDurationMinimum\",\"valueType\":\"duration\"}"
+             "]}";
   d.add_command(cmd);
 
   return d.to_json();
@@ -337,7 +472,10 @@ std::string EebusNode::build_device_configuration_key_value_reply(uint32_t reply
 
   SpineCommand cmd;
   cmd.data_class = "deviceConfigurationKeyValueListData";
-  cmd.json = "{\"deviceConfigurationKeyValueData\":[{\"keyId\":0,\"value\":{\"string\":\"OpenAmber\"}}]}";
+  cmd.json = "{\"deviceConfigurationKeyValueData\":["
+             "{\"keyId\":0,\"value\":{\"scaledNumber\":{\"number\":0,\"scale\":0}}},"
+             "{\"keyId\":1,\"value\":{\"duration\":\"PT2H\"}}"
+             "]}";
   d.add_command(cmd);
 
   return d.to_json();
@@ -376,7 +514,7 @@ std::string EebusNode::build_load_control_limit_notification(bool active, float 
 }
 
 bool EebusNode::notify_measurements(float power_w, float dhw_temp_c) {
-  if (!this->ship_sender_ || this->remote_device_.empty() || !this->subscribed_measurements_) return false;
+  if (!this->ship_sender_ || this->remote_device_.empty()) return false;
   std::string datagram = this->build_measurement_notification(power_w, dhw_temp_c);
   return this->ship_sender_(datagram);
 }
@@ -535,51 +673,56 @@ std::string EebusNode::build_node_discovery_reply(uint32_t reply_to,
   std::string buf;
   buf.reserve(4096);
   buf += "{\"specificationVersionList\":{\"specificationVersion\":[\"1.3.0\"]},";
-  buf += "\"deviceInformation\":{\"description\":{\"deviceAddress\":{\"device\":\"" + dev + "\"},\"deviceType\":\"HeatPumpAppliance\",\"networkFeatureSet\":\"smart\"}},";
+  buf += "\"deviceInformation\":{\"description\":{\"deviceAddress\":{\"device\":\"" + dev + "\"},\"deviceType\":\"HeatGenerationSystem\",\"networkFeatureSet\":\"smart\"}},";
   buf += "\"entityInformation\":[";
   buf += "{\"description\":{\"entityAddress\":{\"device\":\"" + dev + "\",\"entity\":[0]},\"entityType\":\"DeviceInformation\"}},";
-  buf += "{\"description\":{\"entityAddress\":{\"device\":\"" + dev + "\",\"entity\":[1]},\"entityType\":\"Compressor\"}},";
-  buf += "{\"description\":{\"entityAddress\":{\"device\":\"" + dev + "\",\"entity\":[2]},\"entityType\":\"DHWCircuit\"}}";
+  buf += "{\"description\":{\"entityAddress\":{\"device\":\"" + dev + "\",\"entity\":[1]},\"entityType\":\"HeatPumpAppliance\"}},";
+  buf += "{\"description\":{\"entityAddress\":{\"device\":\"" + dev + "\",\"entity\":[2]},\"entityType\":\"Compressor\"}}";
   buf += "],";
   buf += "\"featureInformation\":[";
-  buf += "{\"description\":{\"featureAddress\":{\"device\":\"" + dev + "\",\"entity\":[0],\"feature\":0},\"featureType\":\"NodeManagement\",\"role\":\"special\",\"supportedFunction\":[";
+  buf += "{\"description\":{\"featureAddress\":{\"entity\":[0],\"feature\":0},\"featureType\":\"NodeManagement\",\"role\":\"special\",\"supportedFunction\":[";
   buf += "{\"function\":\"nodeManagementDetailedDiscoveryData\",\"possibleOperations\":{\"read\":{}}},";
   buf += "{\"function\":\"nodeManagementSubscriptionRequestCall\",\"possibleOperations\":{\"call\":{}}},";
+  buf += "{\"function\":\"nodeManagementSubscriptionData\",\"possibleOperations\":{\"read\":{}}},";
   buf += "{\"function\":\"nodeManagementBindingRequestCall\",\"possibleOperations\":{\"call\":{}}},";
+  buf += "{\"function\":\"nodeManagementBindingData\",\"possibleOperations\":{\"read\":{}}},";
   buf += "{\"function\":\"nodeManagementUseCaseData\",\"possibleOperations\":{\"read\":{},\"notify\":{}}}";
   buf += "]}},";
-  buf += "{\"description\":{\"featureAddress\":{\"device\":\"" + dev + "\",\"entity\":[1],\"feature\":1},\"featureType\":\"Measurement\",\"role\":\"server\",\"supportedFunction\":[";
+  buf += "{\"description\":{\"featureAddress\":{\"entity\":[1],\"feature\":1},\"featureType\":\"Measurement\",\"role\":\"server\",\"supportedFunction\":[";
   buf += "{\"function\":\"measurementDescriptionListData\",\"possibleOperations\":{\"read\":{}}},";
-  buf += "{\"function\":\"measurementListData\",\"possibleOperations\":{\"read\":{},\"notify\":{}}},";
-  buf += "{\"function\":\"measurementConstraintsListData\",\"possibleOperations\":{\"read\":{}}}";
+  buf += "{\"function\":\"measurementConstraintsListData\",\"possibleOperations\":{\"read\":{}}},";
+  buf += "{\"function\":\"measurementListData\",\"possibleOperations\":{\"read\":{},\"notify\":{}}}";
   buf += "]}},";
-  buf += "{\"description\":{\"featureAddress\":{\"device\":\"" + dev + "\",\"entity\":[1],\"feature\":2},\"featureType\":\"ElectricalConnection\",\"role\":\"server\",\"supportedFunction\":[";
+  buf += "{\"description\":{\"featureAddress\":{\"entity\":[1],\"feature\":2},\"featureType\":\"ElectricalConnection\",\"role\":\"server\",\"supportedFunction\":[";
   buf += "{\"function\":\"electricalConnectionDescriptionListData\",\"possibleOperations\":{\"read\":{}}},";
-  buf += "{\"function\":\"electricalConnectionParameterDescriptionListData\",\"possibleOperations\":{\"read\":{}}}";
+  buf += "{\"function\":\"electricalConnectionParameterDescriptionListData\",\"possibleOperations\":{\"read\":{}}},";
+  buf += "{\"function\":\"electricalConnectionCharacteristicListData\",\"possibleOperations\":{\"read\":{}}},";
+  buf += "{\"function\":\"electricalConnectionPermittedValueSetListData\",\"possibleOperations\":{\"read\":{}}}";
   buf += "]}},";
-  buf += "{\"description\":{\"featureAddress\":{\"device\":\"" + dev + "\",\"entity\":[1],\"feature\":3},\"featureType\":\"SmartEnergyManagementPs\",\"role\":\"server\",\"supportedFunction\":[";
+  buf += "{\"description\":{\"featureAddress\":{\"entity\":[1],\"feature\":3},\"featureType\":\"SmartEnergyManagementPs\",\"role\":\"server\",\"supportedFunction\":[";
   buf += "{\"function\":\"smartEnergyManagementPsData\",\"possibleOperations\":{\"read\":{},\"write\":{},\"notify\":{}}}";
   buf += "]}},";
-  buf += "{\"description\":{\"featureAddress\":{\"device\":\"" + dev + "\",\"entity\":[1],\"feature\":4},\"featureType\":\"LoadControl\",\"role\":\"server\",\"supportedFunction\":[";
+  buf += "{\"description\":{\"featureAddress\":{\"entity\":[1],\"feature\":4},\"featureType\":\"LoadControl\",\"role\":\"server\",\"supportedFunction\":[";
   buf += "{\"function\":\"loadControlLimitDescriptionListData\",\"possibleOperations\":{\"read\":{}}},";
-  buf += "{\"function\":\"loadControlLimitListData\",\"possibleOperations\":{\"read\":{},\"write\":{},\"notify\":{}}}";
+  buf += "{\"function\":\"loadControlLimitListData\",\"possibleOperations\":{\"read\":{},\"write\":{}}}";
   buf += "]}},";
-  buf += "{\"description\":{\"featureAddress\":{\"device\":\"" + dev + "\",\"entity\":[1],\"feature\":5},\"featureType\":\"DeviceClassification\",\"role\":\"server\",\"supportedFunction\":[";
+  buf += "{\"description\":{\"featureAddress\":{\"entity\":[1],\"feature\":5},\"featureType\":\"DeviceClassification\",\"role\":\"server\",\"supportedFunction\":[";
   buf += "{\"function\":\"deviceClassificationManufacturerData\",\"possibleOperations\":{\"read\":{}}},";
   buf += "{\"function\":\"deviceClassificationDeviceData\",\"possibleOperations\":{\"read\":{}}}";
   buf += "]}},";
-  buf += "{\"description\":{\"featureAddress\":{\"device\":\"" + dev + "\",\"entity\":[1],\"feature\":6},\"featureType\":\"DeviceConfiguration\",\"role\":\"server\",\"supportedFunction\":[";
+  buf += "{\"description\":{\"featureAddress\":{\"entity\":[1],\"feature\":6},\"featureType\":\"DeviceConfiguration\",\"role\":\"server\",\"supportedFunction\":[";
   buf += "{\"function\":\"deviceConfigurationKeyValueDescriptionListData\",\"possibleOperations\":{\"read\":{}}},";
   buf += "{\"function\":\"deviceConfigurationKeyValueListData\",\"possibleOperations\":{\"read\":{}}}";
   buf += "]}},";
-  buf += "{\"description\":{\"featureAddress\":{\"device\":\"" + dev + "\",\"entity\":[2],\"feature\":1},\"featureType\":\"Measurement\",\"role\":\"server\",\"supportedFunction\":[";
-  buf += "{\"function\":\"measurementDescriptionListData\",\"possibleOperations\":{\"read\":{}}},";
-  buf += "{\"function\":\"measurementListData\",\"possibleOperations\":{\"read\":{}}},";
-  buf += "{\"function\":\"measurementConstraintsListData\",\"possibleOperations\":{\"read\":{}}}";
+  buf += "{\"description\":{\"featureAddress\":{\"entity\":[1],\"feature\":7},\"featureType\":\"DeviceDiagnosis\",\"role\":\"server\",\"supportedFunction\":[";
+  buf += "{\"function\":\"deviceDiagnosisHeartbeatData\",\"possibleOperations\":{\"read\":{},\"notify\":{}}},";
+  buf += "{\"function\":\"deviceDiagnosisStateData\",\"possibleOperations\":{\"read\":{}}}";
   buf += "]}},";
-  buf += "{\"description\":{\"featureAddress\":{\"device\":\"" + dev + "\",\"entity\":[2],\"feature\":2},\"featureType\":\"ElectricalConnection\",\"role\":\"server\",\"supportedFunction\":[";
-  buf += "{\"function\":\"electricalConnectionDescriptionListData\",\"possibleOperations\":{\"read\":{}}},";
-  buf += "{\"function\":\"electricalConnectionParameterDescriptionListData\",\"possibleOperations\":{\"read\":{}}}";
+  buf += "{\"description\":{\"featureAddress\":{\"entity\":[2],\"feature\":1},\"featureType\":\"SmartEnergyManagementPs\",\"role\":\"server\",\"supportedFunction\":[";
+  buf += "{\"function\":\"smartEnergyManagementPsData\",\"possibleOperations\":{\"read\":{},\"write\":{},\"notify\":{}}}";
+  buf += "]}},";
+  buf += "{\"description\":{\"featureAddress\":{\"entity\":[2],\"feature\":2},\"featureType\":\"DeviceOperations\",\"role\":\"server\",\"supportedFunction\":[";
+  buf += "{\"function\":\"deviceOperationsOperationalStateData\",\"possibleOperations\":{\"read\":{}}}";
   buf += "]}}";
   buf += "]}";
 
@@ -606,12 +749,12 @@ std::string EebusNode::build_use_case_data_reply(uint32_t reply_to,
 
   std::string dev = src.device_str;
   std::string ubuf;
-  ubuf.reserve(1600);
+  ubuf.reserve(2048);
   ubuf += "{\"useCaseInformation\":[";
-  ubuf += "{\"address\":{\"device\":\"" + dev + "\",\"entity\":[1]},\"actor\":\"Compressor\",\"useCaseSupport\":[{\"useCaseName\":\"optimizationOfSelfConsumptionByHeatPumpCompressorFlexibility\",\"useCaseVersion\":\"1.0.0\",\"useCaseAvailable\":true,\"scenarioSupport\":[1,2]}]},";
-  ubuf += "{\"address\":{\"device\":\"" + dev + "\",\"entity\":[1]},\"actor\":\"MonitoredUnit\",\"useCaseSupport\":[{\"useCaseName\":\"monitoringOfPowerConsumption\",\"useCaseVersion\":\"1.0.0\",\"useCaseAvailable\":true,\"scenarioSupport\":[1,2,3]}]},";
+  ubuf += "{\"address\":{\"device\":\"" + dev + "\",\"entity\":[1]},\"actor\":\"MonitoredUnit\",\"useCaseSupport\":[{\"useCaseName\":\"monitoringOfPowerConsumption\",\"useCaseVersion\":\"1.0.0\",\"useCaseAvailable\":true,\"scenarioSupport\":[1,2,3,4]}]},";
   ubuf += "{\"address\":{\"device\":\"" + dev + "\",\"entity\":[1]},\"actor\":\"ControllableSystem\",\"useCaseSupport\":[{\"useCaseName\":\"limitationOfPowerConsumption\",\"useCaseVersion\":\"1.0.0\",\"useCaseAvailable\":true,\"scenarioSupport\":[1,2,3,4]}]},";
-  ubuf += "{\"address\":{\"device\":\"" + dev + "\",\"entity\":[2]},\"actor\":\"DHWCircuit\",\"useCaseSupport\":[{\"useCaseName\":\"monitoringOfDhwTemperature\",\"useCaseVersion\":\"1.0.0\",\"useCaseAvailable\":true,\"scenarioSupport\":[1]}]}";
+  ubuf += "{\"address\":{\"device\":\"" + dev + "\",\"entity\":[1]},\"actor\":\"Compressor\",\"useCaseSupport\":[{\"useCaseName\":\"optimizationOfSelfConsumptionByHeatPumpCompressorFlexibility\",\"useCaseVersion\":\"1.0.0\",\"useCaseAvailable\":true,\"scenarioSupport\":[1,2]}]},";
+  ubuf += "{\"address\":{\"device\":\"" + dev + "\",\"entity\":[2]},\"actor\":\"Compressor\",\"useCaseSupport\":[{\"useCaseName\":\"optimizationOfSelfConsumptionByHeatPumpCompressorFlexibility\",\"useCaseVersion\":\"1.0.0\",\"useCaseAvailable\":true,\"scenarioSupport\":[1,2]}]}";
   ubuf += "]}";
 
   SpineCommand ucdata;
@@ -646,12 +789,12 @@ std::string EebusNode::build_use_case_data_notify(uint32_t reply_to,
 
   std::string dev = src.device_str;
   std::string ubuf;
-  ubuf.reserve(1600);
+  ubuf.reserve(2048);
   ubuf += "{\"useCaseInformation\":[";
-  ubuf += "{\"address\":{\"device\":\"" + dev + "\",\"entity\":[1]},\"actor\":\"Compressor\",\"useCaseSupport\":[{\"useCaseName\":\"optimizationOfSelfConsumptionByHeatPumpCompressorFlexibility\",\"useCaseVersion\":\"1.0.0\",\"useCaseAvailable\":true,\"scenarioSupport\":[1,2]}]},";
-  ubuf += "{\"address\":{\"device\":\"" + dev + "\",\"entity\":[1]},\"actor\":\"MonitoredUnit\",\"useCaseSupport\":[{\"useCaseName\":\"monitoringOfPowerConsumption\",\"useCaseVersion\":\"1.0.0\",\"useCaseAvailable\":true,\"scenarioSupport\":[1,2,3]}]},";
+  ubuf += "{\"address\":{\"device\":\"" + dev + "\",\"entity\":[1]},\"actor\":\"MonitoredUnit\",\"useCaseSupport\":[{\"useCaseName\":\"monitoringOfPowerConsumption\",\"useCaseVersion\":\"1.0.0\",\"useCaseAvailable\":true,\"scenarioSupport\":[1,2,3,4]}]},";
   ubuf += "{\"address\":{\"device\":\"" + dev + "\",\"entity\":[1]},\"actor\":\"ControllableSystem\",\"useCaseSupport\":[{\"useCaseName\":\"limitationOfPowerConsumption\",\"useCaseVersion\":\"1.0.0\",\"useCaseAvailable\":true,\"scenarioSupport\":[1,2,3,4]}]},";
-  ubuf += "{\"address\":{\"device\":\"" + dev + "\",\"entity\":[2]},\"actor\":\"DHWCircuit\",\"useCaseSupport\":[{\"useCaseName\":\"monitoringOfDhwTemperature\",\"useCaseVersion\":\"1.0.0\",\"useCaseAvailable\":true,\"scenarioSupport\":[1]}]}";
+  ubuf += "{\"address\":{\"device\":\"" + dev + "\",\"entity\":[1]},\"actor\":\"Compressor\",\"useCaseSupport\":[{\"useCaseName\":\"optimizationOfSelfConsumptionByHeatPumpCompressorFlexibility\",\"useCaseVersion\":\"1.0.0\",\"useCaseAvailable\":true,\"scenarioSupport\":[1,2]}]},";
+  ubuf += "{\"address\":{\"device\":\"" + dev + "\",\"entity\":[2]},\"actor\":\"Compressor\",\"useCaseSupport\":[{\"useCaseName\":\"optimizationOfSelfConsumptionByHeatPumpCompressorFlexibility\",\"useCaseVersion\":\"1.0.0\",\"useCaseAvailable\":true,\"scenarioSupport\":[1,2]}]}";
   ubuf += "]}";
 
   SpineCommand ucdata;
@@ -668,6 +811,15 @@ std::string EebusNode::handle_inbound(const std::string &json) {
     return "";
 
   this->last_activity_ms_ = millis();
+
+  ESP_LOGI("eebus_node", "Inbound SPINE datagram: classifier=%s msg_counter=%u ref=%u cmds=%u",
+           cmd_classifier_str(in.classifier),
+           static_cast<unsigned>(in.msg_counter),
+           static_cast<unsigned>(in.msg_counter_reference),
+           static_cast<unsigned>(in.cmds.size()));
+  for (const auto &c : in.cmds) {
+    ESP_LOGI("eebus_node", "  Inbound cmd: data_class='%s'", c.data_class.c_str());
+  }
 
   if (!in.source.device_str.empty()) {
     if (this->remote_device_ != in.source.device_str) {
@@ -740,15 +892,49 @@ std::string EebusNode::handle_inbound(const std::string &json) {
     return this->build_result(in.msg_counter, in.source, src);
   }
 
-  // Device diagnosis: heartbeat from CEM / evcc
+  // Device diagnosis: heartbeat and state from CEM / evcc
   if (in.find("deviceDiagnosisHeartbeatData", dummy)) {
-    ESP_LOGD("eebus_node", "Heartbeat received (reply_to=%u, remote=%s)",
-             static_cast<unsigned>(in.msg_counter), in.source.device_str.c_str());
+    ESP_LOGD("eebus_node", "Heartbeat request received (classifier=%d, reply_to=%u, remote=%s)",
+             static_cast<int>(in.classifier), static_cast<unsigned>(in.msg_counter), in.source.device_str.c_str());
     SpineAddress src;
     src.device_str = "d:_n:OPENAMBER-" + this->device_id_;
-    src.entity = in.destination.entity;
-    src.feature = in.destination.feature;
+    src.entity = in.destination.entity ? in.destination.entity : 1;
+    src.feature = in.destination.feature ? in.destination.feature : 7;
+    if (in.classifier == CmdClassifier::READ) {
+      SpineDatagram d;
+      d.set_source(src);
+      d.set_destination(in.source);
+      d.set_classifier(CmdClassifier::REPLY);
+      d.set_msg_counter(this->next_counter());
+      d.set_msg_counter_reference(in.msg_counter);
+      SpineCommand cmd;
+      cmd.data_class = "deviceDiagnosisHeartbeatData";
+      char buf[128];
+      snprintf(buf, sizeof(buf), "{\"heartbeatCounter\":%u}", static_cast<unsigned>(this->msg_counter_));
+      cmd.json = buf;
+      d.add_command(cmd);
+      return d.to_json();
+    }
     return this->build_result(in.msg_counter, in.source, src);
+  }
+  if (in.find("deviceDiagnosisStateData", dummy) && in.classifier == CmdClassifier::READ) {
+    ESP_LOGI("eebus_node", "DeviceDiagnosisState read detected (reply_to=%u, remote=%s)",
+             static_cast<unsigned>(in.msg_counter), in.source.device_str.c_str());
+    SpineDatagram d;
+    SpineAddress src;
+    src.device_str = "d:_n:OPENAMBER-" + this->device_id_;
+    src.entity = in.destination.entity ? in.destination.entity : 1;
+    src.feature = in.destination.feature ? in.destination.feature : 7;
+    d.set_source(src);
+    d.set_destination(in.source);
+    d.set_classifier(CmdClassifier::REPLY);
+    d.set_msg_counter(this->next_counter());
+    d.set_msg_counter_reference(in.msg_counter);
+    SpineCommand cmd;
+    cmd.data_class = "deviceDiagnosisStateData";
+    cmd.json = "{\"operatingState\":\"normalOperation\",\"powerSupplyState\":\"errorFree\"}";
+    d.add_command(cmd);
+    return d.to_json();
   }
 
   // Node management: use case data read.
@@ -759,23 +945,37 @@ std::string EebusNode::handle_inbound(const std::string &json) {
     return this->build_use_case_data_reply(in.msg_counter, in.source);
   }
 
+  // Node management: subscription list read.
+  if (in.find("nodeManagementSubscriptionData", dummy) && in.classifier == CmdClassifier::READ) {
+    ESP_LOGI("eebus_node", "Subscription list read detected (reply_to=%u, remote=%s)",
+             static_cast<unsigned>(in.msg_counter), in.source.device_str.c_str());
+    return this->build_subscription_list_reply(in.msg_counter, in.source);
+  }
+
+  // Node management: binding list read.
+  if (in.find("nodeManagementBindingData", dummy) && in.classifier == CmdClassifier::READ) {
+    ESP_LOGI("eebus_node", "Binding list read detected (reply_to=%u, remote=%s)",
+             static_cast<unsigned>(in.msg_counter), in.source.device_str.c_str());
+    return this->build_binding_list_reply(in.msg_counter, in.source);
+  }
+
   // Measurement: description list data read.
   if (in.find("measurementDescriptionListData", dummy) && in.classifier == CmdClassifier::READ) {
-    ESP_LOGD("eebus_node", "Measurement description read detected (reply_to=%u, remote=%s)",
+    ESP_LOGI("eebus_node", "Measurement description read detected (reply_to=%u, remote=%s)",
              static_cast<unsigned>(in.msg_counter), in.source.device_str.c_str());
     return this->build_measurement_description_reply(in.msg_counter, in.source, in.destination);
   }
 
   // Measurement: measurement list data read.
   if (in.find("measurementListData", dummy) && in.classifier == CmdClassifier::READ) {
-    ESP_LOGD("eebus_node", "Measurement data read detected (reply_to=%u, remote=%s)",
+    ESP_LOGI("eebus_node", "Measurement data read detected (reply_to=%u, remote=%s)",
              static_cast<unsigned>(in.msg_counter), in.source.device_str.c_str());
     return this->build_measurement_reply(in.msg_counter, in.source, in.destination);
   }
 
   // Measurement: constraints list data read.
   if (in.find("measurementConstraintsListData", dummy) && in.classifier == CmdClassifier::READ) {
-    ESP_LOGD("eebus_node", "Measurement constraints read detected (reply_to=%u, remote=%s)",
+    ESP_LOGI("eebus_node", "Measurement constraints read detected (reply_to=%u, remote=%s)",
              static_cast<unsigned>(in.msg_counter), in.source.device_str.c_str());
     SpineDatagram d;
     SpineAddress src;
@@ -789,7 +989,7 @@ std::string EebusNode::handle_inbound(const std::string &json) {
     d.set_msg_counter_reference(in.msg_counter);
     SpineCommand cmd;
     cmd.data_class = "measurementConstraintsListData";
-    cmd.json = "{\"measurementConstraintsData\":[{\"measurementId\":0}]}";
+    cmd.json = "{\"measurementConstraintsData\":[{\"measurementId\":0},{\"measurementId\":1},{\"measurementId\":2},{\"measurementId\":3},{\"measurementId\":4},{\"measurementId\":5}]}";
     d.add_command(cmd);
     return d.to_json();
   }
@@ -825,7 +1025,17 @@ std::string EebusNode::handle_inbound(const std::string &json) {
     return this->build_ohpcf_state_reply(in.msg_counter, in.source, in.destination);
   }
 
-  // Electrical connection data read: parameter vs description.
+  // Electrical connection data read: parameter vs description vs characteristics vs permitted values.
+  if (in.find("electricalConnectionCharacteristicListData", dummy) && in.classifier == CmdClassifier::READ) {
+    ESP_LOGI("eebus_node", "Electrical connection characteristic read detected (reply_to=%u, remote=%s)",
+             static_cast<unsigned>(in.msg_counter), in.source.device_str.c_str());
+    return this->build_electrical_connection_characteristic_reply(in.msg_counter, in.source, in.destination);
+  }
+  if (in.find("electricalConnectionPermittedValueSetListData", dummy) && in.classifier == CmdClassifier::READ) {
+    ESP_LOGI("eebus_node", "Electrical connection permitted value set read detected (reply_to=%u, remote=%s)",
+             static_cast<unsigned>(in.msg_counter), in.source.device_str.c_str());
+    return this->build_electrical_connection_permitted_value_set_reply(in.msg_counter, in.source, in.destination);
+  }
   if (in.find("electricalConnectionParameterDescriptionListData", dummy) && in.classifier == CmdClassifier::READ) {
     ESP_LOGI("eebus_node", "Electrical connection parameter description read detected (reply_to=%u, remote=%s)",
              static_cast<unsigned>(in.msg_counter), in.source.device_str.c_str());
@@ -936,6 +1146,17 @@ std::string EebusNode::handle_inbound(const std::string &json) {
       else if (lpc_json.find("abort") != std::string::npos)
         this->ohpcf_->abort();
     }
+    SpineAddress src;
+    src.device_str = "d:_n:OPENAMBER-" + this->device_id_;
+    src.entity = in.destination.entity;
+    src.feature = in.destination.feature;
+    return this->build_result(in.msg_counter, in.source, src);
+  }
+
+  // General fallback for unhandled READ requests - NEVER leave a READ unanswered!
+  if (in.classifier == CmdClassifier::READ) {
+    ESP_LOGW("eebus_node", "Unhandled READ request (reply_to=%u, remote=%s, raw=%s) -> returning resultData error 0",
+             static_cast<unsigned>(in.msg_counter), in.source.device_str.c_str(), in.raw_json.c_str());
     SpineAddress src;
     src.device_str = "d:_n:OPENAMBER-" + this->device_id_;
     src.entity = in.destination.entity;

@@ -18,6 +18,11 @@ namespace openamber_eebus {
 
 class EEBusComponent : public PollingComponent {
  public:
+  EEBusComponent();
+  ~EEBusComponent();
+
+  void disconnect_ems();
+
   void set_device_sku(const std::string &sku) { this->device_sku_ = sku; }
   void set_brand(const std::string &brand) { this->brand_ = brand; }
   void set_model(const std::string &model) { this->model_ = model; }
@@ -34,9 +39,13 @@ class EEBusComponent : public PollingComponent {
   void record_action(const std::string &action);
 
   // OpenAmber bridge (wired from YAML lambdas that can access id(...)).
+  void set_read_model(const std::function<std::string()> &fn) { this->read_model_ = fn; }
   void set_read_power(const std::function<float()> &fn) { this->read_power_ = fn; }
   void set_read_dhw_temp(const std::function<float()> &fn) { this->read_dhw_temp_ = fn; }
   void set_read_power_estimate(const std::function<float()> &fn) { this->read_power_estimate_ = fn; }
+  void set_read_voltage(const std::function<float()> &fn) { this->read_voltage_ = fn; }
+  void set_read_current(const std::function<float()> &fn) { this->read_current_ = fn; }
+  void set_read_energy(const std::function<float()> &fn) { this->read_energy_ = fn; }
   void set_is_boost_active(const std::function<bool()> &fn) { this->is_boost_active_ = fn; }
   void set_is_enabled(const std::function<bool()> &fn) { this->is_enabled_ = fn; }
   void set_apply_optional(const std::function<bool(bool)> &fn) { this->apply_optional_ = fn; }
@@ -66,6 +75,8 @@ class EEBusComponent : public PollingComponent {
   uint32_t failsafe_duration_s_{7200};
   std::string ship_id_;
   bool listener_started_{false};
+  bool mdns_advertised_{false};
+  uint32_t last_mdns_reannounce_ms_{0};
   uint32_t last_measurement_notify_ms_{0};
   uint32_t last_ohpcf_notify_ms_{0};
   uint32_t last_use_case_notify_ms_{0};
@@ -79,9 +90,22 @@ class EEBusComponent : public PollingComponent {
   text_sensor::TextSensor *ski_sensor_{nullptr};
   text_sensor::TextSensor *ems_sensor_{nullptr};
   std::string last_action_{"Initialisatie"};
-  std::string current_status_{"Niet verbonden"};
+  std::string current_status_{"Initialisatie"};
   std::string current_ems_{"–"};
   bool last_connected_{false};
+
+  // Thread-safe dispatch from ship_accept_task to main loop
+  std::string pending_ems_state_;
+  bool pending_ems_update_{false};
+  std::string pending_action_state_;
+  bool pending_action_update_{false};
+  std::string pending_status_state_;
+  bool pending_status_update_{false};
+  bool pending_connected_state_{false};
+  bool pending_connected_update_{false};
+  float pending_limit_state_{NAN};
+  bool pending_limit_update_{false};
+  bool pending_remote_changed_{false};
 
   EEBusCertificateStore cert_store_;
   EEBusShipListener ship_listener_;
@@ -91,24 +115,31 @@ class EEBusComponent : public PollingComponent {
   MdtServer mdt_;
   EebusNode node_;
 
+  std::function<std::string()> read_model_{nullptr};
   std::function<float()> read_power_;
   std::function<float()> read_dhw_temp_;
   std::function<float()> read_power_estimate_;
+  std::function<float()> read_voltage_;
+  std::function<float()> read_current_;
+  std::function<float()> read_energy_;
   std::function<bool()> is_boost_active_;
   std::function<bool()> is_enabled_;
   std::function<bool(bool)> apply_optional_;
   std::function<bool(bool)> apply_dim_;
   std::function<bool(bool, float)> apply_limit_;
   bool initialized_{false};
+  bool model_detected_{false};
 
   void init_certificate_and_keys();
   void start_ship_listener();
-  void advertise_mdns();
+  bool advertise_mdns();
   void wire_use_cases();
   void check_failsafe();
   void check_connection_state();
   void update_ems_status();
 };
+
+void eebus_disconnect();
 
 }  // namespace openamber_eebus
 }  // namespace esphome
