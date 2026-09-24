@@ -251,6 +251,42 @@ private:
              id(frost_protection_stage2_active).state;
   }
 
+  bool IsCompressorAllowedToStart()
+  {
+      if (!compressor_controller_->HasPassedMinOffTime())
+      {
+        ESP_LOGI("amber", "Not starting compressor because minimum compressor time off is not reached.");
+        return false;
+      }
+
+      // Start condition based on target temperature and start_compressor_delta
+      float current_temperature = GetControlTemperature();
+      if (IsCoolingDemand())
+      {
+        // Cooling: start when supply temp is above target + start_delta
+        float target_temperature = id(pid_cool_temperature_control).target_temperature;
+        float start_temperature = target_temperature + id(compressor_start_delta_cooling).state;
+        if (current_temperature <= start_temperature)
+        {
+          ESP_LOGI("amber", "Not starting compressor because supply temperature (%.2f) is below cooling start temperature (%.2f)", current_temperature, start_temperature);
+          return false;
+        }
+      }
+      else
+      {
+        // Heating: start when supply temp is below target - start_delta
+        float target_temperature = id(pid_heat_temperature_control).target_temperature;
+        float start_temperature = target_temperature - id(compressor_start_delta_heating).state;
+        if (current_temperature >= start_temperature && !id(frost_protection_stage2_active).state)
+        {
+          ESP_LOGI("amber", "Not starting compressor because supply temperature (%.2f) is above heating start temperature (%.2f)", current_temperature, start_temperature);
+          return false;
+        }
+      }
+
+      return true;
+  }
+
   bool HasCompressorDemand()
   {
     bool has_active_demand = false;
@@ -460,7 +496,7 @@ public:
         }
 
         // Start pump on interval or if there is compressor demand.
-        if (pump_controller_->ShouldStartNextPumpCycle() || HasCompressorDemand())
+        if (pump_controller_->ShouldStartNextPumpCycle() || (HasCompressorDemand() && IsCompressorAllowedToStart()))
         {
           pump_controller_->Start();
           StartPumpP1IfNeeded();
@@ -492,7 +528,7 @@ public:
 
       case HeatCoolState::PUMP_RUNNING:
       {
-          pump_controller_->ApplySpeedChangeIfNeeded(false);
+        pump_controller_->ApplySpeedChangeIfNeeded(false);
 
         // Stop if there is no demand and pump interval is finished.
         if (!HasCompressorDemand() && pump_controller_->IsIntervalCycleFinished())
@@ -503,50 +539,17 @@ public:
           break;
         }
 
-        // Settle temperature before starting compressor.
-        if (!pump_controller_->IsPumpSettled())
-        {
-          ESP_LOGI("amber", "Not starting compressor because temperature needs to stabilize (pump on time too short)");
-          break;
-        }
-
-        if (!compressor_controller_->HasPassedMinOffTime())
-        {
-          ESP_LOGI("amber", "Not starting compressor because minimum compressor time off is not reached.");
-          break;
-        }
-
-        if(!HasCompressorDemand())
+        if(!IsCompressorAllowedToStart())
         {
           break;
         }
 
-        // Start condition based on target temperature and start_compressor_delta
-        float current_temperature = GetControlTemperature();
-        bool should_start;
-        if (IsCoolingDemand())
-        {
-          // Cooling: start when supply temp is above target + start_delta
-          float target_temperature = id(pid_cool_temperature_control).target_temperature;
-          float start_temperature = target_temperature + id(compressor_start_delta_cooling).state;
-          should_start = current_temperature > start_temperature;
-          if (!should_start)
-          {
-            ESP_LOGI("amber", "Not starting compressor because supply temperature (%.2f) is below cooling start temperature (%.2f)", current_temperature, start_temperature);
-            break;
-          }
-        }
-        else
-        {
-          // Heating: start when supply temp is below target - start_delta
-          float target_temperature = id(pid_heat_temperature_control).target_temperature;
-          float start_temperature = target_temperature - id(compressor_start_delta_heating).state;
-          if (current_temperature >= start_temperature && !id(frost_protection_stage2_active).state)
-          {
-            ESP_LOGI("amber", "Not starting compressor because supply temperature (%.2f) is above heating start temperature (%.2f)", current_temperature, start_temperature);
-            break;
-          }
-        }
+      // Settle temperature before starting compressor.
+      if (!pump_controller_->IsPumpSettled())
+      {
+        ESP_LOGI("amber", "Not starting compressor because temperature needs to stabilize (pump on time too short)");
+        break;
+      }
 
         SetWorkingMode(IsCoolingDemand() ? WORKING_MODE_COOLING : WORKING_MODE_HEATING);
         SetPidController(IsCoolingDemand() ? climate::CLIMATE_MODE_COOL : climate::CLIMATE_MODE_HEAT);
