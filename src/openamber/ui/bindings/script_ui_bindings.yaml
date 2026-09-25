@@ -388,6 +388,7 @@
                       - script.execute: update_legio_ui
                       - script.execute: update_dhw_schedule_ui
                       - script.execute: update_thermostat_settings_ui
+                      - script.execute: update_pump_pid_ui
                     else:
                       - if:
                           condition:
@@ -767,9 +768,19 @@
         if (enabled) {
           lv_obj_add_state(id(set_pump_heat_row), LV_STATE_DISABLED);
           lv_obj_set_style_opa(id(set_pump_heat_row), LV_OPA_40, LV_PART_MAIN);
+          lv_obj_add_state(id(set_pump_heat_dec_btn), LV_STATE_DISABLED);
+          lv_obj_add_state(id(set_pump_heat_inc_btn), LV_STATE_DISABLED);
+          lv_obj_clear_flag(id(set_pump_heat_dec_btn), LV_OBJ_FLAG_CLICKABLE);
+          lv_obj_clear_flag(id(set_pump_heat_inc_btn), LV_OBJ_FLAG_CLICKABLE);
+          lv_obj_clear_flag(id(set_pump_heat_disabled_overlay), LV_OBJ_FLAG_HIDDEN);
         } else {
           lv_obj_clear_state(id(set_pump_heat_row), LV_STATE_DISABLED);
           lv_obj_set_style_opa(id(set_pump_heat_row), LV_OPA_COVER, LV_PART_MAIN);
+          lv_obj_clear_state(id(set_pump_heat_dec_btn), LV_STATE_DISABLED);
+          lv_obj_clear_state(id(set_pump_heat_inc_btn), LV_STATE_DISABLED);
+          lv_obj_add_flag(id(set_pump_heat_dec_btn), LV_OBJ_FLAG_CLICKABLE);
+          lv_obj_add_flag(id(set_pump_heat_inc_btn), LV_OBJ_FLAG_CLICKABLE);
+          lv_obj_add_flag(id(set_pump_heat_disabled_overlay), LV_OBJ_FLAG_HIDDEN);
         }
 
 
