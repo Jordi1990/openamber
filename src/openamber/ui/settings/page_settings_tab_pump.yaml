@@ -77,7 +77,7 @@ obj:
                     id: pump_select_tab
                     tab_index: 1
               widgets:
-                - label: { id: pump_stab_pompsnelheid_lbl, text: "Pompsnelheid", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
+                - label: { id: pump_stab_pompsnelheid_lbl, text: "Snelheid", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
 
           - obj:
               id: pump_stab_p0_pid
