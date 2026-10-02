@@ -16,6 +16,26 @@
   web_server:
     sorting_group_id: heating_settings
 
+# Mengventiel zone 1 aanwezig
+- platform: template
+  id: mixing_valve_zone1_enabled
+  name: "Mengventiel zone 1 aanwezig"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+# Mengventiel zone 2 aanwezig
+- platform: template
+  id: mixing_valve_zone2_enabled
+  name: "Mengventiel zone 2 aanwezig"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
 - platform: template
   id: legio_enabled_switch
   name: "Legionellapreventie"

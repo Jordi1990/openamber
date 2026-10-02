@@ -41,6 +41,14 @@ output:
     id: pump_p0_pid_output
     type: float
     write_action: []
+  - platform: template
+    id: mixing_valve_zone1_pid_output
+    type: float
+    write_action: []
+  - platform: template
+    id: mixing_valve_zone2_pid_output
+    type: float
+    write_action: []
 
 button:
   - platform: template
@@ -120,6 +128,26 @@ climate:
       kp: 2.0
       ki: 0.05
       kd: 0.1
+  - platform: pid
+    id: pid_mixing_valve_zone1
+    internal: true
+    sensor: heat_cool_temperature_tv1
+    default_target_temperature: 30°C
+    heat_output: mixing_valve_zone1_pid_output
+    control_parameters:
+      kp: 1.0
+      ki: 0.005
+      kd: 0.0
+  - platform: pid
+    id: pid_mixing_valve_zone2
+    internal: true
+    sensor: heat_cool_temperature_tv2
+    default_target_temperature: 28°C
+    heat_output: mixing_valve_zone2_pid_output
+    control_parameters:
+      kp: 1.0
+      ki: 0.005
+      kd: 0.0
 
 sensor:
   - platform: template
@@ -191,6 +219,36 @@ sensor:
     id: heat_cool_control_temperature
     name: "Regeltemperatuur verwarmen/koelen"
     lambda: 'return 35.4f;'
+    update_interval: 5s
+  - platform: template
+    id: heat_cool_temperature_tc
+    name: "Cv-aanvoertemperatuur (Tc)"
+    lambda: 'return 35.0f;'
+    update_interval: 5s
+  - platform: template
+    id: heat_cool_temperature_tv1
+    name: "Cv-aanvoertemperatuur zone 1 (Tv1)"
+    lambda: 'return 30.0f;'
+    update_interval: 5s
+  - platform: template
+    id: heat_cool_temperature_tv2
+    name: "Cv-aanvoertemperatuur zone 2 (Tv2)"
+    lambda: 'return 28.0f;'
+    update_interval: 5s
+  - platform: template
+    id: heat_curve_z2_calculated_setpoint
+    name: "Stooklijn zone 2 berekend setpoint"
+    lambda: 'return 28.0f;'
+    update_interval: 5s
+  - platform: template
+    id: mixing_valve_zone1_position
+    name: "Mengventiel zone 1 positie"
+    lambda: 'return 50.0f;'
+    update_interval: 5s
+  - platform: template
+    id: mixing_valve_zone2_position
+    name: "Mengventiel zone 2 positie"
+    lambda: 'return 50.0f;'
     update_interval: 5s
   - platform: template
     id: fan_rpm_sensor
@@ -573,6 +631,94 @@ number:
     max_value: 55.0
     step: 0.5
     initial_value: 26.0
+  - platform: template
+    id: heat_curve_z2_p15
+    name: "Stooklijn zone 2 15°C"
+    optimistic: true
+    min_value: 15.0
+    max_value: 45.0
+    step: 1.0
+    initial_value: 22.0
+  - platform: template
+    id: heat_curve_z2_p10
+    name: "Stooklijn zone 2 10°C"
+    optimistic: true
+    min_value: 15.0
+    max_value: 45.0
+    step: 1.0
+    initial_value: 24.0
+  - platform: template
+    id: heat_curve_z2_p5
+    name: "Stooklijn zone 2 5°C"
+    optimistic: true
+    min_value: 15.0
+    max_value: 45.0
+    step: 1.0
+    initial_value: 26.0
+  - platform: template
+    id: heat_curve_z2_0
+    name: "Stooklijn zone 2 0°C"
+    optimistic: true
+    min_value: 15.0
+    max_value: 45.0
+    step: 1.0
+    initial_value: 28.0
+  - platform: template
+    id: heat_curve_z2_m10
+    name: "Stooklijn zone 2 -10°C"
+    optimistic: true
+    min_value: 15.0
+    max_value: 45.0
+    step: 1.0
+    initial_value: 30.0
+  - platform: template
+    id: mixing_valve_zone1_min_position
+    name: "Mengventiel zone 1 minimum positie"
+    optimistic: true
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 0
+  - platform: template
+    id: mixing_valve_zone1_max_position
+    name: "Mengventiel zone 1 maximum positie"
+    optimistic: true
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 100
+  - platform: template
+    id: mixing_valve_zone2_min_position
+    name: "Mengventiel zone 2 minimum positie"
+    optimistic: true
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 0
+  - platform: template
+    id: mixing_valve_zone2_max_position
+    name: "Mengventiel zone 2 maximum positie"
+    optimistic: true
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 100
+  - platform: template
+    id: mixing_valve_zone1_output
+    name: "Mengventiel zone 1"
+    optimistic: true
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 0
+  - platform: template
+    id: mixing_valve_zone2_output
+    name: "Mengventiel zone 2"
+    optimistic: true
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 0
   - platform: template
     id: thermostat_heat_deadband
     name: "Thermostaat verwarmen deadband"
@@ -1182,6 +1328,18 @@ switch:
   - platform: template
     id: dhw_schedule_sunday_enabled_switch
     name: "Zondag"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: mixing_valve_zone1_enabled
+    name: "Mengventiel zone 1 aanwezig"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: mixing_valve_zone2_enabled
+    name: "Mengventiel zone 2 aanwezig"
     optimistic: true
     turn_on_action: []
     turn_off_action: []

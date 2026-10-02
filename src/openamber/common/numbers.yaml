@@ -208,6 +208,140 @@
   web_server: 
       sorting_group_id: heating_settings
 
+# Stooklijn zone 2
+- platform: template
+  id: heat_curve_z2_p15
+  name: "Stooklijn zone 2 @ +15°C"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 15
+  max_value: 45
+  step: 1
+  restore_value: true
+  initial_value: 22
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: heat_curve_z2_p10
+  name: "Stooklijn zone 2 @ +10°C"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 15
+  max_value: 45
+  step: 1
+  restore_value: true
+  initial_value: 24
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: heat_curve_z2_p5
+  name: "Stooklijn zone 2 @ +5°C"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 15
+  max_value: 45
+  step: 1
+  restore_value: true
+  initial_value: 26
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: heat_curve_z2_0
+  name: "Stooklijn zone 2 @ 0°C"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 15
+  max_value: 45
+  step: 1
+  restore_value: true
+  initial_value: 28
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: heat_curve_z2_m10
+  name: "Stooklijn zone 2 @ -10°C"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 15
+  max_value: 45
+  step: 1
+  restore_value: true
+  initial_value: 30
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+# Mengventiel zone 1 min/max
+- platform: template
+  id: mixing_valve_zone1_min_position
+  name: "Mengventiel zone 1 minimum positie"
+  optimistic: True
+  unit_of_measurement: "%"
+  min_value: 0
+  max_value: 100
+  step: 1
+  restore_value: true
+  initial_value: 0
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: mixing_valve_zone1_max_position
+  name: "Mengventiel zone 1 maximum positie"
+  optimistic: True
+  unit_of_measurement: "%"
+  min_value: 0
+  max_value: 100
+  step: 1
+  restore_value: true
+  initial_value: 100
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+# Mengventiel zone 2 min/max
+- platform: template
+  id: mixing_valve_zone2_min_position
+  name: "Mengventiel zone 2 minimum positie"
+  optimistic: True
+  unit_of_measurement: "%"
+  min_value: 0
+  max_value: 100
+  step: 1
+  restore_value: true
+  initial_value: 0
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: mixing_valve_zone2_max_position
+  name: "Mengventiel zone 2 maximum positie"
+  optimistic: True
+  unit_of_measurement: "%"
+  min_value: 0
+  max_value: 100
+  step: 1
+  restore_value: true
+  initial_value: 100
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
 - platform: template
   id: manual_setpoint
   name: "Handmatig setpoint Cv-aanvoertemperatuur"
@@ -700,6 +834,32 @@
   min_value: 0
   max_value: 1000
   reuse_previous_range: true
+  web_server:
+    sorting_group_id: manual_control
+
+# Mengventiel zone 1 — 0-10V via modbus register 1106
+- platform: modbus_controller
+  id: mixing_valve_zone1_output
+  modbus_controller_id: modbus_inside_unit
+  name: "Mengventiel zone 1"
+  internal: True
+  address: 1106
+  min_value: 0
+  max_value: 100
+  step: 1
+  web_server:
+    sorting_group_id: manual_control
+
+# Mengventiel zone 2 — 0-10V via modbus register 1107
+- platform: modbus_controller
+  id: mixing_valve_zone2_output
+  modbus_controller_id: modbus_inside_unit
+  name: "Mengventiel zone 2"
+  internal: True
+  address: 1107
+  min_value: 0
+  max_value: 100
+  step: 1
   web_server:
     sorting_group_id: manual_control
 

@@ -58,7 +58,7 @@ obj:
                 - label: { id: general_stab_systeem_lbl, text: "Systeem", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
 
           - obj:
-              id: general_stab_analytics
+              id: general_stab_mengventielen
               width: SIZE_CONTENT
               height: 34
               bg_color: 0xCBD5E1
@@ -74,9 +74,9 @@ obj:
               on_click:
                 - script.execute:
                     id: general_select_tab
-                    tab_index: 4
+                    tab_index: 1
               widgets:
-                - label: { id: general_stab_analytics_lbl, text: "Analytics", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
+                - label: { id: general_stab_mengventielen_lbl, text: "Mengventielen", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
 
           - obj:
               id: general_stab_sensor_kalibratie
@@ -98,27 +98,6 @@ obj:
                     tab_index: 2
               widgets:
                 - label: { id: general_stab_sensor_kalibratie_lbl, text: "Sensor kalibratie", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
-
-          - obj:
-              id: general_stab_noodbedrijf
-              width: SIZE_CONTENT
-              height: 34
-              bg_color: 0xCBD5E1
-              bg_opa: 100%
-              radius: 8
-              border_opa: 0%
-              pad_left: 12
-              pad_right: 12
-              pad_top: 4
-              pad_bottom: 4
-              scrollbar_mode: "OFF"
-              scrollable: false
-              on_click:
-                - script.execute:
-                    id: general_select_tab
-                    tab_index: 1
-              widgets:
-                - label: { id: general_stab_noodbedrijf_lbl, text: "Noodbedrijf", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
 
           - obj:
               id: general_stab_hardware
@@ -144,12 +123,13 @@ obj:
     - obj:
         id: panel_general_page_systeem
         width: 100%
-        height: SIZE_CONTENT
+        height: 0
+        flex_grow: 1
         bg_opa: 0%
         border_opa: 0%
         pad_all: 0
         scrollbar_mode: "OFF"
-        scrollable: false
+        scrollable: true
         layout:
           type: FLEX
           flex_flow: COLUMN
@@ -246,6 +226,316 @@ obj:
                             - switch.turn_off: advanced_settings_enabled
                           else:
                             - switch.turn_on: advanced_settings_enabled
+
+          - obj:
+              id: set_general_system_analytics
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Analytics versturen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Deel anonieme gebruiksdata voor het OpenAmber dashboard", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - switch:
+                    id: set_analytics_enabled_switch_ui
+                    align: TOP_RIGHT
+                    bg_color: 0x9CA3AF
+                    indicator:
+                      bg_color: 0x16A34A
+                    knob:
+                      bg_color: 0xFFFFFF
+                    on_click:
+                      - if:
+                          condition:
+                            switch.is_on: analytics_enabled_switch
+                          then:
+                            - switch.turn_off: analytics_enabled_switch
+                          else:
+                            - switch.turn_on: analytics_enabled_switch
+
+          - obj:
+              id: set_analytics_id_row
+              width: 100%
+              height: SIZE_CONTENT
+              hidden: true
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Analytics ID", text_color: 0x9CA3AF, text_font: font_text_24, align: TOP_LEFT }
+                - label:
+                    id: set_analytics_id_value
+                    width: 100%
+                    text: "Onbekend"
+                    text_color: 0x9CA3AF
+                    text_font: font_text_20
+                    long_mode: WRAP
+                    align: TOP_LEFT
+                    y: 36
+
+    - obj:
+        id: panel_general_page_mengventielen
+        hidden: true
+        width: 100%
+        height: 0
+        flex_grow: 1
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: COLUMN
+          flex_align_main: START
+          flex_align_cross: CENTER
+          pad_row: 6
+        widgets:
+          - obj:
+              id: set_general_mv_z1_enabled
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Mengventiel zone 1 aanwezig", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Mengventiel zone 1 is aanwezig in het systeem", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - switch:
+                    id: set_mv_z1_enabled_switch_ui
+                    align: TOP_RIGHT
+                    bg_color: 0x9CA3AF
+                    indicator:
+                      bg_color: 0x16A34A
+                    knob:
+                      bg_color: 0xFFFFFF
+                    on_click:
+                      - if:
+                          condition:
+                            switch.is_on: mixing_valve_zone1_enabled
+                          then:
+                            - switch.turn_off: mixing_valve_zone1_enabled
+                          else:
+                            - switch.turn_on: mixing_valve_zone1_enabled
+
+          - obj:
+              id: set_general_mv_z1_min
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Minimum positie", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Minimale ventielopening zone 1", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - obj:
+                    width: SIZE_CONTENT
+                    height: SIZE_CONTENT
+                    align: TOP_RIGHT
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_all: 0
+                    layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                    widgets:
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.decrement: mixing_valve_zone1_min_position
+                          widgets:
+                            - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                      - label: { id: set_mv_z1_min_val, text: "0%", text_color: 0x1F2933, text_font: font_text_24 }
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.increment: mixing_valve_zone1_min_position
+                          widgets:
+                            - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+          - obj:
+              id: set_general_mv_z1_max
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Maximum positie", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Maximale ventielopening zone 1", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - obj:
+                    width: SIZE_CONTENT
+                    height: SIZE_CONTENT
+                    align: TOP_RIGHT
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_all: 0
+                    layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                    widgets:
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.decrement: mixing_valve_zone1_max_position
+                          widgets:
+                            - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                      - label: { id: set_mv_z1_max_val, text: "100%", text_color: 0x1F2933, text_font: font_text_24 }
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.increment: mixing_valve_zone1_max_position
+                          widgets:
+                            - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+          - obj:
+              id: set_general_mv_z2_enabled
+              hidden: true
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Mengventiel zone 2 aanwezig", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Mengventiel zone 2 is aanwezig in het systeem", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - switch:
+                    id: set_mv_z2_enabled_switch_ui
+                    align: TOP_RIGHT
+                    bg_color: 0x9CA3AF
+                    indicator:
+                      bg_color: 0x16A34A
+                    knob:
+                      bg_color: 0xFFFFFF
+                    on_click:
+                      - if:
+                          condition:
+                            switch.is_on: mixing_valve_zone2_enabled
+                          then:
+                            - switch.turn_off: mixing_valve_zone2_enabled
+                          else:
+                            - switch.turn_on: mixing_valve_zone2_enabled
+
+          - obj:
+              id: set_general_mv_z2_min
+              hidden: true
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Minimum positie", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Minimale ventielopening zone 2", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - obj:
+                    width: SIZE_CONTENT
+                    height: SIZE_CONTENT
+                    align: TOP_RIGHT
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_all: 0
+                    layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                    widgets:
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.decrement: mixing_valve_zone2_min_position
+                          widgets:
+                            - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                      - label: { id: set_mv_z2_min_val, text: "0%", text_color: 0x1F2933, text_font: font_text_24 }
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.increment: mixing_valve_zone2_min_position
+                          widgets:
+                            - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+          - obj:
+              id: set_general_mv_z2_max
+              hidden: true
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Maximum positie", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Maximale ventielopening zone 2", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - obj:
+                    width: SIZE_CONTENT
+                    height: SIZE_CONTENT
+                    align: TOP_RIGHT
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_all: 0
+                    layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                    widgets:
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.decrement: mixing_valve_zone2_max_position
+                          widgets:
+                            - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                      - label: { id: set_mv_z2_max_val, text: "100%", text_color: 0x1F2933, text_font: font_text_24 }
+                      - obj:
+                          width: 40
+                          height: 40
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - number.increment: mixing_valve_zone2_max_position
+                          widgets:
+                            - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
     - obj:
         id: panel_general_page_sensor_kalibratie
@@ -500,113 +790,7 @@ obj:
                           widgets:
                             - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
-    - obj:
-        id: panel_general_page_noodbedrijf
-        hidden: true
-        width: 100%
-        height: SIZE_CONTENT
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 0
-        scrollbar_mode: "OFF"
-        scrollable: false
-        layout:
-          type: FLEX
-          flex_flow: COLUMN
-          flex_align_main: START
-          flex_align_cross: CENTER
-          pad_row: 6
-        widgets:
-          - obj:
-              id: set_general_emergency_mode_row
-              width: 100%
-              height: SIZE_CONTENT
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 6
-              widgets:
-                - label: { text: "Noodbedrijf", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-                - label: { text: "Schakel de compressor uit en laat alleen het backup-element werken", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-                - switch:
-                    id: set_emergency_mode_switch_ui
-                    align: TOP_RIGHT
-                    bg_color: 0x9CA3AF
-                    indicator:
-                      bg_color: 0xF97316
-                    knob:
-                      bg_color: 0xFFFFFF
-                    on_click:
-                      - if:
-                          condition:
-                            switch.is_on: emergency_mode_enabled
-                          then:
-                            - switch.turn_off: emergency_mode_enabled
-                          else:
-                            - switch.turn_on: emergency_mode_enabled
 
-    - obj:
-        id: panel_general_page_analytics
-        hidden: true
-        width: 100%
-        height: SIZE_CONTENT
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 0
-        scrollbar_mode: "OFF"
-        scrollable: false
-        layout:
-          type: FLEX
-          flex_flow: COLUMN
-          flex_align_main: START
-          flex_align_cross: CENTER
-          pad_row: 6
-        widgets:
-          - obj:
-              id: set_general_system_analytics
-              width: 100%
-              height: SIZE_CONTENT
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 6
-              widgets:
-                - label: { text: "Analytics versturen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-                - label: { text: "Deel anonieme gebruiksdata voor het OpenAmber dashboard", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-                - switch:
-                    id: set_analytics_enabled_switch_ui
-                    align: TOP_RIGHT
-                    bg_color: 0x9CA3AF
-                    indicator:
-                      bg_color: 0x16A34A
-                    knob:
-                      bg_color: 0xFFFFFF
-                    on_click:
-                      - if:
-                          condition:
-                            switch.is_on: analytics_enabled_switch
-                          then:
-                            - switch.turn_off: analytics_enabled_switch
-                          else:
-                            - switch.turn_on: analytics_enabled_switch
-
-          - obj:
-              id: set_analytics_id_row
-              width: 100%
-              height: SIZE_CONTENT
-              hidden: true
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 6
-              widgets:
-                - label: { text: "Analytics ID", text_color: 0x9CA3AF, text_font: font_text_24, align: TOP_LEFT }
-                - label:
-                    id: set_analytics_id_value
-                    width: 100%
-                    text: "Onbekend"
-                    text_color: 0x9CA3AF
-                    text_font: font_text_20
-                    long_mode: WRAP
-                    align: TOP_LEFT
-                    y: 36
 
     - obj:
         id: panel_general_page_hardware

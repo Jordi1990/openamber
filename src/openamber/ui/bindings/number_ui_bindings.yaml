@@ -590,3 +590,40 @@
           text:
             format: "%.1f°C"
             args: ['x']
+
+# ── Settings: Mengventielen min/max positie ──
+- id: !extend mixing_valve_zone1_min_position
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z1_min_val
+          text:
+            format: "%.0f%%"
+            args: ['x']
+
+- id: !extend mixing_valve_zone1_max_position
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z1_max_val
+          text:
+            format: "%.0f%%"
+            args: ['x']
+
+- id: !extend mixing_valve_zone2_min_position
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z2_min_val
+          text:
+            format: "%.0f%%"
+            args: ['x']
+
+- id: !extend mixing_valve_zone2_max_position
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z2_max_val
+          text:
+            format: "%.0f%%"
+            args: ['x']

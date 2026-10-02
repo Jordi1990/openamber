@@ -93,3 +93,39 @@
   visual:
     min_temperature: 5
     max_temperature: 25
+
+- platform: pid
+  id: pid_mixing_valve_zone1
+  internal: True
+  sensor: heat_cool_temperature_tv1
+  default_target_temperature: 30°C
+  heat_output: mixing_valve_zone1_pid_output
+  control_parameters:
+    kp: 1.0
+    ki: 0.005
+    kd: 0.0
+  deadband_parameters:
+    threshold_low: -1
+    threshold_high: 1
+    deadband_output_averaging_samples: 6
+  visual:
+    min_temperature: 15
+    max_temperature: 45
+
+- platform: pid
+  id: pid_mixing_valve_zone2
+  internal: True
+  sensor: heat_cool_temperature_tv2
+  default_target_temperature: 28°C
+  heat_output: mixing_valve_zone2_pid_output
+  control_parameters:
+    kp: 1.0
+    ki: 0.005
+    kd: 0.0
+  deadband_parameters:
+    threshold_low: -1
+    threshold_high: 1
+    deadband_output_averaging_samples: 6
+  visual:
+    min_temperature: 15
+    max_temperature: 45

@@ -225,3 +225,22 @@
   on_state:
     then:
       - script.execute: update_dhw_schedule_ui
+
+# ── Settings: Mengventielen zone 1 & 2 aanwezig ──
+- id: !extend mixing_valve_zone1_enabled
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_mv_z1_enabled_switch_ui
+          state:
+            checked: !lambda 'return x;'
+      - script.execute: update_control_temp_source_ui
+
+- id: !extend mixing_valve_zone2_enabled
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_mv_z2_enabled_switch_ui
+          state:
+            checked: !lambda 'return x;'
+      - script.execute: update_control_temp_source_ui

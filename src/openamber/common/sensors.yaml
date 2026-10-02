@@ -433,7 +433,20 @@
 
     if (id(heat_mode_select).current_option() == "Stooklijn")
     {
-      setpoint = id(heat_curve_calculated_setpoint).state;
+      // Als mengventielen actief: gebruik max van zone-stooklijnen
+      bool mv_z1 = id(mixing_valve_zone1_enabled).state;
+      bool mv_z2 = id(mixing_valve_zone2_enabled).state;
+      if (mv_z1 || mv_z2)
+      {
+        // Zone 1 = bestaande stooklijn
+        float sp_z1 = mv_z1 ? id(heat_curve_calculated_setpoint).state : 0.0f;
+        float sp_z2 = mv_z2 ? id(heat_curve_z2_calculated_setpoint).state : 0.0f;
+        setpoint = std::max(sp_z1, sp_z2);
+      }
+      else
+      {
+        setpoint = id(heat_curve_calculated_setpoint).state;
+      }
     }
     else
     {
@@ -514,6 +527,79 @@
     return tc;
   filters:
     - round_to_multiple_of: 1
+  on_value:
+    then:
+      - lambda: |-
+          if (id(mixing_valve_zone1_enabled).state)
+          {
+            auto call = id(pid_mixing_valve_zone1).make_call();
+            call.set_target_temperature(x);
+            call.perform();
+          }
+      - component.update: current_setpoint
+
+- platform: template
+  id: heat_curve_z2_calculated_setpoint
+  name: "Stooklijn zone 2 berekend setpoint"
+  internal: True
+  unit_of_measurement: "°C"
+  accuracy_decimals: 0
+  update_interval: 15s
+  lambda: |-
+    const float Ta = id(temperature_outside_ta_avg_1h).state;
+    const float tc15  = id(heat_curve_z2_p15).state;
+    const float tc10  = id(heat_curve_z2_p10).state;
+    const float tc5   = id(heat_curve_z2_p5).state;
+    const float tc0   = id(heat_curve_z2_0).state;
+    const float tc_m10 = id(heat_curve_z2_m10).state;
+    auto lerp = [](float x, float x0, float y0, float x1, float y1) -> float {
+      const float t = (x - x0) / (x1 - x0);
+      return y0 + t * (y1 - y0);
+    };
+    float tc;
+    if (Ta >= 15.0f)       tc = tc15;
+    else if (Ta >= 10.0f)  tc = lerp(Ta, 15.0f, tc15, 10.0f, tc10);
+    else if (Ta >= 5.0f)   tc = lerp(Ta, 10.0f, tc10, 5.0f, tc5);
+    else if (Ta >= 0.0f)   tc = lerp(Ta, 5.0f, tc5, 0.0f, tc0);
+    else if (Ta >= -10.0f) tc = lerp(Ta, 0.0f, tc0, -10.0f, tc_m10);
+    else                   tc = tc_m10;
+    return tc;
+  filters:
+    - round_to_multiple_of: 1
+  on_value:
+    then:
+      - lambda: |-
+          if (id(mixing_valve_zone2_enabled).state)
+          {
+            auto call = id(pid_mixing_valve_zone2).make_call();
+            call.set_target_temperature(x);
+            call.perform();
+          }
+      - component.update: current_setpoint
+
+- platform: template
+  id: mixing_valve_zone1_position
+  name: "Mengventiel zone 1 positie"
+  unit_of_measurement: "%"
+  accuracy_decimals: 0
+  update_interval: 30s
+  lambda: |-
+    if (!id(mixing_valve_zone1_enabled).state) return NAN;
+    return id(amber_ctrl).get_mixing_valve_zone1_position();
+  web_server:
+    sorting_group_id: overview
+
+- platform: template
+  id: mixing_valve_zone2_position
+  name: "Mengventiel zone 2 positie"
+  unit_of_measurement: "%"
+  accuracy_decimals: 0
+  update_interval: 30s
+  lambda: |-
+    if (!id(mixing_valve_zone2_enabled).state) return NAN;
+    return id(amber_ctrl).get_mixing_valve_zone2_position();
+  web_server:
+    sorting_group_id: overview
 
 - platform: template
   id: heat_exchanger_delta_t
@@ -684,6 +770,7 @@
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
+  id: heat_cool_temperature_tv2
   name: "Cv-aanvoertemperatuur zone 2 (Tv2)"
   address: 1208
   register_type: holding

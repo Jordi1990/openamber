@@ -20,6 +20,7 @@
 #pragma once
 
 #include "base_controller.h"
+#include "mixing_valve_controller.h"
 
 enum class HeatCoolState
 {
@@ -49,6 +50,45 @@ private:
   float compressor_cool_pid_ = 0.0f;
   float start_current_temperature_ = 0.0f;
   uint32_t pump_flow_missing_since_ms_ = 0;
+  MixingValveController* mixing_valve_zone1_ = nullptr;
+  MixingValveController* mixing_valve_zone2_ = nullptr;
+
+  void UpdateMixingValves()
+  {
+    // Alleen bij verwarming
+    if (IsWorkingMode(WORKING_MODE_COOLING)) return;
+
+    if (id(mixing_valve_zone1_enabled).state && mixing_valve_zone1_)
+    {
+      mixing_valve_zone1_->ApplyValvePosition(
+        id(mixing_valve_zone1_output),
+        id(mixing_valve_zone1_min_position).state,
+        id(mixing_valve_zone1_max_position).state);
+    }
+    if (id(mixing_valve_zone2_enabled).state && mixing_valve_zone2_)
+    {
+      mixing_valve_zone2_->ApplyValvePosition(
+        id(mixing_valve_zone2_output),
+        id(mixing_valve_zone2_min_position).state,
+        id(mixing_valve_zone2_max_position).state);
+    }
+  }
+
+  void CloseMixingValves()
+  {
+    if (id(mixing_valve_zone1_enabled).state && mixing_valve_zone1_)
+    {
+      mixing_valve_zone1_->CloseValve(
+        id(mixing_valve_zone1_output),
+        id(mixing_valve_zone1_min_position).state);
+    }
+    if (id(mixing_valve_zone2_enabled).state && mixing_valve_zone2_)
+    {
+      mixing_valve_zone2_->CloseValve(
+        id(mixing_valve_zone2_output),
+        id(mixing_valve_zone2_min_position).state);
+    }
+  }
 
   const char* StateToString(HeatCoolState state) const override
   {
@@ -105,6 +145,13 @@ private:
 
   float GetControlTemperature()
   {
+    // Wanneer mengventielen actief zijn, altijd Tc gebruiken
+    bool mv_active = id(mixing_valve_zone1_enabled).state || id(mixing_valve_zone2_enabled).state;
+    if (mv_active)
+    {
+      return id(heat_cool_temperature_tc).state;
+    }
+
     auto selected_source = id(heat_cool_control_temperature_source_select).active_index();
     int source_index = (selected_source.has_value() && selected_source.value() == 1) ? 1 : 0;
     if (source_index == 1)
@@ -284,6 +331,7 @@ private:
     compressor_controller_->Stop();
     TurnOffBackupHeater();
     StopPumps();
+    CloseMixingValves();
     SetNextState(HeatCoolState::IDLE);
   }
 
@@ -339,8 +387,11 @@ private:
     cool_call.perform();
    }
 public:
-  HeatCoolController(PumpController* pump_controller, CompressorController* compressor_controller)
+  HeatCoolController(PumpController* pump_controller, CompressorController* compressor_controller,
+                     MixingValveController* mv_zone1, MixingValveController* mv_zone2)
     : BaseController(pump_controller, compressor_controller, HeatCoolState::WAIT_FOR_STATE_SWITCH, HeatCoolState::UNKNOWN, HeatCoolState::IDLE) {
+      mixing_valve_zone1_ = mv_zone1;
+      mixing_valve_zone2_ = mv_zone2;
       PublishState(StateToString(state_));
     }
 
@@ -591,6 +642,7 @@ public:
       case HeatCoolState::COMPRESSOR_SOFTSTART:
       {
         pump_controller_->ApplySpeedChangeIfNeeded(false);
+        UpdateMixingValves();
 
         if (compressor_controller_->HasPassedSoftStartDuration())
         {
@@ -603,6 +655,7 @@ public:
       case HeatCoolState::COMPRESSOR_RUNNING:
       {
         pump_controller_->ApplySpeedChangeIfNeeded(true);
+        UpdateMixingValves();
 
         if(start_current_temperature_ == 0.0f)
         {
@@ -711,6 +764,7 @@ public:
 
       case HeatCoolState::BACKUP_HEATER_RUNNING:
       {
+        UpdateMixingValves();
         float current_temperature = GetControlTemperature();
         float target_temperature = id(pid_heat_temperature_control).target_temperature;
 
