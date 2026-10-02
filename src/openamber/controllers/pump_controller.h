@@ -50,7 +50,7 @@ private:
     const float normalized_output = 1.0f - pump_p0_pid_output_;
     const float requested_pwm = min_pwm + ((max_pwm - min_pwm) * normalized_output);
     ESP_LOGD("amber", "P0 climate PID output=%.2f -> %.0f%% PWM", pump_p0_pid_output_, requested_pwm);
-    return requested_pwm;
+    return std::max(min_pwm, std::min(max_pwm, requested_pwm));
   }
 
   bool IsCoolingDemand()
@@ -64,7 +64,17 @@ private:
       return id(pump_speed_dhw_number).state;
     }
 
-    return IsCoolingDemand() ? id(pump_speed_cooling_number).state : id(pump_speed_heating_number).state;
+    if (IsCoolingDemand())
+    {
+      return id(pump_speed_cooling_number).state;
+    }
+
+    if (id(pump_p0_pid_enabled).state)
+    {
+      return id(pump_p0_pid_min_pwm).state;
+    }
+
+    return id(pump_speed_heating_number).state;
   }
 
 public:

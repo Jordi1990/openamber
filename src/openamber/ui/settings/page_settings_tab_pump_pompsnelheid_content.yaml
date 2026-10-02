@@ -1,4 +1,4 @@
-﻿- obj:
+- obj:
     id: set_pump_heat_row
     width: 100%
     height: SIZE_CONTENT
@@ -18,6 +18,7 @@
           layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
           widgets:
             - obj:
+                id: set_pump_heat_dec_btn
                 width: 40
                 height: 40
                 bg_color: 0x1F3B68
@@ -27,11 +28,16 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.decrement: pump_speed_heating_number
+                  - if:
+                      condition:
+                        lambda: 'return !id(pump_p0_pid_enabled).state;'
+                      then:
+                        - number.decrement: pump_speed_heating_number
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
             - label: { id: set_pump_heat_val, text: "100%", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
+                id: set_pump_heat_inc_btn
                 width: 40
                 height: 40
                 bg_color: 0x1F3B68
@@ -41,9 +47,27 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.increment: pump_speed_heating_number
+                  - if:
+                      condition:
+                        lambda: 'return !id(pump_p0_pid_enabled).state;'
+                      then:
+                        - number.increment: pump_speed_heating_number
                 widgets:
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+      - obj:
+          id: set_pump_heat_disabled_overlay
+          hidden: true
+          ignore_layout: true
+          align: TOP_LEFT
+          width: 100%
+          height: 100%
+          bg_color: 0xF5F8FC
+          bg_opa: 60%
+          border_opa: 0%
+          radius: 8
+          pad_all: 0
+          scrollbar_mode: "OFF"
+          scrollable: false
       
 
 - obj:
