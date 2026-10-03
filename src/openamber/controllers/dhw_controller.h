@@ -294,7 +294,7 @@ private:
     if ((compressor_controller_->IsRunning() || IsBackupHeaterActive()) && state_ != DHWState::IDLE)
     {
       const uint32_t now = App.get_loop_component_start_time();
-      float current_temperature = id(heat_cool_control_temperature).state;
+      float current_temperature = id(heat_cool_temperature_tc).state;
       float target_temperature = id(pid_heat_temperature_control).target_temperature;
       float max_safe_temp = target_temperature + id(compressor_stop_delta_heating).state + THREE_WAY_VALVE_PROTECTION_DELTA_TEMPERATURE_C;
 
