@@ -297,19 +297,25 @@ private:
       float current_temperature = id(heat_cool_control_temperature).state;
       float target_temperature = id(pid_heat_temperature_control).target_temperature;
       float max_safe_temp = target_temperature + id(compressor_stop_delta_heating).state + THREE_WAY_VALVE_PROTECTION_DELTA_TEMPERATURE_C;
-      if (current_temperature >= max_safe_temp)
+
+      // Use Tuo − TC difference to distinguish a real valve leak from heat conduction near the sensor.
+      float tuo = id(outlet_temperature_tuo).state;
+      float tuo_tc_diff = tuo - current_temperature;
+      bool active_flow_through_cv = (tuo_tc_diff < THREE_WAY_VALVE_PROTECTION_TUO_TC_THRESHOLD_C);
+
+      if (current_temperature >= max_safe_temp && active_flow_through_cv)
       {
         if (valve_safety_condition_since_ms_ == 0)
         {
           valve_safety_condition_since_ms_ = now;
-          ESP_LOGW("amber", "Safety check: CV supply temperature (%.2f°C) unexpectedly high during DHW (safe threshold: %.2f°C), waiting before triggering 3-way valve error.",
-                   current_temperature, max_safe_temp);
+          ESP_LOGW("amber", "Safety check: CV supply temperature (%.2f°C) unexpectedly high during DHW (safe threshold: %.2f°C, Tuo-TC diff: %.2f°C), waiting before triggering 3-way valve error.",
+                   current_temperature, max_safe_temp, tuo_tc_diff);
         }
         
         if ((now - valve_safety_condition_since_ms_) >= THREE_WAY_VALVE_PROTECTION_HIGH_TEMPERATURE_TIME_S * 1000UL)
         {
-          ESP_LOGE("amber", "Safety check: 3-way valve state timeout reached during DHW (CV temp %.2f°C >= %.2f°C), stopping system.",
-                   current_temperature, max_safe_temp);
+          ESP_LOGE("amber", "Safety check: 3-way valve state timeout reached during DHW (CV temp %.2f°C >= %.2f°C, Tuo-TC diff: %.2f°C), stopping system.",
+                   current_temperature, max_safe_temp, tuo_tc_diff);
           id(error_three_way_valve_state_timeout).publish_state(true);
           return true;
         }
