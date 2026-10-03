@@ -34,6 +34,7 @@ static const uint32_t MODBUS_CONNECTION_TIMEOUT_S = 2 * 60;
 static const uint32_t THREE_WAY_VALVE_SWITCH_TIME_S = 1 * 60;
 static const uint32_t THREE_WAY_VALVE_PROTECTION_DELTA_TEMPERATURE_C = 5.0f;
 static const uint32_t THREE_WAY_VALVE_PROTECTION_HIGH_TEMPERATURE_TIME_S = 2 * 60;
+static const float THREE_WAY_VALVE_PROTECTION_TUO_TC_THRESHOLD_C = 5.0f;
 
 // Compressor timing
 static const uint32_t COMPRESSOR_MIN_OFF_S = 2 * 60;
