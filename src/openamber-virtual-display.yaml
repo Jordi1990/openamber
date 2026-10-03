@@ -8,7 +8,7 @@ esphome:
       then:
         - lvgl.label.update:
             id: header_title
-            text: "OpenAmber Test"
+            text: "OpenAmber"
 
 host:
 
