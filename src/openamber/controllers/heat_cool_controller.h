@@ -495,8 +495,8 @@ public:
           break;
         }
 
-        // Start pump on interval or if there is compressor demand.
-        if (pump_controller_->ShouldStartNextPumpCycle() || (HasCompressorDemand() && IsCompressorAllowedToStart()))
+        // Start pump on interval, without the pump running we cannot determine if there is actual compressor demand as Tc can change.
+        if (pump_controller_->ShouldStartNextPumpCycle())
         {
           pump_controller_->Start();
           StartPumpP1IfNeeded();
@@ -530,8 +530,8 @@ public:
       {
         pump_controller_->ApplySpeedChangeIfNeeded(false);
 
-        // Stop if there is no demand and pump interval is finished.
-        if (!HasCompressorDemand() && pump_controller_->IsIntervalCycleFinished())
+        // Stop if the compressor is not allowed to start and pump interval is finished.
+        if (!IsCompressorAllowedToStart() && pump_controller_->IsIntervalCycleFinished())
         {
           ESP_LOGI("amber", "Stopping pump (interval cycle finished)");
           StopPumps();
@@ -544,12 +544,12 @@ public:
           break;
         }
 
-      // Settle temperature before starting compressor.
-      if (!pump_controller_->IsPumpSettled())
-      {
-        ESP_LOGI("amber", "Not starting compressor because temperature needs to stabilize (pump on time too short)");
-        break;
-      }
+        // Settle temperature before starting compressor.
+        if (!pump_controller_->IsPumpSettled())
+        {
+          ESP_LOGI("amber", "Not starting compressor because temperature needs to stabilize (pump on time too short)");
+          break;
+        }
 
         SetWorkingMode(IsCoolingDemand() ? WORKING_MODE_COOLING : WORKING_MODE_HEATING);
         SetPidController(IsCoolingDemand() ? climate::CLIMATE_MODE_COOL : climate::CLIMATE_MODE_HEAT);
