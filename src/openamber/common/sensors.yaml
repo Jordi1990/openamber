@@ -433,12 +433,11 @@
 
     if (id(heat_mode_select).current_option() == "Stooklijn")
     {
-      // Als mengventielen actief: gebruik max van zone-stooklijnen
+      // If we are mixing, use the highest temperature of all zones.
       bool mv_z1 = id(mixing_valve_zone1_enabled).state;
       bool mv_z2 = id(mixing_valve_zone2_enabled).state;
       if (mv_z1 || mv_z2)
       {
-        // Zone 1 = bestaande stooklijn
         float sp_z1 = mv_z1 ? id(heat_curve_calculated_setpoint).state : 0.0f;
         float sp_z2 = mv_z2 ? id(heat_curve_z2_calculated_setpoint).state : 0.0f;
         setpoint = std::max(sp_z1, sp_z2);

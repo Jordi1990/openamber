@@ -1,7 +1,7 @@
-- label: { id: set_heat_curve_title, text: "Stooklijn zone 1", text_color: 0x1F2933, text_font: font_text_24, x: 6 }
+- label: { id: set_heat_curve_z2_title, text: "Stooklijn zone 2", text_color: 0x1F2933, text_font: font_text_24, x: 6 }
 
 - obj:
-    id: set_heat_curve_chart_container
+    id: set_heat_curve_z2_chart_container
     width: 100%
     height: 180
     bg_color: 0xE5E7EB
@@ -13,7 +13,7 @@
     widgets:
       # Y-axis labels (aanvoertemperatuur)
       - label:
-          id: heat_curve_y_axis_labels
+          id: heat_curve_z2_y_axis_labels
           text: "35\n33\n30\n28\n25"
           x: 2
           y: 0
@@ -42,7 +42,7 @@
       - label: { text: "+15", x: 625, y: 122, text_color: 0x6B7280, text_font: font_text_24 }
       
       - line:
-          id: heat_curve_line
+          id: heat_curve_z2_line
           x: 38
           y: 0
           line_width: 4
@@ -57,7 +57,7 @@
       
 
 - obj:
-    id: set_heat_curve_controls_container
+    id: set_heat_curve_z2_controls_container
     width: 100%
     height: SIZE_CONTENT
     bg_opa: 0%
@@ -80,7 +80,7 @@
           layout: { type: FLEX, flex_flow: COLUMN, flex_align_cross: CENTER, pad_row: 2 }
           widgets:
             - label: { text: "-10°C", text_color: 0x6B7280, text_font: font_text_24 }
-            - label: { id: set_hc_m10_val, text: "35°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_hc_z2_m10_val, text: "35°C", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 width: SIZE_CONTENT
                 height: SIZE_CONTENT
@@ -99,7 +99,7 @@
                       scrollbar_mode: "OFF"
                       scrollable: false
                       on_click:
-                        - number.decrement: heat_curve_m10
+                        - number.decrement: heat_curve_z2_m10
                       widgets:
                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                   - obj:
@@ -112,7 +112,7 @@
                       scrollbar_mode: "OFF"
                       scrollable: false
                       on_click:
-                        - number.increment: heat_curve_m10
+                        - number.increment: heat_curve_z2_m10
                       widgets:
                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       # 0°C
@@ -125,7 +125,7 @@
           layout: { type: FLEX, flex_flow: COLUMN, flex_align_cross: CENTER, pad_row: 2 }
           widgets:
             - label: { text: "0°C", text_color: 0x6B7280, text_font: font_text_24 }
-            - label: { id: set_hc_0_val, text: "30°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_hc_z2_0_val, text: "30°C", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 width: SIZE_CONTENT
                 height: SIZE_CONTENT
@@ -144,7 +144,7 @@
                       scrollbar_mode: "OFF"
                       scrollable: false
                       on_click:
-                        - number.decrement: heat_curve_0
+                        - number.decrement: heat_curve_z2_0
                       widgets:
                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                   - obj:
@@ -157,7 +157,7 @@
                       scrollbar_mode: "OFF"
                       scrollable: false
                       on_click:
-                        - number.increment: heat_curve_0
+                        - number.increment: heat_curve_z2_0
                       widgets:
                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       # +5°C
@@ -170,7 +170,7 @@
           layout: { type: FLEX, flex_flow: COLUMN, flex_align_cross: CENTER, pad_row: 2 }
           widgets:
             - label: { text: "+5°C", text_color: 0x6B7280, text_font: font_text_24 }
-            - label: { id: set_hc_p5_val, text: "28°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_hc_z2_p5_val, text: "28°C", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 width: SIZE_CONTENT
                 height: SIZE_CONTENT
@@ -189,7 +189,7 @@
                       scrollbar_mode: "OFF"
                       scrollable: false
                       on_click:
-                        - number.decrement: heat_curve_p5
+                        - number.decrement: heat_curve_z2_p5
                       widgets:
                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                   - obj:
@@ -202,7 +202,7 @@
                       scrollbar_mode: "OFF"
                       scrollable: false
                       on_click:
-                        - number.increment: heat_curve_p5
+                        - number.increment: heat_curve_z2_p5
                       widgets:
                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       # +10°C
@@ -215,7 +215,7 @@
           layout: { type: FLEX, flex_flow: COLUMN, flex_align_cross: CENTER, pad_row: 2 }
           widgets:
             - label: { text: "+10°C", text_color: 0x6B7280, text_font: font_text_24 }
-            - label: { id: set_hc_p10_val, text: "27°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_hc_z2_p10_val, text: "27°C", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 width: SIZE_CONTENT
                 height: SIZE_CONTENT
@@ -234,7 +234,7 @@
                       scrollbar_mode: "OFF"
                       scrollable: false
                       on_click:
-                        - number.decrement: heat_curve_p10
+                        - number.decrement: heat_curve_z2_p10
                       widgets:
                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                   - obj:
@@ -247,7 +247,7 @@
                       scrollbar_mode: "OFF"
                       scrollable: false
                       on_click:
-                        - number.increment: heat_curve_p10
+                        - number.increment: heat_curve_z2_p10
                       widgets:
                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       # +15°C
@@ -260,7 +260,7 @@
           layout: { type: FLEX, flex_flow: COLUMN, flex_align_cross: CENTER, pad_row: 2 }
           widgets:
             - label: { text: "+15°C", text_color: 0x6B7280, text_font: font_text_24 }
-            - label: { id: set_hc_p15_val, text: "25°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_hc_z2_p15_val, text: "25°C", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 width: SIZE_CONTENT
                 height: SIZE_CONTENT
@@ -279,7 +279,7 @@
                       scrollbar_mode: "OFF"
                       scrollable: false
                       on_click:
-                        - number.decrement: heat_curve_p15
+                        - number.decrement: heat_curve_z2_p15
                       widgets:
                         - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                   - obj:
@@ -292,7 +292,7 @@
                       scrollbar_mode: "OFF"
                       scrollable: false
                       on_click:
-                        - number.increment: heat_curve_p15
+                        - number.increment: heat_curve_z2_p15
                       widgets:
                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
