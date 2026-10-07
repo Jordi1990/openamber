@@ -227,7 +227,7 @@
   disabled_by_default: True
   device_class: running
   lambda: |-
-    return id(sg_ready_mode_select).current_option() == "Max Boost" ||
+    return id(sg_ready_mode_select).current_option() == "Max boost" ||
            (id(sg_ready_a_active_sensor).state && id(sg_ready_b_active_sensor).state);
   web_server: 
     sorting_group_id: diagnostic
