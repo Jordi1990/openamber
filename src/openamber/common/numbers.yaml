@@ -811,6 +811,168 @@
           id(pid_cool_temperature_control).set_threshold_low(-deadband);
           id(pid_cool_temperature_control).set_threshold_high(deadband);
 
+# ── Mengventiel zone 1 PID ──
+- platform: template
+  id: pid_mixing_valve_zone1_kp
+  name: "Mengventiel zone 1 PID Kp"
+  optimistic: True
+  min_value: 0.0
+  max_value: 5.0
+  step: 0.01
+  initial_value: 1.0
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pid_mixing_valve_zone1
+          kp: !lambda 'return id(pid_mixing_valve_zone1_kp).state;'
+          ki: !lambda 'return id(pid_mixing_valve_zone1_ki).state;'
+          kd: !lambda 'return id(pid_mixing_valve_zone1_kd).state;'
+
+- platform: template
+  id: pid_mixing_valve_zone1_ki
+  name: "Mengventiel zone 1 PID Ki"
+  optimistic: True
+  min_value: 0.0000
+  max_value: 0.0500
+  step: 0.0001
+  initial_value: 0.0050
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pid_mixing_valve_zone1
+          kp: !lambda 'return id(pid_mixing_valve_zone1_kp).state;'
+          ki: !lambda 'return id(pid_mixing_valve_zone1_ki).state;'
+          kd: !lambda 'return id(pid_mixing_valve_zone1_kd).state;'
+
+- platform: template
+  id: pid_mixing_valve_zone1_kd
+  name: "Mengventiel zone 1 PID Kd"
+  optimistic: True
+  min_value: 0.0
+  max_value: 25.0
+  step: 0.01
+  initial_value: 0.0
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pid_mixing_valve_zone1
+          kp: !lambda 'return id(pid_mixing_valve_zone1_kp).state;'
+          ki: !lambda 'return id(pid_mixing_valve_zone1_ki).state;'
+          kd: !lambda 'return id(pid_mixing_valve_zone1_kd).state;'
+
+- platform: template
+  id: pid_mixing_valve_zone1_deadband
+  name: "Mengventiel zone 1 PID deadband"
+  optimistic: True
+  min_value: 0.0
+  max_value: 5.0
+  step: 0.1
+  unit_of_measurement: "°C"
+  initial_value: 1.0
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - lambda: |-
+          const float deadband = x;
+          id(pid_mixing_valve_zone1).set_threshold_low(-deadband);
+          id(pid_mixing_valve_zone1).set_threshold_high(deadband);
+
+# ── Mengventiel zone 2 PID ──
+- platform: template
+  id: pid_mixing_valve_zone2_kp
+  name: "Mengventiel zone 2 PID Kp"
+  optimistic: True
+  min_value: 0.0
+  max_value: 5.0
+  step: 0.01
+  initial_value: 1.0
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pid_mixing_valve_zone2
+          kp: !lambda 'return id(pid_mixing_valve_zone2_kp).state;'
+          ki: !lambda 'return id(pid_mixing_valve_zone2_ki).state;'
+          kd: !lambda 'return id(pid_mixing_valve_zone2_kd).state;'
+
+- platform: template
+  id: pid_mixing_valve_zone2_ki
+  name: "Mengventiel zone 2 PID Ki"
+  optimistic: True
+  min_value: 0.0000
+  max_value: 0.0500
+  step: 0.0001
+  initial_value: 0.0050
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pid_mixing_valve_zone2
+          kp: !lambda 'return id(pid_mixing_valve_zone2_kp).state;'
+          ki: !lambda 'return id(pid_mixing_valve_zone2_ki).state;'
+          kd: !lambda 'return id(pid_mixing_valve_zone2_kd).state;'
+
+- platform: template
+  id: pid_mixing_valve_zone2_kd
+  name: "Mengventiel zone 2 PID Kd"
+  optimistic: True
+  min_value: 0.0
+  max_value: 25.0
+  step: 0.01
+  initial_value: 0.0
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pid_mixing_valve_zone2
+          kp: !lambda 'return id(pid_mixing_valve_zone2_kp).state;'
+          ki: !lambda 'return id(pid_mixing_valve_zone2_ki).state;'
+          kd: !lambda 'return id(pid_mixing_valve_zone2_kd).state;'
+
+- platform: template
+  id: pid_mixing_valve_zone2_deadband
+  name: "Mengventiel zone 2 PID deadband"
+  optimistic: True
+  min_value: 0.0
+  max_value: 5.0
+  step: 0.1
+  unit_of_measurement: "°C"
+  initial_value: 1.0
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - lambda: |-
+          const float deadband = x;
+          id(pid_mixing_valve_zone2).set_threshold_low(-deadband);
+          id(pid_mixing_valve_zone2).set_threshold_high(deadband);
+
 - platform: template
   id: pump_speed_dhw_number
   name: "Pomp snelheid tapwater"

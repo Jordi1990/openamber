@@ -675,7 +675,6 @@
     - lambda: |-
         bool mv_active = id(mixing_valve_zone1_enabled).state || id(mixing_valve_zone2_enabled).state;
         if (mv_active) {
-          // Forceer dropdown naar Tc en disable
           lv_dropdown_set_selected(id(set_heat_control_temp_source_dd)->obj, 0);
           lv_obj_add_state(id(set_heat_control_temp_source_dd)->obj, LV_STATE_DISABLED);
           lv_obj_set_style_opa(id(set_general_system_control_temp_source), LV_OPA_40, LV_PART_MAIN);
@@ -1129,11 +1128,19 @@
           - lvgl.widget.hide: { id: set_pump_pid_kp_row }
           - lvgl.widget.hide: { id: set_pump_pid_ki_row }
           - lvgl.widget.hide: { id: set_pump_pid_kd_row }
+          - lvgl.widget.hide: { id: set_mv_z1_pid_kp_row }
+          - lvgl.widget.hide: { id: set_mv_z1_pid_ki_row }
+          - lvgl.widget.hide: { id: set_mv_z1_pid_kd_row }
+          - lvgl.widget.hide: { id: set_mv_z2_pid_kp_row }
+          - lvgl.widget.hide: { id: set_mv_z2_pid_ki_row }
+          - lvgl.widget.hide: { id: set_mv_z2_pid_kd_row }
+          - lvgl.widget.hide: { id: set_mv_z1_pid_deadband_row }
+          - lvgl.widget.hide: { id: set_mv_z2_pid_deadband_row }
           - lvgl.widget.update: { id: advanced_pid_page_prev_button, bg_color: 0xCBD5E1 }
           - lvgl.label.update: { id: advanced_pid_page_prev_button_lbl, text_color: 0x4B5563 }
           - lvgl.widget.update: { id: advanced_pid_page_next_button, bg_color: 0x1F3B68 }
           - lvgl.label.update: { id: advanced_pid_page_next_button_lbl, text_color: 0xFFFFFF }
-          - lvgl.label.update: { id: advanced_pid_page_indicator, text: "Pagina 1 / 4" }
+          - lvgl.label.update: { id: advanced_pid_page_indicator, text: "Pagina 1 / 7" }
         else:
           - if:
               condition:
@@ -1150,11 +1157,19 @@
                 - lvgl.widget.hide: { id: set_pump_pid_kp_row }
                 - lvgl.widget.hide: { id: set_pump_pid_ki_row }
                 - lvgl.widget.hide: { id: set_pump_pid_kd_row }
+                - lvgl.widget.hide: { id: set_mv_z1_pid_kp_row }
+                - lvgl.widget.hide: { id: set_mv_z1_pid_ki_row }
+                - lvgl.widget.hide: { id: set_mv_z1_pid_kd_row }
+                - lvgl.widget.hide: { id: set_mv_z2_pid_kp_row }
+                - lvgl.widget.hide: { id: set_mv_z2_pid_ki_row }
+                - lvgl.widget.hide: { id: set_mv_z2_pid_kd_row }
+                - lvgl.widget.hide: { id: set_mv_z1_pid_deadband_row }
+                - lvgl.widget.hide: { id: set_mv_z2_pid_deadband_row }
                 - lvgl.widget.update: { id: advanced_pid_page_prev_button, bg_color: 0x1F3B68 }
                 - lvgl.label.update: { id: advanced_pid_page_prev_button_lbl, text_color: 0xFFFFFF }
                 - lvgl.widget.update: { id: advanced_pid_page_next_button, bg_color: 0x1F3B68 }
                 - lvgl.label.update: { id: advanced_pid_page_next_button_lbl, text_color: 0xFFFFFF }
-                - lvgl.label.update: { id: advanced_pid_page_indicator, text: "Pagina 2 / 4" }
+                - lvgl.label.update: { id: advanced_pid_page_indicator, text: "Pagina 2 / 7" }
               else:
                 - if:
                     condition:
@@ -1171,55 +1186,182 @@
                       - lvgl.widget.hide: { id: set_pump_pid_kp_row }
                       - lvgl.widget.hide: { id: set_pump_pid_ki_row }
                       - lvgl.widget.hide: { id: set_pump_pid_kd_row }
+                      - lvgl.widget.hide: { id: set_mv_z1_pid_kp_row }
+                      - lvgl.widget.hide: { id: set_mv_z1_pid_ki_row }
+                      - lvgl.widget.hide: { id: set_mv_z1_pid_kd_row }
+                      - lvgl.widget.hide: { id: set_mv_z2_pid_kp_row }
+                      - lvgl.widget.hide: { id: set_mv_z2_pid_ki_row }
+                      - lvgl.widget.hide: { id: set_mv_z2_pid_kd_row }
+                      - lvgl.widget.hide: { id: set_mv_z1_pid_deadband_row }
+                      - lvgl.widget.hide: { id: set_mv_z2_pid_deadband_row }
                       - lvgl.widget.update: { id: advanced_pid_page_prev_button, bg_color: 0x1F3B68 }
                       - lvgl.label.update: { id: advanced_pid_page_prev_button_lbl, text_color: 0xFFFFFF }
                       - lvgl.widget.update: { id: advanced_pid_page_next_button, bg_color: 0x1F3B68 }
                       - lvgl.label.update: { id: advanced_pid_page_next_button_lbl, text_color: 0xFFFFFF }
-                      - lvgl.label.update: { id: advanced_pid_page_indicator, text: "Pagina 3 / 4" }
+                      - lvgl.label.update: { id: advanced_pid_page_indicator, text: "Pagina 3 / 7" }
                     else:
-                      - lvgl.widget.hide: { id: set_heat_pid_kp_row }
-                      - lvgl.widget.hide: { id: set_heat_pid_ki_row }
-                      - lvgl.widget.hide: { id: set_heat_pid_kd_row }
-                      - lvgl.widget.hide: { id: set_cool_pid_kp_row }
-                      - lvgl.widget.hide: { id: set_cool_pid_ki_row }
-                      - lvgl.widget.hide: { id: set_cool_pid_kd_row }
-                      - lvgl.widget.hide: { id: set_heat_pid_deadband_row }
-                      - lvgl.widget.hide: { id: set_cool_pid_deadband_row }
-                      - lvgl.widget.show: { id: set_pump_pid_kp_row }
-                      - lvgl.widget.show: { id: set_pump_pid_ki_row }
-                      - lvgl.widget.show: { id: set_pump_pid_kd_row }
-                      - lvgl.widget.update: { id: advanced_pid_page_prev_button, bg_color: 0x1F3B68 }
-                      - lvgl.label.update: { id: advanced_pid_page_prev_button_lbl, text_color: 0xFFFFFF }
-                      - lvgl.widget.update: { id: advanced_pid_page_next_button, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: advanced_pid_page_next_button_lbl, text_color: 0x4B5563 }
-                      - lvgl.label.update: { id: advanced_pid_page_indicator, text: "Pagina 4 / 4" }
+                      - if:
+                          condition:
+                            lambda: 'return page == 4;'
+                          then:
+                            - lvgl.widget.hide: { id: set_heat_pid_kp_row }
+                            - lvgl.widget.hide: { id: set_heat_pid_ki_row }
+                            - lvgl.widget.hide: { id: set_heat_pid_kd_row }
+                            - lvgl.widget.hide: { id: set_cool_pid_kp_row }
+                            - lvgl.widget.hide: { id: set_cool_pid_ki_row }
+                            - lvgl.widget.hide: { id: set_cool_pid_kd_row }
+                            - lvgl.widget.hide: { id: set_heat_pid_deadband_row }
+                            - lvgl.widget.hide: { id: set_cool_pid_deadband_row }
+                            - lvgl.widget.show: { id: set_pump_pid_kp_row }
+                            - lvgl.widget.show: { id: set_pump_pid_ki_row }
+                            - lvgl.widget.show: { id: set_pump_pid_kd_row }
+                            - lvgl.widget.hide: { id: set_mv_z1_pid_kp_row }
+                            - lvgl.widget.hide: { id: set_mv_z1_pid_ki_row }
+                            - lvgl.widget.hide: { id: set_mv_z1_pid_kd_row }
+                            - lvgl.widget.hide: { id: set_mv_z2_pid_kp_row }
+                            - lvgl.widget.hide: { id: set_mv_z2_pid_ki_row }
+                            - lvgl.widget.hide: { id: set_mv_z2_pid_kd_row }
+                            - lvgl.widget.hide: { id: set_mv_z1_pid_deadband_row }
+                            - lvgl.widget.hide: { id: set_mv_z2_pid_deadband_row }
+                            - lvgl.widget.update: { id: advanced_pid_page_prev_button, bg_color: 0x1F3B68 }
+                            - lvgl.label.update: { id: advanced_pid_page_prev_button_lbl, text_color: 0xFFFFFF }
+                            - lvgl.widget.update: { id: advanced_pid_page_next_button, bg_color: 0x1F3B68 }
+                            - lvgl.label.update: { id: advanced_pid_page_next_button_lbl, text_color: 0xFFFFFF }
+                            - lvgl.label.update: { id: advanced_pid_page_indicator, text: "Pagina 4 / 7" }
+                          else:
+                            - if:
+                                condition:
+                                  lambda: 'return page == 5;'
+                                then:
+                                  - lvgl.widget.hide: { id: set_heat_pid_kp_row }
+                                  - lvgl.widget.hide: { id: set_heat_pid_ki_row }
+                                  - lvgl.widget.hide: { id: set_heat_pid_kd_row }
+                                  - lvgl.widget.hide: { id: set_cool_pid_kp_row }
+                                  - lvgl.widget.hide: { id: set_cool_pid_ki_row }
+                                  - lvgl.widget.hide: { id: set_cool_pid_kd_row }
+                                  - lvgl.widget.hide: { id: set_heat_pid_deadband_row }
+                                  - lvgl.widget.hide: { id: set_cool_pid_deadband_row }
+                                  - lvgl.widget.hide: { id: set_pump_pid_kp_row }
+                                  - lvgl.widget.hide: { id: set_pump_pid_ki_row }
+                                  - lvgl.widget.hide: { id: set_pump_pid_kd_row }
+                                  - lvgl.widget.show: { id: set_mv_z1_pid_kp_row }
+                                  - lvgl.widget.show: { id: set_mv_z1_pid_ki_row }
+                                  - lvgl.widget.show: { id: set_mv_z1_pid_kd_row }
+                                  - lvgl.widget.hide: { id: set_mv_z2_pid_kp_row }
+                                  - lvgl.widget.hide: { id: set_mv_z2_pid_ki_row }
+                                  - lvgl.widget.hide: { id: set_mv_z2_pid_kd_row }
+                                  - lvgl.widget.hide: { id: set_mv_z1_pid_deadband_row }
+                                  - lvgl.widget.hide: { id: set_mv_z2_pid_deadband_row }
+                                  - lvgl.widget.update: { id: advanced_pid_page_prev_button, bg_color: 0x1F3B68 }
+                                  - lvgl.label.update: { id: advanced_pid_page_prev_button_lbl, text_color: 0xFFFFFF }
+                                  - lvgl.widget.update: { id: advanced_pid_page_next_button, bg_color: 0x1F3B68 }
+                                  - lvgl.label.update: { id: advanced_pid_page_next_button_lbl, text_color: 0xFFFFFF }
+                                  - lvgl.label.update: { id: advanced_pid_page_indicator, text: "Pagina 5 / 7" }
+                                else:
+                                  - if:
+                                      condition:
+                                        lambda: 'return page == 6;'
+                                      then:
+                                        - lvgl.widget.hide: { id: set_heat_pid_kp_row }
+                                        - lvgl.widget.hide: { id: set_heat_pid_ki_row }
+                                        - lvgl.widget.hide: { id: set_heat_pid_kd_row }
+                                        - lvgl.widget.hide: { id: set_cool_pid_kp_row }
+                                        - lvgl.widget.hide: { id: set_cool_pid_ki_row }
+                                        - lvgl.widget.hide: { id: set_cool_pid_kd_row }
+                                        - lvgl.widget.hide: { id: set_heat_pid_deadband_row }
+                                        - lvgl.widget.hide: { id: set_cool_pid_deadband_row }
+                                        - lvgl.widget.hide: { id: set_pump_pid_kp_row }
+                                        - lvgl.widget.hide: { id: set_pump_pid_ki_row }
+                                        - lvgl.widget.hide: { id: set_pump_pid_kd_row }
+                                        - lvgl.widget.hide: { id: set_mv_z1_pid_kp_row }
+                                        - lvgl.widget.hide: { id: set_mv_z1_pid_ki_row }
+                                        - lvgl.widget.hide: { id: set_mv_z1_pid_kd_row }
+                                        - lvgl.widget.show: { id: set_mv_z2_pid_kp_row }
+                                        - lvgl.widget.show: { id: set_mv_z2_pid_ki_row }
+                                        - lvgl.widget.show: { id: set_mv_z2_pid_kd_row }
+                                        - lvgl.widget.hide: { id: set_mv_z1_pid_deadband_row }
+                                        - lvgl.widget.hide: { id: set_mv_z2_pid_deadband_row }
+                                        - lvgl.widget.update: { id: advanced_pid_page_prev_button, bg_color: 0x1F3B68 }
+                                        - lvgl.label.update: { id: advanced_pid_page_prev_button_lbl, text_color: 0xFFFFFF }
+                                        - lvgl.widget.update: { id: advanced_pid_page_next_button, bg_color: 0x1F3B68 }
+                                        - lvgl.label.update: { id: advanced_pid_page_next_button_lbl, text_color: 0xFFFFFF }
+                                        - lvgl.label.update: { id: advanced_pid_page_indicator, text: "Pagina 6 / 7" }
+                                      else:
+                                        - lvgl.widget.hide: { id: set_heat_pid_kp_row }
+                                        - lvgl.widget.hide: { id: set_heat_pid_ki_row }
+                                        - lvgl.widget.hide: { id: set_heat_pid_kd_row }
+                                        - lvgl.widget.hide: { id: set_cool_pid_kp_row }
+                                        - lvgl.widget.hide: { id: set_cool_pid_ki_row }
+                                        - lvgl.widget.hide: { id: set_cool_pid_kd_row }
+                                        - lvgl.widget.hide: { id: set_heat_pid_deadband_row }
+                                        - lvgl.widget.hide: { id: set_cool_pid_deadband_row }
+                                        - lvgl.widget.hide: { id: set_pump_pid_kp_row }
+                                        - lvgl.widget.hide: { id: set_pump_pid_ki_row }
+                                        - lvgl.widget.hide: { id: set_pump_pid_kd_row }
+                                        - lvgl.widget.hide: { id: set_mv_z1_pid_kp_row }
+                                        - lvgl.widget.hide: { id: set_mv_z1_pid_ki_row }
+                                        - lvgl.widget.hide: { id: set_mv_z1_pid_kd_row }
+                                        - lvgl.widget.hide: { id: set_mv_z2_pid_kp_row }
+                                        - lvgl.widget.hide: { id: set_mv_z2_pid_ki_row }
+                                        - lvgl.widget.hide: { id: set_mv_z2_pid_kd_row }
+                                        - lvgl.widget.show: { id: set_mv_z1_pid_deadband_row }
+                                        - lvgl.widget.show: { id: set_mv_z2_pid_deadband_row }
+                                        - lvgl.widget.update: { id: advanced_pid_page_prev_button, bg_color: 0x1F3B68 }
+                                        - lvgl.label.update: { id: advanced_pid_page_prev_button_lbl, text_color: 0xFFFFFF }
+                                        - lvgl.widget.update: { id: advanced_pid_page_next_button, bg_color: 0xCBD5E1 }
+                                        - lvgl.label.update: { id: advanced_pid_page_next_button_lbl, text_color: 0x4B5563 }
+                                        - lvgl.label.update: { id: advanced_pid_page_indicator, text: "Pagina 7 / 7" }
 
 - id: advanced_pid_prev_page
   mode: restart
   then:
     - if:
         condition:
-          lambda: 'return !lv_obj_has_flag(id(set_pump_pid_kp_row), LV_OBJ_FLAG_HIDDEN);'
+          lambda: 'return !lv_obj_has_flag(id(set_mv_z1_pid_deadband_row), LV_OBJ_FLAG_HIDDEN);'
         then:
           - script.execute:
               id: advanced_pid_select_page
-              page: 3
+              page: 6
         else:
           - if:
               condition:
-                lambda: 'return !lv_obj_has_flag(id(set_heat_pid_deadband_row), LV_OBJ_FLAG_HIDDEN);'
+                lambda: 'return !lv_obj_has_flag(id(set_mv_z2_pid_kp_row), LV_OBJ_FLAG_HIDDEN);'
               then:
                 - script.execute:
                     id: advanced_pid_select_page
-                    page: 2
+                    page: 5
               else:
                 - if:
                     condition:
-                      lambda: 'return !lv_obj_has_flag(id(set_cool_pid_kp_row), LV_OBJ_FLAG_HIDDEN);'
+                      lambda: 'return !lv_obj_has_flag(id(set_mv_z1_pid_kp_row), LV_OBJ_FLAG_HIDDEN);'
                     then:
                       - script.execute:
                           id: advanced_pid_select_page
-                          page: 1
+                          page: 4
+                    else:
+                      - if:
+                          condition:
+                            lambda: 'return !lv_obj_has_flag(id(set_pump_pid_kp_row), LV_OBJ_FLAG_HIDDEN);'
+                          then:
+                            - script.execute:
+                                id: advanced_pid_select_page
+                                page: 3
+                          else:
+                            - if:
+                                condition:
+                                  lambda: 'return !lv_obj_has_flag(id(set_heat_pid_deadband_row), LV_OBJ_FLAG_HIDDEN);'
+                                then:
+                                  - script.execute:
+                                      id: advanced_pid_select_page
+                                      page: 2
+                                else:
+                                  - if:
+                                      condition:
+                                        lambda: 'return !lv_obj_has_flag(id(set_cool_pid_kp_row), LV_OBJ_FLAG_HIDDEN);'
+                                      then:
+                                        - script.execute:
+                                            id: advanced_pid_select_page
+                                            page: 1
 
 - id: advanced_pid_next_page
   mode: restart
@@ -1247,6 +1389,30 @@
                       - script.execute:
                           id: advanced_pid_select_page
                           page: 4
+                    else:
+                      - if:
+                          condition:
+                            lambda: 'return !lv_obj_has_flag(id(set_pump_pid_kp_row), LV_OBJ_FLAG_HIDDEN);'
+                          then:
+                            - script.execute:
+                                id: advanced_pid_select_page
+                                page: 5
+                          else:
+                            - if:
+                                condition:
+                                  lambda: 'return !lv_obj_has_flag(id(set_mv_z1_pid_kp_row), LV_OBJ_FLAG_HIDDEN);'
+                                then:
+                                  - script.execute:
+                                      id: advanced_pid_select_page
+                                      page: 6
+                                else:
+                                  - if:
+                                      condition:
+                                        lambda: 'return !lv_obj_has_flag(id(set_mv_z2_pid_kp_row), LV_OBJ_FLAG_HIDDEN);'
+                                      then:
+                                        - script.execute:
+                                            id: advanced_pid_select_page
+                                            page: 7
 
 - id: advanced_defrost_select_page
   mode: restart

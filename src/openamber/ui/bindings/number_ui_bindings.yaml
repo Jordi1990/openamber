@@ -424,6 +424,80 @@
             format: "%.1f°C"
             args: ['x']
 
+# ── Mengventiel zone 1 PID ──
+- id: !extend pid_mixing_valve_zone1_kp
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z1_pid_kp_val
+          text:
+            format: "%.2f"
+            args: ['x']
+
+- id: !extend pid_mixing_valve_zone1_ki
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z1_pid_ki_val
+          text:
+            format: "%.4f"
+            args: ['x']
+
+- id: !extend pid_mixing_valve_zone1_kd
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z1_pid_kd_val
+          text:
+            format: "%.2f"
+            args: ['x']
+
+- id: !extend pid_mixing_valve_zone1_deadband
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z1_pid_deadband_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+# ── Mengventiel zone 2 PID ──
+- id: !extend pid_mixing_valve_zone2_kp
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z2_pid_kp_val
+          text:
+            format: "%.2f"
+            args: ['x']
+
+- id: !extend pid_mixing_valve_zone2_ki
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z2_pid_ki_val
+          text:
+            format: "%.4f"
+            args: ['x']
+
+- id: !extend pid_mixing_valve_zone2_kd
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z2_pid_kd_val
+          text:
+            format: "%.2f"
+            args: ['x']
+
+- id: !extend pid_mixing_valve_zone2_deadband
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z2_pid_deadband_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
 - id: !extend cooling_setpoint_number
   on_value:
     then:

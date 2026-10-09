@@ -541,6 +541,393 @@
                       widgets:
                         - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
+      # ── Pagina 5: Mengventiel Zone 1 PID ──
+      - obj:
+          id: set_mv_z1_pid_kp_row
+          hidden: true
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Mengventiel Z1 PID P (Kp)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Hoger: sneller reageren, lager: rustiger maar trager", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - obj:
+                width: SIZE_CONTENT
+                height: SIZE_CONTENT
+                align: TOP_RIGHT
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                widgets:
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.decrement: pid_mixing_valve_zone1_kp
+                      widgets:
+                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { id: set_mv_z1_pid_kp_val, text: "1.00", text_color: 0x1F2933, text_font: font_text_24 }
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.increment: pid_mixing_valve_zone1_kp
+                      widgets:
+                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+      - obj:
+          id: set_mv_z1_pid_ki_row
+          hidden: true
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Mengventiel Z1 PID I (Ki)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Hoger: corrigeert afwijking sneller, lager: minder agressief", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - obj:
+                width: SIZE_CONTENT
+                height: SIZE_CONTENT
+                align: TOP_RIGHT
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                widgets:
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.decrement: pid_mixing_valve_zone1_ki
+                      widgets:
+                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { id: set_mv_z1_pid_ki_val, text: "0.0050", text_color: 0x1F2933, text_font: font_text_24 }
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.increment: pid_mixing_valve_zone1_ki
+                      widgets:
+                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+      - obj:
+          id: set_mv_z1_pid_kd_row
+          hidden: true
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Mengventiel Z1 PID D (Kd)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Demping bij snelle schommelingen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - obj:
+                width: SIZE_CONTENT
+                height: SIZE_CONTENT
+                align: TOP_RIGHT
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                widgets:
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.decrement: pid_mixing_valve_zone1_kd
+                      widgets:
+                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { id: set_mv_z1_pid_kd_val, text: "0.00", text_color: 0x1F2933, text_font: font_text_24 }
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.increment: pid_mixing_valve_zone1_kd
+                      widgets:
+                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+      # ── Pagina 6: Mengventiel Zone 2 PID ──
+      - obj:
+          id: set_mv_z2_pid_kp_row
+          hidden: true
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Mengventiel Z2 PID P (Kp)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Hoger: sneller reageren, lager: rustiger maar trager", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - obj:
+                width: SIZE_CONTENT
+                height: SIZE_CONTENT
+                align: TOP_RIGHT
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                widgets:
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.decrement: pid_mixing_valve_zone2_kp
+                      widgets:
+                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { id: set_mv_z2_pid_kp_val, text: "1.00", text_color: 0x1F2933, text_font: font_text_24 }
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.increment: pid_mixing_valve_zone2_kp
+                      widgets:
+                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+      - obj:
+          id: set_mv_z2_pid_ki_row
+          hidden: true
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Mengventiel Z2 PID I (Ki)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Hoger: corrigeert afwijking sneller, lager: minder agressief", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - obj:
+                width: SIZE_CONTENT
+                height: SIZE_CONTENT
+                align: TOP_RIGHT
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                widgets:
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.decrement: pid_mixing_valve_zone2_ki
+                      widgets:
+                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { id: set_mv_z2_pid_ki_val, text: "0.0050", text_color: 0x1F2933, text_font: font_text_24 }
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.increment: pid_mixing_valve_zone2_ki
+                      widgets:
+                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+      - obj:
+          id: set_mv_z2_pid_kd_row
+          hidden: true
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Mengventiel Z2 PID D (Kd)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Demping bij snelle schommelingen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - obj:
+                width: SIZE_CONTENT
+                height: SIZE_CONTENT
+                align: TOP_RIGHT
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                widgets:
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.decrement: pid_mixing_valve_zone2_kd
+                      widgets:
+                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { id: set_mv_z2_pid_kd_val, text: "0.00", text_color: 0x1F2933, text_font: font_text_24 }
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.increment: pid_mixing_valve_zone2_kd
+                      widgets:
+                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+      # ── Pagina 7: Mengventiel PID deadbands ──
+      - obj:
+          id: set_mv_z1_pid_deadband_row
+          hidden: true
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Mengventiel Z1 PID deadband (+/-)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Zone rond setpoint waarin mengventiel minder wijzigt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - obj:
+                width: SIZE_CONTENT
+                height: SIZE_CONTENT
+                align: TOP_RIGHT
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                widgets:
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.decrement: pid_mixing_valve_zone1_deadband
+                      widgets:
+                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { id: set_mv_z1_pid_deadband_val, text: "1.0°C", text_color: 0x1F2933, text_font: font_text_24 }
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.increment: pid_mixing_valve_zone1_deadband
+                      widgets:
+                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+      - obj:
+          id: set_mv_z2_pid_deadband_row
+          hidden: true
+          width: 100%
+          height: SIZE_CONTENT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 6
+          widgets:
+            - label: { text: "Mengventiel Z2 PID deadband (+/-)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Zone rond setpoint waarin mengventiel minder wijzigt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+            - obj:
+                width: SIZE_CONTENT
+                height: SIZE_CONTENT
+                align: TOP_RIGHT
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                widgets:
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.decrement: pid_mixing_valve_zone2_deadband
+                      widgets:
+                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { id: set_mv_z2_pid_deadband_val, text: "1.0°C", text_color: 0x1F2933, text_font: font_text_24 }
+                  - obj:
+                      width: 40
+                      height: 40
+                      bg_color: 0x1F3B68
+                      bg_opa: 100%
+                      radius: 10
+                      border_opa: 0%
+                      scrollbar_mode: "OFF"
+                      scrollable: false
+                      on_click:
+                        - number.increment: pid_mixing_valve_zone2_deadband
+                      widgets:
+                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
       # ── Overlay bij uitgeschakelde geavanceerde instellingen ──
       - obj:
           id: set_pid_disabled_overlay

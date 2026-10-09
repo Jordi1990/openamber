@@ -7,8 +7,8 @@ obj:
     hidden: true
     bg_opa: 0%
     border_opa: 0%
-    pad_left: 4
-    pad_right: 4
+    pad_left: 0
+    pad_right: 0
     pad_top: 4
     pad_bottom: 4
     scrollbar_mode: "OFF"

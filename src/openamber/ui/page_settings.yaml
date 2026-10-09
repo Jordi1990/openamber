@@ -37,8 +37,8 @@ obj:
         layout:
           type: GRID
           grid_rows: [FR(1)]
-          grid_columns: [210, FR(1)]
-          pad_column: 12
+          grid_columns: [200, FR(1)]
+          pad_column: 6
 
         widgets:
           - !include settings/page_settings_sidebar.yaml
@@ -50,6 +50,7 @@ obj:
               grid_cell_y_align: STRETCH
               bg_opa: 0%
               border_opa: 0%
+              pad_all: 0
               scrollbar_mode: "OFF"
               scrollable: false
               widgets:
@@ -196,7 +197,7 @@ obj:
                             - label: { id: advanced_pid_page_prev_button_lbl, text: "\U000F0141", text_color: 0x4B5563, text_font: font_mdi_24, align: CENTER }
                       - label:
                           id: advanced_pid_page_indicator
-                          text: "Pagina 1 / 4"
+                          text: "Pagina 1 / 7"
                           text_color: 0x4B5563
                           text_font: font_text_20
                       - obj:
