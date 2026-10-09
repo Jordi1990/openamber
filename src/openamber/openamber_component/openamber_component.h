@@ -21,7 +21,7 @@
 
 #include "esphome/core/component.h"
 
-#ifdef USE_HOST
+#if defined(USE_HOST) && defined(USE_MOCK_OPENAMBER)
 #include "mock_openamber_component.h"
 #else
 

@@ -74,7 +74,7 @@ public:
   /// @param modbus_number The modbus number entity to write to
   /// @param min_percent Minimum valve position setting (0-100%)
   /// @param max_percent Maximum valve position setting (0-100%)
-  void ApplyPosition(esphome::modbus_controller::ModbusNumber& modbus_number,
+  void ApplyPosition(esphome::number::Number& modbus_number,
                      float min_percent, float max_percent)
   {
     int value = GetClampedModbusValue(min_percent, max_percent);
@@ -89,7 +89,7 @@ public:
     }
   }
 
-  void ApplyValvePosition(esphome::modbus_controller::ModbusNumber& modbus_number,
+  void ApplyValvePosition(esphome::number::Number& modbus_number,
                           float min_percent, float max_percent)
   {
     ApplyPosition(modbus_number, min_percent, max_percent);
@@ -97,7 +97,7 @@ public:
 
   /// Closes the valve actuator to its minimum position
   /// @param min_percent Minimum valve position setting (0-100%)
-  void Close(esphome::modbus_controller::ModbusNumber& modbus_number,
+  void Close(esphome::number::Number& modbus_number,
              float min_percent)
   {
     pid_output_ = 0.0f;
@@ -111,7 +111,7 @@ public:
     }
   }
 
-  void CloseValve(esphome::modbus_controller::ModbusNumber& modbus_number,
+  void CloseValve(esphome::number::Number& modbus_number,
                   float min_percent)
   {
     Close(modbus_number, min_percent);

@@ -4,11 +4,33 @@ esphome:
     name: jordi.openamber
     version: dev
   on_boot:
+    - priority: 900
+      then:
+        - lambda: |-
+            id(outside_unit_eeprom_version).publish_state(114.0f);
     - priority: -100
       then:
         - lvgl.label.update:
             id: header_title
             text: "OpenAmber"
+
+  includes:
+    - openamber/controllers/constants.h
+    - openamber/controllers/pump_controller.h
+    - openamber/controllers/compressor_controller.h
+    - openamber/controllers/base_controller.h
+    - openamber/controllers/dhw_controller.h
+    - openamber/controllers/mixing_valve_actuator.h
+    - openamber/controllers/heat_cool_controller.h
+    - openamber/controllers/routine_controller.h
+    - openamber/controllers/deaeration_routine.h
+    - openamber/controllers/openamber_component.h
+
+  platformio_options:
+    build_flags:
+      - "-Wl,--wrap=_ZN7esphome6millisEv"
+      - "-Wl,--wrap=_ZN7esphome9millis_64Ev"
+      - "-Wl,--wrap=_ZN7esphome6microsEv"
 
 host:
 
@@ -37,3 +59,7 @@ packages:
   - !include openamber/ui/display_globals.yaml
   - !include openamber/ui/bindings/ui_bindings_package.yaml
   - !include openamber/ui/ui_package.yaml
+
+test_bridge:
+  port: 8888
+
