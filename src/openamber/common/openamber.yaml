@@ -29,7 +29,7 @@ esphome:
     - openamber/controllers/compressor_controller.h
     - openamber/controllers/base_controller.h
     - openamber/controllers/dhw_controller.h
-    - openamber/controllers/mixing_valve_controller.h
+    - openamber/controllers/mixing_valve_actuator.h
     - openamber/controllers/heat_cool_controller.h
     - openamber/controllers/routine_controller.h
     - openamber/controllers/deaeration_routine.h

@@ -31,7 +31,7 @@ class HeatCoolController;
 class PumpController;
 class CompressorController;
 class DeaerationRoutine;
-class MixingValveController;
+class MixingValveActuator;
 enum ThreeWayValvePosition
 {
   HEATING_COOLING,
@@ -60,8 +60,8 @@ private:
   PumpController *pump_controller_;
   CompressorController *compressor_controller_;
   DeaerationRoutine *deaeration_routine_;
-  MixingValveController *mixing_valve_zone1_;
-  MixingValveController *mixing_valve_zone2_;
+  MixingValveActuator *mixing_valve_zone1_;
+  MixingValveActuator *mixing_valve_zone2_;
   State deferred_machine_state_;
   uint32_t defer_state_change_until_ms_;
   uint32_t modbus_disconnected_since_ms_ = 0;

@@ -27,13 +27,13 @@
 
 using namespace esphome;
 
-class MixingValveController
+class MixingValveActuator
 {
 private:
   float pid_output_ = 0.0f;  // PID output [0..1] -> valve position
 
 public:
-  MixingValveController() {}
+  MixingValveActuator() = default;
 
   void SetPidOutput(float value)
   {
@@ -74,8 +74,8 @@ public:
   /// @param modbus_number The modbus number entity to write to
   /// @param min_percent Minimum valve position setting (0-100%)
   /// @param max_percent Maximum valve position setting (0-100%)
-  void ApplyValvePosition(esphome::modbus_controller::ModbusNumber& modbus_number,
-                          float min_percent, float max_percent)
+  void ApplyPosition(esphome::modbus_controller::ModbusNumber& modbus_number,
+                     float min_percent, float max_percent)
   {
     int value = GetClampedModbusValue(min_percent, max_percent);
     if (static_cast<int>(modbus_number.state) != value)
@@ -89,10 +89,16 @@ public:
     }
   }
 
-  /// Closes the valve to its minimum position
+  void ApplyValvePosition(esphome::modbus_controller::ModbusNumber& modbus_number,
+                          float min_percent, float max_percent)
+  {
+    ApplyPosition(modbus_number, min_percent, max_percent);
+  }
+
+  /// Closes the valve actuator to its minimum position
   /// @param min_percent Minimum valve position setting (0-100%)
-  void CloseValve(esphome::modbus_controller::ModbusNumber& modbus_number,
-                  float min_percent)
+  void Close(esphome::modbus_controller::ModbusNumber& modbus_number,
+             float min_percent)
   {
     pid_output_ = 0.0f;
     int min_value = static_cast<int>(roundf(min_percent));
@@ -103,5 +109,11 @@ public:
       call.set_value(min_value);
       call.perform();
     }
+  }
+
+  void CloseValve(esphome::modbus_controller::ModbusNumber& modbus_number,
+                  float min_percent)
+  {
+    Close(modbus_number, min_percent);
   }
 };

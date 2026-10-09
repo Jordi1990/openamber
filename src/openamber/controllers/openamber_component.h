@@ -19,7 +19,7 @@
 
 #include "constants.h"
 #include "dhw_controller.h"
-#include "mixing_valve_controller.h"
+#include "mixing_valve_actuator.h"
 #include "heat_cool_controller.h"
 #include "deaeration_routine.h"
 
@@ -32,8 +32,8 @@ OpenAmberComponent::OpenAmberComponent()
 {
   pump_controller_ = new PumpController();
   compressor_controller_ = new CompressorController();
-  mixing_valve_zone1_ = new MixingValveController();
-  mixing_valve_zone2_ = new MixingValveController();
+  mixing_valve_zone1_ = new MixingValveActuator();
+  mixing_valve_zone2_ = new MixingValveActuator();
   dhw_controller_ = new DHWController(pump_controller_, compressor_controller_);
   heat_cool_controller_ = new HeatCoolController(pump_controller_, compressor_controller_, mixing_valve_zone1_, mixing_valve_zone2_);
   deaeration_routine_ = new DeaerationRoutine();
