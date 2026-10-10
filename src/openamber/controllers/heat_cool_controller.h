@@ -544,12 +544,12 @@ public:
           break;
         }
 
-      // Settle temperature before starting compressor.
-      if (!pump_controller_->IsPumpSettled())
-      {
-        ESP_LOGI("amber", "Not starting compressor because temperature needs to stabilize (pump on time too short)");
-        break;
-      }
+        // Settle temperature before starting compressor.
+        if (!pump_controller_->IsPumpSettled())
+        {
+          ESP_LOGI("amber", "Not starting compressor because temperature needs to stabilize (pump on time too short)");
+          break;
+        }
 
         SetWorkingMode(IsCoolingDemand() ? WORKING_MODE_COOLING : WORKING_MODE_HEATING);
         SetPidController(IsCoolingDemand() ? climate::CLIMATE_MODE_COOL : climate::CLIMATE_MODE_HEAT);
