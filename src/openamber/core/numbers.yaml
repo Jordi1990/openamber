@@ -1,0 +1,1040 @@
+number:
+- platform: template
+  name: "Ruimte temperatuur offset"
+  id: tr_offset
+  unit_of_measurement: °C
+  device_class: temperature
+  min_value: -5
+  max_value: 5
+  step: 0.1
+  initial_value: 0
+  restore_value: true
+  optimistic: true
+
+- platform: template
+  name: "Tapwater temperatuur offset"
+  id: tw_offset
+  unit_of_measurement: °C
+  device_class: temperature
+  min_value: -5
+  max_value: 5
+  step: 0.1
+  initial_value: 0
+  restore_value: true
+  optimistic: true
+
+- platform: template
+  name: "CV-aanvoertemperatuur offset"
+  id: tc_offset
+  unit_of_measurement: °C
+  device_class: temperature
+  min_value: -5
+  max_value: 5
+  step: 0.1
+  initial_value: 0
+  restore_value: true
+  optimistic: true
+
+- platform: template
+  name: "CV-retourtemperatuur (Tui) offset"
+  id: tui_offset
+  unit_of_measurement: °C
+  device_class: temperature
+  min_value: -5
+  max_value: 5
+  step: 0.1
+  initial_value: 0
+  restore_value: true
+  optimistic: true
+
+- platform: template
+  name: "CV-aanvoertemperatuur (Tuo) offset"
+  id: tuo_offset
+  unit_of_measurement: °C
+  device_class: temperature
+  min_value: -5
+  max_value: 5
+  step: 0.1
+  initial_value: 0
+  restore_value: true
+  optimistic: true
+
+- platform: template
+  name: "Vorstbescherming 1e trap buiten temperatuur(Ta)"
+  id: frost_protection_stage_1_temp_ta
+  optimistic: true
+  min_value: 0
+  max_value: 10
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 5.0
+  restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: general_settings
+
+- platform: template
+  name: "Vorstbescherming 2e trap buiten temperatuur(Ta)"
+  id: frost_protection_stage_2_temp_ta
+  optimistic: true
+  min_value: 0
+  max_value: 10
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 4.0
+  restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: general_settings
+
+- platform: template
+  name: "Vorstbescherming 2e trap water temperatuur (Tui)"
+  id: frost_protection_stage_2_temp_tui
+  optimistic: true
+  min_value: 0
+  max_value: 10
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 7.0
+  restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: general_settings
+
+- platform: template
+  name: "Compressor start delta"
+  id: compressor_start_delta_heating
+  optimistic: true
+  min_value: 0.1
+  max_value: 10
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 3.0
+  restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: general_settings
+
+- platform: template
+  name: "Compressor stop delta"
+  id: compressor_stop_delta_heating
+  optimistic: true
+  min_value: 0.1
+  max_value: 10
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 5.0
+  restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: general_settings
+
+- platform: template
+  id: heat_curve_p15
+  name: "Stooklijn @ +15°C"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 15
+  max_value: 45
+  step: 1
+  restore_value: true
+  initial_value: 25
+  entity_category: config
+  web_server: 
+      sorting_group_id: heating_settings
+
+- platform: template
+  id: heat_curve_p10
+  name: "Stooklijn @ +10°C"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 15
+  max_value: 45
+  step: 1
+  restore_value: true
+  initial_value: 27
+  entity_category: config
+  web_server: 
+      sorting_group_id: heating_settings
+
+- platform: template
+  id: heat_curve_p5
+  name: "Stooklijn Tc @ +5°C"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 15
+  max_value: 45
+  step: 1
+  restore_value: true
+  initial_value: 28
+  entity_category: config
+  web_server: 
+      sorting_group_id: heating_settings
+
+- platform: template
+  id: heat_curve_0
+  name: "Stooklijn Tc @ 0°C"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 15
+  max_value: 45
+  step: 1
+  restore_value: true
+  initial_value: 30
+  entity_category: config
+  web_server: 
+      sorting_group_id: heating_settings
+
+- platform: template
+  id: heat_curve_m10
+  name: "Stooklijn Tc @ -10°C"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 15
+  max_value: 45
+  step: 1
+  restore_value: true
+  initial_value: 35
+  entity_category: config
+  web_server: 
+      sorting_group_id: heating_settings
+
+- platform: template
+  id: manual_setpoint
+  name: "Handmatig setpoint Cv-aanvoertemperatuur"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 15
+  max_value: 45
+  step: 1
+  initial_value: 30
+  entity_category: config
+  on_value: 
+    then:
+      - component.update: current_setpoint
+  web_server: 
+      sorting_group_id: manual_control
+
+- platform: template
+  id: dhw_setpoint_temperature
+  name: "Tapwater temperatuur setpoint"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 25
+  max_value: 75
+  step: 1
+  initial_value: 55
+  restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: dhw_settings
+  on_value:
+    then:
+      - component.update: current_dhw_setpoint_sensor
+
+- platform: template
+  id: dhw_restart_dhw_delta
+  name: "∆T herstart tapwater verwarmen"
+  restore_value: True
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 5
+  max_value: 25
+  step: 1
+  initial_value: 15
+  entity_category: config
+  web_server: 
+      sorting_group_id: dhw_settings
+
+- platform: template
+  id: dhw_temperature_threshold_max_compressor_mode
+  name: "Buitentemperatuur Tapwater winter vermogen"
+  restore_value: True
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: -20
+  max_value: 10
+  step: 1
+  initial_value: 5
+  entity_category: config
+  web_server: 
+      sorting_group_id: dhw_settings
+
+- platform: template
+  id: dhw_backup_min_avg_rate
+  name: "Tapwater backup heater min verwarmsnelheid"
+  unit_of_measurement: "°C/min"
+  min_value: 0
+  max_value: 5
+  step: 0.01
+  initial_value: 0.12
+  optimistic: true
+  restore_value: true
+  entity_category: config
+  web_server:
+    sorting_group_id: dhw_settings
+
+- platform: template
+  id: dhw_backup_min_avg_rate_delay_minutes
+  name: "Tapwater backup heater vertraging"
+  unit_of_measurement: "min"
+  device_class: "duration"
+  min_value: 0
+  max_value: 60
+  step: 1
+  initial_value: 5
+  optimistic: true
+  restore_value: true
+  entity_category: config
+  web_server:
+    sorting_group_id: dhw_settings
+
+- platform: template
+  id: backup_heater_degmin_threshold
+  name: "Backup element graadminuten"
+  unit_of_measurement: "°C·min"
+  min_value: 0
+  max_value: 100
+  initial_value: 40
+  step: 5
+  optimistic: true
+  restore_value: true
+  entity_category: config
+  icon: mdi:heat-wave
+  web_server: 
+      sorting_group_id: heating_settings
+
+- platform: template
+  id: pump_speed_heating_number
+  name: "Pomp snelheid verwarmen"
+  optimistic: True
+  min_value: 0
+  max_value: 100
+  step: 1
+  unit_of_measurement: "%"
+  initial_value: 100
+  restore_value: True
+  entity_category: config
+  web_server: 
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: pump_speed_cooling_number
+  name: "Pomp snelheid koelen"
+  optimistic: True
+  min_value: 0
+  max_value: 100
+  step: 1
+  unit_of_measurement: "%"
+  initial_value: 100
+  restore_value: True
+  entity_category: config
+  web_server: 
+    sorting_group_id: cooling_settings
+
+- platform: template
+  id: pump_p0_pid_target_delta_t
+  name: "Pomp P0 PID gewenste delta-T"
+  optimistic: True
+  min_value: 2.0
+  max_value: 10.0
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 3.0
+  restore_value: True
+  entity_category: config
+  on_value:
+    then:
+      - lambda: |-
+          auto call = id(pump_p0_pid_temperature_control).make_call();
+          call.set_target_temperature(id(pump_p0_pid_target_delta_t).state);
+          call.perform();
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: pump_p0_pid_min_pwm
+  name: "Pomp P0 PID minimum PWM"
+  optimistic: True
+  min_value: 20
+  max_value: 100
+  step: 1
+  unit_of_measurement: "%"
+  initial_value: 70
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: pump_p0_pid_max_pwm
+  name: "Pomp P0 PID maximum PWM"
+  optimistic: True
+  min_value: 20
+  max_value: 100
+  step: 1
+  unit_of_measurement: "%"
+  initial_value: 100
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: pump_p0_pid_defrost_pwm
+  name: "Pomp P0 PID defrost PWM"
+  optimistic: True
+  min_value: 20
+  max_value: 100
+  step: 1
+  unit_of_measurement: "%"
+  initial_value: 100
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+
+- platform: template
+  id: pump_p0_pid_kp
+  name: "Pomp P0 PID Kp"
+  optimistic: True
+  min_value: 0.00
+  max_value: 1.00
+  step: 0.01
+  initial_value: 0.12
+  restore_value: True
+  entity_category: config
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pump_p0_pid_temperature_control
+          kp: !lambda 'return id(pump_p0_pid_kp).state;'
+          ki: !lambda 'return id(pump_p0_pid_ki).state;'
+          kd: !lambda 'return id(pump_p0_pid_kd).state;'
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: pump_p0_pid_ki
+  name: "Pomp P0 PID Ki"
+  optimistic: True
+  min_value: 0.0000
+  max_value: 0.0100
+  step: 0.0001
+  initial_value: 0.0015
+  restore_value: True
+  entity_category: config
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pump_p0_pid_temperature_control
+          kp: !lambda 'return id(pump_p0_pid_kp).state;'
+          ki: !lambda 'return id(pump_p0_pid_ki).state;'
+          kd: !lambda 'return id(pump_p0_pid_kd).state;'
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: pump_p0_pid_kd
+  name: "Pomp P0 PID Kd"
+  optimistic: True
+  min_value: 0.00
+  max_value: 2.00
+  step: 0.01
+  initial_value: 0.00
+  restore_value: True
+  entity_category: config
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pump_p0_pid_temperature_control
+          kp: !lambda 'return id(pump_p0_pid_kp).state;'
+          ki: !lambda 'return id(pump_p0_pid_ki).state;'
+          kd: !lambda 'return id(pump_p0_pid_kd).state;'
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: cooling_setpoint_number
+  name: "Koelen setpoint"
+  optimistic: True
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 5
+  max_value: 25
+  step: 1
+  initial_value: 7
+  restore_value: True
+  entity_category: config
+  on_value:
+    then:
+      - component.update: current_setpoint
+  web_server: 
+    sorting_group_id: cooling_settings
+
+- platform: template
+  id: compressor_start_delta_cooling
+  name: "Compressor start delta koelen"
+  optimistic: true
+  min_value: 0.1
+  max_value: 10
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 3.0
+  restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: cooling_settings
+
+- platform: template
+  id: compressor_stop_delta_cooling
+  name: "Compressor stop delta koelen"
+  optimistic: true
+  min_value: 0.1
+  max_value: 10
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 5.0
+  restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: cooling_settings
+
+- platform: template
+  id: pid_heat_kp
+  name: "PID verwarmen Kp"
+  optimistic: True
+  min_value: 0.0
+  max_value: 3.0
+  step: 0.01
+  initial_value: 0.6
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pid_heat_temperature_control
+          kp: !lambda 'return id(pid_heat_kp).state;'
+          ki: !lambda 'return id(pid_heat_ki).state;'
+          kd: !lambda 'return id(pid_heat_kd).state;'
+
+- platform: template
+  id: pid_heat_ki
+  name: "PID verwarmen Ki"
+  optimistic: True
+  min_value: 0.0000
+  max_value: 0.0500
+  step: 0.0001
+  initial_value: 0.0020
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pid_heat_temperature_control
+          kp: !lambda 'return id(pid_heat_kp).state;'
+          ki: !lambda 'return id(pid_heat_ki).state;'
+          kd: !lambda 'return id(pid_heat_kd).state;'
+
+- platform: template
+  id: pid_heat_kd
+  name: "PID verwarmen Kd"
+  optimistic: True
+  min_value: 0.0
+  max_value: 25.0
+  step: 0.01
+  initial_value: 0.7
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pid_heat_temperature_control
+          kp: !lambda 'return id(pid_heat_kp).state;'
+          ki: !lambda 'return id(pid_heat_ki).state;'
+          kd: !lambda 'return id(pid_heat_kd).state;'
+
+- platform: template
+  id: pid_heat_deadband
+  name: "PID verwarmen deadband"
+  optimistic: True
+  min_value: 0.0
+  max_value: 5.0
+  step: 0.1
+  unit_of_measurement: "°C"
+  initial_value: 1.0
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - lambda: |-
+          const float deadband = x;
+          id(pid_heat_temperature_control).set_threshold_low(-deadband);
+          id(pid_heat_temperature_control).set_threshold_high(deadband);
+
+- platform: template
+  id: pid_cool_kp
+  name: "PID koelen Kp"
+  optimistic: True
+  min_value: 0.0
+  max_value: 3.0
+  step: 0.01
+  initial_value: 0.6
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: cooling_settings
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pid_cool_temperature_control
+          kp: !lambda 'return id(pid_cool_kp).state;'
+          ki: !lambda 'return id(pid_cool_ki).state;'
+          kd: !lambda 'return id(pid_cool_kd).state;'
+
+- platform: template
+  id: pid_cool_ki
+  name: "PID koelen Ki"
+  optimistic: True
+  min_value: 0.0000
+  max_value: 0.0500
+  step: 0.0001
+  initial_value: 0.0020
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: cooling_settings
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pid_cool_temperature_control
+          kp: !lambda 'return id(pid_cool_kp).state;'
+          ki: !lambda 'return id(pid_cool_ki).state;'
+          kd: !lambda 'return id(pid_cool_kd).state;'
+
+- platform: template
+  id: pid_cool_kd
+  name: "PID koelen Kd"
+  optimistic: True
+  min_value: 0.0
+  max_value: 25.0
+  step: 0.01
+  initial_value: 0.7
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: cooling_settings
+  on_value:
+    then:
+      - climate.pid.set_control_parameters:
+          id: pid_cool_temperature_control
+          kp: !lambda 'return id(pid_cool_kp).state;'
+          ki: !lambda 'return id(pid_cool_ki).state;'
+          kd: !lambda 'return id(pid_cool_kd).state;'
+
+- platform: template
+  id: pid_cool_deadband
+  name: "PID koelen deadband"
+  optimistic: True
+  min_value: 0.0
+  max_value: 5.0
+  step: 0.1
+  unit_of_measurement: "°C"
+  initial_value: 1.0
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: cooling_settings
+  on_value:
+    then:
+      - lambda: |-
+          const float deadband = x;
+          id(pid_cool_temperature_control).set_threshold_low(-deadband);
+          id(pid_cool_temperature_control).set_threshold_high(deadband);
+
+- platform: template
+  id: pump_speed_dhw_number
+  name: "Pomp snelheid tapwater"
+  optimistic: True
+  min_value: 0
+  max_value: 100
+  step: 1
+  unit_of_measurement: "%"
+  initial_value: 100
+  restore_value: True
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_settings
+
+- platform: template
+  name: "Flow switch uitvalvertraging (minuten)"
+  id: flow_switch_safety_delay_minutes
+  optimistic: True
+  restore_value: True
+  min_value: 0
+  max_value: 10
+  step: 1
+  unit_of_measurement: "min"
+  icon: "mdi:timer-alert-outline"
+  initial_value: 0
+  entity_category: config
+  web_server:
+      sorting_group_id: general_settings
+
+- platform: template
+  name: "Pomp interval (minuten)"
+  id: pump_interval
+  optimistic: True
+  restore_value: True
+  min_value: 5
+  max_value: 60
+  step: 1
+  unit_of_measurement: "min"
+  icon: "mdi:timer-outline"
+  initial_value: 15
+  entity_category: config
+  web_server: 
+      sorting_group_id: general_settings
+
+- platform: template
+  name: "Pomp duur (minuten)"
+  id: pump_duration
+  optimistic: True
+  restore_value: True
+  min_value: 2
+  max_value: 10
+  step: 1
+  unit_of_measurement: "min"
+  icon: "mdi:clock-outline"
+  initial_value: 2
+  entity_category: config
+  web_server: 
+      sorting_group_id: general_settings
+
+- platform: template
+  id: defrost_backup_heater_boost_temperature_sensor
+  name: "Defrost boost buitentemperatuur"
+  optimistic: True
+  restore_value: True
+  initial_value: -3
+  step: 1
+  min_value: -15
+  max_value: 15
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  entity_category: config
+  web_server: 
+    sorting_group_id: general_settings
+
+- platform: template
+  id: legio_repeat_days_number
+  name: "Legionellapreventie herhaling (dagen)"
+  unit_of_measurement: "d"
+  min_value: 7
+  max_value: 60
+  step: 1
+  restore_value: True
+  initial_value: 7
+  optimistic: True
+  mode: box
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_settings
+
+- platform: template
+  id: legio_target_temperature_number
+  name: "Legionellapreventie doeltemperatuur"
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 55
+  max_value: 65
+  step: 1
+  initial_value: 60
+  restore_value: True
+  optimistic: True
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_settings
+  on_value:
+    then:
+      - component.update: current_dhw_setpoint_sensor
+
+- platform: template
+  id: sg_ready_heating_boost_temperature_number
+  name: "SG-Ready verwarmingsboost setpoint"
+  optimistic: True
+  restore_value: True
+  initial_value: 5
+  step: 1
+  min_value: 0
+  max_value: 10
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  entity_category: config
+  web_server: 
+    sorting_group_id: heating_settings
+  on_value:
+    then:
+      - component.update: current_setpoint
+
+- platform: template
+  id: sg_ready_dhw_boost_temperature_number
+  name: "SG-Ready tapwaterboost setpoint"
+  optimistic: True
+  restore_value: True
+  initial_value: 5
+  step: 1
+  min_value: 0
+  max_value: 25
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_settings
+  on_value:
+    then:
+      - component.update: current_dhw_setpoint_sensor
+
+# ── Interne thermostaat ──
+- platform: template
+  id: thermostat_default_heat_setpoint
+  optimistic: True
+  min_value: 10
+  max_value: 30
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 20.5
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: thermostat_default_cool_setpoint
+  optimistic: True
+  min_value: 18
+  max_value: 30
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 24.0
+  restore_value: True
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: thermostat_heat_deadband
+  optimistic: True
+  min_value: 0.1
+  max_value: 5.0
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 0.3
+  restore_value: True
+  entity_category: config
+  on_value:
+    then:
+      - lambda: |-
+          id(climate_controller).set_heat_deadband(x);
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: thermostat_heat_overrun
+
+  optimistic: True
+  min_value: 0.1
+  max_value: 5.0
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 0.2
+  restore_value: True
+  entity_category: config
+  on_value:
+    then:
+      - lambda: |-
+          id(climate_controller).set_heat_overrun(x);
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: thermostat_cool_deadband
+  optimistic: True
+  min_value: 0.1
+  max_value: 5.0
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 0.5
+  restore_value: True
+  entity_category: config
+  on_value:
+    then:
+      - lambda: |-
+          id(climate_controller).set_cool_deadband(x);
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: thermostat_cool_overrun
+  optimistic: True
+  min_value: 0.1
+  max_value: 10.0
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 3.0
+  restore_value: True
+  entity_category: config
+  on_value:
+    then:
+      - lambda: |-
+          id(climate_controller).set_cool_overrun(x);
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  name: Flow sensor calibration
+  id: flow_sensor_calibration
+  min_value: 1
+  max_value: 1000
+  initial_value: 476
+  mode: box
+  step: 1
+  restore_value: true
+  optimistic: true
+  unit_of_measurement: pulses/l
+  entity_category: config
+  web_server: 
+      sorting_group_id: general_settings
+- platform: template
+  id: maintenance_pump_control_pwm_proxy
+  name: "Pomp PWM (Onderhoud)"
+  min_value: 0
+  max_value: 1000
+  step: 1
+  mode: box
+  lambda: |-
+    return id(pump_control_pwm_number).state;
+  set_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - number.set:
+              id: pump_control_pwm_number
+              value: !lambda 'return x;'
+  disabled_by_default: true
+  entity_category: config
+  web_server:
+    sorting_group_id: manual_control
+
+- platform: template
+  id: maintenance_fan_speed_manual_proxy
+  name: "Ventilator snelheid RPM (Onderhoud)"
+  min_value: 0
+  max_value: 1000
+  step: 1
+  mode: box
+  lambda: |-
+    return id(fan_speed_manual_number).state;
+  set_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - number.set:
+              id: fan_speed_manual_number
+              value: !lambda 'return x;'
+  disabled_by_default: true
+  entity_category: config
+  web_server:
+    sorting_group_id: manual_control
+
+- platform: template
+  id: maintenance_eev_open_setting_manual_proxy
+  name: "EEV opening handmatig (Onderhoud)"
+  min_value: 0
+  max_value: 500
+  step: 1
+  mode: box
+  lambda: |-
+    return id(eev_open_setting_manual_number).state;
+  set_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - number.set:
+              id: eev_open_setting_manual_number
+              value: !lambda 'return x;'
+  disabled_by_default: true
+  entity_category: config
+  web_server:
+    sorting_group_id: manual_control
+- platform: template
+  id: deaeration_cycle_count_short
+  optimistic: true
+  min_value: 1.0
+  max_value: 10.0
+  step: 1.0
+  initial_value: 3.0
+  entity_category: config
+
+- platform: template
+  id: deaeration_cycle_count_extended
+  optimistic: true
+  min_value: 1.0
+  max_value: 20.0
+  step: 1.0
+  initial_value: 6.0
+  entity_category: config
+
+- platform: template
+  id: deaeration_pump_run_time_seconds
+  optimistic: true
+  min_value: 10.0
+  max_value: 300.0
+  step: 5.0
+  initial_value: 30.0
+  entity_category: config
+
+- platform: template
+  id: deaeration_pump_off_time_seconds
+  optimistic: true
+  min_value: 5.0
+  max_value: 120.0
+  step: 5.0
+  initial_value: 10.0
+  entity_category: config
+
