@@ -4,7 +4,7 @@ substitutions:
   device_project_name: jordi.openamber
 
 packages:
-  core: !include ../core/core_package.yaml
+  core: !include core_package.yaml
   modbus: !include ../modbus/modbus_package.yaml
   analytics_scripts: !include analytics_scripts.yaml
 
