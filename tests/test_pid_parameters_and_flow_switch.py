@@ -7,7 +7,11 @@ Covers settings:
    - pid_cool_kp, pid_cool_ki, pid_cool_kd, pid_cool_deadband
 3. Pump P0 PID parameters:
    - pump_p0_pid_kp, pump_p0_pid_ki, pump_p0_pid_kd, pump_p0_pid_target_delta_t
-4. Flow Switch Safety Delay:
+4. Zone 1 Mixing Valve PID parameters:
+   - pid_mixing_valve_zone1_kp, pid_mixing_valve_zone1_ki, pid_mixing_valve_zone1_kd, pid_mixing_valve_zone1_deadband
+5. Zone 2 Mixing Valve PID parameters:
+   - pid_mixing_valve_zone2_kp, pid_mixing_valve_zone2_ki, pid_mixing_valve_zone2_kd, pid_mixing_valve_zone2_deadband
+6. Flow Switch Safety Delay:
    - flow_switch_safety_delay_minutes
 """
 
@@ -48,9 +52,9 @@ def test_heating_and_cooling_pid_tuning_parameters(clean_system):
         assert curr == pytest.approx(val, 0.001), f"{entity_id} mismatch: {curr} != {val}"
 
 
-def test_pump_p0_pid_parameters(clean_system):
+def test_pump_and_mixing_valve_pid_parameters(clean_system):
     """
-    Verify configuration of Pump P0 PID parameters.
+    Verify configuration of Pump P0 and Mixing Valve (Zone 1 & Zone 2) PID parameters.
     """
     openamber = clean_system
 
@@ -62,6 +66,32 @@ def test_pump_p0_pid_parameters(clean_system):
         ("pump_p0_pid_target_delta_t", 4.0),
     ]
     for entity_id, val in pump_params:
+        assert openamber.set_number(entity_id, val) is True
+        openamber.step(ms=50)
+        curr = float(openamber.get_entity(entity_id) or 0)
+        assert curr == pytest.approx(val, 0.001), f"{entity_id} mismatch: {curr} != {val}"
+
+    # Mixing Valve Zone 1 PID parameters
+    mv1_params = [
+        ("pid_mixing_valve_zone1_kp", 1.5),
+        ("pid_mixing_valve_zone1_ki", 0.01),
+        ("pid_mixing_valve_zone1_kd", 0.2),
+        ("pid_mixing_valve_zone1_deadband", 1.2),
+    ]
+    for entity_id, val in mv1_params:
+        assert openamber.set_number(entity_id, val) is True
+        openamber.step(ms=50)
+        curr = float(openamber.get_entity(entity_id) or 0)
+        assert curr == pytest.approx(val, 0.001), f"{entity_id} mismatch: {curr} != {val}"
+
+    # Mixing Valve Zone 2 PID parameters
+    mv2_params = [
+        ("pid_mixing_valve_zone2_kp", 1.8),
+        ("pid_mixing_valve_zone2_ki", 0.012),
+        ("pid_mixing_valve_zone2_kd", 0.3),
+        ("pid_mixing_valve_zone2_deadband", 1.5),
+    ]
+    for entity_id, val in mv2_params:
         assert openamber.set_number(entity_id, val) is True
         openamber.step(ms=50)
         curr = float(openamber.get_entity(entity_id) or 0)

@@ -11,6 +11,32 @@ number:
   web_server:
     sorting_group_id: manual_control
 
+# Mengventiel zone 1 — 0-10V via modbus register 1106
+- platform: modbus_controller
+  id: mixing_valve_zone1_output
+  modbus_controller_id: modbus_inside_unit
+  name: "Mengventiel zone 1"
+  internal: True
+  address: 1106
+  min_value: 0
+  max_value: 100
+  step: 1
+  web_server:
+    sorting_group_id: manual_control
+
+# Mengventiel zone 2 — 0-10V via modbus register 1107
+- platform: modbus_controller
+  id: mixing_valve_zone2_output
+  modbus_controller_id: modbus_inside_unit
+  name: "Mengventiel zone 2"
+  internal: True
+  address: 1107
+  min_value: 0
+  max_value: 100
+  step: 1
+  web_server:
+    sorting_group_id: manual_control
+
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: fan_speed_manual_number

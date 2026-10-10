@@ -440,6 +440,22 @@ number:
     step: 1
     initial_value: 82
   - platform: template
+    id: mixing_valve_zone1_output
+    name: "Mengventiel zone 1"
+    optimistic: true
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 0
+  - platform: template
+    id: mixing_valve_zone2_output
+    name: "Mengventiel zone 2"
+    optimistic: true
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 0
+  - platform: template
     id: bottomplate_heater_ambient_temperature_start
     name: "Bodemplaatverwarming start temp"
     optimistic: true
