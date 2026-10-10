@@ -1,0 +1,18 @@
+# ==============================================================================
+# OpenAmber Core Application Package (Hardware-Independent Business Logic)
+# ==============================================================================
+
+packages:
+  - !include globals.yaml
+  - !include openamber_component.yaml
+  - !include datetime.yaml
+  - !include output.yaml
+  - !include button.yaml
+  - !include climates.yaml
+  - !include scripts.yaml
+  - !include numbers.yaml
+  - !include switches.yaml
+  - !include selects.yaml
+  - !include sensors.yaml
+  - !include binary_sensors.yaml
+  - !include text_sensors.yaml

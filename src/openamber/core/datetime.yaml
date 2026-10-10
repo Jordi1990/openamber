@@ -1,0 +1,27 @@
+datetime:
+  - platform: template
+    id: next_legionella_run
+    name: "Volgende legionellapreventie"
+    type: datetime
+    restore_value: true
+    optimistic: true
+    initial_value: "2030-01-01 10:00:00"
+    entity_category: config
+
+  - platform: template
+    id: dhw_start_time
+    type: time
+    name: "Tapwater starttijd"
+    optimistic: true
+    initial_value: "10:00:00"
+    restore_value: true
+    entity_category: config
+
+  - platform: template
+    id: dhw_end_time
+    type: time
+    name: "Tapwater eindtijd"
+    optimistic: true
+    initial_value: "17:00:00"
+    restore_value: true
+    entity_category: config

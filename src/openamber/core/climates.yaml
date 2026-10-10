@@ -1,3 +1,4 @@
+climate:
 - platform: thermostat
   id: climate_controller
   name: Amber thermostat
@@ -36,9 +37,6 @@
   on_state:
     then:
       - script.execute: update_home_thermostat_mode_ui
-
-  web_server: 
-    sorting_group_id: overview
 
 - platform: pid
   id: pid_heat_temperature_control

@@ -1,5 +1,5 @@
 packages:
- - !include openamber/common/openamber.yaml
+ - !include openamber/core/openamber.yaml
 
 substitutions:
   device_model: leejow
