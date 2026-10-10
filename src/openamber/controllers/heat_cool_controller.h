@@ -668,7 +668,7 @@ public:
           // When not requested to stop, let the pump run for another cycle.
           if(!requested_to_stop_)
           {
-            pump_controller_->RestartPumpInterval();
+            pump_controller_->RestartPumpRunCycle();
           }
           SetNextState(HeatCoolState::PUMP_RUNNING);
         }

@@ -1192,133 +1192,126 @@ select:
     name: "Bedrijfsmodus"
     optimistic: true
     options:
-      - "Uit"
-      - "Verwarmen"
+      - "Standby"
       - "Koelen"
-      - "Tapwater"
-      - "Automatisch"
+      - "Verwarmen"
+      - "Onderhoud"
     initial_option: "Verwarmen"
   - platform: template
     id: thermostat_mode_select
-    name: "Thermostaatmodus"
+    name: "Thermostaat keuze"
     optimistic: true
     options:
-      - "Uit"
-      - "Comfort"
-      - "Eco"
-      - "Vakantie"
-    initial_option: "Comfort"
+      - "Intern"
+      - "Extern"
+    initial_option: "Extern"
   - platform: template
     id: heat_mode_select
     name: "Verwarmingsmodus"
     optimistic: true
     options:
-      - "Handmatig"
       - "Stooklijn"
+      - "Extern setpoint"
     initial_option: "Stooklijn"
   - platform: template
     id: heat_cool_control_temperature_source_select
-    name: "Temperatuurbron regeling"
+    name: "Regeltemperatuur bron"
     optimistic: true
     options:
-      - "Tuo"
-      - "Tc"
-      - "Tv1"
-    initial_option: "Tuo"
+      - "CV-aanvoer (Tc)"
+      - "CV-aanvoer zone 1 (Tv1)"
+    initial_option: "CV-aanvoer (Tc)"
   - platform: template
     id: backup_heating_mode
-    name: "Bijverwarming modus"
+    name: "Backup verwarmingsmodus"
     optimistic: true
     options:
-      - "Uit"
-      - "Automatisch"
-      - "Noodbedrijf"
-    initial_option: "Uit"
+      - "Intern verwarmingselement"
+      - "Externe backup verwarming"
+    initial_option: "Intern verwarmingselement"
   - platform: template
     id: bottomplate_heater_mode
-    name: "Bodemplaatverwarming modus"
+    name: "Bodemplaat verwarmingsmodus"
     optimistic: true
     options:
-      - "Uit"
-      - "Automatisch"
-      - "Handmatig"
-    initial_option: "Automatisch"
+      - "Onbekend"
+      - "Buitentemperatuur"
+      - "Tijdens defrost"
+    initial_option: "Buitentemperatuur"
   - platform: template
     id: heat_compressor_mode
-    name: "Compressor vermogensstand verwarmen"
+    name: "Verwarmen vermogen"
     optimistic: true
     options:
-      - "Stand 4"
-      - "Stand 5"
-      - "Stand 6"
-      - "Stand 7"
-      - "Stand 8"
-      - "Stand 9"
-      - "Stand 10"
-    initial_option: "Stand 7"
+      - "Beperkt"
+      - "Zeer laag"
+      - "Laag"
+      - "Gemiddeld"
+      - "Verhoogd"
+      - "Hoog"
+      - "Maximaal"
+    initial_option: "Maximaal"
   - platform: template
     id: cool_mode_select
     name: "Koelmodus"
     optimistic: true
     options:
-      - "Handmatig"
-    initial_option: "Handmatig"
+      - "Intern setpoint"
+      - "Extern setpoint"
+    initial_option: "Intern setpoint"
   - platform: template
     id: cool_compressor_mode
-    name: "Compressor vermogensstand koelen"
+    name: "Koelen vermogen"
     optimistic: true
     options:
-      - "Stand 4"
-      - "Stand 5"
-      - "Stand 6"
-      - "Stand 7"
-      - "Stand 8"
-      - "Stand 9"
-      - "Stand 10"
-    initial_option: "Stand 7"
+      - "Beperkt"
+      - "Zeer laag"
+      - "Laag"
+      - "Gemiddeld"
+      - "Verhoogd"
+      - "Hoog"
+      - "Maximaal"
+    initial_option: "Maximaal"
   - platform: template
     id: dhw_compressor_mode
-    name: "Compressor vermogensstand tapwater"
+    name: "Tapwater basisvermogen"
     optimistic: true
     options:
-      - "Stand 4"
-      - "Stand 5"
-      - "Stand 6"
-      - "Stand 7"
-      - "Stand 8"
-      - "Stand 9"
-      - "Stand 10"
-    initial_option: "Stand 7"
+      - "Beperkt"
+      - "Zeer laag"
+      - "Laag"
+      - "Gemiddeld"
+      - "Verhoogd"
+      - "Hoog"
+      - "Maximaal"
+    initial_option: "Beperkt"
   - platform: template
     id: dhw_compressor_mode_max
-    name: "Max compressor vermogensstand tapwater"
+    name: "Tapwater wintervermogen"
     optimistic: true
     options:
-      - "Stand 4"
-      - "Stand 5"
-      - "Stand 6"
-      - "Stand 7"
-      - "Stand 8"
-      - "Stand 9"
-      - "Stand 10"
-    initial_option: "Stand 10"
+      - "Gemiddeld"
+      - "Verhoogd"
+      - "Hoog"
+      - "Maximaal"
+    initial_option: "Gemiddeld"
   - platform: template
     id: dhw_pump_start_mode_select
     name: "Tapwater pomp startmodus"
     optimistic: true
     options:
-      - "Direct"
-      - "Vertraagd"
-    initial_option: "Direct"
+      - "Aanvoer warmer dan vat (ΔT)"
+      - "Samen met compressor"
+    initial_option: "Aanvoer warmer dan vat (ΔT)"
   - platform: template
     id: sg_ready_mode_select
-    name: "SG Ready modus"
+    name: "SG-Ready modus"
     optimistic: true
     options:
       - "Normaal"
       - "Blokkeren"
       - "Boost"
-      - "Max Boost"
+      - "Max boost"
     initial_option: "Normaal"
 
 text_sensor:
