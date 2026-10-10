@@ -19,7 +19,7 @@ CORE_DIR = os.path.join(PROJECT_ROOT, "src", "openamber", "core")
 MODBUS_DIR = os.path.join(PROJECT_ROOT, "src", "openamber", "modbus")
 MOCK_FILE = os.path.join(PROJECT_ROOT, "src", "openamber", "mock", "mock_entities.yaml")
 UI_BINDINGS_DIR = os.path.join(PROJECT_ROOT, "src", "openamber", "ui", "bindings")
-OPENAMBER_YAML = os.path.join(PROJECT_ROOT, "src", "openamber", "common", "openamber.yaml")
+OPENAMBER_YAML = os.path.join(PROJECT_ROOT, "src", "openamber", "core", "openamber.yaml")
 VIRTUAL_DISPLAY_YAML = os.path.join(PROJECT_ROOT, "src", "openamber-virtual-display.yaml")
 
 
@@ -72,7 +72,7 @@ def extract_all_ids_from_dir(directory):
     all_entities = {}
     duplicates = []
     for file_path in glob.glob(os.path.join(directory, "*.yaml")):
-        if os.path.basename(file_path).endswith("_package.yaml"):
+        if os.path.basename(file_path).endswith("_package.yaml") or os.path.basename(file_path) in ("openamber.yaml", "analytics_scripts.yaml"):
             continue
         file_entities = extract_entity_ids(file_path)
         for eid, domain in file_entities.items():
@@ -226,7 +226,7 @@ def test_ui_bindings_reference_valid_entities():
 def test_package_configuration_integrity():
     """
     Verify that:
-    1. src/openamber/common/openamber.yaml includes core_package.yaml and modbus_package.yaml.
+    1. src/openamber/core/openamber.yaml includes core_package.yaml and modbus_package.yaml.
     2. src/openamber-virtual-display.yaml includes core_package.yaml and mock_entities.yaml.
     """
     with open(OPENAMBER_YAML, "r", encoding="utf-8") as f:
