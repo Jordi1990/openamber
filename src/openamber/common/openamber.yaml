@@ -4,17 +4,15 @@ substitutions:
   device_project_name: jordi.openamber
 
 packages:
-  maintenance_proxy_switches: !include maintenance_proxy_switches.yaml
-  maintenance_proxy_numbers: !include maintenance_proxy_numbers.yaml
+  core: !include ../core/core_package.yaml
+  modbus: !include ../modbus/modbus_package.yaml
+  analytics_scripts: !include analytics_scripts.yaml
 
 external_components:
   - source:
       type: local
       path: openamber
-
-openamber_component:
-  id: amber_ctrl
-  update_interval: 5s
+    components: [openamber_component, native_build_flags]
 
 debug:
 
@@ -159,63 +157,7 @@ wifi:
     ssid: "OpenAmber"
     password: "openamber"
 
-captive_portal:    
-
-uart:
-  baud_rate: 19200
-  parity: EVEN
-
-globals:
-  - id: analytics_topic
-    type: std::string
-    restore_value: no
-  - id: modbus_inside_is_online
-    type: bool
-    restore_value: no
-    initial_value: 'false'
-  - id: analytics_batch_timestamp
-    type: int64_t
-    restore_value: no
-    initial_value: '0'
-  - id: modbus_outside_is_online
-    type: bool
-    restore_value: no
-    initial_value: 'false'
-
-datetime:
- - platform: template
-   id: next_legionella_run
-   name: "Volgende legionellapreventie"
-   type: datetime
-   restore_value: true
-   optimistic: true
-   initial_value: "2030-01-01 10:00:00"
-   entity_category: config
-   web_server: 
-    sorting_group_id: dhw_settings
-
- - platform: template
-   id: dhw_start_time
-   type: time
-   name: "Tapwater starttijd"
-   optimistic: true
-   initial_value: "10:00:00"
-   restore_value: true
-   entity_category: config
-   web_server: 
-    sorting_group_id: dhw_schedule_settings
-
- - platform: template
-   id: dhw_end_time
-   type: time
-   name: "Tapwater eindtijd"
-   optimistic: true
-   initial_value: "17:00:00"
-   restore_value: true
-   entity_category: config
-   web_server: 
-    sorting_group_id: dhw_schedule_settings
-
+captive_portal:
 
 # Use SNTP for time so we also have time when not connected to Home Assistant.
 time:
@@ -244,97 +186,6 @@ time:
           - sensor.integration.reset: electrical_energy_day_cooling
           - sensor.integration.reset: thermal_energy_day_dhw
           - sensor.integration.reset: electrical_energy_day_dhw
-modbus_controller:
-- id: modbus_outside_unit
-  address: 0x2
-  update_interval: 15s
-  max_cmd_retries: 2
-  on_offline:
-    then:
-      - lambda: |-
-          id(modbus_outside_is_online) = false;
-      - logger.log: "Modbus outside unit OFFLINE"
-  on_online:
-    then:
-      - lambda: |-
-          id(modbus_outside_is_online) = true;
-      - logger.log: "Modbus outside unit ONLINE"
-- id: modbus_inside_unit
-  address: 0x0B
-  update_interval: 15s
-  max_cmd_retries: 2
-  on_offline:
-    then:
-      - lambda: |-
-          id(modbus_inside_is_online) = false;
-      - logger.log: "Modbus inside unit OFFLINE"
-  on_online:
-    then:
-      - lambda: |-
-          id(modbus_inside_is_online) = true;
-      - logger.log: "Modbus inside unit ONLINE"
-
-climate: !include climates.yaml
-sensor: !include sensors.yaml
-text_sensor: !include text_sensors.yaml
-binary_sensor: !include binary_sensors.yaml
-number: !include numbers.yaml
-switch: !include switches.yaml
-select: !include selects.yaml
-script: !include scripts.yaml
-
-output:
-  - platform: template
-    id: pid_heat_output
-    type: float
-    write_action:
-      - lambda: |-
-          id(amber_ctrl).write_heat_pid_value(state);
-
-  - platform: template
-    id: pid_cool_output
-    type: float
-    write_action:
-      - lambda: |-
-          id(amber_ctrl).write_cool_pid_value(state);
-
-  - platform: template
-    id: pump_p0_pid_output
-    type: float
-    write_action:
-      - lambda: |-
-          id(amber_ctrl).write_pump_p0_pid_value(state);
-
-  - platform: template
-    id: mixing_valve_zone1_pid_output
-    type: float
-    write_action:
-      - lambda: |-
-          id(amber_ctrl).write_mixing_valve_zone1_pid_value(state);
-
-  - platform: template
-    id: mixing_valve_zone2_pid_output
-    type: float
-    write_action:
-      - lambda: |-
-          id(amber_ctrl).write_mixing_valve_zone2_pid_value(state);
-
-button:
-  - platform: factory_reset
-    disabled_by_default: true
-    name: Restart with Factory Default Settings
-  - platform: restart
-    id: restart_openamber
-    name: Restart OpenAmber
-  - platform: template
-    id: dump_eeprom_parameters_button
-    name: "Dump EEPROM parameters"
-    disabled_by_default: true
-    entity_category: diagnostic
-    web_server:
-      sorting_group_id: diagnostic
-    on_press:
-      - script.execute: dump_eeprom_parameters
 
 preferences:
  flash_write_interval: 5min

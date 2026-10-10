@@ -1,0 +1,12 @@
+# ==============================================================================
+# OpenAmber Production Modbus Hardware Package
+# ==============================================================================
+
+packages:
+  - !include controllers.yaml
+  - !include numbers.yaml
+  - !include switches.yaml
+  - !include selects.yaml
+  - !include sensors.yaml
+  - !include binary_sensors.yaml
+  - !include text_sensors.yaml

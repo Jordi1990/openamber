@@ -1,3 +1,6 @@
+substitutions:
+  device_model: virtual-display
+
 esphome:
   name: openamber-test
   project:
@@ -8,6 +11,8 @@ esphome:
       then:
         - lambda: |-
             id(outside_unit_eeprom_version).publish_state(114.0f);
+            id(modbus_inside_is_online) = true;
+            id(modbus_outside_is_online) = true;
     - priority: -100
       then:
         - lvgl.label.update:
@@ -34,6 +39,11 @@ esphome:
 
 host:
 
+debug:
+
+web_server:
+  port: 80
+
 logger:
   level: INFO
 
@@ -41,6 +51,7 @@ external_components:
   - source:
       type: local
       path: openamber
+    components: [openamber_component, test_bridge, mock_time, mock_update, native_build_flags, web_server]
 
 display:
   - platform: sdl
@@ -55,6 +66,7 @@ touchscreen:
     id: openamber_touchscreen
 
 packages:
+  - !include openamber/core/core_package.yaml
   - !include openamber/mock/mock_entities.yaml
   - !include openamber/ui/display_globals.yaml
   - !include openamber/ui/bindings/ui_bindings_package.yaml

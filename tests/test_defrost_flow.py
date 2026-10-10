@@ -42,16 +42,18 @@ def test_heat_defrost_recovery_boost_and_settle_time(clean_system):
     openamber.advance_time(seconds=190, step_s=10)
     openamber.step(ms=50)
 
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running", (
+        f"State should be 'Compressor running', got {openamber.get_entity('state_machine_state_heat_cool')}"
+    )
     initial_mode = int(openamber.get_entity("compressor_control_select") or 0)
-    assert initial_mode > 0
+    assert initial_mode > 0, f"Expected initial compressor mode > 0, got {initial_mode}"
 
     # Step 2: Defrost cycle activates
     openamber.set_binary_sensor("defrost_active_sensor", True)
     openamber.advance_time(seconds=10, step_s=2)
     openamber.step(ms=50)
 
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Defrosting"
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Defrosting", "Expected 'Defrosting' state"
 
     # Step 3: Defrost cycle ends with Tc < target - 3°C (28°C < 32°C)
     openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
@@ -67,22 +69,24 @@ def test_heat_defrost_recovery_boost_and_settle_time(clean_system):
     )
 
     # Verify settle state
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Wait for state switch"
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Wait for state switch", "State should be 'Wait for state switch'"
 
     # Step 4: Advance virtual time 270s (< 300s settle time, taking into account 10s already advanced)
     openamber.advance_time(seconds=270, step_s=20)
     openamber.step(ms=50)
 
     # Still waiting in settle period
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Wait for state switch"
-    assert int(openamber.get_entity("compressor_control_select") or 0) == boosted_mode
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Wait for state switch", "State should hold in 'Wait for state switch'"
+    assert int(openamber.get_entity("compressor_control_select") or 0) == boosted_mode, "Boosted mode should hold during settle"
 
     # Step 5: Advance remaining 30s (total > 300s settle time)
     openamber.advance_time(seconds=30, step_s=10)
     openamber.step(ms=50)
 
     # Transitioned back to normal compressor running
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running", (
+        f"State should return to 'Compressor running' after 300s settle, got {openamber.get_entity('state_machine_state_heat_cool')}"
+    )
 
 
 def test_heat_defrost_no_recovery_boost_when_near_target(clean_system):
@@ -114,14 +118,14 @@ def test_heat_defrost_no_recovery_boost_when_near_target(clean_system):
     openamber.advance_time(seconds=190, step_s=10)
     openamber.step(ms=50)
 
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running", "State should be 'Compressor running'"
     mode_before_defrost = int(openamber.get_entity("compressor_control_select") or 0)
 
     # Defrost activates
     openamber.set_binary_sensor("defrost_active_sensor", True)
     openamber.advance_time(seconds=10, step_s=2)
     openamber.step(ms=50)
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Defrosting"
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Defrosting", "State should be 'Defrosting'"
 
     # Tc is warm (34.0°C >= 32.0°C), defrost ends
     openamber.set_sensor("current_water_temperature_tc_sensor", 34.0)
@@ -132,15 +136,15 @@ def test_heat_defrost_no_recovery_boost_when_near_target(clean_system):
 
     # Mode should NOT have been boosted
     mode_after_defrost = int(openamber.get_entity("compressor_control_select") or 0)
-    assert mode_after_defrost == mode_before_defrost
+    assert mode_after_defrost == mode_before_defrost, f"Mode should not boost when near target: expected {mode_before_defrost}, got {mode_after_defrost}"
 
     # Verify settle state
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Wait for state switch"
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Wait for state switch", "State should be 'Wait for state switch'"
 
     openamber.advance_time(seconds=300, step_s=20)
     openamber.step(ms=50)
 
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running", "State should return to 'Compressor running'"
 
 
 def test_heat_defrost_backup_heater_boost_low_outside_temp(clean_system):
@@ -174,14 +178,14 @@ def test_heat_defrost_backup_heater_boost_low_outside_temp(clean_system):
     openamber.advance_time(seconds=190, step_s=10)
     openamber.step(ms=50)
 
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
-    assert openamber.get_entity("backup_heater_relay") is False
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running", "State should be 'Compressor running'"
+    assert openamber.get_entity("backup_heater_relay") is False, "Backup heater should initially be OFF"
 
     # Defrost initiates
     openamber.set_binary_sensor("defrost_active_sensor", True)
     openamber.advance_time(seconds=10, step_s=2)
     openamber.step(ms=50)
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Defrosting"
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Defrosting", "State should be 'Defrosting'"
 
     # Defrost completes
     openamber.set_binary_sensor("defrost_active_sensor", False)
@@ -189,10 +193,10 @@ def test_heat_defrost_backup_heater_boost_low_outside_temp(clean_system):
     openamber.step(ms=50)
 
     # Backup heater must activate because Ta (-5°C) <= threshold (-3°C)
-    assert openamber.get_entity("backup_heater_relay") is True
+    assert openamber.get_entity("backup_heater_relay") is True, "Backup heater must turn ON when Ta <= threshold after defrost"
     assert openamber.get_entity("state_machine_state_heat_cool") in (
         "Wait backup heater running", "Backup heater running"
-    )
+    ), f"Expected backup heater state, got {openamber.get_entity('state_machine_state_heat_cool')}"
 
 
 def test_heat_defrost_pump_p1_interruption_and_restart(clean_system):
@@ -207,6 +211,11 @@ def test_heat_defrost_pump_p1_interruption_and_restart(clean_system):
     """
     openamber = clean_system
 
+    openamber.set_select("thermostat_mode_select", "Extern")
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 35.0)
+    openamber.set_climate("pid_heat_temperature_control", target_temperature=35.0)
+    openamber.set_select("heat_compressor_mode", "Maximaal")
     openamber.set_switch("pump_p1_enabled", True)
     openamber.set_switch("heat_demand_switch", True)
     openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
@@ -222,20 +231,20 @@ def test_heat_defrost_pump_p1_interruption_and_restart(clean_system):
     openamber.step(ms=50)
 
     # Pump P1 must be running
-    assert openamber.get_entity("pump_p1_relay_switch") is True
+    assert openamber.get_entity("pump_p1_relay_switch") is True, "Pump P1 should be running during space heating"
 
     # Defrost initiates -> Pump P1 must stop
     openamber.set_binary_sensor("defrost_active_sensor", True)
     openamber.advance_time(seconds=10, step_s=2)
     openamber.step(ms=50)
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Defrosting"
-    assert openamber.get_entity("pump_p1_relay_switch") is False
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Defrosting", "State should be 'Defrosting'"
+    assert openamber.get_entity("pump_p1_relay_switch") is False, "Pump P1 must stop during defrost"
 
     # Defrost ends -> Pump P1 must restart
     openamber.set_binary_sensor("defrost_active_sensor", False)
     openamber.advance_time(seconds=10, step_s=2)
     openamber.step(ms=50)
-    assert openamber.get_entity("pump_p1_relay_switch") is True
+    assert openamber.get_entity("pump_p1_relay_switch") is True, "Pump P1 must restart after defrost completes"
 
 
 def test_defrost_pump_p0_pid_defrost_pwm(clean_system):
@@ -249,6 +258,11 @@ def test_defrost_pump_p0_pid_defrost_pwm(clean_system):
     """
     openamber = clean_system
 
+    openamber.set_select("thermostat_mode_select", "Extern")
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 35.0)
+    openamber.set_climate("pid_heat_temperature_control", target_temperature=35.0)
+    openamber.set_select("heat_compressor_mode", "Maximaal")
     openamber.set_switch("pump_p0_pid_enabled", True)
     openamber.set_number("pump_p0_pid_defrost_pwm", 85.0)
     openamber.set_switch("heat_demand_switch", True)
@@ -298,23 +312,23 @@ def test_dhw_defrost_flow_and_settle_time(clean_system):
     # Step 1: Start DHW heating
     openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
     openamber.step(ms=50)
-    assert openamber.get_entity("dhw_demand_active_sensor") is True
+    assert openamber.get_entity("dhw_demand_active_sensor") is True, "DHW demand should be active"
 
     # Advance time for 3-way valve switch (60s) + pump wait/settle (130s) + compressor softstart (190s) = ~380-400s
     openamber.advance_time(seconds=400, step_s=20)
     openamber.step(ms=50)
 
-    assert openamber.get_entity("state_machine_state_main") == "DHW"
-    assert openamber.get_entity("three_way_valve_dhw_switch") is True
-    assert openamber.get_entity("state_machine_state_dhw") == "Compressor running"
-    assert int(openamber.get_entity("compressor_control_select") or 0) > 0
+    assert openamber.get_entity("state_machine_state_main") == "DHW", "Main state should be 'DHW'"
+    assert openamber.get_entity("three_way_valve_dhw_switch") is True, "3-way valve should be on DHW"
+    assert openamber.get_entity("state_machine_state_dhw") == "Compressor running", "DHW state should be 'Compressor running'"
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0, "Compressor should run for DHW"
 
     # Step 2: Defrost activates during DHW heating
     openamber.set_binary_sensor("defrost_active_sensor", True)
     openamber.advance_time(seconds=10, step_s=2)
     openamber.step(ms=50)
 
-    assert openamber.get_entity("state_machine_state_dhw") == "Defrosting"
+    assert openamber.get_entity("state_machine_state_dhw") == "Defrosting", "DHW state should be 'Defrosting'"
 
     # Step 3: Defrost ends
     openamber.set_binary_sensor("defrost_active_sensor", False)
@@ -322,28 +336,28 @@ def test_dhw_defrost_flow_and_settle_time(clean_system):
     openamber.step(ms=50)
 
     # DHW enters settle state
-    assert openamber.get_entity("state_machine_state_dhw") == "Wait for state switch"
+    assert openamber.get_entity("state_machine_state_dhw") == "Wait for state switch", "DHW state should be 'Wait for state switch'"
 
     # Step 4: Advance virtual time 270s (< 300s settle time, 10s already elapsed)
     openamber.advance_time(seconds=270, step_s=20)
     openamber.step(ms=50)
 
-    assert openamber.get_entity("state_machine_state_dhw") == "Wait for state switch"
+    assert openamber.get_entity("state_machine_state_dhw") == "Wait for state switch", "DHW state should remain in 'Wait for state switch'"
 
     # Step 5: Advance remaining 30s (> 300s settle time)
     openamber.advance_time(seconds=30, step_s=10)
     openamber.step(ms=50)
 
-    assert openamber.get_entity("state_machine_state_dhw") == "Compressor running"
+    assert openamber.get_entity("state_machine_state_dhw") == "Compressor running", "DHW state should return to 'Compressor running'"
 
     # Step 6: DHW reaches target temperature
     openamber.set_sensor("dhw_temperature_tw_sensor", 52.0)
     openamber.step(ms=50)
-    assert openamber.get_entity("dhw_demand_active_sensor") is False
+    assert openamber.get_entity("dhw_demand_active_sensor") is False, "DHW demand should cease at target"
 
     # Advance past min-on time (600s) + valve switch (60s)
     openamber.advance_time(seconds=700, step_s=20)
     openamber.step(ms=50)
 
-    assert openamber.get_entity("three_way_valve_dhw_switch") is False
-    assert openamber.get_entity("state_machine_state_main") == "Heat/Cool"
+    assert openamber.get_entity("three_way_valve_dhw_switch") is False, "Valve should switch back to heating/cooling"
+    assert openamber.get_entity("state_machine_state_main") == "Heat/Cool", "Main state should return to Heat/Cool"

@@ -1,0 +1,473 @@
+switch:
+- platform: template
+  id: pump_p1_enabled
+  name: "Pomp P1 aanwezig"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: pump_p0_pid_enabled
+  name: "Pomp P0 PID regeling"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+# Mengventiel zone 1 aanwezig
+- platform: template
+  id: mixing_valve_zone1_enabled
+  name: "Mengventiel zone 1 aanwezig"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+# Mengventiel zone 2 aanwezig
+- platform: template
+  id: mixing_valve_zone2_enabled
+  name: "Mengventiel zone 2 aanwezig"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server:
+    sorting_group_id: heating_settings
+
+- platform: template
+  id: legio_enabled_switch
+  name: "Legionellapreventie"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_settings
+
+- platform: template
+  id: dhw_enabled_switch
+  name: "Tapwater aanwezig"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_settings
+
+- platform: template
+  id: dhw_schedule_enabled_switch
+  name: "Tapwater schema actief"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
+
+- platform: template
+  id: dhw_schedule_monday_enabled_switch
+  name: "Tapwater schema Maandag"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
+
+- platform: template
+  id: dhw_schedule_tuesday_enabled_switch
+  name: "Tapwater schema Dinsdag"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
+
+- platform: template
+  id: dhw_schedule_wednesday_enabled_switch
+  name: "Tapwater schema Woensdag"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
+
+- platform: template
+  id: dhw_schedule_thursday_enabled_switch
+  name: "Tapwater schema Donderdag"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
+
+- platform: template
+  id: dhw_schedule_friday_enabled_switch
+  name: "Tapwater schema Vrijdag"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
+
+- platform: template
+  id: dhw_schedule_saturday_enabled_switch
+  name: "Tapwater schema Zaterdag"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
+
+- platform: template
+  id: dhw_schedule_sunday_enabled_switch
+  name: "Tapwater schema Zondag"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server: 
+    sorting_group_id: dhw_schedule_settings
+
+- platform: template
+  id: analytics_enabled_switch
+  name: "Analytics versturen"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  setup_priority: 200
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
+  id: advanced_settings_enabled
+  name: "Geavanceerde instellingen"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server:
+    sorting_group_id: general_settings
+
+- platform: template
+  id: service_mode_enabled
+  name: "Onderhoudsmodus"
+  optimistic: True
+  entity_category: config
+  disabled_by_default: true
+  web_server:
+    sorting_group_id: manual_control
+
+- platform: template
+  id: deaeration_short_switch
+  name: "Ontluchting kort"
+  entity_category: config
+  disabled_by_default: true
+  web_server:
+    sorting_group_id: manual_control
+  lambda: |-
+    return id(amber_ctrl).is_deaeration_running() && !id(amber_ctrl).is_deaeration_extended();
+  turn_on_action:
+    - lambda: |-
+        id(amber_ctrl).start_deaeration_routine(false);
+  turn_off_action:
+    - lambda: |-
+        if (id(amber_ctrl).is_deaeration_running() && !id(amber_ctrl).is_deaeration_extended()) {
+          id(amber_ctrl).stop_deaeration_routine();
+        }
+
+- platform: template
+  id: deaeration_extended_switch
+  name: "Ontluchting uitgebreid"
+  entity_category: config
+  disabled_by_default: true
+  web_server:
+    sorting_group_id: manual_control
+  lambda: |-
+    return id(amber_ctrl).is_deaeration_running() && id(amber_ctrl).is_deaeration_extended();
+  turn_on_action:
+    - lambda: |-
+        id(amber_ctrl).start_deaeration_routine(true);
+  turn_off_action:
+    - lambda: |-
+        if (id(amber_ctrl).is_deaeration_running() && id(amber_ctrl).is_deaeration_extended()) {
+          id(amber_ctrl).stop_deaeration_routine();
+        }
+
+- platform: template
+  id: flow_sensor_enabled
+  name: "Flow sensor aanwezig"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server:
+    sorting_group_id: general_settings
+
+- platform: template
+  id: emergency_mode_enabled
+  name: "Noodbedrijf"
+  optimistic: True
+  entity_category: config
+  web_server:
+    sorting_group_id: general_settings
+
+- platform: template
+  id: reset_start_timeout_errors_switch
+  name: "Reset systeem timeout fouten"
+  optimistic: true
+  restore_mode: ALWAYS_OFF
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: error_codes
+  turn_on_action:
+    - lambda: |-
+        id(error_pump_start_timeout).publish_state(false);
+        id(error_compressor_start_timeout).publish_state(false);
+        id(error_pump_stop_timeout).publish_state(false);
+        id(error_modbus_connection_timeout).publish_state(false);
+        id(error_three_way_valve_state_timeout).publish_state(false);
+    - switch.turn_off: reset_start_timeout_errors_switch
+
+- platform: template
+  optimistic: True
+  id: backup_heater_relay
+  name: "Backup verwarmingselement"
+  internal: True
+  on_state: 
+    then:
+    - switch.control:
+        id: backup_heater_stage_1
+        state: !lambda return x;
+    - switch.control:
+        id: backup_heater_stage_2
+        state: !lambda return x;
+
+- platform: template
+  id: heat_demand_switch
+  name: "Externe warmtevraag"
+  optimistic: True
+  web_server: 
+    sorting_group_id: manual_control
+
+- platform: template
+  id: cool_demand_switch
+  name: "Externe koudevraag"
+  optimistic: True
+  web_server: 
+    sorting_group_id: manual_control
+- platform: template
+  id: maintenance_bottom_plate_heater_manual_proxy
+  name: "Bodemplaat verwarming (Onderhoud)"
+  lambda: |-
+    return id(bottom_plate_heater_manual_switch).state;
+  turn_on_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - switch.turn_on: bottom_plate_heater_manual_switch
+  turn_off_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - switch.turn_off: bottom_plate_heater_manual_switch
+  disabled_by_default: true
+  entity_category: config
+  web_server:
+    sorting_group_id: manual_control
+
+- platform: template
+  id: maintenance_compressor_crankcase_heater_manual_proxy
+  name: "Compressor carterverwarming (Onderhoud)"
+  lambda: |-
+    return id(compressor_crankcase_heater_manual_switch).state;
+  turn_on_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - switch.turn_on: compressor_crankcase_heater_manual_switch
+  turn_off_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - switch.turn_off: compressor_crankcase_heater_manual_switch
+  disabled_by_default: true
+  entity_category: config
+  web_server:
+    sorting_group_id: manual_control
+
+- platform: template
+  id: maintenance_pump_p0_relay_proxy
+  name: "Pomp P0 relais (Onderhoud)"
+  lambda: |-
+    return id(pump_p0_relay_switch).state;
+  turn_on_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - switch.turn_on: pump_p0_relay_switch
+  turn_off_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - switch.turn_off: pump_p0_relay_switch
+  disabled_by_default: true
+  entity_category: config
+  web_server:
+    sorting_group_id: manual_control
+
+- platform: template
+  id: maintenance_pump_p1_relay_proxy
+  name: "Pomp P1 relais (Onderhoud)"
+  lambda: |-
+    return id(pump_p1_relay_switch).state;
+  turn_on_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - switch.turn_on: pump_p1_relay_switch
+  turn_off_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - switch.turn_off: pump_p1_relay_switch
+  disabled_by_default: true
+  entity_category: config
+  web_server:
+    sorting_group_id: manual_control
+
+- platform: template
+  id: maintenance_pump_p2_relay_proxy
+  name: "Pomp P2 relais (Onderhoud)"
+  lambda: |-
+    return id(pump_p2_relay_switch).state;
+  turn_on_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - switch.turn_on: pump_p2_relay_switch
+  turn_off_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - switch.turn_off: pump_p2_relay_switch
+  disabled_by_default: true
+  entity_category: config
+  web_server:
+    sorting_group_id: manual_control
+
+- platform: template
+  id: maintenance_dhw_pump_relay_proxy
+  name: "Tapwater pomp relais (Onderhoud)"
+  lambda: |-
+    return id(dhw_pump_relay_switch).state;
+  turn_on_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - switch.turn_on: dhw_pump_relay_switch
+  turn_off_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - switch.turn_off: dhw_pump_relay_switch
+  disabled_by_default: true
+  entity_category: config
+  web_server:
+    sorting_group_id: manual_control
+
+- platform: template
+  id: maintenance_three_way_valve_heat_cool_proxy
+  name: "3-weg klep Koelen & Verwarmen (Onderhoud)"
+  lambda: |-
+    return id(three_way_valve_heat_cool_switch).state;
+  turn_on_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - switch.turn_on: three_way_valve_heat_cool_switch
+  turn_off_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - switch.turn_off: three_way_valve_heat_cool_switch
+  disabled_by_default: true
+  entity_category: config
+  web_server:
+    sorting_group_id: manual_control
+
+- platform: template
+  id: maintenance_three_way_valve_dhw_proxy
+  name: "3-weg klep SWW (Onderhoud)"
+  lambda: |-
+    return id(three_way_valve_dhw_switch).state;
+  turn_on_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - switch.turn_on: three_way_valve_dhw_switch
+  turn_off_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - switch.turn_off: three_way_valve_dhw_switch
+  disabled_by_default: true
+  entity_category: config
+  web_server:
+    sorting_group_id: manual_control
+
+- platform: template
+  id: maintenance_backup_heater_relay_proxy
+  name: "Backup verwarmingselement (Onderhoud)"
+  lambda: |-
+    return id(backup_heater_relay).state;
+  turn_on_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - switch.turn_on: backup_heater_relay
+  turn_off_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - switch.turn_off: backup_heater_relay
+  disabled_by_default: true
+  entity_category: config
+  web_server:
+    sorting_group_id: manual_control
+
+- platform: template
+  id: maintenance_cv_hybride_backup_relay_proxy
+  name: "CV Hybride backup relais (Onderhoud)"
+  lambda: |-
+    return id(external_backup_heating_relay).state;
+  turn_on_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - switch.turn_on: external_backup_heating_relay
+  turn_off_action:
+    - if:
+        condition:
+          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+        then:
+          - switch.turn_off: external_backup_heating_relay
+  disabled_by_default: true
+  entity_category: config
+  web_server:
+    sorting_group_id: manual_control

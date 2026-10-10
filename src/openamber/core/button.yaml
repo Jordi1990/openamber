@@ -1,0 +1,14 @@
+button:
+  - platform: factory_reset
+    disabled_by_default: true
+    name: Restart with Factory Default Settings
+  - platform: restart
+    id: restart_openamber
+    name: Restart OpenAmber
+  - platform: template
+    id: dump_eeprom_parameters_button
+    name: "Dump EEPROM parameters"
+    disabled_by_default: true
+    entity_category: diagnostic
+    on_press:
+      - script.execute: dump_eeprom_parameters

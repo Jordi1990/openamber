@@ -7,11 +7,19 @@ from typing import Any, Callable, Dict, Optional
 class OpenAmberClient:
     """Client for controlling and testing OpenAmber via TestBridge socket."""
 
-    def __init__(self, host: str = "127.0.0.1", port: int = 8888, timeout: float = 5.0):
+    def __init__(self, host: str = "127.0.0.1", port: int = 8888, timeout: float = 5.0, raise_on_error: bool = True):
         self.host = host
         self.port = port
         self.timeout = timeout
+        self.raise_on_error = raise_on_error
         self.sock: Optional[socket.socket] = None
+
+    def _check_status(self, res: Dict[str, Any], action: str) -> bool:
+        ok = res.get("status") == "ok"
+        if not ok and self.raise_on_error:
+            msg = res.get("message", "unknown error")
+            raise RuntimeError(f"OpenAmber command '{action}' failed: {msg}")
+        return ok
 
     def connect(self, retries: int = 40, delay: float = 0.5) -> bool:
         """Connect to the TestBridge server."""
@@ -36,21 +44,28 @@ class OpenAmberClient:
 
     def send_cmd(self, cmd_dict: Dict[str, Any]) -> Dict[str, Any]:
         """Send command dict and receive JSON response."""
-        if not self.sock:
-            raise ConnectionError("Not connected to OpenAmber")
+        for attempt in range(2):
+            if not self.sock:
+                self.connect(retries=10, delay=0.2)
 
-        payload = json.dumps(cmd_dict) + "\n"
-        self.sock.sendall(payload.encode("utf-8"))
+            payload = json.dumps(cmd_dict) + "\n"
+            try:
+                self.sock.sendall(payload.encode("utf-8"))
 
-        buf = b""
-        while not buf.endswith(b"\n"):
-            chunk = self.sock.recv(4096)
-            if not chunk:
-                raise ConnectionResetError("Connection closed by OpenAmber")
-            buf += chunk
+                buf = b""
+                while not buf.endswith(b"\n"):
+                    chunk = self.sock.recv(4096)
+                    if not chunk:
+                        raise ConnectionResetError("Connection closed by OpenAmber")
+                    buf += chunk
 
-        resp = json.loads(buf.decode("utf-8").strip())
-        return resp
+                resp = json.loads(buf.decode("utf-8").strip())
+                return resp
+            except (socket.timeout, TimeoutError, ConnectionResetError, BrokenPipeError, OSError):
+                self.close()
+                if attempt == 1:
+                    raise
+                time.sleep(0.3)
 
     def ping(self) -> bool:
         """Check server connectivity."""
@@ -61,7 +76,7 @@ class OpenAmberClient:
         """Simulate clicking an LVGL widget."""
         res = self.send_cmd({"cmd": "click", "id": widget_id})
         time.sleep(0.05)
-        return res.get("status") == "ok"
+        return self._check_status(res, f"click({widget_id})")
 
     def get_widget(self, widget_id: str) -> Dict[str, Any]:
         """Query widget status (visible, hidden, text, checked, disabled)."""
@@ -85,27 +100,27 @@ class OpenAmberClient:
     def set_sensor(self, sensor_id: str, value: float) -> bool:
         """Publish a new float state to a sensor."""
         res = self.send_cmd({"cmd": "set_sensor", "id": sensor_id, "value": float(value)})
-        return res.get("status") == "ok"
+        return self._check_status(res, f"set_sensor({sensor_id}, {value})")
 
     def set_number(self, number_id: str, value: float) -> bool:
         """Publish a new float state to a number entity."""
         res = self.send_cmd({"cmd": "set_number", "id": number_id, "value": float(value)})
-        return res.get("status") == "ok"
+        return self._check_status(res, f"set_number({number_id}, {value})")
 
     def set_switch(self, switch_id: str, value: bool) -> bool:
         """Turn switch on (True) or off (False)."""
         res = self.send_cmd({"cmd": "set_switch", "id": switch_id, "value": bool(value)})
-        return res.get("status") == "ok"
+        return self._check_status(res, f"set_switch({switch_id}, {value})")
 
     def set_binary_sensor(self, sensor_id: str, value: bool) -> bool:
         """Publish state to a binary sensor."""
         res = self.send_cmd({"cmd": "set_binary_sensor", "id": sensor_id, "value": bool(value)})
-        return res.get("status") == "ok"
+        return self._check_status(res, f"set_binary_sensor({sensor_id}, {value})")
 
     def set_select(self, select_id: str, option: str) -> bool:
         """Set the active option of a select entity."""
         res = self.send_cmd({"cmd": "set_select", "id": select_id, "option": str(option)})
-        return res.get("status") == "ok"
+        return self._check_status(res, f"set_select({select_id}, {option})")
 
     def set_climate(
         self,
@@ -120,7 +135,7 @@ class OpenAmberClient:
         if mode is not None:
             cmd["mode"] = str(mode)
         res = self.send_cmd(cmd)
-        return res.get("status") == "ok"
+        return self._check_status(res, f"set_climate({climate_id})")
 
     def advance_time(self, seconds: float = 0, ms: int = 0, step_s: float = 0) -> int:
         """Advance virtual time by the given amount (in seconds or ms).

@@ -3,7 +3,7 @@
 import pytest
 
 
-def test_heat_demand_expect_to_heat_happy_flow(openamber):
+def test_heat_demand_expect_to_heat_happy_flow(clean_system):
     """
     Happy Flow:
     1. Outside temperature is low (5.0°C).
@@ -12,26 +12,35 @@ def test_heat_demand_expect_to_heat_happy_flow(openamber):
     4. System registers demand and expects to heat.
     5. UI shows heating active in the status bar.
     """
-    openamber.set_select("thermostat_mode_select", "Extern")
-    openamber.set_sensor("temperature_outside_ta", 5.0)
-    openamber.set_sensor("water_temperature_outlet_t1", 25.0)
-    openamber.set_switch("three_way_valve_heat_cool_switch", True)
-    openamber.set_binary_sensor("sg_ready_block_mode_active_sensor", False)
-    openamber.set_binary_sensor("error_active", False)
+    openamber = clean_system
+
+    assert openamber.set_select("thermostat_mode_select", "Extern")
+    assert openamber.set_sensor("temperature_outside_ta", 5.0)
+    assert openamber.set_sensor("current_water_temperature_tc_sensor", 25.0)
+    assert openamber.set_sensor("heat_cool_temperature_tc", 25.0)
+    assert openamber.set_sensor("outlet_temperature_tuo", 25.0)
+    assert openamber.set_sensor("inlet_temperature_tui", 23.0)
+    assert openamber.set_switch("three_way_valve_heat_cool_switch", True)
+    assert openamber.set_binary_sensor("sg_ready_block_mode_active_sensor", False)
+    assert openamber.set_binary_sensor("error_active", False)
 
     # Thermostat calls for heat
-    openamber.set_binary_sensor("external_heat_demand_wired", True)
+    assert openamber.set_binary_sensor("external_heat_demand_wired", True)
     openamber.step(ms=150)
 
-    assert openamber.get_entity("heat_demand_active_sensor") is True
-    assert openamber.is_visible("nav_status_heat_icon")
+    assert openamber.get_entity("heat_demand_active_sensor") is True, (
+        "heat_demand_active_sensor should be True when external heat demand contact is closed"
+    )
+    assert openamber.is_visible("nav_status_heat_icon"), (
+        "nav_status_heat_icon should be visible in navbar when heating demand is active"
+    )
 
     # Cleanup
-    openamber.set_binary_sensor("external_heat_demand_wired", False)
+    assert openamber.set_binary_sensor("external_heat_demand_wired", False)
     openamber.step(ms=150)
 
 
-def test_heat_demand_sg_ready_block_suppression(openamber):
+def test_heat_demand_sg_ready_block_suppression(clean_system):
     """
     Safety / Grid Flow:
     1. Active heat demand is running.
@@ -39,38 +48,52 @@ def test_heat_demand_sg_ready_block_suppression(openamber):
     3. Verify heat demand is immediately suppressed, despite thermostat calling for heat.
     4. SG Ready block clears -> heat demand resumes.
     """
-    openamber.set_select("thermostat_mode_select", "Extern")
-    openamber.set_binary_sensor("error_active", False)
-    openamber.set_binary_sensor("external_heat_demand_wired", True)
-    openamber.set_binary_sensor("sg_ready_block_mode_active_sensor", False)
+    openamber = clean_system
+
+    assert openamber.set_select("thermostat_mode_select", "Extern")
+    assert openamber.set_binary_sensor("error_pump_start_timeout", False)
+    assert openamber.set_binary_sensor("external_heat_demand_wired", True)
+    assert openamber.set_select("sg_ready_mode_select", "Normaal")
     openamber.step(ms=150)
 
     # Demand is active
-    assert openamber.get_entity("heat_demand_active_sensor") is True
-    assert openamber.is_visible("nav_status_heat_icon")
+    assert openamber.get_entity("heat_demand_active_sensor") is True, (
+        "Heat demand should initially be active"
+    )
+    assert openamber.is_visible("nav_status_heat_icon"), (
+        "Navbar flame icon should be visible"
+    )
 
     # Grid block occurs
-    openamber.set_binary_sensor("sg_ready_block_mode_active_sensor", True)
+    assert openamber.set_select("sg_ready_mode_select", "Blokkeren")
     openamber.step(ms=150)
 
     # Demand must be blocked
-    assert openamber.get_entity("heat_demand_active_sensor") is False
-    assert openamber.is_hidden("nav_status_heat_icon")
+    assert openamber.get_entity("heat_demand_active_sensor") is False, (
+        "Heat demand must be blocked when SG Ready block is active"
+    )
+    assert openamber.is_hidden("nav_status_heat_icon"), (
+        "Navbar flame icon must be hidden during SG Ready block"
+    )
 
     # Grid block lifts
-    openamber.set_binary_sensor("sg_ready_block_mode_active_sensor", False)
+    assert openamber.set_select("sg_ready_mode_select", "Normaal")
     openamber.step(ms=150)
 
     # Demand resumes
-    assert openamber.get_entity("heat_demand_active_sensor") is True
-    assert openamber.is_visible("nav_status_heat_icon")
+    assert openamber.get_entity("heat_demand_active_sensor") is True, (
+        "Heat demand must resume once SG Ready block lifts"
+    )
+    assert openamber.is_visible("nav_status_heat_icon"), (
+        "Navbar flame icon must reappear once block lifts"
+    )
 
     # Cleanup
-    openamber.set_binary_sensor("external_heat_demand_wired", False)
+    assert openamber.set_binary_sensor("external_heat_demand_wired", False)
     openamber.step(ms=150)
 
 
-def test_heat_demand_error_active_suppression(openamber):
+def test_heat_demand_error_active_suppression(clean_system):
     """
     Safety Flow:
     1. Active heat demand is running.
@@ -78,30 +101,40 @@ def test_heat_demand_error_active_suppression(openamber):
     3. Verify heat demand is suppressed to protect equipment.
     4. Fault is cleared -> heat demand recovers.
     """
-    openamber.set_select("thermostat_mode_select", "Extern")
-    openamber.set_binary_sensor("sg_ready_block_mode_active_sensor", False)
-    openamber.set_binary_sensor("external_heat_demand_wired", True)
-    openamber.set_binary_sensor("error_active", False)
+    openamber = clean_system
+
+    assert openamber.set_select("thermostat_mode_select", "Extern")
+    assert openamber.set_select("sg_ready_mode_select", "Normaal")
+    assert openamber.set_binary_sensor("external_heat_demand_wired", True)
+    assert openamber.set_binary_sensor("error_pump_start_timeout", False)
     openamber.step(ms=150)
 
-    assert openamber.get_entity("heat_demand_active_sensor") is True
+    assert openamber.get_entity("heat_demand_active_sensor") is True, (
+        "Heat demand should initially be active"
+    )
 
     # Error triggers
-    openamber.set_binary_sensor("error_active", True)
+    assert openamber.set_binary_sensor("error_pump_start_timeout", True)
     openamber.step(ms=150)
 
     # Demand must shut down
-    assert openamber.get_entity("heat_demand_active_sensor") is False
-    assert openamber.is_hidden("nav_status_heat_icon")
+    assert openamber.get_entity("heat_demand_active_sensor") is False, (
+        "Heat demand must be suppressed when error is active"
+    )
+    assert openamber.is_hidden("nav_status_heat_icon"), (
+        "Navbar flame icon must be hidden when error is active"
+    )
 
     # Error clears
-    openamber.set_binary_sensor("error_active", False)
+    assert openamber.set_binary_sensor("error_pump_start_timeout", False)
     openamber.step(ms=150)
 
-    assert openamber.get_entity("heat_demand_active_sensor") is True
+    assert openamber.get_entity("heat_demand_active_sensor") is True, (
+        "Heat demand should recover after error clears"
+    )
 
     # Cleanup
-    openamber.set_binary_sensor("external_heat_demand_wired", False)
+    assert openamber.set_binary_sensor("external_heat_demand_wired", False)
     openamber.step(ms=150)
 
 
@@ -369,7 +402,75 @@ def test_heat_demand_pump_runs_full_interval_after_compressor_stop(clean_system)
     # 4. Once pump duration (120s total from restart) completes, the pump stops
     openamber.advance_time(seconds=60, step_s=10)
     openamber.step(ms=50)
-    assert openamber.get_entity("internal_pump_active") is False
+    assert openamber.get_entity("internal_pump_active") is False, (
+        "Pump should stop once pump duration completes"
+    )
+
+
+def test_heat_demand_compressor_stops_at_exact_stop_delta_boundary(clean_system):
+    """
+    Boundary Condition Test:
+    Verify that when Tc equals exactly target_temperature + stop_delta (inclusive >= condition),
+    the compressor shuts down.
+    """
+    openamber = clean_system
+
+    target_temperature = 35.0
+    start_delta = 3.0
+    stop_delta = 5.0
+
+    assert openamber.set_select("thermostat_mode_select", "Extern")
+    assert openamber.set_select("heat_mode_select", "Extern setpoint")
+    assert openamber.set_number("manual_setpoint", target_temperature)
+    assert openamber.set_climate("pid_heat_temperature_control", target_temperature=target_temperature)
+    assert openamber.set_number("compressor_start_delta_heating", start_delta)
+    assert openamber.set_number("compressor_stop_delta_heating", stop_delta)
+
+    # Min compressor off time
+    openamber.advance_time(seconds=130, step_s=10)
+    openamber.step(ms=50)
+
+    # Initial temp < target - start_delta
+    assert openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
+    assert openamber.set_sensor("heat_cool_temperature_tc", 28.0)
+    assert openamber.set_sensor("outlet_temperature_tuo", 28.0)
+    assert openamber.set_sensor("inlet_temperature_tui", 26.0)
+    openamber.step(ms=50)
+
+    assert openamber.set_binary_sensor("external_heat_demand_wired", True)
+    openamber.step(ms=100)
+
+    # Pump interval (900s) + pump settle (130s) + softstart (190s) + min-on time (450s)
+    openamber.advance_time(seconds=900, step_s=30)
+    openamber.advance_time(seconds=130, step_s=10)
+    openamber.advance_time(seconds=190, step_s=10)
+    openamber.step(ms=100)
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0, "Compressor should be running"
+
+    openamber.advance_time(seconds=450, step_s=20)
+    openamber.step(ms=100)
+
+    # Set Tc EXACTLY at target + stop_delta = 35.0 + 5.0 = 40.0°C
+    exact_stop_temp = target_temperature + stop_delta
+    assert openamber.set_sensor("current_water_temperature_tc_sensor", exact_stop_temp)
+    assert openamber.set_sensor("heat_cool_temperature_tc", exact_stop_temp)
+    assert openamber.set_sensor("outlet_temperature_tuo", exact_stop_temp)
+    assert openamber.set_sensor("inlet_temperature_tui", exact_stop_temp - 2.0)
+    openamber.step(ms=100)
+
+    # Advance virtual time to process stop condition
+    openamber.advance_time(seconds=30, step_s=5)
+    openamber.step(ms=100)
+
+    # Compressor must stop at exact boundary
+    assert int(openamber.get_entity("compressor_control_select") or 0) == 0, (
+        "Compressor must stop when Tc reaches exactly target + stop_delta (inclusive boundary)"
+    )
+
+    # Cleanup
+    assert openamber.set_binary_sensor("external_heat_demand_wired", False)
+    openamber.step(ms=100)
+
 
 
 

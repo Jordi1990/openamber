@@ -1,0 +1,362 @@
+number:
+- platform: modbus_controller
+  id: pump_control_pwm_number
+  modbus_controller_id: modbus_inside_unit
+  name: "Pomp PWM"
+  internal: True
+  address: 1103
+  min_value: 0
+  max_value: 1000
+  reuse_previous_range: true
+  web_server:
+    sorting_group_id: manual_control
+
+# Mengventiel zone 1 — 0-10V via modbus register 1106
+- platform: modbus_controller
+  id: mixing_valve_zone1_output
+  modbus_controller_id: modbus_inside_unit
+  name: "Mengventiel zone 1"
+  internal: True
+  address: 1106
+  min_value: 0
+  max_value: 100
+  step: 1
+  web_server:
+    sorting_group_id: manual_control
+
+# Mengventiel zone 2 — 0-10V via modbus register 1107
+- platform: modbus_controller
+  id: mixing_valve_zone2_output
+  modbus_controller_id: modbus_inside_unit
+  name: "Mengventiel zone 2"
+  internal: True
+  address: 1107
+  min_value: 0
+  max_value: 100
+  step: 1
+  web_server:
+    sorting_group_id: manual_control
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: fan_speed_manual_number
+  internal: True
+  address: 2008
+  register_type: holding
+  value_type: S_WORD
+  reuse_previous_range: true
+  min_value: 0
+  max_value: 1000
+  step: 1
+  mode: box
+  web_server:
+    sorting_group_id: manual_control
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: eev_open_setting_manual_number
+  name: "EEV opening handmatig"
+  internal: True
+  address: 2001
+  register_type: holding
+  value_type: S_WORD
+  reuse_previous_range: true
+  min_value: 0
+  max_value: 500
+  step: 1
+  mode: box
+  web_server:
+    sorting_group_id: manual_control
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outlet_temperature_outside
+  internal: True
+  address: 2005
+  register_type: holding
+  value_type: S_WORD
+  reuse_previous_range: true
+  mode: box
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_0
+  internal: True
+  address: 3000
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_1
+  internal: True
+  address: 3001
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_2
+  internal: True
+  address: 3002
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_3
+  internal: True
+  address: 3003
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_4
+  internal: True
+  address: 3004
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_5
+  internal: True
+  address: 3005
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_6
+  internal: True
+  address: 3006
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_7
+  internal: True
+  address: 3007
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_8
+  internal: True
+  address: 3008
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_9
+  internal: True
+  address: 3009
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: cooling_frequency_index_10
+  internal: True
+  address: 3010
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: heating_frequency_index_1
+  internal: True
+  address: 3012
+  register_type: holding
+  value_type: S_WORD
+  reuse_previous_range: true
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: heating_frequency_index_2
+  internal: True
+  address: 3013
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: heating_frequency_index_3
+  internal: True
+  address: 3014
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: heating_frequency_index_4
+  internal: True
+  address: 3015
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: heating_frequency_index_5
+  internal: True
+  address: 3016
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: heating_frequency_index_6
+  internal: True
+  address: 3017
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: heating_frequency_index_7
+  internal: True
+  address: 3018
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: heating_frequency_index_8
+  internal: True
+  address: 3019
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: heating_frequency_index_9
+  internal: True
+  address: 3020
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: heating_frequency_index_10
+  internal: True
+  address: 3021
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: bottomplate_heater_ambient_temperature_start
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  internal: True
+  address: 3237
+  register_type: holding
+  value_type: S_WORD
+  lambda: |-
+    return x - 30;
+  write_lambda: |-
+    return x + 30;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: bottomplate_heater_ambient_hysteresis_stop
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  internal: True
+  address: 3238
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: enter_defrost_temperature
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  internal: True
+  address: 3276
+  register_type: holding
+  value_type: S_WORD
+  reuse_previous_range: true
+  lambda: |-
+    return x - 30;
+  write_lambda: |-
+    return x + 30;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: exit_defrost_temperature
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  internal: True
+  address: 3277
+  register_type: holding
+  value_type: S_WORD
+  lambda: |-
+    return x - 30;
+  write_lambda: |-
+    return x + 30;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: max_defrost_time
+  internal: True
+  address: 3278
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: enter_defrost_temperature_2
+  min_value: -3
+  max_value: 3
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  internal: True
+  address: 3336
+  register_type: holding
+  value_type: S_WORD
+  reuse_previous_range: true
+  lambda: |-
+    return x - 30;
+  write_lambda: |-
+    return x + 30;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: enter_defrost_temperature_3
+  min_value: -10
+  max_value: -3
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  internal: True
+  address: 3337
+  register_type: holding
+  value_type: S_WORD
+  lambda: |-
+    return x - 30;
+  write_lambda: |-
+    return x + 30;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: enter_defrost_temperature_4
+  min_value: -10
+  max_value: -3
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  internal: True
+  address: 3338
+  register_type: holding
+  value_type: S_WORD
+  lambda: |-
+    return x - 30;
+  write_lambda: |-
+    return x + 30;
+

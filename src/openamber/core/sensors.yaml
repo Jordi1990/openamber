@@ -1,0 +1,598 @@
+sensor:
+- platform: template
+  name: Thermisch vermogen
+  id: thermal_power
+  accuracy_decimals: 0
+  device_class: power
+  state_class: measurement
+  unit_of_measurement: W
+  entity_category: diagnostic
+  lambda: |-
+      if (!id(flow_sensor_enabled).state)
+      {
+        return 0.0;
+      }
+
+      float qv = id(water_flow_rate).state / 60 / 1000;
+      float dT = id(heat_exchanger_delta_t).state;
+      float pw = qv * dT * 998 * 4190;
+      return pw;
+
+- platform: pid
+  name: "PID Controller Verwarmen"
+  climate_id: pid_heat_temperature_control
+  type: HEAT
+  disabled_by_default: True
+  entity_category: diagnostic
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: pid
+  name: "PID Controller Koelen"
+  climate_id: pid_cool_temperature_control
+  type: COOL
+  disabled_by_default: True
+  entity_category: diagnostic
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
+  id: backup_heater_degmin_current_sensor
+  name: "Backup heater degree⁄min current"
+  unit_of_measurement: "°C·min"
+  accuracy_decimals: 1
+  state_class: measurement
+  entity_category: diagnostic
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
+  id: dhw_backup_current_avg_rate_sensor
+  name: "DHW verwarmsnelheid"
+  unit_of_measurement: "°C/min"
+  accuracy_decimals: 2
+  update_interval: 5s
+
+- platform: template
+  id: power_compressor
+  name: "Stroomverbruik compressor"
+  device_class: power
+  state_class: measurement
+  unit_of_measurement: "W"
+  lambda: |-
+    return id(voltage_outside_unit).state * id(current_outside_unit).state;
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
+  id: cop_thermal_power_heating
+  internal: true
+  device_class: power
+  state_class: measurement
+  unit_of_measurement: "W"
+  accuracy_decimals: 0
+  update_interval: 5s
+  lambda: |-
+    if (!id(flow_sensor_enabled).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (id(dhw_active).state) return 0.0f;
+    if (!id(heat_demand_active_sensor).state) return 0.0f;
+    return fabsf(id(thermal_power).state);
+
+- platform: template
+  id: cop_electrical_power_heating
+  internal: true
+  device_class: power
+  state_class: measurement
+  unit_of_measurement: "W"
+  accuracy_decimals: 0
+  update_interval: 5s
+  lambda: |-
+    if (!id(flow_sensor_enabled).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (id(dhw_active).state) return 0.0f;
+    if (!id(heat_demand_active_sensor).state) return 0.0f;
+    return id(power_compressor).state;
+
+# Cooling-only power samples for EER/SEER energy tracking.
+- platform: template
+  id: cop_thermal_power_cooling
+  internal: true
+  device_class: power
+  state_class: measurement
+  unit_of_measurement: "W"
+  accuracy_decimals: 0
+  update_interval: 5s
+  lambda: |-
+    if (!id(flow_sensor_enabled).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (id(dhw_active).state) return 0.0f;
+    if (!id(cool_demand_active_sensor).state) return 0.0f;
+    return fabsf(id(thermal_power).state);
+
+- platform: template
+  id: cop_electrical_power_cooling
+  internal: true
+  device_class: power
+  state_class: measurement
+  unit_of_measurement: "W"
+  accuracy_decimals: 0
+  update_interval: 5s
+  lambda: |-
+    if (!id(flow_sensor_enabled).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (id(dhw_active).state) return 0.0f;
+    if (!id(cool_demand_active_sensor).state) return 0.0f;
+    return id(power_compressor).state;
+
+# DHW-only power samples for COP energy tracking.
+- platform: template
+  id: cop_thermal_power_dhw
+  internal: true
+  device_class: power
+  state_class: measurement
+  unit_of_measurement: "W"
+  accuracy_decimals: 0
+  update_interval: 5s
+  lambda: |-
+    if (!id(flow_sensor_enabled).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (!id(dhw_active).state) return 0.0f;
+    return fabsf(id(thermal_power).state);
+
+- platform: template
+  id: cop_electrical_power_dhw
+  internal: true
+  device_class: power
+  state_class: measurement
+  unit_of_measurement: "W"
+  accuracy_decimals: 0
+  update_interval: 5s
+  lambda: |-
+    if (!id(flow_sensor_enabled).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (!id(dhw_active).state) return 0.0f;
+    return id(power_compressor).state;
+
+# Per-mode energy buckets (kWh). Reset by the time: component.
+- platform: integration
+  id: thermal_energy_hour_heating
+  internal: true
+  restore: false
+  sensor: cop_thermal_power_heating
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: electrical_energy_hour_heating
+  internal: true
+  restore: false
+  sensor: cop_electrical_power_heating
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: thermal_energy_day_heating
+  internal: true
+  restore: false
+  sensor: cop_thermal_power_heating
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: electrical_energy_day_heating
+  internal: true
+  restore: false
+  sensor: cop_electrical_power_heating
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: thermal_energy_hour_cooling
+  internal: true
+  restore: false
+  sensor: cop_thermal_power_cooling
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: electrical_energy_hour_cooling
+  internal: true
+  restore: false
+  sensor: cop_electrical_power_cooling
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: thermal_energy_day_cooling
+  internal: true
+  restore: false
+  sensor: cop_thermal_power_cooling
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: electrical_energy_day_cooling
+  internal: true
+  restore: false
+  sensor: cop_electrical_power_cooling
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: thermal_energy_hour_dhw
+  internal: true
+  restore: false
+  sensor: cop_thermal_power_dhw
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: electrical_energy_hour_dhw
+  internal: true
+  restore: false
+  sensor: cop_electrical_power_dhw
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: thermal_energy_day_dhw
+  internal: true
+  restore: false
+  sensor: cop_thermal_power_dhw
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+- platform: integration
+  id: electrical_energy_day_dhw
+  internal: true
+  restore: false
+  sensor: cop_electrical_power_dhw
+  time_unit: h
+  filters:
+    - multiply: 0.001
+
+# COP / EER / SEER per period = thermal energy / electrical energy.
+- platform: template
+  name: "COP verwarmen (uur)"
+  id: cop_hour_heating
+  accuracy_decimals: 2
+  state_class: measurement
+  update_interval: 60s
+  lambda: |-
+    float e = id(electrical_energy_hour_heating).state;
+    float t = id(thermal_energy_hour_heating).state;
+    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
+    return t / e;
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
+  name: "COP verwarmen (dag)"
+  id: cop_day_heating
+  accuracy_decimals: 2
+  state_class: measurement
+  update_interval: 60s
+  lambda: |-
+    float e = id(electrical_energy_day_heating).state;
+    float t = id(thermal_energy_day_heating).state;
+    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
+    return t / e;
+  web_server: 
+    sorting_group_id: diagnostic
+
+
+- platform: template
+  name: "EER koelen (uur)"
+  id: eer_hour_cooling
+  accuracy_decimals: 2
+  state_class: measurement
+  update_interval: 60s
+  lambda: |-
+    float e = id(electrical_energy_hour_cooling).state;
+    float t = id(thermal_energy_hour_cooling).state;
+    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
+    return t / e;
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
+  name: "EER koelen (dag)"
+  id: eer_day_cooling
+  accuracy_decimals: 2
+  state_class: measurement
+  update_interval: 60s
+  lambda: |-
+    float e = id(electrical_energy_day_cooling).state;
+    float t = id(thermal_energy_day_cooling).state;
+    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
+    return t / e;
+  web_server: 
+    sorting_group_id: diagnostic
+
+
+- platform: template
+  name: "COP tapwater (uur)"
+  id: cop_hour_dhw
+  accuracy_decimals: 2
+  state_class: measurement
+  update_interval: 60s
+  lambda: |-
+    float e = id(electrical_energy_hour_dhw).state;
+    float t = id(thermal_energy_hour_dhw).state;
+    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
+    return t / e;
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
+  name: "COP tapwater (dag)"
+  id: cop_day_dhw
+  accuracy_decimals: 2
+  state_class: measurement
+  update_interval: 60s
+  lambda: |-
+    float e = id(electrical_energy_day_dhw).state;
+    float t = id(thermal_energy_day_dhw).state;
+    if (std::isnan(e) || std::isnan(t) || e < 0.001f) return NAN;
+    return t / e;
+  web_server: 
+    sorting_group_id: diagnostic
+
+          
+- platform: uptime
+  name: "Uptime"
+  id: sensor_uptime
+  disabled_by_default: true
+  update_interval: 60s
+  device_class: duration
+  unit_of_measurement: s
+  state_class: total_increasing
+  entity_category: diagnostic
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
+  id: temperature_outside_ta_avg_1h
+  name: "Buiten temperatuur (1h gemiddelde)"
+  internal: true
+  unit_of_measurement: "°C"
+  accuracy_decimals: 1
+  update_interval: 1s
+  lambda: |-
+    return id(temperature_outside_ta).state;
+  on_value:
+    then:
+      - component.update: heat_curve_calculated_setpoint
+      - component.update: heat_curve_z2_calculated_setpoint
+
+- platform: template
+  id: current_setpoint
+  name: "Huidig setpoint"
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  accuracy_decimals: 0
+  lambda: |-
+    float setpoint = 0.0;
+    if (id(cool_demand_active_sensor).state)
+    {
+      if (id(cool_mode_select).current_option() == "Extern setpoint")
+      {
+        return id(manual_setpoint).state;
+      }
+      else
+      {
+        return id(cooling_setpoint_number).state;
+      }
+    }
+
+    if (id(heat_mode_select).current_option() == "Stooklijn")
+    {
+      // If we are mixing, use the highest temperature of all zones.
+      bool mv_z1 = id(mixing_valve_zone1_enabled).state;
+      bool mv_z2 = id(mixing_valve_zone2_enabled).state;
+      if (mv_z1 || mv_z2)
+      {
+        float sp_z1 = mv_z1 ? id(heat_curve_calculated_setpoint).state : 0.0f;
+        float sp_z2 = mv_z2 ? id(heat_curve_z2_calculated_setpoint).state : 0.0f;
+        setpoint = std::max(sp_z1, sp_z2);
+      }
+      else
+      {
+        setpoint = id(heat_curve_calculated_setpoint).state;
+      }
+    }
+    else
+    {
+      setpoint = id(manual_setpoint).state;
+    }
+
+    if(id(sg_ready_boost_mode_active_sensor).state || id(sg_ready_max_boost_mode_active_sensor).state)
+    {
+      setpoint += id(sg_ready_heating_boost_temperature_number).state;
+    }
+
+    return setpoint;
+  on_value:
+    then:
+      - lambda: |-
+          auto climate = id(cool_demand_active_sensor).state ? id(pid_cool_temperature_control) : id(pid_heat_temperature_control);
+          auto call = climate->make_call();
+          call.set_target_temperature(x);
+          call.perform();
+  web_server: 
+    sorting_group_id: overview
+
+- platform: template
+  id: current_dhw_setpoint_sensor
+  name: "Huidig tapwater setpoint"
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  accuracy_decimals: 0
+  update_interval: 5s
+  lambda: |-
+    float setpoint = 0.0;
+    if (id(dhw_legionella_run_active_sensor).state)
+    {
+      setpoint = id(legio_target_temperature_number).state;
+    }
+    else
+    {
+      setpoint = id(dhw_setpoint_temperature).state;
+    }
+
+    if(id(sg_ready_boost_mode_active_sensor).state || id(sg_ready_max_boost_mode_active_sensor).state)
+    {
+      setpoint += id(sg_ready_dhw_boost_temperature_number).state;
+    }
+
+    return setpoint;
+  web_server: 
+    sorting_group_id: overview
+
+- platform: template
+  id: heat_curve_calculated_setpoint
+  name: "Stooklijn berekend setpoint"
+  internal: True
+  unit_of_measurement: "°C"
+  accuracy_decimals: 0
+  update_interval: 5s
+  lambda: |-
+    const float Ta = id(temperature_outside_ta_avg_1h).state;
+
+    const float tc15  = id(heat_curve_p15).state;
+    const float tc10  = id(heat_curve_p10).state;
+    const float tc5   = id(heat_curve_p5).state;
+    const float tc0   = id(heat_curve_0).state;
+    const float tc_m10 = id(heat_curve_m10).state;
+    auto lerp = [](float x, float x0, float y0, float x1, float y1) -> float {
+      const float t = (x - x0) / (x1 - x0);
+      return y0 + t * (y1 - y0);
+    };
+
+    float tc;
+    if (Ta >= 15.0f)       tc = tc15;
+    else if (Ta >= 10.0f)  tc = lerp(Ta, 15.0f, tc15, 10.0f, tc10);
+    else if (Ta >= 5.0f)   tc = lerp(Ta, 10.0f, tc10, 5.0f, tc5);
+    else if (Ta >= 0.0f)   tc = lerp(Ta, 5.0f, tc5, 0.0f, tc0);
+    else if (Ta >= -10.0f) tc = lerp(Ta, 0.0f, tc0, -10.0f, tc_m10);
+    else                   tc = tc_m10;
+
+    return tc;
+
+  on_value:
+    then:
+      - lambda: |-
+          if (id(mixing_valve_zone1_enabled).state)
+          {
+            auto call = id(pid_mixing_valve_zone1).make_call();
+            call.set_target_temperature(x);
+            call.perform();
+          }
+      - component.update: current_setpoint
+
+- platform: template
+  id: heat_curve_z2_calculated_setpoint
+  name: "Stooklijn zone 2 berekend setpoint"
+  internal: True
+  unit_of_measurement: "°C"
+  accuracy_decimals: 0
+  update_interval: 5s
+  lambda: |-
+    const float Ta = id(temperature_outside_ta_avg_1h).state;
+    const float tc15  = id(heat_curve_z2_p15).state;
+    const float tc10  = id(heat_curve_z2_p10).state;
+    const float tc5   = id(heat_curve_z2_p5).state;
+    const float tc0   = id(heat_curve_z2_0).state;
+    const float tc_m10 = id(heat_curve_z2_m10).state;
+    auto lerp = [](float x, float x0, float y0, float x1, float y1) -> float {
+      const float t = (x - x0) / (x1 - x0);
+      return y0 + t * (y1 - y0);
+    };
+    float tc;
+    if (Ta >= 15.0f)       tc = tc15;
+    else if (Ta >= 10.0f)  tc = lerp(Ta, 15.0f, tc15, 10.0f, tc10);
+    else if (Ta >= 5.0f)   tc = lerp(Ta, 10.0f, tc10, 5.0f, tc5);
+    else if (Ta >= 0.0f)   tc = lerp(Ta, 5.0f, tc5, 0.0f, tc0);
+    else if (Ta >= -10.0f) tc = lerp(Ta, 0.0f, tc0, -10.0f, tc_m10);
+    else                   tc = tc_m10;
+    return tc;
+
+  on_value:
+    then:
+      - lambda: |-
+          if (id(mixing_valve_zone2_enabled).state)
+          {
+            auto call = id(pid_mixing_valve_zone2).make_call();
+            call.set_target_temperature(x);
+            call.perform();
+          }
+      - component.update: current_setpoint
+
+- platform: template
+  id: mixing_valve_zone1_position
+  name: "Mengventiel zone 1 positie"
+  unit_of_measurement: "%"
+  accuracy_decimals: 0
+  update_interval: 5s
+  lambda: |-
+    if (!id(mixing_valve_zone1_enabled).state) return NAN;
+    return id(amber_ctrl).get_mixing_valve_zone1_position();
+  web_server:
+    sorting_group_id: overview
+
+- platform: template
+  id: mixing_valve_zone2_position
+  name: "Mengventiel zone 2 positie"
+  unit_of_measurement: "%"
+  accuracy_decimals: 0
+  update_interval: 5s
+  lambda: |-
+    if (!id(mixing_valve_zone2_enabled).state) return NAN;
+    return id(amber_ctrl).get_mixing_valve_zone2_position();
+  web_server:
+    sorting_group_id: overview
+
+- platform: template
+  id: heat_exchanger_delta_t
+  name: "∆T Warmtewisselaar"
+  device_class: temperature_delta
+  state_class: measurement
+  unit_of_measurement: °C
+  update_interval: never
+  accuracy_decimals: 1
+  lambda: |-
+    return id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state;
+  web_server: 
+    sorting_group_id: temperature_sensors
+
+- platform: template
+  id: heat_cool_control_temperature
+  name: "Regeltemperatuur"
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  accuracy_decimals: 1
+  update_interval: 5s
+  lambda: |-
+    auto selected_source = id(heat_cool_control_temperature_source_select).active_index();
+    int source = (selected_source.has_value() && selected_source.value() == 1) ? 1 : 0;
+    if (source == 1)
+    {
+      return id(heat_cool_temperature_tv1).state;
+    }
+    return id(heat_cool_temperature_tc).state;
+

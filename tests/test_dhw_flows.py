@@ -17,8 +17,8 @@ def test_dhw_demand_while_idle_heats_dhw(clean_system):
     openamber = clean_system
 
     # Verify initially no demand
-    assert openamber.get_entity("dhw_demand_active_sensor") is False
-    assert openamber.get_entity("three_way_valve_dhw_switch") is False
+    assert openamber.get_entity("dhw_demand_active_sensor") is False, "DHW demand should initially be False"
+    assert openamber.get_entity("three_way_valve_dhw_switch") is False, "3-way valve should initially be aligned to heating"
 
     # User tank temperature drops
     openamber.set_number("dhw_setpoint_temperature", 50.0)
@@ -27,22 +27,22 @@ def test_dhw_demand_while_idle_heats_dhw(clean_system):
     openamber.step(ms=100)
 
     # Demand must be generated naturally
-    assert openamber.get_entity("dhw_demand_active_sensor") is True
+    assert openamber.get_entity("dhw_demand_active_sensor") is True, "DHW demand should activate when tank drops below setpoint - delta"
 
     # Advance time through 3-way valve switch time (60s) and state transition
     openamber.advance_time(seconds=80, step_s=10)
     openamber.step(ms=100)
 
     # Valve must switch to DHW
-    assert openamber.get_entity("three_way_valve_dhw_switch") is True
-    assert openamber.get_entity("three_way_valve_active_sensor") is True
+    assert openamber.get_entity("three_way_valve_dhw_switch") is True, "3-way valve should switch to DHW"
+    assert openamber.get_entity("three_way_valve_active_sensor") is True, "3-way valve sensor should indicate DHW active"
 
     # Advance virtual time for DHW compressor start
     openamber.advance_time(seconds=80, step_s=10)
     openamber.step(ms=100)
 
-    assert openamber.get_entity("compressor_control_select") is not None
-    assert int(openamber.get_entity("compressor_control_select")) > 0
+    assert openamber.get_entity("compressor_control_select") is not None, "Compressor control select should not be None"
+    assert int(openamber.get_entity("compressor_control_select")) > 0, "Compressor should run for DHW"
 
 
 def test_dhw_demand_while_heating_switches_to_dhw(clean_system):
@@ -66,14 +66,14 @@ def test_dhw_demand_while_heating_switches_to_dhw(clean_system):
     # Now DHW demand occurs (Tw = 38°C < setpoint 50°C - delta 5°C)
     openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
     openamber.step(ms=100)
-    assert openamber.get_entity("dhw_demand_active_sensor") is True
+    assert openamber.get_entity("dhw_demand_active_sensor") is True, "DHW demand should be active when tank drops"
 
     # Advance virtual time through space heating compressor min-on-time (600s) + valve switch (60s)
     openamber.advance_time(seconds=720, step_s=20)
     openamber.step(ms=100)
 
     # 3-way valve must now be aligned to DHW circuit
-    assert openamber.get_entity("three_way_valve_dhw_switch") is True
+    assert openamber.get_entity("three_way_valve_dhw_switch") is True, "3-way valve should switch to DHW after heating min-on-time"
 
 
 def test_dhw_demand_stops_when_temperature_reached(clean_system):
@@ -90,26 +90,26 @@ def test_dhw_demand_stops_when_temperature_reached(clean_system):
     openamber.set_number("dhw_setpoint_temperature", 50.0)
     openamber.set_sensor("dhw_temperature_tw_sensor", 40.0)
     openamber.step(ms=100)
-    assert openamber.get_entity("dhw_demand_active_sensor") is True
+    assert openamber.get_entity("dhw_demand_active_sensor") is True, "DHW demand should be active"
 
     openamber.advance_time(seconds=120, step_s=10)
     openamber.step(ms=100)
-    assert openamber.get_entity("three_way_valve_dhw_switch") is True
-    assert int(openamber.get_entity("compressor_control_select") or 0) > 0
+    assert openamber.get_entity("three_way_valve_dhw_switch") is True, "3-way valve should be on DHW"
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0, "Compressor should be running"
 
     # Tank reaches setpoint
     openamber.set_sensor("dhw_temperature_tw_sensor", 52.0)
     openamber.step(ms=100)
 
     # Demand ceases naturally
-    assert openamber.get_entity("dhw_demand_active_sensor") is False
+    assert openamber.get_entity("dhw_demand_active_sensor") is False, "DHW demand should cease when tank reaches setpoint"
 
     # Advance time past compressor minimum on time (600s) + shutdown settle
     openamber.advance_time(seconds=620, step_s=20)
     openamber.step(ms=100)
 
-    assert int(openamber.get_entity("compressor_control_select") or 0) == 0
-    assert openamber.get_entity("dhw_pump_relay_switch") is False
+    assert int(openamber.get_entity("compressor_control_select") or 0) == 0, "Compressor should stop after min-on-time"
+    assert openamber.get_entity("dhw_pump_relay_switch") is False, "DHW pump should stop when demand ceases"
 
 
 def test_dhw_backup_heater_turns_on_if_not_heating_properly(clean_system):
@@ -132,18 +132,18 @@ def test_dhw_backup_heater_turns_on_if_not_heating_properly(clean_system):
     # Start DHW and start pump
     openamber.advance_time(seconds=100, step_s=10)
     openamber.step(ms=100)
-    assert openamber.get_entity("three_way_valve_dhw_switch") is True
+    assert openamber.get_entity("three_way_valve_dhw_switch") is True, "3-way valve should be on DHW"
 
     # Backup heater should not be on immediately during grace period
-    assert openamber.get_entity("backup_heater_relay") is False
+    assert openamber.get_entity("backup_heater_relay") is False, "Backup heater should not turn on during grace period"
 
     # Advance past pump settle (120s) + grace period (600s) + delay (300s)
     openamber.advance_time(seconds=1150, step_s=20)
     openamber.step(ms=100)
 
     # Backup heater must have activated
-    assert openamber.get_entity("backup_heater_relay") is True
-    assert openamber.get_entity("backup_heater_stage_1") is True
+    assert openamber.get_entity("backup_heater_relay") is True, "Backup heater should activate when heating rate is too low"
+    assert openamber.get_entity("backup_heater_stage_1") is True, "Backup heater stage 1 should be active"
 
 
 def test_dhw_pump_direct_mode(clean_system):
@@ -162,8 +162,8 @@ def test_dhw_pump_direct_mode(clean_system):
     openamber.step(ms=100)
 
     # Pump must be active in direct mode
-    assert openamber.get_entity("dhw_pump_relay_switch") is True
-    assert openamber.get_entity("dhw_pump_active_sensor") is True
+    assert openamber.get_entity("dhw_pump_relay_switch") is True, "DHW pump relay should be True in direct mode"
+    assert openamber.get_entity("dhw_pump_active_sensor") is True, "DHW pump active sensor should be True in direct mode"
 
 
 def test_dhw_pump_delta_t_mode(clean_system):
@@ -183,16 +183,17 @@ def test_dhw_pump_delta_t_mode(clean_system):
     openamber.step(ms=100)
 
     # In Delta-T mode, pump must wait because supply is colder than tank even though compressor runs
-    assert int(openamber.get_entity("compressor_control_select") or 0) > 0
-    assert openamber.get_entity("dhw_pump_relay_switch") is False
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0, "Compressor should run"
+    assert openamber.get_entity("dhw_pump_relay_switch") is False, "Pump should be OFF when supply is colder than tank"
 
     # Now supply heats up above vat temp
     openamber.set_sensor("outlet_temperature_tuo", 45.0)  # Supply 45 >= Vat 40
+    openamber.set_sensor("inlet_temperature_tui", 35.0)  # Maintain Tuo - Tui <= 15°C safety limit
     openamber.advance_time(seconds=20, step_s=5)
     openamber.step(ms=100)
 
     # Pump must start once Tuo >= Tw
-    assert openamber.get_entity("dhw_pump_relay_switch") is True
+    assert openamber.get_entity("dhw_pump_relay_switch") is True, "Pump should start once supply exceeds tank temp"
 
 
 @pytest.mark.parametrize("mode_name,expected_index", [

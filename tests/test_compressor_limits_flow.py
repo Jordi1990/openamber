@@ -128,6 +128,8 @@ def test_dhw_winter_temperature_threshold_crossing_and_adjustment(clean_system):
     openamber.step(ms=50)
 
     assert int(openamber.get_entity("compressor_control_select") or 0) == 10
+    openamber.set_number("dhw_temperature_threshold_max_compressor_mode", 5.0)
+    openamber.step(ms=50)
 
 
 def test_heating_compressor_softstart_capping(clean_system):
@@ -239,3 +241,36 @@ def test_cooling_compressor_mode_limits(clean_system, limit_setting, max_expecte
     assert current_mode <= max_expected_mode, (
         f"Cooling mode '{limit_setting}' must not exceed mode {max_expected_mode}, got {current_mode}"
     )
+
+
+def test_dhw_winter_temperature_threshold_exact_boundary(clean_system):
+    """
+    Boundary Condition Test:
+    Verify that when Ta equals exactly dhw_temperature_threshold_max_compressor_mode (<= condition),
+    winter mode (dhw_compressor_mode_max) is active.
+    """
+    openamber = clean_system
+
+    threshold = 5.0
+    assert openamber.set_number("dhw_temperature_threshold_max_compressor_mode", threshold)
+    assert openamber.set_select("dhw_compressor_mode", "Beperkt")  # mode 4
+    assert openamber.set_select("dhw_compressor_mode_max", "Maximaal")  # mode 10
+    # Set Ta EXACTLY at threshold
+    assert openamber.set_sensor("temperature_outside_ta", threshold)
+    assert openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
+    openamber.step(ms=50)
+
+    # Allow valve switch (60s) + pump start (140s) + ramping
+    openamber.advance_time(seconds=400, step_s=20)
+    openamber.step(ms=50)
+
+    # Ramping up to mode 10 (6 steps * 300s = 1800s)
+    openamber.advance_time(seconds=1850, step_s=30)
+    openamber.step(ms=50)
+
+    # At exact boundary Ta == threshold, winter mode (<=) must be active
+    current_mode = int(openamber.get_entity("compressor_control_select") or 0)
+    assert current_mode == 10, (
+        f"At exact boundary Ta == {threshold}°C, winter mode should be active (expected mode 10, got {current_mode})"
+    )
+

@@ -382,6 +382,62 @@ def test_simultaneous_demands_heat_priority_over_cooling(clean_system):
     openamber.step(ms=50)
 
     # Verify transition to Cooling mode
-    assert openamber.get_entity("working_mode_switch") == "Koelen"
-    assert int(openamber.get_entity("compressor_control_select") or 0) > 0
+    assert openamber.get_entity("working_mode_switch") == "Koelen", "Working mode should transition to Koelen"
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0, "Compressor should run in cooling mode"
+
+
+def test_simultaneous_demands_dhw_priority_over_heat_and_cool(clean_system):
+    """
+    Priority Flow: Simultaneous DHW, HEAT & COOL demands
+    1. Activate DHW, HEAT, and COOL simultaneously.
+    2. DHW must take absolute top priority: 3-way valve switches to DHW, system enters DHW mode.
+    3. Both Heat and Cool are held while DHW is running.
+    4. Once DHW is satisfied, system returns to Heat/Cool, and HEAT takes priority over COOL.
+    """
+    openamber = clean_system
+
+    # Step 1: Simultaneously activate DHW, Heat, and Cool demands
+    assert openamber.set_switch("heat_demand_switch", True)
+    assert openamber.set_switch("cool_demand_switch", True)
+    assert openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
+    assert openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
+    assert openamber.set_sensor("heat_cool_temperature_tc", 28.0)
+    assert openamber.set_sensor("outlet_temperature_tuo", 28.0)
+    assert openamber.set_sensor("inlet_temperature_tui", 26.0)
+    openamber.step(ms=50)
+
+    assert openamber.get_entity("dhw_demand_active_sensor") is True, "DHW demand should be active"
+    # In Heat/Cool demand evaluation, Heat takes priority over Cool
+    assert openamber.get_entity("heat_demand_active_sensor") is True, "Heat demand should be active"
+    assert openamber.get_entity("cool_demand_active_sensor") is False, "Cool demand should be suppressed by heat demand"
+
+    # Step 2: Advance time for valve switch (60s) + DHW compressor start (140s)
+    openamber.advance_time(seconds=200, step_s=10)
+    openamber.step(ms=50)
+
+    # DHW mode takes priority over both Heat and Cool
+    assert openamber.get_entity("state_machine_state_main") == "DHW", "Main state machine should enter DHW"
+    assert openamber.get_entity("three_way_valve_dhw_switch") is True, "3-way valve must align to DHW"
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0, "Compressor must run for DHW"
+
+    # Step 3: DHW satisfied
+    assert openamber.set_sensor("dhw_temperature_tw_sensor", 52.0)
+    openamber.step(ms=50)
+    assert openamber.get_entity("dhw_demand_active_sensor") is False, "DHW demand should clear at setpoint"
+
+    # Step 4: Advance past DHW min-on-time (600s) + valve switch back to CV (60s)
+    openamber.advance_time(seconds=700, step_s=20)
+    openamber.step(ms=50)
+
+    # Returned to Heat/Cool, where Heat demand immediately takes priority over Cool
+    assert openamber.get_entity("state_machine_state_main") == "Heat/Cool", "System should return to Heat/Cool"
+    assert openamber.get_entity("three_way_valve_dhw_switch") is False, "3-way valve must return to CV"
+    assert openamber.get_entity("heat_demand_active_sensor") is True, "Heat demand should still be active"
+    assert openamber.get_entity("cool_demand_active_sensor") is False, "Cool demand must remain suppressed by heat priority"
+
+    # Cleanup
+    assert openamber.set_switch("heat_demand_switch", False)
+    assert openamber.set_switch("cool_demand_switch", False)
+    openamber.step(ms=50)
+
 

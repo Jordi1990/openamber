@@ -1,0 +1,756 @@
+binary_sensor:
+- platform: template
+  id: dhw_schedule_active_sensor
+  internal: True
+  lambda: |-
+    if(!id(dhw_schedule_enabled_switch).state)
+    {
+      return true;
+    }
+
+    int weekday = id(my_time).now().day_of_week;
+    if(!((weekday == 2 && id(dhw_schedule_monday_enabled_switch).state) ||
+         (weekday == 3 && id(dhw_schedule_tuesday_enabled_switch).state) ||
+         (weekday == 4 && id(dhw_schedule_wednesday_enabled_switch).state) ||
+         (weekday == 5 && id(dhw_schedule_thursday_enabled_switch).state) ||
+         (weekday == 6 && id(dhw_schedule_friday_enabled_switch).state) ||
+         (weekday == 7 && id(dhw_schedule_saturday_enabled_switch).state) ||
+         (weekday == 1 && id(dhw_schedule_sunday_enabled_switch).state)))
+    {
+      return false;
+    }
+
+    auto now = id(my_time).now();
+    if(!id(dhw_start_time).has_state() || !id(dhw_end_time).has_state())
+    {
+      return false;
+    }
+
+    const int now_min   = now.hour * 60 + now.minute;
+    const int start_min = id(dhw_start_time).hour * 60 + id(dhw_start_time).minute;
+    const int end_min   = id(dhw_end_time).hour * 60 + id(dhw_end_time).minute;
+
+    bool in_window = false;
+    if (start_min <= end_min) {
+      // same day (e.g. 06:00-22:00)
+      in_window = (now_min >= start_min && now_min <= end_min);
+    } else {
+      // overnight (e.g. 22:00-06:00)
+      in_window = (now_min >= start_min || now_min <= end_min);
+    }
+
+    if (!in_window) {
+      return false;
+    }
+
+    return true;
+
+- platform: template
+  name: "Tapwater vraag"
+  id: dhw_demand_active_sensor
+  device_class: running
+  lambda: |-
+      float tw = id(dhw_temperature_tw_sensor).state;
+      float setpoint = id(current_dhw_setpoint_sensor).state;
+      bool dhw_enabled = id(dhw_enabled_switch).state;
+      float delta_restart = id(dhw_restart_dhw_delta).state;
+      if(id(sg_ready_block_mode_active_sensor).state
+      || !dhw_enabled)
+      {
+        return false;
+      }
+
+      if(id(error_active).state)
+      {
+        return false;
+      }
+
+      if(id(dhw_legionella_run_active_sensor).state)
+      {
+        return true;
+      }
+
+      if(!id(dhw_schedule_active_sensor).state)
+      {
+         return false;
+      }
+
+      if(tw >= setpoint)
+      {
+        return false;
+      }
+
+      if(id(dhw_active).state)
+      {
+        return true;
+      }
+
+      return tw < setpoint - delta_restart;
+  web_server: 
+    sorting_group_id: overview
+
+- platform: template
+  id: dhw_active
+
+- platform: template
+  name: "Legionellacyclus actief"
+  id: dhw_legionella_run_active_sensor
+  device_class: running
+  web_server: 
+    sorting_group_id: diagnostic
+  on_state:
+    - component.update: current_dhw_setpoint_sensor
+
+- platform: template
+  name: "Warmtevraag"
+  id: heat_demand_active_sensor
+  device_class: running
+  lambda: |-
+    if(id(sg_ready_block_mode_active_sensor).state)
+    {
+      return false;
+    }
+
+    if(id(error_active).state)
+    {
+      return false;
+    }
+
+    if (id(thermostat_mode_select).current_option() == "Intern")
+    {
+      return id(climate_controller).action == climate::CLIMATE_ACTION_HEATING;
+    }
+    else
+    {
+      return id(external_heat_demand_wired).state || id(heat_demand_switch).state;
+    }
+  web_server: 
+    sorting_group_id: overview
+
+- platform: template
+  name: "Koudevraag"
+  id: cool_demand_active_sensor
+  device_class: running
+  lambda: |-
+    if(id(sg_ready_block_mode_active_sensor).state)
+    {
+      return false;
+    }
+
+    if(id(error_active).state)
+    {
+      return false;
+    }
+
+    if(id(heat_demand_active_sensor).state)
+    {
+      return false;
+    }
+
+    if (id(thermostat_mode_select).current_option() == "Intern")
+    {
+      return id(climate_controller).action == climate::CLIMATE_ACTION_COOLING;
+    }
+    else
+    {
+      return id(external_cool_demand_wired).state || id(cool_demand_switch).state;
+    }
+  on_state:
+    - component.update : current_setpoint
+  web_server: 
+    sorting_group_id: overview
+
+- platform: template
+  name: "Vorstbescherming 1e trap"
+  id: frost_protection_stage1_active
+  device_class: running
+  filters:
+    - delayed_on_off: 300s
+  lambda: |-
+    return id(temperature_outside_ta).state < id(frost_protection_stage_1_temp_ta).state;
+  on_press: 
+    then:
+      - logger.log:
+          format: "Pump interval reset due to pump required for frost protection."
+          level: INFO
+      - lambda: |-
+          id(amber_ctrl).reset_pump_interval();
+  web_server: 
+    sorting_group_id: overview
+
+- platform: template
+  name: "Vorstbescherming 2e trap"
+  id: frost_protection_stage2_active
+  device_class: running
+  filters:
+    - delayed_on_off: 300s
+  lambda: |-
+    return id(temperature_outside_ta).state < id(frost_protection_stage_2_temp_ta).state &&
+            id(inlet_temperature_tui).state < id(frost_protection_stage_2_temp_tui).state;
+  on_press: 
+    then:
+      - logger.log:
+          format: "Pump interval reset due to pump required for frost protection."
+          level: INFO
+      - lambda: |-
+          id(amber_ctrl).reset_pump_interval();
+  web_server: 
+    sorting_group_id: overview
+
+- platform: template
+  name: "SG-Ready blokkeermodus"
+  id: sg_ready_block_mode_active_sensor
+  disabled_by_default: True
+  device_class: running
+  lambda: |-
+    return id(sg_ready_mode_select).current_option() == "Blokkeren" ||
+           (id(sg_ready_a_active_sensor).state && !id(sg_ready_b_active_sensor).state);
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
+  name: "SG-Ready boostmodus"
+  id: sg_ready_boost_mode_active_sensor
+  disabled_by_default: True
+  device_class: running
+  lambda: |-
+    return id(sg_ready_mode_select).current_option() == "Boost" ||
+           (!id(sg_ready_a_active_sensor).state && id(sg_ready_b_active_sensor).state);
+  web_server: 
+    sorting_group_id: diagnostic
+  on_state:
+    - component.update: current_dhw_setpoint_sensor
+    - component.update : current_setpoint
+
+- platform: template
+  name: "SG-Ready maxboostmodus"
+  id: sg_ready_max_boost_mode_active_sensor
+  disabled_by_default: True
+  device_class: running
+  lambda: |-
+    return id(sg_ready_mode_select).current_option() == "Max Boost" ||
+           (id(sg_ready_a_active_sensor).state && id(sg_ready_b_active_sensor).state);
+  web_server: 
+    sorting_group_id: diagnostic
+  on_state:
+    - component.update: current_dhw_setpoint_sensor
+    - component.update : current_setpoint
+
+- platform: template
+  id: error_flag_p01
+  name: "Bedrijfstroom warmtepomp (P01)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0001) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_p02
+  name: "Bedrijfstroom warmtepomp (P02)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0002) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_p03
+  name: "Storing compressorstart (P03)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0004) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: oil_return_cycle_active
+  name: "Olie-terugloopcyclus (P04)"
+  icon: mdi:autorenew
+  device_class: running
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0008) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: oil_return_cycle_active_settled
+  internal: True
+  filters:
+    - delayed_off: 300s
+  lambda: |-
+    return id(oil_return_cycle_active).state;
+
+- platform: template
+  id: error_flag_p05
+  name: "Hogedrukbeveiliging (P05)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0010) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_p06
+  name: "Laag drukverschil (P06)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0020) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_p07
+  name: "Compressor voorverwarming (P07)"
+  device_class: running
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0040) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_p08
+  name: "Storing sensor persgasdruk (P08)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0080) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_p09
+  name: "Storing sensor verdamper⁄condensor (P09)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0100) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_p10
+  name: "Voedingsspanning (P10)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0200) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_p11
+  name: "Compressor begrenzing (P11)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0400) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_p12
+  name: "Compressor begrenzing (P12)"
+  device_class: running
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x0800) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_p13
+  name: "Laag drukverschil (P13)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2119_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
+    return (raw & 0x1000) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_f01
+  name: "Storing buitentemperatuursensor (F01)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2120_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2120_raw).state;
+    return (raw & 0x0001) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_f02
+  name: "Storing sensor verdamper⁄condensor (F02)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2120_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2120_raw).state;
+    return (raw & 0x0002) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_f03
+  name: "Storing persgas temperatuursensor (F03)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2120_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2120_raw).state;
+    return (raw & 0x0004) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_f04
+  name: "Storing zuigas temperatuursensor (F04)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2120_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2120_raw).state;
+    return (raw & 0x0008) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_f05
+  name: "Storing zuiggas druk sensor (F05)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2120_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2120_raw).state;
+    return (raw & 0x0010) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_f06
+  name: "Storing persgas druk sensor (F06)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2120_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2120_raw).state;
+    return (raw & 0x0020) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_f07
+  name: "Storing hogedrukbeveiliging (F07)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2120_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2120_raw).state;
+    return (raw & 0x0040) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_f09
+  name: "Storing ventilatormotor DC (F09)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2120_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2120_raw).state;
+    return (raw & 0x0100) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_e01
+  name: "Communicatiefout PCB (E01)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0001) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_e02
+  name: "Storing inverter communicatie (E02)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0002) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_e03
+  name: "Bedrijfsstroom warmtepomp (E03)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0004) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_e04
+  name: "Bedrijfsstroom warmtepomp (E04)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0008) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_e05
+  name: "Storing inverter (E05)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0010) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_e06
+  name: "Storing VCD-module (E06)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0020) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_e07
+  name: "Storing voedingsspanning (E07)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0040) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_e08
+  name: "Storing EEPROM warmtepomp (E08)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0080) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_f10
+  name: "Storing ventilatormotor DC (F10)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0100) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_f16
+  name: "Storing sensor aanvoertemperatuur Tuo (F16)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0200) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_f17
+  name: "Storing sensor retourtemperatuur Tui (F17)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0400) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_f18
+  name: "Storing sensor condensortemperatuur Tup (F18)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(error_register_2121_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
+    return (raw & 0x0800) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: modbus_inside_online
+  name: "Modbus binnenunit"
+  device_class: connectivity
+  lambda: |-
+    return id(modbus_inside_is_online);
+  disabled_by_default: true
+  entity_category: diagnostic
+
+- platform: template
+  id: modbus_outside_online
+  name: "Modbus buitenunit"
+  device_class: connectivity
+  lambda: |-
+    return id(modbus_outside_is_online);
+  disabled_by_default: true
+  entity_category: diagnostic
+
+- platform: template
+  id: error_pump_start_timeout
+  name: "Pomp start timeout"
+  device_class: problem
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_compressor_start_timeout
+  name: "Compressor start timeout"
+  device_class: problem
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_pump_stop_timeout
+  name: "Pomp stop timeout"
+  device_class: problem
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_modbus_connection_timeout
+  name: "Modbus verbinding timeout"
+  device_class: problem
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_three_way_valve_state_timeout
+  name: "3-weg klep status fout"
+  device_class: problem
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_active
+  name: "Error actief"
+  device_class: problem
+  entity_category: diagnostic
+  web_server: 
+    sorting_group_id: error_codes
+  lambda: |-
+    return id(error_flag_p03).state ||
+           id(error_flag_p05).state ||
+           id(error_flag_p08).state ||
+           id(error_flag_p09).state ||
+           id(error_flag_p10).state ||
+           id(error_flag_f01).state ||
+           id(error_flag_f02).state ||
+           id(error_flag_f03).state ||
+           id(error_flag_f04).state ||
+           id(error_flag_f05).state ||
+           id(error_flag_f06).state ||
+           id(error_flag_f07).state ||
+           id(error_flag_f09).state ||
+           id(error_flag_e01).state ||
+           id(error_flag_e02).state ||
+           id(error_flag_e03).state ||
+           id(error_flag_e04).state ||
+           id(error_flag_e05).state ||
+           id(error_flag_e06).state ||
+           id(error_flag_e07).state ||
+           id(error_flag_e08).state ||
+           id(error_flag_f10).state ||
+           id(error_flag_f16).state ||
+           id(error_flag_f17).state ||
+           id(error_flag_f18).state ||
+           id(error_pump_start_timeout).state ||
+           id(error_compressor_start_timeout).state ||
+           id(error_pump_stop_timeout).state ||
+           id(error_modbus_connection_timeout).state ||
+           id(error_three_way_valve_state_timeout).state;
+
+- platform: template
+  id: warning_active
+  name: "Waarschuwing actief"
+  device_class: problem
+  entity_category: diagnostic
+  web_server: 
+    sorting_group_id: error_codes
+  lambda: |-
+    return id(error_flag_p01).state ||
+           id(error_flag_p02).state ||
+           id(error_flag_p07).state ||
+           id(oil_return_cycle_active).state ||
+           id(error_flag_p06).state ||
+           id(error_flag_p11).state ||
+           id(error_flag_p12).state ||
+           id(error_flag_p13).state;
