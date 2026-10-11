@@ -21,9 +21,6 @@
 
 #include "esphome/core/component.h"
 
-#ifdef USE_HOST
-#include "mock_openamber_component.h"
-#else
 
 // Forward declarations
 class DHWController;
@@ -103,4 +100,3 @@ public:
 
 }  // namespace openamber
 }  // namespace esphome
-#endif
