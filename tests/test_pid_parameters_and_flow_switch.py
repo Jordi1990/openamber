@@ -8,6 +8,7 @@ Covers:
 
 import pytest
 
+
 def test_error_active_safety_check_stops_compressor(clean_system):
     """
     Safety Flow:
