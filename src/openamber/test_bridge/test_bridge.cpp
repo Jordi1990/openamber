@@ -156,14 +156,55 @@ void TestBridge::loop() {
 }
 
 void TestBridge::send_response(const std::string &json_str) {
-  if (this->client_fd_ >= 0) {
-    std::string out = json_str + "\n";
+  if (this->client_fd_ < 0) return;
+  std::string out = json_str + "\n";
+  const char *buf = out.c_str();
+  size_t total = out.length();
+  size_t sent = 0;
+  int retries = 0;
+  while (sent < total && this->client_fd_ >= 0) {
 #ifdef _WIN32
-    send(this->client_fd_, out.c_str(), static_cast<int>(out.length()), 0);
+    int n = send(this->client_fd_, buf + sent, static_cast<int>(total - sent), 0);
+    if (n < 0) {
+      int err = WSAGetLastError();
+      if (err == WSAEWOULDBLOCK) {
+        if (++retries > 100) {
+          this->close_client();
+          break;
+        }
+        Sleep(1);
+        continue;
+      }
+      this->close_client();
+      break;
+    }
 #else
-    send(this->client_fd_, out.c_str(), out.length(), 0);
+    ssize_t n = send(this->client_fd_, buf + sent, total - sent, 0);
+    if (n < 0) {
+      if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        if (++retries > 100) {
+          this->close_client();
+          break;
+        }
+        usleep(1000);
+        continue;
+      }
+      this->close_client();
+      break;
+    }
 #endif
+    if (n > 0) {
+      sent += static_cast<size_t>(n);
+      retries = 0;
+    }
   }
+}
+
+static std::string build_error_json(const std::string &message) {
+  return json::build_json([&](JsonObject out) {
+    out["status"] = "error";
+    out["message"] = message;
+  });
 }
 
 lv_obj_t *TestBridge::resolve_widget(const std::string &id) {
@@ -199,7 +240,7 @@ void TestBridge::process_line(const std::string &line) {
       std::string id = root["id"] | "";
       lv_obj_t *obj = this->resolve_widget(id);
       if (obj == nullptr) {
-        this->send_response("{\"status\":\"error\",\"message\":\"Widget not found: " + id + "\"}");
+        this->send_response(build_error_json("Widget not found: " + id));
         return true;
       }
       lv_obj_send_event(obj, LV_EVENT_CLICKED, nullptr);
@@ -211,7 +252,7 @@ void TestBridge::process_line(const std::string &line) {
       std::string id = root["id"] | "";
       lv_obj_t *obj = this->resolve_widget(id);
       if (obj == nullptr) {
-        this->send_response("{\"status\":\"error\",\"message\":\"Widget not found: " + id + "\"}");
+        this->send_response(build_error_json("Widget not found: " + id));
         return true;
       }
       bool hidden = lv_obj_has_flag(obj, LV_OBJ_FLAG_HIDDEN);
@@ -264,7 +305,7 @@ void TestBridge::process_line(const std::string &line) {
           return true;
         }
       }
-      this->send_response("{\"status\":\"error\",\"message\":\"Sensor not found: " + id + "\"}");
+      this->send_response(build_error_json("Sensor not found: " + id));
       return true;
     }
 
@@ -286,7 +327,7 @@ void TestBridge::process_line(const std::string &line) {
           return true;
         }
       }
-      this->send_response("{\"status\":\"error\",\"message\":\"Number not found: " + id + "\"}");
+      this->send_response(build_error_json("Number not found: " + id));
       return true;
     }
 
@@ -308,7 +349,7 @@ void TestBridge::process_line(const std::string &line) {
           return true;
         }
       }
-      this->send_response("{\"status\":\"error\",\"message\":\"Switch not found: " + id + "\"}");
+      this->send_response(build_error_json("Switch not found: " + id));
       return true;
     }
 
@@ -330,7 +371,7 @@ void TestBridge::process_line(const std::string &line) {
           return true;
         }
       }
-      this->send_response("{\"status\":\"error\",\"message\":\"Binary sensor not found: " + id + "\"}");
+      this->send_response(build_error_json("Binary sensor not found: " + id));
       return true;
     }
 
@@ -511,7 +552,7 @@ void TestBridge::process_line(const std::string &line) {
         }
       }
 
-      this->send_response("{\"status\":\"error\",\"message\":\"Entity not found: " + id + "\"}");
+      this->send_response(build_error_json("Entity not found: " + id));
       return true;
     }
 
@@ -533,7 +574,7 @@ void TestBridge::process_line(const std::string &line) {
           return true;
         }
       }
-      this->send_response("{\"status\":\"error\",\"message\":\"Select not found: " + id + "\"}");
+      this->send_response(build_error_json("Select not found: " + id));
       return true;
     }
 
@@ -556,7 +597,7 @@ void TestBridge::process_line(const std::string &line) {
         this->send_response("{\"status\":\"ok\"}");
         return true;
       }
-      this->send_response("{\"status\":\"error\",\"message\":\"Climate not found: " + id + "\"}");
+      this->send_response(build_error_json("Climate not found: " + id));
       return true;
     }
 
@@ -604,7 +645,7 @@ void TestBridge::process_line(const std::string &line) {
       return true;
     }
 
-    this->send_response("{\"status\":\"error\",\"message\":\"Unknown command: " + cmd + "\"}");
+    this->send_response(build_error_json("Unknown command: " + cmd));
     return true;
   });
 }

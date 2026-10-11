@@ -178,9 +178,9 @@ def test_pump_p0_pid_defrost_override_and_limits(clean_system):
     openamber.advance_time(seconds=10, step_s=2)
     openamber.step(ms=100)
 
-    # Pump must return from defrost override (<= 600.0, i.e. >= 40%)
+    # Pump must return from defrost override to valid PID range (200.0..600.0)
     current_pwm = float(openamber.get_entity("pump_control_pwm_number") or openamber.get_entity("pump_p0_current_pwm_sensor") or 0)
-    assert current_pwm <= 600.0, f"Expected pump to return from defrost, got {current_pwm}"
+    assert 200.0 <= current_pwm <= 600.0, f"Expected pump to return from defrost, got {current_pwm}"
 
     # Cleanup
     openamber.set_binary_sensor("external_heat_demand_wired", False)

@@ -75,13 +75,13 @@ def test_backup_heater_prediction_settle_time_flow(clean_system):
     assert openamber.get_label("tile_backup_state") == "AAN", "Tile label should be 'AAN'"
 
     # Advance virtual time by only 30 seconds (30s < BACKUP_HEATER_PREDICTION_SETTLE_TIME_S = 300s)
-    openamber.advance_time(seconds=30)
+    openamber.advance_time(seconds=30, step_s=5)
     # Settle time not elapsed yet, backup heater must remain ON
     assert openamber.get_entity("backup_heater_relay") is True, "Backup heater should stay ON before settle time (300s)"
     assert openamber.get_label("tile_backup_state") == "AAN", "Tile label should remain 'AAN'"
 
     # Advance virtual time by an additional 280 seconds (total 310s > 300s settle time)
-    openamber.advance_time(seconds=280)
+    openamber.advance_time(seconds=280, step_s=10)
 
     # Temperature warms up towards setpoint
     assert openamber.set_sensor("current_water_temperature_tc_sensor", 38.0)

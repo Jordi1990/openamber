@@ -46,10 +46,10 @@ def test_pid_virtual_time_integration(clean_system):
     # Verify climate entity is still tracking and responding
     info = openamber.get_entity("pid_heat_temperature_control")
     assert info.get("status") == "ok", "Climate query status must be 'ok'"
-    assert info.get("target_temperature") == pytest.approx(35.0, 0.1), (
+    assert info.get("target_temperature") == pytest.approx(35.0, abs=0.1), (
         f"Expected target_temperature 35.0°C, got {info.get('target_temperature')}"
     )
-    assert info.get("current_temperature") == pytest.approx(30.2, 0.1), (
+    assert info.get("current_temperature") == pytest.approx(30.2, abs=0.1), (
         f"Expected current_temperature 30.2°C, got {info.get('current_temperature')}"
     )
     assert info.get("mode") == "HEAT", f"Expected mode 'HEAT', got '{info.get('mode')}'"
@@ -82,7 +82,7 @@ def test_pid_deadband_stabilization_with_virtual_time(clean_system):
 
     info = openamber.get_entity("pid_heat_temperature_control")
     assert info.get("status") == "ok", "Climate query status must be 'ok'"
-    assert info.get("current_temperature") == pytest.approx(35.0, 0.1), (
+    assert info.get("current_temperature") == pytest.approx(35.0, abs=0.1), (
         f"Expected current_temperature 35.0°C, got {info.get('current_temperature')}"
     )
     assert info.get("action") == "IDLE", (

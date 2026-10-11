@@ -264,6 +264,8 @@ def test_defrost_pump_p0_pid_defrost_pwm(clean_system):
     openamber.set_climate("pid_heat_temperature_control", target_temperature=35.0)
     openamber.set_select("heat_compressor_mode", "Maximaal")
     openamber.set_switch("pump_p0_pid_enabled", True)
+    openamber.set_number("pump_p0_pid_min_pwm", 40.0)
+    openamber.set_number("pump_p0_pid_max_pwm", 80.0)
     openamber.set_number("pump_p0_pid_defrost_pwm", 85.0)
     openamber.set_switch("heat_demand_switch", True)
     openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
@@ -291,10 +293,17 @@ def test_defrost_pump_p0_pid_defrost_pwm(clean_system):
         f"Pump PWM during defrost should be {expected_pwm_val} (85% duty cycle), got {actual_pwm}"
     )
 
-    # Defrost ends
+    # Defrost ends and post-defrost settle period elapses (300s)
     openamber.set_binary_sensor("defrost_active_sensor", False)
-    openamber.advance_time(seconds=10, step_s=2)
+    openamber.advance_time(seconds=310, step_s=10)
+    # Allow 5s polling component update cycle to execute in Compressor running
+    openamber.advance_time(seconds=10, step_s=5)
     openamber.step(ms=50)
+
+    post_pwm = float(openamber.get_entity("pump_control_pwm_number") or 0)
+    assert post_pwm != expected_pwm_val, (
+        f"Pump PWM after defrost should leave defrost duty cycle ({expected_pwm_val}), got {post_pwm}"
+    )
 
 
 def test_dhw_defrost_flow_and_settle_time(clean_system):

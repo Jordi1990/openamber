@@ -76,6 +76,7 @@ def test_backup_heater_ui_bindings_and_turn_off_flow(clean_system):
     assert openamber.set_sensor("current_water_temperature_tc_sensor", target_temp + stop_delta + 1.0)
     assert openamber.set_sensor("heat_cool_temperature_tc", target_temp + stop_delta + 1.0)
     assert openamber.set_sensor("outlet_temperature_tuo", target_temp + stop_delta + 1.0)
+    assert openamber.set_sensor("inlet_temperature_tui", target_temp + stop_delta - 1.0)
     openamber.advance_time(seconds=10, step_s=2)
     openamber.step(ms=100)
 

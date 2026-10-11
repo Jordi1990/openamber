@@ -138,6 +138,7 @@ def test_cooling_stop_delta_and_pump_speed(clean_system):
     openamber.set_sensor("current_water_temperature_tc_sensor", 15.8)
     openamber.set_sensor("heat_cool_temperature_tc", 15.8)
     openamber.set_sensor("outlet_temperature_tuo", 15.8)
+    openamber.set_sensor("inlet_temperature_tui", 17.8)
     openamber.step(ms=50)
 
     openamber.advance_time(seconds=20, step_s=5)

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#if 0
+#ifdef USE_OPENAMBER_MOCK_COMPONENT
 
 #include "esphome/core/component.h"
 #include <string>

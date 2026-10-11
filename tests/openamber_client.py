@@ -49,8 +49,10 @@ class OpenAmberClient:
                 self.connect(retries=10, delay=0.2)
 
             payload = json.dumps(cmd_dict) + "\n"
+            sent = False
             try:
                 self.sock.sendall(payload.encode("utf-8"))
+                sent = True
 
                 buf = b""
                 while not buf.endswith(b"\n"):
@@ -63,7 +65,7 @@ class OpenAmberClient:
                 return resp
             except (socket.timeout, TimeoutError, ConnectionResetError, BrokenPipeError, OSError):
                 self.close()
-                if attempt == 1:
+                if attempt == 1 or sent:
                     raise
                 time.sleep(0.3)
 

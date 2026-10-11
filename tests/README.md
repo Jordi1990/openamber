@@ -44,7 +44,7 @@ This test suite provides end-to-end automated testing for OpenAmber, combining r
 
 3. **Pytest Harness (`tests/conftest.py`)**:
    - Automatically starts the OpenAmber host binary in headless mode (`SDL_VIDEODRIVER=dummy`) and manages lifecycle during tests.
-   - Reuses existing graphical sessions if the OpenAmber virtual display window is already open.
+   - Terminates existing simulator program processes before a new simulator instance is started.
 
 ---
 
@@ -54,20 +54,20 @@ The tests are organized into modular, domain-specific test suites:
 
 | File | Scope & Tested Functionality |
 | :--- | :--- |
-| [`test_external_thermostat.py`](file:///g:/openamber/tests/test_external_thermostat.py) | External thermostat happy flow (wired contact `external_heat_demand_wired` $\rightarrow$ `heat_demand_active_sensor` $\rightarrow$ UI flame icon), manual heat switch flow, and `Intern` vs `Extern` mode switching. |
-| [`test_heat_demand_flow.py`](file:///g:/openamber/tests/test_heat_demand_flow.py) | Heat demand expectation to heat, SG Ready block mode suppression, system fault (`error_active`) suppression, stop delta cutoffs, and post-compressor pump cycle timing. |
-| [`test_frost_protection_flow.py`](file:///g:/openamber/tests/test_frost_protection_flow.py) | Frost protection stage 1 & 2 detection, instant pump interval reset (`reset_pump_interval`), and immediate pump start in IDLE without waiting for interval. |
-| [`test_defrost_flow.py`](file:///g:/openamber/tests/test_defrost_flow.py) | Defrost cycle entry & exit, secondary pump P1 stop/start, pump P0 defrost PWM speed (`pump_p0_pid_defrost_pwm`), post-defrost settle period (`COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 300s`), compressor recovery boost mode (+3 steps), low ambient backup heater boost ($T_a \le -3^\circ\text{C}$), and DHW defrost flow. |
-| [`test_compressor_limits_flow.py`](file:///g:/openamber/tests/test_compressor_limits_flow.py) | Compressor mode limiting settings across DHW base modes (`dhw_compressor_mode`: Beperkt..Maximaal $\rightarrow$ modes 4..10), DHW winter modes (`dhw_compressor_mode_max`: Gemiddeld..Maximaal $\rightarrow$ modes 7..10 when $T_a \le$ threshold), dynamic ambient temperature threshold crossings and adjustments, Space Heating compressor mode limits (`heat_compressor_mode`: 4..10) & soft-start capping, and Space Cooling compressor mode limits (`cool_compressor_mode`: 1..7). |
-| [`test_virtual_time_settle.py`](file:///g:/openamber/tests/test_virtual_time_settle.py) | Virtual time engine (`advance_time`, `reset_time`), timer expiration, and backup heater 5-minute prediction settle time (`BACKUP_HEATER_PREDICTION_SETTLE_TIME_S = 300s`). |
-| [`test_pid_control.py`](file:///g:/openamber/tests/test_pid_control.py) | PID climate controller setpoint queries, error handling, virtual time integration ($K_i \cdot \int e dt$), and deadband stabilization. |
-| [`test_mode_switching_flows.py`](file:///g:/openamber/tests/test_mode_switching_flows.py) | Mode transitions between DHW, HEAT, and COOL modes: HEAT $\rightarrow$ DHW $\rightarrow$ HEAT, COOL $\rightarrow$ DHW $\rightarrow$ COOL, HEAT $\rightarrow$ COOL, COOL $\rightarrow$ HEAT, IDLE $\rightarrow$ DHW $\rightarrow$ IDLE, and simultaneous demand priority conflict resolution. |
-| [`test_dhw_flows.py`](file:///g:/openamber/tests/test_dhw_flows.py) | Domestic Hot Water demand, 3-way valve control (`three_way_valve_dhw_switch`), target temperature shutoff, backup heater failure escalation, direct vs $\Delta T$ pump start modes, and compressor limit modes. |
-| [`test_dhw_flow.py`](file:///g:/openamber/tests/test_dhw_flow.py) | Domestic Hot Water demand, navbar tapwater icon (`nav_status_dhw_icon`), and circulation pump spinner animation (`dhw_circulation_spinner`, `dhw_pump_state_label`). |
-| [`test_cooling_flow.py`](file:///g:/openamber/tests/test_cooling_flow.py) | External cooling demand, navbar snowflake icon (`nav_status_cool_icon`), and heating-over-cooling priority conflict resolution. |
-| [`test_backup_heater_flow.py`](file:///g:/openamber/tests/test_backup_heater_flow.py) | Backup heater relay activation, UI badge updates (`tile_backup_state`), temperature reaching setpoint + shutoff delta, and shutdown propagation. |
-| [`test_settings_workflow.py`](file:///g:/openamber/tests/test_settings_workflow.py) | Settings sidebar tabs (Algemeen, Verwarmen, Tapwater, Bijverwarmen) and mixing valve pager navigation (`1 / 2` $\leftrightarrow$ `2 / 2`). |
-| [`test_ui_navigation.py`](file:///g:/openamber/tests/test_ui_navigation.py) | Header bar title and navbar navigation between Home, Settings, Service, and System pages. |
+| [`test_external_thermostat.py`](test_external_thermostat.py) | External thermostat happy flow (wired contact `external_heat_demand_wired` $\rightarrow$ `heat_demand_active_sensor` $\rightarrow$ UI flame icon), manual heat switch flow, and `Intern` vs `Extern` mode switching. |
+| [`test_heat_demand_flow.py`](test_heat_demand_flow.py) | Heat demand expectation to heat, SG Ready block mode suppression, system fault (`error_active`) suppression, stop delta cutoffs, and post-compressor pump cycle timing. |
+| [`test_frost_protection_flow.py`](test_frost_protection_flow.py) | Frost protection stage 1 & 2 detection, instant pump interval reset (`reset_pump_interval`), and immediate pump start in IDLE without waiting for interval. |
+| [`test_defrost_flow.py`](test_defrost_flow.py) | Defrost cycle entry & exit, secondary pump P1 stop/start, pump P0 defrost PWM speed (`pump_p0_pid_defrost_pwm`), post-defrost settle period (`COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 300s`), compressor recovery boost mode (+3 steps), low ambient backup heater boost ($T_a \le -3^\circ\text{C}$), and DHW defrost flow. |
+| [`test_compressor_limits_flow.py`](test_compressor_limits_flow.py) | Compressor mode limiting settings across DHW base modes (`dhw_compressor_mode`: Beperkt..Maximaal $\rightarrow$ modes 4..10), DHW winter modes (`dhw_compressor_mode_max`: Gemiddeld..Maximaal $\rightarrow$ modes 7..10 when $T_a \le$ threshold), dynamic ambient temperature threshold crossings and adjustments, Space Heating compressor mode limits (`heat_compressor_mode`: 4..10) & soft-start capping, and Space Cooling compressor mode limits (`cool_compressor_mode`: 1..7). |
+| [`test_virtual_time_settle.py`](test_virtual_time_settle.py) | Virtual time engine (`advance_time`, `reset_time`), timer expiration, and backup heater 5-minute prediction settle time (`BACKUP_HEATER_PREDICTION_SETTLE_TIME_S = 300s`). |
+| [`test_pid_control.py`](test_pid_control.py) | PID climate controller setpoint queries, error handling, virtual time integration ($K_i \cdot \int e dt$), and deadband stabilization. |
+| [`test_mode_switching_flows.py`](test_mode_switching_flows.py) | Mode transitions between DHW, HEAT, and COOL modes: HEAT $\rightarrow$ DHW $\rightarrow$ HEAT, COOL $\rightarrow$ DHW $\rightarrow$ COOL, HEAT $\rightarrow$ COOL, COOL $\rightarrow$ HEAT, IDLE $\rightarrow$ DHW $\rightarrow$ IDLE, and simultaneous demand priority conflict resolution. |
+| [`test_dhw_flows.py`](test_dhw_flows.py) | Domestic Hot Water demand, 3-way valve control (`three_way_valve_dhw_switch`), target temperature shutoff, backup heater failure escalation, direct vs $\Delta T$ pump start modes, and compressor limit modes. |
+| [`test_dhw_flow.py`](test_dhw_flow.py) | Domestic Hot Water demand, navbar tapwater icon (`nav_status_dhw_icon`), and circulation pump spinner animation (`dhw_circulation_spinner`, `dhw_pump_state_label`). |
+| [`test_cooling_flow.py`](test_cooling_flow.py) | External cooling demand, navbar snowflake icon (`nav_status_cool_icon`), and heating-over-cooling priority conflict resolution. |
+| [`test_backup_heater_flow.py`](test_backup_heater_flow.py) | Backup heater relay activation, UI badge updates (`tile_backup_state`), temperature reaching setpoint + shutoff delta, and shutdown propagation. |
+| [`test_settings_workflow.py`](test_settings_workflow.py) | Settings sidebar tabs (Algemeen, Verwarmen, Tapwater, Bijverwarmen) and mixing valve pager navigation (`1 / 2` $\leftrightarrow$ `2 / 2`). |
+| [`test_ui_navigation.py`](test_ui_navigation.py) | Header bar title and navbar navigation between Home, Settings, Service, and System pages. |
 
 ---
 

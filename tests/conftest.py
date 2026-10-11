@@ -9,19 +9,40 @@ from openamber_client import OpenAmberClient
 def openamber_proc():
     """Launch OpenAmber headless simulator process (Linux native or WSL)."""
     started_proc = None
+    bin_path = os.environ.get(
+        "OPENAMBER_BIN",
+        os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "src", ".esphome", "build", "openamber-test", ".pioenvs", "openamber-test", "program"))
+    )
+
+    wsl_bin = None
     if os.name == "nt":
         # Windows host: invoke via WSL Debian
-        subprocess.run(["wsl", "-u", "root", "-d", "Debian", "pkill", "-9", "program"], capture_output=True)
+        try:
+            res = subprocess.run(
+                ["wsl", "-d", "Debian", "wslpath", "-u", bin_path.replace("\\", "/")],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            wsl_bin = res.stdout.strip()
+        except Exception:
+            drive, rest = os.path.splitdrive(bin_path)
+            if drive:
+                wsl_bin = f"/mnt/{drive[0].lower()}{rest.replace('\\', '/')}"
+            else:
+                wsl_bin = bin_path.replace("\\", "/")
+
+        subprocess.run(["wsl", "-u", "root", "-d", "Debian", "pkill", "-9", "-f", wsl_bin], capture_output=True)
         subprocess.run(["wsl", "-d", "Debian", "bash", "-c", "rm -f ~/.esphome/prefs/openamber-test.prefs"], capture_output=True)
         time.sleep(0.5)
         cmd = [
             "wsl", "-d", "Debian", "bash", "-c",
-            "SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy /mnt/g/openamber/src/.esphome/build/openamber-test/.pioenvs/openamber-test/program"
+            f"SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy {wsl_bin}"
         ]
         started_proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     else:
         # Native Linux / CI
-        subprocess.run(["pkill", "-9", "program"], capture_output=True)
+        subprocess.run(["pkill", "-9", "-f", bin_path], capture_output=True)
         pref_file = os.path.expanduser("~/.esphome/prefs/openamber-test.prefs")
         if os.path.exists(pref_file):
             try:
@@ -29,10 +50,6 @@ def openamber_proc():
             except OSError:
                 pass
         time.sleep(0.3)
-        bin_path = os.environ.get(
-            "OPENAMBER_BIN",
-            os.path.join(os.path.dirname(__file__), "..", "src", ".esphome", "build", "openamber-test", ".pioenvs", "openamber-test", "program")
-        )
         env = os.environ.copy()
         env["SDL_VIDEODRIVER"] = "dummy"
         env["SDL_AUDIODRIVER"] = "dummy"
@@ -46,12 +63,17 @@ def openamber_proc():
             started_proc.terminate()
             started_proc.wait(timeout=2.0)
         except Exception:
-            pass
+            try:
+                started_proc.kill()
+                started_proc.wait(timeout=2.0)
+            except Exception:
+                pass
         finally:
             if os.name == "nt":
-                subprocess.run(["wsl", "-d", "Debian", "pkill", "-9", "program"], capture_output=True)
+                if wsl_bin:
+                    subprocess.run(["wsl", "-u", "root", "-d", "Debian", "pkill", "-9", "-f", wsl_bin], capture_output=True)
             else:
-                subprocess.run(["pkill", "-9", "program"], capture_output=True)
+                subprocess.run(["pkill", "-9", "-f", bin_path], capture_output=True)
 
 
 @pytest.fixture(scope="session")

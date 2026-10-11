@@ -153,6 +153,7 @@ def test_backup_heater_mode_external_activates_external_relay(clean_system):
     openamber.set_sensor("current_water_temperature_tc_sensor", 38.0)
     openamber.set_sensor("heat_cool_temperature_tc", 38.0)
     openamber.set_sensor("outlet_temperature_tuo", 38.0)
+    openamber.set_sensor("inlet_temperature_tui", 36.0)
     openamber.advance_time(seconds=10, step_s=2)
     openamber.step(ms=100)
 
