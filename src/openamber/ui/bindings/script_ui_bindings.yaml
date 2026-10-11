@@ -1970,7 +1970,6 @@
         const AlertItem items[] = {
           {"P01 - Bedrijfstroom warmtepomp", "De eerste keer wordt de normale werking van de warmtepomp na 5 minuten automatisch hervat.", id(error_flag_p01).state},
           {"P02 - Bedrijfstroom warmtepomp", "De eerste keer wordt de normale werking van de warmtepomp na 5 minuten automatisch hervat. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart.", id(error_flag_p02).state},
-          {"P04 - Beveiliging oliedruk compressor", "Als de compressor 2 uur met een laag toerental draait (30-43 Hz) wordt deze beveiliging geactiveerd om de compressorolie weer in de compressor te krijgen.", id(oil_return_cycle_active).state},
           {"P06 - Storing compressor - laag drukverschil", "De compressorfrequentie zal worden begrensd. De druk zal hierdoor zakken en een normale werking wordt voortgezet.", id(error_flag_p06).state},
           {"P07 - Compressor voorverwarming", "De compressor wordt voorverwarmd om te kunnen starten. Het zal maximaal 30 minuten duren voordat de compressor op bedrijfstemperatuur is. Daarna zal deze storing vanzelf verdwijnen en zal de compressor starten.", id(error_flag_p07).state},
           {"P11 - Compressor frequentiebegrenzing op buitentemperatuur", "De warmtepomp is geblokkeerd. De buitentemperatuur (Ta) is te laag of te hoog om op maximale capaciteit te kunnen werken.", id(error_flag_p11).state},
