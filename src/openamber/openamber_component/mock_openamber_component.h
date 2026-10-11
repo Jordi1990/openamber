@@ -5,7 +5,7 @@
 
 #pragma once
 
-#ifdef USE_HOST
+#if 0
 
 #include "esphome/core/component.h"
 #include <string>

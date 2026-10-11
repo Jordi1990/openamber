@@ -77,6 +77,84 @@ def test_sg_ready_heating_and_dhw_boost(clean_system):
     assert dhw_sp == 50.0, f"Expected return to baseline DHW setpoint 50.0°C, got {dhw_sp}"
 
 
+def test_sg_ready_heating_and_dhw_max_boost(clean_system):
+    """
+    Verify SG Ready Max Boost:
+    1. Baseline heating (35°C) and DHW (50°C) setpoints without boost.
+    2. Activate Max Boost via sg_ready_mode_select ('Max boost').
+    3. Verify sg_ready_max_boost_mode_active_sensor is True and setpoints boosted.
+    4. Deactivate Max Boost -> returns to baseline.
+    5. Activate Max Boost via wired contacts (sg_ready_a_active_sensor=True, sg_ready_b_active_sensor=True).
+    6. Verify sg_ready_max_boost_mode_active_sensor is True and setpoints boosted.
+    7. Reset wired contacts -> returns to baseline.
+    """
+    openamber = clean_system
+
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 35.0)
+    openamber.set_number("dhw_setpoint_temperature", 50.0)
+    openamber.set_number("sg_ready_heating_boost_temperature_number", 4.0)
+    openamber.set_number("sg_ready_dhw_boost_temperature_number", 6.0)
+    openamber.set_select("sg_ready_mode_select", "Normaal")
+    openamber.set_binary_sensor("sg_ready_a_active_sensor", False)
+    openamber.set_binary_sensor("sg_ready_b_active_sensor", False)
+    openamber.advance_time(seconds=6, step_s=1)
+    openamber.step(ms=100)
+
+    # Verify baseline
+    assert openamber.get_entity("sg_ready_max_boost_mode_active_sensor") is False
+    heat_sp = float(openamber.get_entity("current_setpoint") or 0)
+    dhw_sp = float(openamber.get_entity("current_dhw_setpoint_sensor") or 0)
+    assert heat_sp == 35.0
+    assert dhw_sp == 50.0
+
+    # 1. Activate Max Boost via select entity option "Max boost"
+    openamber.set_select("sg_ready_mode_select", "Max boost")
+    openamber.advance_time(seconds=6, step_s=1)
+    openamber.step(ms=100)
+
+    assert openamber.get_entity("sg_ready_max_boost_mode_active_sensor") is True, (
+        "sg_ready_max_boost_mode_active_sensor should be True when mode is 'Max boost'"
+    )
+    heat_sp = float(openamber.get_entity("current_setpoint") or 0)
+    dhw_sp = float(openamber.get_entity("current_dhw_setpoint_sensor") or 0)
+    assert heat_sp == 39.0, f"Expected boosted heating setpoint 39.0°C (35+4), got {heat_sp}"
+    assert dhw_sp == 56.0, f"Expected boosted DHW setpoint 56.0°C (50+6), got {dhw_sp}"
+
+    # Deactivate Max Boost
+    openamber.set_select("sg_ready_mode_select", "Normaal")
+    openamber.advance_time(seconds=6, step_s=1)
+    openamber.step(ms=100)
+
+    assert openamber.get_entity("sg_ready_max_boost_mode_active_sensor") is False
+    heat_sp = float(openamber.get_entity("current_setpoint") or 0)
+    dhw_sp = float(openamber.get_entity("current_dhw_setpoint_sensor") or 0)
+    assert heat_sp == 35.0
+    assert dhw_sp == 50.0
+
+    # 2. Activate Max Boost via wired contact inputs (A=True, B=True)
+    openamber.set_binary_sensor("sg_ready_a_active_sensor", True)
+    openamber.set_binary_sensor("sg_ready_b_active_sensor", True)
+    openamber.advance_time(seconds=6, step_s=1)
+    openamber.step(ms=100)
+
+    assert openamber.get_entity("sg_ready_max_boost_mode_active_sensor") is True, (
+        "sg_ready_max_boost_mode_active_sensor should be True when both A and B inputs are active"
+    )
+    heat_sp = float(openamber.get_entity("current_setpoint") or 0)
+    dhw_sp = float(openamber.get_entity("current_dhw_setpoint_sensor") or 0)
+    assert heat_sp == 39.0
+    assert dhw_sp == 56.0
+
+    # Reset wired contact inputs
+    openamber.set_binary_sensor("sg_ready_a_active_sensor", False)
+    openamber.set_binary_sensor("sg_ready_b_active_sensor", False)
+    openamber.advance_time(seconds=6, step_s=1)
+    openamber.step(ms=100)
+
+    assert openamber.get_entity("sg_ready_max_boost_mode_active_sensor") is False
+
+
 def test_legionella_settings_and_prevention_flow(clean_system):
     """
     Verify Legionella Settings:

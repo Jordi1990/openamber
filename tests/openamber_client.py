@@ -149,9 +149,9 @@ class OpenAmberClient:
             while elapsed < total_ms:
                 slice_ms = min(chunk_ms, total_ms - elapsed)
                 res = self.send_cmd({"cmd": "advance_time", "ms": slice_ms})
+                self.step(ms=10)
                 offset = res.get("offset_ms", 0)
                 elapsed += slice_ms
-            self.step(ms=30)
             return offset
 
         res = self.send_cmd({"cmd": "advance_time", "ms": total_ms})
