@@ -24,8 +24,9 @@ def test_internal_thermostat_heat_demand_activation_and_overrun_shutoff(clean_sy
     """
     openamber = clean_system
 
+    # Note: heat_deadband=0.3°C, heat_overrun=0.2°C configured on climate_controller in climates.yaml
     openamber.set_select("thermostat_mode_select", "Intern")
-    openamber.set_climate("climate_controller", mode="HEAT")
+    openamber.set_climate("climate_controller", mode="HEAT", target_temperature=20.5)
     openamber.set_sensor("room_temperature", 20.5)
     openamber.step(ms=100)
 
@@ -71,8 +72,9 @@ def test_internal_thermostat_cool_demand_activation_and_overrun_shutoff(clean_sy
     """
     openamber = clean_system
 
+    # Note: cool_deadband=0.5°C, cool_overrun=3.0°C configured on climate_controller in climates.yaml
     openamber.set_select("thermostat_mode_select", "Intern")
-    openamber.set_climate("climate_controller", mode="COOL")
+    openamber.set_climate("climate_controller", mode="COOL", target_temperature=24.0)
     openamber.set_sensor("room_temperature", 23.0)
     openamber.step(ms=100)
 

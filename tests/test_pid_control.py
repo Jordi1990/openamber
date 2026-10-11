@@ -72,6 +72,10 @@ def test_pid_virtual_time_integration(clean_system):
         f"Expected current_temperature 30.2°C, got {info.get('current_temperature')}"
     )
     assert info.get("mode") == "HEAT", f"Expected mode 'HEAT', got '{info.get('mode')}'"
+    # Action may be 'HEATING' or 'IDLE' depending on whether PID derivative term is braking
+    assert info.get("action") in ("HEATING", "IDLE"), (
+        f"PID action should be 'HEATING' or 'IDLE', got '{info.get('action')}'"
+    )
 
 
 def test_pid_deadband_stabilization_with_virtual_time(clean_system):

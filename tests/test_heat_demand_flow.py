@@ -97,9 +97,10 @@ def test_heat_demand_error_active_suppression(clean_system):
     """
     Safety Flow:
     1. Active heat demand is running.
-    2. A system fault occurs (error_active = True).
-    3. Verify heat demand is suppressed to protect equipment.
-    4. Fault is cleared -> heat demand recovers.
+    2. A system fault occurs: error_pump_start_timeout is raised, which causes
+       the template sensor error_active to evaluate to True.
+    3. Verify heat demand is suppressed to protect equipment (heat_demand_active_sensor = False).
+    4. Fault is cleared -> error_active clears -> heat demand recovers.
     """
     openamber = clean_system
 
@@ -450,8 +451,25 @@ def test_heat_demand_compressor_stops_at_exact_stop_delta_boundary(clean_system)
     openamber.advance_time(seconds=450, step_s=20)
     openamber.step(ms=100)
 
-    # Set Tc EXACTLY at target + stop_delta = 35.0 + 5.0 = 40.0°C
+    # Step 1: Verify negative boundary condition:
+    # Tc is 0.1°C below the stop boundary (35.0 + 5.0 - 0.1 = 39.9°C).
+    # The compressor must CONTINUE heating (strict >= threshold).
     exact_stop_temp = target_temperature + stop_delta
+    below_stop_temp = exact_stop_temp - 0.1
+    assert openamber.set_sensor("current_water_temperature_tc_sensor", below_stop_temp)
+    assert openamber.set_sensor("heat_cool_temperature_tc", below_stop_temp)
+    assert openamber.set_sensor("outlet_temperature_tuo", below_stop_temp)
+    assert openamber.set_sensor("inlet_temperature_tui", below_stop_temp - 2.0)
+    openamber.step(ms=100)
+
+    openamber.advance_time(seconds=30, step_s=5)
+    openamber.step(ms=100)
+
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0, (
+        "Compressor must continue running when Tc is 0.1°C below stop delta threshold"
+    )
+
+    # Step 2: Set Tc EXACTLY at target + stop_delta = 35.0 + 5.0 = 40.0°C (inclusive boundary)
     assert openamber.set_sensor("current_water_temperature_tc_sensor", exact_stop_temp)
     assert openamber.set_sensor("heat_cool_temperature_tc", exact_stop_temp)
     assert openamber.set_sensor("outlet_temperature_tuo", exact_stop_temp)

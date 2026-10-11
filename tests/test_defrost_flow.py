@@ -282,8 +282,10 @@ def test_defrost_pump_p0_pid_defrost_pwm(clean_system):
     openamber.advance_time(seconds=10, step_s=2)
     openamber.step(ms=50)
 
-    # Duty cycle 85% corresponds to inverted speed value: ((85 * 10) * -1) + 1000 = 150.0
-    expected_pwm_val = 150.0
+    # Inverted PWM speed formula per PumpController::SetPwmDutyCycle (pump_controller.h):
+    # control_speed = ((duty_cycle * 10.0f) * -1.0f) + 1000.0f
+    defrost_pwm = 85.0
+    expected_pwm_val = ((defrost_pwm * 10.0) * -1.0) + 1000.0  # 150.0
     actual_pwm = float(openamber.get_entity("pump_control_pwm_number") or 0)
     assert actual_pwm == expected_pwm_val, (
         f"Pump PWM during defrost should be {expected_pwm_val} (85% duty cycle), got {actual_pwm}"

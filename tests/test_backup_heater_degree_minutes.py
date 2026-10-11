@@ -77,6 +77,9 @@ def test_backup_heater_degree_minute_accumulation_triggers_internal_heater(clean
     assert openamber.get_entity("backup_heater_relay") is True, (
         "Internal backup heater relay should turn ON when degree-minute threshold is exceeded"
     )
+    assert openamber.get_entity("backup_heater_active_sensor") is True, (
+        "Backup heater active sensor should be True when degree-minute threshold is exceeded"
+    )
 
     # Water temperature warms to setpoint + stop delta (35.0 + 2.0 = 37.0°C) -> 38.0°C
     openamber.set_sensor("current_water_temperature_tc_sensor", 38.0)
@@ -88,6 +91,7 @@ def test_backup_heater_degree_minute_accumulation_triggers_internal_heater(clean
 
     # Backup heater must turn OFF
     assert openamber.get_entity("backup_heater_relay") is False, "Backup heater relay should turn OFF when water warms above setpoint + delta"
+    assert openamber.get_entity("backup_heater_active_sensor") is False, "Backup heater active sensor should turn False when water warms above setpoint + delta"
 
     # Cleanup
     openamber.set_binary_sensor("external_heat_demand_wired", False)
