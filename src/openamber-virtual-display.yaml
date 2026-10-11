@@ -1,9 +1,18 @@
+substitutions:
+  device_model: virtual-display
+
 esphome:
   name: openamber-test
   project:
     name: jordi.openamber
     version: dev
   on_boot:
+    - priority: 900
+      then:
+        - lambda: |-
+            id(outside_unit_eeprom_version).publish_state(114.0f);
+            id(modbus_inside_is_online) = true;
+            id(modbus_outside_is_online) = true;
     - priority: -100
       then:
         - lvgl.label.update:
@@ -33,6 +42,7 @@ touchscreen:
     id: openamber_touchscreen
 
 packages:
+  - !include openamber/core/core_package.yaml
   - !include openamber/mock/mock_entities.yaml
   - !include openamber/ui/display_globals.yaml
   - !include openamber/ui/bindings/ui_bindings_package.yaml
