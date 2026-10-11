@@ -26,6 +26,7 @@ def openamber_proc():
     if os.name == "nt":
         # Windows host: invoke via WSL Debian
         subprocess.run(["wsl", "-d", "Debian", "pkill", "-9", "program"], capture_output=True)
+        subprocess.run(["wsl", "-d", "Debian", "bash", "-c", "rm -f ~/.esphome/prefs/openamber-test.prefs"], capture_output=True)
         time.sleep(0.5)
         cmd = [
             "wsl", "-d", "Debian", "bash", "-c",
@@ -35,6 +36,12 @@ def openamber_proc():
     else:
         # Native Linux / CI
         subprocess.run(["pkill", "-9", "program"], capture_output=True)
+        pref_file = os.path.expanduser("~/.esphome/prefs/openamber-test.prefs")
+        if os.path.exists(pref_file):
+            try:
+                os.remove(pref_file)
+            except OSError:
+                pass
         time.sleep(0.3)
         bin_path = os.environ.get(
             "OPENAMBER_BIN",
@@ -108,6 +115,7 @@ def clean_system(openamber):
     openamber.set_climate("pid_heat_temperature_control", target_temperature=30.0)
     openamber.set_number("compressor_stop_delta_heating", 2.0)
     openamber.set_number("cooling_setpoint_number", 18.0)
+    openamber.set_select("sg_ready_mode_select", "Normaal")
     openamber.set_select("dhw_compressor_mode", "Maximaal")
     openamber.set_select("heat_compressor_mode", "Maximaal")
     openamber.set_select("cool_compressor_mode", "Maximaal")

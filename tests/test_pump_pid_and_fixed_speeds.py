@@ -186,3 +186,84 @@ def test_pump_p0_pid_defrost_override_and_limits(clean_system):
     openamber.set_binary_sensor("external_heat_demand_wired", False)
     openamber.set_switch("pump_p0_pid_enabled", False)
     openamber.step(ms=100)
+
+
+def test_secondary_pump_p1_stays_off_when_disabled(clean_system):
+    """
+    Verify secondary pump P1 remains OFF when pump_p1_enabled is False:
+    1. Set pump_p1_enabled = False.
+    2. Start space heating demand.
+    3. Primary pump P0 runs, but secondary pump P1 relay (pump_p1_relay_switch) stays OFF (False).
+    """
+    openamber = clean_system
+
+    openamber.set_switch("pump_p1_enabled", False)
+    openamber.set_select("thermostat_mode_select", "Extern")
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 35.0)
+    openamber.set_climate("pid_heat_temperature_control", target_temperature=35.0)
+    openamber.set_number("compressor_start_delta_heating", 2.0)
+    openamber.set_number("compressor_stop_delta_heating", 2.0)
+    openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
+    openamber.set_sensor("heat_cool_temperature_tc", 28.0)
+    openamber.set_sensor("outlet_temperature_tuo", 28.0)
+    openamber.set_sensor("inlet_temperature_tui", 26.0)
+    openamber.step(ms=50)
+
+    # Start heating
+    openamber.set_binary_sensor("external_heat_demand_wired", True)
+    openamber.step(ms=100)
+
+    # Advance time through pump interval (900s) + pump start (10s)
+    openamber.advance_time(seconds=910, step_s=30)
+    openamber.step(ms=100)
+    assert openamber.get_entity("internal_pump_active") is True, "Pump P0 must be active"
+    assert openamber.get_entity("pump_p1_relay_switch") is False, (
+        "Secondary pump P1 must NOT turn on when pump_p1_enabled is False"
+    )
+
+    # Cleanup
+    openamber.set_binary_sensor("external_heat_demand_wired", False)
+    openamber.step(ms=50)
+
+
+def test_secondary_pump_p1_starts_when_enabled(clean_system):
+    """
+    Verify secondary pump P1 starts when pump_p1_enabled is True:
+    1. Set pump_p1_enabled = True.
+    2. Start space heating demand.
+    3. When pump starts, secondary pump P1 relay (pump_p1_relay_switch) turns ON (True).
+    """
+    openamber = clean_system
+
+    openamber.set_switch("pump_p1_enabled", True)
+    openamber.set_select("thermostat_mode_select", "Extern")
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 35.0)
+    openamber.set_climate("pid_heat_temperature_control", target_temperature=35.0)
+    openamber.set_number("compressor_start_delta_heating", 2.0)
+    openamber.set_number("compressor_stop_delta_heating", 2.0)
+    openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
+    openamber.set_sensor("heat_cool_temperature_tc", 28.0)
+    openamber.set_sensor("outlet_temperature_tuo", 28.0)
+    openamber.set_sensor("inlet_temperature_tui", 26.0)
+    openamber.step(ms=50)
+
+    # Start heating
+    openamber.set_binary_sensor("external_heat_demand_wired", True)
+    openamber.step(ms=100)
+
+    # Advance time through pump interval (900s) + pump start (10s)
+    openamber.advance_time(seconds=910, step_s=30)
+    openamber.step(ms=100)
+    assert openamber.get_entity("internal_pump_active") is True, "Pump P0 must be active"
+    assert openamber.get_entity("pump_p1_relay_switch") is True, (
+        "Secondary pump P1 must turn on when pump_p1_enabled is True"
+    )
+
+    # Cleanup
+    openamber.set_binary_sensor("external_heat_demand_wired", False)
+    openamber.set_switch("pump_p1_enabled", False)
+    openamber.step(ms=50)
+
+

@@ -125,3 +125,53 @@ def test_error_active_safety_check_stops_compressor(clean_system):
     assert openamber.get_entity("state_machine_state_heat_cool") == "Idle", f"State should return to Idle but was {openamber.get_entity('state_machine_state_heat_cool')}"
     # Controller must immediately stop compressor and revert to Idle
     assert int(openamber.get_entity("compressor_control_select") or 0) == 0, "Compressor must be stopped immediately"
+
+
+def test_hydraulic_excessive_delta_t_safety_check_stops_compressor(clean_system):
+    """
+    Safety Flow:
+    1. Space heating is actively running with compressor running.
+    2. Temperature difference |Tuo - Tui| is initially safe (28.0 - 26.0 = 2.0°C <= 8.0°C).
+    3. Outlet temperature surges so |Tuo - Tui| exceeds 8.0°C safety threshold (38.0 - 26.0 = 12.0°C).
+    4. PerformSafetyChecks detects excessive delta-T across heat exchanger.
+    5. Controller immediately stops compressor and returns state to Idle.
+    """
+    openamber = clean_system
+
+    openamber.set_select("thermostat_mode_select", "Extern")
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 35.0)
+    openamber.set_climate("pid_heat_temperature_control", target_temperature=35.0)
+    openamber.set_select("heat_compressor_mode", "Maximaal")
+    openamber.set_switch("heat_demand_switch", True)
+    openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
+    openamber.set_sensor("heat_cool_temperature_tc", 28.0)
+    openamber.set_sensor("outlet_temperature_tuo", 28.0)
+    openamber.set_sensor("inlet_temperature_tui", 26.0)
+    openamber.step(ms=50)
+
+    # Start pump and compressor
+    openamber.advance_time(seconds=900, step_s=30)
+    openamber.advance_time(seconds=140, step_s=10)
+    openamber.advance_time(seconds=190, step_s=10)
+    openamber.step(ms=50)
+
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0
+
+    # Outlet temp Tuo jumps to 38.0°C while inlet Tui stays 26.0°C -> |38 - 26| = 12°C > 8°C limit
+    openamber.set_sensor("outlet_temperature_tuo", 38.0)
+    openamber.advance_time(seconds=10, step_s=1)
+    openamber.step(ms=50)
+
+    # Compressor must immediately trip and state must revert to Idle
+    assert int(openamber.get_entity("compressor_control_select") or 0) == 0, (
+        "Compressor must stop immediately when |Tuo - Tui| exceeds 8.0°C safety limit"
+    )
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Idle", (
+        f"State must return to Idle, got {openamber.get_entity('state_machine_state_heat_cool')}"
+    )
+
+    # Cleanup
+    openamber.set_switch("heat_demand_switch", False)
+    openamber.step(ms=50)

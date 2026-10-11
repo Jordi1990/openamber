@@ -103,3 +103,90 @@ def test_maintenance_mode_ui_switch_toggle(clean_system):
     assert openamber.get_entity("service_mode_enabled") is False, (
         "service_mode_enabled should be False after toggling off"
     )
+
+
+def test_maintenance_proxy_interlocks_prevent_hardware_actuation_when_disabled(clean_system):
+    """
+    Verify Maintenance Mode Hardware Safety Interlocks:
+    1. In normal operation (service_mode_enabled = False), the maintenance proxy switches
+       (pump P0, 3-way valve, bottom plate heater) must NOT actuate underlying hardware relays.
+    2. Once maintenance mode is enabled (service_mode_enabled = True and state is Maintenance),
+       toggling the proxies directly controls the hardware relays.
+    3. Turning proxies OFF returns hardware relays to OFF.
+    4. Exiting maintenance mode smoothly transitions system back to normal operation.
+    """
+    openamber = clean_system
+
+    # Settle into steady normal operation
+    openamber.advance_time(seconds=20, step_s=5)
+    openamber.step(ms=50)
+
+    assert openamber.get_entity("service_mode_enabled") is False
+    assert openamber.get_entity("state_machine_state_main") == "Heat/Cool"
+
+    # Initial hardware states should be OFF for auxiliary equipment
+    assert openamber.get_entity("three_way_valve_dhw_switch") is False
+    assert openamber.get_entity("bottom_plate_heater_manual_switch") is False
+    assert openamber.get_entity("compressor_crankcase_heater_manual_switch") is False
+
+    # 1. Attempt manual proxy actuation while maintenance mode is DISABLED
+    openamber.set_switch("maintenance_three_way_valve_dhw_proxy", True)
+    openamber.set_switch("maintenance_bottom_plate_heater_manual_proxy", True)
+    openamber.set_switch("maintenance_compressor_crankcase_heater_manual_proxy", True)
+    openamber.step(ms=100)
+
+    # Interlocks MUST prevent relays from turning ON
+    assert openamber.get_entity("three_way_valve_dhw_switch") is False, (
+        "3-way valve relay must NOT turn ON when maintenance mode is disabled"
+    )
+    assert openamber.get_entity("bottom_plate_heater_manual_switch") is False, (
+        "Bottom plate heater relay must NOT turn ON when maintenance mode is disabled"
+    )
+    assert openamber.get_entity("compressor_crankcase_heater_manual_switch") is False, (
+        "Crankcase heater relay must NOT turn ON when maintenance mode is disabled"
+    )
+
+    # 2. Enter maintenance mode
+    assert openamber.set_switch("service_mode_enabled", True) is True
+    openamber.advance_time(seconds=10, step_s=1)
+    openamber.step(ms=50)
+    assert openamber.get_entity("state_machine_state_main") == "Maintenance"
+
+    # In maintenance mode, pump P0 is explicitly stopped
+    assert openamber.get_entity("pump_p0_relay_switch") is False
+
+    # Now proxies MUST be permitted to actuate hardware
+    openamber.set_switch("maintenance_pump_p0_relay_proxy", True)
+    openamber.step(ms=50)
+    assert openamber.get_entity("pump_p0_relay_switch") is True, (
+        "Pump P0 relay must actuate when maintenance mode is active"
+    )
+
+    openamber.set_switch("maintenance_three_way_valve_dhw_proxy", True)
+    openamber.step(ms=50)
+    assert openamber.get_entity("three_way_valve_dhw_switch") is True, (
+        "3-way valve relay must actuate when maintenance mode is active"
+    )
+
+    openamber.set_switch("maintenance_bottom_plate_heater_manual_proxy", True)
+    openamber.step(ms=50)
+    assert openamber.get_entity("bottom_plate_heater_manual_switch") is True, (
+        "Bottom plate heater relay must actuate when maintenance mode is active"
+    )
+
+    # 3. Turn proxies OFF while still in maintenance mode
+    openamber.set_switch("maintenance_pump_p0_relay_proxy", False)
+    openamber.set_switch("maintenance_three_way_valve_dhw_proxy", False)
+    openamber.set_switch("maintenance_bottom_plate_heater_manual_proxy", False)
+    openamber.step(ms=50)
+
+    assert openamber.get_entity("pump_p0_relay_switch") is False
+    assert openamber.get_entity("three_way_valve_dhw_switch") is False
+    assert openamber.get_entity("bottom_plate_heater_manual_switch") is False
+
+    # 4. Exit maintenance mode
+    openamber.set_switch("service_mode_enabled", False)
+    openamber.advance_time(seconds=25, step_s=5)
+    openamber.advance_time(seconds=75, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.get_entity("state_machine_state_main") == "Heat/Cool"
