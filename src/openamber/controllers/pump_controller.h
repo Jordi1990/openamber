@@ -201,6 +201,11 @@ public:
     next_pump_cycle_ = App.get_loop_component_start_time() + interval_ms;
   }
 
+  void RestartPumpRunCycle()
+  {
+    pump_start_time_ = App.get_loop_component_start_time();
+  }
+
   bool IsRunning()
   {
     return id(internal_pump_active).state;
