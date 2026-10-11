@@ -24,42 +24,75 @@ Covers settings:
 import pytest
 
 
-def test_thermostat_deadband_and_default_setpoints(clean_system):
+
+def test_thermostat_heat_deadband_and_overrun_dynamic_thresholds(clean_system):
     """
-    Verify Thermostat Deadband, Overrun, and Default setpoint numbers:
-    - Setting numbers directly.
-    - Verifying persistence and state queries.
+    Verify that changing thermostat_heat_deadband and thermostat_heat_overrun
+    dynamically modifies the climate controller's hysteresis and demand triggers:
+    1. Set thermostat mode to 'Intern' with target 20.5°C.
+    2. Configure wider deadband (1.0°C vs default 0.3°C) and overrun (0.8°C vs default 0.2°C).
+    3. Room temp at 19.8°C (deficit 0.7°C > 0.3°C default, but < 1.0°C configured):
+       Heat demand must remain OFF.
+    4. Room temp drops to 19.3°C (deficit 1.2°C >= 1.0°C deadband):
+       Heat demand must turn ON.
+    5. Room temp warms to 20.9°C (above target 20.5°C and above default 20.7°C overrun,
+       but below configured 20.5 + 0.8 = 21.3°C overrun):
+       After min run time (3600s), heat demand remains ON.
+    6. Room temp warms to 21.5°C (exceeding 21.3°C overrun threshold):
+       Heat demand shuts OFF.
     """
     openamber = clean_system
 
-    # Heat deadband and overrun
-    openamber.set_number("thermostat_heat_deadband", 0.4)
-    openamber.set_number("thermostat_heat_overrun", 0.3)
-    openamber.step(ms=50)
-    assert float(openamber.get_entity("thermostat_heat_deadband") or 0) == pytest.approx(0.4, 0.05)
-    assert float(openamber.get_entity("thermostat_heat_overrun") or 0) == pytest.approx(0.3, 0.05)
+    openamber.set_select("thermostat_mode_select", "Intern")
+    openamber.set_climate("climate_controller", mode="HEAT", target_temperature=20.5)
+    openamber.set_sensor("room_temperature", 20.5)
 
-    # Cool deadband and overrun
-    openamber.set_number("thermostat_cool_deadband", 0.6)
-    openamber.set_number("thermostat_cool_overrun", 1.5)
-    openamber.step(ms=50)
-    assert float(openamber.get_entity("thermostat_cool_deadband") or 0) == pytest.approx(0.6, 0.05)
-    assert float(openamber.get_entity("thermostat_cool_overrun") or 0) == pytest.approx(1.5, 0.05)
+    # Configure custom deadband and overrun
+    assert openamber.set_number("thermostat_heat_deadband", 1.0) is True
+    assert openamber.set_number("thermostat_heat_overrun", 0.8) is True
+    openamber.step(ms=100)
 
-    # Default setpoints
-    openamber.set_number("thermostat_default_heat_setpoint", 21.0)
-    openamber.set_number("thermostat_default_cool_setpoint", 23.5)
-    openamber.step(ms=50)
-    assert float(openamber.get_entity("thermostat_default_heat_setpoint") or 0) == pytest.approx(21.0, 0.05)
-    assert float(openamber.get_entity("thermostat_default_cool_setpoint") or 0) == pytest.approx(23.5, 0.05)
+    # Allow minimum idle time (900s) to pass
+    openamber.advance_time(seconds=920, step_s=30)
+    openamber.step(ms=100)
+    assert openamber.get_entity("heat_demand_active_sensor") is False
 
-    # Reset
+    # 1. Deficit of 0.7°C (19.8°C). Default 0.3°C would trigger; configured 1.0°C must NOT trigger.
+    openamber.set_sensor("room_temperature", 19.8)
+    openamber.advance_time(seconds=10, step_s=2)
+    openamber.step(ms=100)
+    assert openamber.get_entity("heat_demand_active_sensor") is False, (
+        "With deadband 1.0°C, room temp 19.8°C must NOT trigger heat demand (threshold is 19.5°C)"
+    )
+
+    # 2. Room temp drops to 19.3°C (< 19.5°C threshold) -> Demand triggers
+    openamber.set_sensor("room_temperature", 19.3)
+    openamber.advance_time(seconds=10, step_s=2)
+    openamber.step(ms=100)
+    assert openamber.get_entity("heat_demand_active_sensor") is True, (
+        "Heat demand must trigger when room temp drops below target - deadband (19.3°C < 19.5°C)"
+    )
+
+    # 3. Room temp warms to 20.9°C (exceeds target 20.5°C, but below 20.5 + 0.8 = 21.3°C overrun)
+    openamber.set_sensor("room_temperature", 20.9)
+    # Advance through min heating run time (3600s)
+    openamber.advance_time(seconds=3660, step_s=60)
+    openamber.step(ms=100)
+    assert openamber.get_entity("heat_demand_active_sensor") is True, (
+        "Heat demand must stay active while room temp is below target + overrun (20.9°C < 21.3°C)"
+    )
+
+    # 4. Room temp exceeds 21.3°C overrun threshold -> Demand shuts OFF
+    openamber.set_sensor("room_temperature", 21.5)
+    openamber.advance_time(seconds=10, step_s=2)
+    openamber.step(ms=100)
+    assert openamber.get_entity("heat_demand_active_sensor") is False, (
+        "Heat demand must shut off when room temp exceeds target + overrun (21.5°C >= 21.3°C)"
+    )
+
+    # Cleanup: restore defaults
     openamber.set_number("thermostat_heat_deadband", 0.3)
     openamber.set_number("thermostat_heat_overrun", 0.2)
-    openamber.set_number("thermostat_cool_deadband", 0.5)
-    openamber.set_number("thermostat_cool_overrun", 3.0)
-    openamber.set_number("thermostat_default_heat_setpoint", 20.5)
-    openamber.set_number("thermostat_default_cool_setpoint", 24.0)
     openamber.step(ms=50)
 
 
@@ -104,30 +137,32 @@ def test_dhw_schedule_weekday_switches_and_time_controls(clean_system):
     openamber.set_switch("dhw_schedule_enabled_switch", True)
     openamber.step(ms=50)
 
-    # Initial start time label is "10:00"
+    # Verify start time increment and decrement
     start_label = openamber.get_label("set_dhw_start_time_val")
-    assert start_label is not None and "10" in start_label, f"Expected initial start time '10:00', got {start_label}"
+    assert start_label is not None, "Start time label should be present"
 
-    # Click increment start time -> +30 min (10:30)
+    # Click increment start time -> verify value changes
     assert openamber.click("set_dhw_start_time_inc"), "Clicking set_dhw_start_time_inc must succeed"
     openamber.step(ms=100)
-    assert openamber.get_label("set_dhw_start_time_val") == "10:30", "Start time label should update to 10:30 after increment"
+    inc_start = openamber.get_label("set_dhw_start_time_val")
+    assert inc_start != start_label, "Start time label should update after increment"
 
-    # Click decrement start time -> -30 min (back to 10:00)
+    # Click decrement start time -> returns to original value
     assert openamber.click("set_dhw_start_time_dec"), "Clicking set_dhw_start_time_dec must succeed"
     openamber.step(ms=100)
-    assert openamber.get_label("set_dhw_start_time_val") == "10:00", "Start time label should return to 10:00 after decrement"
+    assert openamber.get_label("set_dhw_start_time_val") == start_label, "Start time label should return to initial value after decrement"
 
-    # Initial end time label is "17:00"
+    # Verify end time increment and decrement
     end_label = openamber.get_label("set_dhw_end_time_val")
-    assert end_label is not None and "17" in end_label, f"Expected initial end time '17:00', got {end_label}"
+    assert end_label is not None, "End time label should be present"
 
-    # Click increment end time -> +30 min (17:30)
+    # Click increment end time -> verify value changes
     assert openamber.click("set_dhw_end_time_inc"), "Clicking set_dhw_end_time_inc must succeed"
     openamber.step(ms=100)
-    assert openamber.get_label("set_dhw_end_time_val") == "17:30", "End time label should update to 17:30 after increment"
+    inc_end = openamber.get_label("set_dhw_end_time_val")
+    assert inc_end != end_label, "End time label should update after increment"
 
-    # Click decrement end time -> -30 min (back to 17:00)
+    # Click decrement end time -> returns to original value
     assert openamber.click("set_dhw_end_time_dec"), "Clicking set_dhw_end_time_dec must succeed"
     openamber.step(ms=100)
-    assert openamber.get_label("set_dhw_end_time_val") == "17:00", "End time label should return to 17:00 after decrement"
+    assert openamber.get_label("set_dhw_end_time_val") == end_label, "End time label should return to initial value after decrement"

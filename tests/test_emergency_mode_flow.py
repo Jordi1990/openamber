@@ -63,6 +63,7 @@ def test_space_heating_emergency_mode_runs_backup_heater_without_compressor(clea
 
     # Backup heater relay must turn ON to provide heat
     assert openamber.get_entity("backup_heater_relay") is True, "Backup heater relay must be ON in emergency heating"
+    assert openamber.get_entity("backup_heater_active_sensor") is True, "Backup heater active sensor must be True in emergency heating"
     assert openamber.get_entity("internal_pump_active") is True, "Circulation pump must be active in emergency heating"
 
     # Temperature warms up past setpoint (35.0) + stop delta (2.0) = 37.0°C
@@ -74,6 +75,7 @@ def test_space_heating_emergency_mode_runs_backup_heater_without_compressor(clea
 
     # Backup heater must turn OFF once satisfied
     assert openamber.get_entity("backup_heater_relay") is False, "Backup heater must turn OFF when setpoint is satisfied"
+    assert openamber.get_entity("backup_heater_active_sensor") is False, "Backup heater active sensor must be False once satisfied"
 
     # Cleanup
     assert openamber.set_binary_sensor("external_heat_demand_wired", False)
@@ -113,6 +115,7 @@ def test_dhw_emergency_mode_runs_backup_heater_without_compressor(clean_system):
 
     # Backup heater must be active for DHW heating
     assert openamber.get_entity("backup_heater_relay") is True, "Backup heater relay must be ON for DHW emergency mode"
+    assert openamber.get_entity("backup_heater_active_sensor") is True, "Backup heater active sensor must be True for DHW emergency mode"
 
     # Tank temperature reaches setpoint
     assert openamber.set_sensor("dhw_temperature_tw_sensor", 51.0)
@@ -122,6 +125,7 @@ def test_dhw_emergency_mode_runs_backup_heater_without_compressor(clean_system):
 
     # Backup heater turns OFF
     assert openamber.get_entity("backup_heater_relay") is False, "Backup heater must turn OFF once DHW is satisfied"
+    assert openamber.get_entity("backup_heater_active_sensor") is False, "Backup heater active sensor must be False once DHW is satisfied"
 
     # Cleanup
     assert openamber.set_switch("emergency_mode_enabled", False)

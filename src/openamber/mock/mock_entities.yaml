@@ -257,11 +257,10 @@ binary_sensor:
   - platform: template
     id: sg_ready_a_active_sensor
     name: "SG Ready A actief"
-    lambda: 'return false;'
   - platform: template
     id: sg_ready_b_active_sensor
     name: "SG Ready B actief"
-    lambda: 'return false;'
+
 number:
   - platform: template
     id: eev_open_setting_manual_number

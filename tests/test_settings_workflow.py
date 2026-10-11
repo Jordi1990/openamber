@@ -37,21 +37,25 @@ def test_settings_sidebar_tabs(openamber):
     assert openamber.is_hidden("panel_dhw"), "panel_dhw must be hidden when Bijverwarmen tab is selected"
 
 
-def test_mengventielen_pager_workflow(openamber):
-    """Verify mixing valves pager page navigation (Pagina 1 / 2 <-> Pagina 2 / 2)."""
+def test_sensor_calibration_pager_workflow(openamber):
+    """Verify sensor calibration pager page navigation (Pagina 1 / 2 <-> Pagina 2 / 2)."""
     assert openamber.click("nav_settings"), "Clicking nav_settings must succeed"
     openamber.step(ms=100)
     assert openamber.is_visible("page_settings"), "page_settings must be visible"
 
-    # Click next page button
-    assert openamber.click("mengventielen_page_2_button"), "Clicking page 2 button must succeed"
+    # Select Algemeen tab where sensor calibration pager resides
+    assert openamber.click("stab_general"), "Clicking stab_general must succeed"
     openamber.step(ms=100)
-    indicator = openamber.get_label("mengventielen_page_indicator")
+
+    # Click page 2 button
+    assert openamber.click("sensor_calibration_page_2_button"), "Clicking page 2 button must succeed"
+    openamber.step(ms=100)
+    indicator = openamber.get_label("sensor_calibration_page_indicator")
     assert "2 / 2" in indicator, f"Page indicator should show '2 / 2', got: '{indicator}'"
 
-    # Click previous page button
-    assert openamber.click("mengventielen_page_1_button"), "Clicking page 1 button must succeed"
+    # Click page 1 button
+    assert openamber.click("sensor_calibration_page_1_button"), "Clicking page 1 button must succeed"
     openamber.step(ms=100)
-    indicator = openamber.get_label("mengventielen_page_indicator")
+    indicator = openamber.get_label("sensor_calibration_page_indicator")
     assert "1 / 2" in indicator, f"Page indicator should show '1 / 2', got: '{indicator}'"
 

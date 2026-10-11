@@ -3,11 +3,6 @@
 import pytest
 
 
-"""Tests for external thermostat happy flow, wired demand, and mode switching."""
-
-import pytest
-
-
 def test_external_thermostat_wired_demand_happy_flow(clean_system):
     """
     Happy Flow:

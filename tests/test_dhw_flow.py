@@ -3,11 +3,6 @@
 import pytest
 
 
-"""Tests for Domestic Hot Water (DHW) demand and pump animation flows."""
-
-import pytest
-
-
 def test_dhw_demand_and_circulation_animation(clean_system):
     """
     Workflow Test:

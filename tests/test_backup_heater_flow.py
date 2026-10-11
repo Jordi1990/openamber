@@ -1,9 +1,6 @@
 import pytest
 
 
-import pytest
-
-
 def test_backup_heater_ui_bindings_and_turn_off_flow(clean_system):
     """
     Workflow Test:
@@ -37,6 +34,8 @@ def test_backup_heater_ui_bindings_and_turn_off_flow(clean_system):
     assert openamber.set_number("manual_setpoint", target_temp)
     assert openamber.set_number("compressor_start_delta_heating", 2.0)
     assert openamber.set_number("compressor_stop_delta_heating", stop_delta)
+    assert openamber.set_number("pump_interval", 15.0)
+    assert openamber.set_number("pump_duration", 2.0)
     assert openamber.set_sensor("current_water_temperature_tc_sensor", 25.0)
     assert openamber.set_sensor("heat_cool_temperature_tc", 25.0)
     assert openamber.set_sensor("outlet_temperature_tuo", 25.0)
@@ -77,6 +76,7 @@ def test_backup_heater_ui_bindings_and_turn_off_flow(clean_system):
     assert openamber.set_sensor("current_water_temperature_tc_sensor", target_temp + stop_delta + 1.0)
     assert openamber.set_sensor("heat_cool_temperature_tc", target_temp + stop_delta + 1.0)
     assert openamber.set_sensor("outlet_temperature_tuo", target_temp + stop_delta + 1.0)
+    assert openamber.set_sensor("inlet_temperature_tui", target_temp + stop_delta - 1.0)
     openamber.advance_time(seconds=10, step_s=2)
     openamber.step(ms=100)
 
@@ -85,6 +85,9 @@ def test_backup_heater_ui_bindings_and_turn_off_flow(clean_system):
     # -------------------------------------------------------------------------
     assert openamber.get_entity("backup_heater_relay") is False, (
         "Backup heater relay should turn OFF automatically when temperature exceeds setpoint + stop delta"
+    )
+    assert openamber.get_entity("backup_heater_active_sensor") is False, (
+        "Backup heater active sensor should return to False when heater turns off"
     )
 
     relay_switch_widget = openamber.get_widget("service_backup_heater_relay_switch_ui")

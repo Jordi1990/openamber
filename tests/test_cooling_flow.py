@@ -3,11 +3,6 @@
 import pytest
 
 
-"""Tests for cooling demand flows and priority conflict resolution."""
-
-import pytest
-
-
 def test_external_cooling_demand_happy_flow(clean_system):
     """
     Happy Flow:

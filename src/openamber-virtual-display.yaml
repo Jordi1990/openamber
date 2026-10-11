@@ -18,7 +18,6 @@ esphome:
         - lvgl.label.update:
             id: header_title
             text: "OpenAmber"
-
   includes:
     - openamber/controllers/constants.h
     - openamber/controllers/pump_controller.h
@@ -30,7 +29,6 @@ esphome:
     - openamber/controllers/routine_controller.h
     - openamber/controllers/deaeration_routine.h
     - openamber/controllers/openamber_component.h
-
   platformio_options:
     build_flags:
       - "-Wl,--wrap=_ZN7esphome6millisEv"
@@ -74,4 +72,3 @@ packages:
 
 test_bridge:
   port: 8888
-

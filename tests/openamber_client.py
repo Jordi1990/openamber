@@ -49,8 +49,10 @@ class OpenAmberClient:
                 self.connect(retries=10, delay=0.2)
 
             payload = json.dumps(cmd_dict) + "\n"
+            sent = False
             try:
                 self.sock.sendall(payload.encode("utf-8"))
+                sent = True
 
                 buf = b""
                 while not buf.endswith(b"\n"):
@@ -63,7 +65,7 @@ class OpenAmberClient:
                 return resp
             except (socket.timeout, TimeoutError, ConnectionResetError, BrokenPipeError, OSError):
                 self.close()
-                if attempt == 1:
+                if attempt == 1 or sent:
                     raise
                 time.sleep(0.3)
 
@@ -149,7 +151,7 @@ class OpenAmberClient:
             while elapsed < total_ms:
                 slice_ms = min(chunk_ms, total_ms - elapsed)
                 res = self.send_cmd({"cmd": "advance_time", "ms": slice_ms})
-                self.step(ms=30)
+                self.step(ms=10)
                 offset = res.get("offset_ms", 0)
                 elapsed += slice_ms
             return offset
@@ -179,7 +181,7 @@ class OpenAmberClient:
     def step(self, ms: int = 100) -> bool:
         """Pause test runner and allow ESPHome event loop cycles to run."""
         res = self.send_cmd({"cmd": "step", "ms": ms})
-        time.sleep(ms / 1000.0)
+        time.sleep(min(0.01, ms / 1000.0))
         return res.get("status") == "ok"
 
     def wait_for_condition(

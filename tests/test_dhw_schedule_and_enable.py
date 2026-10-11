@@ -131,46 +131,6 @@ def test_dhw_restart_delta_hysteresis_behavior(clean_system):
     assert openamber.get_entity("dhw_demand_active_sensor") is True, "41.5°C should trigger demand with 8°C delta"
 
 
-def test_dhw_schedule_settings_configuration(clean_system):
-    """
-    Verify DHW schedule configuration entities:
-    - dhw_schedule_enabled_switch
-    - Daily schedule switches for Monday through Sunday
-    """
-    openamber = clean_system
-
-    days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-
-    # Toggle master schedule switch
-    openamber.set_switch("dhw_schedule_enabled_switch", True)
-    openamber.step(ms=50)
-    assert openamber.get_entity("dhw_schedule_enabled_switch") is True, "Schedule master switch should be True"
-
-    # Turn all weekdays off, then specific ones on
-    for day in days:
-        openamber.set_switch(f"dhw_schedule_{day}_enabled_switch", False)
-    openamber.step(ms=50)
-
-    for day in days:
-        assert openamber.get_entity(f"dhw_schedule_{day}_enabled_switch") is False, f"Expected {day} switch to be False"
-
-    # Enable specific days: Monday, Wednesday, Friday
-    active_days = ["monday", "wednesday", "friday"]
-    for day in active_days:
-        openamber.set_switch(f"dhw_schedule_{day}_enabled_switch", True)
-    openamber.step(ms=50)
-
-    for day in days:
-        expected = day in active_days
-        actual = openamber.get_entity(f"dhw_schedule_{day}_enabled_switch")
-        assert actual is expected, f"Expected {day} to be {expected}, got {actual}"
-
-    # Cleanup: restore schedule switch to disabled
-    openamber.set_switch("dhw_schedule_enabled_switch", False)
-    for day in days:
-        openamber.set_switch(f"dhw_schedule_{day}_enabled_switch", True)
-    openamber.step(ms=50)
-
 
 def test_dhw_schedule_suppresses_demand_when_outside_active_days(clean_system):
     """
@@ -210,3 +170,123 @@ def test_dhw_schedule_suppresses_demand_when_outside_active_days(clean_system):
     for day in days:
         openamber.set_switch(f"dhw_schedule_{day}_enabled_switch", True)
     openamber.step(ms=50)
+
+
+def test_dhw_schedule_matching_weekday_and_master_switch_interlock(clean_system):
+    """
+    Verify DHW schedule matching weekday logic and demand gating:
+    1. Cold DHW tank (Tw = 38°C < setpoint 50°C - delta 5°C).
+    2. Master schedule switch enabled.
+    3. Initialize start/end time window via UI controls so window is active.
+    4. With today (Friday) enabled, dhw_schedule_active_sensor is True and dhw_demand_active_sensor is True.
+    5. Non-matching day toggling (e.g. Thursday) does NOT affect today's active schedule.
+    6. Turning today's switch (Friday) OFF immediately deactivates schedule and suppresses DHW demand.
+    7. Turning today's switch (Friday) back ON immediately restores schedule and DHW demand.
+    8. Disabling master schedule switch bypasses schedule entirely and restores 24/7 DHW demand.
+    """
+    openamber = clean_system
+
+    days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+
+    # Cold tank conditions
+    openamber.set_number("dhw_setpoint_temperature", 50.0)
+    openamber.set_number("dhw_restart_dhw_delta", 5.0)
+    openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
+    openamber.set_switch("dhw_enabled_switch", True)
+
+    # Enable all days in schedule initially
+    for day in days:
+        openamber.set_switch(f"dhw_schedule_{day}_enabled_switch", True)
+    openamber.set_switch("dhw_schedule_enabled_switch", True)
+    openamber.step(ms=100)
+
+    try:
+        # Navigate to Settings -> Tapwater -> Schema
+        openamber.click("nav_settings")
+        openamber.step(ms=50)
+        openamber.click("stab_dhw")
+        openamber.step(ms=50)
+        openamber.click("dhw_stab_schema")
+        openamber.step(ms=50)
+
+        # Click increment start time then decrement to populate state
+        openamber.click("set_dhw_start_time_inc")
+        openamber.step(ms=50)
+        openamber.click("set_dhw_start_time_dec")
+        openamber.step(ms=50)
+
+        # Ensure end time wraps to overnight so schedule window is guaranteed active
+        for _ in range(16):
+            openamber.click("set_dhw_end_time_inc")
+            openamber.step(ms=50)
+
+        # 4. Find which weekday switch corresponds to today's virtual clock
+        active_day = None
+        for day in days:
+            openamber.set_switch(f"dhw_schedule_{day}_enabled_switch", False)
+            openamber.step(ms=50)
+            if openamber.get_entity("dhw_schedule_active_sensor") is False:
+                active_day = day
+                openamber.set_switch(f"dhw_schedule_{day}_enabled_switch", True)
+                openamber.step(ms=50)
+                break
+            openamber.set_switch(f"dhw_schedule_{day}_enabled_switch", True)
+            openamber.step(ms=50)
+
+        assert active_day is not None, "Exactly one weekday switch must match today's schedule"
+
+        # 5. Non-matching day toggling does NOT affect today's active schedule
+        other_day = "monday" if active_day != "monday" else "tuesday"
+        openamber.set_switch(f"dhw_schedule_{other_day}_enabled_switch", False)
+        openamber.step(ms=50)
+        assert openamber.get_entity("dhw_schedule_active_sensor") is True, (
+            f"Disabling non-matching weekday ({other_day}) should NOT deactivate today's ({active_day}) schedule"
+        )
+        assert openamber.get_entity("dhw_demand_active_sensor") is True
+        openamber.set_switch(f"dhw_schedule_{other_day}_enabled_switch", True)
+        openamber.step(ms=50)
+
+        # 6. Turning today's switch OFF immediately deactivates schedule and suppresses demand
+        openamber.set_switch(f"dhw_schedule_{active_day}_enabled_switch", False)
+        openamber.step(ms=100)
+        assert openamber.get_entity("dhw_schedule_active_sensor") is False, (
+            f"Disabling today's weekday ({active_day}) must immediately deactivate DHW schedule"
+        )
+        assert openamber.get_entity("dhw_demand_active_sensor") is False, (
+            "DHW demand must be suppressed when today is not an active schedule day"
+        )
+
+        # 7. Turning today's switch back ON immediately restores schedule and demand
+        openamber.set_switch(f"dhw_schedule_{active_day}_enabled_switch", True)
+        openamber.step(ms=100)
+        assert openamber.get_entity("dhw_schedule_active_sensor") is True, (
+            f"Re-enabling today's weekday ({active_day}) must restore DHW schedule"
+        )
+        assert openamber.get_entity("dhw_demand_active_sensor") is True, (
+            "DHW demand must recover immediately once today's schedule is active"
+        )
+
+        # 8. Turning master switch OFF restores 24/7 demand even if today's switch is disabled
+        openamber.set_switch(f"dhw_schedule_{active_day}_enabled_switch", False)
+        openamber.step(ms=50)
+        assert openamber.get_entity("dhw_demand_active_sensor") is False
+
+        openamber.set_switch("dhw_schedule_enabled_switch", False)
+        openamber.step(ms=100)
+        assert openamber.get_entity("dhw_schedule_active_sensor") is True, (
+            "dhw_schedule_active_sensor must return True when master schedule switch is OFF (24/7 mode)"
+        )
+        assert openamber.get_entity("dhw_demand_active_sensor") is True, (
+            "DHW demand must be active 24/7 when schedule master switch is OFF"
+        )
+    finally:
+        # Cleanup: restore schedule switches and restore end time back to 17:00
+        openamber.set_switch("dhw_schedule_enabled_switch", True)
+        openamber.step(ms=50)
+        for _ in range(16):
+            openamber.click("set_dhw_end_time_dec")
+            openamber.step(ms=30)
+        for day in days:
+            openamber.set_switch(f"dhw_schedule_{day}_enabled_switch", True)
+        openamber.set_switch("dhw_schedule_enabled_switch", False)
+        openamber.step(ms=50)

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#if defined(USE_HOST) && defined(USE_MOCK_OPENAMBER)
+#ifdef USE_OPENAMBER_MOCK_COMPONENT
 
 #include "esphome/core/component.h"
 #include <string>

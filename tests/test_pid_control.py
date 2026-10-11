@@ -3,25 +3,6 @@
 import pytest
 
 
-def test_pid_temperature_query_and_target_update(clean_system):
-    """Verify querying and setting target temperatures on the PID controller."""
-    openamber = clean_system
-
-    # Set target temperature to 36.0°C
-    assert openamber.set_climate("pid_heat_temperature_control", target_temperature=36.0, mode="HEAT"), (
-        "Setting target temperature and HEAT mode on pid_heat_temperature_control should succeed"
-    )
-    openamber.step(ms=100)
-
-    # Query PID climate entity
-    info = openamber.get_entity("pid_heat_temperature_control")
-    assert isinstance(info, dict), "Climate entity info should be a dict"
-    assert info.get("status") == "ok", "Climate query status should be 'ok'"
-    assert info.get("target_temperature") == pytest.approx(36.0, 0.1), (
-        f"Expected target_temperature 36.0°C, got {info.get('target_temperature')}"
-    )
-
-
 def test_pid_virtual_time_integration(clean_system):
     """
     Virtual Time & PID Integration Test:
@@ -65,13 +46,17 @@ def test_pid_virtual_time_integration(clean_system):
     # Verify climate entity is still tracking and responding
     info = openamber.get_entity("pid_heat_temperature_control")
     assert info.get("status") == "ok", "Climate query status must be 'ok'"
-    assert info.get("target_temperature") == pytest.approx(35.0, 0.1), (
+    assert info.get("target_temperature") == pytest.approx(35.0, abs=0.1), (
         f"Expected target_temperature 35.0°C, got {info.get('target_temperature')}"
     )
-    assert info.get("current_temperature") == pytest.approx(30.2, 0.1), (
+    assert info.get("current_temperature") == pytest.approx(30.2, abs=0.1), (
         f"Expected current_temperature 30.2°C, got {info.get('current_temperature')}"
     )
     assert info.get("mode") == "HEAT", f"Expected mode 'HEAT', got '{info.get('mode')}'"
+    # Action may be 'HEATING' or 'IDLE' depending on whether PID derivative term is braking
+    assert info.get("action") in ("HEATING", "IDLE"), (
+        f"PID action should be 'HEATING' or 'IDLE', got '{info.get('action')}'"
+    )
 
 
 def test_pid_deadband_stabilization_with_virtual_time(clean_system):
@@ -97,7 +82,7 @@ def test_pid_deadband_stabilization_with_virtual_time(clean_system):
 
     info = openamber.get_entity("pid_heat_temperature_control")
     assert info.get("status") == "ok", "Climate query status must be 'ok'"
-    assert info.get("current_temperature") == pytest.approx(35.0, 0.1), (
+    assert info.get("current_temperature") == pytest.approx(35.0, abs=0.1), (
         f"Expected current_temperature 35.0°C, got {info.get('current_temperature')}"
     )
     assert info.get("action") == "IDLE", (

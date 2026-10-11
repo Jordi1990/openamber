@@ -35,9 +35,14 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Optional(CONF_VERSION, default=3): cv.positive_int,
     cv.Optional(CONF_SORTING_GROUPS): cv.ensure_list(sorting_group),
 }).extend(cv.COMPONENT_SCHEMA)
+# Schema shim: this component validates entity `web_server:` configuration keys
+# (such as sorting groups and weights) in headless/host builds without starting an actual web server.
 
 async def to_code(config):
+    """Schema shim: does not generate code or start a web server."""
     pass
 
+
 async def add_entity_config(entity, config):
+    """Schema shim: entity configuration handler stub."""
     pass

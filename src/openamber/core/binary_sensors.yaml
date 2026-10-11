@@ -228,7 +228,7 @@ binary_sensor:
   disabled_by_default: True
   device_class: running
   lambda: |-
-    return id(sg_ready_mode_select).current_option() == "Max Boost" ||
+    return id(sg_ready_mode_select).current_option() == "Max boost" ||
            (id(sg_ready_a_active_sensor).state && id(sg_ready_b_active_sensor).state);
   web_server: 
     sorting_group_id: diagnostic
@@ -274,16 +274,15 @@ binary_sensor:
 
 - platform: template
   id: oil_return_cycle_active
-  name: "Olie-terugloopcyclus (P04)"
+  name: "Olieretourcyclus actief"
   icon: mdi:autorenew
   device_class: running
-  entity_category: diagnostic
   lambda: |-
     if (!id(error_register_2119_raw).has_state()) return false;
     const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
     return (raw & 0x0008) != 0;
   web_server: 
-    sorting_group_id: error_codes
+    sorting_group_id: diagnostic
 
 - platform: template
   id: oil_return_cycle_active_settled
@@ -749,7 +748,6 @@ binary_sensor:
     return id(error_flag_p01).state ||
            id(error_flag_p02).state ||
            id(error_flag_p07).state ||
-           id(oil_return_cycle_active).state ||
            id(error_flag_p06).state ||
            id(error_flag_p11).state ||
            id(error_flag_p12).state ||

@@ -97,9 +97,10 @@ def test_heat_demand_error_active_suppression(clean_system):
     """
     Safety Flow:
     1. Active heat demand is running.
-    2. A system fault occurs (error_active = True).
-    3. Verify heat demand is suppressed to protect equipment.
-    4. Fault is cleared -> heat demand recovers.
+    2. A system fault occurs: error_pump_start_timeout is raised, which causes
+       the template sensor error_active to evaluate to True.
+    3. Verify heat demand is suppressed to protect equipment (heat_demand_active_sensor = False).
+    4. Fault is cleared -> error_active clears -> heat demand recovers.
     """
     openamber = clean_system
 
@@ -450,8 +451,25 @@ def test_heat_demand_compressor_stops_at_exact_stop_delta_boundary(clean_system)
     openamber.advance_time(seconds=450, step_s=20)
     openamber.step(ms=100)
 
-    # Set Tc EXACTLY at target + stop_delta = 35.0 + 5.0 = 40.0°C
+    # Step 1: Verify negative boundary condition:
+    # Tc is 0.1°C below the stop boundary (35.0 + 5.0 - 0.1 = 39.9°C).
+    # The compressor must CONTINUE heating (strict >= threshold).
     exact_stop_temp = target_temperature + stop_delta
+    below_stop_temp = exact_stop_temp - 0.1
+    assert openamber.set_sensor("current_water_temperature_tc_sensor", below_stop_temp)
+    assert openamber.set_sensor("heat_cool_temperature_tc", below_stop_temp)
+    assert openamber.set_sensor("outlet_temperature_tuo", below_stop_temp)
+    assert openamber.set_sensor("inlet_temperature_tui", below_stop_temp - 2.0)
+    openamber.step(ms=100)
+
+    openamber.advance_time(seconds=30, step_s=5)
+    openamber.step(ms=100)
+
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0, (
+        "Compressor must continue running when Tc is 0.1°C below stop delta threshold"
+    )
+
+    # Step 2: Set Tc EXACTLY at target + stop_delta = 35.0 + 5.0 = 40.0°C (inclusive boundary)
     assert openamber.set_sensor("current_water_temperature_tc_sensor", exact_stop_temp)
     assert openamber.set_sensor("heat_cool_temperature_tc", exact_stop_temp)
     assert openamber.set_sensor("outlet_temperature_tuo", exact_stop_temp)
@@ -472,9 +490,103 @@ def test_heat_demand_compressor_stops_at_exact_stop_delta_boundary(clean_system)
     openamber.step(ms=100)
 
 
+def test_heat_demand_oil_return_blocks_compressor_stop(clean_system):
+    """
+    Oil Return Cycle Protection Flow:
+    1. Compressor is actively running in space heating past minimum on-time.
+    2. Temperature rises past target + stop_delta (e.g. 42.0°C >= 35.0 + 5.0 = 40.0°C).
+    3. Oil return cycle is active (error_register_2119_raw = 8 -> oil_return_cycle_active_settled = True).
+    4. ShouldStopCompressor() returns False to protect lubrication and prevent compressor shutdown.
+    5. Compressor continues running despite temperature overshoot.
+    6. Oil return cycle ends (error_register_2119_raw = 0), and after settle filter expires, compressor stops.
+    """
+    openamber = clean_system
 
+    target_temperature = 35.0
+    stop_delta = 5.0
+    openamber.set_select("thermostat_mode_select", "Extern")
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", target_temperature)
+    openamber.set_climate("pid_heat_temperature_control", target_temperature=target_temperature)
+    openamber.set_number("compressor_start_delta_heating", 2.0)
+    openamber.set_number("compressor_stop_delta_heating", stop_delta)
+    openamber.set_select("sg_ready_mode_select", "Normaal")
+    openamber.set_number("backup_heater_degmin_threshold", 100.0)
 
+    # Initial water temp below target
+    openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
+    openamber.set_sensor("heat_cool_temperature_tc", 28.0)
+    openamber.set_sensor("outlet_temperature_tuo", 28.0)
+    openamber.set_sensor("inlet_temperature_tui", 26.0)
+    openamber.step(ms=50)
 
+    # Allow minimum off time
+    openamber.advance_time(seconds=130, step_s=10)
+    openamber.step(ms=50)
 
+    # Start heating demand
+    assert openamber.set_binary_sensor("external_heat_demand_wired", True)
+    openamber.step(ms=100)
+    assert openamber.get_entity("heat_demand_active_sensor") is True
 
+    # Advance time to trigger pump interval cycle in IDLE (pump_interval = 15 min = 900s)
+    openamber.advance_time(seconds=900, step_s=30)
+    openamber.step(ms=100)
 
+    # Advance time for pump start and temperature settle (COMPRESSOR_MIN_TIME_PUMP_ON = 120s)
+    openamber.advance_time(seconds=130, step_s=10)
+    openamber.step(ms=100)
+
+    # Advance time through compressor soft start (COMPRESSOR_SOFT_START_DURATION_S = 180s)
+    openamber.advance_time(seconds=190, step_s=10)
+    openamber.step(ms=100)
+
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0
+    assert float(openamber.get_entity("current_compressor_frequency") or 0) > 0
+
+    # Keep water at 36.0°C (above target 35.0°C to reset degree-minutes, below stop threshold 40.0°C)
+    openamber.set_sensor("current_water_temperature_tc_sensor", 36.0)
+    openamber.set_sensor("heat_cool_temperature_tc", 36.0)
+    openamber.set_sensor("outlet_temperature_tuo", 36.0)
+    openamber.set_sensor("inlet_temperature_tui", 34.0)
+    openamber.step(ms=50)
+
+    # Heat long enough to exceed minimum compressor on time (COMPRESSOR_MIN_ON_S = 600s; 190s softstart + 450s = 640s)
+    openamber.advance_time(seconds=450, step_s=20)
+    openamber.step(ms=100)
+
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0
+
+    # Activate oil return cycle protection
+    assert openamber.set_binary_sensor("oil_return_cycle_active_settled", True)
+    openamber.step(ms=50)
+    assert openamber.get_entity("oil_return_cycle_active_settled") is True
+
+    # Temperature overshoots above stop delta (42.0°C >= 35.0 + 5.0 = 40.0°C)
+    openamber.set_sensor("current_water_temperature_tc_sensor", 42.0)
+    openamber.set_sensor("heat_cool_temperature_tc", 42.0)
+    openamber.set_sensor("outlet_temperature_tuo", 42.0)
+    openamber.set_sensor("inlet_temperature_tui", 40.0)
+    openamber.advance_time(seconds=30, step_s=5)
+    openamber.step(ms=100)
+
+    # Compressor MUST continue running to protect the oil return cycle!
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0, (
+        "Compressor must NOT stop while oil return cycle is active, even if temperature overshoots"
+    )
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+
+    # End oil return cycle and advance past delayed_off filter (300s)
+    assert openamber.set_binary_sensor("oil_return_cycle_active_settled", False)
+    openamber.advance_time(seconds=310, step_s=15)
+    openamber.step(ms=100)
+
+    # Now compressor must stop
+    assert int(openamber.get_entity("compressor_control_select") or 0) == 0, (
+        "Compressor must stop once oil return cycle has settled and cleared"
+    )
+
+    # Cleanup
+    openamber.set_binary_sensor("external_heat_demand_wired", False)
+    openamber.step(ms=50)
