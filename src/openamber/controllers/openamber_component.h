@@ -95,7 +95,11 @@ void OpenAmberComponent::update()
 
     case State::INITIALIZING:
     {
-      id(initialize_relay_switch).turn_on();
+      bool is_hp_s_model = id(outside_unit_eeprom_version).state == EEPROM_VERSION_HPS;
+      if (!is_hp_s_model)
+      {
+        id(initialize_relay_switch).turn_on();
+      }
       id(pump_p0_relay_switch).turn_on();
       id(pump_p1_relay_switch).turn_off();
       id(dhw_pump_relay_switch).turn_off();
@@ -108,7 +112,7 @@ void OpenAmberComponent::update()
       working_mode_call.perform();
       compressor_controller_->Stop();
       pump_controller_->Stop();
-      if(id(outside_unit_eeprom_version).state == EEPROM_VERSION_HPS)
+      if(is_hp_s_model)
       {
         ESP_LOGI("amber", "Detected HPS unit based on EEPROM version, not writing heating frequency table.");
       }
