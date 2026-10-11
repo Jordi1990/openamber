@@ -1,4 +1,5 @@
 import os
+import shlex
 import subprocess
 import time
 import pytest
@@ -37,7 +38,7 @@ def openamber_proc():
         time.sleep(0.5)
         cmd = [
             "wsl", "-d", "Debian", "bash", "-c",
-            f"SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy {wsl_bin}"
+            f"SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy {shlex.quote(wsl_bin)}"
         ]
         started_proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     else:

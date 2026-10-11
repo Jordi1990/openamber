@@ -179,7 +179,10 @@ void TestBridge::send_response(const std::string &json_str) {
       break;
     }
 #else
-    ssize_t n = send(this->client_fd_, buf + sent, total - sent, 0);
+#ifndef MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0
+#endif
+    ssize_t n = send(this->client_fd_, buf + sent, total - sent, MSG_NOSIGNAL);
     if (n < 0) {
       if (errno == EAGAIN || errno == EWOULDBLOCK) {
         if (++retries > 100) {
