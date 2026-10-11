@@ -8,24 +8,10 @@ from openamber_client import OpenAmberClient
 @pytest.fixture(scope="session")
 def openamber_proc():
     """Launch OpenAmber headless simulator process (Linux native or WSL)."""
-    # Check if an instance is already listening on port 8888
-    try:
-        test_client = OpenAmberClient(host="127.0.0.1", port=8888, timeout=0.5)
-        test_client.connect(retries=1, delay=0.1)
-        if test_client.ping():
-            test_client.close()
-            time.sleep(0.3)
-            # Already running, reuse it
-            yield None
-            return
-        test_client.close()
-    except Exception:
-        pass
-
     started_proc = None
     if os.name == "nt":
         # Windows host: invoke via WSL Debian
-        subprocess.run(["wsl", "-d", "Debian", "pkill", "-9", "program"], capture_output=True)
+        subprocess.run(["wsl", "-u", "root", "-d", "Debian", "pkill", "-9", "program"], capture_output=True)
         subprocess.run(["wsl", "-d", "Debian", "bash", "-c", "rm -f ~/.esphome/prefs/openamber-test.prefs"], capture_output=True)
         time.sleep(0.5)
         cmd = [

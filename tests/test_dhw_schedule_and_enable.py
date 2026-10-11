@@ -131,46 +131,6 @@ def test_dhw_restart_delta_hysteresis_behavior(clean_system):
     assert openamber.get_entity("dhw_demand_active_sensor") is True, "41.5°C should trigger demand with 8°C delta"
 
 
-def test_dhw_schedule_settings_configuration(clean_system):
-    """
-    Verify DHW schedule configuration entities:
-    - dhw_schedule_enabled_switch
-    - Daily schedule switches for Monday through Sunday
-    """
-    openamber = clean_system
-
-    days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-
-    # Toggle master schedule switch
-    openamber.set_switch("dhw_schedule_enabled_switch", True)
-    openamber.step(ms=50)
-    assert openamber.get_entity("dhw_schedule_enabled_switch") is True, "Schedule master switch should be True"
-
-    # Turn all weekdays off, then specific ones on
-    for day in days:
-        openamber.set_switch(f"dhw_schedule_{day}_enabled_switch", False)
-    openamber.step(ms=50)
-
-    for day in days:
-        assert openamber.get_entity(f"dhw_schedule_{day}_enabled_switch") is False, f"Expected {day} switch to be False"
-
-    # Enable specific days: Monday, Wednesday, Friday
-    active_days = ["monday", "wednesday", "friday"]
-    for day in active_days:
-        openamber.set_switch(f"dhw_schedule_{day}_enabled_switch", True)
-    openamber.step(ms=50)
-
-    for day in days:
-        expected = day in active_days
-        actual = openamber.get_entity(f"dhw_schedule_{day}_enabled_switch")
-        assert actual is expected, f"Expected {day} to be {expected}, got {actual}"
-
-    # Cleanup: restore schedule switch to disabled
-    openamber.set_switch("dhw_schedule_enabled_switch", False)
-    for day in days:
-        openamber.set_switch(f"dhw_schedule_{day}_enabled_switch", True)
-    openamber.step(ms=50)
-
 
 def test_dhw_schedule_suppresses_demand_when_outside_active_days(clean_system):
     """

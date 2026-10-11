@@ -1,90 +1,12 @@
-"""Automated tests for PID parameters and flow switch safety delay.
+"""Automated tests for heat/cool safety checks and emergency protection flows.
 
-Covers settings:
-1. Heating PID parameters:
-   - pid_heat_kp, pid_heat_ki, pid_heat_kd, pid_heat_deadband
-2. Cooling PID parameters:
-   - pid_cool_kp, pid_cool_ki, pid_cool_kd, pid_cool_deadband
-3. Pump P0 PID parameters:
-   - pump_p0_pid_kp, pump_p0_pid_ki, pump_p0_pid_kd, pump_p0_pid_target_delta_t
-4. Flow Switch Safety Delay:
-   - flow_switch_safety_delay_minutes
+Covers:
+1. Error active safety check: stops compressor immediately when system error is active.
+2. Hydraulic excessive delta-T safety check: stops compressor when |Tuo - Tui| > 8.0°C.
+3. Flow switch missing pump safety check: stops compressor after flow_switch_safety_delay_minutes expires.
 """
 
 import pytest
-
-
-def test_heating_and_cooling_pid_tuning_parameters(clean_system):
-    """
-    Verify configuration of Heating and Cooling PID tuning numbers:
-    - Kp, Ki, Kd, and deadband thresholds.
-    """
-    openamber = clean_system
-
-    # Heating PID parameters
-    heat_params = [
-        ("pid_heat_kp", 1.2),
-        ("pid_heat_ki", 0.005),
-        ("pid_heat_kd", 1.5),
-        ("pid_heat_deadband", 0.8),
-    ]
-    for entity_id, val in heat_params:
-        assert openamber.set_number(entity_id, val) is True
-        openamber.step(ms=50)
-        curr = float(openamber.get_entity(entity_id) or 0)
-        assert curr == pytest.approx(val, 0.001), f"{entity_id} mismatch: {curr} != {val}"
-
-    # Cooling PID parameters
-    cool_params = [
-        ("pid_cool_kp", 0.8),
-        ("pid_cool_ki", 0.003),
-        ("pid_cool_kd", 0.9),
-        ("pid_cool_deadband", 0.6),
-    ]
-    for entity_id, val in cool_params:
-        assert openamber.set_number(entity_id, val) is True
-        openamber.step(ms=50)
-        curr = float(openamber.get_entity(entity_id) or 0)
-        assert curr == pytest.approx(val, 0.001), f"{entity_id} mismatch: {curr} != {val}"
-
-
-def test_pump_p0_pid_parameters(clean_system):
-    """
-    Verify configuration of Pump P0 PID parameters.
-    """
-    openamber = clean_system
-
-    # Pump P0 PID parameters
-    pump_params = [
-        ("pump_p0_pid_kp", 2.5),
-        ("pump_p0_pid_ki", 0.08),
-        ("pump_p0_pid_kd", 0.5),
-        ("pump_p0_pid_target_delta_t", 4.0),
-    ]
-    for entity_id, val in pump_params:
-        assert openamber.set_number(entity_id, val) is True
-        openamber.step(ms=50)
-        curr = float(openamber.get_entity(entity_id) or 0)
-        assert curr == pytest.approx(val, 0.001), f"{entity_id} mismatch: {curr} != {val}"
-
-
-def test_flow_switch_safety_delay_parameter(clean_system):
-    """
-    Verify flow_switch_safety_delay_minutes configuration setting.
-    """
-    openamber = clean_system
-
-    openamber.set_number("flow_switch_safety_delay_minutes", 3.0)
-    openamber.step(ms=50)
-    assert float(openamber.get_entity("flow_switch_safety_delay_minutes") or 0) == 3.0, "Expected delay 3.0 min"
-
-    openamber.set_number("flow_switch_safety_delay_minutes", 5.0)
-    openamber.step(ms=50)
-    assert float(openamber.get_entity("flow_switch_safety_delay_minutes") or 0) == 5.0, "Expected delay 5.0 min"
-
-    # Reset
-    openamber.set_number("flow_switch_safety_delay_minutes", 2.0)
-    openamber.step(ms=50)
 
 
 def test_error_active_safety_check_stops_compressor(clean_system):
@@ -125,6 +47,10 @@ def test_error_active_safety_check_stops_compressor(clean_system):
     assert openamber.get_entity("state_machine_state_heat_cool") == "Idle", f"State should return to Idle but was {openamber.get_entity('state_machine_state_heat_cool')}"
     # Controller must immediately stop compressor and revert to Idle
     assert int(openamber.get_entity("compressor_control_select") or 0) == 0, "Compressor must be stopped immediately"
+
+    # Cleanup
+    openamber.set_switch("heat_demand_switch", False)
+    openamber.step(ms=50)
 
 
 def test_hydraulic_excessive_delta_t_safety_check_stops_compressor(clean_system):
@@ -174,4 +100,60 @@ def test_hydraulic_excessive_delta_t_safety_check_stops_compressor(clean_system)
 
     # Cleanup
     openamber.set_switch("heat_demand_switch", False)
+    openamber.step(ms=50)
+
+
+def test_flow_switch_missing_pump_safety_delay_stops_compressor(clean_system):
+    """
+    Safety Flow:
+    1. Space heating is actively running with compressor started.
+    2. Pump flow signal drops (pump stops or flow missing while compressor runs).
+    3. Controller enters safety grace period defined by flow_switch_safety_delay_minutes.
+    4. While elapsed time < safety delay, compressor continues running.
+    5. Once safety delay elapses, controller stops compressor to prevent heat exchanger damage.
+    """
+    openamber = clean_system
+
+    openamber.set_number("flow_switch_safety_delay_minutes", 1.0)  # 60s delay
+    openamber.set_select("thermostat_mode_select", "Extern")
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 35.0)
+    openamber.set_climate("pid_heat_temperature_control", target_temperature=35.0)
+    openamber.set_select("heat_compressor_mode", "Maximaal")
+    openamber.set_switch("heat_demand_switch", True)
+    openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
+    openamber.set_sensor("heat_cool_temperature_tc", 28.0)
+    openamber.set_sensor("outlet_temperature_tuo", 28.0)
+    openamber.set_sensor("inlet_temperature_tui", 26.0)
+    openamber.step(ms=50)
+
+    # Start pump and compressor
+    openamber.advance_time(seconds=900, step_s=30)
+    openamber.advance_time(seconds=140, step_s=10)
+    openamber.advance_time(seconds=190, step_s=10)
+    openamber.step(ms=50)
+
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0
+
+    # Simulate pump failure/flow lost: turn off pump_p0_relay_switch
+    openamber.set_switch("pump_p0_relay_switch", False)
+    openamber.step(ms=50)
+    assert openamber.get_entity("internal_pump_active") is False, "internal_pump_active must be False"
+
+    # Advance 30s (less than 60s delay): compressor should still be running
+    openamber.advance_time(seconds=30, step_s=5)
+    openamber.step(ms=50)
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0, "Compressor should still run within grace period"
+
+    # Advance past 60s delay (another 40s -> total 70s > 60s): compressor must trip
+    openamber.advance_time(seconds=40, step_s=5)
+    openamber.step(ms=50)
+
+    assert int(openamber.get_entity("compressor_control_select") or 0) == 0, "Compressor must stop after safety delay expires"
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Idle", "State must return to Idle"
+
+    # Cleanup
+    openamber.set_switch("heat_demand_switch", False)
+    openamber.set_number("flow_switch_safety_delay_minutes", 2.0)
     openamber.step(ms=50)

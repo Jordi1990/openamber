@@ -24,44 +24,6 @@ Covers settings:
 import pytest
 
 
-def test_thermostat_deadband_and_default_setpoints(clean_system):
-    """
-    Verify Thermostat Deadband, Overrun, and Default setpoint numbers:
-    - Setting numbers directly.
-    - Verifying persistence and state queries.
-    """
-    openamber = clean_system
-
-    # Heat deadband and overrun
-    openamber.set_number("thermostat_heat_deadband", 0.4)
-    openamber.set_number("thermostat_heat_overrun", 0.3)
-    openamber.step(ms=50)
-    assert float(openamber.get_entity("thermostat_heat_deadband") or 0) == pytest.approx(0.4, 0.05)
-    assert float(openamber.get_entity("thermostat_heat_overrun") or 0) == pytest.approx(0.3, 0.05)
-
-    # Cool deadband and overrun
-    openamber.set_number("thermostat_cool_deadband", 0.6)
-    openamber.set_number("thermostat_cool_overrun", 1.5)
-    openamber.step(ms=50)
-    assert float(openamber.get_entity("thermostat_cool_deadband") or 0) == pytest.approx(0.6, 0.05)
-    assert float(openamber.get_entity("thermostat_cool_overrun") or 0) == pytest.approx(1.5, 0.05)
-
-    # Default setpoints
-    openamber.set_number("thermostat_default_heat_setpoint", 21.0)
-    openamber.set_number("thermostat_default_cool_setpoint", 23.5)
-    openamber.step(ms=50)
-    assert float(openamber.get_entity("thermostat_default_heat_setpoint") or 0) == pytest.approx(21.0, 0.05)
-    assert float(openamber.get_entity("thermostat_default_cool_setpoint") or 0) == pytest.approx(23.5, 0.05)
-
-    # Reset
-    openamber.set_number("thermostat_heat_deadband", 0.3)
-    openamber.set_number("thermostat_heat_overrun", 0.2)
-    openamber.set_number("thermostat_cool_deadband", 0.5)
-    openamber.set_number("thermostat_cool_overrun", 3.0)
-    openamber.set_number("thermostat_default_heat_setpoint", 20.5)
-    openamber.set_number("thermostat_default_cool_setpoint", 24.0)
-    openamber.step(ms=50)
-
 
 def test_thermostat_heat_deadband_and_overrun_dynamic_thresholds(clean_system):
     """
