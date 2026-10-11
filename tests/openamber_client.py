@@ -149,9 +149,9 @@ class OpenAmberClient:
             while elapsed < total_ms:
                 slice_ms = min(chunk_ms, total_ms - elapsed)
                 res = self.send_cmd({"cmd": "advance_time", "ms": slice_ms})
-                self.step(ms=30)
                 offset = res.get("offset_ms", 0)
                 elapsed += slice_ms
+            self.step(ms=30)
             return offset
 
         res = self.send_cmd({"cmd": "advance_time", "ms": total_ms})
@@ -179,7 +179,7 @@ class OpenAmberClient:
     def step(self, ms: int = 100) -> bool:
         """Pause test runner and allow ESPHome event loop cycles to run."""
         res = self.send_cmd({"cmd": "step", "ms": ms})
-        time.sleep(ms / 1000.0)
+        time.sleep(min(0.01, ms / 1000.0))
         return res.get("status") == "ok"
 
     def wait_for_condition(
