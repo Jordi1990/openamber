@@ -161,11 +161,6 @@
     then:
       - script.execute: update_service_errors_ui
 
-- id: !extend oil_return_cycle_active
-  on_state:
-    then:
-      - script.execute: update_service_warnings_ui
-
 - id: !extend error_flag_p05
   on_state:
     then:

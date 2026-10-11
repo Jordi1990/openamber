@@ -366,6 +366,8 @@
             root["vr"] = idx.has_value() ? idx.value() : -1;
           }
 
+          root["vs"] = id(oil_return_cycle_active).state;
+
 - id: send_telemetry_4
   then:
     - mqtt.publish_json:
