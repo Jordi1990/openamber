@@ -844,6 +844,7 @@ public:
         GetPidController().reset_integral_term();
         ResetMixingValvesIntegralTerm();
         StartPumpP1IfNeeded();
+        backup_degmin_last_ms_ = App.get_loop_component_start_time();
 
         if (id(temperature_outside_ta).state <= id(defrost_backup_heater_boost_temperature_sensor).state)
         {
