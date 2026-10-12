@@ -119,11 +119,12 @@ public:
   /// Closes the valve actuator to its minimum position
   void CloseValve()
   {
+    float min_percent = min_position_->state;
     pid_output_ = 0.0f;
-    int min_value = static_cast<int>(roundf(min_position_->state));
+    int min_value = static_cast<int>(roundf(min_percent));
     if (static_cast<int>(output_number_->state) != min_value)
     {
-      ESP_LOGI("amber", "Closing mixing valve to minimum (%.0f%%)", min_value);
+      ESP_LOGI("amber", "Closing mixing valve to minimum (%.0f%%)", min_percent);
       auto call = output_number_->make_call();
       call.set_value(min_value);
       call.perform();
