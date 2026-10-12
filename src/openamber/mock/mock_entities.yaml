@@ -166,12 +166,16 @@ sensor:
   - platform: template
     id: heat_cool_temperature_tv1
     name: "Cv-aanvoertemperatuur zone 1 (Tv1)"
-    lambda: 'return 30.0f;'
+    lambda: |-
+      if (id(heat_cool_temperature_tv1).has_state()) return id(heat_cool_temperature_tv1).state;
+      return 30.0f;
     update_interval: 5s
   - platform: template
     id: heat_cool_temperature_tv2
     name: "Cv-aanvoertemperatuur zone 2 (Tv2)"
-    lambda: 'return 28.0f;'
+    lambda: |-
+      if (id(heat_cool_temperature_tv2).has_state()) return id(heat_cool_temperature_tv2).state;
+      return 28.0f;
     update_interval: 5s
   - platform: template
     id: fan_rpm_sensor
