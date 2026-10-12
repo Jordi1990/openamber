@@ -30,10 +30,27 @@ using namespace esphome;
 class MixingValveActuator
 {
 private:
+  esphome::number::Number* output_number_ = nullptr;
+  esphome::number::Number* min_position_ = nullptr;
+  esphome::number::Number* max_position_ = nullptr;
   float pid_output_ = 0.0f;  // PID output [0..1] -> valve position
 
 public:
   MixingValveActuator() = default;
+
+  MixingValveActuator(esphome::number::Number& output_number,
+                      esphome::number::Number& min_position,
+                      esphome::number::Number& max_position)
+    : output_number_(&output_number), min_position_(&min_position), max_position_(&max_position)
+  {
+  }
+
+  MixingValveActuator(esphome::number::Number* output_number,
+                      esphome::number::Number* min_position,
+                      esphome::number::Number* max_position)
+    : output_number_(output_number), min_position_(min_position), max_position_(max_position)
+  {
+  }
 
   void SetPidOutput(float value)
   {
@@ -50,12 +67,14 @@ public:
 
   /// Returns the clamped valve position as percentage (0-100%),
   /// taking min/max settings into account.
-  /// @param min_percent Minimum valve position (0-100%)
-  /// @param max_percent Maximum valve position (0-100%)
-  float GetClampedValvePositionPercent(float min_percent, float max_percent) const
+  float GetClampedValvePositionPercent() const
   {
     float raw_percent = GetValvePositionPercent();
-    return std::max(min_percent, std::min(max_percent, raw_percent));
+    if (min_position_ && max_position_)
+    {
+      return std::max(min_position_->state, std::min(max_position_->state, raw_percent));
+    }
+    return raw_percent;
   }
 
   /// Translates PID output (0.0–1.0) to a clamped modbus value (0–100)
@@ -63,57 +82,51 @@ public:
   /// The output is clamped between min_percent and max_percent.
   /// 0 = valve fully closed (bypass/return water only)
   /// 100 = valve fully open (maximum hot supply water)
-  int GetClampedModbusValue(float min_percent, float max_percent) const
+  int GetClampedModbusValue() const
   {
-    float clamped = GetClampedValvePositionPercent(min_percent, max_percent);
-    return static_cast<int>(roundf(clamped));
+    return static_cast<int>(roundf(GetClampedValvePositionPercent()));
   }
 
   /// Writes the current valve position to the modbus register,
   /// clamped within the configured min/max range.
-  /// @param modbus_number The modbus number entity to write to
-  /// @param min_percent Minimum valve position setting (0-100%)
-  /// @param max_percent Maximum valve position setting (0-100%)
-  void ApplyPosition(esphome::number::Number& modbus_number,
-                     float min_percent, float max_percent)
+  void ApplyValvePosition()
   {
-    int value = GetClampedModbusValue(min_percent, max_percent);
-    if (static_cast<int>(modbus_number.state) != value)
+    int value = GetClampedModbusValue();
+    if (static_cast<int>(output_number_->state) != value)
     {
-      ESP_LOGI("amber", "Mixing valve position: %.1f%% (modbus: %d, range: %.0f-%.0f%%)", 
-               GetClampedValvePositionPercent(min_percent, max_percent), value,
-               min_percent, max_percent);
-      auto call = modbus_number.make_call();
+      ESP_LOGI("amber", "Mixing valve position: %d", value);
+      auto call = output_number_->make_call();
       call.set_value(value);
       call.perform();
     }
   }
 
-  void ApplyValvePosition(esphome::number::Number& modbus_number,
-                          float min_percent, float max_percent)
+  /// Opens the valve actuator to its maximum position (e.g. during cooling mode)
+  void OpenValve()
   {
-    ApplyPosition(modbus_number, min_percent, max_percent);
-  }
-
-  /// Closes the valve actuator to its minimum position
-  /// @param min_percent Minimum valve position setting (0-100%)
-  void Close(esphome::number::Number& modbus_number,
-             float min_percent)
-  {
-    pid_output_ = 0.0f;
-    int min_value = static_cast<int>(roundf(min_percent));
-    if (static_cast<int>(modbus_number.state) != min_value)
+    float max_percent = max_position_->state;
+    pid_output_ = std::max(0.0f, std::min(1.0f, max_percent / 100.0f));
+    int max_value = static_cast<int>(roundf(max_percent));
+    if (static_cast<int>(output_number_->state) != max_value)
     {
-      ESP_LOGI("amber", "Closing mixing valve to minimum (%.0f%%)", min_percent);
-      auto call = modbus_number.make_call();
-      call.set_value(min_value);
+      ESP_LOGI("amber", "Opening mixing valve to maximum (%.0f%%)", max_percent);
+      auto call = output_number_->make_call();
+      call.set_value(max_value);
       call.perform();
     }
   }
 
-  void CloseValve(esphome::number::Number& modbus_number,
-                  float min_percent)
+  /// Closes the valve actuator to its minimum position
+  void CloseValve()
   {
-    Close(modbus_number, min_percent);
+    pid_output_ = 0.0f;
+    int min_value = static_cast<int>(roundf(min_position_->state));
+    if (static_cast<int>(output_number_->state) != min_value)
+    {
+      ESP_LOGI("amber", "Closing mixing valve to minimum (%.0f%%)", min_value);
+      auto call = output_number_->make_call();
+      call.set_value(min_value);
+      call.perform();
+    }
   }
 };

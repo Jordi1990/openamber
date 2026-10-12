@@ -402,3 +402,126 @@ def test_mixing_valves_held_in_previous_position_during_defrost(clean_system):
     val2_after = int(openamber.get_entity("mixing_valve_zone2_output"))
     assert val1_after == 20, f"Post-defrost Valve 1 should now reflect Tv1=45°C (closed to 20%), got {val1_after}%"
     assert val2_after == 85, f"Post-defrost Valve 2 should now reflect Tv2=15°C (opened to 85%), got {val2_after}%"
+
+
+def test_control_temperature_forced_to_tc_when_mixing_valves_enabled(clean_system):
+    """
+    Verify GetControlTemperature():
+    - When mixing valves are enabled, controller strictly forces Tc as control temperature
+      for compressor regulation, even if Tv1 temperature spikes high.
+    - When Tc itself exceeds the target + stop_delta, compressor stops as expected.
+    """
+    openamber = clean_system
+
+    # Enable mixing valve zone 1 and set control source to Tv1
+    openamber.set_switch("mixing_valve_zone1_enabled", True)
+    openamber.set_switch("mixing_valve_zone2_enabled", False)
+    openamber.set_select("heat_cool_control_temperature_source_select", "CV-aanvoer zone 1 (Tv1)")
+    openamber.set_number("compressor_stop_delta_heating", 2.0)
+    openamber.step(ms=50)
+
+    # Start compressor running (target = 35°C, stop delta = 2°C -> stop threshold = 37°C)
+    _start_heating_and_reach_compressor_running(openamber)
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+
+    # Spike Tv1 well above stop threshold (45°C >> 37°C) while keeping Tc at 30°C (< 37°C)
+    openamber.set_sensor("heat_cool_temperature_tv1", 45.0)
+    openamber.set_sensor("heat_cool_temperature_tc", 30.0)
+    openamber.advance_time(seconds=10, step_s=1)
+    openamber.step(ms=50)
+
+    # Since mixing valve is enabled, controller must use Tc (30°C) and NOT stop the compressor
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running", (
+        "Compressor must keep running because GetControlTemperature() forces Tc (30°C), ignoring hot Tv1 (45°C)"
+    )
+
+    # Now raise Tc above stop threshold (38°C > 37°C)
+    openamber.set_sensor("heat_cool_temperature_tc", 38.0)
+    openamber.set_sensor("current_water_temperature_tc_sensor", 38.0)
+    openamber.advance_time(seconds=10, step_s=1)
+    openamber.step(ms=50)
+
+    # Now compressor must stop because Tc exceeded target + stop_delta
+    assert openamber.get_entity("state_machine_state_heat_cool") in ["Wait for compressor to stop", "Pump running", "Rust"], (
+        "Compressor must stop when Tc exceeds target + stop_delta"
+    )
+
+
+
+def test_mixing_valves_open_to_max_in_cooling_mode(clean_system):
+    """
+    Verify:
+    1. mixing_valve_zone1_position and zone2_position sensors return NaN (None) when disabled.
+    2. In cooling mode, enabled mixing valves are fully opened to their max_position.
+    3. When cooling ends and system enters Idle, valves are closed to their min_position.
+    """
+    openamber = clean_system
+
+    # Step 1: Disabled valves -> sensors report None
+    openamber.set_switch("mixing_valve_zone1_enabled", False)
+    openamber.set_switch("mixing_valve_zone2_enabled", False)
+    openamber.advance_time(seconds=6, step_s=1)
+    openamber.step(ms=50)
+
+    assert openamber.get_entity("mixing_valve_zone1_position") is None, "Disabled MV Zone 1 sensor should be None"
+    assert openamber.get_entity("mixing_valve_zone2_position") is None, "Disabled MV Zone 2 sensor should be None"
+
+    # Step 2: Enable mixing valves with custom min/max positions
+    openamber.set_switch("mixing_valve_zone1_enabled", True)
+    openamber.set_switch("mixing_valve_zone2_enabled", True)
+    openamber.set_number("mixing_valve_zone1_min_position", 20.0)
+    openamber.set_number("mixing_valve_zone1_max_position", 80.0)
+    openamber.set_number("mixing_valve_zone2_min_position", 10.0)
+    openamber.set_number("mixing_valve_zone2_max_position", 95.0)
+
+    # Configure cooling settings
+    openamber.set_select("thermostat_mode_select", "Extern")
+    openamber.set_select("cool_mode_select", "Intern setpoint")
+    openamber.set_number("cooling_setpoint_number", 18.0)
+    openamber.set_climate("pid_cool_temperature_control", target_temperature=18.0)
+    openamber.set_number("compressor_start_delta_cooling", 1.0)
+    openamber.set_number("compressor_stop_delta_cooling", 2.0)
+    openamber.set_select("cool_compressor_mode", "Maximaal")
+
+    # Initial warm water (23°C) to start cooling easily
+    openamber.set_sensor("current_water_temperature_tc_sensor", 23.0)
+    openamber.set_sensor("heat_cool_temperature_tc", 23.0)
+    openamber.set_sensor("outlet_temperature_tuo", 23.0)
+    openamber.set_sensor("inlet_temperature_tui", 24.0)
+    openamber.set_sensor("temperature_outside_ta", 25.0)
+    openamber.step(ms=50)
+
+    # Advance past min off time
+    openamber.advance_time(seconds=130, step_s=10)
+    openamber.step(ms=50)
+
+    # Trigger cool demand
+    openamber.set_binary_sensor("external_cool_demand_wired", True)
+    openamber.step(ms=100)
+    assert openamber.get_entity("cool_demand_active_sensor") is True
+
+    # Advance to compressor running: pump interval (900s) + pump settle (140s) + softstart (190s)
+    openamber.advance_time(seconds=920, step_s=30)
+    openamber.advance_time(seconds=140, step_s=10)
+    openamber.advance_time(seconds=190, step_s=10)
+    openamber.step(ms=50)
+
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+
+    # In active cooling, both enabled mixing valves must be opened to their configured max positions
+    val1_cool = int(openamber.get_entity("mixing_valve_zone1_output"))
+    val2_cool = int(openamber.get_entity("mixing_valve_zone2_output"))
+    assert val1_cool == 80, f"During cooling, Zone 1 valve must open to max_position (80%), got {val1_cool}%"
+    assert val2_cool == 95, f"During cooling, Zone 2 valve must open to max_position (95%), got {val2_cool}%"
+
+    # Step 3: Stop cooling demand -> advance past min on time (600s) to allow shutdown
+    openamber.set_binary_sensor("external_cool_demand_wired", False)
+    openamber.advance_time(seconds=610, step_s=20)
+    openamber.step(ms=100)
+
+    val1_idle = int(openamber.get_entity("mixing_valve_zone1_output"))
+    val2_idle = int(openamber.get_entity("mixing_valve_zone2_output"))
+    assert val1_idle == 20, f"After cooling ends, Zone 1 valve must close to min_position (20%), got {val1_idle}%"
+    assert val2_idle == 10, f"After cooling ends, Zone 2 valve must close to min_position (10%), got {val2_idle}%"
+
+

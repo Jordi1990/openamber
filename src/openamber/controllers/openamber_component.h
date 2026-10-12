@@ -32,8 +32,14 @@ OpenAmberComponent::OpenAmberComponent()
 {
   pump_controller_ = new PumpController();
   compressor_controller_ = new CompressorController();
-  mixing_valve_zone1_ = new MixingValveActuator();
-  mixing_valve_zone2_ = new MixingValveActuator();
+  mixing_valve_zone1_ = new MixingValveActuator(
+    id(mixing_valve_zone1_output),
+    id(mixing_valve_zone1_min_position),
+    id(mixing_valve_zone1_max_position));
+  mixing_valve_zone2_ = new MixingValveActuator(
+    id(mixing_valve_zone2_output),
+    id(mixing_valve_zone2_min_position),
+    id(mixing_valve_zone2_max_position));
   dhw_controller_ = new DHWController(pump_controller_, compressor_controller_);
   heat_cool_controller_ = new HeatCoolController(pump_controller_, compressor_controller_, mixing_valve_zone1_, mixing_valve_zone2_);
   deaeration_routine_ = new DeaerationRoutine();

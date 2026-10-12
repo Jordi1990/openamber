@@ -66,8 +66,8 @@ The tests are organized into modular, domain-specific test suites:
 | [`test_dhw_flow.py`](test_dhw_flow.py) | Domestic Hot Water demand, navbar tapwater icon (`nav_status_dhw_icon`), and circulation pump spinner animation (`dhw_circulation_spinner`, `dhw_pump_state_label`). |
 | [`test_cooling_flow.py`](test_cooling_flow.py) | External cooling demand, navbar snowflake icon (`nav_status_cool_icon`), and heating-over-cooling priority conflict resolution. |
 | [`test_backup_heater_flow.py`](test_backup_heater_flow.py) | Backup heater relay activation, UI badge updates (`tile_backup_state`), temperature reaching setpoint + shutoff delta, and shutdown propagation. |
-| [`test_settings_workflow.py`](test_settings_workflow.py) | Settings sidebar tabs (Algemeen, Verwarmen, Tapwater, Bijverwarmen) and mixing valve pager navigation (`1 / 2` $\leftrightarrow$ `2 / 2`). |
-| [`test_zone2_curve_and_mixing_valves.py`](test_zone2_curve_and_mixing_valves.py) | Zone 2 heating curve interpolation, highest setpoint selection across zones, mixing valve 1 & 2 modulation based on Tv1 & Tv2, anti-jitter deadband stabilization, min/max position clamping, and defrost position holding. |
+| [`test_settings_workflow.py`](test_settings_workflow.py) | Settings sidebar tabs (Algemeen, Verwarmen, Tapwater, Bijverwarmen), sensor calibration pager navigation (`1 / 2` $\leftrightarrow$ `2 / 2`), Stooklijn Zone 2 subtab, and Mengventielen settings pager. |
+| [`test_zone2_curve_and_mixing_valves.py`](test_zone2_curve_and_mixing_valves.py) | Zone 2 heating curve anchor interpolation, dual-zone highest setpoint arbitration, Tv1 & Tv2 mixing valve PID modulation, deadband anti-jitter stabilization, min/max clamping & idle closure, defrost position freezing & resumption, control temperature Tc enforcement, fully opening valves to max position in cooling mode, and position template sensors. |
 | [`test_ui_navigation.py`](test_ui_navigation.py) | Header bar title and navbar navigation between Home, Settings, Service, and System pages. |
 
 ---
