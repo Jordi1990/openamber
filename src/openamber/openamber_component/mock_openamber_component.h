@@ -24,6 +24,10 @@ class OpenAmberComponent : public PollingComponent {
   void write_heat_pid_value(float value) {}
   void write_cool_pid_value(float value) {}
   void write_pump_p0_pid_value(float value) {}
+  void write_mixing_valve_zone1_pid_value(float value) {}
+  void write_mixing_valve_zone2_pid_value(float value) {}
+  float get_mixing_valve_zone1_position() const { return 0.0f; }
+  float get_mixing_valve_zone2_position() const { return 0.0f; }
   void reset_pump_interval() {}
 
   bool is_maintenance_state() const { return false; }

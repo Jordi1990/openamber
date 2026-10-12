@@ -166,12 +166,16 @@ sensor:
   - platform: template
     id: heat_cool_temperature_tv1
     name: "Cv-aanvoertemperatuur zone 1 (Tv1)"
-    lambda: 'return 30.0f;'
+    lambda: |-
+      if (id(heat_cool_temperature_tv1).has_state()) return id(heat_cool_temperature_tv1).state;
+      return 30.0f;
     update_interval: 5s
   - platform: template
     id: heat_cool_temperature_tv2
     name: "Cv-aanvoertemperatuur zone 2 (Tv2)"
-    lambda: 'return 28.0f;'
+    lambda: |-
+      if (id(heat_cool_temperature_tv2).has_state()) return id(heat_cool_temperature_tv2).state;
+      return 28.0f;
     update_interval: 5s
   - platform: template
     id: fan_rpm_sensor
@@ -260,6 +264,7 @@ binary_sensor:
   - platform: template
     id: sg_ready_b_active_sensor
     name: "SG Ready B actief"
+
 number:
   - platform: template
     id: eev_open_setting_manual_number
@@ -437,6 +442,22 @@ number:
     max_value: 120
     step: 1
     initial_value: 82
+  - platform: template
+    id: mixing_valve_zone1_output
+    name: "Mengventiel zone 1"
+    optimistic: true
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 0
+  - platform: template
+    id: mixing_valve_zone2_output
+    name: "Mengventiel zone 2"
+    optimistic: true
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 0
   - platform: template
     id: bottomplate_heater_ambient_temperature_start
     name: "Bodemplaatverwarming start temp"

@@ -424,6 +424,80 @@
             format: "%.1f°C"
             args: ['x']
 
+# ── Mengventiel zone 1 PID ──
+- id: !extend pid_mixing_valve_zone1_kp
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z1_pid_kp_val
+          text:
+            format: "%.2f"
+            args: ['x']
+
+- id: !extend pid_mixing_valve_zone1_ki
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z1_pid_ki_val
+          text:
+            format: "%.4f"
+            args: ['x']
+
+- id: !extend pid_mixing_valve_zone1_kd
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z1_pid_kd_val
+          text:
+            format: "%.2f"
+            args: ['x']
+
+- id: !extend pid_mixing_valve_zone1_deadband
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z1_pid_deadband_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
+# ── Mengventiel zone 2 PID ──
+- id: !extend pid_mixing_valve_zone2_kp
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z2_pid_kp_val
+          text:
+            format: "%.2f"
+            args: ['x']
+
+- id: !extend pid_mixing_valve_zone2_ki
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z2_pid_ki_val
+          text:
+            format: "%.4f"
+            args: ['x']
+
+- id: !extend pid_mixing_valve_zone2_kd
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z2_pid_kd_val
+          text:
+            format: "%.2f"
+            args: ['x']
+
+- id: !extend pid_mixing_valve_zone2_deadband
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z2_pid_deadband_val
+          text:
+            format: "%.1f°C"
+            args: ['x']
+
 - id: !extend cooling_setpoint_number
   on_value:
     then:
@@ -457,6 +531,31 @@
   on_value:
     then:
       - script.execute: update_heat_curve_chart
+
+- id: !extend heat_curve_z2_m10
+  on_value:
+    then:
+      - script.execute: update_heat_curve_z2_chart
+
+- id: !extend heat_curve_z2_0
+  on_value:
+    then:
+      - script.execute: update_heat_curve_z2_chart
+
+- id: !extend heat_curve_z2_p5
+  on_value:
+    then:
+      - script.execute: update_heat_curve_z2_chart
+
+- id: !extend heat_curve_z2_p10
+  on_value:
+    then:
+      - script.execute: update_heat_curve_z2_chart
+
+- id: !extend heat_curve_z2_p15
+  on_value:
+    then:
+      - script.execute: update_heat_curve_z2_chart
 
 - id: !extend backup_heater_degmin_threshold
   on_value:
@@ -604,4 +703,41 @@
           id: set_therm_cool_or_val
           text:
             format: "%.1f°C"
+            args: ['x']
+
+# ── Settings: Mengventielen min/max positie ──
+- id: !extend mixing_valve_zone1_min_position
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z1_min_val
+          text:
+            format: "%.0f%%"
+            args: ['x']
+
+- id: !extend mixing_valve_zone1_max_position
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z1_max_val
+          text:
+            format: "%.0f%%"
+            args: ['x']
+
+- id: !extend mixing_valve_zone2_min_position
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z2_min_val
+          text:
+            format: "%.0f%%"
+            args: ['x']
+
+- id: !extend mixing_valve_zone2_max_position
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_mv_z2_max_val
+          text:
+            format: "%.0f%%"
             args: ['x']
