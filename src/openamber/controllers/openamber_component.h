@@ -19,6 +19,7 @@
 
 #include "constants.h"
 #include "dhw_controller.h"
+#include "mixing_valve_actuator.h"
 #include "heat_cool_controller.h"
 #include "deaeration_routine.h"
 
@@ -31,8 +32,16 @@ OpenAmberComponent::OpenAmberComponent()
 {
   pump_controller_ = new PumpController();
   compressor_controller_ = new CompressorController();
+  mixing_valve_zone1_ = new MixingValveActuator(
+    id(mixing_valve_zone1_output),
+    id(mixing_valve_zone1_min_position),
+    id(mixing_valve_zone1_max_position));
+  mixing_valve_zone2_ = new MixingValveActuator(
+    id(mixing_valve_zone2_output),
+    id(mixing_valve_zone2_min_position),
+    id(mixing_valve_zone2_max_position));
   dhw_controller_ = new DHWController(pump_controller_, compressor_controller_);
-  heat_cool_controller_ = new HeatCoolController(pump_controller_, compressor_controller_);
+  heat_cool_controller_ = new HeatCoolController(pump_controller_, compressor_controller_, mixing_valve_zone1_, mixing_valve_zone2_);
   deaeration_routine_ = new DeaerationRoutine();
 }
 
@@ -43,6 +52,8 @@ OpenAmberComponent::~OpenAmberComponent()
   delete deaeration_routine_;
   delete pump_controller_;
   delete compressor_controller_;
+  delete mixing_valve_zone1_;
+  delete mixing_valve_zone2_;
 }
 
 void OpenAmberComponent::setup()
@@ -95,7 +106,11 @@ void OpenAmberComponent::update()
 
     case State::INITIALIZING:
     {
-      id(initialize_relay_switch).turn_on();
+      bool is_hp_s_model = id(outside_unit_eeprom_version).state == EEPROM_VERSION_HPS;
+      if (!is_hp_s_model)
+      {
+        id(initialize_relay_switch).turn_on();
+      }
       id(pump_p0_relay_switch).turn_on();
       id(pump_p1_relay_switch).turn_off();
       id(dhw_pump_relay_switch).turn_off();
@@ -103,12 +118,15 @@ void OpenAmberComponent::update()
       id(three_way_valve_heat_cool_switch).turn_off();
       id(backup_heater_stage_1).turn_off();
       id(backup_heater_stage_2).turn_off();
+      // Sluit mengventielen bij initialisatie
+      id(mixing_valve_zone1_output).make_call().set_value(0).perform();
+      id(mixing_valve_zone2_output).make_call().set_value(0).perform();
       auto working_mode_call = id(working_mode_switch).make_call();
       working_mode_call.set_index(WORKING_MODE_STANDBY);
       working_mode_call.perform();
       compressor_controller_->Stop();
       pump_controller_->Stop();
-      if(id(outside_unit_eeprom_version).state == EEPROM_VERSION_HPS)
+      if(is_hp_s_model)
       {
         ESP_LOGI("amber", "Detected HPS unit based on EEPROM version, not writing heating frequency table.");
       }
@@ -454,6 +472,28 @@ void OpenAmberComponent::CheckModbusConnectionTimeout()
 
     modbus_disconnected_error_occurred_ = true;
   }
+}
+
+void OpenAmberComponent::write_mixing_valve_zone1_pid_value(float value)
+{
+  if (mixing_valve_zone1_)
+    mixing_valve_zone1_->SetPidOutput(value);
+}
+
+void OpenAmberComponent::write_mixing_valve_zone2_pid_value(float value)
+{
+  if (mixing_valve_zone2_)
+    mixing_valve_zone2_->SetPidOutput(value);
+}
+
+float OpenAmberComponent::get_mixing_valve_zone1_position() const
+{
+  return mixing_valve_zone1_ ? mixing_valve_zone1_->GetValvePositionPercent() : 0.0f;
+}
+
+float OpenAmberComponent::get_mixing_valve_zone2_position() const
+{
+  return mixing_valve_zone2_ ? mixing_valve_zone2_->GetValvePositionPercent() : 0.0f;
 }
 }  // namespace openamber
 }  // namespace esphome

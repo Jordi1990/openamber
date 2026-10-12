@@ -1,10 +1,12 @@
-name: Build firmware on PR publish
+name: Build and validate on PR publish
 
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - src/**
+      - tests/**
+      - run_tests.py
       - .github/workflows/**
 
 concurrency:
@@ -12,8 +14,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-firmware:
-    name: Build Firmware
+  build-and-validate:
+    name: Build & Validate
     if: github.event.pull_request.draft == false
     uses: ./.github/workflows/build-firmware.yml
     with:
@@ -22,3 +24,5 @@ jobs:
         src/openamber-waveshare-display.yaml
         src/openamber-waveshare-p4.yaml
       combined-name: openamber-pr-validation
+      run-tests: true
+

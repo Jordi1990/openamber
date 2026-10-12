@@ -8,8 +8,8 @@ obj:
   hidden: true
   bg_opa: 0%
   border_opa: 0%
-  pad_left: 4
-  pad_right: 4
+  pad_left: 0
+  pad_right: 0
   pad_top: 4
   pad_bottom: 4
   scrollbar_mode: "OFF"
@@ -115,5 +115,3 @@ obj:
           flex_align_cross: CENTER
           pad_row: 6
         widgets: !include page_settings_tab_energie_eebus_content.yaml
-
-# ------------------------------------------------------------

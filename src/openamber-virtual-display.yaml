@@ -1,16 +1,46 @@
+substitutions:
+  device_model: virtual-display
+
 esphome:
   name: openamber-test
   project:
     name: jordi.openamber
     version: dev
   on_boot:
+    - priority: 900
+      then:
+        - lambda: |-
+            id(outside_unit_eeprom_version).publish_state(114.0f);
+            id(modbus_inside_is_online) = true;
+            id(modbus_outside_is_online) = true;
     - priority: -100
       then:
         - lvgl.label.update:
             id: header_title
-            text: "OpenAmber Test"
+            text: "OpenAmber"
+  includes:
+    - openamber/controllers/constants.h
+    - openamber/controllers/pump_controller.h
+    - openamber/controllers/compressor_controller.h
+    - openamber/controllers/base_controller.h
+    - openamber/controllers/dhw_controller.h
+    - openamber/controllers/mixing_valve_actuator.h
+    - openamber/controllers/heat_cool_controller.h
+    - openamber/controllers/routine_controller.h
+    - openamber/controllers/deaeration_routine.h
+    - openamber/controllers/openamber_component.h
+  platformio_options:
+    build_flags:
+      - "-Wl,--wrap=_ZN7esphome6millisEv"
+      - "-Wl,--wrap=_ZN7esphome9millis_64Ev"
+      - "-Wl,--wrap=_ZN7esphome6microsEv"
 
 host:
+
+debug:
+
+web_server:
+  port: 80
 
 logger:
   level: INFO
@@ -19,6 +49,7 @@ external_components:
   - source:
       type: local
       path: openamber
+    components: [openamber_component, test_bridge, mock_time, mock_update, native_build_flags, web_server]
 
 display:
   - platform: sdl
@@ -33,7 +64,11 @@ touchscreen:
     id: openamber_touchscreen
 
 packages:
+  - !include openamber/core/core_package.yaml
   - !include openamber/mock/mock_entities.yaml
   - !include openamber/ui/display_globals.yaml
   - !include openamber/ui/bindings/ui_bindings_package.yaml
   - !include openamber/ui/ui_package.yaml
+
+test_bridge:
+  port: 8888

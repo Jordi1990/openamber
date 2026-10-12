@@ -1,4 +1,4 @@
-- label: { id: set_heat_curve_title, text: "Stooklijn", text_color: 0x1F2933, text_font: font_text_24, x: 6 }
+- label: { id: set_heat_curve_title, text: "Stooklijn zone 1", text_color: 0x1F2933, text_font: font_text_24, x: 6 }
 
 - obj:
     id: set_heat_curve_chart_container
