@@ -1,6 +1,10 @@
 #include "test_bridge.h"
 #include <cerrno>
 
+#ifdef USE_EEBUS
+#include "esphome/components/eebus/eebus_component.h"
+#endif
+
 #ifndef _WIN32
 extern "C" {
 uint32_t __real__ZN7esphome6millisEv();
@@ -639,6 +643,46 @@ void TestBridge::process_line(const std::string &line) {
     if (cmd == "step") {
       this->send_response("{\"status\":\"ok\"}");
       return true;
+    }
+
+    if (cmd == "fake_eebus" || cmd == "eebus_request") {
+#ifdef USE_EEBUS
+      std::string action = root["action"] | "";
+      if (action == "boost") {
+        bool active = root["active"] | true;
+        openamber_eebus::fake_eebus_boost(active);
+        this->send_response("{\"status\":\"ok\"}");
+        return true;
+      }
+      if (action == "dim") {
+        bool active = root["active"] | true;
+        openamber_eebus::fake_eebus_dim(active);
+        this->send_response("{\"status\":\"ok\"}");
+        return true;
+      }
+      if (action == "limit") {
+        float limit_w = root["limit"] | 0.0f;
+        openamber_eebus::fake_eebus_limit(limit_w);
+        this->send_response("{\"status\":\"ok\"}");
+        return true;
+      }
+      if (action == "connect") {
+        std::string ems = root["ems"] | "EVCC (192.168.1.100)";
+        openamber_eebus::fake_eebus_connected(true, ems);
+        this->send_response("{\"status\":\"ok\"}");
+        return true;
+      }
+      if (action == "disconnect") {
+        openamber_eebus::fake_eebus_connected(false);
+        this->send_response("{\"status\":\"ok\"}");
+        return true;
+      }
+      this->send_response(build_error_json("Unknown eebus action: " + action));
+      return true;
+#else
+      this->send_response(build_error_json("EEBUS not enabled in this build"));
+      return true;
+#endif
     }
 
     if (cmd == "exit") {

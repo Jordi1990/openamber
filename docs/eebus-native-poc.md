@@ -69,7 +69,7 @@ We voegen een **ESPHome external component** toe, analoog aan de bestaande
 +----------------------------+
 | evcc (CEM/MA/EG client)    |   lokale SHIP over TLS + SPINE
 +-------------+--------------+
-              | TCP/44328(mDNS _ship._tcp) TLS, SKI-pairing
+              | TCP/4712(mDNS _ship._tcp) TLS, SKI-pairing
 +-------------v--------------+
 | openamber/eebus component  |
 |  - eebus_component         |  ESPHome component (devicestack lifecycle)

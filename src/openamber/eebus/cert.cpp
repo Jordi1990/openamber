@@ -10,6 +10,8 @@
  * with the RFC 5280 Subject Key Identifier (SKI).
  */
 
+#ifndef USE_EEBUS_MOCK
+
 #include "cert.h"
 #include "nvs_store.h"
 #include "esphome/core/log.h"
@@ -265,3 +267,5 @@ bool EEBusCertificateStore::load_from_nvs() {
 
 }  // namespace openamber_eebus
 }  // namespace esphome
+
+#endif  // USE_EEBUS_MOCK

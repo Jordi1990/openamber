@@ -8,6 +8,8 @@
  * eebus-go/evcc parses as mandatory: txtvers, id, path, ski, register.
  */
 
+#ifndef USE_EEBUS_MOCK
+
 #include "mdns.h"
 #include "esphome/core/defines.h"
 #include "esphome/core/log.h"
@@ -108,3 +110,5 @@ void eebus_mdns_stop() {
 
 }  // namespace openamber_eebus
 }  // namespace esphome
+
+#endif  // USE_EEBUS_MOCK

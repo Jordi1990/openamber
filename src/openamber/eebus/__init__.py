@@ -1,5 +1,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
+from esphome.core import CORE
 from esphome.components import esp32, binary_sensor, sensor, text_sensor
 from esphome.const import (
     CONF_ID,
@@ -90,15 +91,18 @@ CONFIG_SCHEMA = cv.All(
 
 
 async def to_code(config):
-    # These must be set during code generation. ESPHome initializes its
-    # sdkconfig map after importing external component modules, so module-level
-    # calls are silently discarded.
-    esp32.add_idf_sdkconfig_option("CONFIG_SPIRAM_ALLOW_STACK_EXTERNAL_MEMORY", True)
-    esp32.add_idf_sdkconfig_option("CONFIG_MBEDTLS_HARDWARE_AES", False)
-    esp32.add_idf_sdkconfig_option("CONFIG_MBEDTLS_SSL_IN_CONTENT_LEN", 8192)
-    esp32.add_idf_sdkconfig_option("CONFIG_MBEDTLS_SSL_OUT_CONTENT_LEN", 8192)
-    esp32.add_idf_sdkconfig_option("CONFIG_MBEDTLS_PEM_WRITE_C", True)
     cg.add_define("USE_EEBUS")
+    if CORE.is_esp32:
+        # These must be set during code generation. ESPHome initializes its
+        # sdkconfig map after importing external component modules, so module-level
+        # calls are silently discarded.
+        esp32.add_idf_sdkconfig_option("CONFIG_SPIRAM_ALLOW_STACK_EXTERNAL_MEMORY", True)
+        esp32.add_idf_sdkconfig_option("CONFIG_MBEDTLS_HARDWARE_AES", False)
+        esp32.add_idf_sdkconfig_option("CONFIG_MBEDTLS_SSL_IN_CONTENT_LEN", 8192)
+        esp32.add_idf_sdkconfig_option("CONFIG_MBEDTLS_SSL_OUT_CONTENT_LEN", 8192)
+        esp32.add_idf_sdkconfig_option("CONFIG_MBEDTLS_PEM_WRITE_C", True)
+    else:
+        cg.add_build_flag("-DUSE_EEBUS_MOCK")
 
     var = cg.new_Pvariable(config[CONF_ID])
     cg.add(var.set_device_sku(config[CONF_DEVICE_SKU]))

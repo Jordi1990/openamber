@@ -226,11 +226,6 @@ sensor:
     name: "Vrij PSRAM"
     lambda: 'return 6500000.0f;'
     update_interval: 5s
-  - platform: template
-    id: eebus_power_limit_sensor
-    name: "EEBUS Vermogenslimiet"
-    unit_of_measurement: "W"
-    lambda: 'return NAN;'
 
 binary_sensor:
   - platform: template
@@ -270,10 +265,6 @@ binary_sensor:
   - platform: template
     id: sg_ready_b_active_sensor
     name: "SG Ready B actief"
-  - platform: template
-    id: eebus_connected_sensor
-    name: "EEBUS Verbonden"
-    lambda: 'return false;'
 
 number:
   - platform: template
@@ -671,25 +662,3 @@ text_sensor:
     id: system_debug_reset_reason
     name: "Herstartreden"
     lambda: 'return std::string("Power-on reset");'
-  - platform: template
-    id: eebus_ski
-    name: "EEBUS SKI"
-    update_interval: 1s
-    lambda: |-
-      if (!id(eebus_enabled_switch).state) return std::string("–");
-      return std::string("MOCK-0123456789ABCDEF0123456789ABCDEF01234567");
-  - platform: template
-    id: eebus_status_sensor
-    name: "EEBUS Status"
-    update_interval: 1s
-    lambda: |-
-      if (!id(eebus_enabled_switch).state) return std::string("Uitgeschakeld");
-      return std::string("Normaal bedrijf");
-  - platform: template
-    id: eebus_ems_sensor
-    name: "EEBUS EMS"
-    update_interval: 1s
-    lambda: |-
-      if (!id(eebus_enabled_switch).state) return std::string("–");
-      if (!id(eebus_connected_sensor).state) return std::string("–");
-      return std::string("EVCC (192.168.1.100)");

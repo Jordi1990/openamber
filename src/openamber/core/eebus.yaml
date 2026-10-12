@@ -1,124 +1,111 @@
-# EEBus warmtepomp-apparaat (native SHIP/SPINE PoC). Zie docs/eebus-native-poc.md
-# Pairing-SKI komt uit het ingebedde certificaat (log: "EEBus certificate").
-device_sku: "OpenAmber-${device_model}"
-brand: "OpenAmber"
-model: "Amber"
-failsafe_duration: 2h
-is_enabled: "return id(eebus_enabled_switch).state;"
-read_model: |-
-  if (id(model_identification_1).has_state()) {
-    int model = (int)id(model_identification_1).state;
-    switch (model) {
-      case 140: return std::string("Amber 65");
-      case 150: return std::string("Amber 95");
-      case 15:  return std::string("Amber 120");
-      case 145: return std::string("HP-S 95");
-      default:  return std::string("Amber ") + std::to_string(model);
+eebus:
+  device_sku: "OpenAmber-${device_model}"
+  brand: "OpenAmber"
+  model: "Amber"
+  failsafe_duration: 2h
+  is_enabled: "return id(eebus_enabled_switch).state;"
+  read_model: |-
+    if (id(heatpump_model_name).has_state()) {
+      return id(heatpump_model_name).state;
     }
-  }
-  if (id(heatpump_model_name).has_state() && !id(heatpump_model_name).state.empty() && id(heatpump_model_name).state != "Onbekend model") {
-    return id(heatpump_model_name).state;
-  }
-  return std::string("");
-read_power: "return id(power_compressor).state;"
-read_dhw_temp: "return id(dhw_temperature_tw_sensor).state;"
-read_voltage: "return (id(voltage_outside_unit).has_state() && id(voltage_outside_unit).state > 50.0f) ? id(voltage_outside_unit).state : 230.0f;"
-read_current: "return (id(current_outside_unit).has_state() && !std::isnan(id(current_outside_unit).state)) ? id(current_outside_unit).state : (id(power_compressor).has_state() ? id(power_compressor).state / 230.0f : 0.0f);"
-read_energy: |-
-  float e = 0.0f;
-  if (id(electrical_energy_day_heating).has_state()) e += id(electrical_energy_day_heating).state;
-  if (id(electrical_energy_day_cooling).has_state()) e += id(electrical_energy_day_cooling).state;
-  if (id(electrical_energy_day_dhw).has_state()) e += id(electrical_energy_day_dhw).state;
-  return e * 1000.0f;
-is_boost_active: "return id(sg_ready_boost_mode_active_sensor).state || id(sg_ready_max_boost_mode_active_sensor).state;"
-status:
-  name: "EEBUS Status"
-  id: eebus_status_sensor
-  on_value:
-    then:
-      - script.execute: update_eebus_settings_ui
-last_action:
-  name: "EEBUS Laatste actie"
-connected:
-  name: "EEBUS Verbonden"
-  id: eebus_connected_sensor
-  on_state:
-    then:
-      - script.execute: update_eebus_settings_ui
-power_limit:
-  name: "EEBUS Vermogenslimiet"
-  id: eebus_power_limit_sensor
-  on_value:
-    then:
-      - script.execute: update_eebus_settings_ui
-ski:
-  name: "EEBUS SKI"
-  id: eebus_ski
-ems:
-  name: "EEBUS EMS"
-  id: eebus_ems_sensor
-  on_value:
-    then:
-      - script.execute: update_eebus_settings_ui
-apply_optional: |-
-  if (value) {
-    auto call = id(sg_ready_mode_select).make_call();
-    call.set_option("Boost");
-    call.perform();
-    return true;
-  } else {
-    if (id(sg_ready_mode_select).current_option() == "Boost") {
+    return std::string("");
+  read_power: "return id(power_compressor).state;"
+  read_dhw_temp: "return id(dhw_temperature_tw_sensor).state;"
+  read_voltage: "return (id(voltage_outside_unit).has_state() && id(voltage_outside_unit).state > 50.0f) ? id(voltage_outside_unit).state : 230.0f;"
+  read_current: "return (id(current_outside_unit).has_state() && !std::isnan(id(current_outside_unit).state)) ? id(current_outside_unit).state : (id(power_compressor).has_state() ? id(power_compressor).state / 230.0f : 0.0f);"
+  read_energy: |-
+    float e = 0.0f;
+    if (id(electrical_energy_day_heating).has_state()) e += id(electrical_energy_day_heating).state;
+    if (id(electrical_energy_day_cooling).has_state()) e += id(electrical_energy_day_cooling).state;
+    if (id(electrical_energy_day_dhw).has_state()) e += id(electrical_energy_day_dhw).state;
+    return e * 1000.0f;
+  is_boost_active: "return id(sg_ready_boost_mode_active_sensor).state || id(sg_ready_max_boost_mode_active_sensor).state;"
+  status:
+    name: "EEBUS Status"
+    id: eebus_status_sensor
+    on_value:
+      then:
+        - script.execute: update_eebus_settings_ui
+  last_action:
+    name: "EEBUS Laatste actie"
+  connected:
+    name: "EEBUS Verbonden"
+    id: eebus_connected_sensor
+    on_state:
+      then:
+        - script.execute: update_eebus_settings_ui
+  power_limit:
+    name: "EEBUS Vermogenslimiet"
+    id: eebus_power_limit_sensor
+    on_value:
+      then:
+        - script.execute: update_eebus_settings_ui
+  ski:
+    name: "EEBUS SKI"
+    id: eebus_ski
+  ems:
+    name: "EEBUS EMS"
+    id: eebus_ems_sensor
+    on_value:
+      then:
+        - script.execute: update_eebus_settings_ui
+  apply_optional: |-
+    if (value) {
       auto call = id(sg_ready_mode_select).make_call();
-      call.set_option("Normaal");
+      call.set_option("Boost");
       call.perform();
+      return true;
+    } else {
+      if (id(sg_ready_mode_select).current_option() == "Boost") {
+        auto call = id(sg_ready_mode_select).make_call();
+        call.set_option("Normaal");
+        call.perform();
+      }
+      return true;
     }
-    return true;
-  }
-apply_dim: |-
-  if (value) {
-    auto call = id(sg_ready_mode_select).make_call();
-    call.set_option("Blokkeren");
-    call.perform();
-    return true;
-  } else {
-    if (id(sg_ready_mode_select).current_option() == "Blokkeren") {
+  apply_dim: |-
+    if (value) {
       auto call = id(sg_ready_mode_select).make_call();
-      call.set_option("Normaal");
+      call.set_option("Blokkeren");
       call.perform();
+      return true;
+    } else {
+      if (id(sg_ready_mode_select).current_option() == "Blokkeren") {
+        auto call = id(sg_ready_mode_select).make_call();
+        call.set_option("Normaal");
+        call.perform();
+      }
+      return true;
     }
-    return true;
-  }
-# Vermogensschatting voor EVCC PV-overschot drempel (OHPCF RequestedPowerEstimate)
-# Gebaseerd op de ingestelde maximale compressor modus voor verwarmen (heat_compressor_mode)
-# en het specifieke Amber warmtepomp model (Amber 65, 95 of 120).
-read_power_estimate: |-
-  int model_id = id(model_identification_1).has_state() ? (int)id(model_identification_1).state : 150;
-  int mode_idx = 6; // Standaard Maximaal (stand 10)
-  if (id(heat_compressor_mode).has_state() && id(heat_compressor_mode).active_index().has_value()) {
-    mode_idx = (int)id(heat_compressor_mode).active_index().value();
-  }
-  if (mode_idx < 0) mode_idx = 0;
-  if (mode_idx > 6) mode_idx = 6;
-  int stand = mode_idx + 4; // Stand 4 t/m 10
 
-  static const float power_table_amber_65[11]  = {
-      0.0f,  183.0f,  464.0f,  506.0f,  696.0f,  836.0f, 1120.0f, 1357.0f, 1386.0f, 1360.0f, 1338.0f
-  };
-  static const float power_table_amber_95[11]  = {
-      0.0f,  282.0f,  552.0f,  690.0f,  940.0f, 1166.0f, 1816.0f, 2100.0f, 1990.0f, 1895.0f, 1816.0f
-  };
-  static const float power_table_amber_120[11] = {
-      0.0f,  986.0f, 1161.0f, 1314.0f, 1650.0f, 1744.0f, 1931.0f, 2086.0f, 2304.0f, 2490.0f, 2646.0f
-  };
+  read_power_estimate: |-
+    int model_id = id(model_identification_1).has_state() ? (int)id(model_identification_1).state : 150;
+    int mode_idx = 6; // Standaard Maximaal (stand 10)
+    if (id(heat_compressor_mode).has_state() && id(heat_compressor_mode).active_index().has_value()) {
+      mode_idx = (int)id(heat_compressor_mode).active_index().value();
+    }
+    if (mode_idx < 0) mode_idx = 0;
+    if (mode_idx > 6) mode_idx = 6;
+    int stand = mode_idx + 4; // Stand 4 t/m 10
 
-  switch (model_id) {
-    case 140: // Amber 65
-      return power_table_amber_65[stand];
-    case 15:  // Amber 120
-      return power_table_amber_120[stand];
-    case 150: // Amber 95
-    case 145: // HP-S 95
-    default:  // Onbekend / default Amber 95
-      return power_table_amber_95[stand];
-  }
-update_interval: 5s
+    static const float power_table_amber_65[11]  = {
+        0.0f,  183.0f,  464.0f,  506.0f,  696.0f,  836.0f, 1120.0f, 1357.0f, 1386.0f, 1360.0f, 1338.0f
+    };
+    static const float power_table_amber_95[11]  = {
+        0.0f,  282.0f,  552.0f,  690.0f,  940.0f, 1166.0f, 1816.0f, 2100.0f, 1990.0f, 1895.0f, 1816.0f
+    };
+    static const float power_table_amber_120[11] = {
+        0.0f,  986.0f, 1161.0f, 1314.0f, 1650.0f, 1744.0f, 1931.0f, 2086.0f, 2304.0f, 2490.0f, 2646.0f
+    };
+
+    switch (model_id) {
+      case 140: // Amber 65
+        return power_table_amber_65[stand];
+      case 15:  // Amber 120
+        return power_table_amber_120[stand];
+      case 150: // Amber 95
+      case 145: // HP-S 95
+      default:  // Onbekend / default Amber 95
+        return power_table_amber_95[stand];
+    }
+  update_interval: 5s

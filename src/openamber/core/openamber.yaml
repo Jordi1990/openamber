@@ -188,8 +188,6 @@ time:
           - sensor.integration.reset: electrical_energy_day_cooling
           - sensor.integration.reset: thermal_energy_day_dhw
           - sensor.integration.reset: electrical_energy_day_dhw
-eebus: !include eebus.yaml
-
 
 preferences:
  flash_write_interval: 5min

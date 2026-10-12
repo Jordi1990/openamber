@@ -4,6 +4,8 @@
  * SPINE device node + outbound datagram builders (see header).
  */
 
+#ifndef USE_EEBUS_MOCK
+
 #include "eebus_node.h"
 #include "esphome/core/log.h"
 
@@ -1180,3 +1182,5 @@ std::string EebusNode::handle_inbound(const std::string &json) {
 
 }  // namespace openamber_eebus
 }  // namespace esphome
+
+#endif  // USE_EEBUS_MOCK

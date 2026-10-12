@@ -4,6 +4,8 @@
  * OHPCF server state machine.
  */
 
+#ifndef USE_EEBUS_MOCK
+
 #include "eebus_ohpcf.h"
 #include "esphome/core/log.h"
 
@@ -82,3 +84,5 @@ void OhpcfServer::apply() {
 
 }  // namespace openamber_eebus
 }  // namespace esphome
+
+#endif  // USE_EEBUS_MOCK

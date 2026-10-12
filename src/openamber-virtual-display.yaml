@@ -49,7 +49,7 @@ external_components:
   - source:
       type: local
       path: openamber
-    components: [openamber_component, test_bridge, mock_time, mock_update, native_build_flags, web_server]
+    components: [openamber_component, test_bridge, mock_time, mock_update, native_build_flags, web_server, eebus]
 
 display:
   - platform: sdl

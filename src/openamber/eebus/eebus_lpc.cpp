@@ -4,6 +4,8 @@
  * LPC server implementation.
  */
 
+#ifndef USE_EEBUS_MOCK
+
 #include "eebus_lpc.h"
 #include "esphome/core/log.h"
 
@@ -37,3 +39,5 @@ void LpcServer::apply() {
 
 }  // namespace openamber_eebus
 }  // namespace esphome
+
+#endif  // USE_EEBUS_MOCK

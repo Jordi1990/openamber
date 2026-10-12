@@ -4,14 +4,18 @@
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/text_sensor/text_sensor.h"
+#include <functional>
+#include <string>
+#include <cmath>
+
+#ifndef USE_EEBUS_MOCK
 #include "cert.h"
 #include "ship_listener.h"
 #include "eebus_ohpcf.h"
 #include "eebus_lpc.h"
 #include "eebus_measurements.h"
 #include "eebus_node.h"
-#include <functional>
-#include <string>
+#endif
 
 namespace esphome {
 namespace openamber_eebus {
@@ -61,12 +65,22 @@ class EEBusComponent : public PollingComponent {
   void update() override;
 
   // Getters exposed to the SHIP/SPINE layer for outbound use-case data.
+#ifndef USE_EEBUS_MOCK
   float get_dhw_temperature_c() const { return this->mdt_.get_temperature_c(); }
   float get_power_w() const { return this->mpc_.get_power_w(); }
 
   OhpcfServer &ohpcf() { return this->ohpcf_; }
   LpcServer &lpc() { return this->lpc_; }
   EebusNode &node() { return this->node_; }
+#else
+  float get_dhw_temperature_c() const { return 0.0f; }
+  float get_power_w() const { return 0.0f; }
+
+  void fake_request_boost(bool active);
+  void fake_request_dim(bool active);
+  void fake_set_power_limit(float limit_w);
+  void fake_set_connected(bool connected, const std::string &ems_name = "EVCC (192.168.1.100)");
+#endif
 
  private:
   std::string device_sku_;
@@ -107,6 +121,7 @@ class EEBusComponent : public PollingComponent {
   bool pending_limit_update_{false};
   bool pending_remote_changed_{false};
 
+#ifndef USE_EEBUS_MOCK
   EEBusCertificateStore cert_store_;
   EEBusShipListener ship_listener_;
   OhpcfServer ohpcf_;
@@ -114,6 +129,11 @@ class EEBusComponent : public PollingComponent {
   MpcServer mpc_;
   MdtServer mdt_;
   EebusNode node_;
+#else
+  bool last_enabled_{false};
+  bool is_boost_requested_{false};
+  bool is_dim_requested_{false};
+#endif
 
   std::function<std::string()> read_model_{nullptr};
   std::function<float()> read_power_;
@@ -130,6 +150,7 @@ class EEBusComponent : public PollingComponent {
   bool initialized_{false};
   bool model_detected_{false};
 
+#ifndef USE_EEBUS_MOCK
   void init_certificate_and_keys();
   void start_ship_listener();
   bool advertise_mdns();
@@ -137,9 +158,14 @@ class EEBusComponent : public PollingComponent {
   void check_failsafe();
   void check_connection_state();
   void update_ems_status();
+#endif
 };
 
 void eebus_disconnect();
+void fake_eebus_boost(bool active);
+void fake_eebus_dim(bool active);
+void fake_eebus_limit(float limit_w);
+void fake_eebus_connected(bool connected, const std::string &ems_name = "EVCC (192.168.1.100)");
 
 }  // namespace openamber_eebus
 }  // namespace esphome

@@ -9,6 +9,8 @@
  * messaging handshake is implemented in the spine layer.
  */
 
+#ifndef USE_EEBUS_MOCK
+
 #include "ship_listener.h"
 #include "eebus_websocket.h"
 #include "eebus_ship.h"
@@ -34,7 +36,7 @@ namespace esphome {
 namespace openamber_eebus {
 
 static const char *const TAG = "eebus_ship";
-static const int kShipPort = 44328;
+static const int kShipPort = 4712;
 static const int kAcceptQueueSize = 4;
 
 static EEBusShipListener *active_listener = nullptr;
@@ -512,3 +514,5 @@ bool EEBusShipListener::send_ship_control(const std::string &control_json) {
 
 }  // namespace openamber_eebus
 }  // namespace esphome
+
+#endif  // USE_EEBUS_MOCK

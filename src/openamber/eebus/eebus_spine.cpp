@@ -5,6 +5,8 @@
  * header for details.
  */
 
+#ifndef USE_EEBUS_MOCK
+
 #include "eebus_spine.h"
 #include "esphome/core/log.h"
 
@@ -420,3 +422,5 @@ bool spine_parse_dispatch(const std::string &json, SpineInboundCommand &out) {
 
 }  // namespace openamber_eebus
 }  // namespace esphome
+
+#endif  // USE_EEBUS_MOCK

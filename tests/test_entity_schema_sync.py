@@ -64,6 +64,12 @@ def extract_entity_ids(yaml_path):
                     # If ID is wrapped in an extend tag or object, get string
                     if isinstance(entity_id, str):
                         entities[entity_id] = domain
+        elif isinstance(items, dict):
+            for sub_key, sub_item in items.items():
+                if isinstance(sub_item, dict) and "id" in sub_item:
+                    entity_id = sub_item["id"]
+                    if isinstance(entity_id, str):
+                        entities[entity_id] = f"{domain}.{sub_key}"
     return entities
 
 

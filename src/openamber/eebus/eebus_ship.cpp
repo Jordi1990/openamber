@@ -4,6 +4,8 @@
  * SHIP message framing (see header).
  */
 
+#ifndef USE_EEBUS_MOCK
+
 #include "eebus_ship.h"
 #include "esphome/core/log.h"
 
@@ -201,3 +203,5 @@ bool ship_decode_frame(const std::vector<uint8_t> &frame, uint8_t &msg_type, std
 
 }  // namespace openamber_eebus
 }  // namespace esphome
+
+#endif  // USE_EEBUS_MOCK

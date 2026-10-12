@@ -4,6 +4,8 @@
  * Minimal RFC 6455 WebSocket server (see header).
  */
 
+#ifndef USE_EEBUS_MOCK
+
 #include "eebus_websocket.h"
 #include "esphome/core/log.h"
 
@@ -175,3 +177,5 @@ bool EebusWsDecoder::feed(const std::vector<uint8_t> &bytes,
 
 }  // namespace openamber_eebus
 }  // namespace esphome
+
+#endif  // USE_EEBUS_MOCK

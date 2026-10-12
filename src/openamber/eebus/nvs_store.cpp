@@ -4,6 +4,8 @@
  * ESP-IDF NVS (non-volatile storage) persistence.
  */
 
+#ifndef USE_EEBUS_MOCK
+
 #include "nvs_store.h"
 #include "esphome/core/log.h"
 #include "nvs.h"
@@ -68,3 +70,5 @@ bool EEBusNvsStore::read_string(const char *key, std::string &out) {
 
 }  // namespace openamber_eebus
 }  // namespace esphome
+
+#endif  // USE_EEBUS_MOCK
