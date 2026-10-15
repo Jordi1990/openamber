@@ -51,8 +51,11 @@ protected:
     state_ = new_state;
     const char* txt = StateToString(new_state);
     PublishState(txt);
+    OnStateEnter(state_);
     ESP_LOGI("amber", "%s state changed: %s", LogTag(), txt);
   }
+
+  virtual void OnStateEnter(StateEnum new_state) {}
 
   void LeaveStateAndSetNextStateAfterWaitTime(StateEnum new_state, uint32_t defer_ms)
   {

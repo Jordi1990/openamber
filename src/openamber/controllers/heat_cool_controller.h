@@ -288,6 +288,7 @@ private:
   void ResetAccumulatedDegMin()
   {
     accumulated_backup_degmin_ = 0.0f;
+    id(backup_heater_degmin_current_sensor).publish_state(0.0f);
   }
 
   bool HasPumpDemand()
@@ -422,6 +423,7 @@ private:
     cool_call.set_mode(climate_mode);
     cool_call.perform();
    }
+  
 public:
   HeatCoolController(PumpController* pump_controller, CompressorController* compressor_controller,
                      MixingValveActuator* mv_zone1, MixingValveActuator* mv_zone2)
@@ -522,6 +524,23 @@ public:
     compressor_controller_->Stop();
     CloseMixingValves();
     SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
+  }
+
+  void OnStateEnter(HeatCoolState new_state) override
+  {
+    switch (new_state)
+    {
+      case HeatCoolState::COMPRESSOR_RUNNING:
+        backup_degmin_last_ms_ = App.get_loop_component_start_time();
+        break;
+
+      case HeatCoolState::WAIT_BACKUP_HEATER_RUNNING:
+        ResetAccumulatedDegMin();
+        break;
+
+      default:
+        break;
+    }
   }
 
   void UpdateStateMachine()
@@ -668,7 +687,6 @@ public:
 
         if (compressor_controller_->HasPassedSoftStartDuration())
         {
-          backup_degmin_last_ms_ = App.get_loop_component_start_time();
           SetNextState(HeatCoolState::COMPRESSOR_RUNNING);
         }
         break;
@@ -724,7 +742,6 @@ public:
           if(IsAccumulatedDegreeMinutesReached())
           {
             TurnOnBackupHeater();
-            ResetAccumulatedDegMin();
             SetNextState(HeatCoolState::WAIT_BACKUP_HEATER_RUNNING);
             break;
           }
