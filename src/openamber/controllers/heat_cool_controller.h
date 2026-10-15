@@ -288,6 +288,7 @@ private:
   void ResetAccumulatedDegMin()
   {
     accumulated_backup_degmin_ = 0.0f;
+    id(backup_heater_degmin_current_sensor).publish_state(0.0f);
   }
 
   bool HasPumpDemand()
