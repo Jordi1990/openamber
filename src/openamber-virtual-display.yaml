@@ -18,6 +18,7 @@ esphome:
         - lvgl.label.update:
             id: header_title
             text: "OpenAmber"
+        - script.execute: setup_menu_header_ui
   includes:
     - openamber/controllers/constants.h
     - openamber/controllers/pump_controller.h

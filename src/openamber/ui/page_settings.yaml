@@ -32,6 +32,13 @@ obj:
         header_style:
           bg_color: 0xF5F8FC
           bg_opa: 100%
+          height: 60
+          pad_left: 16
+          pad_right: 16
+          pad_top: 8
+          pad_bottom: 8
+          text_font: font_text_24
+          text_color: 0x1F2933
         pages:
           - !include settings/page_settings_overview.yaml
           - !include settings/page_settings_tab_general.yaml
