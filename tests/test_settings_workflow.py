@@ -1,67 +1,77 @@
 import pytest
 
 
-def test_settings_sidebar_tabs(openamber):
-    """Verify clicking sidebar tabs in the Settings page switches both labels and panels."""
+def test_settings_overview_navigation(openamber):
+    """Verify clicking category rows in Settings overview navigates to subpages and back."""
     # Ensure on Settings page
     assert openamber.click("nav_settings"), "Clicking nav_settings must succeed"
     openamber.step(ms=100)
     assert openamber.is_visible("page_settings"), "page_settings must be visible"
 
-    # Click Algemeen tab
+    # Click Algemeen on overview
     assert openamber.click("stab_general"), "Clicking stab_general must succeed"
-    openamber.step(ms=50)
-    assert openamber.get_label("stab_general_lbl") == "Algemeen", "stab_general_lbl should be 'Algemeen'"
-    assert openamber.is_visible("panel_general"), "panel_general must be visible when Algemeen tab is selected"
-    assert openamber.is_hidden("panel_heating"), "panel_heating must be hidden when Algemeen tab is selected"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_general"), "panel_general must be visible when Algemeen is selected"
+    assert openamber.is_hidden("panel_heating"), "panel_heating must be hidden when Algemeen is selected"
 
-    # Click Verwarmen tab
+    # Navigate back to overview via header back button
+    assert openamber.click("settings_menu_back_btn"), "Clicking settings_menu_back_btn must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("settings_overview_page"), "settings_overview_page must be visible after back"
+
+    # Click Verwarmen on overview
     assert openamber.click("stab_heating"), "Clicking stab_heating must succeed"
-    openamber.step(ms=50)
-    assert openamber.get_label("stab_heating_lbl") == "Verwarmen", "stab_heating_lbl should be 'Verwarmen'"
-    assert openamber.is_visible("panel_heating"), "panel_heating must be visible when Verwarmen tab is selected"
-    assert openamber.is_hidden("panel_general"), "panel_general must be hidden when Verwarmen tab is selected"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_heating"), "panel_heating must be visible when Verwarmen is selected"
+    assert openamber.is_hidden("panel_general"), "panel_general must be hidden when Verwarmen is selected"
 
-    # Click Tapwater tab
-    assert openamber.click("stab_dhw"), "Clicking stab_dhw must succeed"
-    openamber.step(ms=50)
-    assert openamber.get_label("stab_dhw_lbl") == "Tapwater", "stab_dhw_lbl should be 'Tapwater'"
-    assert openamber.is_visible("panel_dhw"), "panel_dhw must be visible when Tapwater tab is selected"
-    assert openamber.is_hidden("panel_heating"), "panel_heating must be hidden when Tapwater tab is selected"
+    # Navigate back to overview
+    assert openamber.click("settings_menu_back_btn"), "Clicking settings_menu_back_btn must succeed"
+    openamber.step(ms=100)
 
-    # Click Bijverwarmen tab
+    # Click Bijverwarmen on overview
     assert openamber.click("stab_bijverwarmen"), "Clicking stab_bijverwarmen must succeed"
-    openamber.step(ms=50)
-    assert openamber.get_label("stab_bijverwarmen_lbl") == "Bijverwarmen", "stab_bijverwarmen_lbl should be 'Bijverwarmen'"
-    assert openamber.is_visible("panel_bijverwarmen"), "panel_bijverwarmen must be visible when Bijverwarmen tab is selected"
-    assert openamber.is_hidden("panel_dhw"), "panel_dhw must be hidden when Bijverwarmen tab is selected"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_bijverwarmen"), "panel_bijverwarmen must be visible when Bijverwarmen is selected"
+    assert openamber.is_hidden("panel_heating"), "panel_heating must be hidden when Bijverwarmen is selected"
 
 
 def test_sensor_calibration_pager_workflow(openamber):
-    """Verify navigating to sensor calibration subpage and verifying sensor offset rows."""
+    """Verify navigating to sensor calibration subpages (Ruimte & Tapwater, CV-Systeem)."""
     assert openamber.click("nav_settings"), "Clicking nav_settings must succeed"
     openamber.step(ms=100)
     assert openamber.is_visible("page_settings"), "page_settings must be visible"
 
-    # Select Algemeen tab where sensor calibration drill-down resides
+    # Select Algemeen -> Sensor Kalibratie
     assert openamber.click("stab_general"), "Clicking stab_general must succeed"
     openamber.step(ms=100)
-
-    # Click drill-down button to Sensor Kalibratie subpage
     assert openamber.click("general_stab_sensor_kalibratie"), "Clicking general_stab_sensor_kalibratie must succeed"
     openamber.step(ms=100)
     assert openamber.is_visible("panel_general_page_sensor_kalibratie"), "panel_general_page_sensor_kalibratie must be visible"
 
-    # Verify sensor offset rows are visible (unified without pagination)
+    # 1. Ruimte & Tapwater subcategory (<= 4 settings: Tr, Tw)
+    assert openamber.click("sensor_kalibratie_tab_ruimte"), "Clicking sensor_kalibratie_tab_ruimte must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_general_sensor_kalibratie_ruimte"), "Ruimte subpage must be visible"
     assert openamber.is_visible("sensor_calibration_page_1_row_tr"), "Row Tr must be visible"
     assert openamber.is_visible("sensor_calibration_page_1_row_tw"), "Row Tw must be visible"
+
+    # Back to Sensor kalibratie choices
+    assert openamber.click("settings_menu_back_btn"), "Clicking back button must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_general_page_sensor_kalibratie"), "Choice page must be visible"
+
+    # 2. CV-Systeem subcategory (<= 4 settings: Tc, Tui, Tuo)
+    assert openamber.click("sensor_kalibratie_tab_cv"), "Clicking sensor_kalibratie_tab_cv must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_general_sensor_kalibratie_cv"), "CV subpage must be visible"
     assert openamber.is_visible("sensor_calibration_page_1_row_tc"), "Row Tc must be visible"
     assert openamber.is_visible("sensor_calibration_page_1_row_tui"), "Row Tui must be visible"
     assert openamber.is_visible("sensor_calibration_page_2_row_tuo"), "Row Tuo must be visible"
 
 
 def test_zone2_stooklijn_and_mixing_valves_subtabs(openamber):
-    """Verify Zone 2 Stooklijn and Mengventielen UI subpages."""
+    """Verify Zone 2 Stooklijn and Mengventielen Zone 1 & Zone 2 subpages."""
     assert openamber.click("nav_settings"), "Clicking nav_settings must succeed"
     openamber.step(ms=100)
     assert openamber.is_visible("page_settings"), "page_settings must be visible"
@@ -73,16 +83,58 @@ def test_zone2_stooklijn_and_mixing_valves_subtabs(openamber):
     openamber.step(ms=50)
     assert openamber.is_visible("panel_heating_page_stooklijn_z2"), "panel_heating_page_stooklijn_z2 must be visible"
 
-    # 2. Under Algemeen (stab_general): Click Mengventielen subpage
+    # 2. Under Algemeen -> Mengventielen
+    assert openamber.click("nav_settings"), "Clicking nav_settings must succeed"
+    openamber.step(ms=100)
     assert openamber.click("stab_general"), "Clicking stab_general must succeed"
     openamber.step(ms=50)
     assert openamber.click("general_stab_mengventielen"), "Clicking general_stab_mengventielen must succeed"
     openamber.step(ms=50)
     assert openamber.is_visible("panel_general_page_mengventielen"), "panel_general_page_mengventielen must be visible"
 
-    # Both Zone 1 and Zone 2 settings rows are directly present without pagination
+    # Click Mengventiel Zone 1 (<= 4 settings: enabled, min, max)
+    assert openamber.click("mengventielen_tab_z1"), "Clicking mengventielen_tab_z1 must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_general_mv_zone1"), "panel_general_mv_zone1 must be visible"
     assert openamber.is_visible("set_general_mv_z1_enabled"), "Zone 1 settings row must be visible"
+
+    # Back to Mengventielen choices
+    assert openamber.click("settings_menu_back_btn"), "Clicking back button must succeed"
+    openamber.step(ms=100)
+
+    # Click Mengventiel Zone 2 (<= 4 settings: enabled, min, max)
+    assert openamber.click("mengventielen_tab_z2"), "Clicking mengventielen_tab_z2 must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_general_mv_zone2"), "panel_general_mv_zone2 must be visible"
     assert openamber.is_visible("set_general_mv_z2_enabled"), "Zone 2 settings row must be visible"
+
+
+def test_general_systeem_and_opties(openamber):
+    """Verify Systeem and Opties subpages under Algemeen."""
+    assert openamber.click("nav_settings"), "Clicking nav_settings must succeed"
+    openamber.step(ms=100)
+    assert openamber.click("stab_general"), "Clicking stab_general must succeed"
+    openamber.step(ms=50)
+
+    # Systeem subpage (<= 4 settings)
+    assert openamber.click("general_stab_systeem"), "Clicking general_stab_systeem must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_general_page_systeem"), "panel_general_page_systeem must be visible"
+    assert openamber.is_visible("set_general_system_dhw"), "Tapwater row must be visible"
+    assert openamber.is_visible("set_general_system_control_temp_source"), "Regeltemp row must be visible"
+    assert openamber.is_visible("set_general_defrost_advanced_toggle_row"), "Geavanceerd row must be visible"
+    assert openamber.is_visible("set_general_system_analytics"), "Analytics row must be visible"
+
+    # Back to Algemeen choices
+    assert openamber.click("settings_menu_back_btn"), "Clicking back button must succeed"
+    openamber.step(ms=100)
+
+    # Opties (Hardware) subpage (<= 4 settings)
+    assert openamber.click("general_stab_hardware"), "Clicking general_stab_hardware must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_general_page_hardware"), "panel_general_page_hardware must be visible"
+    assert openamber.is_visible("set_general_hardware_flow_sensor"), "Flow sensor row must be visible"
+    assert openamber.is_visible("set_general_hardware_flow_sensor_calibration"), "Kalibratie row must be visible"
 
 
 def test_service_sidebar_tabs(openamber):

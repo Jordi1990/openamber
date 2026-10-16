@@ -1,4 +1,4 @@
-# Menu Page: Mengventielen
+# Menu Page: Mengventielen (Keuzemenu Zone 1 / Zone 2)
 # ------------------------------------------------------------
 id: panel_general_page_mengventielen
 title: "Mengventielen"
@@ -14,246 +14,46 @@ widgets:
         flex_flow: COLUMN
         flex_align_main: START
         flex_align_cross: CENTER
-        pad_row: 6
+        pad_row: 8
       widgets:
         - obj:
-            id: set_general_mv_z1_enabled
+            id: mengventielen_tab_z1
             width: 100%
-            height: SIZE_CONTENT
-            bg_opa: 0%
-            border_opa: 0%
-            pad_all: 6
+            height: 52
+            bg_color: 0xFFFFFF
+            bg_opa: 100%
+            radius: 12
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_general_mv_zone1
             widgets:
-              - label: { text: "Mengventiel zone 1 aanwezig", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Mengventiel zone 1 is aanwezig in het systeem", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-              - switch:
-                  id: set_mv_z1_enabled_switch_ui
-                  align: TOP_RIGHT
-                  bg_color: 0x9CA3AF
-                  indicator:
-                    bg_color: 0x16A34A
-                  knob:
-                    bg_color: 0xFFFFFF
-                  on_click:
-                    - if:
-                        condition:
-                          switch.is_on: mixing_valve_zone1_enabled
-                        then:
-                          - switch.turn_off: mixing_valve_zone1_enabled
-                        else:
-                          - switch.turn_on: mixing_valve_zone1_enabled
+              - label: { text: "\U000F0493", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: mengventielen_tab_z1_lbl, text: "Mengventiel Zone 1", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
 
         - obj:
-            id: set_general_mv_z1_min
+            id: mengventielen_tab_z2
             width: 100%
-            height: SIZE_CONTENT
-            bg_opa: 0%
-            border_opa: 0%
-            pad_all: 6
+            height: 52
+            bg_color: 0xFFFFFF
+            bg_opa: 100%
+            radius: 12
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_general_mv_zone2
             widgets:
-              - label: { text: "Minimum positie", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Minimale ventielopening zone 1", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-              - obj:
-                  width: SIZE_CONTENT
-                  height: SIZE_CONTENT
-                  align: TOP_RIGHT
-                  bg_opa: 0%
-                  border_opa: 0%
-                  pad_all: 0
-                  layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-                  widgets:
-                    - obj:
-                        width: 40
-                        height: 40
-                        bg_color: 0x1F3B68
-                        bg_opa: 100%
-                        radius: 10
-                        border_opa: 0%
-                        scrollbar_mode: "OFF"
-                        scrollable: false
-                        on_click:
-                          - number.decrement: mixing_valve_zone1_min_position
-                        widgets:
-                          - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                    - label: { id: set_mv_z1_min_val, text: "0%", text_color: 0x1F2933, text_font: font_text_24 }
-                    - obj:
-                        width: 40
-                        height: 40
-                        bg_color: 0x1F3B68
-                        bg_opa: 100%
-                        radius: 10
-                        border_opa: 0%
-                        scrollbar_mode: "OFF"
-                        scrollable: false
-                        on_click:
-                          - number.increment: mixing_valve_zone1_min_position
-                        widgets:
-                          - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-
-        - obj:
-            id: set_general_mv_z1_max
-            width: 100%
-            height: SIZE_CONTENT
-            bg_opa: 0%
-            border_opa: 0%
-            pad_all: 6
-            widgets:
-              - label: { text: "Maximum positie", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Maximale ventielopening zone 1", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-              - obj:
-                  width: SIZE_CONTENT
-                  height: SIZE_CONTENT
-                  align: TOP_RIGHT
-                  bg_opa: 0%
-                  border_opa: 0%
-                  pad_all: 0
-                  layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-                  widgets:
-                    - obj:
-                        width: 40
-                        height: 40
-                        bg_color: 0x1F3B68
-                        bg_opa: 100%
-                        radius: 10
-                        border_opa: 0%
-                        scrollbar_mode: "OFF"
-                        scrollable: false
-                        on_click:
-                          - number.decrement: mixing_valve_zone1_max_position
-                        widgets:
-                          - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                    - label: { id: set_mv_z1_max_val, text: "100%", text_color: 0x1F2933, text_font: font_text_24 }
-                    - obj:
-                        width: 40
-                        height: 40
-                        bg_color: 0x1F3B68
-                        bg_opa: 100%
-                        radius: 10
-                        border_opa: 0%
-                        scrollbar_mode: "OFF"
-                        scrollable: false
-                        on_click:
-                          - number.increment: mixing_valve_zone1_max_position
-                        widgets:
-                          - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-
-        - obj:
-            id: set_general_mv_z2_enabled
-            width: 100%
-            height: SIZE_CONTENT
-            bg_opa: 0%
-            border_opa: 0%
-            pad_all: 6
-            widgets:
-              - label: { text: "Mengventiel zone 2 aanwezig", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Mengventiel zone 2 is aanwezig in het systeem", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-              - switch:
-                  id: set_mv_z2_enabled_switch_ui
-                  align: TOP_RIGHT
-                  bg_color: 0x9CA3AF
-                  indicator:
-                    bg_color: 0x16A34A
-                  knob:
-                    bg_color: 0xFFFFFF
-                  on_click:
-                    - if:
-                        condition:
-                          switch.is_on: mixing_valve_zone2_enabled
-                        then:
-                          - switch.turn_off: mixing_valve_zone2_enabled
-                        else:
-                          - switch.turn_on: mixing_valve_zone2_enabled
-
-        - obj:
-            id: set_general_mv_z2_min
-            width: 100%
-            height: SIZE_CONTENT
-            bg_opa: 0%
-            border_opa: 0%
-            pad_all: 6
-            widgets:
-              - label: { text: "Minimum positie", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Minimale ventielopening zone 2", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-              - obj:
-                  width: SIZE_CONTENT
-                  height: SIZE_CONTENT
-                  align: TOP_RIGHT
-                  bg_opa: 0%
-                  border_opa: 0%
-                  pad_all: 0
-                  layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-                  widgets:
-                    - obj:
-                        width: 40
-                        height: 40
-                        bg_color: 0x1F3B68
-                        bg_opa: 100%
-                        radius: 10
-                        border_opa: 0%
-                        scrollbar_mode: "OFF"
-                        scrollable: false
-                        on_click:
-                          - number.decrement: mixing_valve_zone2_min_position
-                        widgets:
-                          - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                    - label: { id: set_mv_z2_min_val, text: "0%", text_color: 0x1F2933, text_font: font_text_24 }
-                    - obj:
-                        width: 40
-                        height: 40
-                        bg_color: 0x1F3B68
-                        bg_opa: 100%
-                        radius: 10
-                        border_opa: 0%
-                        scrollbar_mode: "OFF"
-                        scrollable: false
-                        on_click:
-                          - number.increment: mixing_valve_zone2_min_position
-                        widgets:
-                          - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-
-        - obj:
-            id: set_general_mv_z2_max
-            width: 100%
-            height: SIZE_CONTENT
-            bg_opa: 0%
-            border_opa: 0%
-            pad_all: 6
-            widgets:
-              - label: { text: "Maximum positie", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Maximale ventielopening zone 2", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-              - obj:
-                  width: SIZE_CONTENT
-                  height: SIZE_CONTENT
-                  align: TOP_RIGHT
-                  bg_opa: 0%
-                  border_opa: 0%
-                  pad_all: 0
-                  layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-                  widgets:
-                    - obj:
-                        width: 40
-                        height: 40
-                        bg_color: 0x1F3B68
-                        bg_opa: 100%
-                        radius: 10
-                        border_opa: 0%
-                        scrollbar_mode: "OFF"
-                        scrollable: false
-                        on_click:
-                          - number.decrement: mixing_valve_zone2_max_position
-                        widgets:
-                          - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                    - label: { id: set_mv_z2_max_val, text: "100%", text_color: 0x1F2933, text_font: font_text_24 }
-                    - obj:
-                        width: 40
-                        height: 40
-                        bg_color: 0x1F3B68
-                        bg_opa: 100%
-                        radius: 10
-                        border_opa: 0%
-                        scrollbar_mode: "OFF"
-                        scrollable: false
-                        on_click:
-                          - number.increment: mixing_valve_zone2_max_position
-                        widgets:
-                          - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+              - label: { text: "\U000F0493", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: mengventielen_tab_z2_lbl, text: "Mengventiel Zone 2", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }

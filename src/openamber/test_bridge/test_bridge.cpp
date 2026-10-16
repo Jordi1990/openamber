@@ -215,6 +215,13 @@ lv_obj_t *TestBridge::resolve_widget(const std::string &id) {
   if (it != this->widgets_.end() && it->second != nullptr) {
     return *(it->second);
   }
+  if (id.size() > 9 && id.rfind("_back_btn") == id.size() - 9) {
+    std::string menu_id = id.substr(0, id.size() - 9);
+    auto mit = this->widgets_.find(menu_id);
+    if (mit != this->widgets_.end() && mit->second != nullptr && *(mit->second) != nullptr) {
+      return lv_menu_get_main_header_back_button(*(mit->second));
+    }
+  }
   return nullptr;
 }
 

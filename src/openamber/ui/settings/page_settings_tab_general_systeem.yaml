@@ -1,0 +1,18 @@
+# Menu Page: Systeem (Algemeen)
+# ------------------------------------------------------------
+id: panel_general_page_systeem
+title: "Systeem"
+widgets:
+  - obj:
+      width: 100%
+      height: SIZE_CONTENT
+      bg_opa: 0%
+      border_opa: 0%
+      pad_all: 0
+      layout:
+        type: FLEX
+        flex_flow: COLUMN
+        flex_align_main: START
+        flex_align_cross: CENTER
+        pad_row: 6
+      widgets: !include page_settings_tab_general_systeem_content.yaml

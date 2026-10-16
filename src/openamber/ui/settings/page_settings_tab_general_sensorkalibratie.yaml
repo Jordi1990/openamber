@@ -1,4 +1,4 @@
-# Menu Page: Sensor kalibratie
+# Menu Page: Sensor kalibratie (Keuzemenu Ruimte / CV-Systeem)
 # ------------------------------------------------------------
 id: panel_general_page_sensor_kalibratie
 title: "Sensor kalibratie"
@@ -14,239 +14,46 @@ widgets:
         flex_flow: COLUMN
         flex_align_main: START
         flex_align_cross: CENTER
-        pad_row: 6
+        pad_row: 8
       widgets:
         - obj:
-            id: sensor_calibration_page_1_row_tr
+            id: sensor_kalibratie_tab_ruimte
             width: 100%
-            height: SIZE_CONTENT
-            bg_opa: 0%
-            border_opa: 0%
-            pad_all: 6
+            height: 52
+            bg_color: 0xFFFFFF
+            bg_opa: 100%
+            radius: 12
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_general_sensor_kalibratie_ruimte
             widgets:
-              - label: { text: "Ruimtetemperatuur offset", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Correctie voor interne ruimtetemperatuurmeting", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-              - obj:
-                  width: SIZE_CONTENT
-                  height: SIZE_CONTENT
-                  align: TOP_RIGHT
-                  bg_opa: 0%
-                  border_opa: 0%
-                  pad_all: 0
-                  layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-                  widgets:
-                    - obj:
-                        width: 40
-                        height: 40
-                        bg_color: 0x1F3B68
-                        bg_opa: 100%
-                        radius: 10
-                        border_opa: 0%
-                        scrollbar_mode: "OFF"
-                        scrollable: false
-                        on_click:
-                          - number.decrement: tr_offset
-                        widgets:
-                          - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                    - label: { id: set_tr_offset_val, text: "0.0°C", text_color: 0x1F2933, text_font: font_text_24 }
-                    - obj:
-                        width: 40
-                        height: 40
-                        bg_color: 0x1F3B68
-                        bg_opa: 100%
-                        radius: 10
-                        border_opa: 0%
-                        scrollbar_mode: "OFF"
-                        scrollable: false
-                        on_click:
-                          - number.increment: tr_offset
-                        widgets:
-                          - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+              - label: { text: "\U000F050F", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: sensor_kalibratie_tab_ruimte_lbl, text: "Ruimte & Tapwater", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
 
         - obj:
-            id: sensor_calibration_page_1_row_tw
+            id: sensor_kalibratie_tab_cv
             width: 100%
-            height: SIZE_CONTENT
-            bg_opa: 0%
-            border_opa: 0%
-            pad_all: 6
+            height: 52
+            bg_color: 0xFFFFFF
+            bg_opa: 100%
+            radius: 12
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_general_sensor_kalibratie_cv
             widgets:
-              - label: { text: "Tapwatertemperatuur offset", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Correctie voor tapwatertemperatuurmeting", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-              - obj:
-                  width: SIZE_CONTENT
-                  height: SIZE_CONTENT
-                  align: TOP_RIGHT
-                  bg_opa: 0%
-                  border_opa: 0%
-                  pad_all: 0
-                  layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-                  widgets:
-                    - obj:
-                        width: 40
-                        height: 40
-                        bg_color: 0x1F3B68
-                        bg_opa: 100%
-                        radius: 10
-                        border_opa: 0%
-                        scrollbar_mode: "OFF"
-                        scrollable: false
-                        on_click:
-                          - number.decrement: tw_offset
-                        widgets:
-                          - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                    - label: { id: set_tw_offset_val, text: "0.0°C", text_color: 0x1F2933, text_font: font_text_24 }
-                    - obj:
-                        width: 40
-                        height: 40
-                        bg_color: 0x1F3B68
-                        bg_opa: 100%
-                        radius: 10
-                        border_opa: 0%
-                        scrollbar_mode: "OFF"
-                        scrollable: false
-                        on_click:
-                          - number.increment: tw_offset
-                        widgets:
-                          - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-
-        - obj:
-            id: sensor_calibration_page_1_row_tc
-            width: 100%
-            height: SIZE_CONTENT
-            bg_opa: 0%
-            border_opa: 0%
-            pad_all: 6
-            widgets:
-              - label: { text: "CV-aanvoertemperatuur offset", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Correctie voor CV-aanvoertemperatuurmeting", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-              - obj:
-                  width: SIZE_CONTENT
-                  height: SIZE_CONTENT
-                  align: TOP_RIGHT
-                  bg_opa: 0%
-                  border_opa: 0%
-                  pad_all: 0
-                  layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-                  widgets:
-                    - obj:
-                        width: 40
-                        height: 40
-                        bg_color: 0x1F3B68
-                        bg_opa: 100%
-                        radius: 10
-                        border_opa: 0%
-                        scrollbar_mode: "OFF"
-                        scrollable: false
-                        on_click:
-                          - number.decrement: tc_offset
-                        widgets:
-                          - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                    - label: { id: set_tc_offset_val, text: "0.0°C", text_color: 0x1F2933, text_font: font_text_24 }
-                    - obj:
-                        width: 40
-                        height: 40
-                        bg_color: 0x1F3B68
-                        bg_opa: 100%
-                        radius: 10
-                        border_opa: 0%
-                        scrollbar_mode: "OFF"
-                        scrollable: false
-                        on_click:
-                          - number.increment: tc_offset
-                        widgets:
-                          - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-
-        - obj:
-            id: sensor_calibration_page_1_row_tui
-            width: 100%
-            height: SIZE_CONTENT
-            bg_opa: 0%
-            border_opa: 0%
-            pad_all: 6
-            widgets:
-              - label: { text: "CV-retourtemperatuur (Tui) offset", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Correctie voor CV-retourtemperatuurmeting (Tui)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-              - obj:
-                  width: SIZE_CONTENT
-                  height: SIZE_CONTENT
-                  align: TOP_RIGHT
-                  bg_opa: 0%
-                  border_opa: 0%
-                  pad_all: 0
-                  layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-                  widgets:
-                    - obj:
-                        width: 40
-                        height: 40
-                        bg_color: 0x1F3B68
-                        bg_opa: 100%
-                        radius: 10
-                        border_opa: 0%
-                        scrollbar_mode: "OFF"
-                        scrollable: false
-                        on_click:
-                          - number.decrement: tui_offset
-                        widgets:
-                          - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                    - label: { id: set_tui_offset_val, text: "0.0°C", text_color: 0x1F2933, text_font: font_text_24 }
-                    - obj:
-                        width: 40
-                        height: 40
-                        bg_color: 0x1F3B68
-                        bg_opa: 100%
-                        radius: 10
-                        border_opa: 0%
-                        scrollbar_mode: "OFF"
-                        scrollable: false
-                        on_click:
-                          - number.increment: tui_offset
-                        widgets:
-                          - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-
-        - obj:
-            id: sensor_calibration_page_2_row_tuo
-            width: 100%
-            height: SIZE_CONTENT
-            bg_opa: 0%
-            border_opa: 0%
-            pad_all: 6
-            widgets:
-              - label: { text: "CV-aanvoertemperatuur (Tuo) offset", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Correctie voor CV-aanvoertemperatuurmeting (Tuo)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-              - obj:
-                  width: SIZE_CONTENT
-                  height: SIZE_CONTENT
-                  align: TOP_RIGHT
-                  bg_opa: 0%
-                  border_opa: 0%
-                  pad_all: 0
-                  layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-                  widgets:
-                    - obj:
-                        width: 40
-                        height: 40
-                        bg_color: 0x1F3B68
-                        bg_opa: 100%
-                        radius: 10
-                        border_opa: 0%
-                        scrollbar_mode: "OFF"
-                        scrollable: false
-                        on_click:
-                          - number.decrement: tuo_offset
-                        widgets:
-                          - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                    - label: { id: set_tuo_offset_val, text: "0.0°C", text_color: 0x1F2933, text_font: font_text_24 }
-                    - obj:
-                        width: 40
-                        height: 40
-                        bg_color: 0x1F3B68
-                        bg_opa: 100%
-                        radius: 10
-                        border_opa: 0%
-                        scrollbar_mode: "OFF"
-                        scrollable: false
-                        on_click:
-                          - number.increment: tuo_offset
-                        widgets:
-                          - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+              - label: { text: "\U000F050F", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: sensor_kalibratie_tab_cv_lbl, text: "CV-Systeem", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
