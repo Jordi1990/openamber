@@ -258,7 +258,13 @@ void TestBridge::process_line(const std::string &line) {
         this->send_response(build_error_json("Widget not found: " + id));
         return true;
       }
-      bool hidden = lv_obj_has_flag(obj, LV_OBJ_FLAG_HIDDEN);
+      bool hidden = false;
+      for (lv_obj_t *p = obj; p != nullptr; p = lv_obj_get_parent(p)) {
+        if (lv_obj_has_flag(p, LV_OBJ_FLAG_HIDDEN)) {
+          hidden = true;
+          break;
+        }
+      }
       bool disabled = lv_obj_has_state(obj, LV_STATE_DISABLED);
       bool checked = lv_obj_has_state(obj, LV_STATE_CHECKED);
 

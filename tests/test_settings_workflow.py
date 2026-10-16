@@ -85,3 +85,26 @@ def test_zone2_stooklijn_and_mixing_valves_subtabs(openamber):
     assert openamber.is_visible("set_general_mv_z2_enabled"), "Zone 2 settings row must be visible"
 
 
+def test_service_sidebar_tabs(openamber):
+    """Verify clicking sidebar tabs in the Service page switches menu pages."""
+    assert openamber.click("nav_service"), "Clicking nav_service must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("page_service"), "page_service must be visible"
+
+    # Initially Algemeen (maintenance) is root page and visible
+    assert openamber.is_visible("service_maintenance_panel"), "service_maintenance_panel must be visible initially"
+
+    # Click Compressor (Buitenunit) tab
+    assert openamber.click("service_tab_compressor"), "Clicking service_tab_compressor must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("service_mpanel_compressor"), "service_mpanel_compressor must be visible"
+    assert openamber.is_hidden("service_maintenance_panel"), "service_maintenance_panel must be hidden"
+
+    # Click back to Maintenance (Algemeen) tab
+    assert openamber.click("service_tab_maintenance"), "Clicking service_tab_maintenance must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("service_maintenance_panel"), "service_maintenance_panel must be visible again"
+    assert openamber.is_hidden("service_mpanel_compressor"), "service_mpanel_compressor must be hidden"
+
+
+
