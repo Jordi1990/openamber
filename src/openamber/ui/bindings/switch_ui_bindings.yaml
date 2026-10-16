@@ -37,6 +37,7 @@
   on_state:
     then:
       - script.execute: update_service_mode_ui
+      - script.execute: update_service_diag_summary_ui
 
 - id: !extend deaeration_short_switch
   on_state:
@@ -127,6 +128,7 @@
   on_state:
     then:
       - script.execute: update_service_valve_ui
+      - script.execute: update_service_diag_summary_ui
 
 - id: !extend three_way_valve_dhw_switch
   on_state:

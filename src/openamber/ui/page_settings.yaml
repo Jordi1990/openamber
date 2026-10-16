@@ -76,7 +76,7 @@ obj:
                           id: mengventielen_page_1_button
                           width: 40
                           height: 36
-                          bg_color: 0x1F3B68
+                          bg_color: 0xCBD5E1
                           bg_opa: 100%
                           radius: 8
                           border_opa: 0%
@@ -87,7 +87,7 @@ obj:
                                 id: mengventielen_select_page
                                 page: 1
                           widgets:
-                            - label: { id: mengventielen_page_1_button_lbl, text: "\U000F0141", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                            - label: { id: mengventielen_page_1_button_lbl, text: "\U000F0141", text_color: 0x4B5563, text_font: font_mdi_24, align: CENTER }
                       - label:
                           id: mengventielen_page_indicator
                           text: "Pagina 1 / 2"
@@ -97,7 +97,7 @@ obj:
                           id: mengventielen_page_2_button
                           width: 40
                           height: 36
-                          bg_color: 0xCBD5E1
+                          bg_color: 0x1F3B68
                           bg_opa: 100%
                           radius: 8
                           border_opa: 0%
@@ -108,7 +108,7 @@ obj:
                                 id: mengventielen_select_page
                                 page: 2
                           widgets:
-                            - label: { id: mengventielen_page_2_button_lbl, text: "\U000F0142", text_color: 0x4B5563, text_font: font_mdi_24, align: CENTER }
+                            - label: { id: mengventielen_page_2_button_lbl, text: "\U000F0142", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                 - obj:
                     id: sensor_calibration_pager
                     hidden: true
@@ -130,7 +130,7 @@ obj:
                           id: sensor_calibration_page_1_button
                           width: 40
                           height: 36
-                          bg_color: 0x1F3B68
+                          bg_color: 0xCBD5E1
                           bg_opa: 100%
                           radius: 8
                           border_opa: 0%
@@ -141,7 +141,7 @@ obj:
                                 id: sensor_calibration_select_page
                                 page: 1
                           widgets:
-                            - label: { text: "\U000F0141", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                            - label: { id: sensor_calibration_page_1_button_lbl, text: "\U000F0141", text_color: 0x4B5563, text_font: font_mdi_24, align: CENTER }
                       - label:
                           id: sensor_calibration_page_indicator
                           text: "Pagina 1 / 2"
@@ -151,7 +151,7 @@ obj:
                           id: sensor_calibration_page_2_button
                           width: 40
                           height: 36
-                          bg_color: 0xCBD5E1
+                          bg_color: 0x1F3B68
                           bg_opa: 100%
                           radius: 8
                           border_opa: 0%
@@ -162,7 +162,7 @@ obj:
                                 id: sensor_calibration_select_page
                                 page: 2
                           widgets:
-                            - label: { text: "\U000F0142", text_color: 0x4B5563, text_font: font_mdi_24, align: CENTER }
+                            - label: { id: sensor_calibration_page_2_button_lbl, text: "\U000F0142", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                 - !include settings/page_settings_tab_advanced.yaml
                 - obj:
                     id: advanced_pid_pager
@@ -235,7 +235,7 @@ obj:
                           id: advanced_defrost_page_1_button
                           width: 40
                           height: 36
-                          bg_color: 0x1F3B68
+                          bg_color: 0xCBD5E1
                           bg_opa: 100%
                           radius: 8
                           border_opa: 0%
@@ -246,7 +246,7 @@ obj:
                                 id: advanced_defrost_select_page
                                 page: 1
                           widgets:
-                            - label: { id: advanced_defrost_page_1_button_lbl, text: "\U000F0141", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                            - label: { id: advanced_defrost_page_1_button_lbl, text: "\U000F0141", text_color: 0x4B5563, text_font: font_mdi_24, align: CENTER }
                       - label:
                           id: advanced_defrost_page_indicator
                           text: "Pagina 1 / 2"
@@ -256,7 +256,7 @@ obj:
                           id: advanced_defrost_page_2_button
                           width: 40
                           height: 36
-                          bg_color: 0xCBD5E1
+                          bg_color: 0x1F3B68
                           bg_opa: 100%
                           radius: 8
                           border_opa: 0%
@@ -267,7 +267,7 @@ obj:
                                 id: advanced_defrost_select_page
                                 page: 2
                           widgets:
-                            - label: { id: advanced_defrost_page_2_button_lbl, text: "\U000F0142", text_color: 0x4B5563, text_font: font_mdi_24, align: CENTER }
+                            - label: { id: advanced_defrost_page_2_button_lbl, text: "\U000F0142", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                 - !include settings/page_settings_tab_pump.yaml
                 - obj:
                     id: pump_p0_pid_pager
@@ -290,7 +290,7 @@ obj:
                           id: pump_p0_pid_page_1_button
                           width: 40
                           height: 36
-                          bg_color: 0x1F3B68
+                          bg_color: 0xCBD5E1
                           bg_opa: 100%
                           radius: 8
                           border_opa: 0%
@@ -301,7 +301,7 @@ obj:
                                 id: pump_p0_pid_select_page
                                 page: 1
                           widgets:
-                            - label: { id: pump_p0_pid_page_1_button_lbl, text: "\U000F0141", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                            - label: { id: pump_p0_pid_page_1_button_lbl, text: "\U000F0141", text_color: 0x4B5563, text_font: font_mdi_24, align: CENTER }
                       - label:
                           id: pump_p0_pid_page_indicator
                           text: "Pagina 1 / 2"
@@ -311,7 +311,7 @@ obj:
                           id: pump_p0_pid_page_2_button
                           width: 40
                           height: 36
-                          bg_color: 0xCBD5E1
+                          bg_color: 0x1F3B68
                           bg_opa: 100%
                           radius: 8
                           border_opa: 0%
@@ -322,7 +322,7 @@ obj:
                                 id: pump_p0_pid_select_page
                                 page: 2
                           widgets:
-                            - label: { id: pump_p0_pid_page_2_button_lbl, text: "\U000F0142", text_color: 0x4B5563, text_font: font_mdi_24, align: CENTER }
+                            - label: { id: pump_p0_pid_page_2_button_lbl, text: "\U000F0142", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                 - !include settings/page_settings_tab_heating.yaml
                 - !include settings/page_settings_tab_cooling.yaml
                 - !include settings/page_settings_tab_dhw.yaml

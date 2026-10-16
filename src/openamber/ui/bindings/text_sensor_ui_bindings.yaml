@@ -11,6 +11,7 @@
       - script.execute: update_water_mode_temperature_display
       - script.execute: update_water_mode_efficiency_display
       - script.execute: update_service_mode_ui
+      - script.execute: update_service_diag_summary_ui
       - script.execute: update_system_diagnostics_ui
 
 - id: !extend state_machine_state_heat_cool
