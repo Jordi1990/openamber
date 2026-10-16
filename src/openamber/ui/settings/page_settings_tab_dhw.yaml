@@ -1,194 +1,88 @@
-# Panel: Tapwater
+# Menu Page: Tapwater (Hoofdmenu)
 # ------------------------------------------------------------
-obj:
-  id: panel_dhw
-  width: 100%
-  height: 100%
-  hidden: true
-  bg_opa: 0%
-  border_opa: 0%
-  pad_left: 0
-  pad_right: 0
-  pad_top: 4
-  pad_bottom: 4
-  scrollbar_mode: "OFF"
-  scrollable: true
-  layout:
-    type: FLEX
-    flex_flow: COLUMN
-    flex_align_main: START
-    flex_align_cross: CENTER
-    pad_row: 4
+id: panel_dhw
+title: "Tapwater"
+widgets:
+  - obj:
+      id: panel_dhw_page_algemeen
+      width: 100%
+      height: SIZE_CONTENT
+      bg_opa: 0%
+      border_opa: 0%
+      pad_all: 0
+      layout:
+        type: FLEX
+        flex_flow: COLUMN
+        flex_align_main: START
+        flex_align_cross: CENTER
+        pad_row: 6
+      widgets: !include page_settings_tab_dhw_algemeen_content.yaml
 
-  widgets:
-    - obj:
-        id: panel_dhw_tab_bar
-        width: 100%
-        height: 40
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 0
-        scrollbar_mode: "OFF"
-        scrollable: false
-        layout:
-          type: FLEX
-          flex_flow: ROW
-          flex_align_main: START
-          flex_align_cross: CENTER
-          pad_column: 6
-        widgets:
-          - obj:
-              id: dhw_stab_algemeen
-              width: SIZE_CONTENT
-              height: 34
-              bg_color: 0x1F3B68
-              bg_opa: 100%
-              radius: 8
-              border_opa: 0%
-              pad_left: 12
-              pad_right: 12
-              pad_top: 4
-              pad_bottom: 4
-              scrollbar_mode: "OFF"
-              scrollable: false
-              on_click:
-                - script.execute:
-                    id: dhw_select_tab
-                    tab_index: 0
-              widgets:
-                - label: { id: dhw_stab_algemeen_lbl, text: "Algemeen", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
+  # Drill-down subpage navigation rows
+  - obj:
+      id: dhw_subpages_nav
+      width: 100%
+      height: SIZE_CONTENT
+      bg_opa: 0%
+      border_opa: 0%
+      pad_all: 0
+      layout:
+        type: FLEX
+        flex_flow: COLUMN
+        flex_align_main: START
+        flex_align_cross: CENTER
+        pad_row: 6
+      widgets:
+        - obj:
+            id: dhw_stab_schema
+            width: 100%
+            height: 52
+            bg_color: 0xE8ECF1
+            bg_opa: 100%
+            radius: 12
+            border_opa: 0%
+            pad_left: 14
+            pad_right: 14
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_dhw_page_schema
+            widgets:
+              - label: { id: dhw_stab_schema_lbl, text: "Klokprogramma & Schema", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID }
+              - label: { text: "\U000F0142", text_color: 0x6B7280, text_font: font_mdi_24, align: RIGHT_MID }
 
-          - obj:
-              id: dhw_stab_winter
-              width: SIZE_CONTENT
-              height: 34
-              bg_color: 0xCBD5E1
-              bg_opa: 100%
-              radius: 8
-              border_opa: 0%
-              pad_left: 12
-              pad_right: 12
-              pad_top: 4
-              pad_bottom: 4
-              scrollbar_mode: "OFF"
-              scrollable: false
-              on_click:
-                - script.execute:
-                    id: dhw_select_tab
-                    tab_index: 1
-              widgets:
-                - label: { id: dhw_stab_winter_lbl, text: "Winter", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
+        - obj:
+            id: dhw_stab_legionella
+            width: 100%
+            height: 52
+            bg_color: 0xE8ECF1
+            bg_opa: 100%
+            radius: 12
+            border_opa: 0%
+            pad_left: 14
+            pad_right: 14
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_dhw_page_legionella
+            widgets:
+              - label: { id: dhw_stab_legionella_lbl, text: "Anti-Legionella Regeling", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID }
+              - label: { text: "\U000F0142", text_color: 0x6B7280, text_font: font_mdi_24, align: RIGHT_MID }
 
-          - obj:
-              id: dhw_stab_schema
-              width: SIZE_CONTENT
-              height: 34
-              bg_color: 0xCBD5E1
-              bg_opa: 100%
-              radius: 8
-              border_opa: 0%
-              pad_left: 12
-              pad_right: 12
-              pad_top: 4
-              pad_bottom: 4
-              scrollbar_mode: "OFF"
-              scrollable: false
-              on_click:
-                - script.execute:
-                    id: dhw_select_tab
-                    tab_index: 2
-              widgets:
-                - label: { id: dhw_stab_schema_lbl, text: "Schema", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
-
-          - obj:
-              id: dhw_stab_legionella
-              width: SIZE_CONTENT
-              height: 34
-              bg_color: 0xCBD5E1
-              bg_opa: 100%
-              radius: 8
-              border_opa: 0%
-              pad_left: 12
-              pad_right: 12
-              pad_top: 4
-              pad_bottom: 4
-              scrollbar_mode: "OFF"
-              scrollable: false
-              on_click:
-                - script.execute:
-                    id: dhw_select_tab
-                    tab_index: 3
-              widgets:
-                - label: { id: dhw_stab_legionella_lbl, text: "Legionella", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
-
-    - obj:
-        id: panel_dhw_page_algemeen
-        width: 100%
-        height: SIZE_CONTENT
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 0
-        scrollbar_mode: "OFF"
-        scrollable: false
-        layout:
-          type: FLEX
-          flex_flow: COLUMN
-          flex_align_main: START
-          flex_align_cross: CENTER
-          pad_row: 6
-        widgets: !include page_settings_tab_dhw_algemeen_content.yaml
-
-    - obj:
-        id: panel_dhw_page_winter
-        hidden: true
-        width: 100%
-        height: SIZE_CONTENT
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 0
-        scrollbar_mode: "OFF"
-        scrollable: false
-        layout:
-          type: FLEX
-          flex_flow: COLUMN
-          flex_align_main: START
-          flex_align_cross: CENTER
-          pad_row: 6
-        widgets: !include page_settings_tab_dhw_winter_content.yaml
-
-    - obj:
-        id: panel_dhw_page_schema
-        hidden: true
-        width: 100%
-        height: SIZE_CONTENT
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 0
-        scrollbar_mode: "OFF"
-        scrollable: false
-        layout:
-          type: FLEX
-          flex_flow: COLUMN
-          flex_align_main: START
-          flex_align_cross: CENTER
-          pad_row: 6
-        widgets: !include page_settings_tab_dhw_schema_content.yaml
-
-    - obj:
-        id: panel_dhw_page_legionella
-        hidden: true
-        width: 100%
-        height: SIZE_CONTENT
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 0
-        scrollbar_mode: "OFF"
-        scrollable: false
-        layout:
-          type: FLEX
-          flex_flow: COLUMN
-          flex_align_main: START
-          flex_align_cross: CENTER
-          pad_row: 6
-        widgets: !include page_settings_tab_dhw_legionella_content.yaml
-
+        - obj:
+            id: dhw_stab_winter
+            width: 100%
+            height: 52
+            bg_color: 0xE8ECF1
+            bg_opa: 100%
+            radius: 12
+            border_opa: 0%
+            pad_left: 14
+            pad_right: 14
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_dhw_page_winter
+            widgets:
+              - label: { id: dhw_stab_winter_lbl, text: "Winter Parameters", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID }
+              - label: { text: "\U000F0142", text_color: 0x6B7280, text_font: font_mdi_24, align: RIGHT_MID }

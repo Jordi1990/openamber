@@ -1,0 +1,111 @@
+# Menu Page: Thermostaat Verwarmen
+# ------------------------------------------------------------
+id: panel_thermostat_page_verwarmen
+title: "Verwarmen"
+widgets:
+  - obj:
+      width: 100%
+      height: SIZE_CONTENT
+      bg_opa: 0%
+      border_opa: 0%
+      pad_all: 0
+      layout:
+        type: FLEX
+        flex_flow: COLUMN
+        flex_align_main: START
+        flex_align_cross: CENTER
+        pad_row: 6
+      widgets:
+        - obj:
+            id: thermostat_row_heat_deadband
+            width: 100%
+            height: SIZE_CONTENT
+            bg_opa: 0%
+            border_opa: 0%
+            pad_all: 6
+            widgets:
+              - label: { text: "Deadband verwarmen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "Temperatuurverschil onder setpoint voor verwarmen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+              - obj:
+                  width: SIZE_CONTENT
+                  height: SIZE_CONTENT
+                  align: TOP_RIGHT
+                  bg_opa: 0%
+                  border_opa: 0%
+                  pad_all: 0
+                  layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                  widgets:
+                    - obj:
+                        width: 40
+                        height: 40
+                        bg_color: 0x1F3B68
+                        bg_opa: 100%
+                        radius: 10
+                        border_opa: 0%
+                        scrollbar_mode: "OFF"
+                        scrollable: false
+                        on_click:
+                          - number.decrement: thermostat_heat_deadband
+                        widgets:
+                          - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                    - label: { id: set_therm_heat_db_val, text: "0.3°C", text_color: 0x1F2933, text_font: font_text_24 }
+                    - obj:
+                        width: 40
+                        height: 40
+                        bg_color: 0x1F3B68
+                        bg_opa: 100%
+                        radius: 10
+                        border_opa: 0%
+                        scrollbar_mode: "OFF"
+                        scrollable: false
+                        on_click:
+                          - number.increment: thermostat_heat_deadband
+                        widgets:
+                          - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+        - obj:
+            id: thermostat_row_heat_overrun
+            width: 100%
+            height: SIZE_CONTENT
+            bg_opa: 0%
+            border_opa: 0%
+            pad_all: 6
+            widgets:
+              - label: { text: "Overrun verwarmen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "Temperatuurverschil boven setpoint voor stoppen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+              - obj:
+                  width: SIZE_CONTENT
+                  height: SIZE_CONTENT
+                  align: TOP_RIGHT
+                  bg_opa: 0%
+                  border_opa: 0%
+                  pad_all: 0
+                  layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                  widgets:
+                    - obj:
+                        width: 40
+                        height: 40
+                        bg_color: 0x1F3B68
+                        bg_opa: 100%
+                        radius: 10
+                        border_opa: 0%
+                        scrollbar_mode: "OFF"
+                        scrollable: false
+                        on_click:
+                          - number.decrement: thermostat_heat_overrun
+                        widgets:
+                          - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                    - label: { id: set_therm_heat_or_val, text: "0.2°C", text_color: 0x1F2933, text_font: font_text_24 }
+                    - obj:
+                        width: 40
+                        height: 40
+                        bg_color: 0x1F3B68
+                        bg_opa: 100%
+                        radius: 10
+                        border_opa: 0%
+                        scrollbar_mode: "OFF"
+                        scrollable: false
+                        on_click:
+                          - number.increment: thermostat_heat_overrun
+                        widgets:
+                          - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }

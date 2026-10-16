@@ -1,0 +1,5 @@
+# Menu Page: Bijverwarmen Tapwater
+# ------------------------------------------------------------
+id: panel_bijverwarmen_page_tapwater
+title: "Tapwater"
+widgets: !include page_settings_tab_bijverwarmen_tapwater_content.yaml

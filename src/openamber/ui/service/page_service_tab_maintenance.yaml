@@ -1,85 +1,207 @@
-obj:
-  id: service_maintenance_panel
-  width: 100%
-  height: 100%
-  align: TOP_LEFT
-  y: 0
-  hidden: true
-  bg_opa: 0%
-  border_opa: 0%
-  pad_all: 0
-  scrollbar_mode: "OFF"
-  scrollable: false
-  widgets:
-    - obj:
-        id: service_maintenance_header
-        width: 100%
-        height: 72
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 4
-        scrollbar_mode: "OFF"
-        scrollable: false
-        widgets:
-          - label:
-              id: service_maintenance_title
-              text: "Onderhoudsmodus"
-              text_color: 0x1F2933
-              text_font: font_text_24
-              align: TOP_LEFT
-          - label:
-              id: service_maintenance_state
-              width: 75%
-              height: SIZE_CONTENT
-              text: "Onderhoudsmodus niet actief"
-              text_color: 0x6B7280
-              text_font: font_text_20
-              align: TOP_LEFT
-              y: 38
-          - switch:
-              id: set_service_mode_switch_ui
-              align: TOP_RIGHT
-              bg_color: 0x9CA3AF
-              indicator:
-                bg_color: 0x16A34A
-              knob:
-                bg_color: 0xFFFFFF
-              on_click:
-                - if:
-                    condition:
-                      switch.is_on: service_mode_enabled
-                    then:
-                      - switch.turn_off: service_mode_enabled
-                      - script.execute: update_service_mode_ui
-                    else:
-                      - switch.turn_on: service_mode_enabled
-                      - script.execute: update_service_mode_ui
+# Menu Page: Algemeen & Ontluchten
+# ------------------------------------------------------------
+id: service_maintenance_page
+title: "Algemeen & Ontluchten"
+widgets:
+  - obj:
+      id: service_maintenance_panel
+      width: 100%
+      height: SIZE_CONTENT
+      bg_opa: 0%
+      border_opa: 0%
+      pad_all: 0
+      layout:
+        type: FLEX
+        flex_flow: COLUMN
+        flex_align_main: START
+        flex_align_cross: CENTER
+        pad_row: 8
+      widgets:
+        - obj:
+            id: service_maintenance_header
+            width: 100%
+            height: 72
+            bg_opa: 0%
+            border_opa: 0%
+            pad_all: 4
+            widgets:
+              - label:
+                  id: service_maintenance_title
+                  text: "Onderhoudsmodus"
+                  text_color: 0x1F2933
+                  text_font: font_text_24
+                  align: TOP_LEFT
+              - label:
+                  id: service_maintenance_state
+                  width: 75%
+                  height: SIZE_CONTENT
+                  text: "Onderhoudsmodus niet actief"
+                  text_color: 0x6B7280
+                  text_font: font_text_20
+                  align: TOP_LEFT
+                  y: 38
+              - switch:
+                  id: set_service_mode_switch_ui
+                  align: TOP_RIGHT
+                  bg_color: 0x9CA3AF
+                  indicator:
+                    bg_color: 0x16A34A
+                  knob:
+                    bg_color: 0xFFFFFF
+                  on_click:
+                    - if:
+                        condition:
+                          switch.is_on: service_mode_enabled
+                        then:
+                          - switch.turn_off: service_mode_enabled
+                          - script.execute: update_service_mode_ui
+                        else:
+                          - switch.turn_on: service_mode_enabled
+                          - script.execute: update_service_mode_ui
 
-    - label:
-        id: service_maintenance_lock_hint
-        width: 100%
-        text: "Handmatige bediening blijft vergrendeld tot onderhoudsmodus actief is."
-        text_color: 0x9CA3AF
-        text_font: font_text_20
-        long_mode: WRAP
-        align: TOP_LEFT
-        y: 76
+        - label:
+            id: service_maintenance_lock_hint
+            width: 100%
+            text: "Handmatige bediening blijft vergrendeld tot onderhoudsmodus actief is."
+            text_color: 0x9CA3AF
+            text_font: font_text_20
+            long_mode: WRAP
+            align: TOP_LEFT
 
-    - obj:
-        id: service_maintenance_layout
-        width: 100%
-        height: 72%
-        align: TOP_LEFT
-        y: 112
-        opa: 45%
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 6
-        scrollbar_mode: "OFF"
-        scrollable: false
-        widgets:
-          - !include page_service_tab_general.yaml
-          - !include page_service_tab_buitenunit.yaml
-          - !include page_service_tab_pumps.yaml
-          - !include page_service_tab_valve.yaml
-          - !include page_service_tab_backup.yaml
+        - obj:
+            id: service_mpanel_general
+            width: 100%
+            height: 220
+            bg_opa: 0%
+            border_opa: 0%
+            pad_all: 0
+            widgets:
+              - label:
+                  id: service_deaeration_title
+                  text: "Ontluchten"
+                  text_color: 0x1F2933
+                  text_font: font_text_24
+                  align: TOP_LEFT
+
+              - label:
+                  id: service_deaeration_desc
+                  width: 100%
+                  text: "Automatische ontluchtingsroutine."
+                  text_color: 0x6B7280
+                  text_font: font_text_20
+                  long_mode: WRAP
+                  align: TOP_LEFT
+                  y: 24
+
+              - obj:
+                  id: service_deaeration_status_box
+                  width: 100%
+                  height: 76
+                  align: TOP_LEFT
+                  y: 56
+                  bg_color: 0xE8ECF1
+                  bg_opa: 100%
+                  radius: 12
+                  border_opa: 0%
+                  pad_left: 12
+                  pad_right: 12
+                  pad_top: 8
+                  pad_bottom: 8
+                  scrollbar_mode: "OFF"
+                  scrollable: false
+                  widgets:
+                    - label:
+                        id: service_deaeration_status_val
+                        text: "Inactief"
+                        text_color: 0x6B7280
+                        text_font: font_text_20
+                        align: TOP_LEFT
+                    - label:
+                        id: service_deaeration_time_val
+                        text: "Resterend: -"
+                        text_color: 0x6B7280
+                        text_font: font_text_20
+                        align: TOP_RIGHT
+                    - bar:
+                        id: service_deaeration_progress_bar
+                        width: 100%
+                        height: 10
+                        align: BOTTOM_MID
+                        min_value: 0
+                        max_value: 100
+                        value: 0
+                        bg_color: 0xD1D5DB
+                        radius: 5
+                        indicator:
+                          bg_color: 0x1F3B68
+                          radius: 5
+
+              - obj:
+                  id: service_deaeration_short_btn
+                  width: 48%
+                  height: 50
+                  align: TOP_LEFT
+                  y: 142
+                  bg_color: 0xE8ECF1
+                  bg_opa: 100%
+                  radius: 10
+                  border_opa: 0%
+                  scrollbar_mode: "OFF"
+                  scrollable: false
+                  on_click:
+                    - if:
+                        condition:
+                          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+                        then:
+                          - if:
+                              condition:
+                                lambda: 'return id(amber_ctrl).is_deaeration_running();'
+                              then:
+                                - lambda: 'id(amber_ctrl).stop_deaeration_routine();'
+                              else:
+                                - lambda: 'id(amber_ctrl).start_deaeration_routine(false);'
+                          - script.execute: update_service_mode_ui
+                        else:
+                          - script.execute: update_service_mode_ui
+                  widgets:
+                    - label:
+                        id: service_deaeration_short_btn_lbl
+                        text: "Kort (~10 min)"
+                        text_color: 0x4B5563
+                        text_font: font_text_20
+                        align: CENTER
+
+              - obj:
+                  id: service_deaeration_extended_btn
+                  width: 48%
+                  height: 50
+                  align: TOP_RIGHT
+                  y: 142
+                  bg_color: 0xE8ECF1
+                  bg_opa: 100%
+                  radius: 10
+                  border_opa: 0%
+                  scrollbar_mode: "OFF"
+                  scrollable: false
+                  on_click:
+                    - if:
+                        condition:
+                          lambda: 'return id(amber_ctrl).is_maintenance_state();'
+                        then:
+                          - if:
+                              condition:
+                                lambda: 'return id(amber_ctrl).is_deaeration_running();'
+                              then:
+                                - lambda: 'id(amber_ctrl).stop_deaeration_routine();'
+                              else:
+                                - lambda: 'id(amber_ctrl).start_deaeration_routine(true);'
+                          - script.execute: update_service_mode_ui
+                        else:
+                          - script.execute: update_service_mode_ui
+                  widgets:
+                    - label:
+                        id: service_deaeration_extended_btn_lbl
+                        text: "Uitgebreid (~31 min)"
+                        text_color: 0x4B5563
+                        text_font: font_text_20
+                        align: CENTER

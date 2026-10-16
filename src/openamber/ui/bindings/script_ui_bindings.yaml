@@ -105,66 +105,12 @@
           }
         }
 
-- id: thermostat_select_tab
-  mode: restart
-  parameters:
-    tab_index: int
-  then:
-    - lambda: |-
-        lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(advanced_pid_pager), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(advanced_defrost_pager), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(mengventielen_pager), LV_OBJ_FLAG_HIDDEN);
-
-        lv_obj_t* panels[3] = {
-          id(panel_thermostat_page_setpoint),
-          id(panel_thermostat_page_verwarmen),
-          id(panel_thermostat_page_koelen)
-        };
-        lv_obj_t* tabs[3] = {
-          id(thermostat_stab_algemeen),
-          id(thermostat_stab_verwarmen),
-          id(thermostat_stab_koelen)
-        };
-        lv_obj_t* labels[3] = {
-          id(thermostat_stab_algemeen_lbl),
-          id(thermostat_stab_verwarmen_lbl),
-          id(thermostat_stab_koelen_lbl)
-        };
-        for (int i = 0; i < 3; i++) {
-          if (i == tab_index) {
-            lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
-            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
-            lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-          } else {
-            lv_obj_add_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
-            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xCBD5E1), LV_PART_MAIN);
-            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
-          }
-        }
-    - script.execute: update_thermostat_settings_ui
-    - script.execute: update_thermostat_mode_ui
-
-
 - id: settings_select_tab
   mode: restart
   parameters:
     tab_index: int
   then:
     - lambda: |-
-        lv_obj_t* panels[10] = {
-          id(panel_general),
-          id(panel_thermostat),
-          id(panel_pump),
-          id(panel_heating),
-          id(panel_cooling),
-          id(panel_dhw),
-          id(panel_bijverwarmen),
-          id(panel_smartgrid),
-          id(panel_wifi),
-          id(panel_advanced)
-        };
         lv_obj_t* tabs[10] = {
           id(stab_general),
           id(stab_thermostat),
@@ -190,19 +136,11 @@
           id(stab_advanced_lbl)
         };
 
-        lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(advanced_pid_pager), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(advanced_defrost_pager), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(mengventielen_pager), LV_OBJ_FLAG_HIDDEN);
-
         for (int i = 0; i < 10; i++) {
           if (i == tab_index) {
-            lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
             lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
             lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
           } else {
-            lv_obj_add_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
             lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xE8ECF1), LV_PART_MAIN);
             lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
           }
@@ -211,70 +149,46 @@
         condition:
           lambda: 'return tab_index == 0;'
         then:
-          - script.execute:
-              id: general_select_tab
-              tab_index: 0
           - script.execute: update_advanced_settings_ui
+          - script.execute: update_control_temp_source_ui
+          - script.execute: update_analytics_ui
+          - script.execute: update_mixing_valves_ui
+          - script.execute: update_flow_sensor_calibration_ui
     - if:
         condition:
           lambda: 'return tab_index == 1;'
         then:
           - script.execute: update_thermostat_settings_ui
           - script.execute: update_thermostat_mode_ui
-          - script.execute:
-              id: thermostat_select_tab
-              tab_index: 0
     - if:
         condition:
           lambda: 'return tab_index == 2;'
         then:
-          - script.execute:
-              id: pump_select_tab
-              tab_index: 0
           - script.execute: update_advanced_settings_ui
+          - script.execute: update_pump_pid_ui
     - if:
         condition:
           lambda: 'return tab_index == 3;'
         then:
-          - script.execute:
-              id: heating_select_tab
-              tab_index: 0
           - script.execute: update_heat_curve_chart
           - script.execute: update_advanced_settings_ui
+          - script.execute: update_emergency_mode_ui
     - if:
         condition:
           lambda: 'return tab_index == 4;'
         then:
-          - script.execute:
-              id: cooling_select_tab
-              tab_index: 0
           - script.execute: update_advanced_settings_ui
     - if:
         condition:
           lambda: 'return tab_index == 5;'
         then:
-          - script.execute:
-              id: dhw_select_tab
-              tab_index: 0
-    - if:
-        condition:
-          lambda: 'return tab_index == 6;'
-        then:
-          - script.execute:
-              id: bijverwarmen_select_tab
-              tab_index: 0
+          - script.execute: update_dhw_schedule_ui
+          - script.execute: update_legio_ui
     - if:
         condition:
           lambda: 'return tab_index == 8;'
         then:
           - script.execute: wifi_scan_networks_if_empty
-    - if:
-        condition:
-          lambda: 'return tab_index == 9;'
-        then:
-          - script.execute:
-              id: advanced_select_tab
-              tab_index: 0
 
 - id: service_select_tab
   mode: restart
@@ -282,57 +196,40 @@
     tab_index: int
   then:
     - lambda: |-
-        // Hide all main panels
-        lv_obj_add_flag(id(service_maintenance_panel), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(service_sensors_panel), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(service_errors_panel), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(service_warnings_panel), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(service_eeprom_panel), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_t* tabs[9] = {
+          id(service_tab_maintenance),
+          id(service_tab_compressor),
+          id(service_tab_pumps),
+          id(service_tab_valve),
+          id(service_tab_backup),
+          id(service_tab_eeprom),
+          id(service_tab_sensors),
+          id(service_tab_errors),
+          id(service_tab_warnings)
+        };
+        lv_obj_t* labels[9] = {
+          id(service_tab_maintenance_lbl),
+          id(service_tab_compressor_lbl),
+          id(service_tab_pumps_lbl),
+          id(service_tab_valve_lbl),
+          id(service_tab_backup_lbl),
+          id(service_tab_eeprom_lbl),
+          id(service_tab_sensors_lbl),
+          id(service_tab_errors_lbl),
+          id(service_tab_warnings_lbl)
+        };
 
-        // Hide all maintenance subpanels
-        lv_obj_add_flag(id(service_mpanel_general), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(service_mpanel_compressor), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(service_mpanel_pumps), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(service_mpanel_valve), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(service_mpanel_backup), LV_OBJ_FLAG_HIDDEN);
-
-        if (tab_index == 0) {
-          lv_obj_clear_flag(id(service_maintenance_panel), LV_OBJ_FLAG_HIDDEN);
-          lv_obj_clear_flag(id(service_mpanel_general), LV_OBJ_FLAG_HIDDEN);
-          lv_obj_clear_flag(id(service_maintenance_header), LV_OBJ_FLAG_HIDDEN);
-          lv_obj_clear_flag(id(service_maintenance_title), LV_OBJ_FLAG_HIDDEN);
-          lv_obj_clear_flag(id(service_maintenance_state), LV_OBJ_FLAG_HIDDEN);
-          lv_obj_clear_flag(id(set_service_mode_switch_ui), LV_OBJ_FLAG_HIDDEN);
-          lv_obj_clear_flag(id(service_maintenance_lock_hint), LV_OBJ_FLAG_HIDDEN);
-          lv_obj_set_y(id(service_maintenance_layout), 112);
-          lv_obj_set_height(id(service_maintenance_layout), lv_pct(72));
-        } else if (tab_index >= 1 && tab_index <= 4) {
-          lv_obj_clear_flag(id(service_maintenance_panel), LV_OBJ_FLAG_HIDDEN);
-          lv_obj_add_flag(id(service_maintenance_header), LV_OBJ_FLAG_HIDDEN);
-          lv_obj_add_flag(id(service_maintenance_title), LV_OBJ_FLAG_HIDDEN);
-          lv_obj_add_flag(id(service_maintenance_state), LV_OBJ_FLAG_HIDDEN);
-          lv_obj_add_flag(id(set_service_mode_switch_ui), LV_OBJ_FLAG_HIDDEN);
-          lv_obj_add_flag(id(service_maintenance_lock_hint), LV_OBJ_FLAG_HIDDEN);
-          lv_obj_set_y(id(service_maintenance_layout), 0);
-          lv_obj_set_height(id(service_maintenance_layout), lv_pct(100));
-          if (tab_index == 1) lv_obj_clear_flag(id(service_mpanel_compressor), LV_OBJ_FLAG_HIDDEN);
-          else if (tab_index == 2) lv_obj_clear_flag(id(service_mpanel_pumps), LV_OBJ_FLAG_HIDDEN);
-          else if (tab_index == 3) lv_obj_clear_flag(id(service_mpanel_valve), LV_OBJ_FLAG_HIDDEN);
-          else if (tab_index == 4) lv_obj_clear_flag(id(service_mpanel_backup), LV_OBJ_FLAG_HIDDEN);
-        } else if (tab_index == 5) {
-          lv_obj_clear_flag(id(service_eeprom_panel), LV_OBJ_FLAG_HIDDEN);
-          lv_obj_add_flag(id(service_maintenance_header), LV_OBJ_FLAG_HIDDEN);
-          lv_obj_add_flag(id(service_maintenance_title), LV_OBJ_FLAG_HIDDEN);
-          lv_obj_add_flag(id(service_maintenance_state), LV_OBJ_FLAG_HIDDEN);
-          lv_obj_add_flag(id(set_service_mode_switch_ui), LV_OBJ_FLAG_HIDDEN);
-          lv_obj_set_y(id(service_maintenance_layout), 0);
-          lv_obj_set_height(id(service_maintenance_layout), lv_pct(100));
-        } else if (tab_index == 6) {
-          lv_obj_clear_flag(id(service_sensors_panel), LV_OBJ_FLAG_HIDDEN);
-        } else if (tab_index == 7) {
-          lv_obj_clear_flag(id(service_errors_panel), LV_OBJ_FLAG_HIDDEN);
-        } else if (tab_index == 8) {
-          lv_obj_clear_flag(id(service_warnings_panel), LV_OBJ_FLAG_HIDDEN);
+        for (int i = 0; i < 9; i++) {
+          if (lv_obj_has_state(tabs[i], LV_STATE_DISABLED)) {
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xEDF1F6), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x9CA3AF), LV_PART_MAIN);
+          } else if (i == tab_index) {
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+          } else {
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xE8ECF1), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
+          }
         }
     - script.execute: update_service_mode_ui
     - if:
@@ -406,23 +303,6 @@
                             - lvgl.widget.update: { id: page_service, hidden: false }
                             - lvgl.widget.update: { id: page_system, hidden: true }
                             - lvgl.widget.update: { id: page_settings, hidden: true }
-                            - lvgl.widget.show: { id: service_tabs_bar }
-                            - lvgl.widget.update: { id: service_maintenance_panel, width: 100%, align: TOP_LEFT }
-                            - lvgl.widget.update: { id: service_sensors_panel, width: 100%, align: TOP_LEFT }
-                            - lvgl.widget.hide: { id: service_errors_panel }
-                            - lvgl.widget.hide: { id: service_warnings_panel }
-                            - lvgl.widget.show: { id: service_maintenance_panel }
-                            - lvgl.widget.update: { id: service_maintenance_layout, y: 112, height: 72% }
-                            - lvgl.widget.show: { id: service_maintenance_header }
-                            - lvgl.widget.show: { id: service_maintenance_title }
-                            - lvgl.widget.show: { id: service_maintenance_state }
-                            - lvgl.widget.hide: { id: service_sensors_panel }
-                            - lvgl.widget.show: { id: set_service_mode_switch_ui }
-                            - lvgl.widget.hide: { id: service_mpanel_compressor }
-                            - lvgl.widget.hide: { id: service_mpanel_pumps }
-                            - lvgl.widget.hide: { id: service_mpanel_valve }
-                            - lvgl.widget.hide: { id: service_mpanel_backup }
-                            - lvgl.widget.hide: { id: service_eeprom_panel }
                             - script.execute: update_service_mode_ui
                             - script.execute: update_service_top_tabs_ui
                             - script.execute: update_service_diag_summary_ui
@@ -545,86 +425,6 @@
           auto mode = id(climate_controller).mode;
           return lv_color_hex(mode == climate::CLIMATE_MODE_HEAT ? 0x9A3412 : 0x64748B);
 
-- id: general_select_tab
-  mode: restart
-  parameters:
-    tab_index: int
-  then:
-    - lambda: |-
-        lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(advanced_pid_pager), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(advanced_defrost_pager), LV_OBJ_FLAG_HIDDEN);
-
-        lv_obj_t* panels[4] = {
-          id(panel_general_page_systeem),
-          id(panel_general_page_mengventielen),
-          id(panel_general_page_sensor_kalibratie),
-          id(panel_general_page_hardware)
-        };
-        lv_obj_t* tabs[4] = {
-          id(general_stab_systeem),
-          id(general_stab_mengventielen),
-          id(general_stab_sensor_kalibratie),
-          id(general_stab_hardware)
-        };
-        lv_obj_t* labels[4] = {
-          id(general_stab_systeem_lbl),
-          id(general_stab_mengventielen_lbl),
-          id(general_stab_sensor_kalibratie_lbl),
-          id(general_stab_hardware_lbl)
-        };
-
-        if (tab_index == 1) {
-          lv_obj_clear_flag(id(mengventielen_pager), LV_OBJ_FLAG_HIDDEN);
-        } else {
-          lv_obj_add_flag(id(mengventielen_pager), LV_OBJ_FLAG_HIDDEN);
-        }
-
-        if (tab_index == 2) {
-          lv_obj_clear_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
-        } else {
-          lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
-        }
-
-        for (int i = 0; i < 4; i++) {
-          if (i == tab_index) {
-            lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
-            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
-            lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-          } else {
-            lv_obj_add_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
-            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xCBD5E1), LV_PART_MAIN);
-            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
-          }
-        }
-    - if:
-        condition:
-          lambda: 'return tab_index == 0;'
-        then:
-          - script.execute: update_advanced_settings_ui
-          - script.execute: update_control_temp_source_ui
-          - script.execute: update_analytics_ui
-    - if:
-        condition:
-          lambda: 'return tab_index == 1;'
-        then:
-          - script.execute:
-              id: mengventielen_select_page
-              page: 1
-          - script.execute: update_mixing_valves_ui
-    - if:
-        condition:
-          lambda: 'return tab_index == 2;'
-        then:
-          - script.execute:
-              id: sensor_calibration_select_page
-              page: 1
-    - if:
-        condition:
-          lambda: 'return tab_index == 3;'
-        then:
-          - script.execute: update_flow_sensor_calibration_ui
-
 - id: update_analytics_ui
   mode: restart
   then:
@@ -683,66 +483,6 @@
           lv_obj_set_style_opa(id(set_general_system_control_temp_source), LV_OPA_COVER, LV_PART_MAIN);
         }
 
-
-- id: mengventielen_select_page
-  mode: restart
-  parameters:
-    page: int
-  then:
-    - if:
-        condition:
-          lambda: 'return page == 1;'
-        then:
-          - lvgl.widget.show: { id: set_general_mv_z1_enabled }
-          - lvgl.widget.show: { id: set_general_mv_z1_min }
-          - lvgl.widget.show: { id: set_general_mv_z1_max }
-          - lvgl.widget.hide: { id: set_general_mv_z2_enabled }
-          - lvgl.widget.hide: { id: set_general_mv_z2_min }
-          - lvgl.widget.hide: { id: set_general_mv_z2_max }
-          - lvgl.widget.update: { id: mengventielen_page_1_button, bg_color: 0x1F3B68 }
-          - lvgl.label.update: { id: mengventielen_page_1_button_lbl, text_color: 0xFFFFFF }
-          - lvgl.widget.update: { id: mengventielen_page_2_button, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: mengventielen_page_2_button_lbl, text_color: 0x4B5563 }
-          - lvgl.label.update: { id: mengventielen_page_indicator, text: "Pagina 1 / 2" }
-        else:
-          - lvgl.widget.hide: { id: set_general_mv_z1_enabled }
-          - lvgl.widget.hide: { id: set_general_mv_z1_min }
-          - lvgl.widget.hide: { id: set_general_mv_z1_max }
-          - lvgl.widget.show: { id: set_general_mv_z2_enabled }
-          - lvgl.widget.show: { id: set_general_mv_z2_min }
-          - lvgl.widget.show: { id: set_general_mv_z2_max }
-          - lvgl.widget.update: { id: mengventielen_page_1_button, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: mengventielen_page_1_button_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: mengventielen_page_2_button, bg_color: 0x1F3B68 }
-          - lvgl.label.update: { id: mengventielen_page_2_button_lbl, text_color: 0xFFFFFF }
-          - lvgl.label.update: { id: mengventielen_page_indicator, text: "Pagina 2 / 2" }
-
-- id: sensor_calibration_select_page
-  mode: restart
-  parameters:
-    page: int
-  then:
-    - if:
-        condition:
-          lambda: 'return page == 1;'
-        then:
-          - lvgl.widget.show: { id: sensor_calibration_page_1_row_tr }
-          - lvgl.widget.show: { id: sensor_calibration_page_1_row_tw }
-          - lvgl.widget.show: { id: sensor_calibration_page_1_row_tc }
-          - lvgl.widget.hide: { id: sensor_calibration_page_1_row_tui }
-          - lvgl.widget.hide: { id: sensor_calibration_page_2_row_tuo }
-          - lvgl.widget.update: { id: sensor_calibration_page_1_button, bg_color: 0x1F3B68 }
-          - lvgl.widget.update: { id: sensor_calibration_page_2_button, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: sensor_calibration_page_indicator, text: "Pagina 1 / 2" }
-        else:
-          - lvgl.widget.hide: { id: sensor_calibration_page_1_row_tr }
-          - lvgl.widget.hide: { id: sensor_calibration_page_1_row_tw }
-          - lvgl.widget.hide: { id: sensor_calibration_page_1_row_tc }
-          - lvgl.widget.show: { id: sensor_calibration_page_1_row_tui }
-          - lvgl.widget.show: { id: sensor_calibration_page_2_row_tuo }
-          - lvgl.widget.update: { id: sensor_calibration_page_1_button, bg_color: 0xCBD5E1 }
-          - lvgl.widget.update: { id: sensor_calibration_page_2_button, bg_color: 0x1F3B68 }
-          - lvgl.label.update: { id: sensor_calibration_page_indicator, text: "Pagina 2 / 2" }
 
 - id: update_flow_sensor_calibration_ui
   mode: restart
@@ -896,697 +636,6 @@
         }
 
 
-- id: pump_p0_pid_select_page
-  mode: restart
-  parameters:
-    page: int
-  then:
-    - if:
-        condition:
-          lambda: 'return page == 1;'
-        then:
-          - lvgl.widget.show: { id: pump_p0_pid_page_1_row_enable }
-          - lvgl.widget.show: { id: set_pump_pid_target_delta_t_row }
-          - lvgl.widget.show: { id: set_pump_pid_min_pwm_row }
-          - lvgl.widget.hide: { id: set_pump_pid_max_pwm_row }
-          - lvgl.widget.hide: { id: set_pump_pid_defrost_pwm_row }
-          - lvgl.widget.update: { id: pump_p0_pid_page_1_button, bg_color: 0x1F3B68 }
-          - lvgl.label.update: { id: pump_p0_pid_page_1_button_lbl, text_color: 0xFFFFFF }
-          - lvgl.widget.update: { id: pump_p0_pid_page_2_button, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: pump_p0_pid_page_2_button_lbl, text_color: 0x4B5563 }
-          - lvgl.label.update: { id: pump_p0_pid_page_indicator, text: "Pagina 1 / 2" }
-        else:
-          - lvgl.widget.hide: { id: pump_p0_pid_page_1_row_enable }
-          - lvgl.widget.hide: { id: set_pump_pid_target_delta_t_row }
-          - lvgl.widget.hide: { id: set_pump_pid_min_pwm_row }
-          - lvgl.widget.show: { id: set_pump_pid_max_pwm_row }
-          - lvgl.widget.show: { id: set_pump_pid_defrost_pwm_row }
-          - lvgl.widget.update: { id: pump_p0_pid_page_1_button, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: pump_p0_pid_page_1_button_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: pump_p0_pid_page_2_button, bg_color: 0x1F3B68 }
-          - lvgl.label.update: { id: pump_p0_pid_page_2_button_lbl, text_color: 0xFFFFFF }
-          - lvgl.label.update: { id: pump_p0_pid_page_indicator, text: "Pagina 2 / 2" }
-
-- id: pump_select_tab
-  mode: restart
-  parameters:
-    tab_index: int
-  then:
-    - script.execute: update_pump_pid_ui
-    - lambda: |-
-        lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(advanced_pid_pager), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(advanced_defrost_pager), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(mengventielen_pager), LV_OBJ_FLAG_HIDDEN);
-
-        lv_obj_t* panels[4] = {
-          id(panel_pump_page_algemeen),
-          id(panel_pump_page_pompsnelheid),
-          id(panel_pump_page_p0_pid),
-          id(panel_frost)
-        };
-        lv_obj_t* tabs[4] = {
-          id(pump_stab_algemeen),
-          id(pump_stab_pompsnelheid),
-          id(pump_stab_p0_pid),
-          id(pump_stab_vorstbescherming)
-        };
-        lv_obj_t* labels[4] = {
-          id(pump_stab_algemeen_lbl),
-          id(pump_stab_pompsnelheid_lbl),
-          id(pump_stab_p0_pid_lbl),
-          id(pump_stab_vorstbescherming_lbl)
-        };
-
-        if (tab_index == 2) {
-          lv_obj_clear_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
-        }
-
-        for (int i = 0; i < 4; i++) {
-          if (i == tab_index) {
-            lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
-            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
-            lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-          } else {
-            lv_obj_add_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
-            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xCBD5E1), LV_PART_MAIN);
-            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
-          }
-        }
-
-        if (tab_index == 3) {
-          lv_label_set_text_fmt(id(set_frost1_val), "%.1f°C", (double)id(frost_protection_stage_1_temp_ta).state);
-          lv_label_set_text_fmt(id(set_frost2_ta_val), "%.1f°C", (double)id(frost_protection_stage_2_temp_ta).state);
-          lv_label_set_text_fmt(id(set_frost2_tui_val), "%.1f°C", (double)id(frost_protection_stage_2_temp_tui).state);
-        }
-    - if:
-        condition:
-          lambda: 'return tab_index == 2;'
-        then:
-          - script.execute:
-              id: pump_p0_pid_select_page
-              page: 1
-
-
-- id: heating_select_tab
-  mode: restart
-  parameters:
-    tab_index: int
-  then:
-    - lambda: |-
-        lv_obj_t* panels[5] = {
-          id(panel_heating_page_algemeen),
-          id(panel_heating_page_stooklijn),
-          id(panel_heating_page_stooklijn_z2),
-          id(panel_heating_page_start_stop),
-          id(panel_heating_page_noodbedrijf)
-        };
-        lv_obj_t* tabs[5] = {
-          id(heating_stab_algemeen),
-          id(heating_stab_stooklijn),
-          id(heating_stab_stooklijn_z2),
-          id(heating_stab_start_stop),
-          id(heating_stab_noodbedrijf)
-        };
-        lv_obj_t* labels[5] = {
-          id(heating_stab_algemeen_lbl),
-          id(heating_stab_stooklijn_lbl),
-          id(heating_stab_stooklijn_z2_lbl),
-          id(heating_stab_start_stop_lbl),
-          id(heating_stab_noodbedrijf_lbl)
-        };
-        for (int i = 0; i < 5; i++) {
-          if (i == tab_index) {
-            lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
-            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
-            lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-          } else {
-            lv_obj_add_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
-            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xCBD5E1), LV_PART_MAIN);
-            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
-          }
-        }
-        if (tab_index == 1) {
-          bool is_stooklijn = (id(heat_mode_select).current_option() == "Stooklijn");
-          if (is_stooklijn) {
-            lv_obj_clear_flag(id(set_heat_curve_title), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_clear_flag(id(set_heat_curve_chart_container), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_clear_flag(id(set_heat_curve_controls_container), LV_OBJ_FLAG_HIDDEN);
-          } else {
-            lv_obj_add_flag(id(set_heat_curve_title), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(id(set_heat_curve_chart_container), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(id(set_heat_curve_controls_container), LV_OBJ_FLAG_HIDDEN);
-          }
-        }
-        if (tab_index == 2) {
-          bool is_stooklijn = (id(heat_mode_select).current_option() == "Stooklijn");
-          if (is_stooklijn) {
-            lv_obj_clear_flag(id(set_heat_curve_z2_title), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_clear_flag(id(set_heat_curve_z2_chart_container), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_clear_flag(id(set_heat_curve_z2_controls_container), LV_OBJ_FLAG_HIDDEN);
-          } else {
-            lv_obj_add_flag(id(set_heat_curve_z2_title), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(id(set_heat_curve_z2_chart_container), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(id(set_heat_curve_z2_controls_container), LV_OBJ_FLAG_HIDDEN);
-          }
-        }
-    - if:
-        condition:
-          lambda: 'return tab_index == 0;'
-        then:
-          - script.execute: update_manual_setpoint_ui
-    - if:
-        condition:
-          lambda: 'return tab_index == 1;'
-        then:
-          - script.execute: update_heat_curve_chart
-    - if:
-        condition:
-          lambda: 'return tab_index == 2;'
-        then:
-          - script.execute: update_heat_curve_z2_chart
-    - if:
-        condition:
-          lambda: 'return tab_index == 4;'
-        then:
-          - script.execute: update_emergency_mode_ui
-
-- id: cooling_select_tab
-  mode: restart
-  parameters:
-    tab_index: int
-  then:
-    - lambda: |-
-        lv_obj_t* panels[2] = {
-          id(panel_cooling_page_algemeen),
-          id(panel_cooling_page_setpoint)
-        };
-        lv_obj_t* tabs[2] = {
-          id(cooling_stab_algemeen),
-          id(cooling_stab_setpoint)
-        };
-        lv_obj_t* labels[2] = {
-          id(cooling_stab_algemeen_lbl),
-          id(cooling_stab_setpoint_lbl)
-        };
-        for (int i = 0; i < 2; i++) {
-          if (i == tab_index) {
-            lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
-            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
-            lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-          } else {
-            lv_obj_add_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
-            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xCBD5E1), LV_PART_MAIN);
-            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
-          }
-        }
-    - if:
-        condition:
-          lambda: 'return tab_index == 1;'
-        then:
-          - script.execute: update_manual_setpoint_ui
-
-
-- id: advanced_pid_select_page
-  mode: restart
-  parameters:
-    page: int
-  then:
-    - if:
-        condition:
-          lambda: 'return page == 1;'
-        then:
-          - lvgl.widget.show: { id: set_heat_pid_kp_row }
-          - lvgl.widget.show: { id: set_heat_pid_ki_row }
-          - lvgl.widget.show: { id: set_heat_pid_kd_row }
-          - lvgl.widget.hide: { id: set_cool_pid_kp_row }
-          - lvgl.widget.hide: { id: set_cool_pid_ki_row }
-          - lvgl.widget.hide: { id: set_cool_pid_kd_row }
-          - lvgl.widget.hide: { id: set_heat_pid_deadband_row }
-          - lvgl.widget.hide: { id: set_cool_pid_deadband_row }
-          - lvgl.widget.hide: { id: set_pump_pid_kp_row }
-          - lvgl.widget.hide: { id: set_pump_pid_ki_row }
-          - lvgl.widget.hide: { id: set_pump_pid_kd_row }
-          - lvgl.widget.hide: { id: set_mv_z1_pid_kp_row }
-          - lvgl.widget.hide: { id: set_mv_z1_pid_ki_row }
-          - lvgl.widget.hide: { id: set_mv_z1_pid_kd_row }
-          - lvgl.widget.hide: { id: set_mv_z2_pid_kp_row }
-          - lvgl.widget.hide: { id: set_mv_z2_pid_ki_row }
-          - lvgl.widget.hide: { id: set_mv_z2_pid_kd_row }
-          - lvgl.widget.hide: { id: set_mv_z1_pid_deadband_row }
-          - lvgl.widget.hide: { id: set_mv_z2_pid_deadband_row }
-          - lvgl.widget.update: { id: advanced_pid_page_prev_button, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: advanced_pid_page_prev_button_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: advanced_pid_page_next_button, bg_color: 0x1F3B68 }
-          - lvgl.label.update: { id: advanced_pid_page_next_button_lbl, text_color: 0xFFFFFF }
-          - lvgl.label.update: { id: advanced_pid_page_indicator, text: "Pagina 1 / 7" }
-        else:
-          - if:
-              condition:
-                lambda: 'return page == 2;'
-              then:
-                - lvgl.widget.hide: { id: set_heat_pid_kp_row }
-                - lvgl.widget.hide: { id: set_heat_pid_ki_row }
-                - lvgl.widget.hide: { id: set_heat_pid_kd_row }
-                - lvgl.widget.show: { id: set_cool_pid_kp_row }
-                - lvgl.widget.show: { id: set_cool_pid_ki_row }
-                - lvgl.widget.show: { id: set_cool_pid_kd_row }
-                - lvgl.widget.hide: { id: set_heat_pid_deadband_row }
-                - lvgl.widget.hide: { id: set_cool_pid_deadband_row }
-                - lvgl.widget.hide: { id: set_pump_pid_kp_row }
-                - lvgl.widget.hide: { id: set_pump_pid_ki_row }
-                - lvgl.widget.hide: { id: set_pump_pid_kd_row }
-                - lvgl.widget.hide: { id: set_mv_z1_pid_kp_row }
-                - lvgl.widget.hide: { id: set_mv_z1_pid_ki_row }
-                - lvgl.widget.hide: { id: set_mv_z1_pid_kd_row }
-                - lvgl.widget.hide: { id: set_mv_z2_pid_kp_row }
-                - lvgl.widget.hide: { id: set_mv_z2_pid_ki_row }
-                - lvgl.widget.hide: { id: set_mv_z2_pid_kd_row }
-                - lvgl.widget.hide: { id: set_mv_z1_pid_deadband_row }
-                - lvgl.widget.hide: { id: set_mv_z2_pid_deadband_row }
-                - lvgl.widget.update: { id: advanced_pid_page_prev_button, bg_color: 0x1F3B68 }
-                - lvgl.label.update: { id: advanced_pid_page_prev_button_lbl, text_color: 0xFFFFFF }
-                - lvgl.widget.update: { id: advanced_pid_page_next_button, bg_color: 0x1F3B68 }
-                - lvgl.label.update: { id: advanced_pid_page_next_button_lbl, text_color: 0xFFFFFF }
-                - lvgl.label.update: { id: advanced_pid_page_indicator, text: "Pagina 2 / 7" }
-              else:
-                - if:
-                    condition:
-                      lambda: 'return page == 3;'
-                    then:
-                      - lvgl.widget.hide: { id: set_heat_pid_kp_row }
-                      - lvgl.widget.hide: { id: set_heat_pid_ki_row }
-                      - lvgl.widget.hide: { id: set_heat_pid_kd_row }
-                      - lvgl.widget.hide: { id: set_cool_pid_kp_row }
-                      - lvgl.widget.hide: { id: set_cool_pid_ki_row }
-                      - lvgl.widget.hide: { id: set_cool_pid_kd_row }
-                      - lvgl.widget.show: { id: set_heat_pid_deadband_row }
-                      - lvgl.widget.show: { id: set_cool_pid_deadband_row }
-                      - lvgl.widget.hide: { id: set_pump_pid_kp_row }
-                      - lvgl.widget.hide: { id: set_pump_pid_ki_row }
-                      - lvgl.widget.hide: { id: set_pump_pid_kd_row }
-                      - lvgl.widget.hide: { id: set_mv_z1_pid_kp_row }
-                      - lvgl.widget.hide: { id: set_mv_z1_pid_ki_row }
-                      - lvgl.widget.hide: { id: set_mv_z1_pid_kd_row }
-                      - lvgl.widget.hide: { id: set_mv_z2_pid_kp_row }
-                      - lvgl.widget.hide: { id: set_mv_z2_pid_ki_row }
-                      - lvgl.widget.hide: { id: set_mv_z2_pid_kd_row }
-                      - lvgl.widget.hide: { id: set_mv_z1_pid_deadband_row }
-                      - lvgl.widget.hide: { id: set_mv_z2_pid_deadband_row }
-                      - lvgl.widget.update: { id: advanced_pid_page_prev_button, bg_color: 0x1F3B68 }
-                      - lvgl.label.update: { id: advanced_pid_page_prev_button_lbl, text_color: 0xFFFFFF }
-                      - lvgl.widget.update: { id: advanced_pid_page_next_button, bg_color: 0x1F3B68 }
-                      - lvgl.label.update: { id: advanced_pid_page_next_button_lbl, text_color: 0xFFFFFF }
-                      - lvgl.label.update: { id: advanced_pid_page_indicator, text: "Pagina 3 / 7" }
-                    else:
-                      - if:
-                          condition:
-                            lambda: 'return page == 4;'
-                          then:
-                            - lvgl.widget.hide: { id: set_heat_pid_kp_row }
-                            - lvgl.widget.hide: { id: set_heat_pid_ki_row }
-                            - lvgl.widget.hide: { id: set_heat_pid_kd_row }
-                            - lvgl.widget.hide: { id: set_cool_pid_kp_row }
-                            - lvgl.widget.hide: { id: set_cool_pid_ki_row }
-                            - lvgl.widget.hide: { id: set_cool_pid_kd_row }
-                            - lvgl.widget.hide: { id: set_heat_pid_deadband_row }
-                            - lvgl.widget.hide: { id: set_cool_pid_deadband_row }
-                            - lvgl.widget.show: { id: set_pump_pid_kp_row }
-                            - lvgl.widget.show: { id: set_pump_pid_ki_row }
-                            - lvgl.widget.show: { id: set_pump_pid_kd_row }
-                            - lvgl.widget.hide: { id: set_mv_z1_pid_kp_row }
-                            - lvgl.widget.hide: { id: set_mv_z1_pid_ki_row }
-                            - lvgl.widget.hide: { id: set_mv_z1_pid_kd_row }
-                            - lvgl.widget.hide: { id: set_mv_z2_pid_kp_row }
-                            - lvgl.widget.hide: { id: set_mv_z2_pid_ki_row }
-                            - lvgl.widget.hide: { id: set_mv_z2_pid_kd_row }
-                            - lvgl.widget.hide: { id: set_mv_z1_pid_deadband_row }
-                            - lvgl.widget.hide: { id: set_mv_z2_pid_deadband_row }
-                            - lvgl.widget.update: { id: advanced_pid_page_prev_button, bg_color: 0x1F3B68 }
-                            - lvgl.label.update: { id: advanced_pid_page_prev_button_lbl, text_color: 0xFFFFFF }
-                            - lvgl.widget.update: { id: advanced_pid_page_next_button, bg_color: 0x1F3B68 }
-                            - lvgl.label.update: { id: advanced_pid_page_next_button_lbl, text_color: 0xFFFFFF }
-                            - lvgl.label.update: { id: advanced_pid_page_indicator, text: "Pagina 4 / 7" }
-                          else:
-                            - if:
-                                condition:
-                                  lambda: 'return page == 5;'
-                                then:
-                                  - lvgl.widget.hide: { id: set_heat_pid_kp_row }
-                                  - lvgl.widget.hide: { id: set_heat_pid_ki_row }
-                                  - lvgl.widget.hide: { id: set_heat_pid_kd_row }
-                                  - lvgl.widget.hide: { id: set_cool_pid_kp_row }
-                                  - lvgl.widget.hide: { id: set_cool_pid_ki_row }
-                                  - lvgl.widget.hide: { id: set_cool_pid_kd_row }
-                                  - lvgl.widget.hide: { id: set_heat_pid_deadband_row }
-                                  - lvgl.widget.hide: { id: set_cool_pid_deadband_row }
-                                  - lvgl.widget.hide: { id: set_pump_pid_kp_row }
-                                  - lvgl.widget.hide: { id: set_pump_pid_ki_row }
-                                  - lvgl.widget.hide: { id: set_pump_pid_kd_row }
-                                  - lvgl.widget.show: { id: set_mv_z1_pid_kp_row }
-                                  - lvgl.widget.show: { id: set_mv_z1_pid_ki_row }
-                                  - lvgl.widget.show: { id: set_mv_z1_pid_kd_row }
-                                  - lvgl.widget.hide: { id: set_mv_z2_pid_kp_row }
-                                  - lvgl.widget.hide: { id: set_mv_z2_pid_ki_row }
-                                  - lvgl.widget.hide: { id: set_mv_z2_pid_kd_row }
-                                  - lvgl.widget.hide: { id: set_mv_z1_pid_deadband_row }
-                                  - lvgl.widget.hide: { id: set_mv_z2_pid_deadband_row }
-                                  - lvgl.widget.update: { id: advanced_pid_page_prev_button, bg_color: 0x1F3B68 }
-                                  - lvgl.label.update: { id: advanced_pid_page_prev_button_lbl, text_color: 0xFFFFFF }
-                                  - lvgl.widget.update: { id: advanced_pid_page_next_button, bg_color: 0x1F3B68 }
-                                  - lvgl.label.update: { id: advanced_pid_page_next_button_lbl, text_color: 0xFFFFFF }
-                                  - lvgl.label.update: { id: advanced_pid_page_indicator, text: "Pagina 5 / 7" }
-                                else:
-                                  - if:
-                                      condition:
-                                        lambda: 'return page == 6;'
-                                      then:
-                                        - lvgl.widget.hide: { id: set_heat_pid_kp_row }
-                                        - lvgl.widget.hide: { id: set_heat_pid_ki_row }
-                                        - lvgl.widget.hide: { id: set_heat_pid_kd_row }
-                                        - lvgl.widget.hide: { id: set_cool_pid_kp_row }
-                                        - lvgl.widget.hide: { id: set_cool_pid_ki_row }
-                                        - lvgl.widget.hide: { id: set_cool_pid_kd_row }
-                                        - lvgl.widget.hide: { id: set_heat_pid_deadband_row }
-                                        - lvgl.widget.hide: { id: set_cool_pid_deadband_row }
-                                        - lvgl.widget.hide: { id: set_pump_pid_kp_row }
-                                        - lvgl.widget.hide: { id: set_pump_pid_ki_row }
-                                        - lvgl.widget.hide: { id: set_pump_pid_kd_row }
-                                        - lvgl.widget.hide: { id: set_mv_z1_pid_kp_row }
-                                        - lvgl.widget.hide: { id: set_mv_z1_pid_ki_row }
-                                        - lvgl.widget.hide: { id: set_mv_z1_pid_kd_row }
-                                        - lvgl.widget.show: { id: set_mv_z2_pid_kp_row }
-                                        - lvgl.widget.show: { id: set_mv_z2_pid_ki_row }
-                                        - lvgl.widget.show: { id: set_mv_z2_pid_kd_row }
-                                        - lvgl.widget.hide: { id: set_mv_z1_pid_deadband_row }
-                                        - lvgl.widget.hide: { id: set_mv_z2_pid_deadband_row }
-                                        - lvgl.widget.update: { id: advanced_pid_page_prev_button, bg_color: 0x1F3B68 }
-                                        - lvgl.label.update: { id: advanced_pid_page_prev_button_lbl, text_color: 0xFFFFFF }
-                                        - lvgl.widget.update: { id: advanced_pid_page_next_button, bg_color: 0x1F3B68 }
-                                        - lvgl.label.update: { id: advanced_pid_page_next_button_lbl, text_color: 0xFFFFFF }
-                                        - lvgl.label.update: { id: advanced_pid_page_indicator, text: "Pagina 6 / 7" }
-                                      else:
-                                        - lvgl.widget.hide: { id: set_heat_pid_kp_row }
-                                        - lvgl.widget.hide: { id: set_heat_pid_ki_row }
-                                        - lvgl.widget.hide: { id: set_heat_pid_kd_row }
-                                        - lvgl.widget.hide: { id: set_cool_pid_kp_row }
-                                        - lvgl.widget.hide: { id: set_cool_pid_ki_row }
-                                        - lvgl.widget.hide: { id: set_cool_pid_kd_row }
-                                        - lvgl.widget.hide: { id: set_heat_pid_deadband_row }
-                                        - lvgl.widget.hide: { id: set_cool_pid_deadband_row }
-                                        - lvgl.widget.hide: { id: set_pump_pid_kp_row }
-                                        - lvgl.widget.hide: { id: set_pump_pid_ki_row }
-                                        - lvgl.widget.hide: { id: set_pump_pid_kd_row }
-                                        - lvgl.widget.hide: { id: set_mv_z1_pid_kp_row }
-                                        - lvgl.widget.hide: { id: set_mv_z1_pid_ki_row }
-                                        - lvgl.widget.hide: { id: set_mv_z1_pid_kd_row }
-                                        - lvgl.widget.hide: { id: set_mv_z2_pid_kp_row }
-                                        - lvgl.widget.hide: { id: set_mv_z2_pid_ki_row }
-                                        - lvgl.widget.hide: { id: set_mv_z2_pid_kd_row }
-                                        - lvgl.widget.show: { id: set_mv_z1_pid_deadband_row }
-                                        - lvgl.widget.show: { id: set_mv_z2_pid_deadband_row }
-                                        - lvgl.widget.update: { id: advanced_pid_page_prev_button, bg_color: 0x1F3B68 }
-                                        - lvgl.label.update: { id: advanced_pid_page_prev_button_lbl, text_color: 0xFFFFFF }
-                                        - lvgl.widget.update: { id: advanced_pid_page_next_button, bg_color: 0xCBD5E1 }
-                                        - lvgl.label.update: { id: advanced_pid_page_next_button_lbl, text_color: 0x4B5563 }
-                                        - lvgl.label.update: { id: advanced_pid_page_indicator, text: "Pagina 7 / 7" }
-
-- id: advanced_pid_prev_page
-  mode: restart
-  then:
-    - if:
-        condition:
-          lambda: 'return !lv_obj_has_flag(id(set_mv_z1_pid_deadband_row), LV_OBJ_FLAG_HIDDEN);'
-        then:
-          - script.execute:
-              id: advanced_pid_select_page
-              page: 6
-        else:
-          - if:
-              condition:
-                lambda: 'return !lv_obj_has_flag(id(set_mv_z2_pid_kp_row), LV_OBJ_FLAG_HIDDEN);'
-              then:
-                - script.execute:
-                    id: advanced_pid_select_page
-                    page: 5
-              else:
-                - if:
-                    condition:
-                      lambda: 'return !lv_obj_has_flag(id(set_mv_z1_pid_kp_row), LV_OBJ_FLAG_HIDDEN);'
-                    then:
-                      - script.execute:
-                          id: advanced_pid_select_page
-                          page: 4
-                    else:
-                      - if:
-                          condition:
-                            lambda: 'return !lv_obj_has_flag(id(set_pump_pid_kp_row), LV_OBJ_FLAG_HIDDEN);'
-                          then:
-                            - script.execute:
-                                id: advanced_pid_select_page
-                                page: 3
-                          else:
-                            - if:
-                                condition:
-                                  lambda: 'return !lv_obj_has_flag(id(set_heat_pid_deadband_row), LV_OBJ_FLAG_HIDDEN);'
-                                then:
-                                  - script.execute:
-                                      id: advanced_pid_select_page
-                                      page: 2
-                                else:
-                                  - if:
-                                      condition:
-                                        lambda: 'return !lv_obj_has_flag(id(set_cool_pid_kp_row), LV_OBJ_FLAG_HIDDEN);'
-                                      then:
-                                        - script.execute:
-                                            id: advanced_pid_select_page
-                                            page: 1
-
-- id: advanced_pid_next_page
-  mode: restart
-  then:
-    - if:
-        condition:
-          lambda: 'return !lv_obj_has_flag(id(set_heat_pid_kp_row), LV_OBJ_FLAG_HIDDEN);'
-        then:
-          - script.execute:
-              id: advanced_pid_select_page
-              page: 2
-        else:
-          - if:
-              condition:
-                lambda: 'return !lv_obj_has_flag(id(set_cool_pid_kp_row), LV_OBJ_FLAG_HIDDEN);'
-              then:
-                - script.execute:
-                    id: advanced_pid_select_page
-                    page: 3
-              else:
-                - if:
-                    condition:
-                      lambda: 'return !lv_obj_has_flag(id(set_heat_pid_deadband_row), LV_OBJ_FLAG_HIDDEN);'
-                    then:
-                      - script.execute:
-                          id: advanced_pid_select_page
-                          page: 4
-                    else:
-                      - if:
-                          condition:
-                            lambda: 'return !lv_obj_has_flag(id(set_pump_pid_kp_row), LV_OBJ_FLAG_HIDDEN);'
-                          then:
-                            - script.execute:
-                                id: advanced_pid_select_page
-                                page: 5
-                          else:
-                            - if:
-                                condition:
-                                  lambda: 'return !lv_obj_has_flag(id(set_mv_z1_pid_kp_row), LV_OBJ_FLAG_HIDDEN);'
-                                then:
-                                  - script.execute:
-                                      id: advanced_pid_select_page
-                                      page: 6
-                                else:
-                                  - if:
-                                      condition:
-                                        lambda: 'return !lv_obj_has_flag(id(set_mv_z2_pid_kp_row), LV_OBJ_FLAG_HIDDEN);'
-                                      then:
-                                        - script.execute:
-                                            id: advanced_pid_select_page
-                                            page: 7
-
-- id: advanced_defrost_select_page
-  mode: restart
-  parameters:
-    page: int
-  then:
-    - if:
-        condition:
-          lambda: 'return page == 1;'
-        then:
-          - lvgl.widget.show: { id: set_general_defrost_note_row }
-          - lvgl.widget.show: { id: set_general_defrost_exit_row }
-          - lvgl.widget.show: { id: set_general_defrost_max_time_row }
-          - lvgl.widget.hide: { id: set_general_defrost_enter1_row }
-          - lvgl.widget.hide: { id: set_defrost_advanced_section }
-          - lvgl.widget.update: { id: advanced_defrost_page_1_button, bg_color: 0x1F3B68 }
-          - lvgl.label.update: { id: advanced_defrost_page_1_button_lbl, text_color: 0xFFFFFF }
-          - lvgl.widget.update: { id: advanced_defrost_page_2_button, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: advanced_defrost_page_2_button_lbl, text_color: 0x4B5563 }
-          - lvgl.label.update: { id: advanced_defrost_page_indicator, text: "Pagina 1 / 2" }
-        else:
-          - lvgl.widget.hide: { id: set_general_defrost_note_row }
-          - lvgl.widget.hide: { id: set_general_defrost_exit_row }
-          - lvgl.widget.hide: { id: set_general_defrost_max_time_row }
-          - lvgl.widget.show: { id: set_general_defrost_enter1_row }
-          - lvgl.widget.show: { id: set_defrost_advanced_section }
-          - lvgl.widget.update: { id: advanced_defrost_page_1_button, bg_color: 0xCBD5E1 }
-          - lvgl.label.update: { id: advanced_defrost_page_1_button_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: advanced_defrost_page_2_button, bg_color: 0x1F3B68 }
-          - lvgl.label.update: { id: advanced_defrost_page_2_button_lbl, text_color: 0xFFFFFF }
-          - lvgl.label.update: { id: advanced_defrost_page_indicator, text: "Pagina 2 / 2" }
-
-- id: advanced_select_tab
-  mode: restart
-  parameters:
-    tab_index: int
-  then:
-    - lambda: |-
-        lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
-
-        lv_obj_t* panels[3] = {
-          id(panel_advanced_page_pid),
-          id(panel_advanced_page_bodemplaat),
-          id(panel_advanced_page_defrost)
-        };
-        lv_obj_t* tabs[3] = {
-          id(advanced_stab_pid),
-          id(advanced_stab_bodemplaat),
-          id(advanced_stab_defrost)
-        };
-        lv_obj_t* labels[3] = {
-          id(advanced_stab_pid_lbl),
-          id(advanced_stab_bodemplaat_lbl),
-          id(advanced_stab_defrost_lbl)
-        };
-
-        if (tab_index == 0) {
-          lv_obj_clear_flag(id(advanced_pid_pager), LV_OBJ_FLAG_HIDDEN);
-        } else {
-          lv_obj_add_flag(id(advanced_pid_pager), LV_OBJ_FLAG_HIDDEN);
-        }
-
-        if (tab_index == 2) {
-          lv_obj_clear_flag(id(advanced_defrost_pager), LV_OBJ_FLAG_HIDDEN);
-        } else {
-          lv_obj_add_flag(id(advanced_defrost_pager), LV_OBJ_FLAG_HIDDEN);
-        }
-
-        for (int i = 0; i < 3; i++) {
-          if (i == tab_index) {
-            lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
-            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
-            lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-          } else {
-            lv_obj_add_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
-            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xCBD5E1), LV_PART_MAIN);
-            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
-          }
-        }
-    - if:
-        condition:
-          lambda: 'return tab_index == 0;'
-        then:
-          - script.execute:
-              id: advanced_pid_select_page
-              page: 1
-    - if:
-        condition:
-          lambda: 'return tab_index == 2;'
-        then:
-          - script.execute:
-              id: advanced_defrost_select_page
-              page: 1
-    - script.execute: update_advanced_settings_ui
-
-- id: dhw_select_tab
-  mode: restart
-  parameters:
-    tab_index: int
-  then:
-    - lambda: |-
-        lv_obj_t* panels[4] = {
-          id(panel_dhw_page_algemeen),
-          id(panel_dhw_page_winter),
-          id(panel_dhw_page_schema),
-          id(panel_dhw_page_legionella)
-        };
-        lv_obj_t* tabs[4] = {
-          id(dhw_stab_algemeen),
-          id(dhw_stab_winter),
-          id(dhw_stab_schema),
-          id(dhw_stab_legionella)
-        };
-        lv_obj_t* labels[4] = {
-          id(dhw_stab_algemeen_lbl),
-          id(dhw_stab_winter_lbl),
-          id(dhw_stab_schema_lbl),
-          id(dhw_stab_legionella_lbl)
-        };
-        for (int i = 0; i < 4; i++) {
-          if (i == tab_index) {
-            lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
-            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
-            lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-          } else {
-            lv_obj_add_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
-            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xCBD5E1), LV_PART_MAIN);
-            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
-          }
-        }
-    - if:
-        condition:
-          lambda: 'return tab_index == 2;'
-        then:
-          - script.execute: update_dhw_schedule_ui
-    - if:
-        condition:
-          lambda: 'return tab_index == 3;'
-        then:
-          - script.execute: update_legio_ui
-
-- id: bijverwarmen_select_tab
-  mode: restart
-  parameters:
-    tab_index: int
-  then:
-    - lambda: |-
-        lv_obj_t* panels[3] = {
-          id(panel_bijverwarmen_page_algemeen),
-          id(panel_bijverwarmen_page_verwarmen),
-          id(panel_bijverwarmen_page_tapwater)
-        };
-        lv_obj_t* tabs[3] = {
-          id(bijverwarmen_stab_algemeen),
-          id(bijverwarmen_stab_verwarmen),
-          id(bijverwarmen_stab_tapwater)
-        };
-        lv_obj_t* labels[3] = {
-          id(bijverwarmen_stab_algemeen_lbl),
-          id(bijverwarmen_stab_verwarmen_lbl),
-          id(bijverwarmen_stab_tapwater_lbl)
-        };
-        for (int i = 0; i < 3; i++) {
-          if (i == tab_index) {
-            lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
-            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
-            lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-          } else {
-            lv_obj_add_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
-            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xCBD5E1), LV_PART_MAIN);
-            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
-          }
-        }
 
 
 - id: update_advanced_settings_ui
@@ -1679,137 +728,34 @@
           - lvgl.widget.disable: { id: service_tab_pumps }
           - lvgl.widget.disable: { id: service_tab_valve }
           - lvgl.widget.disable: { id: service_tab_backup }
-          - if:
-              condition:
-                lambda: 'return lv_obj_has_flag(id(service_sensors_panel), LV_OBJ_FLAG_HIDDEN) && lv_obj_has_flag(id(service_errors_panel), LV_OBJ_FLAG_HIDDEN) && lv_obj_has_flag(id(service_warnings_panel), LV_OBJ_FLAG_HIDDEN) && lv_obj_has_flag(id(service_eeprom_panel), LV_OBJ_FLAG_HIDDEN);'
-              then:
-                - lvgl.widget.show: { id: service_maintenance_panel }
-                - lvgl.widget.show: { id: service_maintenance_header }
-                - lvgl.widget.show: { id: service_maintenance_title }
-                - lvgl.widget.show: { id: service_maintenance_state }
-                - lvgl.widget.show: { id: set_service_mode_switch_ui }
-                - lvgl.widget.update: { id: service_maintenance_layout, y: 112, height: 72% }
-                - lvgl.widget.show: { id: service_mpanel_general }
-          - lvgl.widget.hide: { id: service_mpanel_compressor }
-          - lvgl.widget.hide: { id: service_mpanel_pumps }
-          - lvgl.widget.hide: { id: service_mpanel_valve }
-          - lvgl.widget.hide: { id: service_mpanel_backup }
 
 - id: update_service_top_tabs_ui
   mode: restart
   then:
-    - lvgl.widget.update: { id: service_tab_maintenance, bg_color: 0xE8ECF1 }
-    - lvgl.widget.update: { id: service_tab_maintenance_lbl, text_color: 0x4B5563 }
     - if:
         condition:
           lambda: 'return lv_obj_has_state(id(service_tab_compressor), LV_STATE_DISABLED);'
         then:
           - lvgl.widget.update: { id: service_tab_compressor, bg_color: 0xEDF1F6 }
           - lvgl.widget.update: { id: service_tab_compressor_lbl, text_color: 0x9CA3AF }
-        else:
-          - lvgl.widget.update: { id: service_tab_compressor, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_compressor_lbl, text_color: 0x4B5563 }
     - if:
         condition:
           lambda: 'return lv_obj_has_state(id(service_tab_pumps), LV_STATE_DISABLED);'
         then:
           - lvgl.widget.update: { id: service_tab_pumps, bg_color: 0xEDF1F6 }
           - lvgl.widget.update: { id: service_tab_pumps_lbl, text_color: 0x9CA3AF }
-        else:
-          - lvgl.widget.update: { id: service_tab_pumps, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_pumps_lbl, text_color: 0x4B5563 }
     - if:
         condition:
           lambda: 'return lv_obj_has_state(id(service_tab_valve), LV_STATE_DISABLED);'
         then:
           - lvgl.widget.update: { id: service_tab_valve, bg_color: 0xEDF1F6 }
           - lvgl.widget.update: { id: service_tab_valve_lbl, text_color: 0x9CA3AF }
-        else:
-          - lvgl.widget.update: { id: service_tab_valve, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_valve_lbl, text_color: 0x4B5563 }
     - if:
         condition:
           lambda: 'return lv_obj_has_state(id(service_tab_backup), LV_STATE_DISABLED);'
         then:
           - lvgl.widget.update: { id: service_tab_backup, bg_color: 0xEDF1F6 }
           - lvgl.widget.update: { id: service_tab_backup_lbl, text_color: 0x9CA3AF }
-        else:
-          - lvgl.widget.update: { id: service_tab_backup, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_backup_lbl, text_color: 0x4B5563 }
-    - if:
-        condition:
-          lambda: 'return lv_obj_has_state(id(service_tab_eeprom), LV_STATE_DISABLED);'
-        then:
-          - lvgl.widget.update: { id: service_tab_eeprom, bg_color: 0xEDF1F6 }
-          - lvgl.widget.update: { id: service_tab_eeprom_lbl, text_color: 0x9CA3AF }
-        else:
-          - lvgl.widget.update: { id: service_tab_eeprom, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: service_tab_eeprom_lbl, text_color: 0x4B5563 }
-    - lvgl.widget.update: { id: service_tab_sensors, bg_color: 0xE8ECF1 }
-    - lvgl.widget.update: { id: service_tab_sensors_lbl, text_color: 0x4B5563 }
-    - lvgl.widget.update: { id: service_tab_errors, bg_color: 0xE8ECF1 }
-    - lvgl.widget.update: { id: service_tab_errors_lbl, text_color: 0x4B5563 }
-    - lvgl.widget.update: { id: service_tab_warnings, bg_color: 0xE8ECF1 }
-    - lvgl.widget.update: { id: service_tab_warnings_lbl, text_color: 0x4B5563 }
-    - if:
-        condition:
-          lambda: 'return !lv_obj_has_flag(id(service_sensors_panel), LV_OBJ_FLAG_HIDDEN);'
-        then:
-          - lvgl.widget.update: { id: service_tab_sensors, bg_color: 0x1F3B68 }
-          - lvgl.widget.update: { id: service_tab_sensors_lbl, text_color: 0xFFFFFF }
-        else:
-          - if:
-              condition:
-                lambda: 'return !lv_obj_has_flag(id(service_errors_panel), LV_OBJ_FLAG_HIDDEN);'
-              then:
-                - lvgl.widget.update: { id: service_tab_errors, bg_color: 0x1F3B68 }
-                - lvgl.widget.update: { id: service_tab_errors_lbl, text_color: 0xFFFFFF }
-              else:
-                - if:
-                    condition:
-                      lambda: 'return !lv_obj_has_flag(id(service_warnings_panel), LV_OBJ_FLAG_HIDDEN);'
-                    then:
-                      - lvgl.widget.update: { id: service_tab_warnings, bg_color: 0x1F3B68 }
-                      - lvgl.widget.update: { id: service_tab_warnings_lbl, text_color: 0xFFFFFF }
-                    else:
-                      - if:
-                          condition:
-                            lambda: 'return !lv_obj_has_flag(id(service_mpanel_compressor), LV_OBJ_FLAG_HIDDEN);'
-                          then:
-                            - lvgl.widget.update: { id: service_tab_compressor, bg_color: 0x1F3B68 }
-                            - lvgl.widget.update: { id: service_tab_compressor_lbl, text_color: 0xFFFFFF }
-                          else:
-                            - if:
-                                condition:
-                                  lambda: 'return !lv_obj_has_flag(id(service_mpanel_pumps), LV_OBJ_FLAG_HIDDEN);'
-                                then:
-                                  - lvgl.widget.update: { id: service_tab_pumps, bg_color: 0x1F3B68 }
-                                  - lvgl.widget.update: { id: service_tab_pumps_lbl, text_color: 0xFFFFFF }
-                                else:
-                                  - if:
-                                      condition:
-                                        lambda: 'return !lv_obj_has_flag(id(service_eeprom_panel), LV_OBJ_FLAG_HIDDEN);'
-                                      then:
-                                        - lvgl.widget.update: { id: service_tab_eeprom, bg_color: 0x1F3B68 }
-                                        - lvgl.widget.update: { id: service_tab_eeprom_lbl, text_color: 0xFFFFFF }
-                                      else:
-                                        - if:
-                                            condition:
-                                              lambda: 'return !lv_obj_has_flag(id(service_mpanel_valve), LV_OBJ_FLAG_HIDDEN);'
-                                            then:
-                                              - lvgl.widget.update: { id: service_tab_valve, bg_color: 0x1F3B68 }
-                                              - lvgl.widget.update: { id: service_tab_valve_lbl, text_color: 0xFFFFFF }
-                                            else:
-                                              - if:
-                                                  condition:
-                                                    lambda: 'return !lv_obj_has_flag(id(service_mpanel_backup), LV_OBJ_FLAG_HIDDEN);'
-                                                  then:
-                                                    - lvgl.widget.update: { id: service_tab_backup, bg_color: 0x1F3B68 }
-                                                    - lvgl.widget.update: { id: service_tab_backup_lbl, text_color: 0xFFFFFF }
-                                                  else:
-                                                    - lvgl.widget.update: { id: service_tab_maintenance, bg_color: 0x1F3B68 }
-                                                    - lvgl.widget.update: { id: service_tab_maintenance_lbl, text_color: 0xFFFFFF }
-
 - id: open_service_errors_tab
   mode: restart
   then:
@@ -1818,23 +764,13 @@
     - lvgl.widget.update: { id: page_service, hidden: false }
     - lvgl.widget.update: { id: page_system, hidden: true }
     - lvgl.widget.update: { id: page_settings, hidden: true }
-    - lvgl.widget.show: { id: service_tabs_bar }
-    - lvgl.widget.hide: { id: service_maintenance_panel }
-    - lvgl.widget.hide: { id: service_sensors_panel }
-    - lvgl.widget.hide: { id: service_eeprom_panel }
-    - lvgl.widget.show: { id: service_errors_panel }
-    - lvgl.widget.hide: { id: service_warnings_panel }
-    - lvgl.widget.hide: { id: service_mpanel_compressor }
-    - lvgl.widget.hide: { id: service_mpanel_pumps }
-    - lvgl.widget.hide: { id: service_mpanel_valve }
-    - lvgl.widget.hide: { id: service_mpanel_backup }
-    - lvgl.widget.hide: { id: service_maintenance_header }
-    - lvgl.widget.hide: { id: service_maintenance_title }
-    - lvgl.widget.hide: { id: service_maintenance_state }
-    - lvgl.widget.hide: { id: set_service_mode_switch_ui }
-    - script.execute: update_service_mode_ui
+    - lvgl.menu.set_page:
+        id: service_menu
+        page: service_errors_page
+    - script.execute:
+        id: service_select_tab
+        tab_index: 7
     - script.execute: update_service_errors_ui
-    - script.execute: update_service_top_tabs_ui
     - lvgl.widget.update: { id: nav_service, bg_opa: 100% }
     - lvgl.widget.update: { id: nav_service_icon, text_color: 0xFFFFFF }
     - lvgl.widget.update: { id: nav_service_label, text_color: 0xFFFFFF }
@@ -1850,7 +786,6 @@
     - lvgl.widget.update: { id: nav_system, bg_opa: 0% }
     - lvgl.widget.update: { id: nav_system_icon, text_color: 0xD1D5DB }
     - lvgl.widget.update: { id: nav_system_label, text_color: 0xD1D5DB }
-
 - id: open_service_warnings_tab
   mode: restart
   then:
@@ -1859,23 +794,13 @@
     - lvgl.widget.update: { id: page_service, hidden: false }
     - lvgl.widget.update: { id: page_system, hidden: true }
     - lvgl.widget.update: { id: page_settings, hidden: true }
-    - lvgl.widget.show: { id: service_tabs_bar }
-    - lvgl.widget.hide: { id: service_maintenance_panel }
-    - lvgl.widget.hide: { id: service_sensors_panel }
-    - lvgl.widget.hide: { id: service_eeprom_panel }
-    - lvgl.widget.hide: { id: service_errors_panel }
-    - lvgl.widget.show: { id: service_warnings_panel }
-    - lvgl.widget.hide: { id: service_mpanel_compressor }
-    - lvgl.widget.hide: { id: service_mpanel_pumps }
-    - lvgl.widget.hide: { id: service_mpanel_valve }
-    - lvgl.widget.hide: { id: service_mpanel_backup }
-    - lvgl.widget.hide: { id: service_maintenance_header }
-    - lvgl.widget.hide: { id: service_maintenance_title }
-    - lvgl.widget.hide: { id: service_maintenance_state }
-    - lvgl.widget.hide: { id: set_service_mode_switch_ui }
-    - script.execute: update_service_mode_ui
+    - lvgl.menu.set_page:
+        id: service_menu
+        page: service_warnings_page
+    - script.execute:
+        id: service_select_tab
+        tab_index: 8
     - script.execute: update_service_warnings_ui
-    - script.execute: update_service_top_tabs_ui
     - lvgl.widget.update: { id: nav_service, bg_opa: 100% }
     - lvgl.widget.update: { id: nav_service_icon, text_color: 0xFFFFFF }
     - lvgl.widget.update: { id: nav_service_label, text_color: 0xFFFFFF }
@@ -1891,7 +816,6 @@
     - lvgl.widget.update: { id: nav_system, bg_opa: 0% }
     - lvgl.widget.update: { id: nav_system_icon, text_color: 0xD1D5DB }
     - lvgl.widget.update: { id: nav_system_label, text_color: 0xD1D5DB }
-
 - id: update_header_alert_icons
   mode: restart
   then:
@@ -2448,7 +1372,6 @@
               if (id(service_fan_slider) != nullptr) {
                 lv_slider_set_value(id(service_fan_slider), (int) id(fan_speed_manual_number).state, LV_ANIM_OFF);
               }
-          - lvgl.widget.show: { id: service_maintenance_layout }
           - if:
               condition:
                 lambda: 'return id(service_mode_enabled).state && id(state_machine_state_main).state == "Maintenance";'
@@ -2460,9 +1383,6 @@
                     id: service_maintenance_state
                     text_color: 0x166534
                 - lvgl.widget.hide: { id: service_maintenance_lock_hint }
-                - lvgl.widget.update:
-                    id: service_maintenance_layout
-                    opa: 100%
                 - lvgl.widget.enable: { id: service_deaeration_short_btn }
                 - lvgl.widget.enable: { id: service_deaeration_extended_btn }
               else:
@@ -2484,18 +1404,7 @@
                       - lvgl.widget.update:
                           id: service_maintenance_state
                           text_color: 0x6B7280
-                      - if:
-                          condition:
-                            lambda: 'return !id(service_mode_enabled).state && !lv_obj_has_flag(id(service_maintenance_panel), LV_OBJ_FLAG_HIDDEN);'
-                          then:
-                            - lvgl.widget.show: { id: service_maintenance_lock_hint }
-                - lvgl.widget.hide: { id: service_mpanel_compressor }
-                - lvgl.widget.hide: { id: service_mpanel_pumps }
-                - lvgl.widget.hide: { id: service_mpanel_valve }
-                - lvgl.widget.hide: { id: service_mpanel_backup }
-                - lvgl.widget.update:
-                    id: service_maintenance_layout
-                    opa: 45%
+                      - lvgl.widget.show: { id: service_maintenance_lock_hint }
                 - lvgl.widget.disable: { id: service_deaeration_short_btn }
                 - lvgl.widget.disable: { id: service_deaeration_extended_btn }
     - script.execute: update_header_mode_badge

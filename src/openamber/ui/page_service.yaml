@@ -15,46 +15,29 @@ obj:
   pad_bottom: 4
 
   widgets:
-    - obj:
-        id: service_card
+    - menu:
+        id: service_menu
+        root_page: service_maintenance_page
+        sidebar_page: service_sidebar_page
         width: 100%
         height: 100%
         bg_color: 0xF5F8FC
         bg_opa: 100%
         radius: 18
-        pad_left: 16
-        pad_right: 16
-        pad_top: 8
-        pad_bottom: 8
         border_width: 0
         border_opa: 0%
         shadow_width: 10
         shadow_spread: 0
         shadow_color: 0x000000
         shadow_opa: 20%
-        scrollbar_mode: "OFF"
-        scrollable: false
-        layout:
-          type: GRID
-          grid_rows: [FR(1)]
-          grid_columns: [210, FR(1)]
-          pad_column: 12
-
-        widgets:
+        pages:
           - !include service/page_service_sidebar.yaml
-          - obj:
-              id: service_content
-              grid_cell_row_pos: 0
-              grid_cell_column_pos: 1
-              grid_cell_x_align: STRETCH
-              grid_cell_y_align: STRETCH
-              bg_opa: 0%
-              border_opa: 0%
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - !include service/page_service_tab_maintenance.yaml
-                - !include service/page_service_tab_sensors.yaml
-                - !include service/page_service_tab_errors.yaml
-                - !include service/page_service_tab_warnings.yaml
-                - !include service/page_service_tab_eeprom.yaml
+          - !include service/page_service_tab_maintenance.yaml
+          - !include service/page_service_tab_compressor.yaml
+          - !include service/page_service_tab_pumps.yaml
+          - !include service/page_service_tab_valve.yaml
+          - !include service/page_service_tab_backup.yaml
+          - !include service/page_service_tab_eeprom.yaml
+          - !include service/page_service_tab_sensors.yaml
+          - !include service/page_service_tab_errors.yaml
+          - !include service/page_service_tab_warnings.yaml

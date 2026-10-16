@@ -1,158 +1,70 @@
-# Panel: Bijverwarmen
+# Menu Page: Bijverwarmen (Hoofdmenu)
 # ------------------------------------------------------------
-obj:
-  id: panel_bijverwarmen
-  width: 100%
-  height: 100%
-  hidden: true
-  bg_opa: 0%
-  border_opa: 0%
-  pad_left: 0
-  pad_right: 0
-  pad_top: 4
-  pad_bottom: 4
-  scrollbar_mode: "OFF"
-  scrollable: true
-  layout:
-    type: FLEX
-    flex_flow: COLUMN
-    flex_align_main: START
-    flex_align_cross: CENTER
-    pad_row: 4
+id: panel_bijverwarmen
+title: "Bijverwarmen"
+widgets:
+  - obj:
+      id: panel_bijverwarmen_page_algemeen
+      width: 100%
+      height: SIZE_CONTENT
+      bg_opa: 0%
+      border_opa: 0%
+      pad_all: 0
+      layout:
+        type: FLEX
+        flex_flow: COLUMN
+        flex_align_main: START
+        flex_align_cross: CENTER
+        pad_row: 6
+      widgets: !include page_settings_tab_bijverwarmen_algemeen_content.yaml
 
-  widgets:
-    - obj:
-        id: panel_bijverwarmen_tab_bar
-        width: 100%
-        height: 40
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 0
-        scrollbar_mode: "OFF"
-        scrollable: false
-        layout:
-          type: FLEX
-          flex_flow: ROW
-          flex_align_main: START
-          flex_align_cross: CENTER
-          pad_column: 6
-        widgets:
-          - obj:
-              id: bijverwarmen_stab_algemeen
-              width: SIZE_CONTENT
-              height: 34
-              bg_color: 0x1F3B68
-              bg_opa: 100%
-              radius: 8
-              border_opa: 0%
-              pad_left: 12
-              pad_right: 12
-              pad_top: 4
-              pad_bottom: 4
-              scrollbar_mode: "OFF"
-              scrollable: false
-              on_click:
-                - script.execute:
-                    id: bijverwarmen_select_tab
-                    tab_index: 0
-              widgets:
-                - label: { id: bijverwarmen_stab_algemeen_lbl, text: "Algemeen", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
+  # Drill-down subpage navigation rows
+  - obj:
+      id: bijverwarmen_subpages_nav
+      width: 100%
+      height: SIZE_CONTENT
+      bg_opa: 0%
+      border_opa: 0%
+      pad_all: 0
+      layout:
+        type: FLEX
+        flex_flow: COLUMN
+        flex_align_main: START
+        flex_align_cross: CENTER
+        pad_row: 6
+      widgets:
+        - obj:
+            id: bijverwarmen_stab_verwarmen
+            width: 100%
+            height: 52
+            bg_color: 0xE8ECF1
+            bg_opa: 100%
+            radius: 12
+            border_opa: 0%
+            pad_left: 14
+            pad_right: 14
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_bijverwarmen_page_verwarmen
+            widgets:
+              - label: { id: bijverwarmen_stab_verwarmen_lbl, text: "Verwarmen Parameters", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID }
+              - label: { text: "\U000F0142", text_color: 0x6B7280, text_font: font_mdi_24, align: RIGHT_MID }
 
-          - obj:
-              id: bijverwarmen_stab_verwarmen
-              width: SIZE_CONTENT
-              height: 34
-              bg_color: 0xCBD5E1
-              bg_opa: 100%
-              radius: 8
-              border_opa: 0%
-              pad_left: 12
-              pad_right: 12
-              pad_top: 4
-              pad_bottom: 4
-              scrollbar_mode: "OFF"
-              scrollable: false
-              on_click:
-                - script.execute:
-                    id: bijverwarmen_select_tab
-                    tab_index: 1
-              widgets:
-                - label: { id: bijverwarmen_stab_verwarmen_lbl, text: "Verwarmen", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
-
-          - obj:
-              id: bijverwarmen_stab_tapwater
-              width: SIZE_CONTENT
-              height: 34
-              bg_color: 0xCBD5E1
-              bg_opa: 100%
-              radius: 8
-              border_opa: 0%
-              pad_left: 12
-              pad_right: 12
-              pad_top: 4
-              pad_bottom: 4
-              scrollbar_mode: "OFF"
-              scrollable: false
-              on_click:
-                - script.execute:
-                    id: bijverwarmen_select_tab
-                    tab_index: 2
-              widgets:
-                - label: { id: bijverwarmen_stab_tapwater_lbl, text: "Tapwater", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
-
-    - obj:
-        id: panel_bijverwarmen_page_algemeen
-        width: 100%
-        height: SIZE_CONTENT
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 0
-        scrollbar_mode: "OFF"
-        scrollable: false
-        layout:
-          type: FLEX
-          flex_flow: COLUMN
-          flex_align_main: START
-          flex_align_cross: CENTER
-          pad_row: 6
-        widgets: !include page_settings_tab_bijverwarmen_algemeen_content.yaml
-
-    - obj:
-        id: panel_bijverwarmen_page_verwarmen
-        hidden: true
-        width: 100%
-        height: SIZE_CONTENT
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 0
-        scrollbar_mode: "OFF"
-        scrollable: false
-        layout:
-          type: FLEX
-          flex_flow: COLUMN
-          flex_align_main: START
-          flex_align_cross: CENTER
-          pad_row: 6
-        widgets: !include page_settings_tab_bijverwarmen_verwarmen_content.yaml
-
-    - obj:
-        id: panel_bijverwarmen_page_tapwater
-        hidden: true
-        width: 100%
-        height: SIZE_CONTENT
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 0
-        scrollbar_mode: "OFF"
-        scrollable: false
-        layout:
-          type: FLEX
-          flex_flow: COLUMN
-          flex_align_main: START
-          flex_align_cross: CENTER
-          pad_row: 6
-        widgets: !include page_settings_tab_bijverwarmen_tapwater_content.yaml
-      
-# ------------------------------------------------------------
-
-
+        - obj:
+            id: bijverwarmen_stab_tapwater
+            width: 100%
+            height: 52
+            bg_color: 0xE8ECF1
+            bg_opa: 100%
+            radius: 12
+            border_opa: 0%
+            pad_left: 14
+            pad_right: 14
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_bijverwarmen_page_tapwater
+            widgets:
+              - label: { id: bijverwarmen_stab_tapwater_lbl, text: "Tapwater Parameters", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID }
+              - label: { text: "\U000F0142", text_color: 0x6B7280, text_font: font_mdi_24, align: RIGHT_MID }

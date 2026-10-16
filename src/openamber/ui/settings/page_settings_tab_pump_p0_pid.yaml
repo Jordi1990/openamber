@@ -1,0 +1,5 @@
+# Menu Page: Dynamisch PWM P0 (PID)
+# ------------------------------------------------------------
+id: panel_pump_page_p0_pid
+title: "Dynamisch PWM P0"
+widgets: !include page_settings_tab_pump_p0_pid_content.yaml

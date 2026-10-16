@@ -1,0 +1,31 @@
+# Menu Page: Noodbedrijf
+# ------------------------------------------------------------
+id: panel_heating_page_noodbedrijf
+title: "Noodbedrijf"
+widgets:
+  - obj:
+      id: set_general_emergency_mode_row
+      width: 100%
+      height: SIZE_CONTENT
+      bg_opa: 0%
+      border_opa: 0%
+      pad_all: 6
+      widgets:
+        - label: { text: "Noodbedrijf", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+        - label: { text: "Schakel de compressor uit en laat alleen het backup-element werken", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+        - switch:
+            id: set_emergency_mode_switch_ui
+            align: TOP_RIGHT
+            bg_color: 0x9CA3AF
+            indicator:
+              bg_color: 0xF97316
+            knob:
+              bg_color: 0xFFFFFF
+            on_click:
+              - if:
+                  condition:
+                    switch.is_on: emergency_mode_enabled
+                  then:
+                    - switch.turn_off: emergency_mode_enabled
+                  else:
+                    - switch.turn_on: emergency_mode_enabled

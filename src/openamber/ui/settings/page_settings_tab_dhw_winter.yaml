@@ -1,0 +1,5 @@
+# Menu Page: Tapwater Winter
+# ------------------------------------------------------------
+id: panel_dhw_page_winter
+title: "Winter"
+widgets: !include page_settings_tab_dhw_winter_content.yaml

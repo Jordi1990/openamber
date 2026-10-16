@@ -157,7 +157,6 @@
       # ── Pagina 2: Koelen PID ──
       - obj:
           id: set_cool_pid_kp_row
-          hidden: true
           width: 100%
           height: SIZE_CONTENT
           bg_opa: 0%
@@ -205,7 +204,6 @@
 
       - obj:
           id: set_cool_pid_ki_row
-          hidden: true
           width: 100%
           height: SIZE_CONTENT
           bg_opa: 0%
@@ -253,7 +251,6 @@
 
       - obj:
           id: set_cool_pid_kd_row
-          hidden: true
           width: 100%
           height: SIZE_CONTENT
           bg_opa: 0%
@@ -302,7 +299,6 @@
       # ── Pagina 3: PID deadbands voor beide ──
       - obj:
           id: set_heat_pid_deadband_row
-          hidden: true
           width: 100%
           height: SIZE_CONTENT
           bg_opa: 0%
@@ -350,7 +346,6 @@
 
       - obj:
           id: set_cool_pid_deadband_row
-          hidden: true
           width: 100%
           height: SIZE_CONTENT
           bg_opa: 0%
@@ -399,7 +394,6 @@
       # ── Pagina 4: Pomp P0 PID (Dynamisch PWM) ──
       - obj:
           id: set_pump_pid_kp_row
-          hidden: true
           width: 100%
           height: SIZE_CONTENT
           bg_opa: 0%
@@ -447,7 +441,6 @@
 
       - obj:
           id: set_pump_pid_ki_row
-          hidden: true
           width: 100%
           height: SIZE_CONTENT
           bg_opa: 0%
@@ -495,7 +488,6 @@
 
       - obj:
           id: set_pump_pid_kd_row
-          hidden: true
           width: 100%
           height: SIZE_CONTENT
           bg_opa: 0%
@@ -544,7 +536,6 @@
       # ── Pagina 5: Mengventiel Zone 1 PID ──
       - obj:
           id: set_mv_z1_pid_kp_row
-          hidden: true
           width: 100%
           height: SIZE_CONTENT
           bg_opa: 0%
@@ -592,7 +583,6 @@
 
       - obj:
           id: set_mv_z1_pid_ki_row
-          hidden: true
           width: 100%
           height: SIZE_CONTENT
           bg_opa: 0%
@@ -640,7 +630,6 @@
 
       - obj:
           id: set_mv_z1_pid_kd_row
-          hidden: true
           width: 100%
           height: SIZE_CONTENT
           bg_opa: 0%
@@ -689,7 +678,6 @@
       # ── Pagina 6: Mengventiel Zone 2 PID ──
       - obj:
           id: set_mv_z2_pid_kp_row
-          hidden: true
           width: 100%
           height: SIZE_CONTENT
           bg_opa: 0%
@@ -737,7 +725,6 @@
 
       - obj:
           id: set_mv_z2_pid_ki_row
-          hidden: true
           width: 100%
           height: SIZE_CONTENT
           bg_opa: 0%
@@ -785,7 +772,6 @@
 
       - obj:
           id: set_mv_z2_pid_kd_row
-          hidden: true
           width: 100%
           height: SIZE_CONTENT
           bg_opa: 0%
@@ -834,7 +820,6 @@
       # ── Pagina 7: Mengventiel PID deadbands ──
       - obj:
           id: set_mv_z1_pid_deadband_row
-          hidden: true
           width: 100%
           height: SIZE_CONTENT
           bg_opa: 0%
@@ -882,7 +867,6 @@
 
       - obj:
           id: set_mv_z2_pid_deadband_row
-          hidden: true
           width: 100%
           height: SIZE_CONTENT
           bg_opa: 0%

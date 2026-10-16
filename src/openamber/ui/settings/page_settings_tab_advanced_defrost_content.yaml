@@ -111,7 +111,6 @@
 # ── Pagina 2 instellingen ──
 - obj:
     id: set_general_defrost_enter1_row
-    hidden: true
     width: 100%
     height: SIZE_CONTENT
     bg_opa: 0%

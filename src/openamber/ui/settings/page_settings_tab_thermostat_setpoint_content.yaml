@@ -1,0 +1,128 @@
+# Thermostat setpoint content
+# ------------------------------------------------------------
+- obj:
+    id: thermostat_row_setpoint
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Thermostaat bron", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Kies intern of extern thermostaatsignaal", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - dropdown:
+          id: set_thermostat_dd
+          symbol: "\U000F0140"
+          width: 200
+          align: TOP_RIGHT
+          y: 0
+          options:
+            - "Intern"
+            - "Extern"
+          text_font: font_text_20
+          dropdown_list:
+            text_font: font_text_20
+          on_value:
+            then:
+              - lambda: |-
+                  auto val = lv_dropdown_get_selected(id(set_thermostat_dd)->obj);
+                  auto idx = id(thermostat_mode_select).active_index();
+                  if (idx.has_value() && idx.value() == (int) val) {
+                    return;
+                  }
+                  if (val == 0) id(thermostat_mode_select).make_call().set_option("Intern").perform();
+                  else id(thermostat_mode_select).make_call().set_option("Extern").perform();
+
+- obj:
+    id: thermostat_row_default_heat
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Standaard setpoint verwarmen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Setpoint verwarmen na herstart", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: thermostat_default_heat_setpoint
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_therm_def_heat_val, text: "20.5°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: thermostat_default_heat_setpoint
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    id: thermostat_row_default_cool
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Standaard setpoint koelen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Setpoint koelen na herstart", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: thermostat_default_cool_setpoint
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_therm_def_cool_val, text: "24.0°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: thermostat_default_cool_setpoint
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
