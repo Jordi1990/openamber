@@ -92,7 +92,7 @@ public:
   void ApplyValvePosition()
   {
     int value = GetClampedModbusValue();
-    if (static_cast<int>(output_number_->state) != value)
+    if (std::isnan(output_number_->state) || static_cast<int>(roundf(output_number_->state)) != value)
     {
       ESP_LOGI("amber", "Mixing valve position: %d", value);
       auto call = output_number_->make_call();
@@ -107,7 +107,7 @@ public:
     float max_percent = max_position_->state;
     pid_output_ = std::max(0.0f, std::min(1.0f, max_percent / 100.0f));
     int max_value = static_cast<int>(roundf(max_percent));
-    if (static_cast<int>(output_number_->state) != max_value)
+    if (std::isnan(output_number_->state) || static_cast<int>(roundf(output_number_->state)) != max_value)
     {
       ESP_LOGI("amber", "Opening mixing valve to maximum (%.0f%%)", max_percent);
       auto call = output_number_->make_call();
@@ -120,9 +120,9 @@ public:
   void CloseValve()
   {
     float min_percent = min_position_->state;
-    pid_output_ = 0.0f;
+    pid_output_ = std::max(0.0f, std::min(1.0f, min_percent / 100.0f));
     int min_value = static_cast<int>(roundf(min_percent));
-    if (static_cast<int>(output_number_->state) != min_value)
+    if (std::isnan(output_number_->state) || static_cast<int>(roundf(output_number_->state)) != min_value)
     {
       ESP_LOGI("amber", "Closing mixing valve to minimum (%.0f%%)", min_percent);
       auto call = output_number_->make_call();

@@ -239,6 +239,9 @@ binary_sensor:
     id: external_heat_demand_wired
     name: "Externe warmtevraag"
   - platform: template
+    id: external_heat_demand_wired_zone_2
+    name: "Externe warmtevraag Zone 2"
+  - platform: template
     id: external_cool_demand_wired
     name: "Externe koelvraag"
   - platform: template

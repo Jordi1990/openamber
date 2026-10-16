@@ -102,16 +102,11 @@ binary_sensor:
     - component.update: current_dhw_setpoint_sensor
 
 - platform: template
-  name: "Warmtevraag"
-  id: heat_demand_active_sensor
+  name: "Warmtevraag Zone 1"
+  id: heat_demand_active_sensor_zone_1
   device_class: running
   lambda: |-
-    if(id(sg_ready_block_mode_active_sensor).state)
-    {
-      return false;
-    }
-
-    if(id(error_active).state)
+    if(id(sg_ready_block_mode_active_sensor).state || id(error_active).state)
     {
       return false;
     }
@@ -124,6 +119,40 @@ binary_sensor:
     {
       return id(external_heat_demand_wired).state || id(heat_demand_switch).state;
     }
+  on_state:
+    - component.update: current_setpoint
+  web_server: 
+    sorting_group_id: overview
+
+- platform: template
+  name: "Warmtevraag Zone 2"
+  id: heat_demand_active_sensor_zone_2
+  device_class: running
+  lambda: |-
+    if(id(sg_ready_block_mode_active_sensor).state || id(error_active).state)
+    {
+      return false;
+    }
+
+    return id(external_heat_demand_wired_zone_2).state || id(heat_demand_zone_2_switch).state;
+  on_state:
+    - component.update: current_setpoint
+  web_server: 
+    sorting_group_id: overview
+
+- platform: template
+  name: "Warmtevraag"
+  id: heat_demand_active_sensor
+  device_class: running
+  lambda: |-
+    if(id(sg_ready_block_mode_active_sensor).state || id(error_active).state)
+    {
+      return false;
+    }
+
+    return id(heat_demand_active_sensor_zone_1).state || id(heat_demand_active_sensor_zone_2).state;
+  on_state:
+    - component.update: current_setpoint
   web_server: 
     sorting_group_id: overview
 
