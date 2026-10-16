@@ -246,6 +246,13 @@ switch:
     sorting_group_id: manual_control
 
 - platform: template
+  id: heat_demand_zone_2_switch
+  name: "Externe warmtevraag Zone 2"
+  optimistic: True
+  web_server: 
+    sorting_group_id: manual_control
+
+- platform: template
   id: cool_demand_switch
   name: "Externe koudevraag"
   optimistic: True

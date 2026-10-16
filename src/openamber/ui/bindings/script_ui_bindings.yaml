@@ -396,6 +396,7 @@
                       - script.execute: update_dhw_schedule_ui
                       - script.execute: update_thermostat_settings_ui
                       - script.execute: update_pump_pid_ui
+                      - script.execute: update_control_temp_source_ui
                     else:
                       - if:
                           condition:
@@ -673,6 +674,7 @@
   mode: restart
   then:
     - lambda: |-
+        if (!id(set_heat_control_temp_source_dd) || !id(set_heat_control_temp_source_dd)->obj) return;
         bool mv_active = id(mixing_valve_zone1_enabled).state || id(mixing_valve_zone2_enabled).state;
         if (mv_active) {
           lv_dropdown_set_selected(id(set_heat_control_temp_source_dd)->obj, 0);
@@ -681,6 +683,8 @@
         } else {
           lv_obj_clear_state(id(set_heat_control_temp_source_dd)->obj, LV_STATE_DISABLED);
           lv_obj_set_style_opa(id(set_general_system_control_temp_source), LV_OPA_COVER, LV_PART_MAIN);
+          auto idx = id(heat_cool_control_temperature_source_select).active_index();
+          lv_dropdown_set_selected(id(set_heat_control_temp_source_dd)->obj, idx.has_value() ? idx.value() : 0);
         }
 
 

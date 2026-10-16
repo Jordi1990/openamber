@@ -84,6 +84,12 @@ class OpenAmberClient:
         """Query widget status (visible, hidden, text, checked, disabled)."""
         return self.send_cmd({"cmd": "get_widget", "id": widget_id})
 
+    def set_dropdown(self, widget_id: str, selected: int) -> bool:
+        """Set selected index of a dropdown widget and trigger LV_EVENT_VALUE_CHANGED."""
+        res = self.send_cmd({"cmd": "set_dropdown", "id": widget_id, "selected": int(selected)})
+        time.sleep(0.05)
+        return self._check_status(res, f"set_dropdown({widget_id}, {selected})")
+
     def is_visible(self, widget_id: str) -> bool:
         """Check if widget is visible."""
         w = self.get_widget(widget_id)

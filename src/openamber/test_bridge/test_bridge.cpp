@@ -74,13 +74,13 @@ void TestBridge::setup() {
   }
 
   ESP_LOGI(TAG, "Test automation bridge listening on 127.0.0.1:%d (%zu widgets, %zu sensors, %zu switches registered)", 
-           this->port_, this->widgets_.size(), this->sensors_.size(), this->switches_.size());
+           this->port_, this->widgets_.size() + this->obj_getters_.size(), this->sensors_.size(), this->switches_.size());
 }
 
 void TestBridge::dump_config() {
   ESP_LOGCONFIG(TAG, "TestBridge:");
   ESP_LOGCONFIG(TAG, "  Port: %d", this->port_);
-  ESP_LOGCONFIG(TAG, "  Registered widgets: %zu", this->widgets_.size());
+  ESP_LOGCONFIG(TAG, "  Registered widgets: %zu", this->widgets_.size() + this->obj_getters_.size());
   ESP_LOGCONFIG(TAG, "  Registered sensors: %zu", this->sensors_.size());
   ESP_LOGCONFIG(TAG, "  Registered numbers: %zu", this->numbers_.size());
   ESP_LOGCONFIG(TAG, "  Registered switches: %zu", this->switches_.size());
@@ -215,6 +215,10 @@ lv_obj_t *TestBridge::resolve_widget(const std::string &id) {
   if (it != this->widgets_.end() && it->second != nullptr) {
     return *(it->second);
   }
+  auto it2 = this->obj_getters_.find(id);
+  if (it2 != this->obj_getters_.end()) {
+    return it2->second();
+  }
   return nullptr;
 }
 
@@ -232,6 +236,9 @@ void TestBridge::process_line(const std::string &line) {
         out["status"] = "ok";
         JsonArray arr = out["widgets"].to<JsonArray>();
         for (const auto &kv : this->widgets_) {
+          arr.add(kv.first);
+        }
+        for (const auto &kv : this->obj_getters_) {
           arr.add(kv.first);
         }
       });
@@ -263,7 +270,13 @@ void TestBridge::process_line(const std::string &line) {
       bool checked = lv_obj_has_state(obj, LV_STATE_CHECKED);
 
       std::string text = "";
-      if (lv_obj_check_type(obj, &lv_label_class)) {
+      int selected_index = -1;
+      if (lv_obj_check_type(obj, &lv_dropdown_class)) {
+        selected_index = static_cast<int>(lv_dropdown_get_selected(obj));
+        char buf[128] = {0};
+        lv_dropdown_get_selected_str(obj, buf, sizeof(buf));
+        text = buf;
+      } else if (lv_obj_check_type(obj, &lv_label_class)) {
         const char *t = lv_label_get_text(obj);
         if (t) text = t;
       } else {
@@ -284,8 +297,29 @@ void TestBridge::process_line(const std::string &line) {
         out["disabled"] = disabled;
         out["checked"] = checked;
         out["text"] = text;
+        if (selected_index >= 0) {
+          out["selected_index"] = selected_index;
+        }
       });
       this->send_response(resp);
+      return true;
+    }
+
+    if (cmd == "set_dropdown") {
+      std::string id = root["id"] | "";
+      int selected = root["selected"] | 0;
+      lv_obj_t *obj = this->resolve_widget(id);
+      if (obj == nullptr) {
+        this->send_response(build_error_json("Widget not found: " + id));
+        return true;
+      }
+      if (!lv_obj_check_type(obj, &lv_dropdown_class)) {
+        this->send_response(build_error_json("Widget is not a dropdown: " + id));
+        return true;
+      }
+      lv_dropdown_set_selected(obj, selected);
+      lv_obj_send_event(obj, LV_EVENT_VALUE_CHANGED, nullptr);
+      this->send_response("{\"status\":\"ok\"}");
       return true;
     }
 

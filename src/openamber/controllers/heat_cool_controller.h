@@ -55,13 +55,69 @@ private:
 
   void ApplyMixingValvePositions()
   {
-    if (id(mixing_valve_zone1_enabled).state && mixing_valve_zone1_)
+    bool mixing_z1_enabled = id(mixing_valve_zone1_enabled).state;
+    bool mixing_z2_enabled = id(mixing_valve_zone2_enabled).state;
+    if (!mixing_z1_enabled && !mixing_z2_enabled) return;
+
+    bool z1_demand = id(heat_demand_active_sensor_zone_1).state;
+    bool z2_demand = id(heat_demand_active_sensor_zone_2).state;
+    bool frost_protection_active = id(frost_protection_stage1_active).state || id(frost_protection_stage2_active).state;
+
+    float target_z1 = (id(heat_mode_select).current_option() == "Stooklijn")
+                        ? id(heat_curve_calculated_setpoint).state
+                        : id(manual_setpoint).state;
+    float target_z2 = id(heat_curve_z2_calculated_setpoint).state;
+
+    // Zone 1
+    if (mixing_z1_enabled)
     {
-      mixing_valve_zone1_->ApplyValvePosition();
+      if (!z1_demand)
+      {
+        if (frost_protection_active)
+        {
+          mixing_valve_zone1_->OpenValve();
+        }
+        else
+        {
+          mixing_valve_zone1_->CloseValve();
+        }
+        id(pid_mixing_valve_zone1).reset_integral_term();
+      }
+      else if (z2_demand && target_z1 < (target_z2 - 0.1f))
+      {
+        mixing_valve_zone1_->ApplyValvePosition();
+      }
+      else
+      {
+        mixing_valve_zone1_->OpenValve();
+        id(pid_mixing_valve_zone1).reset_integral_term();
+      }
     }
-    if (id(mixing_valve_zone2_enabled).state && mixing_valve_zone2_)
+
+    // Zone 2
+    if (mixing_z2_enabled)
     {
-      mixing_valve_zone2_->ApplyValvePosition();
+      if (!z2_demand)
+      {
+        if (frost_protection_active)
+        {
+          mixing_valve_zone2_->OpenValve();
+        }
+        else
+        {
+          mixing_valve_zone2_->CloseValve();
+        }
+        id(pid_mixing_valve_zone2).reset_integral_term();
+      }
+      else if (z1_demand && target_z2 < (target_z1 - 0.1f))
+      {
+        mixing_valve_zone2_->ApplyValvePosition();
+      }
+      else
+      {
+        mixing_valve_zone2_->OpenValve();
+        id(pid_mixing_valve_zone2).reset_integral_term();
+      }
     }
   }
 
@@ -77,14 +133,27 @@ private:
     }
   }
 
+  void OpenMixingValves()
+  {
+    ResetMixingValvesIntegralTerm();
+    if (id(mixing_valve_zone1_enabled).state)
+    {
+      mixing_valve_zone1_->OpenValve();
+    }
+    if (id(mixing_valve_zone2_enabled).state)
+    {
+      mixing_valve_zone2_->OpenValve();
+    }
+  }
+
   void CloseMixingValves()
   {
     ResetMixingValvesIntegralTerm();
-    if (id(mixing_valve_zone1_enabled).state && mixing_valve_zone1_)
+    if (id(mixing_valve_zone1_enabled).state)
     {
       mixing_valve_zone1_->CloseValve();
     }
-    if (id(mixing_valve_zone2_enabled).state && mixing_valve_zone2_)
+    if (id(mixing_valve_zone2_enabled).state)
     {
       mixing_valve_zone2_->CloseValve();
     }
@@ -582,6 +651,14 @@ public:
       {
         pump_controller_->ApplySpeedChangeIfNeeded(false);
 
+        // Open mixing valves for cooling or freeze protection flow
+        bool frost_protection = id(frost_protection_stage1_active).state || id(frost_protection_stage2_active).state;
+        bool frost_protection_without_heat_demand = frost_protection && !id(heat_demand_active_sensor_zone_1).state && !id(heat_demand_active_sensor_zone_2).state;
+        if (IsCoolingDemand() || frost_protection_without_heat_demand)
+        {
+          OpenMixingValves();
+        }
+
         // Stop if there is no compressor demand or the compressor is not allowed to start and pump interval is finished.
         if ((!IsCompressorAllowedToStart() || !HasCompressorDemand()) && pump_controller_->IsIntervalCycleFinished())
         {
@@ -605,19 +682,6 @@ public:
 
         SetWorkingMode(IsCoolingDemand() ? WORKING_MODE_COOLING : WORKING_MODE_HEATING);
         SetPidController(IsCoolingDemand() ? climate::CLIMATE_MODE_COOL : climate::CLIMATE_MODE_HEAT);
-        
-        // Open valves if cooling
-        if (IsWorkingMode(WORKING_MODE_COOLING))
-        {
-          if (id(mixing_valve_zone1_enabled).state && mixing_valve_zone1_)
-          {
-            mixing_valve_zone1_->OpenValve();
-          }
-          if (id(mixing_valve_zone2_enabled).state && mixing_valve_zone2_)
-          {
-            mixing_valve_zone2_->OpenValve();
-          }
-        }
 
         if(id(emergency_mode_enabled).state)
         {

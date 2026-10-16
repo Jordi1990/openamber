@@ -384,6 +384,7 @@ sensor:
   device_class: temperature
   state_class: measurement
   accuracy_decimals: 0
+  update_interval: 5s
   lambda: |-
     float setpoint = 0.0;
     if (id(cool_demand_active_sensor).state)
@@ -398,25 +399,48 @@ sensor:
       }
     }
 
+    float sp_z1 = 0.0f;
     if (id(heat_mode_select).current_option() == "Stooklijn")
     {
-      // If we are mixing, use the highest temperature of all zones.
-      bool mv_z1 = id(mixing_valve_zone1_enabled).state;
-      bool mv_z2 = id(mixing_valve_zone2_enabled).state;
-      if (mv_z1 || mv_z2)
-      {
-        float sp_z1 = mv_z1 ? id(heat_curve_calculated_setpoint).state : 0.0f;
-        float sp_z2 = mv_z2 ? id(heat_curve_z2_calculated_setpoint).state : 0.0f;
-        setpoint = std::max(sp_z1, sp_z2);
-      }
-      else
-      {
-        setpoint = id(heat_curve_calculated_setpoint).state;
-      }
+      sp_z1 = id(heat_curve_calculated_setpoint).state;
     }
     else
     {
-      setpoint = id(manual_setpoint).state;
+      sp_z1 = id(manual_setpoint).state;
+    }
+    float sp_z2 = id(heat_curve_z2_calculated_setpoint).state;
+
+    bool demand_z1 = id(heat_demand_active_sensor_zone_1).state;
+    bool demand_z2 = id(heat_demand_active_sensor_zone_2).state;
+
+    if (demand_z1 && !demand_z2)
+    {
+      setpoint = sp_z1;
+    }
+    else if (!demand_z1 && demand_z2)
+    {
+      setpoint = sp_z2;
+    }
+    else if (demand_z1 && demand_z2)
+    {
+      setpoint = std::max(sp_z1, sp_z2);
+    }
+    else
+    {
+      bool mv_z1 = id(mixing_valve_zone1_enabled).state;
+      bool mv_z2 = id(mixing_valve_zone2_enabled).state;
+      if (mv_z1 && mv_z2)
+      {
+        setpoint = std::max(sp_z1, sp_z2);
+      }
+      else if (mv_z2 && !mv_z1)
+      {
+        setpoint = sp_z2;
+      }
+      else
+      {
+        setpoint = sp_z1;
+      }
     }
 
     if(id(sg_ready_boost_mode_active_sensor).state || id(sg_ready_max_boost_mode_active_sensor).state)
@@ -588,6 +612,12 @@ sensor:
   accuracy_decimals: 1
   update_interval: 5s
   lambda: |-
+    bool mixing_valves_enabled = id(mixing_valve_zone1_enabled).state || id(mixing_valve_zone2_enabled).state;
+    if (mixing_valves_enabled)
+    {
+      return id(heat_cool_temperature_tc).state;
+    }
+
     auto selected_source = id(heat_cool_control_temperature_source_select).active_index();
     int source = (selected_source.has_value() && selected_source.value() == 1) ? 1 : 0;
     if (source == 1)
