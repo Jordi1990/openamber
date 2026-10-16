@@ -599,6 +599,17 @@ public:
   {
     switch (new_state)
     {
+      case HeatCoolState::PUMP_RUNNING:
+      {
+        bool frost_protection = id(frost_protection_stage1_active).state || id(frost_protection_stage2_active).state;
+        bool frost_protection_without_heat_demand = frost_protection && !id(heat_demand_active_sensor_zone_1).state && !id(heat_demand_active_sensor_zone_2).state;
+        if (IsCoolingDemand() || frost_protection_without_heat_demand)
+        {
+          OpenMixingValves();
+        }
+        break;
+      }
+
       case HeatCoolState::COMPRESSOR_RUNNING:
         backup_degmin_last_ms_ = App.get_loop_component_start_time();
         break;
@@ -669,14 +680,6 @@ public:
       case HeatCoolState::PUMP_RUNNING:
       {
         pump_controller_->ApplySpeedChangeIfNeeded(false);
-
-        // Open mixing valves for cooling or freeze protection flow
-        bool frost_protection = id(frost_protection_stage1_active).state || id(frost_protection_stage2_active).state;
-        bool frost_protection_without_heat_demand = frost_protection && !id(heat_demand_active_sensor_zone_1).state && !id(heat_demand_active_sensor_zone_2).state;
-        if (IsCoolingDemand() || frost_protection_without_heat_demand)
-        {
-          OpenMixingValves();
-        }
 
         // Stop if there is no compressor demand or the compressor is not allowed to start and pump interval is finished.
         if ((!IsCompressorAllowedToStart() || !HasCompressorDemand()) && pump_controller_->IsIntervalCycleFinished())
