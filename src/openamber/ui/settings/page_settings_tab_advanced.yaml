@@ -1,10 +1,9 @@
-# Menu Page: Geavanceerd (Hoofdmenu)
+# Menu Page: Geavanceerd (Categorie keuzemenu)
 # ------------------------------------------------------------
 id: panel_advanced
 title: "Geavanceerd"
 widgets:
   - obj:
-      id: advanced_subpages_nav
       width: 100%
       height: SIZE_CONTENT
       bg_opa: 0%
@@ -15,58 +14,67 @@ widgets:
         flex_flow: COLUMN
         flex_align_main: START
         flex_align_cross: CENTER
-        pad_row: 6
+        pad_row: 8
       widgets:
         - obj:
             id: advanced_stab_pid
             width: 100%
             height: 52
-            bg_color: 0xE8ECF1
+            bg_color: 0xFFFFFF
             bg_opa: 100%
             radius: 12
-            border_opa: 0%
-            pad_left: 14
-            pad_right: 14
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
             on_click:
               - lvgl.menu.set_page:
                   id: settings_menu
                   page: panel_advanced_page_pid
             widgets:
-              - label: { id: advanced_stab_pid_lbl, text: "PID Regeling Parameters", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID }
-              - label: { text: "\U000F0142", text_color: 0x6B7280, text_font: font_mdi_24, align: RIGHT_MID }
+              - label: { text: "\U000F08D4", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: advanced_stab_pid_lbl, text: "PID Regeling Parameters", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
 
         - obj:
             id: advanced_stab_bodemplaat
             width: 100%
             height: 52
-            bg_color: 0xE8ECF1
+            bg_color: 0xFFFFFF
             bg_opa: 100%
             radius: 12
-            border_opa: 0%
-            pad_left: 14
-            pad_right: 14
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
             on_click:
               - lvgl.menu.set_page:
                   id: settings_menu
                   page: panel_advanced_page_bodemplaat
             widgets:
-              - label: { id: advanced_stab_bodemplaat_lbl, text: "Bodemplaatverwarming", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID }
-              - label: { text: "\U000F0142", text_color: 0x6B7280, text_font: font_mdi_24, align: RIGHT_MID }
+              - label: { text: "\U000F0238", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: advanced_stab_bodemplaat_lbl, text: "Bodemplaatverwarming", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
 
         - obj:
             id: advanced_stab_defrost
             width: 100%
             height: 52
-            bg_color: 0xE8ECF1
+            bg_color: 0xFFFFFF
             bg_opa: 100%
             radius: 12
-            border_opa: 0%
-            pad_left: 14
-            pad_right: 14
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
             on_click:
               - lvgl.menu.set_page:
                   id: settings_menu
                   page: panel_advanced_page_defrost
             widgets:
-              - label: { id: advanced_stab_defrost_lbl, text: "Ontdooicyclus (Defrost)", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID }
-              - label: { text: "\U000F0142", text_color: 0x6B7280, text_font: font_mdi_24, align: RIGHT_MID }
+              - label: { text: "\U000F071A", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: advanced_stab_defrost_lbl, text: "Ontdooicyclus (Defrost)", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }

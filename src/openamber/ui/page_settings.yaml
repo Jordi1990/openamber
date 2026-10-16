@@ -44,24 +44,32 @@ obj:
           - !include settings/page_settings_tab_general_sensorkalibratie_ruimte.yaml
           - !include settings/page_settings_tab_general_sensorkalibratie_cv.yaml
           - !include settings/page_settings_tab_thermostat.yaml
+          - !include settings/page_settings_tab_thermostat_setpoint.yaml
           - !include settings/page_settings_tab_thermostat_verwarmen.yaml
           - !include settings/page_settings_tab_thermostat_koelen.yaml
           - !include settings/page_settings_tab_pump.yaml
+          - !include settings/page_settings_tab_pump_algemeen.yaml
           - !include settings/page_settings_tab_pump_pompsnelheid.yaml
           - !include settings/page_settings_tab_pump_p0_pid.yaml
+          - !include settings/page_settings_tab_pump_p0_pid_limieten.yaml
+          - !include settings/page_settings_tab_pump_p0_pid_params.yaml
           - !include settings/page_settings_tab_pump_vorstbescherming.yaml
           - !include settings/page_settings_tab_heating.yaml
+          - !include settings/page_settings_tab_heating_algemeen.yaml
           - !include settings/page_settings_tab_heating_stooklijn.yaml
           - !include settings/page_settings_tab_heating_stooklijn_z2.yaml
           - !include settings/page_settings_tab_heating_start_stop.yaml
           - !include settings/page_settings_tab_heating_noodbedrijf.yaml
           - !include settings/page_settings_tab_cooling.yaml
+          - !include settings/page_settings_tab_cooling_algemeen.yaml
           - !include settings/page_settings_tab_cooling_setpoint.yaml
           - !include settings/page_settings_tab_dhw.yaml
+          - !include settings/page_settings_tab_dhw_algemeen.yaml
           - !include settings/page_settings_tab_dhw_schema.yaml
           - !include settings/page_settings_tab_dhw_legionella.yaml
           - !include settings/page_settings_tab_dhw_winter.yaml
           - !include settings/page_settings_tab_bijverwarmen.yaml
+          - !include settings/page_settings_tab_bijverwarmen_algemeen.yaml
           - !include settings/page_settings_tab_bijverwarmen_verwarmen.yaml
           - !include settings/page_settings_tab_bijverwarmen_tapwater.yaml
           - !include settings/page_settings_tab_smartgrid.yaml

@@ -1,0 +1,5 @@
+# Menu Page: Verwarmen Algemeen
+# ------------------------------------------------------------
+id: panel_heating_page_algemeen
+title: "Algemeen & Modus"
+widgets: !include page_settings_tab_heating_algemeen_content.yaml

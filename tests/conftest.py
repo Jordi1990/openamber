@@ -33,7 +33,7 @@ def openamber_proc():
             else:
                 wsl_bin = bin_path.replace("\\", "/")
 
-        subprocess.run(["wsl", "-u", "root", "-d", "Debian", "pkill", "-9", "-f", wsl_bin], capture_output=True)
+        subprocess.run(["wsl", "-u", "root", "-d", "Debian", "bash", "-c", "killall -9 program 2>/dev/null; fuser -k 8888/tcp 2>/dev/null || true"], capture_output=True)
         subprocess.run(["wsl", "-d", "Debian", "bash", "-c", "rm -f ~/.esphome/prefs/openamber-test.prefs"], capture_output=True)
         time.sleep(0.5)
         cmd = [
@@ -71,8 +71,7 @@ def openamber_proc():
                 pass
         finally:
             if os.name == "nt":
-                if wsl_bin:
-                    subprocess.run(["wsl", "-u", "root", "-d", "Debian", "pkill", "-9", "-f", wsl_bin], capture_output=True)
+                subprocess.run(["wsl", "-u", "root", "-d", "Debian", "bash", "-c", "killall -9 program 2>/dev/null; fuser -k 8888/tcp 2>/dev/null || true"], capture_output=True)
             else:
                 subprocess.run(["pkill", "-9", "-f", bin_path], capture_output=True)
 
@@ -164,5 +163,7 @@ def clean_system(openamber):
     openamber.step(ms=50)
 
     assert openamber.get_entity("three_way_valve_dhw_switch") is False, "Valve should be in CV position in idle"
+    openamber.click("nav_home")
+    openamber.step(ms=50)
     return openamber
 

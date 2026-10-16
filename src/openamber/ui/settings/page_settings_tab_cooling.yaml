@@ -1,10 +1,9 @@
-# Menu Page: Koelen (Hoofdmenu)
+# Menu Page: Koelen (Categorie keuzemenu)
 # ------------------------------------------------------------
 id: panel_cooling
 title: "Koelen"
 widgets:
   - obj:
-      id: panel_cooling_page_algemeen
       width: 100%
       height: SIZE_CONTENT
       bg_opa: 0%
@@ -15,38 +14,46 @@ widgets:
         flex_flow: COLUMN
         flex_align_main: START
         flex_align_cross: CENTER
-        pad_row: 6
-      widgets: !include page_settings_tab_cooling_algemeen_content.yaml
-
-  # Drill-down subpage navigation rows
-  - obj:
-      id: cooling_subpages_nav
-      width: 100%
-      height: SIZE_CONTENT
-      bg_opa: 0%
-      border_opa: 0%
-      pad_all: 0
-      layout:
-        type: FLEX
-        flex_flow: COLUMN
-        flex_align_main: START
-        flex_align_cross: CENTER
-        pad_row: 6
+        pad_row: 8
       widgets:
+        - obj:
+            id: cooling_stab_algemeen
+            width: 100%
+            height: 52
+            bg_color: 0xFFFFFF
+            bg_opa: 100%
+            radius: 12
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_cooling_page_algemeen
+            widgets:
+              - label: { text: "\U000F058F", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: cooling_stab_algemeen_lbl, text: "Algemeen & Vermogen", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
+
         - obj:
             id: cooling_stab_setpoint
             width: 100%
             height: 52
-            bg_color: 0xE8ECF1
+            bg_color: 0xFFFFFF
             bg_opa: 100%
             radius: 12
-            border_opa: 0%
-            pad_left: 14
-            pad_right: 14
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
             on_click:
               - lvgl.menu.set_page:
                   id: settings_menu
                   page: panel_cooling_page_setpoint
             widgets:
-              - label: { id: cooling_stab_setpoint_lbl, text: "Setpoint Parameters", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID }
-              - label: { text: "\U000F0142", text_color: 0x6B7280, text_font: font_mdi_24, align: RIGHT_MID }
+              - label: { text: "\U000F050F", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: cooling_stab_setpoint_lbl, text: "Setpoint Parameters", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }

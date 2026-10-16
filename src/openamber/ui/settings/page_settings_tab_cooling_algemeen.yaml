@@ -1,0 +1,5 @@
+# Menu Page: Koelen Algemeen
+# ------------------------------------------------------------
+id: panel_cooling_page_algemeen
+title: "Algemeen & Vermogen"
+widgets: !include page_settings_tab_cooling_algemeen_content.yaml

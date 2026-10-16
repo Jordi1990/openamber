@@ -1,0 +1,5 @@
+# Menu Page: Bijverwarmen Algemeen
+# ------------------------------------------------------------
+id: panel_bijverwarmen_page_algemeen
+title: "Algemene Vrijgave"
+widgets: !include page_settings_tab_bijverwarmen_algemeen_content.yaml

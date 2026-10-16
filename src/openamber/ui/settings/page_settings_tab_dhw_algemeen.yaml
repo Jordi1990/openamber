@@ -1,0 +1,5 @@
+# Menu Page: Tapwater Algemeen
+# ------------------------------------------------------------
+id: panel_dhw_page_algemeen
+title: "Basis & Setpoint"
+widgets: !include page_settings_tab_dhw_algemeen_content.yaml

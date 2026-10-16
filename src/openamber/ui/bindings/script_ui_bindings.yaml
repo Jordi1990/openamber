@@ -285,6 +285,10 @@
                       - lvgl.widget.update: { id: page_service, hidden: true }
                       - lvgl.widget.update: { id: page_system, hidden: true }
                       - lvgl.widget.update: { id: page_settings, hidden: false }
+                      - lvgl.menu.set_page:
+                          id: settings_menu
+                          page: settings_overview_page
+                      - script.execute: update_advanced_settings_ui
                       - script.execute: update_wifi_connected_summary_ui
                       - script.execute: update_manual_setpoint_ui
                       - script.execute: update_heat_curve_chart
@@ -303,6 +307,9 @@
                             - lvgl.widget.update: { id: page_service, hidden: false }
                             - lvgl.widget.update: { id: page_system, hidden: true }
                             - lvgl.widget.update: { id: page_settings, hidden: true }
+                            - lvgl.menu.set_page:
+                                id: service_menu
+                                page: service_maintenance_page
                             - script.execute: update_service_mode_ui
                             - script.execute: update_service_top_tabs_ui
                             - script.execute: update_service_diag_summary_ui
