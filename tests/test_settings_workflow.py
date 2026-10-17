@@ -116,13 +116,22 @@ def test_general_systeem_and_opties(openamber):
     assert openamber.click("stab_general"), "Clicking stab_general must succeed"
     openamber.step(ms=50)
 
-    # Systeem subpage (<= 4 settings)
+    # Systeem subpage (<= 4 settings: DHW, Control temp source, Advanced settings toggle)
     assert openamber.click("general_stab_systeem"), "Clicking general_stab_systeem must succeed"
     openamber.step(ms=100)
     assert openamber.is_visible("panel_general_page_systeem"), "panel_general_page_systeem must be visible"
     assert openamber.is_visible("set_general_system_dhw"), "Tapwater row must be visible"
     assert openamber.is_visible("set_general_system_control_temp_source"), "Regeltemp row must be visible"
     assert openamber.is_visible("set_general_defrost_advanced_toggle_row"), "Geavanceerd row must be visible"
+
+    # Back to Algemeen choices
+    assert openamber.click("settings_menu_back_btn"), "Clicking back button must succeed"
+    openamber.step(ms=100)
+
+    # Analytics subpage (<= 4 settings: Analytics toggle, ID)
+    assert openamber.click("general_stab_analytics"), "Clicking general_stab_analytics must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_general_page_analytics"), "panel_general_page_analytics must be visible"
     assert openamber.is_visible("set_general_system_analytics"), "Analytics row must be visible"
 
     # Back to Algemeen choices

@@ -108,3 +108,26 @@ widgets:
               - label: { text: "\U000F08BB", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
               - label: { id: general_stab_hardware_lbl, text: "Opties", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
               - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
+
+        - obj:
+            id: general_stab_analytics
+            width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
+            height: 54
+            bg_color: 0xFFFFFF
+            bg_opa: 100%
+            radius: 12
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_general_page_analytics
+            widgets:
+              - label: { text: "\U000F08D4", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: general_stab_analytics_lbl, text: "Analytics", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }

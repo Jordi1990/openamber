@@ -43,6 +43,7 @@ obj:
           - !include settings/page_settings_overview.yaml
           - !include settings/page_settings_tab_general.yaml
           - !include settings/page_settings_tab_general_systeem.yaml
+          - !include settings/page_settings_tab_general_analytics.yaml
           - !include settings/page_settings_tab_general_hardware.yaml
           - !include settings/page_settings_tab_general_mengventielen.yaml
           - !include settings/page_settings_tab_general_mengventielen_z1.yaml
