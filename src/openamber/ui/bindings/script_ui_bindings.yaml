@@ -110,34 +110,6 @@
   parameters:
     tab_index: int
   then:
-    - lambda: |-
-        lv_obj_t* tabs[10] = {
-          id(stab_general),
-          id(stab_thermostat),
-          id(stab_pump),
-          id(stab_heating),
-          id(stab_cooling),
-          id(stab_dhw),
-          id(stab_bijverwarmen),
-          id(stab_smartgrid),
-          id(stab_wifi),
-          id(stab_advanced)
-        };
-        lv_obj_t* labels[10] = {
-          id(stab_general_lbl),
-          id(stab_thermostat_lbl),
-          id(stab_pump_lbl),
-          id(stab_heating_lbl),
-          id(stab_cooling_lbl),
-          id(stab_dhw_lbl),
-          id(stab_bijverwarmen_lbl),
-          id(stab_smartgrid_lbl),
-          id(stab_wifi_lbl),
-          id(stab_advanced_lbl)
-        };
-
-        // Tabs in the 2-column drill-down overview retain their default clean white card styling
-
     - if:
         condition:
           lambda: 'return tab_index == 0;'
@@ -188,50 +160,7 @@
   parameters:
     tab_index: int
   then:
-    - lambda: |-
-        lv_obj_t* tabs[10] = {
-          id(service_tab_maintenance),
-          id(service_tab_deaeration),
-          id(service_tab_compressor),
-          id(service_tab_pumps),
-          id(service_tab_valve),
-          id(service_tab_backup),
-          id(service_tab_eeprom),
-          id(service_tab_sensors),
-          id(service_tab_errors),
-          id(service_tab_warnings)
-        };
-        lv_obj_t* labels[10] = {
-          id(service_tab_maintenance_lbl),
-          id(service_tab_deaeration_lbl),
-          id(service_tab_compressor_lbl),
-          id(service_tab_pumps_lbl),
-          id(service_tab_valve_lbl),
-          id(service_tab_backup_lbl),
-          id(service_tab_eeprom_lbl),
-          id(service_tab_sensors_lbl),
-          id(service_tab_errors_lbl),
-          id(service_tab_warnings_lbl)
-        };
-
-        // Tabs in the 2-column drill-down overview retain their default clean white card styling
-
     - script.execute: update_service_mode_ui
-    - if:
-        condition:
-          lambda: 'return tab_index == 1;'
-        then:
-          - script.execute: update_service_deaeration_ui
-    - if:
-        condition:
-          lambda: 'return tab_index == 8;'
-        then:
-          - script.execute: update_service_errors_ui
-    - if:
-        condition:
-          lambda: 'return tab_index == 9;'
-        then:
-          - script.execute: update_service_warnings_ui
 
 - id: nav_select_tab
   mode: restart
@@ -313,7 +242,6 @@
                                 page: service_overview_page
                             - script.execute: setup_menu_header_ui
                             - script.execute: update_service_mode_ui
-                            - script.execute: update_service_top_tabs_ui
                             - script.execute: update_service_diag_summary_ui
                           else:
                             - lvgl.widget.update: { id: page_home, hidden: true }
@@ -720,113 +648,27 @@
                 - lvgl.widget.update: { id: service_valve_btn_dhw, bg_color: 0xE8ECF1 }
                 - lvgl.widget.update: { id: service_valve_btn_dhw_lbl, text_color: 0x4B5563 }
 
-- id: update_service_section_options_ui
-  mode: restart
-  then:
-    - lvgl.widget.enable: { id: service_tab_eeprom }
-    - if:
-        condition:
-          lambda: 'return id(service_mode_enabled).state && id(state_machine_state_main).state == "Maintenance";'
-        then:
-          - lvgl.widget.enable: { id: service_tab_compressor }
-          - lvgl.widget.enable: { id: service_tab_pumps }
-          - lvgl.widget.enable: { id: service_tab_valve }
-          - lvgl.widget.enable: { id: service_tab_backup }
-        else:
-          - lvgl.widget.disable: { id: service_tab_compressor }
-          - lvgl.widget.disable: { id: service_tab_pumps }
-          - lvgl.widget.disable: { id: service_tab_valve }
-          - lvgl.widget.disable: { id: service_tab_backup }
-
-- id: update_service_top_tabs_ui
-  mode: restart
-  then:
-    - if:
-        condition:
-          lambda: 'return lv_obj_has_state(id(service_tab_compressor), LV_STATE_DISABLED);'
-        then:
-          - lvgl.widget.update: { id: service_tab_compressor, bg_color: 0xEDF1F6 }
-          - lvgl.widget.update: { id: service_tab_compressor_lbl, text_color: 0x9CA3AF }
-    - if:
-        condition:
-          lambda: 'return lv_obj_has_state(id(service_tab_pumps), LV_STATE_DISABLED);'
-        then:
-          - lvgl.widget.update: { id: service_tab_pumps, bg_color: 0xEDF1F6 }
-          - lvgl.widget.update: { id: service_tab_pumps_lbl, text_color: 0x9CA3AF }
-    - if:
-        condition:
-          lambda: 'return lv_obj_has_state(id(service_tab_valve), LV_STATE_DISABLED);'
-        then:
-          - lvgl.widget.update: { id: service_tab_valve, bg_color: 0xEDF1F6 }
-          - lvgl.widget.update: { id: service_tab_valve_lbl, text_color: 0x9CA3AF }
-    - if:
-        condition:
-          lambda: 'return lv_obj_has_state(id(service_tab_backup), LV_STATE_DISABLED);'
-        then:
-          - lvgl.widget.update: { id: service_tab_backup, bg_color: 0xEDF1F6 }
-          - lvgl.widget.update: { id: service_tab_backup_lbl, text_color: 0x9CA3AF }
 - id: open_service_errors_tab
   mode: restart
   then:
-    - lvgl.widget.update: { id: page_home, hidden: true }
-    - lvgl.widget.update: { id: page_thermostat, hidden: true }
-    - lvgl.widget.update: { id: page_service, hidden: false }
-    - lvgl.widget.update: { id: page_system, hidden: true }
-    - lvgl.widget.update: { id: page_settings, hidden: true }
+    - script.execute:
+        id: nav_select_tab
+        tab_index: 3
     - lvgl.menu.set_page:
         id: service_menu
         page: service_errors_page
     - script.execute: setup_menu_header_ui
-    - script.execute:
-        id: service_select_tab
-        tab_index: 8
-    - script.execute: update_service_errors_ui
-    - lvgl.widget.update: { id: nav_service, bg_opa: 100% }
-    - lvgl.widget.update: { id: nav_service_icon, text_color: 0xFFFFFF }
-    - lvgl.widget.update: { id: nav_service_label, text_color: 0xFFFFFF }
-    - lvgl.widget.update: { id: nav_home, bg_opa: 0% }
-    - lvgl.widget.update: { id: nav_home_icon, text_color: 0xD1D5DB }
-    - lvgl.widget.update: { id: nav_home_label, text_color: 0xD1D5DB }
-    - lvgl.widget.update: { id: nav_thermostat, bg_opa: 0% }
-    - lvgl.widget.update: { id: nav_thermostat_icon, text_color: 0xD1D5DB }
-    - lvgl.widget.update: { id: nav_thermostat_label, text_color: 0xD1D5DB }
-    - lvgl.widget.update: { id: nav_settings, bg_opa: 0% }
-    - lvgl.widget.update: { id: nav_settings_icon, text_color: 0xD1D5DB }
-    - lvgl.widget.update: { id: nav_settings_label, text_color: 0xD1D5DB }
-    - lvgl.widget.update: { id: nav_system, bg_opa: 0% }
-    - lvgl.widget.update: { id: nav_system_icon, text_color: 0xD1D5DB }
-    - lvgl.widget.update: { id: nav_system_label, text_color: 0xD1D5DB }
+
 - id: open_service_warnings_tab
   mode: restart
   then:
-    - lvgl.widget.update: { id: page_home, hidden: true }
-    - lvgl.widget.update: { id: page_thermostat, hidden: true }
-    - lvgl.widget.update: { id: page_service, hidden: false }
-    - lvgl.widget.update: { id: page_system, hidden: true }
-    - lvgl.widget.update: { id: page_settings, hidden: true }
+    - script.execute:
+        id: nav_select_tab
+        tab_index: 3
     - lvgl.menu.set_page:
         id: service_menu
         page: service_warnings_page
     - script.execute: setup_menu_header_ui
-    - script.execute:
-        id: service_select_tab
-        tab_index: 9
-    - script.execute: update_service_warnings_ui
-    - lvgl.widget.update: { id: nav_service, bg_opa: 100% }
-    - lvgl.widget.update: { id: nav_service_icon, text_color: 0xFFFFFF }
-    - lvgl.widget.update: { id: nav_service_label, text_color: 0xFFFFFF }
-    - lvgl.widget.update: { id: nav_home, bg_opa: 0% }
-    - lvgl.widget.update: { id: nav_home_icon, text_color: 0xD1D5DB }
-    - lvgl.widget.update: { id: nav_home_label, text_color: 0xD1D5DB }
-    - lvgl.widget.update: { id: nav_thermostat, bg_opa: 0% }
-    - lvgl.widget.update: { id: nav_thermostat_icon, text_color: 0xD1D5DB }
-    - lvgl.widget.update: { id: nav_thermostat_label, text_color: 0xD1D5DB }
-    - lvgl.widget.update: { id: nav_settings, bg_opa: 0% }
-    - lvgl.widget.update: { id: nav_settings_icon, text_color: 0xD1D5DB }
-    - lvgl.widget.update: { id: nav_settings_label, text_color: 0xD1D5DB }
-    - lvgl.widget.update: { id: nav_system, bg_opa: 0% }
-    - lvgl.widget.update: { id: nav_system_icon, text_color: 0xD1D5DB }
-    - lvgl.widget.update: { id: nav_system_label, text_color: 0xD1D5DB }
 - id: update_header_alert_icons
   mode: restart
   then:
@@ -1323,7 +1165,6 @@
     - script.execute: update_service_diag_summary_ui
     - script.execute: update_service_errors_ui
     - script.execute: update_service_warnings_ui
-    - script.execute: update_service_section_options_ui
     - if:
         condition:
           lambda: 'return !lv_obj_has_flag(id(page_service), LV_OBJ_FLAG_HIDDEN);'
@@ -1422,7 +1263,6 @@
                 - lvgl.widget.disable: { id: service_deaeration_short_btn }
                 - lvgl.widget.disable: { id: service_deaeration_extended_btn }
     - script.execute: update_header_mode_badge
-    - script.execute: update_service_top_tabs_ui
 
 - id: update_home_pump_tile_state
   mode: restart

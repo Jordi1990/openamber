@@ -121,9 +121,7 @@ widgets:
                                 - lambda: 'id(amber_ctrl).stop_deaeration_routine();'
                               else:
                                 - lambda: 'id(amber_ctrl).start_deaeration_routine(false);'
-                          - script.execute: update_service_mode_ui
-                        else:
-                          - script.execute: update_service_mode_ui
+                    - script.execute: update_service_mode_ui
                   widgets:
                     - label:
                         id: service_deaeration_short_btn_lbl
@@ -155,9 +153,7 @@ widgets:
                                 - lambda: 'id(amber_ctrl).stop_deaeration_routine();'
                               else:
                                 - lambda: 'id(amber_ctrl).start_deaeration_routine(true);'
-                          - script.execute: update_service_mode_ui
-                        else:
-                          - script.execute: update_service_mode_ui
+                    - script.execute: update_service_mode_ui
                   widgets:
                     - label:
                         id: service_deaeration_extended_btn_lbl
