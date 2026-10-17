@@ -20,6 +20,8 @@ widgets:
         - obj:
             id: advanced_stab_pid
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%
@@ -41,6 +43,8 @@ widgets:
         - obj:
             id: advanced_stab_bodemplaat
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%
@@ -62,6 +66,8 @@ widgets:
         - obj:
             id: advanced_stab_defrost
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%

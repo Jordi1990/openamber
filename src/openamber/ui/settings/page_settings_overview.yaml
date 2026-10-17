@@ -20,6 +20,8 @@ widgets:
         - obj:
             id: stab_general
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%
@@ -44,6 +46,8 @@ widgets:
         - obj:
             id: stab_thermostat
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%
@@ -68,6 +72,8 @@ widgets:
         - obj:
             id: stab_pump
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%
@@ -92,6 +98,8 @@ widgets:
         - obj:
             id: stab_heating
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%
@@ -116,6 +124,8 @@ widgets:
         - obj:
             id: stab_cooling
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%
@@ -140,6 +150,8 @@ widgets:
         - obj:
             id: stab_dhw
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             hidden: true
             bg_color: 0xFFFFFF
@@ -165,6 +177,8 @@ widgets:
         - obj:
             id: stab_bijverwarmen
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%
@@ -189,6 +203,8 @@ widgets:
         - obj:
             id: stab_smartgrid
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%
@@ -213,6 +229,8 @@ widgets:
         - obj:
             id: stab_wifi
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%
@@ -237,6 +255,8 @@ widgets:
         - obj:
             id: stab_advanced
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             hidden: true
             bg_color: 0xFFFFFF

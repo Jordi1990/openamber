@@ -20,6 +20,8 @@ widgets:
         - obj:
             id: thermostat_stab_setpoints
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%
@@ -41,6 +43,8 @@ widgets:
         - obj:
             id: thermostat_stab_verwarmen
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%
@@ -62,6 +66,8 @@ widgets:
         - obj:
             id: thermostat_stab_koelen
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%

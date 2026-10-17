@@ -20,6 +20,8 @@ widgets:
         - obj:
             id: heating_stab_algemeen
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%
@@ -41,6 +43,8 @@ widgets:
         - obj:
             id: heating_stab_stooklijn
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%
@@ -63,6 +67,8 @@ widgets:
         - obj:
             id: heating_stab_stooklijn_z2
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%
@@ -85,6 +91,8 @@ widgets:
         - obj:
             id: heating_stab_start_stop
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%
@@ -106,6 +114,8 @@ widgets:
         - obj:
             id: heating_stab_noodbedrijf
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%

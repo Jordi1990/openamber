@@ -20,6 +20,8 @@ widgets:
         - obj:
             id: cooling_stab_algemeen
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%
@@ -41,6 +43,8 @@ widgets:
         - obj:
             id: cooling_stab_setpoint
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%

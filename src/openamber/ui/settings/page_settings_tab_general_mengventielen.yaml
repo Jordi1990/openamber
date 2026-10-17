@@ -20,6 +20,8 @@ widgets:
         - obj:
             id: mengventielen_tab_z1
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%
@@ -41,6 +43,8 @@ widgets:
         - obj:
             id: mengventielen_tab_z2
             width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
             height: 54
             bg_color: 0xFFFFFF
             bg_opa: 100%
