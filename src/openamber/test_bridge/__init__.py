@@ -24,9 +24,10 @@ SUPPORTED_TYPES = {
     "checkbox", "switch", "roller", "textarea",
     "container", "spinner",
 }
+DROPDOWN_TYPES = {"dropdown"}
 
 
-def _collect_widgets(obj, result, excluded_ids):
+def _collect_widgets(obj, result, dropdown_result, excluded_ids):
     if isinstance(obj, dict):
         for k, v in obj.items():
             if k in SUPPORTED_TYPES and isinstance(v, dict):
@@ -35,18 +36,25 @@ def _collect_widgets(obj, result, excluded_ids):
                     if val not in excluded_ids:
                         result.add(val)
                 if "widgets" in v:
-                    _collect_widgets(v["widgets"], result, excluded_ids)
+                    _collect_widgets(v["widgets"], result, dropdown_result, excluded_ids)
+            elif k in DROPDOWN_TYPES and isinstance(v, dict):
+                if "id" in v and v["id"]:
+                    val = str(getattr(v["id"], "id", v["id"]))
+                    if val not in excluded_ids:
+                        dropdown_result.add(val)
+                if "widgets" in v:
+                    _collect_widgets(v["widgets"], result, dropdown_result, excluded_ids)
             elif k == "widgets" and isinstance(v, list):
-                _collect_widgets(v, result, excluded_ids)
+                _collect_widgets(v, result, dropdown_result, excluded_ids)
             elif isinstance(v, (dict, list)):
                 if k not in (
                     "on_click", "on_press", "on_release", "on_value",
                     "on_short_click", "on_long_press", "on_idle",
                 ):
-                    _collect_widgets(v, result, excluded_ids)
+                    _collect_widgets(v, result, dropdown_result, excluded_ids)
     elif isinstance(obj, list):
         for item in obj:
-            _collect_widgets(item, result, excluded_ids)
+            _collect_widgets(item, result, dropdown_result, excluded_ids)
 
 
 async def to_code(config):
@@ -56,6 +64,7 @@ async def to_code(config):
 
     # Register LVGL widgets
     widgets_to_register = set()
+    dropdowns_to_register = set()
     if CONF_WIDGETS in config and config[CONF_WIDGETS]:
         widgets_to_register.update(config[CONF_WIDGETS])
     else:
@@ -68,10 +77,13 @@ async def to_code(config):
                 excluded_ids.add(str(getattr(item["id"], "id", item["id"])))
 
         lvgl_conf = CORE.config.get("lvgl", {})
-        _collect_widgets(lvgl_conf, widgets_to_register, excluded_ids)
+        _collect_widgets(lvgl_conf, widgets_to_register, dropdowns_to_register, excluded_ids)
 
     for widget_id in sorted(widgets_to_register):
         cg.add(var.register_widget(widget_id, cg.RawExpression(f"&{widget_id}")))
+
+    for widget_id in sorted(dropdowns_to_register):
+        cg.add(var.register_obj_getter(widget_id, cg.RawExpression(f"[=]() -> lv_obj_t* {{ return {widget_id} ? {widget_id}->obj : nullptr; }}")))
 
     # Register sensors
     for s in CORE.config.get("sensor", []):

@@ -141,3 +141,58 @@ def test_frost_protection_stage2_triggers_compressor_demand_without_heat_demand(
     openamber.set_sensor("inlet_temperature_tui", 20.0)
     openamber.advance_time(seconds=310, step_s=15)
     openamber.step(ms=100)
+
+
+def test_frost_protection_stage1_opens_mixing_valves(clean_system):
+    """
+    Verify Frost Protection Stage 1 opens mixing valves when pump circulates:
+    1. Mixing valves Zone 1 & Zone 2 enabled (max positions 80% and 85%).
+    2. Initially in idle with no demand, valves are closed.
+    3. Ta drops below stage 1 threshold -> frost_protection_stage1_active = True.
+    4. Circulation pump starts in PUMP_RUNNING.
+    5. Both mixing valves open to allow freeze-protection water circulation.
+    """
+    openamber = clean_system
+
+    openamber.set_switch("mixing_valve_zone1_enabled", True)
+    openamber.set_switch("mixing_valve_zone2_enabled", True)
+    openamber.set_number("mixing_valve_zone1_max_position", 80.0)
+    openamber.set_number("mixing_valve_zone2_max_position", 85.0)
+
+    openamber.set_binary_sensor("external_heat_demand_wired", False)
+    openamber.set_switch("heat_demand_switch", False)
+    openamber.set_binary_sensor("external_heat_demand_wired_zone_2", False)
+    openamber.set_switch("heat_demand_zone_2_switch", False)
+
+    openamber.set_number("frost_protection_stage_1_temp_ta", 5.0)
+    openamber.set_sensor("temperature_outside_ta", 7.0)
+    openamber.step(ms=100)
+
+    # Trigger stage 1 frost protection
+    openamber.set_sensor("temperature_outside_ta", 2.0)
+    openamber.step(ms=100)
+
+    openamber.advance_time(seconds=305, step_s=10)
+    openamber.step(ms=100)
+
+    assert openamber.get_entity("frost_protection_stage1_active") is True
+    assert openamber.get_entity("internal_pump_active") is True
+
+    # Allow pump cycle to reach PUMP_RUNNING and open valves (openamber_component polls every 5s)
+    openamber.advance_time(seconds=10, step_s=5)
+    openamber.step(ms=100)
+
+    val1 = int(openamber.get_entity("mixing_valve_zone1_output"))
+    val2 = int(openamber.get_entity("mixing_valve_zone2_output"))
+
+    assert val1 == 80, f"Zone 1 valve must open to max (80%) during stage 1 frost protection, got {val1}%"
+    assert val2 == 85, f"Zone 2 valve must open to max (85%) during stage 1 frost protection, got {val2}%"
+
+    # Cleanup
+    openamber.set_sensor("temperature_outside_ta", 7.0)
+    openamber.advance_time(seconds=310, step_s=15)
+    openamber.step(ms=100)
+    openamber.set_switch("mixing_valve_zone1_enabled", False)
+    openamber.set_switch("mixing_valve_zone2_enabled", False)
+    openamber.step(ms=100)
+
