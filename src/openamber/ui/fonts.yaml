@@ -54,6 +54,20 @@
         - "\U000F005D"  # mdi-arrow-up (flow)
         - "\U000F0141"  # mdi-chevron-left (pagination)
         - "\U000F0142"  # mdi-chevron-right (pagination)
+        - "\U000F0140"  # mdi-chevron-down
+        - "\U000F0208"  # mdi-eye
+        - "\U000F0209"  # mdi-eye-off
+        - "\U000F0028"  # mdi-alert-circle (foutmeldingen)
+        - "\U000F0029"  # mdi-alert-circle-outline (waarschuwingen)
+        - "\U000F00F0"  # mdi-calendar-month (schema)
+        - "\U000F0126"  # mdi-chart-bell-curve-cumulative (stooklijn)
+        - "\U000F0383"  # mdi-file-document-outline (eeprom dump)
+        - "\U000F04B3"  # mdi-shield-bug (legionella)
+        - "\U000F04D6"  # mdi-play-pause (start/stop)
+        - "\U000F05A8"  # mdi-water-thermometer (tapwater)
+        - "\U000F05D6"  # mdi-wrench-cog (algemeen & modus)
+        - "\U000F071A"  # mdi-snowflake-thermometer (winter / defrost)
+        - "\U000F1767"  # mdi-gauge (sensoren & status)
 
 - file: "openamber/ui/fonts/Inter_28pt-SemiBold.ttf"
   #weight: 500
