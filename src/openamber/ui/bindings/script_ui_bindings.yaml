@@ -189,8 +189,9 @@
     tab_index: int
   then:
     - lambda: |-
-        lv_obj_t* tabs[9] = {
+        lv_obj_t* tabs[10] = {
           id(service_tab_maintenance),
+          id(service_tab_deaeration),
           id(service_tab_compressor),
           id(service_tab_pumps),
           id(service_tab_valve),
@@ -200,8 +201,9 @@
           id(service_tab_errors),
           id(service_tab_warnings)
         };
-        lv_obj_t* labels[9] = {
+        lv_obj_t* labels[10] = {
           id(service_tab_maintenance_lbl),
+          id(service_tab_deaeration_lbl),
           id(service_tab_compressor_lbl),
           id(service_tab_pumps_lbl),
           id(service_tab_valve_lbl),
@@ -217,12 +219,17 @@
     - script.execute: update_service_mode_ui
     - if:
         condition:
-          lambda: 'return tab_index == 7;'
+          lambda: 'return tab_index == 1;'
+        then:
+          - script.execute: update_service_deaeration_ui
+    - if:
+        condition:
+          lambda: 'return tab_index == 8;'
         then:
           - script.execute: update_service_errors_ui
     - if:
         condition:
-          lambda: 'return tab_index == 8;'
+          lambda: 'return tab_index == 9;'
         then:
           - script.execute: update_service_warnings_ui
 
@@ -772,7 +779,7 @@
     - script.execute: setup_menu_header_ui
     - script.execute:
         id: service_select_tab
-        tab_index: 7
+        tab_index: 8
     - script.execute: update_service_errors_ui
     - lvgl.widget.update: { id: nav_service, bg_opa: 100% }
     - lvgl.widget.update: { id: nav_service_icon, text_color: 0xFFFFFF }
@@ -803,7 +810,7 @@
     - script.execute: setup_menu_header_ui
     - script.execute:
         id: service_select_tab
-        tab_index: 8
+        tab_index: 9
     - script.execute: update_service_warnings_ui
     - lvgl.widget.update: { id: nav_service, bg_opa: 100% }
     - lvgl.widget.update: { id: nav_service_icon, text_color: 0xFFFFFF }
@@ -1387,6 +1394,7 @@
                     id: service_maintenance_state
                     text_color: 0x166534
                 - lvgl.widget.hide: { id: service_maintenance_lock_hint }
+                - lvgl.widget.hide: { id: service_deaeration_lock_hint }
                 - lvgl.widget.enable: { id: service_deaeration_short_btn }
                 - lvgl.widget.enable: { id: service_deaeration_extended_btn }
               else:
@@ -1395,6 +1403,7 @@
                       switch.is_on: service_mode_enabled
                     then:
                       - lvgl.widget.show: { id: service_maintenance_lock_hint }
+                      - lvgl.widget.show: { id: service_deaeration_lock_hint }
                       - lvgl.label.update:
                           id: service_maintenance_state
                           text: "Regeling aan het pauzeren..."
@@ -1409,6 +1418,7 @@
                           id: service_maintenance_state
                           text_color: 0x6B7280
                       - lvgl.widget.show: { id: service_maintenance_lock_hint }
+                      - lvgl.widget.show: { id: service_deaeration_lock_hint }
                 - lvgl.widget.disable: { id: service_deaeration_short_btn }
                 - lvgl.widget.disable: { id: service_deaeration_extended_btn }
     - script.execute: update_header_mode_badge

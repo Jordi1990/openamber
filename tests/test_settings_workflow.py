@@ -146,10 +146,21 @@ def test_service_overview_navigation(openamber):
     # Initially Service Overview page is root page and visible
     assert openamber.is_visible("service_overview_page"), "service_overview_page must be visible initially"
 
-    # Click Algemeen & Modus (service_tab_maintenance)
+    # Click Algemeen (service_tab_maintenance)
     assert openamber.click("service_tab_maintenance"), "Clicking service_tab_maintenance must succeed"
     openamber.step(ms=100)
     assert openamber.is_visible("service_maintenance_panel"), "service_maintenance_panel must be visible"
+    assert openamber.is_hidden("service_overview_page"), "service_overview_page must be hidden"
+
+    # Click back button to return to service overview
+    assert openamber.click("service_menu_back_btn"), "Clicking service_menu_back_btn must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("service_overview_page"), "service_overview_page must be visible again"
+
+    # Click Ontluchten (service_tab_deaeration)
+    assert openamber.click("service_tab_deaeration"), "Clicking service_tab_deaeration must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("service_deaeration_panel"), "service_deaeration_panel must be visible"
     assert openamber.is_hidden("service_overview_page"), "service_overview_page must be hidden"
 
     # Click back button to return to service overview

@@ -42,6 +42,7 @@ obj:
         pages:
           - !include service/page_service_overview.yaml
           - !include service/page_service_tab_maintenance.yaml
+          - !include service/page_service_tab_deaeration.yaml
           - !include service/page_service_tab_compressor.yaml
           - !include service/page_service_tab_pumps.yaml
           - !include service/page_service_tab_valve.yaml

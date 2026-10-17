@@ -40,7 +40,33 @@ widgets:
                   tab_index: 0
             widgets:
               - label: { text: "\U000F05D6", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: service_tab_maintenance_lbl, text: "Algemeen & Modus", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { id: service_tab_maintenance_lbl, text: "Algemeen", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
+
+        - obj:
+            id: service_tab_deaeration
+            width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
+            height: 54
+            bg_color: 0xFFFFFF
+            bg_opa: 100%
+            radius: 12
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
+            on_click:
+              - lvgl.menu.set_page:
+                  id: service_menu
+                  page: service_deaeration_page
+              - script.execute:
+                  id: service_select_tab
+                  tab_index: 1
+            widgets:
+              - label: { text: "\U000F0599", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: service_tab_deaeration_lbl, text: "Ontluchten", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
               - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
 
         - obj:
@@ -63,7 +89,7 @@ widgets:
                   page: service_compressor_page
               - script.execute:
                   id: service_select_tab
-                  tab_index: 1
+                  tab_index: 2
             widgets:
               - label: { text: "\U000F0210", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
               - label: { id: service_tab_compressor_lbl, text: "Buitenunit", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
@@ -89,7 +115,7 @@ widgets:
                   page: service_pumps_page
               - script.execute:
                   id: service_select_tab
-                  tab_index: 2
+                  tab_index: 3
             widgets:
               - label: { text: "\U000F058F", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
               - label: { id: service_tab_pumps_lbl, text: "Pompen", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
@@ -115,7 +141,7 @@ widgets:
                   page: service_valve_page
               - script.execute:
                   id: service_select_tab
-                  tab_index: 3
+                  tab_index: 4
             widgets:
               - label: { text: "\U000F0906", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
               - label: { id: service_tab_valve_lbl, text: "3-weg klep", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
@@ -141,7 +167,7 @@ widgets:
                   page: service_backup_page
               - script.execute:
                   id: service_select_tab
-                  tab_index: 4
+                  tab_index: 5
             widgets:
               - label: { text: "\U000F0238", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
               - label: { id: service_tab_backup_lbl, text: "Back-up", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
@@ -167,7 +193,7 @@ widgets:
                   page: service_eeprom_page
               - script.execute:
                   id: service_select_tab
-                  tab_index: 5
+                  tab_index: 6
             widgets:
               - label: { text: "\U000F0383", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
               - label: { id: service_tab_eeprom_lbl, text: "EEPROM", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
@@ -193,7 +219,7 @@ widgets:
                   page: service_sensors_page
               - script.execute:
                   id: service_select_tab
-                  tab_index: 6
+                  tab_index: 7
             widgets:
               - label: { text: "\U000F1767", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
               - label: { id: service_tab_sensors_lbl, text: "Sensoren & Status", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
@@ -219,7 +245,7 @@ widgets:
                   page: service_errors_page
               - script.execute:
                   id: service_select_tab
-                  tab_index: 7
+                  tab_index: 8
             widgets:
               - label: { text: "\U000F0028", text_color: 0x991B1B, text_font: font_mdi_24, align: LEFT_MID }
               - label: { id: service_tab_errors_lbl, text: "Foutmeldingen", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
@@ -245,7 +271,7 @@ widgets:
                   page: service_warnings_page
               - script.execute:
                   id: service_select_tab
-                  tab_index: 8
+                  tab_index: 9
             widgets:
               - label: { text: "\U000F0029", text_color: 0xD97706, text_font: font_mdi_24, align: LEFT_MID }
               - label: { id: service_tab_warnings_lbl, text: "Waarschuwingen", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
