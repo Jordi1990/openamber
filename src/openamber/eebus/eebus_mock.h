@@ -97,6 +97,7 @@ class EEBusComponent : public PollingComponent {
   bool last_enabled_{false};
   bool is_boost_requested_{false};
   bool is_dim_requested_{false};
+  bool is_limit_active_{false};
 
   std::function<std::string()> read_model_{nullptr};
   std::function<float()> read_power_;

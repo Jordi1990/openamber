@@ -81,6 +81,61 @@ void EebusWsDecoder::reset() {
   *this = EebusWsDecoder();
 }
 
+bool EebusWsDecoder::emit_frame(std::vector<EebusWsFrame> &out_frames) {
+  // Control frames (opcode >= 0x8) are delivered independently
+  if (this->opcode >= 0x8) {
+    out_frames.push_back({this->opcode, std::move(this->payload)});
+    this->payload.clear();
+    return true;
+  }
+
+  // Continuation frame
+  if (this->opcode == 0x0) {
+    if (this->fragmented_opcode == 0) {
+      ESP_LOGW(TAG, "Unexpected continuation frame");
+      return false;
+    }
+    if (this->fragmented_payload.size() + this->payload.size() > kMaxPayloadLen) {
+      ESP_LOGW(TAG, "Reassembled WebSocket payload exceeds maximum size");
+      return false;
+    }
+    this->fragmented_payload.insert(this->fragmented_payload.end(),
+                                    this->payload.begin(), this->payload.end());
+    this->payload.clear();
+    if (this->fin) {
+      out_frames.push_back({this->fragmented_opcode, std::move(this->fragmented_payload)});
+      this->fragmented_opcode = 0;
+      this->fragmented_payload.clear();
+    }
+    return true;
+  }
+
+  // Initial unfragmented data frame
+  if (this->fin) {
+    if (this->fragmented_opcode != 0) {
+      ESP_LOGW(TAG, "New data frame while continuation pending");
+      return false;
+    }
+    out_frames.push_back({this->opcode, std::move(this->payload)});
+    this->payload.clear();
+    return true;
+  }
+
+  // First fragment of fragmented message
+  if (this->fragmented_opcode != 0) {
+    ESP_LOGW(TAG, "New fragmented frame while previous continuation pending");
+    return false;
+  }
+  if (this->payload.size() > kMaxPayloadLen) {
+    ESP_LOGW(TAG, "Fragment payload exceeds maximum size");
+    return false;
+  }
+  this->fragmented_opcode = this->opcode;
+  this->fragmented_payload = std::move(this->payload);
+  this->payload.clear();
+  return true;
+}
+
 bool EebusWsDecoder::feed(const std::vector<uint8_t> &bytes,
                           std::vector<EebusWsFrame> &out_frames) {
   size_t pos = 0;
@@ -120,7 +175,8 @@ bool EebusWsDecoder::feed(const std::vector<uint8_t> &bytes,
             this->phase = masked ? Phase::MASK : Phase::PAYLOAD;
             this->i = 0;
             if (this->payload_len == 0 && !masked) {
-              out_frames.push_back({this->opcode, this->payload});
+              if (!this->emit_frame(out_frames))
+                return false;
               this->phase = Phase::HEADER;
             }
           }
@@ -130,6 +186,11 @@ bool EebusWsDecoder::feed(const std::vector<uint8_t> &bytes,
       case Phase::LENGTH: {
         this->payload_len = (this->payload_len << 8) | byte;
         if (++this->i >= 2) {
+          if (this->payload_len > kMaxPayloadLen) {
+            ESP_LOGW(TAG, "Oversized WebSocket 16-bit payload length: %llu",
+                     static_cast<unsigned long long>(this->payload_len));
+            return false;
+          }
           this->phase = Phase::MASK;
           this->i = 0;
         }
@@ -138,6 +199,11 @@ bool EebusWsDecoder::feed(const std::vector<uint8_t> &bytes,
       case Phase::EXT_LENGTH: {
         this->payload_len = (this->payload_len << 8) | byte;
         if (++this->i >= 8) {
+          if (this->payload_len > kMaxPayloadLen) {
+            ESP_LOGW(TAG, "Oversized WebSocket 64-bit payload length: %llu",
+                     static_cast<unsigned long long>(this->payload_len));
+            return false;
+          }
           this->phase = Phase::MASK;
           this->i = 0;
         }
@@ -147,10 +213,12 @@ bool EebusWsDecoder::feed(const std::vector<uint8_t> &bytes,
         this->mask[this->i++] = byte;
         if (this->i >= 4) {
           if (this->payload_len == 0) {
-            out_frames.push_back({this->opcode, this->payload});
+            if (!this->emit_frame(out_frames))
+              return false;
             this->phase = Phase::HEADER;
             this->i = 0;
           } else {
+            this->payload.reserve(static_cast<size_t>(this->payload_len));
             this->phase = Phase::PAYLOAD;
             this->i = 0;
           }
@@ -161,7 +229,8 @@ bool EebusWsDecoder::feed(const std::vector<uint8_t> &bytes,
         // apply mask
         this->payload.push_back(byte ^ this->mask[(this->i++) & 3]);
         if (this->i >= this->payload_len) {
-          out_frames.push_back({this->opcode, this->payload});
+          if (!this->emit_frame(out_frames))
+            return false;
           this->phase = Phase::HEADER;
           this->i = 0;
         }

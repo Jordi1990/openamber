@@ -33,8 +33,9 @@ struct EebusWsFrame {
   std::vector<uint8_t> payload;
 };
 
-// Holds an incremental client->server frame decode state (masked frames).
 struct EebusWsDecoder {
+  static constexpr size_t kMaxPayloadLen = 65536;
+
   // State
   enum class Phase { HEADER, LENGTH, EXT_LENGTH, MASK, PAYLOAD, DONE } phase{Phase::HEADER};
   uint8_t opcode{0};
@@ -44,9 +45,14 @@ struct EebusWsDecoder {
   std::vector<uint8_t> payload;
   bool fin{false};
 
+  // Reassembly of fragmented data frames
+  uint8_t fragmented_opcode{0};
+  std::vector<uint8_t> fragmented_payload;
+
   // Feed raw TCP bytes; appends completed frames (opcode + payload) to `out_frames`.
   // Returns false on protocol error.
   bool feed(const std::vector<uint8_t> &bytes, std::vector<EebusWsFrame> &out_frames);
+  bool emit_frame(std::vector<EebusWsFrame> &out_frames);
   void reset();
 };
 

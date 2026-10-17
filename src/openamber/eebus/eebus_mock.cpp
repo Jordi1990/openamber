@@ -62,6 +62,12 @@ void EEBusComponent::stop_eebus_subsystem() {
     }
     this->is_dim_requested_ = false;
   }
+  if (this->is_limit_active_) {
+    if (this->apply_limit_) {
+      this->apply_limit_(false, 0.0f);
+    }
+    this->is_limit_active_ = false;
+  }
   if (this->status_sensor_ != nullptr) {
     this->status_sensor_->publish_state("Disabled");
   }
@@ -185,6 +191,7 @@ void EEBusComponent::fake_set_power_limit(float limit_w) {
     return;
   }
   bool active = (limit_w > 0.0f);
+  this->is_limit_active_ = active;
   if (this->apply_limit_) {
     bool ok = this->apply_limit_(active, limit_w);
     ESP_LOGI(TAG, "EEBus [MOCK] apply_limit(%d, %.0f) -> %d", active, limit_w, ok);
@@ -257,6 +264,12 @@ void EEBusComponent::fake_set_connected(bool connected, const std::string &ems_n
         this->apply_dim_(false);
       }
       this->is_dim_requested_ = false;
+    }
+    if (this->is_limit_active_) {
+      if (this->apply_limit_) {
+        this->apply_limit_(false, 0.0f);
+      }
+      this->is_limit_active_ = false;
     }
   }
 }

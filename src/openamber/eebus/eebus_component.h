@@ -143,6 +143,9 @@ class EEBusComponent : public PollingComponent {
   bool initialized_{false};
   bool model_detected_{false};
 
+  void *inbound_mutex_{nullptr};
+  std::vector<std::string> inbound_spine_queue_;
+
   void init_certificate_and_keys();
   void start_ship_listener();
   bool advertise_mdns();

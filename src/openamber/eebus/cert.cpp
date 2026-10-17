@@ -30,27 +30,6 @@ namespace eebus {
 
 static const char *const TAG = "eebus_cert";
 
-// Embedded build-time pair (EC P-256, self-signed) for fallback.
-static const char kEmbeddedCertPem[] =
-    "-----BEGIN CERTIFICATE-----\n"
-    "MIIBSDCB76ADAgECAgEBMAoGCCqGSM49BAMCMBQxEjAQBgNVBAMMCU9wZW5BbWJl\n"
-    "cjAeFw0yNjA4MDYyMDQzMTNaFw0zMTA4MDYyMDQzMTNaMBQxEjAQBgNVBAMMCU9w\n"
-    "ZW5BbWJlcjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJRZslFPH87kxibrj8Gb\n"
-    "ndNd4IuOUcoACsx+WZiaAMbRl9xjpOYzyQbBrazSetoXwdYmZNfd9Spa9yy6XkuV\n"
-    "cwmjMjAwMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFPLzw8xm6WJgARescRB1\n"
-    "dAHcEXjFMAoGCCqGSM49BAMCA0gAMEUCIQCe97zeqclE73RxWXo95PbtVXKhBwH7\n"
-    "skc2lGSeKqLrqAIgbW3Lq++TYsEN10naR1RrGjTQhyQW8iIsM0BlnL2YAKI=\n"
-    "-----END CERTIFICATE-----\n";
-
-static const char kEmbeddedKeyPem[] =
-    "-----BEGIN PRIVATE KEY-----\n"
-    "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgj8P/Dc7+oRKpDcyJ\n"
-    "7FAiSkDlJPPTmr8WBn1q79SFRbOhRANCAASUWbJRTx/O5MYm64/Bm53TXeCLjlHK\n"
-    "AArMflmYmgDG0ZfcY6TmM8kGwa2s0nraF8HWJmTX3fUqWvcsul5LlXMJ\n"
-    "-----END PRIVATE KEY-----\n";
-
-static const char kEmbeddedSki[] = "f2f3c3cc66e962600117ac7110757401dc1178c5";
-
 static int cert_mbedtls_rng(void *, unsigned char *buf, size_t len) {
   esp_fill_random(buf, len);
   return 0;
@@ -58,11 +37,10 @@ static int cert_mbedtls_rng(void *, unsigned char *buf, size_t len) {
 
 bool EEBusCertificateStore::load_or_create() {
   if (this->load_from_nvs()) {
-    if (this->cert_pem_ != kEmbeddedCertPem && this->ski_ != kEmbeddedSki) {
+    if (!this->cert_pem_.empty() && !this->ski_.empty()) {
       ESP_LOGI(TAG, "Loaded unique EEBus certificate from NVS (SKI %s)", this->ski_.c_str());
       return true;
     }
-    ESP_LOGI(TAG, "Found default embedded certificate in NVS; upgrading to unique dynamically generated certificate...");
   }
 
   ESP_LOGI(TAG, "Generating unique EEBus EC P-256 keypair and certificate...");
@@ -70,8 +48,11 @@ bool EEBusCertificateStore::load_or_create() {
     return true;
   }
 
-  ESP_LOGW(TAG, "Dynamic certificate generation failed; falling back to embedded pair");
-  return this->use_embedded();
+  ESP_LOGE(TAG, "Dynamic certificate generation failed; clearing credentials");
+  this->cert_pem_.clear();
+  this->key_pem_.clear();
+  this->ski_.clear();
+  return false;
 }
 
 bool EEBusCertificateStore::generate_and_save() {
@@ -215,17 +196,6 @@ bool EEBusCertificateStore::generate_and_save() {
   return true;
 }
 
-bool EEBusCertificateStore::use_embedded() {
-  this->cert_pem_ = kEmbeddedCertPem;
-  this->key_pem_ = kEmbeddedKeyPem;
-  this->ski_ = kEmbeddedSki;
-  if (!this->save_to_nvs()) {
-    ESP_LOGW(TAG, "Could not persist embedded certificate; will re-embed on next boot");
-  }
-  ESP_LOGI(TAG, "Using embedded EEBus certificate (SKI %s)", this->ski_.c_str());
-  return true;
-}
-
 bool EEBusCertificateStore::save_to_nvs() {
   EEBusNvsStore store;
   return store.write_string("eebus_cert", this->cert_pem_) &&
@@ -254,7 +224,11 @@ bool EEBusCertificateStore::load_from_nvs() {
       this->ski_ = ski_buf;
       store.write_string("eebus_ski", this->ski_);
     } else {
-      this->ski_ = kEmbeddedSki;
+      mbedtls_x509_crt_free(&crt);
+      this->cert_pem_.clear();
+      this->key_pem_.clear();
+      this->ski_.clear();
+      return false;
     }
     mbedtls_x509_crt_free(&crt);
   }

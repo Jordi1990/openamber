@@ -1871,7 +1871,7 @@
         if (!id(eebus_enabled_switch).state) {
           lv_label_set_text(id(eebus_power_limit_lbl), "–");
           lv_obj_set_style_text_color(id(eebus_power_limit_lbl), lv_color_hex(0x6B7280), LV_PART_MAIN);
-        } else if (id(eebus_power_limit_sensor).has_state() && !std::isnan(id(eebus_power_limit_sensor).state)) {
+        } else if (id(eebus_connected_sensor).state && id(eebus_power_limit_sensor).has_state() && !std::isnan(id(eebus_power_limit_sensor).state)) {
           float lim = id(eebus_power_limit_sensor).state;
           if (lim <= 0.0f) {
             lv_label_set_text(id(eebus_power_limit_lbl), "0 W (Geblokkeerd)");

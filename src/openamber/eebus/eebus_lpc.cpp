@@ -29,7 +29,8 @@ void LpcServer::apply() {
     this->limit_applier_(this->limit_active_, this->limit_value_w_);
   }
   if (this->dimmer_) {
-    this->dimmer_(this->limit_active_);
+    bool dim_active = this->limit_active_ && (this->limit_value_w_ <= 0.0f);
+    this->dimmer_(dim_active);
   }
   if (this->change_cb_) {
     this->change_cb_(this->limit_active_, this->limit_value_w_);

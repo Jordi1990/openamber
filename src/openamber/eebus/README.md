@@ -56,20 +56,28 @@ eebus:
   # Host Control Callbacks (Action Execution)
   apply_optional: |-
     // Called when the EMS requests boost (value=true) or cancels boost (value=false).
-    // Return true if accepted by your safety logic, false if rejected.
-    id(sg_ready_boost).publish_state(value);
+    // Return true if accepted by host safety logic, false if rejected.
+    if (value) {
+      id(sg_ready_boost_switch).turn_on();
+    } else {
+      id(sg_ready_boost_switch).turn_off();
+    }
     return true;
 
   apply_dim: |-
     // Called when the EMS requests dimming/blocking (§14a 0W limit).
-    id(compressor_lockout).publish_state(value);
+    if (value) {
+      id(compressor_lockout_switch).turn_on();
+    } else {
+      id(compressor_lockout_switch).turn_off();
+    }
     return true;
 
   apply_limit: |-
     // Called when the EMS sets a power consumption limit (in Watts).
-    // active: whether limit is in effect, limit_w: maximum allowed power
-    ESP_LOGI("custom", "EEBUS limit: %s (%.0f W)", active ? "ON" : "OFF", limit_w);
-    return true;
+    // active: whether limit is in effect, limit_w: maximum allowed power.
+    // If continuous/multi-stage power limiting is not implemented on the host, return false.
+    return false;
 
   # Diagnostic Entities (Exposed to Home Assistant / UI)
   status:

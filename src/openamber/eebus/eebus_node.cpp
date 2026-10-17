@@ -14,6 +14,8 @@
 namespace esphome {
 namespace eebus {
 
+static const char *const TAG = "eebus_node";
+
 std::string EebusNode::get_device_address() const {
   if (this->device_id_.rfind("d:_n:", 0) == 0 || this->device_id_.rfind("d:_i:", 0) == 0) {
     return this->device_id_;
@@ -1177,10 +1179,20 @@ std::string EebusNode::handle_inbound(const std::string &json) {
     bool active = lpc_json.find("\"isLimitActive\":true") != std::string::npos;
     float value = 0.0f;
     auto vp = lpc_json.find("\"number\":");
-    if (vp != std::string::npos)
+    if (vp != std::string::npos) {
       value = static_cast<float>(std::atof(lpc_json.c_str() + vp + 9));
-    if (this->lpc_ != nullptr)
-      this->lpc_->write_limit(value, active);
+      auto sp = lpc_json.find("\"scale\":");
+      if (sp != std::string::npos) {
+        int scale = std::atoi(lpc_json.c_str() + sp + 8);
+        value = value * std::pow(10.0f, scale);
+      }
+    }
+    if (!std::isfinite(value) || value < 0.0f) {
+      ESP_LOGW(TAG, "Rejected invalid LPC limit: %.1f W", value);
+    } else {
+      if (this->lpc_ != nullptr)
+        this->lpc_->write_limit(value, active);
+    }
     SpineAddress src;
     src.device_str = this->get_device_address();
     src.entity = in.destination.entity;

@@ -82,6 +82,7 @@ static StackType_t *ship_task_stack = nullptr;
 static const uint32_t kShipTaskStackBytes = 32 * 1024;
 static TaskHandle_t ship_task_handle = nullptr;
 static int ship_listen_fd = -1;
+static int ship_conn_fd = -1;
 
 static void ship_accept_task(void *arg);
 
@@ -110,11 +111,21 @@ void EEBusShipListener::stop() {
   this->remote_ip_.clear();
   this->peer_ski_.clear();
   this->peer_name_.clear();
+  if (ship_conn_fd >= 0) {
+    int cfd = ship_conn_fd;
+    ship_conn_fd = -1;
+    shutdown(cfd, SHUT_RDWR);
+    close(cfd);
+  }
   if (ship_listen_fd >= 0) {
     int fd = ship_listen_fd;
     ship_listen_fd = -1;
     shutdown(fd, SHUT_RDWR);
     close(fd);
+  }
+  uint32_t wait_start = millis();
+  while (ship_task_handle != nullptr && (millis() - wait_start < 250)) {
+    vTaskDelay(pdMS_TO_TICKS(10));
   }
   if (ship_task_handle != nullptr) {
     TaskHandle_t t = ship_task_handle;
@@ -271,6 +282,7 @@ static void ship_accept_task(void *arg) {
 
 void EEBusShipListener::handle_connection(int fd, const std::string &remote_ip) {
   ESP_LOGI(TAG, "Accepted SHIP connection from %s", remote_ip.c_str());
+  ship_conn_fd = fd;
   this->close_requested_ = false;
   this->remote_ip_ = remote_ip;
   this->peer_ski_.clear();
@@ -404,6 +416,18 @@ void EEBusShipListener::handle_connection(int fd, const std::string &remote_ip) 
 
     ret = mbedtls_ssl_read(&ssl, rbuf.data(), rbuf.size());
     if (this->close_requested_) {
+      if (this->queue_mutex_ != nullptr) {
+        std::vector<std::vector<uint8_t>> to_send;
+        if (xSemaphoreTake(static_cast<SemaphoreHandle_t>(this->queue_mutex_), pdMS_TO_TICKS(50)) == pdTRUE) {
+          to_send.swap(this->outbound_queue_);
+          xSemaphoreGive(static_cast<SemaphoreHandle_t>(this->queue_mutex_));
+        }
+        for (const auto &out_frame : to_send) {
+          if (!out_frame.empty()) {
+            ssl_write_all(&ssl, out_frame.data(), out_frame.size());
+          }
+        }
+      }
       break;
     }
     if (ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE ||
@@ -474,7 +498,12 @@ void EEBusShipListener::handle_connection(int fd, const std::string &remote_ip) 
       xSemaphoreGive(static_cast<SemaphoreHandle_t>(this->queue_mutex_));
     }
   }
-  close(fd);
+  if (ship_conn_fd >= 0) {
+    close(ship_conn_fd);
+    ship_conn_fd = -1;
+  } else {
+    close(fd);
+  }
   mbedtls_ssl_session_reset(&this->ssl_);
   ESP_LOGI(TAG, "SHIP connection closed");
 }

@@ -16,6 +16,8 @@
 #include "eebus_ship.h"
 #include "eebus_websocket.h"
 #include "esphome/components/network/util.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 #include <algorithm>
 #include <cctype>
 
@@ -160,6 +162,22 @@ void EEBusComponent::loop() {
   }
 
   if (this->initialized_) {
+    // Process queued inbound SPINE messages on main ESPHome thread
+    if (this->inbound_mutex_ != nullptr) {
+      std::vector<std::string> to_process;
+      if (xSemaphoreTake(static_cast<SemaphoreHandle_t>(this->inbound_mutex_), pdMS_TO_TICKS(10)) == pdTRUE) {
+        to_process.swap(this->inbound_spine_queue_);
+        xSemaphoreGive(static_cast<SemaphoreHandle_t>(this->inbound_mutex_));
+      }
+      for (const auto &msg : to_process) {
+        std::string reply = this->node_.handle_inbound(msg);
+        ESP_LOGI(TAG, "SPINE handled in loop -> reply size=%u", static_cast<unsigned>(reply.size()));
+        if (!reply.empty()) {
+          this->ship_listener_.send_ship_data(reply);
+        }
+      }
+    }
+
     bool is_conn = this->ship_listener_.is_connected();
     if (is_conn != this->last_connected_) {
       this->check_connection_state();
@@ -267,7 +285,7 @@ void EEBusComponent::update() {
   // Refresh MPC (power) + MDT (temperature) from host application callbacks.
   float power_w = 0.0f;
   if (this->read_power_) {
-    power_w = this->read_power_() + (this->enable_ohpcf_ ? this->ohpcf_.get_current_optional_power_w() : 0.0f);
+    power_w = this->read_power_();
     this->mpc_.set_power_w(power_w);
   }
   float temp_c = 0.0f;
@@ -486,14 +504,13 @@ void EEBusComponent::wire_use_cases() {
     }
 
     if (msg_type == SHIP_MSG_DATA) {
-      std::string reply = this->node_.handle_inbound(json);
-      ESP_LOGI(TAG, "SPINE handled -> reply size=%u", static_cast<unsigned>(reply.size()));
-      if (!reply.empty()) {
-        std::vector<uint8_t> payload = ship_data_frame(reply);
-        ESP_LOGI(TAG, "SPINE reply framed (%u bytes)", static_cast<unsigned>(payload.size()));
-        send_data(payload);
-      } else {
-        ESP_LOGW(TAG, "SPINE DATA frame not handled (no reply)");
+      if (this->inbound_mutex_ != nullptr) {
+        if (xSemaphoreTake(static_cast<SemaphoreHandle_t>(this->inbound_mutex_), pdMS_TO_TICKS(50)) == pdTRUE) {
+          this->inbound_spine_queue_.push_back(json);
+          xSemaphoreGive(static_cast<SemaphoreHandle_t>(this->inbound_mutex_));
+        } else {
+          ESP_LOGE(TAG, "Failed to acquire inbound mutex; dropped SPINE DATA frame");
+        }
       }
       return out;
     }
@@ -561,6 +578,10 @@ void EEBusComponent::wire_use_cases() {
 }
 
 void EEBusComponent::start_ship_listener() {
+  if (!this->cert_store_.is_loaded()) {
+    ESP_LOGE(TAG, "Cannot start SHIP listener: certificate store is not loaded");
+    return;
+  }
   this->ship_listener_.begin(this->cert_store_, 4712);
 }
 
@@ -600,6 +621,7 @@ void EEBusComponent::check_connection_state() {
       this->last_use_case_notify_ms_ = 0;
     } else {
       this->record_action("Disconnected from EMS");
+      this->node_.reset_subscriptions();
     }
   }
 
@@ -672,11 +694,16 @@ static EEBusComponent *global_eebus_component = nullptr;
 
 EEBusComponent::EEBusComponent() {
   global_eebus_component = this;
+  this->inbound_mutex_ = xSemaphoreCreateMutex();
 }
 
 EEBusComponent::~EEBusComponent() {
   if (global_eebus_component == this) {
     global_eebus_component = nullptr;
+  }
+  if (this->inbound_mutex_ != nullptr) {
+    vSemaphoreDelete(static_cast<SemaphoreHandle_t>(this->inbound_mutex_));
+    this->inbound_mutex_ = nullptr;
   }
 }
 

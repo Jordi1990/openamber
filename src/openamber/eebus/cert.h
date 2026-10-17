@@ -30,7 +30,6 @@ class EEBusCertificateStore {
 
  private:
   bool generate_and_save();
-  bool use_embedded();
   bool save_to_nvs();
   bool load_from_nvs();
 
