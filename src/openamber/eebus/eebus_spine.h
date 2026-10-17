@@ -18,7 +18,7 @@
 #include <vector>
 
 namespace esphome {
-namespace openamber_eebus {
+namespace eebus {
 
 struct SpineAddress {
   uint16_t device{0};
@@ -106,5 +106,5 @@ bool spine_parse_dispatch(const std::string &json, SpineInboundCommand &out);
 // Parses an address object (e.g. "clientAddress":{...} or "serverAddress":{...}) by key.
 bool spine_split_addr(const std::string &json, const char *key, SpineAddress &addr);
 
-}  // namespace openamber_eebus
+}  // namespace eebus
 }  // namespace esphome

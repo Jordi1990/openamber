@@ -15,18 +15,15 @@
 #include <string>
 #include <vector>
 
-#ifndef USE_EEBUS_MOCK
 #include "mbedtls/ssl.h"
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/pk.h"
 #include "mbedtls/ctr_drbg.h"
 #include "esp_random.h"
-#endif
 
 namespace esphome {
-namespace openamber_eebus {
+namespace eebus {
 
-#ifndef USE_EEBUS_MOCK
 class EEBusShipListener {
  public:
   ~EEBusShipListener() { this->teardown(); }
@@ -85,9 +82,6 @@ class EEBusShipListener {
   void *queue_mutex_{nullptr};  // SemaphoreHandle_t created on begin()
   std::vector<std::vector<uint8_t>> outbound_queue_;
 };
-#else
-class EEBusShipListener {};
-#endif
 
-}  // namespace openamber_eebus
+}  // namespace eebus
 }  // namespace esphome

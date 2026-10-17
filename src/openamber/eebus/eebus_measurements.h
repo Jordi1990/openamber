@@ -1,13 +1,12 @@
 /*
- * Open Amber - native EEBus PoC
+ * Native EEBUS component for ESPHome
  *
  * MPC / MDT server data (Monitoring Appliance):
  *  - MPC: measured electrical power consumption (the "integrated meter").
  *  - MDT: domestic hot water temperature.
  *
- * These are the *device* values that evcc's eebus-ohpcf driver reads via
- * CurrentPower() and Soc().  In this PoC they are simple value holders
- * refreshed from the OpenAmber bridge every update() tick.
+ * These are the device values that the EMS reads via MPC and MDT.
+ * They are value holders refreshed from the host application callbacks every update() tick.
  */
 
 #pragma once
@@ -15,7 +14,7 @@
 #include "esphome/core/component.h"
 
 namespace esphome {
-namespace openamber_eebus {
+namespace eebus {
 
 class MpcServer {
  public:
@@ -62,5 +61,5 @@ class MdtServer {
   float temperature_c_{0.0f};
 };
 
-}  // namespace openamber_eebus
+}  // namespace eebus
 }  // namespace esphome

@@ -4,7 +4,6 @@
  * Minimal RFC 6455 WebSocket server (see header).
  */
 
-#ifndef USE_EEBUS_MOCK
 
 #include "eebus_websocket.h"
 #include "esphome/core/log.h"
@@ -17,7 +16,7 @@
 #include "mbedtls/sha1.h"
 
 namespace esphome {
-namespace openamber_eebus {
+namespace eebus {
 
 static const char *const TAG = "eebus_ws";
 static const char kGUID[] = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
@@ -175,7 +174,6 @@ bool EebusWsDecoder::feed(const std::vector<uint8_t> &bytes,
   return true;
 }
 
-}  // namespace openamber_eebus
+}  // namespace eebus
 }  // namespace esphome
 
-#endif  // USE_EEBUS_MOCK

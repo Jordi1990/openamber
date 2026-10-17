@@ -9,7 +9,6 @@
  * messaging handshake is implemented in the spine layer.
  */
 
-#ifndef USE_EEBUS_MOCK
 
 #include "ship_listener.h"
 #include "eebus_websocket.h"
@@ -33,7 +32,7 @@
 #include "mbedtls/pk.h"
 
 namespace esphome {
-namespace openamber_eebus {
+namespace eebus {
 
 static const char *const TAG = "eebus_ship";
 static const int kShipPort = 4712;
@@ -142,7 +141,7 @@ void EEBusShipListener::begin(const EEBusCertificateStore &cert, uint16_t port) 
   mbedtls_pk_init(&this->own_key_);
   mbedtls_ctr_drbg_init(&this->ctr_drbg_);
 
-  const unsigned char pers[] = "openamber-ship";
+  const unsigned char pers[] = "eebus-ship";
   if (mbedtls_ctr_drbg_seed(&this->ctr_drbg_, esp_mbedtls_rng, nullptr, pers,
                             sizeof(pers)) != 0) {
     ESP_LOGE(TAG, "CTR_DRBG seed failed");
@@ -512,7 +511,6 @@ bool EEBusShipListener::send_ship_control(const std::string &control_json) {
   return this->queue_outbound_frame(ws_frame);
 }
 
-}  // namespace openamber_eebus
+}  // namespace eebus
 }  // namespace esphome
 
-#endif  // USE_EEBUS_MOCK

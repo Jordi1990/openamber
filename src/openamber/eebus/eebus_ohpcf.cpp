@@ -4,13 +4,12 @@
  * OHPCF server state machine.
  */
 
-#ifndef USE_EEBUS_MOCK
 
 #include "eebus_ohpcf.h"
 #include "esphome/core/log.h"
 
 namespace esphome {
-namespace openamber_eebus {
+namespace eebus {
 
 void OhpcfServer::announce(float power_w, uint32_t min_run_s, uint32_t min_pause_s) {
   this->requested_power_w_ = power_w > 0.0f ? power_w : 2500.0f;
@@ -76,13 +75,12 @@ void OhpcfServer::apply() {
     bool wanted = (this->state_ == OhpcfState::RUNNING);
     bool accepted = this->applier_(wanted);
     if (wanted && !accepted) {
-      ESP_LOGW("eebus_ohpcf", "Optional consumption request rejected by OpenAmber (conditions not met)");
+      ESP_LOGW("eebus_ohpcf", "Optional consumption request rejected by host (conditions not met)");
       this->set_state(OhpcfState::AVAILABLE);
     }
   }
 }
 
-}  // namespace openamber_eebus
+}  // namespace eebus
 }  // namespace esphome
 
-#endif  // USE_EEBUS_MOCK

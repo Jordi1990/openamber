@@ -17,7 +17,7 @@
 #include <vector>
 
 namespace esphome {
-namespace openamber_eebus {
+namespace eebus {
 
 // Builds the 101 Switching Protocols response for a WS upgrade.
 // Returns false if the client handshake is not a valid websocket upgrade.
@@ -50,5 +50,5 @@ struct EebusWsDecoder {
   void reset();
 };
 
-}  // namespace openamber_eebus
+}  // namespace eebus
 }  // namespace esphome

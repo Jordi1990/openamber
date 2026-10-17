@@ -4,7 +4,6 @@
  * ESP-IDF NVS (non-volatile storage) persistence.
  */
 
-#ifndef USE_EEBUS_MOCK
 
 #include "nvs_store.h"
 #include "esphome/core/log.h"
@@ -12,10 +11,11 @@
 #include "nvs_flash.h"
 
 namespace esphome {
-namespace openamber_eebus {
+namespace eebus {
 
 static const char *const TAG = "eebus_nvs";
-static const char *const kNvsNamespace = "openamber_eebus";
+static const char *const kNvsNamespace = "eebus";
+static const char *const kLegacyNvsNamespace = "openamber_eebus";
 
 static bool ensure_init() {
   static bool inited = false;
@@ -51,24 +51,45 @@ bool EEBusNvsStore::read_string(const char *key, std::string &out) {
   if (!ensure_init())
     return false;
   nvs_handle_t handle;
-  if (nvs_open(kNvsNamespace, NVS_READONLY, &handle) != ESP_OK)
-    return false;
-  size_t len = 0;
-  esp_err_t err = nvs_get_str(handle, key, nullptr, &len);
-  if (err != ESP_OK || len == 0) {
-    nvs_close(handle);
-    return false;
+  // Try modern "eebus" namespace first
+  if (nvs_open(kNvsNamespace, NVS_READONLY, &handle) == ESP_OK) {
+    size_t len = 0;
+    esp_err_t err = nvs_get_str(handle, key, nullptr, &len);
+    if (err == ESP_OK && len > 0) {
+      std::string tmp(len - 1, '\0');
+      err = nvs_get_str(handle, key, &tmp[0], &len);
+      nvs_close(handle);
+      if (err == ESP_OK) {
+        out.swap(tmp);
+        return true;
+      }
+    } else {
+      nvs_close(handle);
+    }
   }
-  std::string tmp(len - 1, '\0');
-  err = nvs_get_str(handle, key, &tmp[0], &len);
-  nvs_close(handle);
-  if (err != ESP_OK)
-    return false;
-  out.swap(tmp);
-  return true;
+
+  // Fallback to legacy namespace if previously stored under "openamber_eebus"
+  if (nvs_open(kLegacyNvsNamespace, NVS_READONLY, &handle) == ESP_OK) {
+    size_t len = 0;
+    esp_err_t err = nvs_get_str(handle, key, nullptr, &len);
+    if (err == ESP_OK && len > 0) {
+      std::string tmp(len - 1, '\0');
+      err = nvs_get_str(handle, key, &tmp[0], &len);
+      nvs_close(handle);
+      if (err == ESP_OK) {
+        out.swap(tmp);
+        // Migrate to new namespace
+        this->write_string(key, out);
+        return true;
+      }
+    } else {
+      nvs_close(handle);
+    }
+  }
+
+  return false;
 }
 
-}  // namespace openamber_eebus
+}  // namespace eebus
 }  // namespace esphome
 
-#endif  // USE_EEBUS_MOCK

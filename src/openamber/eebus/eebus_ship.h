@@ -20,7 +20,7 @@
 #include <vector>
 
 namespace esphome {
-namespace openamber_eebus {
+namespace eebus {
 
 enum ShipMsgType : uint8_t {
   SHIP_MSG_CONTROL = 1,
@@ -41,5 +41,5 @@ std::vector<uint8_t> ship_control_frame(const std::string &model_object_json);
 // body (standard JSON) plus the message type.
 bool ship_decode_frame(const std::vector<uint8_t> &frame, uint8_t &msg_type, std::string &standard_json);
 
-}  // namespace openamber_eebus
+}  // namespace eebus
 }  // namespace esphome

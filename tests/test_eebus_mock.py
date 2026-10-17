@@ -25,7 +25,7 @@ def test_eebus_fake_boost_and_restore(openamber: OpenAmberClient):
     openamber.step(ms=100)
 
     assert openamber.get_entity("sg_ready_mode_select") == "Boost"
-    assert openamber.get_entity("eebus_status_sensor") == "Boost actief"
+    assert openamber.get_entity("eebus_status_sensor") == "Boost active"
     assert openamber.get_entity("eebus_connected_sensor") is True
     assert "EVCC" in str(openamber.get_entity("eebus_ems_sensor"))
 
@@ -34,7 +34,7 @@ def test_eebus_fake_boost_and_restore(openamber: OpenAmberClient):
     openamber.step(ms=100)
 
     assert openamber.get_entity("sg_ready_mode_select") == "Normaal"
-    assert openamber.get_entity("eebus_status_sensor") == "Normaal bedrijf"
+    assert openamber.get_entity("eebus_status_sensor") == "Normal operation"
 
 
 def test_eebus_fake_dim_and_restore(openamber: OpenAmberClient):
@@ -48,14 +48,14 @@ def test_eebus_fake_dim_and_restore(openamber: OpenAmberClient):
     openamber.step(ms=100)
 
     assert openamber.get_entity("sg_ready_mode_select") == "Blokkeren"
-    assert openamber.get_entity("eebus_status_sensor") == "Gedimd (§14a)"
+    assert openamber.get_entity("eebus_status_sensor") == "Dimmed (§14a)"
 
     # 2. Release EEBUS dim request
     assert openamber.eebus_request_dim(False)
     openamber.step(ms=100)
 
     assert openamber.get_entity("sg_ready_mode_select") == "Normaal"
-    assert openamber.get_entity("eebus_status_sensor") == "Normaal bedrijf"
+    assert openamber.get_entity("eebus_status_sensor") == "Normal operation"
 
 
 def test_eebus_disconnect(openamber: OpenAmberClient):
@@ -72,4 +72,4 @@ def test_eebus_disconnect(openamber: OpenAmberClient):
 
     assert openamber.get_entity("eebus_connected_sensor") is False
     assert openamber.get_entity("eebus_ems_sensor") == "–"
-    assert openamber.get_entity("eebus_status_sensor") == "Niet verbonden"
+    assert openamber.get_entity("eebus_status_sensor") == "Disconnected"

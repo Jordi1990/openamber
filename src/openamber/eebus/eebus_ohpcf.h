@@ -18,7 +18,7 @@
 #include <functional>
 
 namespace esphome {
-namespace openamber_eebus {
+namespace eebus {
 
 enum class OhpcfState : uint8_t {
   AVAILABLE,  // optional consumption announced, not scheduled
@@ -29,7 +29,7 @@ enum class OhpcfState : uint8_t {
 
 class OhpcfServer {
  public:
-  // Callbacks driven by the OpenAmber bridge / integration layer.
+  // Callbacks driven by the host application bridge / integration layer.
   using Applier = std::function<bool(bool enabled)>;
   using ChangeCallback = std::function<void(OhpcfState state)>;
 
@@ -79,5 +79,5 @@ class OhpcfServer {
   ChangeCallback change_cb_;
 };
 
-}  // namespace openamber_eebus
+}  // namespace eebus
 }  // namespace esphome

@@ -4,7 +4,6 @@
  * SHIP message framing (see header).
  */
 
-#ifndef USE_EEBUS_MOCK
 
 #include "eebus_ship.h"
 #include "esphome/core/log.h"
@@ -12,7 +11,7 @@
 #include <cstring>
 
 namespace esphome {
-namespace openamber_eebus {
+namespace eebus {
 
 // Convert standard JSON into EEBUS JSON: wrap each object's fields into a
 // single-element array of {"key":value}.  Implemented with a lightweight
@@ -201,7 +200,6 @@ bool ship_decode_frame(const std::vector<uint8_t> &frame, uint8_t &msg_type, std
   return true;
 }
 
-}  // namespace openamber_eebus
+}  // namespace eebus
 }  // namespace esphome
 
-#endif  // USE_EEBUS_MOCK

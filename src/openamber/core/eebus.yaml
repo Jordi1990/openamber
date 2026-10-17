@@ -1,4 +1,5 @@
 eebus:
+  device_name: "OpenAmber"
   device_sku: "OpenAmber-${device_model}"
   brand: "OpenAmber"
   model: "Amber"

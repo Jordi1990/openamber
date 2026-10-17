@@ -21,7 +21,7 @@
 #include <string>
 
 namespace esphome {
-namespace openamber_eebus {
+namespace eebus {
 
 class EebusNode {
  public:
@@ -34,11 +34,20 @@ class EebusNode {
   void set_device_id(const std::string &id) { this->device_id_ = id; }
   void set_brand(const std::string &brand) { this->brand_ = brand; }
   void set_model(const std::string &model) { this->model_ = model; }
+  void set_device_name(const std::string &name) { this->device_name_ = name; }
+  void set_device_category(const std::string &cat) { this->device_category_ = cat; }
+  void set_device_type(const std::string &type) { this->device_type_ = type; }
+  void set_entity_type(const std::string &type) { this->entity_type_ = type; }
+  void set_enable_ohpcf(bool enable) { this->enable_ohpcf_ = enable; }
+  void set_enable_mdt(bool enable) { this->enable_mdt_ = enable; }
+  bool is_ohpcf_enabled() const { return this->enable_ohpcf_; }
+  bool is_mdt_enabled() const { return this->enable_mdt_; }
 
   void set_ship_sender(const std::function<bool(const std::string &)> &sender) { this->ship_sender_ = sender; }
 
   // Local addressing.
   const std::string &device_id() const { return this->device_id_; }
+  std::string get_device_address() const;
   const SpineAddress &compressor_entity() const { return this->compressor_; }
   const SpineAddress &cem_entity() const { return this->cem_; }
   const std::string &remote_device() const { return this->remote_device_; }
@@ -113,9 +122,15 @@ class EebusNode {
   uint32_t next_counter() { return ++this->msg_counter_; }
 
   uint32_t msg_counter_{0};
-  std::string device_id_{"OpenAmber"};
-  std::string brand_{"OpenAmber"};
-  std::string model_{"Amber"};
+  std::string device_id_{"EEBUS-Device"};
+  std::string brand_{"Generic"};
+  std::string model_{"Device"};
+  std::string device_name_{""};
+  std::string device_category_{"heatPump"};
+  std::string device_type_{"HeatGenerationSystem"};
+  std::string entity_type_{"heatPumpAppliance"};
+  bool enable_ohpcf_{true};
+  bool enable_mdt_{true};
   SpineAddress compressor_{1, 1, 1};
   SpineAddress cem_{2, 1, 1};
 
@@ -139,5 +154,5 @@ class EebusNode {
   SpineAddress subscriber_nodemgmt_addr_;
 };
 
-}  // namespace openamber_eebus
+}  // namespace eebus
 }  // namespace esphome

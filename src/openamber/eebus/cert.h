@@ -1,13 +1,11 @@
 /*
- * Open Amber - native EEBus PoC
+ * Native EEBUS component for ESPHome
  *
  * Certificate & key material for the SHIP (TLS) connection.
  * - EC P-256 keypair + self-signed X.509 certificate.
- * - SKI = SubjectKeyIdentifier (hex) used by evcc for pairing.
- * - A freshly generated pair is embedded at build time; persisted to NVS so
- *   the SKI stays stable across reboots.
- *
- * See docs/eebus-native-poc.md.
+ * - SKI = SubjectKeyIdentifier (hex) used by EMS/CEM (e.g. evcc) for pairing.
+ * - Generated dynamically on first boot and persisted to NVS so the SKI
+ *   stays stable across reboots.
  */
 
 #pragma once
@@ -18,10 +16,11 @@
 #include <vector>
 
 namespace esphome {
-namespace openamber_eebus {
+namespace eebus {
 
 class EEBusCertificateStore {
  public:
+  void set_common_name(const std::string &common_name) { this->common_name_ = common_name; }
   bool load_or_create();
   bool is_loaded() const { return !this->cert_pem_.empty(); }
 
@@ -35,10 +34,11 @@ class EEBusCertificateStore {
   bool save_to_nvs();
   bool load_from_nvs();
 
+  std::string common_name_{"EEBUS-Device"};
   std::string cert_pem_;
   std::string key_pem_;
   std::string ski_;
 };
 
-}  // namespace openamber_eebus
+}  // namespace eebus
 }  // namespace esphome

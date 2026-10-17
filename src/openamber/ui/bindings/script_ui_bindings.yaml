@@ -1726,7 +1726,14 @@
           lv_label_set_text(id(eebus_status_lbl), "Uitgeschakeld");
           lv_obj_set_style_text_color(id(eebus_status_lbl), lv_color_hex(0x6B7280), LV_PART_MAIN);
         } else if (id(eebus_status_sensor).has_state()) {
-          lv_label_set_text(id(eebus_status_lbl), id(eebus_status_sensor).state.c_str());
+          std::string st = id(eebus_status_sensor).state;
+          if (st == "Normal operation") st = "Normaal bedrijf";
+          else if (st == "Boost active") st = "Boost actief";
+          else if (st == "Dimmed (§14a)") st = "Gedimd (§14a)";
+          else if (st == "Disconnected") st = "Niet verbonden";
+          else if (st == "Initializing...") st = "Initialiseren...";
+          else if (st == "Disabled") st = "Uitgeschakeld";
+          lv_label_set_text(id(eebus_status_lbl), st.c_str());
           lv_obj_set_style_text_color(id(eebus_status_lbl), lv_color_hex(0x1F2933), LV_PART_MAIN);
         } else {
           lv_label_set_text(id(eebus_status_lbl), "–");
@@ -1767,7 +1774,7 @@
   then:
     - lambda: |-
         #ifdef USE_EEBUS
-        openamber_eebus::eebus_disconnect();
+        eebus::eebus_disconnect();
         #endif
         if (id(eebus_connected_sensor) != nullptr) {
           id(eebus_connected_sensor).publish_state(false);

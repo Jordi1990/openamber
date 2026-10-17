@@ -5,7 +5,6 @@
  * header for details.
  */
 
-#ifndef USE_EEBUS_MOCK
 
 #include "eebus_spine.h"
 #include "esphome/core/log.h"
@@ -14,7 +13,7 @@
 #include <cstring>
 
 namespace esphome {
-namespace openamber_eebus {
+namespace eebus {
 
 static const char *const TAG = "eebus_spine";
 
@@ -420,7 +419,6 @@ bool spine_parse_dispatch(const std::string &json, SpineInboundCommand &out) {
   return true;
 }
 
-}  // namespace openamber_eebus
+}  // namespace eebus
 }  // namespace esphome
 
-#endif  // USE_EEBUS_MOCK

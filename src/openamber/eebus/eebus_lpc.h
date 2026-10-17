@@ -17,7 +17,7 @@
 #include <functional>
 
 namespace esphome {
-namespace openamber_eebus {
+namespace eebus {
 
 class LpcServer {
  public:
@@ -48,5 +48,5 @@ class LpcServer {
   ChangeCallback change_cb_;
 };
 
-}  // namespace openamber_eebus
+}  // namespace eebus
 }  // namespace esphome

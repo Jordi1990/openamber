@@ -8,7 +8,6 @@
  * eebus-go/evcc parses as mandatory: txtvers, id, path, ski, register.
  */
 
-#ifndef USE_EEBUS_MOCK
 
 #include "mdns.h"
 #include "esphome/core/defines.h"
@@ -22,10 +21,11 @@
 #endif
 
 namespace esphome {
-namespace openamber_eebus {
+namespace eebus {
 
 bool eebus_mdns_start(const std::string &device_sku, const std::string &brand,
-                      const std::string &model, const std::string &ski,
+                      const std::string &model, const std::string &device_category,
+                      const std::string &device_type, const std::string &ski,
                       const std::string &ship_id, uint16_t ship_port) {
 #ifdef USE_MDNS
   esp_err_t err = mdns_init();
@@ -48,23 +48,56 @@ bool eebus_mdns_start(const std::string &device_sku, const std::string &brand,
   std::string id_lower = ship_id;
   for (auto &c : id_lower) c = std::tolower(static_cast<unsigned char>(c));
 
-  std::string serial_val = brand.empty() ? "OpenAmber" : brand;
+  std::string serial_val = brand.empty() ? "Generic" : brand;
   serial_val += "-";
-  serial_val += model.empty() ? "Amber" : model;
+  serial_val += model.empty() ? "Device" : model;
+
+  std::string cat_val = "3";
+  std::string type_val = "HeatPump";
+
+  std::string cat_lower = device_category;
+  for (auto &c : cat_lower) c = std::tolower(static_cast<unsigned char>(c));
+
+  if (cat_lower == "1" || cat_lower == "ems" || cat_lower == "energymanagementsystem") {
+    cat_val = "1";
+    type_val = "EnergyManagementSystem";
+  } else if (cat_lower == "2" || cat_lower == "evse" || cat_lower == "chargingstation") {
+    cat_val = "2";
+    type_val = "ChargingStation";
+  } else if (cat_lower == "3" || cat_lower == "heatpump" || cat_lower == "heat_pump" || cat_lower == "hvac") {
+    cat_val = "3";
+    type_val = "HeatPump";
+  } else if (cat_lower == "4" || cat_lower == "battery" || cat_lower == "storage" || cat_lower == "electricitystoragesystem") {
+    cat_val = "4";
+    type_val = "Battery";
+  } else if (cat_lower == "5" || cat_lower == "inverter" || cat_lower == "pv" || cat_lower == "photovoltaicsystem") {
+    cat_val = "5";
+    type_val = "Inverter";
+  } else if (!cat_lower.empty() && std::isdigit(static_cast<unsigned char>(cat_lower[0]))) {
+    cat_val = cat_lower;
+  }
+
+  if (!device_type.empty()) {
+    if (device_type == "HeatGenerationSystem") {
+      type_val = "HeatPump";
+    } else {
+      type_val = device_type;
+    }
+  }
 
   // EEBUS SHIP 7.3.2 DNS-SD TXT records:
   // txtvers=1, path=/ship/, id=<shipid>, ski=<cert SKI>, register=true,
-  // brand=<brand>, model=<model>, type=HeatPump, cat=3 (HVAC), serial=<serial>
+  // brand=<brand>, model=<model>, type=<type>, cat=<category>, serial=<serial>
   mdns_txt_item_t txt[] = {
       {"txtvers", "1"},
       {"path", "/ship/"},
       {"id", id_lower.c_str()},
       {"ski", ski_lower.c_str()},
       {"register", "true"},
-      {"brand", brand.empty() ? "OpenAmber" : brand.c_str()},
-      {"model", model.empty() ? "Amber" : model.c_str()},
-      {"type", "HeatPump"},
-      {"cat", "3"},
+      {"brand", brand.empty() ? "Generic" : brand.c_str()},
+      {"model", model.empty() ? "Device" : model.c_str()},
+      {"type", type_val.c_str()},
+      {"cat", cat_val.c_str()},
       {"serial", serial_val.c_str()},
   };
 
@@ -74,10 +107,11 @@ bool eebus_mdns_start(const std::string &device_sku, const std::string &brand,
     ESP_LOGW("eebus_mdns", "mdns_service_add(_ship._tcp) failed: %d", err);
     return false;
   }
-  ESP_LOGI("eebus_mdns", "Advertised _ship._tcp on port %u (ski=%s id=%s brand=%s model=%s type=HeatPump cat=3 register=true)",
+  ESP_LOGI("eebus_mdns", "Advertised _ship._tcp on port %u (ski=%s id=%s brand=%s model=%s type=%s cat=%s register=true)",
            static_cast<unsigned>(ship_port), ski_lower.c_str(), id_lower.c_str(),
-           brand.empty() ? "OpenAmber" : brand.c_str(),
-           model.empty() ? "Amber" : model.c_str());
+           brand.empty() ? "Generic" : brand.c_str(),
+           model.empty() ? "Device" : model.c_str(),
+           type_val.c_str(), cat_val.c_str());
   return true;
 #else
   ESP_LOGI("eebus_mdns", "mDNS unavailable (USE_MDNS not enabled); "
@@ -108,7 +142,6 @@ void eebus_mdns_stop() {
 #endif
 }
 
-}  // namespace openamber_eebus
+}  // namespace eebus
 }  // namespace esphome
 
-#endif  // USE_EEBUS_MOCK

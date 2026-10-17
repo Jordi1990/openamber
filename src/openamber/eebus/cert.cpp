@@ -1,16 +1,15 @@
 /*
- * Open Amber - native EEBus PoC
+ * Native EEBUS component for ESPHome
  *
  * Certificate store: persists the generated pair to NVS and falls back to an
- * embedded build-time pair otherwise.  A stable SKI is required for evcc
+ * embedded build-time pair otherwise.  A stable SKI is required for EMS/CEM
  * pairing, so the pair must not change across reboots.
  *
- * Each OpenAmber installation dynamically generates a unique EC P-256 keypair
+ * Each installation dynamically generates a unique EC P-256 keypair
  * and self-signed X.509 certificate on first boot, storing them in NVS along
  * with the RFC 5280 Subject Key Identifier (SKI).
  */
 
-#ifndef USE_EEBUS_MOCK
 
 #include "cert.h"
 #include "nvs_store.h"
@@ -27,11 +26,11 @@
 #include "mbedtls/sha1.h"
 
 namespace esphome {
-namespace openamber_eebus {
+namespace eebus {
 
 static const char *const TAG = "eebus_cert";
 
-// Embedded build-time pair (EC P-256, self-signed, CN=OpenAmber) for fallback.
+// Embedded build-time pair (EC P-256, self-signed) for fallback.
 static const char kEmbeddedCertPem[] =
     "-----BEGIN CERTIFICATE-----\n"
     "MIIBSDCB76ADAgECAgEBMAoGCCqGSM49BAMCMBQxEjAQBgNVBAMMCU9wZW5BbWJl\n"
@@ -137,7 +136,8 @@ bool EEBusCertificateStore::generate_and_save() {
   mbedtls_x509write_crt_set_subject_key(&crt, &key);
   mbedtls_x509write_crt_set_issuer_key(&crt, &key);
 
-  ret = mbedtls_x509write_crt_set_subject_name(&crt, "CN=OpenAmber");
+  std::string dn = "CN=" + (this->common_name_.empty() ? "EEBUS-Device" : this->common_name_);
+  ret = mbedtls_x509write_crt_set_subject_name(&crt, dn.c_str());
   if (ret != 0) {
     ESP_LOGE(TAG, "set_subject_name failed: -0x%04x", -ret);
     mbedtls_x509write_crt_free(&crt);
@@ -145,7 +145,7 @@ bool EEBusCertificateStore::generate_and_save() {
     return false;
   }
 
-  ret = mbedtls_x509write_crt_set_issuer_name(&crt, "CN=OpenAmber");
+  ret = mbedtls_x509write_crt_set_issuer_name(&crt, dn.c_str());
   if (ret != 0) {
     ESP_LOGE(TAG, "set_issuer_name failed: -0x%04x", -ret);
     mbedtls_x509write_crt_free(&crt);
@@ -265,7 +265,6 @@ bool EEBusCertificateStore::load_from_nvs() {
 }
 
 
-}  // namespace openamber_eebus
+}  // namespace eebus
 }  // namespace esphome
 
-#endif  // USE_EEBUS_MOCK

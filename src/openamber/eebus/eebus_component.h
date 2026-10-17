@@ -4,21 +4,18 @@
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/text_sensor/text_sensor.h"
-#include <functional>
-#include <string>
-#include <cmath>
-
-#ifndef USE_EEBUS_MOCK
 #include "cert.h"
 #include "ship_listener.h"
 #include "eebus_ohpcf.h"
 #include "eebus_lpc.h"
 #include "eebus_measurements.h"
 #include "eebus_node.h"
-#endif
+#include <functional>
+#include <string>
+#include <cmath>
 
 namespace esphome {
-namespace openamber_eebus {
+namespace eebus {
 
 class EEBusComponent : public PollingComponent {
  public:
@@ -30,6 +27,12 @@ class EEBusComponent : public PollingComponent {
   void set_device_sku(const std::string &sku) { this->device_sku_ = sku; }
   void set_brand(const std::string &brand) { this->brand_ = brand; }
   void set_model(const std::string &model) { this->model_ = model; }
+  void set_device_name(const std::string &name) { this->device_name_ = name; }
+  void set_device_category(const std::string &cat) { this->device_category_ = cat; }
+  void set_device_type(const std::string &type) { this->device_type_ = type; }
+  void set_entity_type(const std::string &type) { this->entity_type_ = type; }
+  void set_enable_ohpcf(bool enable) { this->enable_ohpcf_ = enable; }
+  void set_enable_mdt(bool enable) { this->enable_mdt_ = enable; }
   void set_failsafe_duration(uint32_t seconds) { this->failsafe_duration_s_ = seconds; }
 
   // Diagnostic sensors for Home Assistant
@@ -42,7 +45,7 @@ class EEBusComponent : public PollingComponent {
 
   void record_action(const std::string &action);
 
-  // OpenAmber bridge (wired from YAML lambdas that can access id(...)).
+  // Host application bridge (wired from YAML lambdas that can access id(...)).
   void set_read_model(const std::function<std::string()> &fn) { this->read_model_ = fn; }
   void set_read_power(const std::function<float()> &fn) { this->read_power_ = fn; }
   void set_read_dhw_temp(const std::function<float()> &fn) { this->read_dhw_temp_ = fn; }
@@ -65,27 +68,23 @@ class EEBusComponent : public PollingComponent {
   void update() override;
 
   // Getters exposed to the SHIP/SPINE layer for outbound use-case data.
-#ifndef USE_EEBUS_MOCK
   float get_dhw_temperature_c() const { return this->mdt_.get_temperature_c(); }
   float get_power_w() const { return this->mpc_.get_power_w(); }
 
   OhpcfServer &ohpcf() { return this->ohpcf_; }
   LpcServer &lpc() { return this->lpc_; }
   EebusNode &node() { return this->node_; }
-#else
-  float get_dhw_temperature_c() const { return 0.0f; }
-  float get_power_w() const { return 0.0f; }
-
-  void fake_request_boost(bool active);
-  void fake_request_dim(bool active);
-  void fake_set_power_limit(float limit_w);
-  void fake_set_connected(bool connected, const std::string &ems_name = "EVCC (192.168.1.100)");
-#endif
 
  private:
-  std::string device_sku_;
-  std::string brand_;
-  std::string model_;
+  std::string device_sku_{"EEBUS-Device"};
+  std::string brand_{"Generic"};
+  std::string model_{"Device"};
+  std::string device_name_{""};
+  std::string device_category_{"heatPump"};
+  std::string device_type_{"HeatGenerationSystem"};
+  std::string entity_type_{"heatPumpAppliance"};
+  bool enable_ohpcf_{true};
+  bool enable_mdt_{true};
   uint32_t failsafe_duration_s_{7200};
   std::string ship_id_;
   bool listener_started_{false};
@@ -103,8 +102,8 @@ class EEBusComponent : public PollingComponent {
   sensor::Sensor *power_limit_sensor_{nullptr};
   text_sensor::TextSensor *ski_sensor_{nullptr};
   text_sensor::TextSensor *ems_sensor_{nullptr};
-  std::string last_action_{"Initialisatie"};
-  std::string current_status_{"Initialisatie"};
+  std::string last_action_{"Initialization"};
+  std::string current_status_{"Initialization"};
   std::string current_ems_{"–"};
   bool last_connected_{false};
 
@@ -121,7 +120,6 @@ class EEBusComponent : public PollingComponent {
   bool pending_limit_update_{false};
   bool pending_remote_changed_{false};
 
-#ifndef USE_EEBUS_MOCK
   EEBusCertificateStore cert_store_;
   EEBusShipListener ship_listener_;
   OhpcfServer ohpcf_;
@@ -129,11 +127,6 @@ class EEBusComponent : public PollingComponent {
   MpcServer mpc_;
   MdtServer mdt_;
   EebusNode node_;
-#else
-  bool last_enabled_{false};
-  bool is_boost_requested_{false};
-  bool is_dim_requested_{false};
-#endif
 
   std::function<std::string()> read_model_{nullptr};
   std::function<float()> read_power_;
@@ -150,7 +143,6 @@ class EEBusComponent : public PollingComponent {
   bool initialized_{false};
   bool model_detected_{false};
 
-#ifndef USE_EEBUS_MOCK
   void init_certificate_and_keys();
   void start_ship_listener();
   bool advertise_mdns();
@@ -158,14 +150,11 @@ class EEBusComponent : public PollingComponent {
   void check_failsafe();
   void check_connection_state();
   void update_ems_status();
-#endif
 };
 
 void eebus_disconnect();
-void fake_eebus_boost(bool active);
-void fake_eebus_dim(bool active);
-void fake_eebus_limit(float limit_w);
-void fake_eebus_connected(bool connected, const std::string &ems_name = "EVCC (192.168.1.100)");
 
-}  // namespace openamber_eebus
+}  // namespace eebus
+
+namespace openamber_eebus = eebus;
 }  // namespace esphome

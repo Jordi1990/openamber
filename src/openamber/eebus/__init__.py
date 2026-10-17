@@ -14,6 +14,12 @@ from esphome.const import (
 CONF_DEVICE_SKU = "device_sku"
 CONF_BRAND = "brand"
 CONF_MODEL = "model"
+CONF_DEVICE_NAME = "device_name"
+CONF_DEVICE_CATEGORY = "device_category"
+CONF_DEVICE_TYPE = "device_type"
+CONF_ENTITY_TYPE = "entity_type"
+CONF_ENABLE_OHPCF = "enable_ohpcf"
+CONF_ENABLE_MDT = "enable_mdt"
 CONF_FAILSAFE_DURATION = "failsafe_duration"
 CONF_READ_MODEL = "read_model"
 CONF_READ_POWER = "read_power"
@@ -35,16 +41,22 @@ CONF_POWER_LIMIT = "power_limit"
 CONF_SKI = "ski"
 CONF_EMS = "ems"
 
-eebus_ns = cg.esphome_ns.namespace("openamber_eebus")
+eebus_ns = cg.esphome_ns.namespace("eebus")
 EEBusComponent = eebus_ns.class_("EEBusComponent", cg.PollingComponent)
 
 CONFIG_SCHEMA = cv.All(
     cv.Schema(
         {
             cv.GenerateID(): cv.declare_id(EEBusComponent),
-            cv.Optional(CONF_DEVICE_SKU, default="OpenAmber-ESP32"): cv.string,
-            cv.Optional(CONF_BRAND, default="OpenAmber"): cv.string,
-            cv.Optional(CONF_MODEL, default="Amber"): cv.string,
+            cv.Optional(CONF_DEVICE_SKU, default="EEBUS-Device"): cv.string,
+            cv.Optional(CONF_BRAND, default="Generic"): cv.string,
+            cv.Optional(CONF_MODEL, default="Device"): cv.string,
+            cv.Optional(CONF_DEVICE_NAME): cv.string,
+            cv.Optional(CONF_DEVICE_CATEGORY, default="heatPump"): cv.string,
+            cv.Optional(CONF_DEVICE_TYPE, default="HeatGenerationSystem"): cv.string,
+            cv.Optional(CONF_ENTITY_TYPE, default="heatPumpAppliance"): cv.string,
+            cv.Optional(CONF_ENABLE_OHPCF): cv.boolean,
+            cv.Optional(CONF_ENABLE_MDT): cv.boolean,
             cv.Optional(CONF_FAILSAFE_DURATION, default="2h"): cv.positive_time_period,
             cv.Optional(CONF_READ_MODEL): cv.returning_lambda,
             cv.Optional(CONF_READ_POWER): cv.returning_lambda,
@@ -90,6 +102,36 @@ CONFIG_SCHEMA = cv.All(
 )
 
 
+def FILTER_SOURCE_FILES() -> list[str]:
+    if CORE.is_esp32:
+        return ["eebus_mock.cpp", "eebus_mock.h"]
+    return [
+        "cert.cpp",
+        "cert.h",
+        "eebus_component.cpp",
+        "eebus_component.h",
+        "eebus_lpc.cpp",
+        "eebus_lpc.h",
+        "eebus_measurements.h",
+        "eebus_node.cpp",
+        "eebus_node.h",
+        "eebus_ohpcf.cpp",
+        "eebus_ohpcf.h",
+        "eebus_ship.cpp",
+        "eebus_ship.h",
+        "eebus_spine.cpp",
+        "eebus_spine.h",
+        "eebus_websocket.cpp",
+        "eebus_websocket.h",
+        "mdns.cpp",
+        "mdns.h",
+        "nvs_store.cpp",
+        "nvs_store.h",
+        "ship_listener.cpp",
+        "ship_listener.h",
+    ]
+
+
 async def to_code(config):
     cg.add_define("USE_EEBUS")
     if CORE.is_esp32:
@@ -108,6 +150,26 @@ async def to_code(config):
     cg.add(var.set_device_sku(config[CONF_DEVICE_SKU]))
     cg.add(var.set_brand(config[CONF_BRAND]))
     cg.add(var.set_model(config[CONF_MODEL]))
+    if CONF_DEVICE_NAME in config:
+        cg.add(var.set_device_name(config[CONF_DEVICE_NAME]))
+    cg.add(var.set_device_category(config[CONF_DEVICE_CATEGORY]))
+    cg.add(var.set_device_type(config[CONF_DEVICE_TYPE]))
+    cg.add(var.set_entity_type(config[CONF_ENTITY_TYPE]))
+
+    enable_ohpcf = config.get(CONF_ENABLE_OHPCF)
+    if enable_ohpcf is None:
+        enable_ohpcf = (
+            CONF_APPLY_OPTIONAL in config
+            or CONF_READ_POWER_ESTIMATE in config
+            or config.get(CONF_DEVICE_CATEGORY) == "heatPump"
+        )
+    cg.add(var.set_enable_ohpcf(enable_ohpcf))
+
+    enable_mdt = config.get(CONF_ENABLE_MDT)
+    if enable_mdt is None:
+        enable_mdt = CONF_READ_DHW_TEMP in config
+    cg.add(var.set_enable_mdt(enable_mdt))
+
     cg.add(var.set_failsafe_duration(config[CONF_FAILSAFE_DURATION].total_seconds))
 
     for key, args, return_type in (

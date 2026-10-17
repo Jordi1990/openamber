@@ -1,11 +1,10 @@
 /*
- * Open Amber - native EEBus device PoC
+ * Native EEBUS component for ESPHome
  *
  * Copyright (C) 2025 Jordi Epema
  *
- * See docs/eebus-native-poc.md for the protocol contract and implementation
- * plan.  The SHIP/SPINE transport wires into ohpcf_/lpc_/mpc_/mdt_ servers;
- * the OpenAmber bridge callbacks (set_*) route into the real controllers with
+ * The SHIP/SPINE transport wires into ohpcf_/lpc_/mpc_/mdt_ servers;
+ * the host application bridge callbacks (set_*) route into host controllers with
  * safety priority.
  */
 
@@ -13,40 +12,36 @@
 #include "esphome/core/log.h"
 #include "esphome/core/hal.h"
 
-#ifndef USE_EEBUS_MOCK
 #include "mdns.h"
 #include "eebus_ship.h"
 #include "eebus_websocket.h"
 #include "esphome/components/network/util.h"
 #include <algorithm>
 #include <cctype>
-#endif
 
 namespace esphome {
-namespace openamber_eebus {
+namespace eebus {
 
 static const char *const TAG = "eebus";
-
-#ifndef USE_EEBUS_MOCK
 
 void EEBusComponent::record_action(const std::string &action) {
   this->last_action_ = action;
   this->pending_action_state_ = action;
   this->pending_action_update_ = true;
-  ESP_LOGI(TAG, "EEBUS Actie: %s", action.c_str());
+  ESP_LOGI(TAG, "EEBUS action: %s", action.c_str());
 }
 
 void EEBusComponent::setup() {
   if (!this->is_enabled()) {
-    ESP_LOGI(TAG, "EEBus component is uitgeschakeld; initialisatie overgeslagen.");
+    ESP_LOGI(TAG, "EEBus component is disabled; skipping initialization.");
     if (this->status_sensor_ != nullptr) {
-      this->status_sensor_->publish_state("Uitgeschakeld");
+      this->status_sensor_->publish_state("Disabled");
     }
     if (this->connected_sensor_ != nullptr) {
       this->connected_sensor_->publish_state(false);
     }
     if (this->last_action_sensor_ != nullptr) {
-      this->last_action_sensor_->publish_state("Uitgeschakeld");
+      this->last_action_sensor_->publish_state("Disabled");
     }
     if (this->power_limit_sensor_ != nullptr) {
       this->power_limit_sensor_->publish_state(NAN);
@@ -67,14 +62,14 @@ void EEBusComponent::start_eebus_subsystem() {
   if (this->initialized_)
     return;
 
-  // Check if model is already known via Modbus
+  // Check if model is already known via callback
   if (this->read_model_) {
     std::string detected = this->read_model_();
-    if (!detected.empty() && detected != "Onbekend model") {
+    if (!detected.empty() && detected != "Onbekend model" && detected != "Unknown") {
       this->model_ = detected;
-      this->device_sku_ = "OpenAmber-" + detected;
+      this->device_sku_ = this->brand_ + "-" + detected;
       this->model_detected_ = true;
-      ESP_LOGI(TAG, "EEBUS model via Modbus: %s", this->model_.c_str());
+      ESP_LOGI(TAG, "EEBUS model via callback: %s", this->model_.c_str());
     } else {
       this->model_detected_ = false;
     }
@@ -88,14 +83,14 @@ void EEBusComponent::start_eebus_subsystem() {
   this->wire_use_cases();
   this->initialized_ = true;
 
-  this->current_status_ = "Initialiseren...";
+  this->current_status_ = "Initializing...";
   if (this->status_sensor_ != nullptr) {
     this->status_sensor_->publish_state(this->current_status_);
   }
   if (this->connected_sensor_ != nullptr) {
     this->connected_sensor_->publish_state(false);
   }
-  this->record_action("Opstarten");
+  this->record_action("Starting");
   if (this->power_limit_sensor_ != nullptr) {
     this->power_limit_sensor_->publish_state(NAN);
   }
@@ -110,7 +105,7 @@ void EEBusComponent::start_eebus_subsystem() {
 void EEBusComponent::stop_eebus_subsystem() {
   if (!this->initialized_)
     return;
-  ESP_LOGI(TAG, "EEBus component stopping (uitgeschakeld)...");
+  ESP_LOGI(TAG, "EEBus component stopping (disabled)...");
 
   // Stop SHIP listener & mDNS
   this->ship_listener_.stop();
@@ -133,17 +128,17 @@ void EEBusComponent::stop_eebus_subsystem() {
 
   this->last_connected_ = false;
   this->initialized_ = false;
-  this->current_status_ = "Uitgeschakeld";
+  this->current_status_ = "Disabled";
   this->current_ems_ = "–";
 
   if (this->connected_sensor_ != nullptr) {
     this->connected_sensor_->publish_state(false);
   }
   if (this->status_sensor_ != nullptr) {
-    this->status_sensor_->publish_state("Uitgeschakeld");
+    this->status_sensor_->publish_state("Disabled");
   }
   if (this->last_action_sensor_ != nullptr) {
-    this->last_action_sensor_->publish_state("Uitgeschakeld");
+    this->last_action_sensor_->publish_state("Disabled");
   }
   if (this->power_limit_sensor_ != nullptr) {
     this->power_limit_sensor_->publish_state(NAN);
@@ -220,15 +215,15 @@ void EEBusComponent::update() {
     this->start_eebus_subsystem();
   }
 
-  // Check / update model from Modbus
+  // Check / update model from callback
   if (this->read_model_) {
     std::string detected = this->read_model_();
-    if (!detected.empty() && detected != "Onbekend model") {
+    if (!detected.empty() && detected != "Onbekend model" && detected != "Unknown") {
       if (this->model_ != detected) {
         this->model_ = detected;
-        this->device_sku_ = "OpenAmber-" + detected;
+        this->device_sku_ = this->brand_ + "-" + detected;
         this->node_.set_model(this->model_);
-        ESP_LOGI(TAG, "EEBUS model geconfigureerd via Modbus: %s (sku=%s)",
+        ESP_LOGI(TAG, "EEBUS model configured via callback: %s (sku=%s)",
                  this->model_.c_str(), this->device_sku_.c_str());
         this->mdns_advertised_ = false;  // Force re-advertisement with new model
       }
@@ -245,11 +240,11 @@ void EEBusComponent::update() {
 
   // Update action message
   if (!this->model_detected_) {
-    if (this->last_action_ == "Opstarten" || this->last_action_ == "Initialisatie") {
-      this->record_action("Wachten op warmtepomp model via Modbus...");
+    if (this->last_action_ == "Starting" || this->last_action_ == "Initialization") {
+      this->record_action("Waiting for device model...");
     }
-  } else if (this->last_action_ == "Wachten op warmtepomp model via Modbus..." || this->last_action_ == "Opstarten") {
-    this->record_action("EEBUS listener gestart, wacht op EMS");
+  } else if (this->last_action_ == "Waiting for device model..." || this->last_action_ == "Starting") {
+    this->record_action("EEBUS listener started, waiting for EMS");
   }
 
   // Only advertise mDNS once network/WiFi is connected AND model is known!
@@ -269,14 +264,14 @@ void EEBusComponent::update() {
 
   this->check_connection_state();
 
-  // Refresh MPC (power) + MDT (temperature) from the OpenAmber bridge.
+  // Refresh MPC (power) + MDT (temperature) from host application callbacks.
   float power_w = 0.0f;
   if (this->read_power_) {
-    power_w = this->read_power_() + this->ohpcf_.get_current_optional_power_w();
+    power_w = this->read_power_() + (this->enable_ohpcf_ ? this->ohpcf_.get_current_optional_power_w() : 0.0f);
     this->mpc_.set_power_w(power_w);
   }
   float temp_c = 0.0f;
-  if (this->read_dhw_temp_) {
+  if (this->enable_mdt_ && this->read_dhw_temp_) {
     temp_c = this->read_dhw_temp_();
     this->mdt_.set_temperature_c(temp_c);
   }
@@ -293,30 +288,32 @@ void EEBusComponent::update() {
     }
   }
 
-  // Refresh dynamic power estimate if configured.
-  if (this->read_power_estimate_) {
-    float est = this->read_power_estimate_();
-    if (est >= 0.0f) {
-      this->ohpcf_.set_requested_power(est);
-      if (fabsf(est - this->last_power_estimate_w_) >= 50.0f) {
-        this->last_power_estimate_w_ = est;
-        if (this->ship_listener_.is_connected() && this->node_.has_subscriptions()) {
-          ESP_LOGD(TAG, "EEBUS power estimate updated to %.0f W", est);
-          this->node_.notify_ohpcf();
+  // Refresh dynamic power estimate if configured (OHPCF).
+  if (this->enable_ohpcf_) {
+    if (this->read_power_estimate_) {
+      float est = this->read_power_estimate_();
+      if (est >= 0.0f) {
+        this->ohpcf_.set_requested_power(est);
+        if (fabsf(est - this->last_power_estimate_w_) >= 50.0f) {
+          this->last_power_estimate_w_ = est;
+          if (this->ship_listener_.is_connected() && this->node_.has_subscriptions()) {
+            ESP_LOGD(TAG, "EEBUS power estimate updated to %.0f W", est);
+            this->node_.notify_ohpcf();
+          }
         }
       }
     }
-  }
 
-  // If OHPCF is RUNNING, verify if OpenAmber's boost mode is still active
-  if (this->ohpcf_.get_state() == OhpcfState::RUNNING) {
-    uint32_t now = millis();
-    // Allow a 60-second grace period after boost starts before checking if boost ended
-    if (now - this->last_boost_start_ms_ >= 60000UL) {
-      if (this->is_boost_active_ && !this->is_boost_active_()) {
-        ESP_LOGI(TAG, "Boost mode ended in OpenAmber; updating EEBUS OHPCF state to AVAILABLE (inactive)");
-        this->record_action("Boost beëindigd door OpenAmber");
-        this->ohpcf_.abort();
+    // If OHPCF is RUNNING, verify if host boost mode is still active
+    if (this->ohpcf_.get_state() == OhpcfState::RUNNING) {
+      uint32_t now = millis();
+      // Allow a 60-second grace period after boost starts before checking if boost ended
+      if (now - this->last_boost_start_ms_ >= 60000UL) {
+        if (this->is_boost_active_ && !this->is_boost_active_()) {
+          ESP_LOGI(TAG, "Boost mode ended externally; updating EEBUS OHPCF state to AVAILABLE (inactive)");
+          this->record_action("Boost ended");
+          this->ohpcf_.abort();
+        }
       }
     }
   }
@@ -331,7 +328,7 @@ void EEBusComponent::update() {
   }
 
   // Push OHPCF state periodically (every 10s) when connected
-  if (this->ship_listener_.is_connected() && this->node_.has_remote_device()) {
+  if (this->enable_ohpcf_ && this->ship_listener_.is_connected() && this->node_.has_remote_device()) {
     uint32_t now = millis();
     if (now - this->last_ohpcf_notify_ms_ >= 10000) {
       this->last_ohpcf_notify_ms_ = now;
@@ -352,41 +349,46 @@ void EEBusComponent::update() {
 }
 
 void EEBusComponent::init_certificate_and_keys() {
+  std::string cn = this->device_name_.empty() ? this->brand_ : this->device_name_;
+  if (cn.empty()) cn = "EEBUS-Device";
+  this->cert_store_.set_common_name(cn);
   if (!this->cert_store_.load_or_create())
     ESP_LOGE(TAG, "Failed to initialise EEBus certificate store");
   this->ship_id_ = this->cert_store_.get_ski();
 }
 
 void EEBusComponent::wire_use_cases() {
-  float initial_power = 0.0f;
-  if (this->read_power_estimate_) {
-    initial_power = this->read_power_estimate_();
-  }
-  this->ohpcf_.announce(initial_power, 600, 600);
-  this->last_power_estimate_w_ = initial_power;
+  if (this->enable_ohpcf_) {
+    float initial_power = 0.0f;
+    if (this->read_power_estimate_) {
+      initial_power = this->read_power_estimate_();
+    }
+    this->ohpcf_.announce(initial_power, 600, 600);
+    this->last_power_estimate_w_ = initial_power;
 
-  this->ohpcf_.set_applier([this](bool enabled) -> bool {
-    // Route the CEM's optional-consumption request through the bridge; the
-    // bridge decides whether the request is granted (safety first).
-    if (this->apply_optional_) {
-      bool ok = this->apply_optional_(enabled);
-      if (!ok) {
-        this->record_action("EVCC Boost geweigerd (OpenAmber blokkade/veiligheid)");
-        return false;
+    this->ohpcf_.set_applier([this](bool enabled) -> bool {
+      // Route the CEM's optional-consumption request through the bridge; the
+      // bridge decides whether the request is granted (safety first).
+      if (this->apply_optional_) {
+        bool ok = this->apply_optional_(enabled);
+        if (!ok) {
+          this->record_action("EMS Boost rejected (lockout/safety)");
+          return false;
+        }
       }
-    }
-    if (enabled) {
-      this->last_boost_start_ms_ = millis();
-      this->record_action("EVCC Boost gestart (OHPCF)");
-    } else {
-      this->record_action("EVCC Boost beëindigd (OHPCF)");
-    }
-    return true;
-  });
+      if (enabled) {
+        this->last_boost_start_ms_ = millis();
+        this->record_action("EMS Boost started (OHPCF)");
+      } else {
+        this->record_action("EMS Boost ended (OHPCF)");
+      }
+      return true;
+    });
 
-  this->ohpcf_.set_change_callback([this](OhpcfState state) {
-    this->node_.notify_ohpcf();
-  });
+    this->ohpcf_.set_change_callback([this](OhpcfState state) {
+      this->node_.notify_ohpcf();
+    });
+  }
 
   this->lpc_.set_dimmer([this](bool dim) {
     // Dim -> SG-Ready block path, again safety-gated by the bridge.
@@ -394,9 +396,9 @@ void EEBusComponent::wire_use_cases() {
       this->apply_dim_(dim);
     }
     if (dim) {
-      this->record_action("EVCC Dim/Blokkade actief (LPC 0W)");
+      this->record_action("EMS Dim/Block active (LPC 0W)");
     } else {
-      this->record_action("EVCC Dim/Blokkade opgeheven");
+      this->record_action("EMS Dim/Block released");
     }
   });
 
@@ -406,10 +408,10 @@ void EEBusComponent::wire_use_cases() {
     }
     if (active) {
       char buf[64];
-      snprintf(buf, sizeof(buf), "EVCC Limiet actief: %.0f W", limit_w);
+      snprintf(buf, sizeof(buf), "EMS Limit active: %.0f W", limit_w);
       this->record_action(buf);
     } else {
-      this->record_action("EVCC Limiet opgeheven");
+      this->record_action("EMS Limit released");
     }
   });
 
@@ -423,13 +425,19 @@ void EEBusComponent::wire_use_cases() {
     return this->ship_listener_.send_ship_data(spine_json);
   });
 
-  this->node_.set_ohpcf(&this->ohpcf_);
+  this->node_.set_ohpcf(this->enable_ohpcf_ ? &this->ohpcf_ : nullptr);
   this->node_.set_lpc(&this->lpc_);
   this->node_.set_mpc(&this->mpc_);
-  this->node_.set_mdt(&this->mdt_);
+  this->node_.set_mdt(this->enable_mdt_ ? &this->mdt_ : nullptr);
   this->node_.set_device_id(this->ship_id_);
   this->node_.set_brand(this->brand_);
   this->node_.set_model(this->model_);
+  this->node_.set_device_name(this->device_name_.empty() ? this->brand_ : this->device_name_);
+  this->node_.set_device_category(this->device_category_);
+  this->node_.set_device_type(this->device_type_);
+  this->node_.set_entity_type(this->entity_type_);
+  this->node_.set_enable_ohpcf(this->enable_ohpcf_);
+  this->node_.set_enable_mdt(this->enable_mdt_);
   this->node_.set_on_remote_device_changed([this](const std::string &) {
     this->pending_remote_changed_ = true;
   });
@@ -558,6 +566,7 @@ void EEBusComponent::start_ship_listener() {
 
 bool EEBusComponent::advertise_mdns() {
   return eebus_mdns_start(this->device_sku_, this->brand_, this->model_,
+                          this->device_category_, this->device_type_,
                           this->cert_store_.get_ski(), this->ship_id_,
                           this->ship_listener_.get_port());
 }
@@ -571,7 +580,7 @@ void EEBusComponent::check_failsafe() {
     uint32_t last_act = this->node_.get_last_activity_ms();
     if (last_act > 0 && (now - last_act > this->failsafe_duration_s_ * 1000UL)) {
       ESP_LOGW(TAG, "EEBUS failsafe duration elapsed without peer activity; releasing consumption limit");
-      this->record_action("Failsafe geactiveerd: limiet opgeheven");
+      this->record_action("Failsafe triggered: limit released");
       this->lpc_.release_limit();
     }
   }
@@ -585,31 +594,31 @@ void EEBusComponent::check_connection_state() {
     this->pending_connected_state_ = is_conn;
     this->pending_connected_update_ = true;
     if (is_conn) {
-      this->record_action("Verbonden met EMS");
+      this->record_action("Connected to EMS");
       this->last_measurement_notify_ms_ = 0;
       this->last_ohpcf_notify_ms_ = 0;
       this->last_use_case_notify_ms_ = 0;
     } else {
-      this->record_action("Verbinding verbroken met EMS");
+      this->record_action("Disconnected from EMS");
     }
   }
 
   this->update_ems_status();
 
-  std::string new_status = "Niet verbonden";
+  std::string new_status = "Disconnected";
   if (is_conn) {
-    if (this->ohpcf_.get_state() == OhpcfState::RUNNING) {
-      new_status = "Boost actief (OHPCF)";
+    if (this->enable_ohpcf_ && this->ohpcf_.get_state() == OhpcfState::RUNNING) {
+      new_status = "Boost active (OHPCF)";
     } else if (this->lpc_.is_dimmed()) {
       if (this->lpc_.get_limit_value_w() <= 0.0f) {
-        new_status = "Gedimd / Geblokkeerd (0W)";
+        new_status = "Dimmed / Blocked (0W)";
       } else {
         char buf[64];
-        snprintf(buf, sizeof(buf), "Begrensd op %.0f W", this->lpc_.get_limit_value_w());
+        snprintf(buf, sizeof(buf), "Limited to %.0f W", this->lpc_.get_limit_value_w());
         new_status = buf;
       }
     } else {
-      new_status = "Normaal bedrijf";
+      new_status = "Normal operation";
     }
   }
 
@@ -674,7 +683,7 @@ EEBusComponent::~EEBusComponent() {
 void EEBusComponent::disconnect_ems() {
   if (this->ship_listener_.is_connected()) {
     ESP_LOGI(TAG, "Disconnect requested by user from UI");
-    this->record_action("Verbinding verbroken door gebruiker");
+    this->record_action("Disconnected by user");
     this->ship_listener_.send_ship_control("{\"connectionClose\":{\"phase\":\"announce\"}}");
     this->ship_listener_.request_close();
   }
@@ -686,267 +695,5 @@ void eebus_disconnect() {
   }
 }
 
-void fake_eebus_boost(bool active) {}
-void fake_eebus_dim(bool active) {}
-void fake_eebus_limit(float limit_w) {}
-void fake_eebus_connected(bool connected, const std::string &ems_name) {}
-
-#else  // USE_EEBUS_MOCK
-
-static EEBusComponent *global_eebus_component = nullptr;
-
-EEBusComponent::EEBusComponent() {
-  global_eebus_component = this;
-}
-
-EEBusComponent::~EEBusComponent() {
-  if (global_eebus_component == this) {
-    global_eebus_component = nullptr;
-  }
-}
-
-void EEBusComponent::record_action(const std::string &action) {
-  this->last_action_ = action;
-  if (this->last_action_sensor_ != nullptr) {
-    this->last_action_sensor_->publish_state(action);
-  }
-  ESP_LOGI(TAG, "EEBUS [MOCK] Actie: %s", action.c_str());
-}
-
-void EEBusComponent::start_eebus_subsystem() {
-  ESP_LOGI(TAG, "EEBus [MOCK] subsystem gestart.");
-  if (this->status_sensor_ != nullptr) {
-    this->status_sensor_->publish_state("Niet verbonden");
-  }
-  if (this->connected_sensor_ != nullptr) {
-    this->connected_sensor_->publish_state(false);
-  }
-  if (this->last_action_sensor_ != nullptr) {
-    this->last_action_sensor_->publish_state("Initialisatie voltooid");
-  }
-  if (this->power_limit_sensor_ != nullptr) {
-    this->power_limit_sensor_->publish_state(NAN);
-  }
-  if (this->ski_sensor_ != nullptr) {
-    this->ski_sensor_->publish_state("MOCK-0123456789ABCDEF0123456789ABCDEF01234567");
-  }
-  if (this->ems_sensor_ != nullptr) {
-    this->ems_sensor_->publish_state("–");
-  }
-}
-
-void EEBusComponent::stop_eebus_subsystem() {
-  ESP_LOGI(TAG, "EEBus [MOCK] subsystem gestopt.");
-  if (this->is_boost_requested_) {
-    if (this->apply_optional_) {
-      this->apply_optional_(false);
-    }
-    this->is_boost_requested_ = false;
-  }
-  if (this->is_dim_requested_) {
-    if (this->apply_dim_) {
-      this->apply_dim_(false);
-    }
-    this->is_dim_requested_ = false;
-  }
-  if (this->status_sensor_ != nullptr) {
-    this->status_sensor_->publish_state("Uitgeschakeld");
-  }
-  if (this->connected_sensor_ != nullptr) {
-    this->connected_sensor_->publish_state(false);
-  }
-  if (this->last_action_sensor_ != nullptr) {
-    this->last_action_sensor_->publish_state("Uitgeschakeld");
-  }
-  if (this->power_limit_sensor_ != nullptr) {
-    this->power_limit_sensor_->publish_state(NAN);
-  }
-  if (this->ski_sensor_ != nullptr) {
-    this->ski_sensor_->publish_state("–");
-  }
-  if (this->ems_sensor_ != nullptr) {
-    this->ems_sensor_->publish_state("–");
-  }
-}
-
-void EEBusComponent::setup() {
-  this->last_enabled_ = this->is_enabled();
-  if (!this->last_enabled_) {
-    this->stop_eebus_subsystem();
-    return;
-  }
-  this->start_eebus_subsystem();
-}
-
-void EEBusComponent::loop() {
-  bool enabled = this->is_enabled();
-  if (enabled != this->last_enabled_) {
-    this->last_enabled_ = enabled;
-    if (enabled) {
-      this->start_eebus_subsystem();
-    } else {
-      this->stop_eebus_subsystem();
-    }
-  }
-}
-
-void EEBusComponent::update() {
-  // Periodic update
-}
-
-void EEBusComponent::disconnect_ems() {
-  ESP_LOGI(TAG, "EEBus [MOCK] Disconnect requested");
-  this->fake_set_connected(false);
-}
-
-void EEBusComponent::fake_request_boost(bool active) {
-  if (!this->is_enabled()) {
-    ESP_LOGW(TAG, "EEBus [MOCK] Cannot request boost: EEBUS is disabled");
-    return;
-  }
-  this->is_boost_requested_ = active;
-  if (this->apply_optional_) {
-    bool ok = this->apply_optional_(active);
-    ESP_LOGI(TAG, "EEBus [MOCK] apply_optional(%d) -> %d", active, ok);
-  }
-  if (active) {
-    if (this->connected_sensor_ != nullptr && !this->connected_sensor_->state) {
-      this->fake_set_connected(true, "EVCC (192.168.1.100)");
-    }
-    this->record_action("EVCC Boost gestart (OHPCF)");
-    if (this->status_sensor_ != nullptr) {
-      this->status_sensor_->publish_state("Boost actief");
-    }
-  } else {
-    this->record_action("EVCC Boost beëindigd (OHPCF)");
-    if (this->status_sensor_ != nullptr) {
-      bool conn = this->connected_sensor_ != nullptr && this->connected_sensor_->state;
-      this->status_sensor_->publish_state(conn ? "Normaal bedrijf" : "Niet verbonden");
-    }
-  }
-}
-
-void EEBusComponent::fake_request_dim(bool active) {
-  if (!this->is_enabled()) {
-    ESP_LOGW(TAG, "EEBus [MOCK] Cannot request dim: EEBUS is disabled");
-    return;
-  }
-  this->is_dim_requested_ = active;
-  if (this->apply_dim_) {
-    bool ok = this->apply_dim_(active);
-    ESP_LOGI(TAG, "EEBus [MOCK] apply_dim(%d) -> %d", active, ok);
-  }
-  if (active) {
-    if (this->connected_sensor_ != nullptr && !this->connected_sensor_->state) {
-      this->fake_set_connected(true, "EVCC (192.168.1.100)");
-    }
-    this->record_action("EVCC Dimmen gestart (LPC)");
-    if (this->status_sensor_ != nullptr) {
-      this->status_sensor_->publish_state("Gedimd (§14a)");
-    }
-  } else {
-    this->record_action("EVCC Dimmen beëindigd (LPC)");
-    if (this->status_sensor_ != nullptr) {
-      bool conn = this->connected_sensor_ != nullptr && this->connected_sensor_->state;
-      this->status_sensor_->publish_state(conn ? "Normaal bedrijf" : "Niet verbonden");
-    }
-  }
-}
-
-void EEBusComponent::fake_set_power_limit(float limit_w) {
-  if (!this->is_enabled()) {
-    ESP_LOGW(TAG, "EEBus [MOCK] Cannot set power limit: EEBUS is disabled");
-    return;
-  }
-  bool active = !std::isnan(limit_w) && limit_w >= 0.0f;
-  if (this->apply_limit_) {
-    this->apply_limit_(active, limit_w);
-  }
-  if (this->power_limit_sensor_ != nullptr) {
-    this->power_limit_sensor_->publish_state(limit_w);
-  }
-  if (active) {
-    if (this->connected_sensor_ != nullptr && !this->connected_sensor_->state) {
-      this->fake_set_connected(true, "EVCC (192.168.1.100)");
-    }
-    this->record_action("Vermogenslimiet ingesteld");
-  } else {
-    this->record_action("Vermogenslimiet opgeheven");
-  }
-}
-
-void EEBusComponent::fake_set_connected(bool connected, const std::string &ems_name) {
-  if (connected) {
-    if (this->connected_sensor_ != nullptr) {
-      this->connected_sensor_->publish_state(true);
-    }
-    if (this->ems_sensor_ != nullptr) {
-      this->ems_sensor_->publish_state(ems_name);
-    }
-    if (this->status_sensor_ != nullptr) {
-      if (this->is_boost_requested_) {
-        this->status_sensor_->publish_state("Boost actief");
-      } else if (this->is_dim_requested_) {
-        this->status_sensor_->publish_state("Gedimd (§14a)");
-      } else {
-        this->status_sensor_->publish_state("Normaal bedrijf");
-      }
-    }
-    this->record_action("Verbonden met " + ems_name);
-  } else {
-    if (this->connected_sensor_ != nullptr) {
-      this->connected_sensor_->publish_state(false);
-    }
-    if (this->ems_sensor_ != nullptr) {
-      this->ems_sensor_->publish_state("–");
-    }
-    if (this->status_sensor_ != nullptr) {
-      this->status_sensor_->publish_state("Niet verbonden");
-    }
-    if (this->power_limit_sensor_ != nullptr) {
-      this->power_limit_sensor_->publish_state(NAN);
-    }
-    this->record_action("Verbinding verbroken");
-    if (this->is_boost_requested_) {
-      this->fake_request_boost(false);
-    }
-    if (this->is_dim_requested_) {
-      this->fake_request_dim(false);
-    }
-  }
-}
-
-void eebus_disconnect() {
-  if (global_eebus_component != nullptr) {
-    global_eebus_component->disconnect_ems();
-  }
-}
-
-void fake_eebus_boost(bool active) {
-  if (global_eebus_component != nullptr) {
-    global_eebus_component->fake_request_boost(active);
-  }
-}
-
-void fake_eebus_dim(bool active) {
-  if (global_eebus_component != nullptr) {
-    global_eebus_component->fake_request_dim(active);
-  }
-}
-
-void fake_eebus_limit(float limit_w) {
-  if (global_eebus_component != nullptr) {
-    global_eebus_component->fake_set_power_limit(limit_w);
-  }
-}
-
-void fake_eebus_connected(bool connected, const std::string &ems_name) {
-  if (global_eebus_component != nullptr) {
-    global_eebus_component->fake_set_connected(connected, ems_name);
-  }
-}
-
-#endif  // USE_EEBUS_MOCK
-
-}  // namespace openamber_eebus
+}  // namespace eebus
 }  // namespace esphome

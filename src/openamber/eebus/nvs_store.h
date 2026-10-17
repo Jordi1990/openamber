@@ -11,7 +11,7 @@
 #include <string>
 
 namespace esphome {
-namespace openamber_eebus {
+namespace eebus {
 
 class EEBusNvsStore {
  public:
@@ -19,5 +19,5 @@ class EEBusNvsStore {
   bool read_string(const char *key, std::string &out);
 };
 
-}  // namespace openamber_eebus
+}  // namespace eebus
 }  // namespace esphome
