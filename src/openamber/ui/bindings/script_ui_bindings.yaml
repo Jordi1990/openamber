@@ -212,18 +212,8 @@
           id(service_tab_warnings_lbl)
         };
 
-        for (int i = 0; i < 9; i++) {
-          if (lv_obj_has_state(tabs[i], LV_STATE_DISABLED)) {
-            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xEDF1F6), LV_PART_MAIN);
-            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x9CA3AF), LV_PART_MAIN);
-          } else if (i == tab_index) {
-            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
-            lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-          } else {
-            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xE8ECF1), LV_PART_MAIN);
-            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
-          }
-        }
+        // Tabs in the 2-column drill-down overview retain their default clean white card styling
+
     - script.execute: update_service_mode_ui
     - if:
         condition:
@@ -303,7 +293,8 @@
                             - lvgl.widget.update: { id: page_settings, hidden: true }
                             - lvgl.menu.set_page:
                                 id: service_menu
-                                page: service_maintenance_page
+                                page: service_overview_page
+                            - script.execute: setup_menu_header_ui
                             - script.execute: update_service_mode_ui
                             - script.execute: update_service_top_tabs_ui
                             - script.execute: update_service_diag_summary_ui
@@ -768,6 +759,7 @@
     - lvgl.menu.set_page:
         id: service_menu
         page: service_errors_page
+    - script.execute: setup_menu_header_ui
     - script.execute:
         id: service_select_tab
         tab_index: 7
@@ -798,6 +790,7 @@
     - lvgl.menu.set_page:
         id: service_menu
         page: service_warnings_page
+    - script.execute: setup_menu_header_ui
     - script.execute:
         id: service_select_tab
         tab_index: 8
@@ -2089,35 +2082,38 @@
 - id: setup_menu_header_ui
   then:
     - lambda: |-
-        auto menu = id(settings_menu);
-        if (menu != nullptr) {
-          auto header = lv_menu_get_main_header(menu);
-          if (header != nullptr) {
-            auto back_btn = lv_menu_get_main_header_back_button(menu);
-            if (back_btn != nullptr) {
-              lv_obj_set_size(back_btn, 46, 46);
-              lv_obj_set_style_radius(back_btn, 12, LV_PART_MAIN);
-              lv_obj_set_style_bg_color(back_btn, lv_color_make(255, 255, 255), LV_PART_MAIN);
-              lv_obj_set_style_bg_opa(back_btn, LV_OPA_COVER, LV_PART_MAIN);
-              lv_obj_set_style_border_width(back_btn, 1, LV_PART_MAIN);
-              lv_obj_set_style_border_color(back_btn, lv_color_make(226, 232, 240), LV_PART_MAIN);
-              lv_obj_set_layout(back_btn, LV_LAYOUT_FLEX);
-              lv_obj_set_flex_flow(back_btn, LV_FLEX_FLOW_ROW);
-              lv_obj_set_flex_align(back_btn, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-              lv_obj_set_style_pad_all(back_btn, 0, LV_PART_MAIN);
-              lv_obj_set_style_margin_right(back_btn, 14, LV_PART_MAIN);
-              auto back_icon = lv_obj_get_child(back_btn, 0);
-              if (back_icon != nullptr) {
-                lv_obj_set_style_text_font(back_icon, font_mdi_24, LV_PART_MAIN);
-                lv_obj_set_style_text_color(back_icon, lv_color_make(31, 59, 104), LV_PART_MAIN);
-                lv_obj_set_style_align(back_icon, LV_ALIGN_CENTER, LV_PART_MAIN);
-                lv_image_set_src(back_icon, "\363\260\205\201");
+        lv_obj_t* menus[2] = { id(settings_menu), id(service_menu) };
+        for (int m = 0; m < 2; m++) {
+          auto menu = menus[m];
+          if (menu != nullptr) {
+            auto header = lv_menu_get_main_header(menu);
+            if (header != nullptr) {
+              auto back_btn = lv_menu_get_main_header_back_button(menu);
+              if (back_btn != nullptr) {
+                lv_obj_set_size(back_btn, 46, 46);
+                lv_obj_set_style_radius(back_btn, 12, LV_PART_MAIN);
+                lv_obj_set_style_bg_color(back_btn, lv_color_make(255, 255, 255), LV_PART_MAIN);
+                lv_obj_set_style_bg_opa(back_btn, LV_OPA_COVER, LV_PART_MAIN);
+                lv_obj_set_style_border_width(back_btn, 1, LV_PART_MAIN);
+                lv_obj_set_style_border_color(back_btn, lv_color_make(226, 232, 240), LV_PART_MAIN);
+                lv_obj_set_layout(back_btn, LV_LAYOUT_FLEX);
+                lv_obj_set_flex_flow(back_btn, LV_FLEX_FLOW_ROW);
+                lv_obj_set_flex_align(back_btn, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+                lv_obj_set_style_pad_all(back_btn, 0, LV_PART_MAIN);
+                lv_obj_set_style_margin_right(back_btn, 14, LV_PART_MAIN);
+                auto back_icon = lv_obj_get_child(back_btn, 0);
+                if (back_icon != nullptr) {
+                  lv_obj_set_style_text_font(back_icon, font_mdi_24, LV_PART_MAIN);
+                  lv_obj_set_style_text_color(back_icon, lv_color_make(31, 59, 104), LV_PART_MAIN);
+                  lv_obj_set_style_align(back_icon, LV_ALIGN_CENTER, LV_PART_MAIN);
+                  lv_image_set_src(back_icon, "\363\260\205\201");
+                }
               }
-            }
-            auto title = lv_obj_get_child(header, 1);
-            if (title != nullptr) {
-              lv_obj_set_style_text_font(title, font_text_24, LV_PART_MAIN);
-              lv_obj_set_style_text_color(title, lv_color_make(31, 41, 51), LV_PART_MAIN);
+              auto title = lv_obj_get_child(header, 1);
+              if (title != nullptr) {
+                lv_obj_set_style_text_font(title, font_text_24, LV_PART_MAIN);
+                lv_obj_set_style_text_color(title, lv_color_make(31, 41, 51), LV_PART_MAIN);
+              }
             }
           }
         }

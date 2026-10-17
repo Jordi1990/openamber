@@ -137,26 +137,37 @@ def test_general_systeem_and_opties(openamber):
     assert openamber.is_visible("set_general_hardware_flow_sensor_calibration"), "Kalibratie row must be visible"
 
 
-def test_service_sidebar_tabs(openamber):
-    """Verify clicking sidebar tabs in the Service page switches menu pages."""
+def test_service_overview_navigation(openamber):
+    """Verify clicking category rows in Service overview navigates to subpages and back."""
     assert openamber.click("nav_service"), "Clicking nav_service must succeed"
     openamber.step(ms=100)
     assert openamber.is_visible("page_service"), "page_service must be visible"
 
-    # Initially Algemeen (maintenance) is root page and visible
-    assert openamber.is_visible("service_maintenance_panel"), "service_maintenance_panel must be visible initially"
+    # Initially Service Overview page is root page and visible
+    assert openamber.is_visible("service_overview_page"), "service_overview_page must be visible initially"
 
-    # Click Compressor (Buitenunit) tab
+    # Click Algemeen & Modus (service_tab_maintenance)
+    assert openamber.click("service_tab_maintenance"), "Clicking service_tab_maintenance must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("service_maintenance_panel"), "service_maintenance_panel must be visible"
+    assert openamber.is_hidden("service_overview_page"), "service_overview_page must be hidden"
+
+    # Click back button to return to service overview
+    assert openamber.click("service_menu_back_btn"), "Clicking service_menu_back_btn must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("service_overview_page"), "service_overview_page must be visible again"
+
+    # Click Buitenunit (service_tab_compressor)
     assert openamber.click("service_tab_compressor"), "Clicking service_tab_compressor must succeed"
     openamber.step(ms=100)
     assert openamber.is_visible("service_mpanel_compressor"), "service_mpanel_compressor must be visible"
-    assert openamber.is_hidden("service_maintenance_panel"), "service_maintenance_panel must be hidden"
+    assert openamber.is_hidden("service_overview_page"), "service_overview_page must be hidden"
 
-    # Click back to Maintenance (Algemeen) tab
-    assert openamber.click("service_tab_maintenance"), "Clicking service_tab_maintenance must succeed"
+    # Click back button to return to service overview
+    assert openamber.click("service_menu_back_btn"), "Clicking service_menu_back_btn must succeed"
     openamber.step(ms=100)
-    assert openamber.is_visible("service_maintenance_panel"), "service_maintenance_panel must be visible again"
-    assert openamber.is_hidden("service_mpanel_compressor"), "service_mpanel_compressor must be hidden"
+    assert openamber.is_visible("service_overview_page"), "service_overview_page must be visible again"
+
 
 
 
