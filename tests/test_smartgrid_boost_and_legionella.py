@@ -275,14 +275,16 @@ def test_legionella_settings_and_prevention_flow(clean_system):
     dhw_sp = float(openamber.get_entity("current_dhw_setpoint_sensor") or 0)
     assert dhw_sp == 62.0, f"Expected updated legionella target 62.0°C, got {dhw_sp}"
 
-    # Verify toggling legio_enabled_switch
+    # Disabling legionella must abort the active run. CheckLegionellaCycle runs in the 5s controller
+    # update (only in Heat/Cool or DHW main state; a valve switch can take 60s), so advance time.
     openamber.set_switch("legio_enabled_switch", False)
+    openamber.advance_time(seconds=70, step_s=5)
     openamber.step(ms=100)
-    assert openamber.get_entity("legio_enabled_switch") is False
-
-    openamber.set_switch("legio_enabled_switch", True)
-    openamber.step(ms=100)
-    assert openamber.get_entity("legio_enabled_switch") is True
+    assert openamber.get_entity("dhw_legionella_run_active_sensor") is False, (
+        "Turning legio_enabled_switch OFF must abort the active legionella run"
+    )
+    dhw_sp = float(openamber.get_entity("current_dhw_setpoint_sensor"))
+    assert dhw_sp == 50.0, f"DHW setpoint must fall back to 50.0°C after abort, got {dhw_sp}"
 
     # Cleanup
     openamber.set_binary_sensor("dhw_legionella_run_active_sensor", False)

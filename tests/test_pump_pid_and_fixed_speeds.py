@@ -56,7 +56,7 @@ def test_fixed_pump_speed_heating(clean_system):
     openamber.step(ms=100)
 
     # At 70% speed, inverted PWM control value is 1000 - 70*10 = 300
-    current_pwm = float(openamber.get_entity("pump_control_pwm_number") or openamber.get_entity("pump_p0_current_pwm_sensor") or 0)
+    current_pwm = float(openamber.get_entity("pump_control_pwm_number"))
     assert current_pwm == 300.0, f"Expected 300.0 for 70% heating speed, got {current_pwm}"
 
     # Change heating pump speed to 90%
@@ -64,7 +64,7 @@ def test_fixed_pump_speed_heating(clean_system):
     openamber.advance_time(seconds=6, step_s=1)
     openamber.step(ms=100)
 
-    current_pwm = float(openamber.get_entity("pump_control_pwm_number") or openamber.get_entity("pump_p0_current_pwm_sensor") or 0)
+    current_pwm = float(openamber.get_entity("pump_control_pwm_number"))
     assert current_pwm == 100.0, f"Expected 100.0 for 90% heating speed, got {current_pwm}"
 
     # Cleanup
@@ -105,7 +105,7 @@ def test_fixed_pump_speed_dhw(clean_system):
     openamber.step(ms=100)
 
     # In DHW mode, pump speed is 85% -> 1000 - 85*10 = 150
-    current_pwm = float(openamber.get_entity("pump_control_pwm_number") or openamber.get_entity("pump_p0_current_pwm_sensor") or 0)
+    current_pwm = float(openamber.get_entity("pump_control_pwm_number"))
     assert current_pwm == 150.0, f"Expected 150.0 for 85% DHW speed, got {current_pwm}"
 
     # Cleanup
@@ -161,7 +161,7 @@ def test_pump_p0_pid_defrost_override_and_limits(clean_system):
     openamber.step(ms=100)
 
     # In PID mode before compressor settles, pump starts at min_pwm (40% -> 600)
-    current_pwm = float(openamber.get_entity("pump_control_pwm_number") or openamber.get_entity("pump_p0_current_pwm_sensor") or 0)
+    current_pwm = float(openamber.get_entity("pump_control_pwm_number"))
     assert current_pwm == 600.0, f"Expected initial pump PWM 600.0 (40%), got {current_pwm}"
 
     # Trigger defrost cycle
@@ -170,7 +170,7 @@ def test_pump_p0_pid_defrost_override_and_limits(clean_system):
     openamber.step(ms=100)
 
     # During defrost with PID enabled, pump must switch to defrost PWM (95% -> 50)
-    current_pwm = float(openamber.get_entity("pump_control_pwm_number") or openamber.get_entity("pump_p0_current_pwm_sensor") or 0)
+    current_pwm = float(openamber.get_entity("pump_control_pwm_number"))
     assert current_pwm == 50.0, f"Expected defrost pump PWM 50.0 (95%), got {current_pwm}"
 
     # Clear defrost cycle
@@ -179,7 +179,7 @@ def test_pump_p0_pid_defrost_override_and_limits(clean_system):
     openamber.step(ms=100)
 
     # Pump must return from defrost override to valid PID range (200.0..600.0)
-    current_pwm = float(openamber.get_entity("pump_control_pwm_number") or openamber.get_entity("pump_p0_current_pwm_sensor") or 0)
+    current_pwm = float(openamber.get_entity("pump_control_pwm_number"))
     assert 200.0 <= current_pwm <= 600.0, f"Expected pump to return from defrost, got {current_pwm}"
 
     # Cleanup

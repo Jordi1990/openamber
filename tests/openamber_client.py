@@ -81,8 +81,14 @@ class OpenAmberClient:
         return self._check_status(res, f"click({widget_id})")
 
     def get_widget(self, widget_id: str) -> Dict[str, Any]:
-        """Query widget status (visible, hidden, text, checked, disabled)."""
-        return self.send_cmd({"cmd": "get_widget", "id": widget_id})
+        """Query widget status (visible, hidden, text, checked, disabled).
+
+        Raises when the widget does not exist, so a typo in a widget id can never
+        make an is_hidden()/not is_visible() assertion pass vacuously.
+        """
+        res = self.send_cmd({"cmd": "get_widget", "id": widget_id})
+        self._check_status(res, f"get_widget({widget_id})")
+        return res
 
     def set_dropdown(self, widget_id: str, selected: int) -> bool:
         """Set selected index of a dropdown widget and trigger LV_EVENT_VALUE_CHANGED."""
@@ -178,8 +184,14 @@ class OpenAmberClient:
         return self.send_cmd({"cmd": "get_time"})
 
     def get_entity(self, entity_id: str) -> Any:
-        """Get state of any registered entity."""
+        """Get state of any registered entity.
+
+        Raises when the entity does not exist. A missing entity used to return None,
+        which made assertions such as `int(x or 0) == 0` or `x is not True` pass on a typo.
+        A sensor without a value (NaN) still returns None.
+        """
         res = self.send_cmd({"cmd": "get_entity", "id": entity_id})
+        self._check_status(res, f"get_entity({entity_id})")
         if res.get("type") == "climate":
             return res
         return res.get("state")

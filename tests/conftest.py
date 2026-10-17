@@ -114,6 +114,15 @@ def clean_system(openamber):
     openamber.set_binary_sensor("external_cool_demand_wired", False)
     openamber.set_binary_sensor("sg_ready_block_mode_active_sensor", False)
     openamber.set_binary_sensor("defrost_active_sensor", False)
+    # Reset heating curves to their numbers.yaml defaults so curve edits in one test do not
+    # silently change the setpoint (and with it the start/stop behaviour) of later tests.
+    for anchor, z1, z2 in (("m10", 35.0, 30.0), ("0", 30.0, 28.0), ("p5", 28.0, 26.0),
+                           ("p10", 27.0, 24.0), ("p15", 25.0, 22.0)):
+        openamber.set_number(f"heat_curve_{anchor}", z1)
+        openamber.set_number(f"heat_curve_z2_{anchor}", z2)
+    # Mocked Modbus registers now keep injected values, so clear them explicitly
+    for reg in ("error_register_2119_raw", "error_register_2120_raw", "error_register_2121_raw"):
+        openamber.set_sensor(reg, 0.0)
     openamber.set_number("backup_heater_degmin_threshold", 50.0)
     openamber.set_number("dhw_setpoint_temperature", 50.0)
     openamber.set_number("dhw_restart_dhw_delta", 5.0)
@@ -126,6 +135,7 @@ def clean_system(openamber):
     openamber.set_select("thermostat_mode_select", "Extern")
     openamber.set_select("heat_mode_select", "Stooklijn")
     openamber.set_select("cool_mode_select", "Intern setpoint")
+    openamber.set_select("heat_cool_control_temperature_source_select", "CV-aanvoer (Tc)")
     openamber.set_climate("pid_heat_temperature_control", target_temperature=30.0)
     openamber.set_number("compressor_stop_delta_heating", 2.0)
     openamber.set_number("cooling_setpoint_number", 18.0)

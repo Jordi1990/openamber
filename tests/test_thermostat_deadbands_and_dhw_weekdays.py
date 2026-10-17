@@ -139,7 +139,7 @@ def test_dhw_schedule_weekday_switches_and_time_controls(clean_system):
 
     # Verify start time increment and decrement
     start_label = openamber.get_label("set_dhw_start_time_val")
-    assert start_label is not None, "Start time label should be present"
+    assert start_label != "", "Start time label should show a time"
 
     # Click increment start time -> verify value changes
     assert openamber.click("set_dhw_start_time_inc"), "Clicking set_dhw_start_time_inc must succeed"
@@ -154,7 +154,7 @@ def test_dhw_schedule_weekday_switches_and_time_controls(clean_system):
 
     # Verify end time increment and decrement
     end_label = openamber.get_label("set_dhw_end_time_val")
-    assert end_label is not None, "End time label should be present"
+    assert end_label != "", "End time label should show a time"
 
     # Click increment end time -> verify value changes
     assert openamber.click("set_dhw_end_time_inc"), "Clicking set_dhw_end_time_inc must succeed"
