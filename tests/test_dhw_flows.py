@@ -243,3 +243,48 @@ def test_dhw_compressor_limit_winter_mode(clean_system):
 
     current_mode = int(openamber.get_entity("compressor_control_select") or 0)
     assert current_mode == 10, f"Winter mode should set compressor to index 10 (Maximaal), got {current_mode}"
+
+
+def _run_dhw_with_realistic_tw(openamber, rate_c_per_min, duration_s):
+    """Run DHW while Tw rises at `rate_c_per_min`, reported in 15s steps like the Modbus poll.
+
+    Returns (backup_engaged, last_rate_sample).
+    """
+    from helpers import advance_until_state
+
+    openamber.set_number("dhw_setpoint_temperature", 50.0)
+    openamber.set_number("dhw_restart_dhw_delta", 5.0)
+    openamber.set_number("dhw_backup_min_avg_rate", 0.2)
+    openamber.set_number("dhw_backup_min_avg_rate_delay_minutes", 5.0)
+    tw = 40.0
+    openamber.set_sensor("dhw_temperature_tw_sensor", tw)
+    openamber.step(ms=50)
+    assert advance_until_state(openamber, "state_machine_state_dhw", "Compressor running", max_s=600, step=5)
+
+    step_c = rate_c_per_min * 15.0 / 60.0
+    for i in range(duration_s // 5):
+        if i % 3 == 0:
+            tw += step_c
+            openamber.set_sensor("dhw_temperature_tw_sensor", tw)
+        openamber.advance_time(seconds=5)
+        if openamber.get_entity("backup_heater_relay") is True:
+            return True, openamber.get_entity("dhw_backup_current_avg_rate_sensor")
+    return False, openamber.get_entity("dhw_backup_current_avg_rate_sensor")
+
+
+def test_dhw_backup_heater_engages_for_slow_heating_with_modbus_like_updates(clean_system):
+    """
+    Regression: the heating rate was the difference between two 5s updates. With Tw polled every
+    15s that alternates 0, 0, 3x the real rate and every high sample reset the delay timer, so
+    heating that is slow but not flat (0.1°C/min with a 0.2°C/min minimum) never engaged the backup heater.
+    """
+    engaged, rate = _run_dhw_with_realistic_tw(clean_system, rate_c_per_min=0.1, duration_s=1650)
+    assert engaged, f"Backup heater should engage when the tank heats at 0.1°C/min < 0.2°C/min (rate sensor: {rate})"
+    assert rate == pytest.approx(0.1, abs=0.03), f"Rate sensor should report the averaged heating speed, got {rate}"
+
+
+def test_dhw_backup_heater_stays_off_when_heating_fast_enough(clean_system):
+    """Heating at 0.3°C/min (above the 0.2°C/min minimum) must not engage the backup heater."""
+    engaged, rate = _run_dhw_with_realistic_tw(clean_system, rate_c_per_min=0.3, duration_s=1650)
+    assert not engaged, f"Backup heater must stay off when heating at 0.3°C/min (rate sensor: {rate})"
+    assert rate == pytest.approx(0.3, abs=0.05), f"Rate sensor should report ~0.3°C/min, got {rate}"

@@ -46,7 +46,7 @@ private:
   uint32_t heating_rate_below_min_since_ms_ = 0;
   float last_temperature_rate_ = 0.0f;
   float last_measured_temperature_ = 0.0f;
-  float dhw_pump_settled_time_ = 0.0f;
+  uint32_t dhw_pump_settled_time_ = 0;
   uint32_t pump_flow_missing_since_ms_ = 0;
   uint32_t valve_safety_condition_since_ms_ = 0;
 
@@ -119,7 +119,7 @@ private:
   {
     ESP_LOGI("amber", "Stopping DHW pump.");
     id(dhw_pump_relay_switch).turn_off();
-    dhw_pump_settled_time_ = 0.0f;
+    dhw_pump_settled_time_ = 0;
     heating_rate_below_min_since_ms_ = 0;
   }
 
@@ -183,11 +183,19 @@ private:
       return;
     }
 
+    // Average over DHW_HEATING_RATE_WINDOW_S instead of the difference between two 5s updates:
+    // with Tw polled every 15s the per-update rate alternates 0, 0, 3x the real rate, and every
+    // high sample reset the backup heater delay timer.
     float current_temperature = id(dhw_temperature_tw_sensor).state;
     uint32_t now = App.get_loop_component_start_time();
-    float delta_min = (float)(now - last_rate_measured_time_) / 60000.0f;
-    float delta_t = current_temperature - last_measured_temperature_;
-    float rate = (delta_min > 0.01f) ? (delta_t / delta_min) : 0.0f;
+    uint32_t elapsed_ms = now - last_rate_measured_time_;
+    if (elapsed_ms < DHW_HEATING_RATE_WINDOW_S * 1000UL)
+    {
+      return;
+    }
+
+    float delta_min = (float)elapsed_ms / 60000.0f;
+    float rate = (current_temperature - last_measured_temperature_) / delta_min;
     id(dhw_backup_current_avg_rate_sensor).publish_state(rate);
     last_measured_temperature_ = current_temperature;
     last_rate_measured_time_ = now;
@@ -219,6 +227,13 @@ private:
     }
 
     float current_avg_rate = id(dhw_backup_current_avg_rate_sensor).state;
+    if (std::isnan(current_avg_rate))
+    {
+      // No full averaging window yet.
+      heating_rate_below_min_since_ms_ = 0;
+      return false;
+    }
+
     if (current_avg_rate >= min_avg_rate)
     {
       heating_rate_below_min_since_ms_ = 0;
@@ -508,6 +523,8 @@ public:
         last_measured_temperature_ = id(dhw_temperature_tw_sensor).state;
         last_rate_measured_time_ = now;
         dhw_pump_settled_time_ = now;
+        // Start a fresh averaging window; do not reuse the rate of a previous DHW cycle.
+        id(dhw_backup_current_avg_rate_sensor).publish_state(NAN);
         heating_rate_below_min_since_ms_ = 0;
         SetNextState(id(emergency_mode_enabled).state ? DHWState::BACKUP_HEATER_RUNNING : DHWState::COMPRESSOR_RUNNING);
         break;

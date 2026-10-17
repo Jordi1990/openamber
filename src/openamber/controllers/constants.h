@@ -58,6 +58,10 @@ static const uint32_t DHW_BACKUP_HEATER_GRACE_PERIOD_S = 10 * 60;
 
 // Dhw
 static const uint32_t DHW_PUMP_TEMPERATURE_SETTLE_TIME_S = 2 * 60;
+// Window over which the DHW heating rate (°C/min) is averaged. Tw is polled every 15s over Modbus
+// with limited resolution, so a rate taken between two 5s controller updates is mostly 0 with
+// occasional spikes; averaging over a few minutes gives the actual heating speed.
+static const uint32_t DHW_HEATING_RATE_WINDOW_S = 3 * 60;
 
 
 // ============================================================================
