@@ -1262,6 +1262,37 @@
                       - lvgl.widget.show: { id: service_deaeration_lock_hint }
                 - lvgl.widget.disable: { id: service_deaeration_short_btn }
                 - lvgl.widget.disable: { id: service_deaeration_extended_btn }
+          - lambda: |-
+              lv_obj_t* maint_tabs[5] = {
+                id(service_tab_deaeration),
+                id(service_tab_compressor),
+                id(service_tab_pumps),
+                id(service_tab_valve),
+                id(service_tab_backup)
+              };
+
+              bool maint = id(service_mode_enabled).state && id(state_machine_state_main).state == "Maintenance";
+              lv_color_t bg = maint ? lv_color_hex(0xFFFFFF) : lv_color_hex(0xEDF1F6);
+              lv_color_t icon_col = maint ? lv_color_hex(0x1F3B68) : lv_color_hex(0x9CA3AF);
+              lv_color_t text_col = maint ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF);
+              lv_color_t chev_col = maint ? lv_color_hex(0x9CA3AF) : lv_color_hex(0xCBD5E1);
+
+              for (int i = 0; i < 5; i++) {
+                lv_obj_t* tab = maint_tabs[i];
+                if (tab == nullptr) continue;
+                if (maint) {
+                  lv_obj_clear_state(tab, LV_STATE_DISABLED);
+                } else {
+                  lv_obj_add_state(tab, LV_STATE_DISABLED);
+                }
+                lv_obj_set_style_bg_color(tab, bg, LV_PART_MAIN);
+                auto icon = lv_obj_get_child(tab, 0);
+                if (icon != nullptr) lv_obj_set_style_text_color(icon, icon_col, LV_PART_MAIN);
+                auto lbl = lv_obj_get_child(tab, 1);
+                if (lbl != nullptr) lv_obj_set_style_text_color(lbl, text_col, LV_PART_MAIN);
+                auto chev = lv_obj_get_child(tab, 2);
+                if (chev != nullptr) lv_obj_set_style_text_color(chev, chev_col, LV_PART_MAIN);
+              }
     - script.execute: update_header_mode_badge
 
 - id: update_home_pump_tile_state
