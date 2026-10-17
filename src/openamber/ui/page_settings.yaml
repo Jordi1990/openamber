@@ -86,3 +86,4 @@ obj:
           - !include settings/page_settings_tab_advanced_pid.yaml
           - !include settings/page_settings_tab_advanced_bodemplaat.yaml
           - !include settings/page_settings_tab_advanced_defrost.yaml
+          - !include settings/page_settings_tab_advanced_defrost_temps.yaml
