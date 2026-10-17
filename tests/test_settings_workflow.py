@@ -169,5 +169,36 @@ def test_service_overview_navigation(openamber):
     assert openamber.is_visible("service_overview_page"), "service_overview_page must be visible again"
 
 
+def test_bottom_nav_resets_drilldown_and_hides_back_button(openamber):
+    """Verify switching tabs via bottom navigation bar resets drill-down depth and hides the back button."""
+    # 1. In Service: Navigate deep into Waarschuwingen (service_tab_warnings)
+    assert openamber.click("nav_service"), "Clicking nav_service must succeed"
+    openamber.step(ms=100)
+    assert openamber.click("service_tab_warnings"), "Clicking service_tab_warnings must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("service_warnings_panel"), "service_warnings_panel must be visible"
+    assert openamber.is_visible("service_menu_back_btn"), "service_menu_back_btn must be visible when on subpage"
+
+    # 2. Switch to Settings via bottom nav bar
+    assert openamber.click("nav_settings"), "Clicking nav_settings must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("page_settings"), "page_settings must be visible"
+    assert openamber.is_visible("settings_overview_page"), "settings_overview_page must be visible"
+    assert openamber.is_hidden("settings_menu_back_btn"), "settings_menu_back_btn must be HIDDEN on root overview"
+
+    # 3. Drill down in Settings: Algemeen -> Systeem
+    assert openamber.click("stab_general"), "Clicking stab_general must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("settings_menu_back_btn"), "settings_menu_back_btn must be visible on subpage"
+
+    # 4. Switch back to Service via bottom nav bar
+    assert openamber.click("nav_service"), "Clicking nav_service must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("page_service"), "page_service must be visible"
+    assert openamber.is_visible("service_overview_page"), "service_overview_page must be visible"
+    assert openamber.is_hidden("service_menu_back_btn"), "service_menu_back_btn must be HIDDEN on root overview"
+
+
+
 
 
