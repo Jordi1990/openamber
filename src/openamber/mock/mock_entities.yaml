@@ -35,19 +35,28 @@ sensor:
     id: error_register_2119_raw
     name: "Foutregister 2119"
     accuracy_decimals: 0
-    lambda: 'return 0.0f;'
+    # Holds an injected value like a real Modbus register would (previously reset to 0 every 5s).
+    lambda: |-
+      if (id(error_register_2119_raw).has_state()) return id(error_register_2119_raw).state;
+      return 0.0f;
     update_interval: 5s
   - platform: template
     id: error_register_2120_raw
     name: "Foutregister 2120"
     accuracy_decimals: 0
-    lambda: 'return 0.0f;'
+    # Holds an injected value like a real Modbus register would (previously reset to 0 every 5s).
+    lambda: |-
+      if (id(error_register_2120_raw).has_state()) return id(error_register_2120_raw).state;
+      return 0.0f;
     update_interval: 5s
   - platform: template
     id: error_register_2121_raw
     name: "Foutregister 2121"
     accuracy_decimals: 0
-    lambda: 'return 0.0f;'
+    # Holds an injected value like a real Modbus register would (previously reset to 0 every 5s).
+    lambda: |-
+      if (id(error_register_2121_raw).has_state()) return id(error_register_2121_raw).state;
+      return 0.0f;
     update_interval: 5s
   - platform: template
     id: outside_unit_program_version
@@ -99,6 +108,11 @@ sensor:
       if (id(outlet_temperature_tuo).has_state()) return id(outlet_temperature_tuo).state;
       return 35.4f;
     update_interval: 5s
+    # Same trigger as modbus/sensors.yaml: heat_exchanger_delta_t has update_interval: never
+    # and is only recalculated when Tuo/Tui publish. Without this the P0 pump PID never runs.
+    on_value:
+      then:
+        - component.update: heat_exchanger_delta_t
   - platform: template
     id: inlet_temperature_tui
     name: "Retourtemperatuur (Tui)"
@@ -106,6 +120,9 @@ sensor:
       if (id(inlet_temperature_tui).has_state()) return id(inlet_temperature_tui).state;
       return 30.1f;
     update_interval: 5s
+    on_value:
+      then:
+        - component.update: heat_exchanger_delta_t
   - platform: template
     id: temperature_outside_ta
     name: "Buitentemperatuur (Ta)"
@@ -185,8 +202,14 @@ sensor:
   - platform: template
     id: pump_p0_current_pwm_sensor
     name: "Pomp P0 PWM"
+    # Mirrors modbus/sensors.yaml: the raw value is the inverted register (0..1000, 1000 = off),
+    # the published state is the duty cycle in %. PumpController compares against get_raw_state().
+    unit_of_measurement: "%"
     lambda: |-
       return id(pump_control_pwm_number).state;
+    filters:
+      - lambda: |-
+          return ((x * -1) + 1000) / 10;
     update_interval: 1s
   - platform: template
     id: water_flow_rate

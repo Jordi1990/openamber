@@ -117,7 +117,7 @@ def test_cooling_stop_delta_and_pump_speed(clean_system):
     assert comp_mode > 0, "Compressor should be running in cooling"
 
     # Verify Cooling Pump Speed PWM at 75% -> 1000 - 750 = 250
-    current_pwm = float(openamber.get_entity("pump_control_pwm_number") or openamber.get_entity("pump_p0_current_pwm_sensor") or 0)
+    current_pwm = float(openamber.get_entity("pump_control_pwm_number"))
     assert current_pwm == 250.0, f"Expected 250.0 PWM for 75% cooling pump speed, got {current_pwm}"
 
     # Water cools down to 16.5°C (target 18.0 - 16.5 = 1.5°C overshoot < stop delta 2.0°C)

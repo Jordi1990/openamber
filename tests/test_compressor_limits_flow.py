@@ -197,9 +197,16 @@ def test_heating_compressor_mode_limits(clean_system, limit_setting, max_expecte
 
     assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
 
-    current_mode = int(openamber.get_entity("compressor_control_select") or 0)
-    assert current_mode <= max_expected_mode, (
-        f"Heating mode '{limit_setting}' must not exceed mode {max_expected_mode}, got {current_mode}"
+    # The mode climbs at most one step per FREQUENCY_CHANGE_INTERVAL_UP_S (300s). From the soft-start
+    # mode (5) up to mode 10 takes 5 steps, so run long enough for every setting to saturate at its cap.
+    # A '<=' check right after soft start could never fail for the higher settings.
+    openamber.advance_time(seconds=1900, step_s=30)
+    openamber.step(ms=50)
+
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    current_mode = int(openamber.get_entity("compressor_control_select"))
+    assert current_mode == max_expected_mode, (
+        f"Heating mode '{limit_setting}' should saturate at mode {max_expected_mode} under full demand, got {current_mode}"
     )
 
 
@@ -237,9 +244,14 @@ def test_cooling_compressor_mode_limits(clean_system, limit_setting, max_expecte
 
     assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
 
-    current_mode = int(openamber.get_entity("compressor_control_select") or 0)
-    assert current_mode <= max_expected_mode, (
-        f"Cooling mode '{limit_setting}' must not exceed mode {max_expected_mode}, got {current_mode}"
+    # Cooling soft-starts at mode 1 and climbs one step per 300s, so mode 7 needs ~1800s.
+    openamber.advance_time(seconds=1900, step_s=30)
+    openamber.step(ms=50)
+
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    current_mode = int(openamber.get_entity("compressor_control_select"))
+    assert current_mode == max_expected_mode, (
+        f"Cooling mode '{limit_setting}' should saturate at mode {max_expected_mode} under full demand, got {current_mode}"
     )
 
 
