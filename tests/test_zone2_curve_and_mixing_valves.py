@@ -51,7 +51,7 @@ def test_zone2_heating_curve_anchors_and_interpolation(clean_system):
         openamber.step(ms=100)
 
         calculated = float(openamber.get_entity("heat_curve_z2_calculated_setpoint") or 0)
-        assert calculated == pytest.approx(expected_sp, 0.2), (
+        assert calculated == pytest.approx(expected_sp, abs=0.2), (
             f"At Ta={ta}°C, expected Zone 2 setpoint {expected_sp}°C, got {calculated}°C"
         )
 
@@ -90,12 +90,12 @@ def test_two_zones_enabled_highest_setpoint_selection(clean_system):
     sp_z2 = float(openamber.get_entity("heat_curve_z2_calculated_setpoint") or 0)
     current_sp = float(openamber.get_entity("current_setpoint") or 0)
 
-    assert sp_z1 == pytest.approx(35.0, 0.2)
-    assert sp_z2 == pytest.approx(28.0, 0.2)
-    assert current_sp == pytest.approx(35.0, 0.2), f"Expected Zone 1 setpoint 35.0°C to be selected, got {current_sp}°C"
+    assert sp_z1 == pytest.approx(35.0, abs=0.2)
+    assert sp_z2 == pytest.approx(28.0, abs=0.2)
+    assert current_sp == pytest.approx(35.0, abs=0.2), f"Expected Zone 1 setpoint 35.0°C to be selected, got {current_sp}°C"
 
     climate_info = openamber.get_entity("pid_heat_temperature_control")
-    assert climate_info.get("target_temperature") == pytest.approx(35.0, 0.2)
+    assert climate_info.get("target_temperature") == pytest.approx(35.0, abs=0.2)
 
     # Case 2: Zone 2 setpoint is higher (33°C) than Zone 1 (25°C)
     openamber.set_number("heat_curve_p5", 25.0)
@@ -110,12 +110,12 @@ def test_two_zones_enabled_highest_setpoint_selection(clean_system):
     sp_z2 = float(openamber.get_entity("heat_curve_z2_calculated_setpoint") or 0)
     current_sp = float(openamber.get_entity("current_setpoint") or 0)
 
-    assert sp_z1 == pytest.approx(25.0, 0.2)
-    assert sp_z2 == pytest.approx(33.0, 0.2)
-    assert current_sp == pytest.approx(33.0, 0.2), f"Expected Zone 2 setpoint 33.0°C to be selected, got {current_sp}°C"
+    assert sp_z1 == pytest.approx(25.0, abs=0.2)
+    assert sp_z2 == pytest.approx(33.0, abs=0.2)
+    assert current_sp == pytest.approx(33.0, abs=0.2), f"Expected Zone 2 setpoint 33.0°C to be selected, got {current_sp}°C"
 
     climate_info = openamber.get_entity("pid_heat_temperature_control")
-    assert climate_info.get("target_temperature") == pytest.approx(33.0, 0.2)
+    assert climate_info.get("target_temperature") == pytest.approx(33.0, abs=0.2)
 
     # Case 3: Only Zone 1 enabled -> uses Zone 1 setpoint even if Zone 2 is higher
     openamber.set_switch("mixing_valve_zone1_enabled", True)
@@ -124,7 +124,7 @@ def test_two_zones_enabled_highest_setpoint_selection(clean_system):
     openamber.step(ms=100)
 
     current_sp = float(openamber.get_entity("current_setpoint") or 0)
-    assert current_sp == pytest.approx(25.0, 0.2), f"Expected only Zone 1 (25.0°C), got {current_sp}°C"
+    assert current_sp == pytest.approx(25.0, abs=0.2), f"Expected only Zone 1 (25.0°C), got {current_sp}°C"
 
     # Case 4: Only Zone 2 enabled -> uses Zone 2 setpoint even if Zone 1 is higher
     openamber.set_number("heat_curve_p5", 36.0)
@@ -135,7 +135,7 @@ def test_two_zones_enabled_highest_setpoint_selection(clean_system):
     openamber.step(ms=100)
 
     current_sp = float(openamber.get_entity("current_setpoint") or 0)
-    assert current_sp == pytest.approx(33.0, 0.2), f"Expected only Zone 2 (33.0°C), got {current_sp}°C"
+    assert current_sp == pytest.approx(33.0, abs=0.2), f"Expected only Zone 2 (33.0°C), got {current_sp}°C"
 
     # Cleanup
     openamber.set_switch("mixing_valve_zone1_enabled", False)
@@ -507,6 +507,12 @@ def test_control_temperature_forced_to_tc_when_mixing_valves_enabled(clean_syste
     _start_heating_and_reach_compressor_running(openamber, heat_mode="Extern setpoint")
     assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
 
+    # Stop conditions are only evaluated after COMPRESSOR_MIN_ON_S (600s). Without passing it,
+    # the "keeps running" check below would pass even if Tv1 were used as control temperature.
+    openamber.advance_time(seconds=620, step_s=20)
+    openamber.step(ms=50)
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+
     # Spike Tv1 well above stop threshold (45°C >> 37°C) while keeping Tc at 30°C (< 37°C)
     openamber.set_sensor("heat_cool_temperature_tv1", 45.0)
     openamber.set_sensor("heat_cool_temperature_tc", 30.0)
@@ -525,11 +531,14 @@ def test_control_temperature_forced_to_tc_when_mixing_valves_enabled(clean_syste
     openamber.step(ms=50)
 
     # Now compressor must stop because Tc exceeded target + stop_delta
+    # Normal stop path: Compressor running -> Wait compressor stop -> Pump running (-> Wait pump stop).
+    # 'Idle' is deliberately not accepted: that would be a safety stop, not the stop-delta path.
     assert openamber.get_entity("state_machine_state_heat_cool") in [
-        "Wait compressor stop", "Wait for compressor to stop", "Pump running", "Rust", "Idle", "Wait pump stop"
+        "Wait compressor stop", "Pump running", "Wait pump stop"
     ], (
         "Compressor must stop when Tc exceeds target + stop_delta"
     )
+    assert int(openamber.get_entity("compressor_control_select")) == 0
 
 
 
@@ -653,7 +662,7 @@ def test_flow_zone1_demands_heat_zone2_no_demand_zone1_opens_zone2_closes(clean_
 
     # Tc setpoint must be Zone 1 setpoint (30°C), ignoring Zone 2 (45°C)
     current_sp = float(openamber.get_entity("current_setpoint") or 0)
-    assert current_sp == pytest.approx(30.0, 0.2)
+    assert current_sp == pytest.approx(30.0, abs=0.2)
 
     # Zone 1 valve opens completely to max (80%)
     val1 = int(openamber.get_entity("mixing_valve_zone1_output"))
@@ -707,7 +716,7 @@ def test_flow_zone2_demands_heat_zone1_no_demand_zone2_opens_zone1_closes(clean_
 
     # Tc setpoint must be Zone 2 setpoint (32°C), ignoring Zone 1 (45°C)
     current_sp = float(openamber.get_entity("current_setpoint") or 0)
-    assert current_sp == pytest.approx(32.0, 0.2)
+    assert current_sp == pytest.approx(32.0, abs=0.2)
 
     # Zone 2 valve opens completely to max (85%)
     val2 = int(openamber.get_entity("mixing_valve_zone2_output"))
@@ -752,7 +761,7 @@ def test_flow_both_zones_demand_heat_lowest_temp_mixes_highest_temp_opens(clean_
 
     # Tc setpoint must be highest of both (35°C)
     current_sp = float(openamber.get_entity("current_setpoint") or 0)
-    assert current_sp == pytest.approx(35.0, 0.2)
+    assert current_sp == pytest.approx(35.0, abs=0.2)
 
     # Zone 1 (highest setpoint) opens completely to max (80%)
     openamber.advance_time(seconds=5, step_s=1)
@@ -792,7 +801,7 @@ def test_flow_both_zones_demand_heat_lowest_temp_mixes_highest_temp_opens(clean_
 
     # Tc setpoint must be highest of both (38°C)
     current_sp = float(openamber.get_entity("current_setpoint") or 0)
-    assert current_sp == pytest.approx(38.0, 0.2)
+    assert current_sp == pytest.approx(38.0, abs=0.2)
 
     # Zone 2 (highest setpoint) opens completely to max (85%)
     val2 = int(openamber.get_entity("mixing_valve_zone2_output"))

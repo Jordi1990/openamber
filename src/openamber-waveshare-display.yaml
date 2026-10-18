@@ -132,6 +132,7 @@ api:
         id: nav_status_ha_icon
         text_color: 0xEF4444
 
+
 interval:
   - interval: 700ms
     then:

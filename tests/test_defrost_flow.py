@@ -278,17 +278,21 @@ def test_defrost_pump_p0_pid_defrost_pwm(clean_system):
     openamber.advance_time(seconds=140, step_s=10)
     openamber.advance_time(seconds=190, step_s=10)
     openamber.step(ms=50)
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running", (
+        "Defrost must be injected in 'Compressor running'; in soft-start the state machine ignores defrost"
+    )
 
     # Defrost initiates
     openamber.set_binary_sensor("defrost_active_sensor", True)
     openamber.advance_time(seconds=10, step_s=2)
     openamber.step(ms=50)
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Defrosting"
 
     # Inverted PWM speed formula per PumpController::SetPwmDutyCycle (pump_controller.h):
     # control_speed = ((duty_cycle * 10.0f) * -1.0f) + 1000.0f
     defrost_pwm = 85.0
     expected_pwm_val = ((defrost_pwm * 10.0) * -1.0) + 1000.0  # 150.0
-    actual_pwm = float(openamber.get_entity("pump_control_pwm_number") or 0)
+    actual_pwm = float(openamber.get_entity("pump_control_pwm_number"))
     assert actual_pwm == expected_pwm_val, (
         f"Pump PWM during defrost should be {expected_pwm_val} (85% duty cycle), got {actual_pwm}"
     )
@@ -300,9 +304,12 @@ def test_defrost_pump_p0_pid_defrost_pwm(clean_system):
     openamber.advance_time(seconds=10, step_s=5)
     openamber.step(ms=50)
 
-    post_pwm = float(openamber.get_entity("pump_control_pwm_number") or 0)
-    assert post_pwm != expected_pwm_val, (
-        f"Pump PWM after defrost should leave defrost duty cycle ({expected_pwm_val}), got {post_pwm}"
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    post_pwm = float(openamber.get_entity("pump_control_pwm_number"))
+    # Back under PID control: duty cycle within [min_pwm 40%, max_pwm 80%] -> raw [200, 600].
+    # The old '!= 150' check also passed with the pump switched off (1000).
+    assert 200.0 <= post_pwm <= 600.0, (
+        f"Pump PWM after defrost should be back in the PID range 200..600 (80%..40%), got {post_pwm}"
     )
 
 

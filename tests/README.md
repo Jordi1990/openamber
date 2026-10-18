@@ -69,6 +69,7 @@ The tests are organized into modular, domain-specific test suites:
 | [`test_settings_workflow.py`](test_settings_workflow.py) | Settings sidebar tabs (Algemeen, Verwarmen, Tapwater, Bijverwarmen), sensor calibration pager navigation (`1 / 2` $\leftrightarrow$ `2 / 2`), Stooklijn Zone 2 subtab, and Mengventielen settings pager. |
 | [`test_zone2_curve_and_mixing_valves.py`](test_zone2_curve_and_mixing_valves.py) | Zone 2 heating curve anchor interpolation, dual-zone highest setpoint arbitration, Tv1 & Tv2 mixing valve PID modulation, deadband anti-jitter stabilization, min/max clamping & idle closure, defrost position freezing & resumption, control temperature Tc enforcement, fully opening valves to max position in cooling mode, and position template sensors. |
 | [`test_ui_navigation.py`](test_ui_navigation.py) | Header bar title and navbar navigation between Home, Settings, Service, and System pages. |
+| [`helpers.py`](helpers.py) | Shared helpers: `advance_until_state()` advances virtual time until a state is reached instead of assuming a fixed timeline; `start_space_heating()` brings the heat/cool controller to `Compressor running`. |
 
 ---
 
@@ -107,7 +108,7 @@ The `openamber` fixture in tests provides:
 - `openamber.is_visible(widget_id)`: Returns `True` if the widget does not have `LV_OBJ_FLAG_HIDDEN`.
 - `openamber.is_hidden(widget_id)`: Returns `True` if hidden.
 - `openamber.get_label(widget_id)`: Retrieves text from a label widget (or its child label).
-- `openamber.get_widget(widget_id)`: Returns dict with `{"visible": bool, "hidden": bool, "checked": bool, "disabled": bool, "text": str}`.
+- `openamber.get_widget(widget_id)`: Raises if the widget does not exist. Returns dict with `{"visible": bool, "hidden": bool, "checked": bool, "disabled": bool, "text": str}`.
 
 ### Entity State Manipulation & Inspection
 - `openamber.set_select(select_id, option)`: Sets the active option of a select entity (e.g. `thermostat_mode_select`).
@@ -116,5 +117,10 @@ The `openamber` fixture in tests provides:
 - `openamber.set_number(number_id, value)`: Injects a float state to a number entity.
 - `openamber.set_switch(switch_id, value)`: Turns switch `True` (on) or `False` (off).
 - `openamber.set_binary_sensor(sensor_id, value)`: Publishes boolean state to a binary sensor.
-- `openamber.get_entity(entity_id)`: Returns the current state of an entity.
-- `openamber.step(ms=100)`: Advances the ESPHome execution loop by waiting `ms` milliseconds.
+- `openamber.get_entity(entity_id)`: Returns the current state of an entity. Raises if the entity does not exist (a sensor without a value returns `None`).
+- `openamber.step(ms=100)`: Round-trips to the bridge so at least one ESPHome loop iteration runs. It does **not** advance time; anything on an interval (the 5s controller update, template sensors) needs `advance_time`.
+
+### Pitfalls
+- Entities with their own lambda (e.g. `error_active`, `heat_cool_control_temperature`, `oil_return_cycle_active_settled`, `sg_ready_*_active_sensor`) recompute on their next update and overwrite injected values. Inject the underlying input instead.
+- `set_number` publishes the state directly: min/max limits and `set_action` are bypassed.
+- `pytest.approx(x, 0.2)` is a **relative** tolerance (±20%). Use `abs=` for temperatures.

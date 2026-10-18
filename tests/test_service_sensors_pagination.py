@@ -103,11 +103,21 @@ def test_service_sensors_heat_demand_zone_2(clean_system):
     openamber.step(ms=100)
     assert openamber.is_visible("service_sensors_page_4")
 
+    # Zone 2 heat demand requires at least one mixing valve enabled in the system
+    openamber.set_switch("mixing_valve_zone2_enabled", True)
+    openamber.step(ms=50)
+
     # Activate wired heat demand for zone 2
     assert openamber.set_binary_sensor("external_heat_demand_wired_zone_2", True) is True
     openamber.step(ms=150)
+    assert openamber.get_entity("heat_demand_active_sensor_zone_2") is True
+    assert openamber.ping(), "UI must stay responsive with zone 2 demand active"
+    assert openamber.is_visible("service_sensors_page_4")
 
     # Deactivate wired heat demand for zone 2
     assert openamber.set_binary_sensor("external_heat_demand_wired_zone_2", False) is True
     openamber.step(ms=150)
+    assert openamber.get_entity("heat_demand_active_sensor_zone_2") is False
+
+    openamber.set_switch("mixing_valve_zone2_enabled", False)
 
