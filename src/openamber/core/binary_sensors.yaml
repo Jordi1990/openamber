@@ -152,6 +152,8 @@ binary_sensor:
   lambda: |-
     if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state) {
       return false;
+    }
+
     bool mixing_enabled = id(mixing_valve_zone1_enabled).state || id(mixing_valve_zone2_enabled).state;
     if (!mixing_enabled) {
       return false;
