@@ -47,6 +47,11 @@
               text:
                 format: "%.1f°C"
                 args: ['id(thermostat_cool_overrun).state']
+          - lvgl.label.update:
+              id: set_therm_off_delay_val
+              text:
+                format: "%.0f min"
+                args: ['id(thermostat_off_delay).state']
     - if:
         condition:
           lambda: 'return !lv_obj_has_flag(id(page_home), LV_OBJ_FLAG_HIDDEN);'
@@ -86,8 +91,8 @@
   then:
     - lambda: |-
         auto idx = id(thermostat_mode_select).active_index();
-        bool enabled = idx.has_value() && idx.value() == 0;
-        lv_obj_t* rows[6] = {
+        bool internal_mode = idx.has_value() && idx.value() == 0;
+        lv_obj_t* internal_rows[6] = {
           id(thermostat_row_default_heat),
           id(thermostat_row_default_cool),
           id(thermostat_row_heat_deadband),
@@ -96,13 +101,20 @@
           id(thermostat_row_cool_overrun)
         };
         for (int i = 0; i < 6; i++) {
-          if (enabled) {
-            lv_obj_clear_state(rows[i], LV_STATE_DISABLED);
-            lv_obj_set_style_opa(rows[i], LV_OPA_COVER, LV_PART_MAIN);
+          if (internal_mode) {
+            lv_obj_clear_state(internal_rows[i], LV_STATE_DISABLED);
+            lv_obj_set_style_opa(internal_rows[i], LV_OPA_COVER, LV_PART_MAIN);
           } else {
-            lv_obj_add_state(rows[i], LV_STATE_DISABLED);
-            lv_obj_set_style_opa(rows[i], LV_OPA_40, LV_PART_MAIN);
+            lv_obj_add_state(internal_rows[i], LV_STATE_DISABLED);
+            lv_obj_set_style_opa(internal_rows[i], LV_OPA_40, LV_PART_MAIN);
           }
+        }
+        if (!internal_mode) {
+          lv_obj_clear_state(id(thermostat_row_off_delay), LV_STATE_DISABLED);
+          lv_obj_set_style_opa(id(thermostat_row_off_delay), LV_OPA_COVER, LV_PART_MAIN);
+        } else {
+          lv_obj_add_state(id(thermostat_row_off_delay), LV_STATE_DISABLED);
+          lv_obj_set_style_opa(id(thermostat_row_off_delay), LV_OPA_40, LV_PART_MAIN);
         }
 
 - id: thermostat_select_tab
@@ -2304,12 +2316,9 @@
               lv_table_set_cell_value(sy, 3, 1, id(modbus_outside_online).state ? "Online" : "Offline");
               std::string sg_ab = str_sprintf("%s / %s", id(sg_ready_a_active_sensor).state ? "AAN" : "UIT", id(sg_ready_b_active_sensor).state ? "AAN" : "UIT");
               lv_table_set_cell_value(sy, 4, 1, sg_ab.c_str());
-              bool dem_z1 = id(external_heat_demand_wired).state || id(heat_demand_active_sensor_zone_1).state;
-              lv_table_set_cell_value(sy, 5, 1, dem_z1 ? "AAN" : "UIT");
-              bool dem_z2 = id(external_heat_demand_wired_zone_2).state || id(heat_demand_active_sensor_zone_2).state;
-              lv_table_set_cell_value(sy, 6, 1, dem_z2 ? "AAN" : "UIT");
-              bool dem_cool = id(external_cool_demand_wired).state || id(cool_demand_active_sensor).state;
-              lv_table_set_cell_value(sy, 7, 1, dem_cool ? "AAN" : "UIT");
+              lv_table_set_cell_value(sy, 5, 1, id(external_heat_demand_wired).state ? "AAN" : "UIT");
+              lv_table_set_cell_value(sy, 6, 1, id(external_heat_demand_wired_zone_2).state ? "AAN" : "UIT");
+              lv_table_set_cell_value(sy, 7, 1, id(external_cool_demand_wired).state ? "AAN" : "UIT");
 
 - id: update_system_diagnostics_ui
   mode: restart
