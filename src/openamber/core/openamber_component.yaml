@@ -1,0 +1,3 @@
+openamber_component:
+  id: amber_ctrl
+  update_interval: 5s

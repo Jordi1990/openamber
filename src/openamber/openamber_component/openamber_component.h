@@ -21,9 +21,6 @@
 
 #include "esphome/core/component.h"
 
-#ifdef USE_HOST
-#include "mock_openamber_component.h"
-#else
 
 // Forward declarations
 class DHWController;
@@ -31,6 +28,7 @@ class HeatCoolController;
 class PumpController;
 class CompressorController;
 class DeaerationRoutine;
+class MixingValveActuator;
 enum ThreeWayValvePosition
 {
   HEATING_COOLING,
@@ -59,6 +57,8 @@ private:
   PumpController *pump_controller_;
   CompressorController *compressor_controller_;
   DeaerationRoutine *deaeration_routine_;
+  MixingValveActuator *mixing_valve_zone1_;
+  MixingValveActuator *mixing_valve_zone2_;
   State deferred_machine_state_;
   uint32_t defer_state_change_until_ms_;
   uint32_t modbus_disconnected_since_ms_ = 0;
@@ -85,6 +85,10 @@ public:
   void write_heat_pid_value(float value);
   void write_cool_pid_value(float value);
   void write_pump_p0_pid_value(float value);
+  void write_mixing_valve_zone1_pid_value(float value);
+  void write_mixing_valve_zone2_pid_value(float value);
+  float get_mixing_valve_zone1_position() const;
+  float get_mixing_valve_zone2_position() const;
   void reset_pump_interval();
   bool is_maintenance_state() const;
   void start_deaeration_routine(bool extended);
@@ -103,4 +107,3 @@ public:
 
 }  // namespace openamber
 }  // namespace esphome
-#endif

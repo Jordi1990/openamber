@@ -1,0 +1,193 @@
+substitutions:
+  device_name: openamber
+  device_friendly_name: OpenAmber
+  device_project_name: jordi.openamber
+  device_model: generic
+
+packages:
+  core: !include core_package.yaml
+  modbus: !include ../modbus/modbus_package.yaml
+  analytics_scripts: !include analytics_scripts.yaml
+
+external_components:
+  - source:
+      type: local
+      path: openamber
+    components: [openamber_component, native_build_flags, eebus]
+
+debug:
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${device_friendly_name}
+  project:
+    name: ${device_project_name}
+  includes:
+    - openamber/controllers/constants.h
+    - openamber/controllers/pump_controller.h
+    - openamber/controllers/compressor_controller.h
+    - openamber/controllers/base_controller.h
+    - openamber/controllers/dhw_controller.h
+    - openamber/controllers/mixing_valve_actuator.h
+    - openamber/controllers/heat_cool_controller.h
+    - openamber/controllers/routine_controller.h
+    - openamber/controllers/deaeration_routine.h
+    - openamber/controllers/openamber_component.h
+  on_boot:
+    - priority: 600
+      then:
+        - script.execute: apply_pid_settings
+        - script.execute: apply_thermostat_settings
+        - delay: 5min
+        - if:
+            condition:
+              lambda: 'return id(my_time).now().is_valid();'
+            then:
+              - update.check:
+                  id: firmware_update
+            else:
+              - logger.log: "Skipping firmware update check until time is synchronized"
+        - if:
+            condition:
+              - switch.is_on: analytics_enabled_switch
+            then:
+              - mqtt.enable:
+
+interval:
+  - interval: 5min
+    then:
+      - if:
+         condition:
+          - switch.is_on: analytics_enabled_switch
+         then:
+          - script.execute: send_analytics
+  - interval: 24h
+    then:
+      - if:
+          condition:
+            lambda: 'return id(my_time).now().is_valid();'
+          then:
+            - update.check:
+                id: firmware_update
+          else:
+            - logger.log: "Skipping scheduled firmware update check until time is synchronized"
+
+logger:
+  level: INFO
+  baud_rate: 0
+  logs:
+    modbus: ERROR
+
+api:
+  reboot_timeout: 0s
+
+# Broker used to push analytics data (Opt-In)
+mqtt:
+  id: mqtt_client
+  broker: mqtt.openamber.nl
+  enable_on_boot: false
+  username: openamber_write
+  password: openamber
+  reboot_timeout: 0s
+  discovery: false
+  discover_ip: false
+  discovery_retain: false
+  log_topic: null
+  topic_prefix: null
+  on_connect:
+    - if:
+        condition:
+          - switch.is_on: analytics_enabled_switch
+        then:
+          - script.execute: fetch_analytics_device_id
+
+ota:
+  - platform: esphome
+  - platform: http_request
+
+http_request:
+  buffer_size_tx: 1024
+
+update:
+  - platform: http_request
+    id: firmware_update
+    name: Firmware Update
+    source: http://openamber.nl/openamber.manifest.json
+
+web_server:
+  port: 80
+  version: 3
+  sorting_groups:
+    - id: overview
+      name: "Overzicht"
+      sorting_weight: 0
+    - id: general_settings
+      name: "Algemene instellingen"
+      sorting_weight: 10
+    - id: dhw_settings
+      name: "Tapwater instellingen"
+      sorting_weight: 20
+    - id: dhw_schedule_settings
+      name: "Tapwater schema instellingen"
+      sorting_weight: 30
+    - id: heating_settings
+      name: "Verwarmingsinstellingen"
+      sorting_weight: 40
+    - id: cooling_settings
+      name: "Koelinstellingen"
+      sorting_weight: 45
+    - id: temperature_sensors
+      name: "Temperatuursensoren"
+      sorting_weight: 50
+    - id: diagnostic
+      name: "Diagnostiek"
+      sorting_weight: 60
+    - id: error_codes
+      name: "Foutcodes"
+      sorting_weight: 70
+    - id: manual_control
+      name: "Handmatige bediening"
+      sorting_weight: 80
+    - id: config
+      name: "Config"
+      sorting_weight: 90
+
+wifi:
+  reboot_timeout: 0s
+  power_save_mode: none
+  ap:
+    ssid: "OpenAmber"
+    password: "openamber"
+
+captive_portal:
+
+# Use SNTP for time so we also have time when not connected to Home Assistant.
+time:
+  - platform: sntp
+    id: my_time
+    timezone: "Europe/Amsterdam"
+    on_time:
+      # Reset the hourly COP energy buckets at the top of every hour.
+      - seconds: 0
+        minutes: 0
+        then:
+          - sensor.integration.reset: thermal_energy_hour_heating
+          - sensor.integration.reset: electrical_energy_hour_heating
+          - sensor.integration.reset: thermal_energy_hour_cooling
+          - sensor.integration.reset: electrical_energy_hour_cooling
+          - sensor.integration.reset: thermal_energy_hour_dhw
+          - sensor.integration.reset: electrical_energy_hour_dhw
+      # Reset the daily COP energy buckets at midnight.
+      - seconds: 0
+        minutes: 0
+        hours: 0
+        then:
+          - sensor.integration.reset: thermal_energy_day_heating
+          - sensor.integration.reset: electrical_energy_day_heating
+          - sensor.integration.reset: thermal_energy_day_cooling
+          - sensor.integration.reset: electrical_energy_day_cooling
+          - sensor.integration.reset: thermal_energy_day_dhw
+          - sensor.integration.reset: electrical_energy_day_dhw
+
+preferences:
+ flash_write_interval: 5min

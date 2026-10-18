@@ -37,6 +37,7 @@
   on_state:
     then:
       - script.execute: update_service_mode_ui
+      - script.execute: update_service_diag_summary_ui
 
 - id: !extend deaeration_short_switch
   on_state:
@@ -58,6 +59,26 @@
       - script.execute: update_flow_sensor_calibration_ui
       - script.execute: update_home_pump_tile_state
       - script.execute: update_water_mode_efficiency_display
+
+# ── Settings page: EEBUS enabled toggle ──
+- id: !extend eebus_enabled_switch
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_eebus_enabled_switch_ui
+          state:
+            checked: !lambda 'return x;'
+      - script.execute: update_eebus_settings_ui
+      - if:
+          condition:
+            lambda: 'return x;'
+          then:
+            - delay: 200ms
+            - script.execute: update_eebus_settings_ui
+            - delay: 500ms
+            - script.execute: update_eebus_settings_ui
+            - delay: 1000ms
+            - script.execute: update_eebus_settings_ui
 
 - id: !extend pump_p0_relay_switch
   on_state:
@@ -127,6 +148,7 @@
   on_state:
     then:
       - script.execute: update_service_valve_ui
+      - script.execute: update_service_diag_summary_ui
 
 - id: !extend three_way_valve_dhw_switch
   on_state:
@@ -225,3 +247,22 @@
   on_state:
     then:
       - script.execute: update_dhw_schedule_ui
+
+# ── Settings: Mengventielen zone 1 & 2 aanwezig ──
+- id: !extend mixing_valve_zone1_enabled
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_mv_z1_enabled_switch_ui
+          state:
+            checked: !lambda 'return x;'
+      - script.execute: update_control_temp_source_ui
+
+- id: !extend mixing_valve_zone2_enabled
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_mv_z2_enabled_switch_ui
+          state:
+            checked: !lambda 'return x;'
+      - script.execute: update_control_temp_source_ui

@@ -173,7 +173,7 @@ obj:
                 id: settings_select_tab
                 tab_index: 7
           widgets:
-            - label: { id: stab_smartgrid_lbl, text: "SmartGrid", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
+            - label: { id: stab_smartgrid_lbl, text: "Energiebeheer", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
 
       - obj:
           id: stab_wifi

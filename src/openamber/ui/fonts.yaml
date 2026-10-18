@@ -54,6 +54,8 @@
         - "\U000F005D"  # mdi-arrow-up (flow)
         - "\U000F0141"  # mdi-chevron-left (pagination)
         - "\U000F0142"  # mdi-chevron-right (pagination)
+        - "\U000F0337"  # mdi-link (EEBUS verbonden)
+        - "\U000F0338"  # mdi-link-off (EEBUS niet verbonden)
 
 - file: "openamber/ui/fonts/Inter_28pt-SemiBold.ttf"
   #weight: 500

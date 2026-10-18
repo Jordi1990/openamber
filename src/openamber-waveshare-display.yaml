@@ -2,7 +2,7 @@ substitutions:
   device_model: waveshare-5-1024x600
 
 packages:
- - !include openamber/common/openamber.yaml
+ - !include openamber/core/openamber.yaml
  - !include openamber/ui/display_globals.yaml
  - !include openamber/ui/bindings/ui_bindings_package.yaml
  - !include openamber/ui/ui_package.yaml
@@ -131,6 +131,7 @@ api:
     - lvgl.widget.update:
         id: nav_status_ha_icon
         text_color: 0xEF4444
+
 
 interval:
   - interval: 700ms

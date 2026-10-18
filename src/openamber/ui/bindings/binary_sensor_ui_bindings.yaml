@@ -63,6 +63,7 @@
       - lvgl.widget.update:
           id: nav_status_cool_icon
           hidden: !lambda 'return !x;'
+      - script.execute: update_service_diag_summary_ui
 
 - id: !extend dhw_demand_active_sensor
   on_state:
@@ -115,6 +116,21 @@
     then:
       - script.execute: update_service_diag_summary_ui
 
+- id: !extend external_heat_demand_wired_zone_2
+  on_state:
+    then:
+      - script.execute: update_service_diag_summary_ui
+
+- id: !extend heat_demand_active_sensor_zone_1
+  on_state:
+    then:
+      - script.execute: update_service_diag_summary_ui
+
+- id: !extend heat_demand_active_sensor_zone_2
+  on_state:
+    then:
+      - script.execute: update_service_diag_summary_ui
+
 - id: !extend external_cool_demand_wired
   on_state:
     then:
@@ -160,11 +176,6 @@
   on_state:
     then:
       - script.execute: update_service_errors_ui
-
-- id: !extend oil_return_cycle_active
-  on_state:
-    then:
-      - script.execute: update_service_warnings_ui
 
 - id: !extend error_flag_p05
   on_state:

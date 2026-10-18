@@ -1,0 +1,61 @@
+text_sensor:
+- platform: wifi_info
+  mac_address:
+    id: mac_address
+    internal: True
+    on_value:
+      then:
+        - lambda: |-
+            id(analytics_topic) = "openamber/" + x;
+        - text_sensor.template.publish:
+            id: wifi_mac_ui
+            state: !lambda |-
+              if (x.empty()) return std::string("-");
+              return x;
+  ssid:
+    id: wifi_ssid
+    internal: True
+    on_value:
+      then:
+        - text_sensor.template.publish:
+            id: wifi_ssid_ui
+            state: !lambda |-
+              if (x.empty()) return std::string("-");
+              return x;
+  ip_address:
+    id: wifi_ip
+    internal: True
+    on_value:
+      then:
+        - text_sensor.template.publish:
+            id: wifi_ip_ui
+            state: !lambda |-
+              if (x.empty()) return std::string("-");
+              return x;
+  scan_results:
+    id: wifi_scan_results
+    internal: True
+    on_value:
+      then:
+        - text_sensor.template.publish:
+            id: wifi_scan_results_ui
+            state: !lambda 'return x;'
+
+- platform: debug
+  device:
+    id: system_debug_device_info
+    internal: true
+    filters:
+      - lambda: |-
+          size_t pos = x.find("Chip: ");
+          if (pos != std::string::npos) {
+            pos += 6;
+            size_t end = x.find(" Features:", pos);
+            if (end == std::string::npos) end = x.find("|", pos);
+            if (end == std::string::npos) end = x.size();
+            return x.substr(pos, end - pos);
+          }
+          return x;
+  reset_reason:
+    id: system_debug_reset_reason
+    internal: true
