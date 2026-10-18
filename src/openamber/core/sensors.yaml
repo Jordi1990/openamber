@@ -408,45 +408,38 @@ sensor:
     {
       sp_z1 = id(manual_setpoint).state;
     }
-    bool mixing_enabled = id(mixing_valve_zone1_enabled).state || id(mixing_valve_zone2_enabled).state;
-    if (!mixing_enabled)
+    float sp_z2 = id(heat_curve_z2_calculated_setpoint).state;
+
+    bool demand_z1 = id(heat_demand_active_sensor_zone_1).state;
+    bool demand_z2 = id(heat_demand_active_sensor_zone_2).state;
+
+    if (demand_z1 && !demand_z2)
     {
       setpoint = sp_z1;
     }
+    else if (!demand_z1 && demand_z2)
+    {
+      setpoint = sp_z2;
+    }
+    else if (demand_z1 && demand_z2)
+    {
+      setpoint = std::max(sp_z1, sp_z2);
+    }
     else
     {
-      float sp_z2 = id(heat_curve_z2_calculated_setpoint).state;
-      bool demand_z1 = id(heat_demand_active_sensor_zone_1).state;
-      bool demand_z2 = id(heat_demand_active_sensor_zone_2).state;
-
-      if (demand_z1 && !demand_z2)
-      {
-        setpoint = sp_z1;
-      }
-      else if (!demand_z1 && demand_z2)
-      {
-        setpoint = sp_z2;
-      }
-      else if (demand_z1 && demand_z2)
+      bool mv_z1 = id(mixing_valve_zone1_enabled).state;
+      bool mv_z2 = id(mixing_valve_zone2_enabled).state;
+      if (mv_z1 && mv_z2)
       {
         setpoint = std::max(sp_z1, sp_z2);
       }
+      else if (mv_z2 && !mv_z1)
+      {
+        setpoint = sp_z2;
+      }
       else
       {
-        bool mv_z1 = id(mixing_valve_zone1_enabled).state;
-        bool mv_z2 = id(mixing_valve_zone2_enabled).state;
-        if (mv_z1 && mv_z2)
-        {
-          setpoint = std::max(sp_z1, sp_z2);
-        }
-        else if (mv_z2 && !mv_z1)
-        {
-          setpoint = sp_z2;
-        }
-        else
-        {
-          setpoint = sp_z1;
-        }
+        setpoint = sp_z1;
       }
     }
 

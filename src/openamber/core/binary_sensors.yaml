@@ -156,13 +156,7 @@ binary_sensor:
       return false;
     }
 
-    bool mixing_enabled = id(mixing_valve_zone1_enabled).state || id(mixing_valve_zone2_enabled).state;
-    if(mixing_enabled)
-    {
-      return id(heat_demand_active_sensor_zone_1).state || id(heat_demand_active_sensor_zone_2).state;
-    }
-
-    return id(heat_demand_active_sensor_zone_1).state;
+    return id(heat_demand_active_sensor_zone_1).state || id(heat_demand_active_sensor_zone_2).state;
   on_state:
     - component.update: current_setpoint
   web_server: 
