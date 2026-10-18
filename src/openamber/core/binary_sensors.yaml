@@ -106,56 +106,17 @@ binary_sensor:
   id: heat_demand_active_sensor_zone_1
   device_class: running
   lambda: |-
-    static uint32_t heat_off_delay_start_ms = 0;
-    static bool heat_was_active = false;
-
-    if(id(sg_ready_block_mode_active_sensor).state || id(error_active).state)
-    {
-      heat_off_delay_start_ms = 0;
-      heat_was_active = false;
+    static OffDelayTracker tracker;
+    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state) {
+      tracker.reset();
       return false;
     }
-
-    if (id(thermostat_mode_select).current_option() == "Intern")
-    {
-      heat_off_delay_start_ms = 0;
-      heat_was_active = false;
+    if (id(thermostat_mode_select).current_option() == "Intern") {
+      tracker.reset();
       return id(climate_controller).action == climate::CLIMATE_ACTION_HEATING;
     }
-
-    bool raw_demand = id(external_heat_demand_wired).state || id(heat_demand_switch).state;
-    if (raw_demand)
-    {
-      heat_off_delay_start_ms = 0;
-      heat_was_active = true;
-      return true;
-    }
-
-    float delay_min = id(thermostat_off_delay).state;
-    if (delay_min <= 0.0f || !heat_was_active)
-    {
-      heat_off_delay_start_ms = 0;
-      heat_was_active = false;
-      return false;
-    }
-
-    uint32_t now = millis();
-    if (heat_off_delay_start_ms == 0)
-    {
-      heat_off_delay_start_ms = now;
-      ESP_LOGI("amber", "Externe warmtevraag Zone 1 weggevallen, uitschakelvertraging van %.0f min gestart", delay_min);
-    }
-
-    uint32_t delay_ms = (uint32_t)(delay_min * 60000.0f);
-    if ((now - heat_off_delay_start_ms) < delay_ms)
-    {
-      return true;
-    }
-
-    ESP_LOGI("amber", "Externe warmtevraag Zone 1 uitschakelvertraging verstreken");
-    heat_off_delay_start_ms = 0;
-    heat_was_active = false;
-    return false;
+    return tracker.update(id(external_heat_demand_wired).state || id(heat_demand_switch).state,
+                          id(thermostat_off_delay).state, "Zone 1 warmtevraag");
   on_state:
     - component.update: current_setpoint
   web_server: 
@@ -166,49 +127,13 @@ binary_sensor:
   id: heat_demand_active_sensor_zone_2
   device_class: running
   lambda: |-
-    static uint32_t heat_z2_off_delay_start_ms = 0;
-    static bool heat_z2_was_active = false;
-
-    if(id(sg_ready_block_mode_active_sensor).state || id(error_active).state)
-    {
-      heat_z2_off_delay_start_ms = 0;
-      heat_z2_was_active = false;
+    static OffDelayTracker tracker;
+    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state) {
+      tracker.reset();
       return false;
     }
-
-    bool raw_demand = id(external_heat_demand_wired_zone_2).state || id(heat_demand_zone_2_switch).state;
-    if (raw_demand)
-    {
-      heat_z2_off_delay_start_ms = 0;
-      heat_z2_was_active = true;
-      return true;
-    }
-
-    float delay_min = id(thermostat_off_delay).state;
-    if (delay_min <= 0.0f || !heat_z2_was_active)
-    {
-      heat_z2_off_delay_start_ms = 0;
-      heat_z2_was_active = false;
-      return false;
-    }
-
-    uint32_t now = millis();
-    if (heat_z2_off_delay_start_ms == 0)
-    {
-      heat_z2_off_delay_start_ms = now;
-      ESP_LOGI("amber", "Externe warmtevraag Zone 2 weggevallen, uitschakelvertraging van %.0f min gestart", delay_min);
-    }
-
-    uint32_t delay_ms = (uint32_t)(delay_min * 60000.0f);
-    if ((now - heat_z2_off_delay_start_ms) < delay_ms)
-    {
-      return true;
-    }
-
-    ESP_LOGI("amber", "Externe warmtevraag Zone 2 uitschakelvertraging verstreken");
-    heat_z2_off_delay_start_ms = 0;
-    heat_z2_was_active = false;
-    return false;
+    return tracker.update(id(external_heat_demand_wired_zone_2).state || id(heat_demand_zone_2_switch).state,
+                          id(thermostat_off_delay).state, "Zone 2 warmtevraag");
   on_state:
     - component.update: current_setpoint
   web_server: 
@@ -219,11 +144,9 @@ binary_sensor:
   id: heat_demand_active_sensor
   device_class: running
   lambda: |-
-    if(id(sg_ready_block_mode_active_sensor).state || id(error_active).state)
-    {
+    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state) {
       return false;
     }
-
     return id(heat_demand_active_sensor_zone_1).state || id(heat_demand_active_sensor_zone_2).state;
   on_state:
     - component.update: current_setpoint
@@ -235,70 +158,17 @@ binary_sensor:
   id: cool_demand_active_sensor
   device_class: running
   lambda: |-
-    static uint32_t cool_off_delay_start_ms = 0;
-    static bool cool_was_active = false;
-
-    if(id(sg_ready_block_mode_active_sensor).state)
-    {
-      cool_off_delay_start_ms = 0;
-      cool_was_active = false;
+    static OffDelayTracker tracker;
+    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state || id(heat_demand_active_sensor).state) {
+      tracker.reset();
       return false;
     }
-
-    if(id(error_active).state)
-    {
-      cool_off_delay_start_ms = 0;
-      cool_was_active = false;
-      return false;
-    }
-
-    if(id(heat_demand_active_sensor).state)
-    {
-      cool_off_delay_start_ms = 0;
-      cool_was_active = false;
-      return false;
-    }
-
-    if (id(thermostat_mode_select).current_option() == "Intern")
-    {
-      cool_off_delay_start_ms = 0;
-      cool_was_active = false;
+    if (id(thermostat_mode_select).current_option() == "Intern") {
+      tracker.reset();
       return id(climate_controller).action == climate::CLIMATE_ACTION_COOLING;
     }
-
-    bool raw_demand = id(external_cool_demand_wired).state || id(cool_demand_switch).state;
-    if (raw_demand)
-    {
-      cool_off_delay_start_ms = 0;
-      cool_was_active = true;
-      return true;
-    }
-
-    float delay_min = id(thermostat_off_delay).state;
-    if (delay_min <= 0.0f || !cool_was_active)
-    {
-      cool_off_delay_start_ms = 0;
-      cool_was_active = false;
-      return false;
-    }
-
-    uint32_t now = millis();
-    if (cool_off_delay_start_ms == 0)
-    {
-      cool_off_delay_start_ms = now;
-      ESP_LOGI("amber", "Externe koudevraag weggevallen, uitschakelvertraging van %.0f min gestart", delay_min);
-    }
-
-    uint32_t delay_ms = (uint32_t)(delay_min * 60000.0f);
-    if ((now - cool_off_delay_start_ms) < delay_ms)
-    {
-      return true;
-    }
-
-    ESP_LOGI("amber", "Externe koudevraag uitschakelvertraging verstreken");
-    cool_off_delay_start_ms = 0;
-    cool_was_active = false;
-    return false;
+    return tracker.update(id(external_cool_demand_wired).state || id(cool_demand_switch).state,
+                          id(thermostat_off_delay).state, "koudevraag");
   on_state:
     - component.update : current_setpoint
   web_server: 
