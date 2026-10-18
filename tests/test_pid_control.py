@@ -85,12 +85,18 @@ def test_pid_deadband_stabilization_with_virtual_time(clean_system):
         # Sensor 'PID Controller Verwarmen' (platform pid, type HEAT) reports the output in %
         return float(openamber.get_entity("PID Controller Verwarmen"))
 
+    # Establish a deterministic positive output baseline with an under-target period
+    assert openamber.set_sensor("heat_cool_temperature_tc", 30.0)
+    openamber.advance_time(seconds=60, step_s=5)
+    assert pid_output() > 50.0, f"Expected output > 50% during under-target period, got {pid_output()}%"
+
     assert openamber.set_sensor("heat_cool_temperature_tc", 35.0)
-    openamber.advance_time(seconds=180, step_s=5)
+    openamber.advance_time(seconds=120, step_s=5)
     info = openamber.get_entity("pid_heat_temperature_control")
     assert info.get("target_temperature") == pytest.approx(35.0, abs=0.1)
     assert info.get("current_temperature") == pytest.approx(35.0, abs=0.1)
     settled = pid_output()
+    assert settled >= 50.0, f"Expected settled baseline >= 50%, got {settled}%"
 
     for tc in (35.5, 34.5):
         assert openamber.set_sensor("heat_cool_temperature_tc", tc)
