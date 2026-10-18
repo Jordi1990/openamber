@@ -134,6 +134,12 @@ binary_sensor:
       return false;
     }
 
+    bool mixing_enabled = id(mixing_valve_zone1_enabled).state || id(mixing_valve_zone2_enabled).state;
+    if(!mixing_enabled)
+    {
+      return false;
+    }
+
     return id(external_heat_demand_wired_zone_2).state || id(heat_demand_zone_2_switch).state;
   on_state:
     - component.update: current_setpoint
@@ -150,7 +156,13 @@ binary_sensor:
       return false;
     }
 
-    return id(heat_demand_active_sensor_zone_1).state || id(heat_demand_active_sensor_zone_2).state;
+    bool mixing_enabled = id(mixing_valve_zone1_enabled).state || id(mixing_valve_zone2_enabled).state;
+    if(mixing_enabled)
+    {
+      return id(heat_demand_active_sensor_zone_1).state || id(heat_demand_active_sensor_zone_2).state;
+    }
+
+    return id(heat_demand_active_sensor_zone_1).state;
   on_state:
     - component.update: current_setpoint
   web_server: 

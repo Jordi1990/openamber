@@ -2111,7 +2111,8 @@
               lv_table_set_cell_value(sy, 4, 1, sg_ab.c_str());
               bool dem_z1 = id(external_heat_demand_wired).state || id(heat_demand_active_sensor_zone_1).state;
               lv_table_set_cell_value(sy, 5, 1, dem_z1 ? "AAN" : "UIT");
-              bool dem_z2 = id(external_heat_demand_wired_zone_2).state || id(heat_demand_active_sensor_zone_2).state;
+              bool dem_z2 = (id(mixing_valve_zone1_enabled).state || id(mixing_valve_zone2_enabled).state) &&
+                            (id(external_heat_demand_wired_zone_2).state || id(heat_demand_active_sensor_zone_2).state);
               lv_table_set_cell_value(sy, 6, 1, dem_z2 ? "AAN" : "UIT");
               bool dem_cool = id(external_cool_demand_wired).state || id(cool_demand_active_sensor).state;
               lv_table_set_cell_value(sy, 7, 1, dem_cool ? "AAN" : "UIT");
