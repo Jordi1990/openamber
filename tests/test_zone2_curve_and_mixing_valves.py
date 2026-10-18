@@ -932,10 +932,11 @@ def test_flow_both_zones_demand_heat_only_one_mixing_valve_enabled(clean_system)
 
 def test_flow_wired_external_heat_demand_zone2(clean_system):
     """
-    Verify wired contact for Zone 2:
-    - external_heat_demand_wired_zone_2 = True -> heat_demand_active_sensor_zone_2 = True
-      and heat_demand_active_sensor = True, navbar heat icon visible.
-    - external_heat_demand_wired_zone_2 = False -> deactivates.
+    Verify wired contact and manual switch for Zone 2:
+    - When neither Zone 1 nor Zone 2 mixing is enabled, there is no Zone 2 in the system:
+      external_heat_demand_wired_zone_2 = True or heat_demand_zone_2_switch = True
+      must NOT activate heat_demand_active_sensor_zone_2 or heat_demand_active_sensor.
+    - When mixing is enabled (Zone 2 or Zone 1), Zone 2 heat demand triggers normally.
     """
     openamber = clean_system
 
@@ -946,13 +947,40 @@ def test_flow_wired_external_heat_demand_zone2(clean_system):
     openamber.set_switch("heat_demand_switch", False)
     openamber.set_binary_sensor("external_heat_demand_wired_zone_2", False)
     openamber.set_switch("heat_demand_zone_2_switch", False)
+    openamber.set_switch("mixing_valve_zone1_enabled", False)
+    openamber.set_switch("mixing_valve_zone2_enabled", False)
     openamber.step(ms=150)
 
     assert openamber.get_entity("heat_demand_active_sensor_zone_2") is False
     assert openamber.get_entity("heat_demand_active_sensor") is False
     assert openamber.is_hidden("nav_status_heat_icon")
 
-    # Activate wired Zone 2 contact
+    # 1. Activate wired Zone 2 contact while mixing is disabled -> MUST REMAIN FALSE
+    openamber.set_binary_sensor("external_heat_demand_wired_zone_2", True)
+    openamber.step(ms=150)
+
+    assert openamber.get_entity("heat_demand_active_sensor_zone_2") is False, (
+        "Zone 2 heat demand must be False when neither mixing valve is enabled even if wired input is high"
+    )
+    assert openamber.get_entity("heat_demand_active_sensor") is False, (
+        "Overall heat demand must be False when neither mixing valve is enabled and Zone 1 has no demand"
+    )
+    assert openamber.is_hidden("nav_status_heat_icon")
+
+    # Also test manual Zone 2 heat demand switch while mixing is disabled -> MUST REMAIN FALSE
+    openamber.set_binary_sensor("external_heat_demand_wired_zone_2", False)
+    openamber.set_switch("heat_demand_zone_2_switch", True)
+    openamber.step(ms=150)
+
+    assert openamber.get_entity("heat_demand_active_sensor_zone_2") is False
+    assert openamber.get_entity("heat_demand_active_sensor") is False
+    assert openamber.is_hidden("nav_status_heat_icon")
+
+    openamber.set_switch("heat_demand_zone_2_switch", False)
+    openamber.step(ms=150)
+
+    # 2. Enable mixing valve Zone 2 -> Now wired Zone 2 contact triggers demand
+    openamber.set_switch("mixing_valve_zone2_enabled", True)
     openamber.set_binary_sensor("external_heat_demand_wired_zone_2", True)
     openamber.step(ms=150)
 
@@ -960,13 +988,28 @@ def test_flow_wired_external_heat_demand_zone2(clean_system):
     assert openamber.get_entity("heat_demand_active_sensor") is True
     assert openamber.is_visible("nav_status_heat_icon")
 
-    # Deactivate wired Zone 2 contact
+    # 3. Deactivate wired Zone 2 contact -> deactivates
     openamber.set_binary_sensor("external_heat_demand_wired_zone_2", False)
     openamber.step(ms=150)
 
     assert openamber.get_entity("heat_demand_active_sensor_zone_2") is False
     assert openamber.get_entity("heat_demand_active_sensor") is False
     assert openamber.is_hidden("nav_status_heat_icon")
+
+    # 4. Enable mixing valve Zone 1 instead of Zone 2 -> Zone 2 demand also works (multi-zone)
+    openamber.set_switch("mixing_valve_zone2_enabled", False)
+    openamber.set_switch("mixing_valve_zone1_enabled", True)
+    openamber.set_binary_sensor("external_heat_demand_wired_zone_2", True)
+    openamber.step(ms=150)
+
+    assert openamber.get_entity("heat_demand_active_sensor_zone_2") is True
+    assert openamber.get_entity("heat_demand_active_sensor") is True
+    assert openamber.is_visible("nav_status_heat_icon")
+
+    # Cleanup
+    openamber.set_binary_sensor("external_heat_demand_wired_zone_2", False)
+    openamber.set_switch("mixing_valve_zone1_enabled", False)
+    openamber.step(ms=150)
 
 
 def test_control_temperature_source_dropdown_disabled_and_forced_to_tc_when_mixing_enabled(clean_system):

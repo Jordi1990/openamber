@@ -153,6 +153,12 @@ binary_sensor:
     if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state) {
       return false;
     }
+
+    bool mixing_enabled = id(mixing_valve_zone1_enabled).state || id(mixing_valve_zone2_enabled).state;
+    if (!mixing_enabled) {
+      return false;
+    }
+
     return id(external_heat_demand_wired_zone_2_delayed).state || id(heat_demand_zone_2_switch).state;
   on_state:
     - component.update: current_setpoint

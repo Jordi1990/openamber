@@ -257,6 +257,7 @@
           state:
             checked: !lambda 'return x;'
       - script.execute: update_control_temp_source_ui
+      - component.update: current_setpoint
 
 - id: !extend mixing_valve_zone2_enabled
   on_state:
@@ -266,3 +267,4 @@
           state:
             checked: !lambda 'return x;'
       - script.execute: update_control_temp_source_ui
+      - component.update: current_setpoint
