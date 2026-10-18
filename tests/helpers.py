@@ -18,13 +18,15 @@ def advance_until_state(openamber, entity, wanted, max_s, step=10):
     Returns True when the state was reached within `max_s` seconds.
     """
     waited = 0
-    while waited <= max_s:
+    while True:
         if openamber.get_entity(entity) == wanted:
             return True
-        openamber.advance_time(seconds=step, step_s=step)
+        if waited >= max_s:
+            return False
+        cur_step = min(step, max_s - waited)
+        openamber.advance_time(seconds=cur_step, step_s=cur_step)
         openamber.step(ms=20)
-        waited += step
-    return openamber.get_entity(entity) == wanted
+        waited += cur_step
 
 
 def start_space_heating(openamber, tc=28.0, target=35.0, use_curve=False):

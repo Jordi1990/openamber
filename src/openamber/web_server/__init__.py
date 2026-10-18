@@ -9,7 +9,7 @@ CONF_WEB_SERVER = "web_server"
 CONF_WEB_SERVER_ID = "web_server_id"
 
 web_server_ns = cg.esphome_ns.namespace("web_server")
-WebServer = web_server_ns.class_("WebServer", cg.Component, cg.Controller)
+WebServer = web_server_ns.class_("WebServer", cg.Component)
 
 sorting_group = {
     cv.Required(CONF_ID): cv.string,

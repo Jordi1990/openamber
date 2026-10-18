@@ -287,6 +287,7 @@ def test_legionella_settings_and_prevention_flow(clean_system):
     assert dhw_sp == 50.0, f"DHW setpoint must fall back to 50.0°C after abort, got {dhw_sp}"
 
     # Cleanup
+    openamber.set_switch("legio_enabled_switch", True)
     openamber.set_binary_sensor("dhw_legionella_run_active_sensor", False)
     openamber.advance_time(seconds=6, step_s=1)
     openamber.step(ms=50)
