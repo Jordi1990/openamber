@@ -3,6 +3,7 @@ Only tests real user inputs (temperatures, setpoints, user switches/selects).
 """
 
 import pytest
+from helpers import advance_until_state
 
 
 def test_dhw_demand_while_idle_heats_dhw(clean_system):
@@ -250,8 +251,6 @@ def _run_dhw_with_realistic_tw(openamber, rate_c_per_min, duration_s):
 
     Returns (backup_engaged, last_rate_sample).
     """
-    from helpers import advance_until_state
-
     openamber.set_number("dhw_setpoint_temperature", 50.0)
     openamber.set_number("dhw_restart_dhw_delta", 5.0)
     openamber.set_number("dhw_backup_min_avg_rate", 0.2)
@@ -259,14 +258,39 @@ def _run_dhw_with_realistic_tw(openamber, rate_c_per_min, duration_s):
     tw = 40.0
     openamber.set_sensor("dhw_temperature_tw_sensor", tw)
     openamber.step(ms=50)
-    assert advance_until_state(openamber, "state_machine_state_dhw", "Compressor running", max_s=600, step=5)
+    assert advance_until_state(
+        openamber, "state_machine_state_dhw", "Compressor running", max_s=600, step=5
+    ), "DHW state machine did not reach 'Compressor running' within 600 seconds"
 
     step_c = rate_c_per_min * 15.0 / 60.0
+    pump_settled_step = None
     for i in range(duration_s // 5):
         if i % 3 == 0:
             tw += step_c
             openamber.set_sensor("dhw_temperature_tw_sensor", tw)
         openamber.advance_time(seconds=5)
+
+        # Once the DHW pump has completed its settle time, state transitions through
+        # DHW_PUMP_SETTLED and re-enters Compressor running.
+        if (
+            pump_settled_step is None
+            and openamber.get_entity("dhw_pump_relay_switch") is True
+            and openamber.get_entity("state_machine_state_dhw") == "Compressor running"
+        ):
+            pump_settled_step = i
+            # Previous cycle's rate must be cleared when pump settles
+            assert openamber.get_entity("dhw_backup_current_avg_rate_sensor") is None, (
+                "Previous cycle's heating rate must be cleared (None/NaN) when pump settles"
+            )
+
+        if pump_settled_step is not None:
+            elapsed_since_settle_s = (i - pump_settled_step) * 5
+            if elapsed_since_settle_s < 175:
+                # Rate sensor must remain unavailable before full 3-minute window elapses
+                assert openamber.get_entity("dhw_backup_current_avg_rate_sensor") is None, (
+                    f"Rate sensor should remain unavailable before full 3-minute window at {elapsed_since_settle_s}s"
+                )
+
         if openamber.get_entity("backup_heater_relay") is True:
             return True, openamber.get_entity("dhw_backup_current_avg_rate_sensor")
     return False, openamber.get_entity("dhw_backup_current_avg_rate_sensor")
@@ -284,7 +308,24 @@ def test_dhw_backup_heater_engages_for_slow_heating_with_modbus_like_updates(cle
 
 
 def test_dhw_backup_heater_stays_off_when_heating_fast_enough(clean_system):
-    """Heating at 0.3°C/min (above the 0.2°C/min minimum) must not engage the backup heater."""
-    engaged, rate = _run_dhw_with_realistic_tw(clean_system, rate_c_per_min=0.3, duration_s=1650)
+    """Heating at 0.3°C/min (above the 0.2°C/min minimum) must not engage the backup heater.
+    Also verifies that the previous cycle's rate is cleared when a new cycle starts and pump settles.
+    """
+    openamber = clean_system
+    engaged, rate = _run_dhw_with_realistic_tw(openamber, rate_c_per_min=0.3, duration_s=1650)
     assert not engaged, f"Backup heater must stay off when heating at 0.3°C/min (rate sensor: {rate})"
     assert rate == pytest.approx(0.3, abs=0.05), f"Rate sensor should report ~0.3°C/min, got {rate}"
+
+    # End the current cycle by satisfying DHW demand (min-on time already satisfied)
+    openamber.set_sensor("dhw_temperature_tw_sensor", 52.0)
+    openamber.step(ms=50)
+    assert advance_until_state(
+        openamber, "state_machine_state_dhw", "Idle", max_s=120, step=5
+    ), "DHW state machine did not return to Idle after reaching setpoint"
+
+    # Start a second cycle; _run_dhw_with_realistic_tw verifies that when the pump settles,
+    # the previous cycle's rate (~0.3) is cleared and remains unavailable before the 3-minute window.
+    # 350s allows 120s pump settle + 180s averaging window + sample margin.
+    engaged, rate = _run_dhw_with_realistic_tw(openamber, rate_c_per_min=0.3, duration_s=350)
+    assert not engaged
+    assert rate == pytest.approx(0.3, abs=0.05), f"Rate sensor should report ~0.3°C/min in second cycle, got {rate}"

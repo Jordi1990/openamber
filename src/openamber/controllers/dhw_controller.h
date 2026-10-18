@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <cmath>
 #include "base_controller.h"
 
 enum class DHWState
@@ -42,6 +43,7 @@ enum class DHWState
 class DHWController : public BaseController<DHWState>
 {
 private:
+  bool rate_window_active_ = false;
   uint32_t last_rate_measured_time_ = 0;
   uint32_t heating_rate_below_min_since_ms_ = 0;
   float last_temperature_rate_ = 0.0f;
@@ -121,6 +123,7 @@ private:
     id(dhw_pump_relay_switch).turn_off();
     dhw_pump_settled_time_ = 0;
     heating_rate_below_min_since_ms_ = 0;
+    rate_window_active_ = false;
   }
 
   bool IsPredictedTemperatureAboveTarget()
@@ -140,6 +143,11 @@ private:
   {
     float current_temperature = id(dhw_temperature_tw_sensor).state;
     float avg_rate_c_per_min = id(dhw_backup_current_avg_rate_sensor).state;
+    if (std::isnan(avg_rate_c_per_min))
+    {
+      return current_temperature;
+    }
+
     const float lookahead_min = (float)BACKUP_HEATER_LOOKAHEAD_S / 60.0f;
     float predicted_increase = avg_rate_c_per_min * lookahead_min;
     float predicted_temperature = current_temperature + predicted_increase;
@@ -177,9 +185,9 @@ private:
 
   void CalculateTemperatureIncreaseRate()
   {
-    if(!id(dhw_pump_relay_switch).state)
+    if (!rate_window_active_ || !id(dhw_pump_relay_switch).state)
     {
-      // Don't calculate rate when pump is not active.
+      // Don't calculate rate when pump is not active or baseline not yet initialized.
       return;
     }
 
@@ -523,6 +531,7 @@ public:
         last_measured_temperature_ = id(dhw_temperature_tw_sensor).state;
         last_rate_measured_time_ = now;
         dhw_pump_settled_time_ = now;
+        rate_window_active_ = true;
         // Start a fresh averaging window; do not reuse the rate of a previous DHW cycle.
         id(dhw_backup_current_avg_rate_sensor).publish_state(NAN);
         heating_rate_below_min_since_ms_ = 0;
