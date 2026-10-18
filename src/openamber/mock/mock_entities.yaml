@@ -622,6 +622,14 @@ number:
     step: 0.5
     initial_value: 24.0
   - platform: template
+    id: thermostat_off_delay
+    name: "Uitschakelvertraging externe thermostaat"
+    optimistic: true
+    min_value: 0
+    max_value: 60
+    step: 5
+    initial_value: 0
+  - platform: template
     id: defrost_backup_heater_boost_temperature_sensor
     name: "Ontdooiing boost temperatuur"
     optimistic: true

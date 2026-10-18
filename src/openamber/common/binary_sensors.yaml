@@ -105,24 +105,63 @@
   id: heat_demand_active_sensor
   device_class: running
   lambda: |-
+    static uint32_t heat_off_delay_start_ms = 0;
+    static bool heat_was_active = false;
+
     if(id(sg_ready_block_mode_active_sensor).state)
     {
+      heat_off_delay_start_ms = 0;
+      heat_was_active = false;
       return false;
     }
 
     if(id(error_active).state)
     {
+      heat_off_delay_start_ms = 0;
+      heat_was_active = false;
       return false;
     }
 
     if (id(thermostat_mode_select).current_option() == "Intern")
     {
+      heat_off_delay_start_ms = 0;
+      heat_was_active = false;
       return id(climate_controller).action == climate::CLIMATE_ACTION_HEATING;
     }
-    else
+
+    bool raw_demand = id(external_heat_demand_wired).state || id(heat_demand_switch).state;
+    if (raw_demand)
     {
-      return id(external_heat_demand_wired).state || id(heat_demand_switch).state;
+      heat_off_delay_start_ms = 0;
+      heat_was_active = true;
+      return true;
     }
+
+    float delay_min = id(thermostat_off_delay).state;
+    if (delay_min <= 0.0f || !heat_was_active)
+    {
+      heat_off_delay_start_ms = 0;
+      heat_was_active = false;
+      return false;
+    }
+
+    uint32_t now = millis();
+    if (heat_off_delay_start_ms == 0)
+    {
+      heat_off_delay_start_ms = now;
+      ESP_LOGI("amber", "Externe warmtevraag weggevallen, uitschakelvertraging van %.0f min gestart", delay_min);
+    }
+
+    uint32_t delay_ms = (uint32_t)(delay_min * 60000.0f);
+    if ((now - heat_off_delay_start_ms) < delay_ms)
+    {
+      return true;
+    }
+
+    ESP_LOGI("amber", "Externe warmtevraag uitschakelvertraging verstreken");
+    heat_off_delay_start_ms = 0;
+    heat_was_active = false;
+    return false;
   web_server: 
     sorting_group_id: overview
 
@@ -131,29 +170,70 @@
   id: cool_demand_active_sensor
   device_class: running
   lambda: |-
+    static uint32_t cool_off_delay_start_ms = 0;
+    static bool cool_was_active = false;
+
     if(id(sg_ready_block_mode_active_sensor).state)
     {
+      cool_off_delay_start_ms = 0;
+      cool_was_active = false;
       return false;
     }
 
     if(id(error_active).state)
     {
+      cool_off_delay_start_ms = 0;
+      cool_was_active = false;
       return false;
     }
 
     if(id(heat_demand_active_sensor).state)
     {
+      cool_off_delay_start_ms = 0;
+      cool_was_active = false;
       return false;
     }
 
     if (id(thermostat_mode_select).current_option() == "Intern")
     {
+      cool_off_delay_start_ms = 0;
+      cool_was_active = false;
       return id(climate_controller).action == climate::CLIMATE_ACTION_COOLING;
     }
-    else
+
+    bool raw_demand = id(external_cool_demand_wired).state || id(cool_demand_switch).state;
+    if (raw_demand)
     {
-      return id(external_cool_demand_wired).state || id(cool_demand_switch).state;
+      cool_off_delay_start_ms = 0;
+      cool_was_active = true;
+      return true;
     }
+
+    float delay_min = id(thermostat_off_delay).state;
+    if (delay_min <= 0.0f || !cool_was_active)
+    {
+      cool_off_delay_start_ms = 0;
+      cool_was_active = false;
+      return false;
+    }
+
+    uint32_t now = millis();
+    if (cool_off_delay_start_ms == 0)
+    {
+      cool_off_delay_start_ms = now;
+      ESP_LOGI("amber", "Externe koudevraag weggevallen, uitschakelvertraging van %.0f min gestart", delay_min);
+    }
+
+    uint32_t delay_ms = (uint32_t)(delay_min * 60000.0f);
+    if ((now - cool_off_delay_start_ms) < delay_ms)
+    {
+      return true;
+    }
+
+    ESP_LOGI("amber", "Externe koudevraag uitschakelvertraging verstreken");
+    cool_off_delay_start_ms = 0;
+    cool_was_active = false;
+    return false;
   on_state:
     - component.update : current_setpoint
   web_server: 

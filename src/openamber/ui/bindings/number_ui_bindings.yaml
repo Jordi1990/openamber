@@ -605,3 +605,12 @@
           text:
             format: "%.1f°C"
             args: ['x']
+
+- id: !extend thermostat_off_delay
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_therm_off_delay_val
+          text:
+            format: "%.0f min"
+            args: ['x']

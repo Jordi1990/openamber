@@ -47,6 +47,11 @@
               text:
                 format: "%.1f°C"
                 args: ['id(thermostat_cool_overrun).state']
+          - lvgl.label.update:
+              id: set_therm_off_delay_val
+              text:
+                format: "%.0f min"
+                args: ['id(thermostat_off_delay).state']
     - if:
         condition:
           lambda: 'return !lv_obj_has_flag(id(page_home), LV_OBJ_FLAG_HIDDEN);'
@@ -86,8 +91,8 @@
   then:
     - lambda: |-
         auto idx = id(thermostat_mode_select).active_index();
-        bool enabled = idx.has_value() && idx.value() == 0;
-        lv_obj_t* rows[6] = {
+        bool internal_mode = idx.has_value() && idx.value() == 0;
+        lv_obj_t* internal_rows[6] = {
           id(thermostat_row_default_heat),
           id(thermostat_row_default_cool),
           id(thermostat_row_heat_deadband),
@@ -96,13 +101,20 @@
           id(thermostat_row_cool_overrun)
         };
         for (int i = 0; i < 6; i++) {
-          if (enabled) {
-            lv_obj_clear_state(rows[i], LV_STATE_DISABLED);
-            lv_obj_set_style_opa(rows[i], LV_OPA_COVER, LV_PART_MAIN);
+          if (internal_mode) {
+            lv_obj_clear_state(internal_rows[i], LV_STATE_DISABLED);
+            lv_obj_set_style_opa(internal_rows[i], LV_OPA_COVER, LV_PART_MAIN);
           } else {
-            lv_obj_add_state(rows[i], LV_STATE_DISABLED);
-            lv_obj_set_style_opa(rows[i], LV_OPA_40, LV_PART_MAIN);
+            lv_obj_add_state(internal_rows[i], LV_STATE_DISABLED);
+            lv_obj_set_style_opa(internal_rows[i], LV_OPA_40, LV_PART_MAIN);
           }
+        }
+        if (!internal_mode) {
+          lv_obj_clear_state(id(thermostat_row_off_delay), LV_STATE_DISABLED);
+          lv_obj_set_style_opa(id(thermostat_row_off_delay), LV_OPA_COVER, LV_PART_MAIN);
+        } else {
+          lv_obj_add_state(id(thermostat_row_off_delay), LV_STATE_DISABLED);
+          lv_obj_set_style_opa(id(thermostat_row_off_delay), LV_OPA_40, LV_PART_MAIN);
         }
 
 - id: thermostat_select_tab
