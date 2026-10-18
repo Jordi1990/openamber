@@ -29,7 +29,6 @@ esphome:
     - openamber/controllers/routine_controller.h
     - openamber/controllers/deaeration_routine.h
     - openamber/controllers/openamber_component.h
-    - openamber/controllers/off_delay_tracker.h
   platformio_options:
     build_flags:
       - "-Wl,--wrap=_ZN7esphome6millisEv"

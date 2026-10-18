@@ -33,7 +33,6 @@ esphome:
     - openamber/controllers/routine_controller.h
     - openamber/controllers/deaeration_routine.h
     - openamber/controllers/openamber_component.h
-    - openamber/controllers/off_delay_tracker.h
   on_boot:
     - priority: 600
       then:

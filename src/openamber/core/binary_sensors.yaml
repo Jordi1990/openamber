@@ -102,21 +102,44 @@ binary_sensor:
     - component.update: current_dhw_setpoint_sensor
 
 - platform: template
+  id: external_heat_demand_wired_delayed
+  internal: true
+  lambda: |-
+    return id(external_heat_demand_wired).state;
+  filters:
+    - delayed_off: !lambda |-
+        return (uint32_t)(id(thermostat_off_delay).state * 60000.0f);
+
+- platform: template
+  id: external_heat_demand_wired_zone_2_delayed
+  internal: true
+  lambda: |-
+    return id(external_heat_demand_wired_zone_2).state;
+  filters:
+    - delayed_off: !lambda |-
+        return (uint32_t)(id(thermostat_off_delay).state * 60000.0f);
+
+- platform: template
+  id: external_cool_demand_wired_delayed
+  internal: true
+  lambda: |-
+    return id(external_cool_demand_wired).state;
+  filters:
+    - delayed_off: !lambda |-
+        return (uint32_t)(id(thermostat_off_delay).state * 60000.0f);
+
+- platform: template
   name: "Warmtevraag Zone 1"
   id: heat_demand_active_sensor_zone_1
   device_class: running
   lambda: |-
-    static OffDelayTracker tracker;
     if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state) {
-      tracker.reset();
       return false;
     }
     if (id(thermostat_mode_select).current_option() == "Intern") {
-      tracker.reset();
       return id(climate_controller).action == climate::CLIMATE_ACTION_HEATING;
     }
-    return tracker.update(id(external_heat_demand_wired).state || id(heat_demand_switch).state,
-                          id(thermostat_off_delay).state, "Zone 1 warmtevraag");
+    return id(external_heat_demand_wired_delayed).state || id(heat_demand_switch).state;
   on_state:
     - component.update: current_setpoint
   web_server: 
@@ -127,13 +150,10 @@ binary_sensor:
   id: heat_demand_active_sensor_zone_2
   device_class: running
   lambda: |-
-    static OffDelayTracker tracker;
     if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state) {
-      tracker.reset();
       return false;
     }
-    return tracker.update(id(external_heat_demand_wired_zone_2).state || id(heat_demand_zone_2_switch).state,
-                          id(thermostat_off_delay).state, "Zone 2 warmtevraag");
+    return id(external_heat_demand_wired_zone_2_delayed).state || id(heat_demand_zone_2_switch).state;
   on_state:
     - component.update: current_setpoint
   web_server: 
@@ -158,17 +178,13 @@ binary_sensor:
   id: cool_demand_active_sensor
   device_class: running
   lambda: |-
-    static OffDelayTracker tracker;
     if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state || id(heat_demand_active_sensor).state) {
-      tracker.reset();
       return false;
     }
     if (id(thermostat_mode_select).current_option() == "Intern") {
-      tracker.reset();
       return id(climate_controller).action == climate::CLIMATE_ACTION_COOLING;
     }
-    return tracker.update(id(external_cool_demand_wired).state || id(cool_demand_switch).state,
-                          id(thermostat_off_delay).state, "koudevraag");
+    return id(external_cool_demand_wired_delayed).state || id(cool_demand_switch).state;
   on_state:
     - component.update : current_setpoint
   web_server: 
