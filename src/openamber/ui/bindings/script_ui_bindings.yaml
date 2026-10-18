@@ -116,6 +116,7 @@
         lv_obj_add_flag(id(advanced_pid_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(advanced_defrost_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(mengventielen_pager), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(eebus_pager), LV_OBJ_FLAG_HIDDEN);
 
         lv_obj_t* panels[3] = {
           id(panel_thermostat_page_setpoint),
@@ -195,6 +196,7 @@
         lv_obj_add_flag(id(advanced_pid_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(advanced_defrost_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(mengventielen_pager), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(eebus_pager), LV_OBJ_FLAG_HIDDEN);
 
         for (int i = 0; i < 10; i++) {
           if (i == tab_index) {
@@ -263,6 +265,14 @@
           - script.execute:
               id: bijverwarmen_select_tab
               tab_index: 0
+    - if:
+        condition:
+          lambda: 'return tab_index == 7;'
+        then:
+          - script.execute:
+              id: energie_select_tab
+              tab_index: 0
+          - script.execute: update_eebus_settings_ui
     - if:
         condition:
           lambda: 'return tab_index == 8;'
@@ -674,6 +684,7 @@
         lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(advanced_pid_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(advanced_defrost_pager), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(eebus_pager), LV_OBJ_FLAG_HIDDEN);
 
         lv_obj_t* panels[4] = {
           id(panel_general_page_systeem),
@@ -1066,6 +1077,7 @@
         lv_obj_add_flag(id(advanced_pid_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(advanced_defrost_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(mengventielen_pager), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(eebus_pager), LV_OBJ_FLAG_HIDDEN);
 
         lv_obj_t* panels[4] = {
           id(panel_pump_page_algemeen),
@@ -1715,6 +1727,189 @@
           }
         }
 
+
+- id: energie_select_tab
+  mode: restart
+  parameters:
+    tab_index: int
+  then:
+    - lambda: |-
+        lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
+
+        lv_obj_t* panels[2] = {
+          id(panel_energie_page_sgready),
+          id(panel_energie_page_eebus)
+        };
+        lv_obj_t* tabs[2] = {
+          id(energie_stab_sgready),
+          id(energie_stab_eebus)
+        };
+        lv_obj_t* labels[2] = {
+          id(energie_stab_sgready_lbl),
+          id(energie_stab_eebus_lbl)
+        };
+
+        if (tab_index == 1) {
+          lv_obj_clear_flag(id(eebus_pager), LV_OBJ_FLAG_HIDDEN);
+        } else {
+          lv_obj_add_flag(id(eebus_pager), LV_OBJ_FLAG_HIDDEN);
+        }
+
+        for (int i = 0; i < 2; i++) {
+          if (i == tab_index) {
+            lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+          } else {
+            lv_obj_add_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0xCBD5E1), LV_PART_MAIN);
+            lv_obj_set_style_text_color(labels[i], lv_color_hex(0x4B5563), LV_PART_MAIN);
+          }
+        }
+    - if:
+        condition:
+          lambda: 'return tab_index == 1;'
+        then:
+          - script.execute: update_eebus_settings_ui
+          - script.execute:
+              id: eebus_select_page
+              page: 1
+
+- id: eebus_select_page
+  mode: restart
+  parameters:
+    page: int
+  then:
+    - script.execute: update_eebus_settings_ui
+    - if:
+        condition:
+          lambda: 'return page == 1;'
+        then:
+          - lvgl.widget.show: { id: eebus_page_1_row_enable }
+          - lvgl.widget.show: { id: eebus_page_1_row_connection }
+          - lvgl.widget.show: { id: eebus_page_1_row_ski }
+          - lvgl.widget.hide: { id: eebus_page_2_row_status }
+          - lvgl.widget.hide: { id: eebus_page_2_row_power_limit }
+          - lvgl.widget.update: { id: eebus_page_1_button, bg_color: 0x1F3B68 }
+          - lvgl.label.update: { id: eebus_page_1_button_lbl, text_color: 0xFFFFFF }
+          - lvgl.widget.update: { id: eebus_page_2_button, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: eebus_page_2_button_lbl, text_color: 0x4B5563 }
+          - lvgl.label.update: { id: eebus_page_indicator, text: "Pagina 1 / 2" }
+        else:
+          - lvgl.widget.hide: { id: eebus_page_1_row_enable }
+          - lvgl.widget.hide: { id: eebus_page_1_row_connection }
+          - lvgl.widget.hide: { id: eebus_page_1_row_ski }
+          - lvgl.widget.show: { id: eebus_page_2_row_status }
+          - lvgl.widget.show: { id: eebus_page_2_row_power_limit }
+          - lvgl.widget.update: { id: eebus_page_1_button, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: eebus_page_1_button_lbl, text_color: 0x4B5563 }
+          - lvgl.widget.update: { id: eebus_page_2_button, bg_color: 0x1F3B68 }
+          - lvgl.label.update: { id: eebus_page_2_button_lbl, text_color: 0xFFFFFF }
+          - lvgl.label.update: { id: eebus_page_indicator, text: "Pagina 2 / 2" }
+
+- id: update_eebus_settings_ui
+  mode: restart
+  then:
+    - lambda: |-
+        // Update EEBUS enabled switch state
+        if (id(eebus_enabled_switch).state) {
+          lv_obj_add_state(id(set_eebus_enabled_switch_ui), LV_STATE_CHECKED);
+        } else {
+          lv_obj_clear_state(id(set_eebus_enabled_switch_ui), LV_STATE_CHECKED);
+        }
+
+        // Update connection status, EMS info and disconnect button
+        if (!id(eebus_enabled_switch).state) {
+          lv_label_set_text(id(eebus_connection_status_lbl), "Uitgeschakeld");
+          lv_obj_set_style_text_color(id(eebus_connection_status_lbl), lv_color_hex(0x6B7280), LV_PART_MAIN);
+          lv_label_set_text(id(eebus_connection_status_icon), "\U000F0338");
+          lv_obj_set_style_text_color(id(eebus_connection_status_icon), lv_color_hex(0x6B7280), LV_PART_MAIN);
+          lv_label_set_text(id(eebus_connection_sub_lbl), "EEBUS is uitgeschakeld");
+          lv_obj_add_flag(id(eebus_disconnect_btn), LV_OBJ_FLAG_HIDDEN);
+        } else if (id(eebus_connected_sensor).state) {
+          lv_label_set_text(id(eebus_connection_status_lbl), "Verbonden");
+          lv_obj_set_style_text_color(id(eebus_connection_status_lbl), lv_color_hex(0x16A34A), LV_PART_MAIN);
+          lv_label_set_text(id(eebus_connection_status_icon), "\U000F0337");
+          lv_obj_set_style_text_color(id(eebus_connection_status_icon), lv_color_hex(0x16A34A), LV_PART_MAIN);
+          if (id(eebus_ems_sensor).has_state() && id(eebus_ems_sensor).state != "–" && !id(eebus_ems_sensor).state.empty()) {
+            std::string sub = "Verbonden met " + id(eebus_ems_sensor).state;
+            lv_label_set_text(id(eebus_connection_sub_lbl), sub.c_str());
+          } else {
+            lv_label_set_text(id(eebus_connection_sub_lbl), "Verbonden met EMS");
+          }
+          lv_obj_clear_flag(id(eebus_disconnect_btn), LV_OBJ_FLAG_HIDDEN);
+        } else {
+          lv_label_set_text(id(eebus_connection_status_lbl), "Niet verbonden");
+          lv_obj_set_style_text_color(id(eebus_connection_status_lbl), lv_color_hex(0xEF4444), LV_PART_MAIN);
+          lv_label_set_text(id(eebus_connection_status_icon), "\U000F0338");
+          lv_obj_set_style_text_color(id(eebus_connection_status_icon), lv_color_hex(0xEF4444), LV_PART_MAIN);
+          lv_label_set_text(id(eebus_connection_sub_lbl), "Niet verbonden met een EMS");
+          lv_obj_add_flag(id(eebus_disconnect_btn), LV_OBJ_FLAG_HIDDEN);
+        }
+
+        // Update EEBUS status
+        if (!id(eebus_enabled_switch).state) {
+          lv_label_set_text(id(eebus_status_lbl), "Uitgeschakeld");
+          lv_obj_set_style_text_color(id(eebus_status_lbl), lv_color_hex(0x6B7280), LV_PART_MAIN);
+        } else if (id(eebus_status_sensor).has_state()) {
+          std::string st = id(eebus_status_sensor).state;
+          if (st == "Normal operation") st = "Normaal bedrijf";
+          else if (st == "Boost active") st = "Boost actief";
+          else if (st == "Dimmed (§14a)") st = "Gedimd (§14a)";
+          else if (st == "Disconnected") st = "Niet verbonden";
+          else if (st == "Initializing...") st = "Initialiseren...";
+          else if (st == "Disabled") st = "Uitgeschakeld";
+          lv_label_set_text(id(eebus_status_lbl), st.c_str());
+          lv_obj_set_style_text_color(id(eebus_status_lbl), lv_color_hex(0x1F2933), LV_PART_MAIN);
+        } else {
+          lv_label_set_text(id(eebus_status_lbl), "–");
+          lv_obj_set_style_text_color(id(eebus_status_lbl), lv_color_hex(0x1F2933), LV_PART_MAIN);
+        }
+
+        // Update power limit display
+        if (!id(eebus_enabled_switch).state) {
+          lv_label_set_text(id(eebus_power_limit_lbl), "–");
+          lv_obj_set_style_text_color(id(eebus_power_limit_lbl), lv_color_hex(0x6B7280), LV_PART_MAIN);
+        } else if (id(eebus_connected_sensor).state && id(eebus_power_limit_sensor).has_state() && !std::isnan(id(eebus_power_limit_sensor).state)) {
+          float lim = id(eebus_power_limit_sensor).state;
+          if (lim <= 0.0f) {
+            lv_label_set_text(id(eebus_power_limit_lbl), "0 W (Geblokkeerd)");
+            lv_obj_set_style_text_color(id(eebus_power_limit_lbl), lv_color_hex(0xEF4444), LV_PART_MAIN);
+          } else {
+            char buf[32];
+            snprintf(buf, sizeof(buf), "%.0f W", lim);
+            lv_label_set_text(id(eebus_power_limit_lbl), buf);
+            lv_obj_set_style_text_color(id(eebus_power_limit_lbl), lv_color_hex(0x1F2933), LV_PART_MAIN);
+          }
+        } else {
+          lv_label_set_text(id(eebus_power_limit_lbl), "Geen limiet");
+          lv_obj_set_style_text_color(id(eebus_power_limit_lbl), lv_color_hex(0x1F2933), LV_PART_MAIN);
+        }
+
+        // Update SKI display
+        if (!id(eebus_enabled_switch).state) {
+          lv_label_set_text(id(eebus_ski_display_lbl), "–");
+        } else if (id(eebus_ski).has_state() && id(eebus_ski).state != "–" && !id(eebus_ski).state.empty()) {
+          lv_label_set_text(id(eebus_ski_display_lbl), id(eebus_ski).state.c_str());
+        } else {
+          lv_label_set_text(id(eebus_ski_display_lbl), "Laden...");
+        }
+
+- id: eebus_disconnect
+  mode: restart
+  then:
+    - lambda: |-
+        #ifdef USE_EEBUS
+        eebus::eebus_disconnect();
+        #endif
+        if (id(eebus_connected_sensor) != nullptr) {
+          id(eebus_connected_sensor).publish_state(false);
+        }
+        if (id(eebus_ems_sensor) != nullptr) {
+          id(eebus_ems_sensor).publish_state("–");
+        }
+    - script.execute: update_eebus_settings_ui
 
 - id: update_advanced_settings_ui
   mode: restart

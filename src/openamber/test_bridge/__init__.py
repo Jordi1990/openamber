@@ -127,4 +127,26 @@ async def to_code(config):
             ts_id = str(getattr(ts["id"], "id", ts["id"]))
             cg.add(var.register_text_sensor(ts_id, cg.RawExpression(ts_id)))
 
+    # Register EEBUS child entities
+    eebus_conf = CORE.config.get("eebus")
+    if isinstance(eebus_conf, dict):
+        if "status" in eebus_conf and isinstance(eebus_conf["status"], dict) and "id" in eebus_conf["status"]:
+            sid = str(getattr(eebus_conf["status"]["id"], "id", eebus_conf["status"]["id"]))
+            cg.add(var.register_text_sensor(sid, cg.RawExpression(sid)))
+        if "last_action" in eebus_conf and isinstance(eebus_conf["last_action"], dict) and "id" in eebus_conf["last_action"]:
+            sid = str(getattr(eebus_conf["last_action"]["id"], "id", eebus_conf["last_action"]["id"]))
+            cg.add(var.register_text_sensor(sid, cg.RawExpression(sid)))
+        if "connected" in eebus_conf and isinstance(eebus_conf["connected"], dict) and "id" in eebus_conf["connected"]:
+            sid = str(getattr(eebus_conf["connected"]["id"], "id", eebus_conf["connected"]["id"]))
+            cg.add(var.register_binary_sensor(sid, cg.RawExpression(sid)))
+        if "power_limit" in eebus_conf and isinstance(eebus_conf["power_limit"], dict) and "id" in eebus_conf["power_limit"]:
+            sid = str(getattr(eebus_conf["power_limit"]["id"], "id", eebus_conf["power_limit"]["id"]))
+            cg.add(var.register_sensor(sid, cg.RawExpression(sid)))
+        if "ski" in eebus_conf and isinstance(eebus_conf["ski"], dict) and "id" in eebus_conf["ski"]:
+            sid = str(getattr(eebus_conf["ski"]["id"], "id", eebus_conf["ski"]["id"]))
+            cg.add(var.register_text_sensor(sid, cg.RawExpression(sid)))
+        if "ems" in eebus_conf and isinstance(eebus_conf["ems"], dict) and "id" in eebus_conf["ems"]:
+            sid = str(getattr(eebus_conf["ems"]["id"], "id", eebus_conf["ems"]["id"]))
+            cg.add(var.register_text_sensor(sid, cg.RawExpression(sid)))
+
     cg.add_define("TEST_BRIDGE_ENABLED")

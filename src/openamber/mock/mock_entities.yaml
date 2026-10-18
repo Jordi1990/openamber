@@ -249,6 +249,7 @@ sensor:
     name: "Vrij PSRAM"
     lambda: 'return 6500000.0f;'
     update_interval: 5s
+
 binary_sensor:
   - platform: template
     id: backup_heater_active_sensor

@@ -60,6 +60,26 @@
       - script.execute: update_home_pump_tile_state
       - script.execute: update_water_mode_efficiency_display
 
+# ── Settings page: EEBUS enabled toggle ──
+- id: !extend eebus_enabled_switch
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_eebus_enabled_switch_ui
+          state:
+            checked: !lambda 'return x;'
+      - script.execute: update_eebus_settings_ui
+      - if:
+          condition:
+            lambda: 'return x;'
+          then:
+            - delay: 200ms
+            - script.execute: update_eebus_settings_ui
+            - delay: 500ms
+            - script.execute: update_eebus_settings_ui
+            - delay: 1000ms
+            - script.execute: update_eebus_settings_ui
+
 - id: !extend pump_p0_relay_switch
   on_state:
     then:

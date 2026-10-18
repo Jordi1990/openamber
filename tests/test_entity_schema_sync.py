@@ -64,6 +64,12 @@ def extract_entity_ids(yaml_path):
                     # If ID is wrapped in an extend tag or object, get string
                     if isinstance(entity_id, str):
                         entities[entity_id] = domain
+        elif isinstance(items, dict):
+            for sub_key, sub_item in items.items():
+                if isinstance(sub_item, dict) and "id" in sub_item:
+                    entity_id = sub_item["id"]
+                    if isinstance(entity_id, str):
+                        entities[entity_id] = f"{domain}.{sub_key}"
     return entities
 
 
@@ -175,6 +181,11 @@ def test_hardware_mocks_correspond_to_physical_modbus_or_subsystems():
         "current_water_temperature_tc_sensor",
         "outdoor_temperature_tp_sensor",
         "water_flow_rate",
+        "eebus_connected_sensor",
+        "eebus_ems_sensor",
+        "eebus_power_limit_sensor",
+        "eebus_ski",
+        "eebus_status_sensor",
     }
 
     mock_ids = set(mock_entities.keys())
