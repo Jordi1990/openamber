@@ -20,6 +20,11 @@ def test_switch_heat_to_dhw_and_return_to_heat(clean_system):
     10. System returns to Heat/Cool mode (state_machine_state_main == "Heat/Cool") and resumes space heating.
     """
     openamber = clean_system
+    # Explicit heating target (Tc=28°C must be below target - start delta). These tests used to rely on
+    # a heating curve left behind by test_heating_curve_stooklijn; with the default curve (27.6°C at
+    # Ta=7°C) the compressor never starts.
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 35.0)
 
     # Step 1: Start Space Heating
     openamber.set_switch("heat_demand_switch", True)
@@ -93,6 +98,11 @@ def test_switch_cool_to_dhw_and_return_to_cool(clean_system):
     10. System returns to Heat/Cool mode and resumes space cooling (working_mode = 1, cooling compressor running).
     """
     openamber = clean_system
+    # Explicit heating target (Tc=28°C must be below target - start delta). These tests used to rely on
+    # a heating curve left behind by test_heating_curve_stooklijn; with the default curve (27.6°C at
+    # Ta=7°C) the compressor never starts.
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 35.0)
 
     # Step 1: Start Space Cooling
     openamber.set_switch("heat_demand_switch", False)
@@ -167,6 +177,11 @@ def test_switch_heat_to_cool_mode(clean_system):
     6. System transitions to cooling mode: working_mode = 1 (Koelen), nav_status_cool_icon visible, compressor runs.
     """
     openamber = clean_system
+    # Explicit heating target (Tc=28°C must be below target - start delta). These tests used to rely on
+    # a heating curve left behind by test_heating_curve_stooklijn; with the default curve (27.6°C at
+    # Ta=7°C) the compressor never starts.
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 35.0)
 
     # Step 1: Start Heating
     openamber.set_switch("heat_demand_switch", True)
@@ -226,6 +241,11 @@ def test_switch_cool_to_heat_mode(clean_system):
     7. System transitions to heating mode: working_mode = 2 (Verwarmen), snowflake icon hidden, compressor runs.
     """
     openamber = clean_system
+    # Explicit heating target (Tc=28°C must be below target - start delta). These tests used to rely on
+    # a heating curve left behind by test_heating_curve_stooklijn; with the default curve (27.6°C at
+    # Ta=7°C) the compressor never starts.
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 35.0)
 
     # Step 1: Start Cooling
     openamber.set_switch("heat_demand_switch", False)
@@ -287,6 +307,11 @@ def test_switch_dhw_demand_during_idle_and_return_to_cv(clean_system):
     9. After valve switch time (60s), system returns to Heat/Cool idle.
     """
     openamber = clean_system
+    # Explicit heating target (Tc=28°C must be below target - start delta). These tests used to rely on
+    # a heating curve left behind by test_heating_curve_stooklijn; with the default curve (27.6°C at
+    # Ta=7°C) the compressor never starts.
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 35.0)
 
     # Verify initial idle state with valve in CV position
     assert openamber.get_entity("state_machine_state_main") == "Heat/Cool"
@@ -334,6 +359,11 @@ def test_simultaneous_demands_heat_priority_over_cooling(clean_system):
     5. System transitions safely from heating mode to cooling mode after min-on and min-off times.
     """
     openamber = clean_system
+    # Explicit heating target (Tc=28°C must be below target - start delta). These tests used to rely on
+    # a heating curve left behind by test_heating_curve_stooklijn; with the default curve (27.6°C at
+    # Ta=7°C) the compressor never starts.
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 35.0)
 
     # Step 1: Simultaneously activate Heat and Cool demands
     openamber.set_switch("heat_demand_switch", True)
@@ -395,6 +425,11 @@ def test_simultaneous_demands_dhw_priority_over_heat_and_cool(clean_system):
     4. Once DHW is satisfied, system returns to Heat/Cool, and HEAT takes priority over COOL.
     """
     openamber = clean_system
+    # Explicit heating target (Tc=28°C must be below target - start delta). These tests used to rely on
+    # a heating curve left behind by test_heating_curve_stooklijn; with the default curve (27.6°C at
+    # Ta=7°C) the compressor never starts.
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 35.0)
 
     # Step 1: Simultaneously activate DHW, Heat, and Cool demands
     assert openamber.set_switch("heat_demand_switch", True)

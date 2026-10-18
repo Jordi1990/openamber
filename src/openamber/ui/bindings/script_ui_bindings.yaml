@@ -2133,11 +2133,11 @@
               if (id(sensor_uptime).has_state()) {
                 uint32_t mins = static_cast<uint32_t>(id(sensor_uptime).state) / 60U;
                 if (mins >= 1440U) {
-                  lv_table_set_cell_value(rt, 1, 1, str_sprintf("%lu d %lu u", mins / 1440U, (mins / 60U) % 24U).c_str());
+                  lv_table_set_cell_value(rt, 1, 1, str_sprintf("%lu d %lu u", static_cast<unsigned long>(mins / 1440U), static_cast<unsigned long>((mins / 60U) % 24U)).c_str());
                 } else if (mins >= 60U) {
-                  lv_table_set_cell_value(rt, 1, 1, str_sprintf("%lu u %lu m", mins / 60U, mins % 60U).c_str());
+                  lv_table_set_cell_value(rt, 1, 1, str_sprintf("%lu u %lu m", static_cast<unsigned long>(mins / 60U), static_cast<unsigned long>(mins % 60U)).c_str());
                 } else {
-                  lv_table_set_cell_value(rt, 1, 1, str_sprintf("%lu m", mins).c_str());
+                  lv_table_set_cell_value(rt, 1, 1, str_sprintf("%lu m", static_cast<unsigned long>(mins)).c_str());
                 }
               } else {
                 lv_table_set_cell_value(rt, 1, 1, "-");

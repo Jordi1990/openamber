@@ -495,7 +495,7 @@ def test_heat_demand_oil_return_blocks_compressor_stop(clean_system):
     Oil Return Cycle Protection Flow:
     1. Compressor is actively running in space heating past minimum on-time.
     2. Temperature rises past target + stop_delta (e.g. 42.0°C >= 35.0 + 5.0 = 40.0°C).
-    3. Oil return cycle is active (error_register_2119_raw = 8 -> oil_return_cycle_active_settled = True).
+    3. Oil return cycle is active (error_register_2119_raw = 8 -> oil_return_cycle_active -> _settled).
     4. ShouldStopCompressor() returns False to protect lubrication and prevent compressor shutdown.
     5. Compressor continues running despite temperature overshoot.
     6. Oil return cycle ends (error_register_2119_raw = 0), and after settle filter expires, compressor stops.
@@ -558,9 +558,13 @@ def test_heat_demand_oil_return_blocks_compressor_stop(clean_system):
     assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
     assert int(openamber.get_entity("compressor_control_select") or 0) > 0
 
-    # Activate oil return cycle protection
-    assert openamber.set_binary_sensor("oil_return_cycle_active_settled", True)
+    # Activate oil return cycle via the outside unit status register (bit 0x08 of register 2119),
+    # the same path real hardware uses: error_register_2119_raw -> oil_return_cycle_active
+    # -> oil_return_cycle_active_settled (delayed_off 300s).
+    # Injecting oil_return_cycle_active_settled directly does not work: its lambda overwrites it.
+    assert openamber.set_sensor("error_register_2119_raw", 8.0)
     openamber.step(ms=50)
+    assert openamber.get_entity("oil_return_cycle_active") is True
     assert openamber.get_entity("oil_return_cycle_active_settled") is True
 
     # Temperature overshoots above stop delta (42.0°C >= 35.0 + 5.0 = 40.0°C)
@@ -572,19 +576,33 @@ def test_heat_demand_oil_return_blocks_compressor_stop(clean_system):
     openamber.step(ms=100)
 
     # Compressor MUST continue running to protect the oil return cycle!
-    assert int(openamber.get_entity("compressor_control_select") or 0) > 0, (
+    assert int(openamber.get_entity("compressor_control_select")) > 0, (
         "Compressor must NOT stop while oil return cycle is active, even if temperature overshoots"
     )
     assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
 
-    # End oil return cycle and advance past delayed_off filter (300s)
-    assert openamber.set_binary_sensor("oil_return_cycle_active_settled", False)
-    openamber.advance_time(seconds=310, step_s=15)
-    openamber.step(ms=100)
+    # Oil return cycle ends on the outside unit
+    assert openamber.set_sensor("error_register_2119_raw", 0.0)
+    openamber.step(ms=50)
+    assert openamber.get_entity("oil_return_cycle_active") is False
 
-    # Now compressor must stop
-    assert int(openamber.get_entity("compressor_control_select") or 0) == 0, (
+    # Still protected inside the 300s delayed_off window
+    openamber.advance_time(seconds=150, step_s=15)
+    openamber.step(ms=100)
+    assert openamber.get_entity("oil_return_cycle_active_settled") is True
+    assert int(openamber.get_entity("compressor_control_select")) > 0, (
+        "Compressor must keep running during the 300s settle window after the oil return cycle"
+    )
+
+    # Past the settle window the overshoot stop applies
+    openamber.advance_time(seconds=170, step_s=15)
+    openamber.step(ms=100)
+    assert openamber.get_entity("oil_return_cycle_active_settled") is False
+    assert int(openamber.get_entity("compressor_control_select")) == 0, (
         "Compressor must stop once oil return cycle has settled and cleared"
+    )
+    assert openamber.get_entity("state_machine_state_heat_cool") != "Idle", (
+        "Expected a normal overshoot stop, not a safety stop to Idle"
     )
 
     # Cleanup
