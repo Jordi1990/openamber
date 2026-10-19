@@ -31,12 +31,13 @@ class MpcServer {
   }
   float get_power_w() const { return this->power_w_; }
 
-  void set_energy_wh(float wh) {
+  // Cumulative consumed energy; only ever increases.
+  void set_energy_wh(double wh) {
     if (wh > this->energy_wh_) {
       this->energy_wh_ = wh;
     }
   }
-  float get_energy_wh() const { return this->energy_wh_; }
+  double get_energy_wh() const { return this->energy_wh_; }
 
   void set_voltage_v(float v) { this->voltage_v_ = v; }
   float get_voltage_v() const { return this->voltage_v_; }
@@ -46,7 +47,7 @@ class MpcServer {
 
  private:
   float power_w_{0.0f};
-  float energy_wh_{100.0f};
+  double energy_wh_{0.0};  // double: float loses Wh increments at MWh totals
   float voltage_v_{230.0f};
   float current_a_{0.0f};
   uint32_t last_energy_calc_ms_{0};

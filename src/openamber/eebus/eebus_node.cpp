@@ -116,7 +116,7 @@ std::string EebusNode::build_measurement_notification(float power_w, float dhw_t
   d.set_classifier(CmdClassifier::NOTIFY);
   d.set_msg_counter(this->next_counter());
 
-  float energy_wh = this->mpc_ ? this->mpc_->get_energy_wh() : 0.0f;
+  double energy_wh = this->mpc_ ? this->mpc_->get_energy_wh() : 0.0;  // reported as kWh (Wh, scale -3)
   float current_a = this->mpc_ ? this->mpc_->get_current_a() : 0.0f;
   float voltage_v = this->mpc_ ? this->mpc_->get_voltage_v() : 230.0f;
 
@@ -131,7 +131,7 @@ std::string EebusNode::build_measurement_notification(float power_w, float dhw_t
   snprintf(buf, sizeof(buf),
            "{\"measurementData\":["
            "{\"measurementId\":0,\"value\":{\"number\":%lld,\"scale\":0},\"valueState\":\"normal\"},"
-           "{\"measurementId\":1,\"value\":{\"number\":%lld,\"scale\":0},\"valueState\":\"normal\"},"
+           "{\"measurementId\":1,\"value\":{\"number\":%lld,\"scale\":-3},\"valueState\":\"normal\"},"
            "{\"measurementId\":2,\"value\":{\"number\":%lld,\"scale\":-1},\"valueState\":\"normal\"},"
            "{\"measurementId\":3,\"value\":{\"number\":%lld,\"scale\":0},\"valueState\":\"normal\"},"
            "{\"measurementId\":5,\"value\":{\"number\":%lld,\"scale\":0},\"valueState\":\"normal\"}"
@@ -160,7 +160,7 @@ std::string EebusNode::build_measurement_reply(uint32_t reply_to, const SpineAdd
   d.set_msg_counter_reference(reply_to);
 
   float power_w = this->mpc_ ? this->mpc_->get_power_w() : 0.0f;
-  float energy_wh = this->mpc_ ? this->mpc_->get_energy_wh() : 0.0f;
+  double energy_wh = this->mpc_ ? this->mpc_->get_energy_wh() : 0.0;  // reported as kWh (Wh, scale -3)
   float current_a = this->mpc_ ? this->mpc_->get_current_a() : 0.0f;
   float voltage_v = this->mpc_ ? this->mpc_->get_voltage_v() : 230.0f;
 
@@ -175,7 +175,7 @@ std::string EebusNode::build_measurement_reply(uint32_t reply_to, const SpineAdd
   snprintf(buf, sizeof(buf),
            "{\"measurementData\":["
            "{\"measurementId\":0,\"value\":{\"number\":%lld,\"scale\":0},\"valueState\":\"normal\"},"
-           "{\"measurementId\":1,\"value\":{\"number\":%lld,\"scale\":0},\"valueState\":\"normal\"},"
+           "{\"measurementId\":1,\"value\":{\"number\":%lld,\"scale\":-3},\"valueState\":\"normal\"},"
            "{\"measurementId\":2,\"value\":{\"number\":%lld,\"scale\":-1},\"valueState\":\"normal\"},"
            "{\"measurementId\":3,\"value\":{\"number\":%lld,\"scale\":0},\"valueState\":\"normal\"},"
            "{\"measurementId\":5,\"value\":{\"number\":%lld,\"scale\":0},\"valueState\":\"normal\"}"
@@ -207,7 +207,7 @@ std::string EebusNode::build_measurement_description_reply(uint32_t reply_to, co
   desc.data_class = "measurementDescriptionListData";
   std::string desc_json = "{\"measurementDescriptionData\":["
                           "{\"measurementId\":0,\"measurementType\":\"power\",\"commodityType\":\"electricity\",\"unit\":\"W\",\"scopeType\":\"acPowerTotal\"},"
-                          "{\"measurementId\":1,\"measurementType\":\"energy\",\"commodityType\":\"electricity\",\"unit\":\"Wh\",\"scopeType\":\"acEnergyConsumed\"},"
+                          "{\"measurementId\":1,\"measurementType\":\"energy\",\"commodityType\":\"electricity\",\"unit\":\"kWh\",\"scopeType\":\"acEnergyConsumed\"},"
                           "{\"measurementId\":2,\"measurementType\":\"current\",\"commodityType\":\"electricity\",\"unit\":\"A\",\"scopeType\":\"acCurrent\"},"
                           "{\"measurementId\":3,\"measurementType\":\"voltage\",\"commodityType\":\"electricity\",\"unit\":\"V\",\"scopeType\":\"acVoltage\"}";
   desc_json += ",{\"measurementId\":5,\"measurementType\":\"power\",\"commodityType\":\"electricity\",\"unit\":\"W\",\"scopeType\":\"acPower\"}"
