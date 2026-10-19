@@ -151,6 +151,63 @@ script:
           root["xp"] = id(enter_defrost_temperature_3).state;
           root["xq"] = id(enter_defrost_temperature_4).state;
 
+- id: send_config_5
+  then:
+    - mqtt.publish_json:
+        topic: !lambda 'return id(analytics_topic);'
+        qos: 0
+        retain: true
+        payload: |-
+          root["ts"] = id(analytics_batch_timestamp);
+
+          root["na"] = id(mixing_valve_zone1_enabled).state;
+          root["nb"] = id(mixing_valve_zone2_enabled).state;
+
+          root["nc"] = id(heat_curve_z2_p15).state;
+          root["nd"] = id(heat_curve_z2_p10).state;
+          root["ne"] = id(heat_curve_z2_p5).state;
+          root["nf"] = id(heat_curve_z2_0).state;
+          root["ng"] = id(heat_curve_z2_m10).state;
+
+          root["nh"] = id(mixing_valve_zone1_min_position).state;
+          root["ni"] = id(mixing_valve_zone1_max_position).state;
+          root["nj"] = id(mixing_valve_zone2_min_position).state;
+          root["nk"] = id(mixing_valve_zone2_max_position).state;
+
+          root["nl"] = id(pid_mixing_valve_zone1_kp).state;
+          root["nm"] = id(pid_mixing_valve_zone1_ki).state;
+          root["nn"] = id(pid_mixing_valve_zone1_kd).state;
+          root["no"] = id(pid_mixing_valve_zone1_deadband).state;
+
+          root["np"] = id(pid_mixing_valve_zone2_kp).state;
+          root["nq"] = id(pid_mixing_valve_zone2_ki).state;
+          root["nr"] = id(pid_mixing_valve_zone2_kd).state;
+          root["ns"] = id(pid_mixing_valve_zone2_deadband).state;
+
+          root["nt"] = id(heat_demand_zone_2_switch).state;
+
+- id: send_config_6
+  then:
+    - mqtt.publish_json:
+        topic: !lambda 'return id(analytics_topic);'
+        qos: 0
+        retain: true
+        payload: |-
+          root["ts"] = id(analytics_batch_timestamp);
+          {
+            auto idx = id(heat_cool_control_temperature_source_select).active_index();
+            root["oa"] = idx.has_value() ? idx.value() : -1;
+          }
+
+          root["ob"] = id(thermostat_off_delay).state;
+          root["oc"] = id(dhw_backup_min_avg_rate_delay_minutes).state;
+
+          root["od"] = id(tr_offset).state;
+          root["oe"] = id(tw_offset).state;
+          root["of"] = id(tc_offset).state;
+          root["og"] = id(tui_offset).state;
+          root["oh"] = id(tuo_offset).state;
+
 - id: send_modes
   then:
     - mqtt.publish_json:
@@ -361,6 +418,10 @@ script:
     - script.execute: send_config_3
     - delay: 150ms
     - script.execute: send_config_4
+    - delay: 150ms
+    - script.execute: send_config_5
+    - delay: 150ms
+    - script.execute: send_config_6
     - delay: 150ms
     - script.execute: send_modes
     - delay: 150ms
