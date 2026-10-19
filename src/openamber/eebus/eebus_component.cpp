@@ -387,6 +387,14 @@ void EEBusComponent::wire_use_cases() {
     this->ohpcf_.set_applier([this](bool enabled) -> bool {
       // Route the CEM's optional-consumption request through the bridge; the
       // bridge decides whether the request is granted (safety first).
+      // An active LPC limit (e.g. §14a dim) takes precedence over an OHPCF
+      // boost request: never switch to Boost when the limit is below the
+      // power the boost would draw (always the case for a 0 W block).
+      if (enabled && this->lpc_.is_dimmed() &&
+          this->lpc_.get_limit_value_w() < this->ohpcf_.get_requested_power_estimate_w()) {
+        this->record_action("EMS Boost rejected (LPC limit active)");
+        return false;
+      }
       if (this->apply_optional_) {
         bool ok = this->apply_optional_(enabled);
         if (!ok) {
@@ -424,6 +432,13 @@ void EEBusComponent::wire_use_cases() {
     if (this->apply_limit_) {
       this->apply_limit_(active, limit_w);
     }
+    // A running OHPCF boost cannot coexist with a limit below its requested
+    // power (always true for a 0 W block): report it as paused so the CEM sees
+    // the real state. Runs before the dimmer callback (see LpcServer::apply).
+    if (active && this->enable_ohpcf_ && this->ohpcf_.get_state() == OhpcfState::RUNNING &&
+        limit_w < this->ohpcf_.get_requested_power_estimate_w()) {
+      this->ohpcf_.pause();
+    }
     if (active) {
       char buf[64];
       snprintf(buf, sizeof(buf), "EMS Limit active: %.0f W", limit_w);
@@ -456,6 +471,7 @@ void EEBusComponent::wire_use_cases() {
   this->node_.set_entity_type(this->entity_type_);
   this->node_.set_enable_ohpcf(this->enable_ohpcf_);
   this->node_.set_enable_mdt(this->enable_mdt_);
+  this->node_.set_failsafe_duration_s(this->failsafe_duration_s_);
   this->node_.set_on_remote_device_changed([this](const std::string &) {
     this->pending_remote_changed_ = true;
   });

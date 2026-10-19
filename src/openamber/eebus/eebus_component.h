@@ -82,7 +82,7 @@ class EEBusComponent : public PollingComponent {
   std::string device_name_{""};
   std::string device_category_{"heatPump"};
   std::string device_type_{"HeatGenerationSystem"};
-  std::string entity_type_{"heatPumpAppliance"};
+  std::string entity_type_{"HeatPumpAppliance"};
   bool enable_ohpcf_{true};
   bool enable_mdt_{true};
   uint32_t failsafe_duration_s_{7200};

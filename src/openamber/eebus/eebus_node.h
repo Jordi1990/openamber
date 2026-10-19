@@ -40,6 +40,7 @@ class EebusNode {
   void set_entity_type(const std::string &type) { this->entity_type_ = type; }
   void set_enable_ohpcf(bool enable) { this->enable_ohpcf_ = enable; }
   void set_enable_mdt(bool enable) { this->enable_mdt_ = enable; }
+  void set_failsafe_duration_s(uint32_t seconds) { this->failsafe_duration_s_ = seconds; }
   bool is_ohpcf_enabled() const { return this->enable_ohpcf_; }
   bool is_mdt_enabled() const { return this->enable_mdt_; }
 
@@ -64,6 +65,13 @@ class EebusNode {
   std::string build_measurement_notification(float power_w, float dhw_temp_c);
   std::string build_measurement_reply(uint32_t reply_to, const SpineAddress &dst, const SpineAddress &src_addr = {});
   std::string build_measurement_description_reply(uint32_t reply_to, const SpineAddress &dst, const SpineAddress &src_addr = {});
+  std::string build_measurement_constraints_reply(uint32_t reply_to, const SpineAddress &dst, const SpineAddress &src_addr = {});
+  // MDT: DHW temperature lives on its own DHWCircuit entity (kDhwEntity), as
+  // eebus-go only accepts the MDT use case on an entity of that type.
+  std::string build_dhw_measurement_notification(float dhw_temp_c);
+  std::string build_dhw_measurement_reply(uint32_t reply_to, const SpineAddress &dst, const SpineAddress &src_addr = {});
+  std::string build_dhw_measurement_description_reply(uint32_t reply_to, const SpineAddress &dst, const SpineAddress &src_addr = {});
+  std::string build_dhw_measurement_constraints_reply(uint32_t reply_to, const SpineAddress &dst, const SpineAddress &src_addr = {});
   std::string build_electrical_connection_description_reply(uint32_t reply_to, const SpineAddress &dst, const SpineAddress &src_addr = {});
   std::string build_electrical_connection_parameter_reply(uint32_t reply_to, const SpineAddress &dst, const SpineAddress &src_addr = {});
   std::string build_electrical_connection_characteristic_reply(uint32_t reply_to, const SpineAddress &dst, const SpineAddress &src_addr = {});
@@ -84,25 +92,30 @@ class EebusNode {
 
   // High-level notification helpers (sends via ship_sender_ if connected/subscribed).
   bool notify_measurements(float power_w, float dhw_temp_c);
+  bool notify_dhw_temperature(float dhw_temp_c);
   bool notify_ohpcf();
   bool notify_lpc(bool active, float limit_w);
   bool notify_use_cases();
 
   bool has_remote_device() const { return !this->remote_device_.empty(); }
   bool has_subscriptions() const {
-    return this->subscribed_measurements_ || this->subscribed_ohpcf_ || this->subscribed_lpc_ || this->subscribed_nodemgmt_;
+    return this->subscribed_measurements_ || this->subscribed_dhw_ || this->subscribed_ohpcf_ || this->subscribed_lpc_ ||
+           this->subscribed_nodemgmt_;
   }
   bool is_subscribed_measurements() const { return this->subscribed_measurements_; }
+  bool is_subscribed_dhw() const { return this->subscribed_dhw_; }
   bool is_subscribed_ohpcf() const { return this->subscribed_ohpcf_; }
   bool is_subscribed_lpc() const { return this->subscribed_lpc_; }
   bool is_subscribed_nodemgmt() const { return this->subscribed_nodemgmt_; }
 
   void reset_subscriptions() {
     this->subscribed_measurements_ = false;
+    this->subscribed_dhw_ = false;
     this->subscribed_ohpcf_ = false;
     this->subscribed_lpc_ = false;
     this->subscribed_nodemgmt_ = false;
     this->subscriber_measurement_addr_ = SpineAddress();
+    this->subscriber_dhw_addr_ = SpineAddress();
     this->subscriber_ohpcf_addr_ = SpineAddress();
     this->subscriber_lpc_addr_ = SpineAddress();
     this->subscriber_nodemgmt_addr_ = SpineAddress();
@@ -120,6 +133,13 @@ class EebusNode {
 
  private:
   uint32_t next_counter() { return ++this->msg_counter_; }
+  std::string use_case_information_json(const std::string &dev) const;
+
+  // SPINE entity/feature layout (see build_node_discovery_reply).
+  static constexpr uint16_t kApplianceEntity = 1;
+  static constexpr uint16_t kCompressorEntity = 2;
+  static constexpr uint16_t kDhwEntity = 3;
+  static constexpr uint16_t kDhwMeasurementFeature = 1;
 
   uint32_t msg_counter_{0};
   std::string device_id_{"EEBUS-Device"};
@@ -128,9 +148,10 @@ class EebusNode {
   std::string device_name_{""};
   std::string device_category_{"heatPump"};
   std::string device_type_{"HeatGenerationSystem"};
-  std::string entity_type_{"heatPumpAppliance"};
+  std::string entity_type_{"HeatPumpAppliance"};
   bool enable_ohpcf_{true};
   bool enable_mdt_{true};
+  uint32_t failsafe_duration_s_{7200};
   SpineAddress compressor_{1, 1, 1};
   SpineAddress cem_{2, 1, 1};
 
@@ -144,12 +165,18 @@ class EebusNode {
   std::function<bool(const std::string &)> ship_sender_;
   uint32_t last_activity_ms_{0};
   bool subscribed_measurements_{false};
+  bool subscribed_dhw_{false};
   bool subscribed_ohpcf_{false};
   bool subscribed_lpc_{false};
   bool subscribed_nodemgmt_{false};
 
   SpineAddress subscriber_measurement_addr_;
+  SpineAddress subscriber_dhw_addr_;
   SpineAddress subscriber_ohpcf_addr_;
+  // Server feature the OHPCF subscription was made on ([2].1 on the Compressor
+  // entity for eebus-go/evcc); notifications must come from that same address.
+  uint16_t ohpcf_notify_entity_{2};
+  uint16_t ohpcf_notify_feature_{1};
   SpineAddress subscriber_lpc_addr_;
   SpineAddress subscriber_nodemgmt_addr_;
 };
