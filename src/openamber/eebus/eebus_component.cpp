@@ -421,11 +421,6 @@ void EEBusComponent::wire_use_cases() {
     if (this->apply_dim_) {
       this->apply_dim_(dim);
     }
-    // A running OHPCF boost cannot coexist with a block: report it as paused
-    // so the CEM sees the real state (it may resume once the limit is lifted).
-    if (dim && this->enable_ohpcf_ && this->ohpcf_.get_state() == OhpcfState::RUNNING) {
-      this->ohpcf_.pause();
-    }
     if (dim) {
       this->record_action("EMS Dim/Block active (LPC 0W)");
     } else {
@@ -436,6 +431,13 @@ void EEBusComponent::wire_use_cases() {
   this->lpc_.set_limit_applier([this](bool active, float limit_w) {
     if (this->apply_limit_) {
       this->apply_limit_(active, limit_w);
+    }
+    // A running OHPCF boost cannot coexist with a limit below its requested
+    // power (always true for a 0 W block): report it as paused so the CEM sees
+    // the real state. Runs before the dimmer callback (see LpcServer::apply).
+    if (active && this->enable_ohpcf_ && this->ohpcf_.get_state() == OhpcfState::RUNNING &&
+        limit_w < this->ohpcf_.get_requested_power_estimate_w()) {
+      this->ohpcf_.pause();
     }
     if (active) {
       char buf[64];

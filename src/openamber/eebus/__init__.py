@@ -45,7 +45,7 @@ CONF_EMS = "ems"
 # only matches e.g. "HeatPumpAppliance", so "heatPumpAppliance" silently breaks
 # MPC (power) and LPC (limits) discovery on the EMS side.
 SPINE_ENTITY_TYPES = [
-    "EnergyManagementSystem", "Inverter", "ChargingStation", "Battery",
+    "Inverter", "Battery",
     "Compressor", "DeviceInformation", "DHWCircuit", "DHWStorage",
     "Dishwasher", "Dryer", "ElectricalImmersionHeater", "Fan",
     "GasHeatingAppliance", "Generic", "HeatingBufferStorage", "HeatingCircuit",
