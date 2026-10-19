@@ -116,7 +116,7 @@ std::string EebusNode::build_measurement_notification(float power_w, float dhw_t
   d.set_classifier(CmdClassifier::NOTIFY);
   d.set_msg_counter(this->next_counter());
 
-  float energy_wh = this->mpc_ ? this->mpc_->get_energy_wh() : 0.0f;
+  double energy_wh = this->mpc_ ? this->mpc_->get_energy_wh() : 0.0;  // reported in Wh (MPC use case)
   float current_a = this->mpc_ ? this->mpc_->get_current_a() : 0.0f;
   float voltage_v = this->mpc_ ? this->mpc_->get_voltage_v() : 230.0f;
 
@@ -160,7 +160,7 @@ std::string EebusNode::build_measurement_reply(uint32_t reply_to, const SpineAdd
   d.set_msg_counter_reference(reply_to);
 
   float power_w = this->mpc_ ? this->mpc_->get_power_w() : 0.0f;
-  float energy_wh = this->mpc_ ? this->mpc_->get_energy_wh() : 0.0f;
+  double energy_wh = this->mpc_ ? this->mpc_->get_energy_wh() : 0.0;  // reported in Wh (MPC use case)
   float current_a = this->mpc_ ? this->mpc_->get_current_a() : 0.0f;
   float voltage_v = this->mpc_ ? this->mpc_->get_voltage_v() : 230.0f;
 
