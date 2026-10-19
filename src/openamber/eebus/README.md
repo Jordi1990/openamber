@@ -37,7 +37,7 @@ eebus:
   device_name: "LivingRoom-HeatPump"  # Optional human-friendly name (default: brand)
   device_category: "heatPump"         # SPINE device category (default: heatPump)
   device_type: "HeatGenerationSystem" # SPINE device type (e.g. HeatGenerationSystem, ChargingStation, BatterySystem, ControllableSystem)
-  entity_type: "heatPumpAppliance"    # SPINE entity type (e.g. heatPumpAppliance, evse, battery, controllableSystem)
+  entity_type: "HeatPumpAppliance"    # SPINE entity type, case-sensitive (e.g. HeatPumpAppliance, EVSE, Battery, ControllableSystem)
   enable_ohpcf: true                  # Enable OHPCF (heat pump boost/compressor) use-case (default: auto-detected)
   enable_mdt: true                    # Enable MDT (DHW hot water temperature) use-case (default: auto-detected)
   failsafe_duration: 2h               # Auto-release dim/block if connection lost (default: 2h)

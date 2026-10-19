@@ -41,6 +41,34 @@ CONF_POWER_LIMIT = "power_limit"
 CONF_SKI = "ski"
 CONF_EMS = "ems"
 
+# SPINE EntityTypeType values. They are case-sensitive on the wire: eebus-go
+# only matches e.g. "HeatPumpAppliance", so "heatPumpAppliance" silently breaks
+# MPC (power) and LPC (limits) discovery on the EMS side.
+SPINE_ENTITY_TYPES = [
+    "EnergyManagementSystem", "Inverter", "ChargingStation", "Battery",
+    "Compressor", "DeviceInformation", "DHWCircuit", "DHWStorage",
+    "Dishwasher", "Dryer", "ElectricalImmersionHeater", "Fan",
+    "GasHeatingAppliance", "Generic", "HeatingBufferStorage", "HeatingCircuit",
+    "HeatingObject", "HeatingZone", "HeatPumpAppliance", "HeatSinkCircuit",
+    "HeatSourceCircuit", "HeatSourceUnit", "HVACController", "HVACRoom",
+    "InstantDHWHeater", "OilHeatingAppliance", "Pump", "RefrigerantCircuit",
+    "SmartEnergyAppliance", "SolarDHWStorage", "SolarThermalCircuit", "SubMeterElectricity",
+    "TemperatureSensor", "Washer", "BatterySystem", "ElectricityGenerationSystem",
+    "ElectricityStorageSystem", "GridConnectionPointOfPremises", "Household", "PVSystem",
+    "EV", "EVSE", "ChargingOutlet", "CEM",
+    "PV", "PVESHybrid", "ElectricalStorage", "PVString",
+    "GridGuard", "ControllableSystem",
+]
+_SPINE_ENTITY_TYPES_LOWER = {t.lower(): t for t in SPINE_ENTITY_TYPES}
+
+
+def spine_entity_type(value):
+    value = cv.string(value)
+    canonical = _SPINE_ENTITY_TYPES_LOWER.get(value.lower())
+    if canonical is None:
+        raise cv.Invalid(f"Unknown SPINE entity type '{value}'")
+    return canonical
+
 eebus_ns = cg.esphome_ns.namespace("eebus")
 EEBusComponent = eebus_ns.class_("EEBusComponent", cg.PollingComponent)
 
@@ -54,7 +82,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_DEVICE_NAME): cv.string,
             cv.Optional(CONF_DEVICE_CATEGORY, default="heatPump"): cv.string,
             cv.Optional(CONF_DEVICE_TYPE, default="HeatGenerationSystem"): cv.string,
-            cv.Optional(CONF_ENTITY_TYPE, default="heatPumpAppliance"): cv.string,
+            cv.Optional(CONF_ENTITY_TYPE, default="HeatPumpAppliance"): spine_entity_type,
             cv.Optional(CONF_ENABLE_OHPCF): cv.boolean,
             cv.Optional(CONF_ENABLE_MDT): cv.boolean,
             cv.Optional(CONF_FAILSAFE_DURATION, default="2h"): cv.positive_time_period,
