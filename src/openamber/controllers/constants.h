@@ -49,6 +49,7 @@ static const uint32_t FREQUENCY_CHANGE_INTERVAL_UP_S = 5 * 60;
 // Pump timing
 static const uint32_t PUMP_START_TIMEOUT_S = 2 * 60;
 static const uint32_t PUMP_STOP_TIMEOUT_S = 2 * 60;
+static const uint32_t PUMP_P1_RESEND_INTERVAL_S = 60;
 
 // Backup heater timing
 static const uint32_t BACKUP_HEATER_LOOKAHEAD_S = 2 * 60;

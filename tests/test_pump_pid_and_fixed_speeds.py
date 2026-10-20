@@ -267,3 +267,60 @@ def test_secondary_pump_p1_starts_when_enabled(clean_system):
     openamber.step(ms=50)
 
 
+
+
+def test_secondary_pump_p1_runs_continuously_during_heat_demand(clean_system):
+    """
+    Verify secondary pump P1 keeps running during the whole heat demand (buffer tank setup):
+    1. Set pump_p1_enabled = True and keep Tc above the compressor start temperature.
+    2. Start space heating demand: P1 starts right away, without waiting for the P0 pump interval.
+    3. P0 runs its interval cycle and stops again because the compressor is not allowed to start.
+    4. P1 keeps running while P0 waits for the next interval.
+    5. When heat demand ends, P1 stops.
+    """
+    openamber = clean_system
+
+    openamber.set_switch("pump_p1_enabled", True)
+    openamber.set_select("thermostat_mode_select", "Extern")
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 35.0)
+    openamber.set_climate("pid_heat_temperature_control", target_temperature=35.0)
+    openamber.set_number("compressor_start_delta_heating", 2.0)
+    openamber.set_number("compressor_stop_delta_heating", 2.0)
+    # Tc above start temperature (35 - 2 = 33), so the compressor is not allowed to start.
+    openamber.set_sensor("current_water_temperature_tc_sensor", 34.0)
+    openamber.set_sensor("heat_cool_temperature_tc", 34.0)
+    openamber.set_sensor("outlet_temperature_tuo", 34.0)
+    openamber.set_sensor("inlet_temperature_tui", 33.0)
+    openamber.step(ms=50)
+
+    openamber.set_binary_sensor("external_heat_demand_wired", True)
+    openamber.step(ms=100)
+    assert openamber.get_entity("pump_p1_relay_switch") is True, (
+        "Secondary pump P1 must start immediately on heat demand"
+    )
+
+    # Advance time through pump interval (900s) + pump start (10s)
+    openamber.advance_time(seconds=910, step_s=30)
+    openamber.step(ms=100)
+    assert openamber.get_entity("internal_pump_active") is True, "Pump P0 must be active"
+    assert openamber.get_entity("pump_p1_relay_switch") is True
+
+    # Pump duration (2 min) finishes, P0 stops because the compressor is not allowed to start.
+    openamber.advance_time(seconds=180, step_s=10)
+    openamber.step(ms=100)
+    assert openamber.get_entity("internal_pump_active") is False, "Pump P0 must stop after its interval cycle"
+    assert openamber.get_entity("pump_p1_relay_switch") is True, (
+        "Secondary pump P1 must keep running while P0 waits for the next interval"
+    )
+
+    # Heat demand ends
+    openamber.set_binary_sensor("external_heat_demand_wired", False)
+    openamber.step(ms=100)
+    assert openamber.get_entity("pump_p1_relay_switch") is False, (
+        "Secondary pump P1 must stop when heat demand ends"
+    )
+
+    # Cleanup
+    openamber.set_switch("pump_p1_enabled", False)
+    openamber.step(ms=50)

@@ -50,6 +50,8 @@ private:
   float compressor_cool_pid_ = 0.0f;
   float start_current_temperature_ = 0.0f;
   uint32_t pump_flow_missing_since_ms_ = 0;
+  bool pump_p1_requested_ = false;
+  uint32_t pump_p1_last_write_ms_ = 0;
   MixingValveActuator* mixing_valve_zone1_ = nullptr;
   MixingValveActuator* mixing_valve_zone2_ = nullptr;
 
@@ -650,7 +652,6 @@ public:
         if (pump_controller_->ShouldStartNextPumpCycle())
         {
           pump_controller_->Start();
-          StartPumpP1IfNeeded();
           SetNextState(HeatCoolState::WAIT_PUMP_RUNNING);
         }
         break;
@@ -775,7 +776,6 @@ public:
 
         if (id(defrost_active_sensor).state)
         {
-          StopPumpP1IfNeeded();
           SetNextState(HeatCoolState::DEFROSTING);
           break;
         }
@@ -927,7 +927,6 @@ public:
         pump_controller_->ResetHeatingPidState();
         GetPidController().reset_integral_term();
         ResetMixingValvesIntegralTerm();
-        StartPumpP1IfNeeded();
 
         if (id(temperature_outside_ta).state <= id(defrost_backup_heater_boost_temperature_sensor).state)
         {
@@ -955,28 +954,67 @@ public:
         break;
       }
     }
+
+    UpdatePumpP1();
   }
 
   void StopPumps()
   {
+    // P1 is switched by UpdatePumpP1() based on the state the controller ends up in.
     pump_controller_->Stop();
-    StopPumpP1IfNeeded();
   }
 
-  void StartPumpP1IfNeeded()
+  bool ShouldRunPumpP1()
   {
-    if(id(pump_p1_enabled).state && !id(pump_p1_relay_switch).state)
+    if (requested_to_stop_ || state_ == HeatCoolState::DEFROSTING)
     {
-      ESP_LOGI("amber", "Starting pump P1");
+      return false;
+    }
+
+    // Keep P1 running during the whole heat/cool demand, also while P0 waits for its next interval.
+    // Otherwise a buffer tank is never drawn from and Tc does not drop below the compressor start temperature.
+    if (id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state)
+    {
+      return true;
+    }
+
+    // Without demand (e.g. frost protection) P1 only runs along with the P0 interval cycle.
+    return state_ != HeatCoolState::IDLE && state_ != HeatCoolState::WAIT_PUMP_STOP;
+  }
+
+  void UpdatePumpP1()
+  {
+    if (!id(pump_p1_enabled).state)
+    {
+      return;
+    }
+
+    const uint32_t now = App.get_loop_component_start_time();
+    bool should_run = ShouldRunPumpP1();
+    bool resend = id(pump_p1_relay_switch).state != should_run && (now - pump_p1_last_write_ms_) >= PUMP_P1_RESEND_INTERVAL_S * 1000UL;
+    if (should_run == pump_p1_requested_ && !resend)
+    {
+      return;
+    }
+
+    if (should_run == pump_p1_requested_)
+    {
+      // Relay state read back over Modbus does not match, e.g. after a failed write.
+      ESP_LOGW("amber", "Pump P1 relay state does not match requested state, sending command again.");
+    }
+    else
+    {
+      ESP_LOGI("amber", "%s pump P1", should_run ? "Starting" : "Stopping");
+    }
+
+    pump_p1_requested_ = should_run;
+    pump_p1_last_write_ms_ = now;
+    if (should_run)
+    {
       id(pump_p1_relay_switch).turn_on();
     }
-  }
-
-  void StopPumpP1IfNeeded()
-  {
-    if(id(pump_p1_enabled).state && id(pump_p1_relay_switch).state)
+    else
     {
-      ESP_LOGI("amber", "Stopping pump P1");
       id(pump_p1_relay_switch).turn_off();
     }
   }
