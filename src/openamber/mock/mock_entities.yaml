@@ -275,6 +275,11 @@ binary_sensor:
       if (!id(pump_p0_relay_switch).state) return false;
       return id(pump_control_pwm_number).state < 995.0f;
   - platform: template
+    id: pump_p1_active
+    name: "Pomp P1"
+    device_class: running
+    lambda: 'return id(pump_p1_relay_switch).state;'
+  - platform: template
     id: three_way_valve_active_sensor
     name: "3-weg klep"
     lambda: 'return id(three_way_valve_dhw_switch).state;'
