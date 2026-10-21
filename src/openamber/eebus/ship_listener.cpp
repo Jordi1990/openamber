@@ -16,6 +16,7 @@
 #include "esphome/core/log.h"
 
 #include <cstring>
+#include <mutex>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -83,6 +84,7 @@ static const uint32_t kShipTaskStackBytes = 32 * 1024;
 static TaskHandle_t ship_task_handle = nullptr;
 static int ship_listen_fd = -1;
 static int ship_conn_fd = -1;
+static std::mutex ship_conn_mutex;
 
 static void ship_accept_task(void *arg);
 
@@ -90,9 +92,16 @@ static void ship_accept_task(void *arg);
 // closed it (ship_conn_fd reset to -1), the fd number may have been reused
 // by another socket, so it must not be closed again here.
 static void close_ship_conn(int fd) {
-  if (ship_conn_fd == fd) {
-    ship_conn_fd = -1;
-    close(fd);
+  int target_fd = -1;
+  {
+    std::lock_guard<std::mutex> lock(ship_conn_mutex);
+    if (ship_conn_fd == fd) {
+      target_fd = ship_conn_fd;
+      ship_conn_fd = -1;
+    }
+  }
+  if (target_fd >= 0) {
+    close(target_fd);
   }
 }
 
@@ -121,9 +130,15 @@ void EEBusShipListener::stop() {
   this->remote_ip_.clear();
   this->peer_ski_.clear();
   this->peer_name_.clear();
-  if (ship_conn_fd >= 0) {
-    int cfd = ship_conn_fd;
-    ship_conn_fd = -1;
+  int cfd = -1;
+  {
+    std::lock_guard<std::mutex> lock(ship_conn_mutex);
+    if (ship_conn_fd >= 0) {
+      cfd = ship_conn_fd;
+      ship_conn_fd = -1;
+    }
+  }
+  if (cfd >= 0) {
     shutdown(cfd, SHUT_RDWR);
     close(cfd);
   }
@@ -292,7 +307,10 @@ static void ship_accept_task(void *arg) {
 
 void EEBusShipListener::handle_connection(int fd, const std::string &remote_ip) {
   ESP_LOGI(TAG, "Accepted SHIP connection from %s", remote_ip.c_str());
-  ship_conn_fd = fd;
+  {
+    std::lock_guard<std::mutex> lock(ship_conn_mutex);
+    ship_conn_fd = fd;
+  }
   this->close_requested_ = false;
   this->remote_ip_ = remote_ip;
   this->peer_ski_.clear();

@@ -9,7 +9,10 @@
 time:
   - platform: mock_time
     id: my_time
-    timezone: "Europe/Amsterdam"
+    # Empty timezone disables USE_TIME_TIMEZONE. With it enabled, core/time.h pulls
+    # namespace esphome::time into every TU, which breaks the unqualified time() call
+    # in ESPHome's logger_host.cpp (2026.10.x) on host builds.
+    timezone: ""
 
 update:
   - platform: mock_update
