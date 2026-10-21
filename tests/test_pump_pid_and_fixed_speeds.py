@@ -229,10 +229,13 @@ def test_secondary_pump_p1_stays_off_when_disabled(clean_system):
 
 def test_secondary_pump_p1_starts_when_enabled(clean_system):
     """
-    Verify secondary pump P1 starts when pump_p1_enabled is True:
+    Verify secondary pump P1 starts when pump_p1_enabled is True and heat demand is active:
     1. Set pump_p1_enabled = True.
     2. Start space heating demand.
-    3. When pump starts, secondary pump P1 relay (pump_p1_relay_switch) turns ON (True).
+    3. Secondary pump P1 (pump_p1_relay_switch and pump_p1_active) turns ON immediately with heat demand,
+       even before primary pump P0 interval cycle starts.
+    4. When heat demand ends while still in IDLE, secondary pump P1 turns OFF.
+    5. When heat demand resumes and primary pump P0 starts after the interval, P1 remains active.
     """
     openamber = clean_system
 
@@ -249,20 +252,61 @@ def test_secondary_pump_p1_starts_when_enabled(clean_system):
     openamber.set_sensor("inlet_temperature_tui", 26.0)
     openamber.step(ms=50)
 
-    # Start heating
-    openamber.set_binary_sensor("external_heat_demand_wired", True)
-    openamber.step(ms=100)
+    # Initial state: no heat demand, P1 and P0 are off
+    assert openamber.get_entity("pump_p1_relay_switch") is False, "Pump P1 must be OFF initially"
+    assert openamber.get_entity("pump_p1_active") is False, "Pump P1 active sensor must be False initially"
+    assert openamber.get_entity("internal_pump_active") is False, "Pump P0 must be OFF initially"
 
-    # Advance time through pump interval (900s) + pump start (10s)
-    openamber.advance_time(seconds=910, step_s=30)
-    openamber.step(ms=100)
-    assert openamber.get_entity("internal_pump_active") is True, "Pump P0 must be active"
+    # 1. Start heating demand
+    openamber.set_binary_sensor("external_heat_demand_wired", True)
+    openamber.advance_time(seconds=6, step_s=1)
+    openamber.step(ms=50)
+
+    # Secondary pump P1 must start immediately on heat demand before P0 interval timer elapses
     assert openamber.get_entity("pump_p1_relay_switch") is True, (
-        "Secondary pump P1 must turn on when pump_p1_enabled is True"
+        "Secondary pump P1 relay must turn ON immediately upon heat demand"
+    )
+    assert openamber.get_entity("pump_p1_active") is True, (
+        "Secondary pump P1 active sensor must be True when heat demand starts"
+    )
+    assert openamber.get_entity("internal_pump_active") is False, (
+        "Primary pump P0 must not yet be running before interval cycle"
     )
 
-    # Cleanup
+    # 2. Stop heating demand while still in IDLE before P0 starts
     openamber.set_binary_sensor("external_heat_demand_wired", False)
+    openamber.advance_time(seconds=6, step_s=1)
+    openamber.step(ms=50)
+    assert openamber.get_entity("pump_p1_relay_switch") is False, (
+        "Secondary pump P1 must turn OFF when heat demand stops in IDLE"
+    )
+    assert openamber.get_entity("pump_p1_active") is False, (
+        "Secondary pump P1 active sensor must become False when heat demand stops in IDLE"
+    )
+
+    # 3. Resume heating demand and advance through pump interval (900s) + pump start (10s)
+    openamber.set_binary_sensor("external_heat_demand_wired", True)
+    openamber.advance_time(seconds=6, step_s=1)
+    openamber.step(ms=50)
+    assert openamber.get_entity("pump_p1_relay_switch") is True, "Pump P1 must turn back ON"
+
+    openamber.advance_time(seconds=910, step_s=30)
+    openamber.step(ms=50)
+    assert openamber.get_entity("internal_pump_active") is True, "Pump P0 must be active"
+    assert openamber.get_entity("pump_p1_relay_switch") is True, (
+        "Secondary pump P1 must remain ON during heating"
+    )
+    assert openamber.get_entity("pump_p1_active") is True, (
+        "Secondary pump P1 active sensor must remain True during heating"
+    )
+
+    # Cleanup: end demand and allow compressor min run time (600s) + pump stop (130s)
+    openamber.set_binary_sensor("external_heat_demand_wired", False)
+    openamber.advance_time(seconds=750, step_s=25)
+    openamber.step(ms=50)
+    assert openamber.get_entity("pump_p1_relay_switch") is False, (
+        "Secondary pump P1 must turn OFF after heating cycle concludes"
+    )
     openamber.set_switch("pump_p1_enabled", False)
     openamber.step(ms=50)
 
