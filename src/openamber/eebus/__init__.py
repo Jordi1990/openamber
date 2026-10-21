@@ -171,6 +171,15 @@ async def to_code(config):
         esp32.add_idf_sdkconfig_option("CONFIG_MBEDTLS_SSL_IN_CONTENT_LEN", 8192)
         esp32.add_idf_sdkconfig_option("CONFIG_MBEDTLS_SSL_OUT_CONTENT_LEN", 8192)
         esp32.add_idf_sdkconfig_option("CONFIG_MBEDTLS_PEM_WRITE_C", True)
+        for _req in (
+            "require_mbedtls_tls",
+            "require_mbedtls_tls_server",
+            "require_mbedtls_ecp",
+            "require_mbedtls_peer_cert",
+        ):
+            _fn = getattr(esp32, _req, None)
+            if _fn is not None:
+                _fn()
     else:
         cg.add_build_flag("-DUSE_EEBUS_MOCK")
 

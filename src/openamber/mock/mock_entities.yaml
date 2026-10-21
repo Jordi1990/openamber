@@ -9,7 +9,10 @@
 time:
   - platform: mock_time
     id: my_time
-    timezone: "Europe/Amsterdam"
+    # Empty timezone disables USE_TIME_TIMEZONE. With it enabled, core/time.h pulls
+    # namespace esphome::time into every TU, which breaks the unqualified time() call
+    # in ESPHome's logger_host.cpp (2026.10.x) on host builds.
+    timezone: ""
 
 update:
   - platform: mock_update
@@ -274,6 +277,11 @@ binary_sensor:
     lambda: |-
       if (!id(pump_p0_relay_switch).state) return false;
       return id(pump_control_pwm_number).state < 995.0f;
+  - platform: template
+    id: pump_p1_active
+    name: "Pomp P1"
+    device_class: running
+    lambda: 'return id(pump_p1_relay_switch).state;'
   - platform: template
     id: three_way_valve_active_sensor
     name: "3-weg klep"
