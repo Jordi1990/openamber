@@ -16,6 +16,7 @@
 #include "esphome/core/log.h"
 
 #include <cstring>
+#include <mutex>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -83,8 +84,26 @@ static const uint32_t kShipTaskStackBytes = 32 * 1024;
 static TaskHandle_t ship_task_handle = nullptr;
 static int ship_listen_fd = -1;
 static int ship_conn_fd = -1;
+static std::mutex ship_conn_mutex;
 
 static void ship_accept_task(void *arg);
+
+// Close the active SHIP connection socket exactly once. If stop() already
+// closed it (ship_conn_fd reset to -1), the fd number may have been reused
+// by another socket, so it must not be closed again here.
+static void close_ship_conn(int fd) {
+  int target_fd = -1;
+  {
+    std::lock_guard<std::mutex> lock(ship_conn_mutex);
+    if (ship_conn_fd == fd) {
+      target_fd = ship_conn_fd;
+      ship_conn_fd = -1;
+    }
+  }
+  if (target_fd >= 0) {
+    close(target_fd);
+  }
+}
 
 void EEBusShipListener::teardown() {
   this->is_connected_ = false;
@@ -111,9 +130,15 @@ void EEBusShipListener::stop() {
   this->remote_ip_.clear();
   this->peer_ski_.clear();
   this->peer_name_.clear();
-  if (ship_conn_fd >= 0) {
-    int cfd = ship_conn_fd;
-    ship_conn_fd = -1;
+  int cfd = -1;
+  {
+    std::lock_guard<std::mutex> lock(ship_conn_mutex);
+    if (ship_conn_fd >= 0) {
+      cfd = ship_conn_fd;
+      ship_conn_fd = -1;
+    }
+  }
+  if (cfd >= 0) {
     shutdown(cfd, SHUT_RDWR);
     close(cfd);
   }
@@ -282,7 +307,10 @@ static void ship_accept_task(void *arg) {
 
 void EEBusShipListener::handle_connection(int fd, const std::string &remote_ip) {
   ESP_LOGI(TAG, "Accepted SHIP connection from %s", remote_ip.c_str());
-  ship_conn_fd = fd;
+  {
+    std::lock_guard<std::mutex> lock(ship_conn_mutex);
+    ship_conn_fd = fd;
+  }
   this->close_requested_ = false;
   this->remote_ip_ = remote_ip;
   this->peer_ski_.clear();
@@ -301,12 +329,12 @@ void EEBusShipListener::handle_connection(int fd, const std::string &remote_ip) 
   net.fd = fd;
 
   if (!this->ssl_ready_) {
-    close(fd);
+    close_ship_conn(fd);
     return;
   }
   if (mbedtls_ssl_session_reset(&this->ssl_) != 0) {
     ESP_LOGW(TAG, "mbedtls_ssl_session_reset failed");
-    close(fd);
+    close_ship_conn(fd);
     return;
   }
   mbedtls_ssl_set_bio(&this->ssl_, &net, mbedtls_net_send, mbedtls_net_recv, nullptr);
@@ -328,7 +356,7 @@ void EEBusShipListener::handle_connection(int fd, const std::string &remote_ip) 
     ESP_LOGW(TAG, "TLS handshake failed: -0x%04x (want_read=%d want_write=%d)",
              static_cast<unsigned>(-ret),
              ret == MBEDTLS_ERR_SSL_WANT_READ, ret == MBEDTLS_ERR_SSL_WANT_WRITE);
-    close(fd);
+    close_ship_conn(fd);
     return;
   }
   ESP_LOGI(TAG, "TLS handshake OK (version=%s cipher=%s)",
@@ -366,7 +394,7 @@ void EEBusShipListener::handle_connection(int fd, const std::string &remote_ip) 
     if (ret <= 0) {
       ESP_LOGW(TAG, "WS upgrade read failed: -0x%04x / %d",
                ret < 0 ? static_cast<unsigned>(-ret) : 0, ret);
-      close(fd);
+      close_ship_conn(fd);
       return;
     }
     req.append(buf, static_cast<size_t>(ret));
@@ -378,7 +406,7 @@ void EEBusShipListener::handle_connection(int fd, const std::string &remote_ip) 
   std::string ws_resp;
   if (!eebus_websocket_server_response(req, ws_resp)) {
     ESP_LOGW(TAG, "Not a WebSocket upgrade request; raw=<%.160s>", req.c_str());
-    close(fd);
+    close_ship_conn(fd);
     return;
   }
   ssl_write_all(&ssl, reinterpret_cast<const unsigned char *>(ws_resp.data()), ws_resp.size());
@@ -498,12 +526,7 @@ void EEBusShipListener::handle_connection(int fd, const std::string &remote_ip) 
       xSemaphoreGive(static_cast<SemaphoreHandle_t>(this->queue_mutex_));
     }
   }
-  if (ship_conn_fd >= 0) {
-    close(ship_conn_fd);
-    ship_conn_fd = -1;
-  } else {
-    close(fd);
-  }
+  close_ship_conn(fd);
   mbedtls_ssl_session_reset(&this->ssl_);
   ESP_LOGI(TAG, "SHIP connection closed");
 }
