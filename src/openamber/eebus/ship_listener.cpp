@@ -78,7 +78,9 @@ static const uint16_t kEebusSigAlgs[] = {MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA2
 
 // The accept+handshake task runs its stack from PSRAM to spare the scarce
 // internal SRAM (internal RAM is tight on the S3 with LVGL + WiFi).
-static StaticTask_t ship_task_tcb;
+// The TCB must live in internal RAM; it is allocated on first begin() (never
+// freed, as the self-deleting task's TCB is still touched by the idle task).
+static StaticTask_t *ship_task_tcb = nullptr;
 static StackType_t *ship_task_stack = nullptr;
 static const uint32_t kShipTaskStackBytes = 32 * 1024;
 static TaskHandle_t ship_task_handle = nullptr;
@@ -243,8 +245,18 @@ void EEBusShipListener::begin(const EEBusCertificateStore &cert, uint16_t port) 
              static_cast<unsigned>(kShipTaskStackBytes));
     return;
   }
+  if (ship_task_tcb == nullptr) {
+    ship_task_tcb = static_cast<StaticTask_t *>(
+        heap_caps_malloc(sizeof(StaticTask_t), MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
+    if (ship_task_tcb == nullptr) {
+      ESP_LOGE(TAG, "Failed to allocate SHIP task TCB");
+      free(ship_task_stack);
+      ship_task_stack = nullptr;
+      return;
+    }
+  }
   ship_task_handle = xTaskCreateStatic(ship_accept_task, "eebus_ship", stack_words, nullptr,
-                                       tskIDLE_PRIORITY + 3, ship_task_stack, &ship_task_tcb);
+                                       tskIDLE_PRIORITY + 3, ship_task_stack, ship_task_tcb);
 }
 
 static void ship_accept_task(void *arg) {

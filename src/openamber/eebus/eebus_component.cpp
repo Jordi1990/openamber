@@ -18,8 +18,10 @@
 #include "esphome/components/network/util.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
+#include "esp_heap_caps.h"
 #include <algorithm>
 #include <cctype>
+#include <new>
 
 namespace esphome {
 namespace eebus {
@@ -64,6 +66,17 @@ void EEBusComponent::start_eebus_subsystem() {
   if (this->initialized_)
     return;
 
+  if (this->rt_ == nullptr) {
+    void *mem = heap_caps_malloc(sizeof(EEBusRuntime), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    if (mem == nullptr)
+      mem = heap_caps_malloc(sizeof(EEBusRuntime), MALLOC_CAP_8BIT);
+    if (mem == nullptr) {
+      ESP_LOGE(TAG, "Failed to allocate %u bytes for EEBus runtime", static_cast<unsigned>(sizeof(EEBusRuntime)));
+      return;
+    }
+    this->rt_ = new (mem) EEBusRuntime();
+  }
+
   // Check if model is already known via callback
   if (this->read_model_) {
     std::string detected = this->read_model_();
@@ -97,7 +110,7 @@ void EEBusComponent::start_eebus_subsystem() {
     this->power_limit_sensor_->publish_state(NAN);
   }
   if (this->ski_sensor_ != nullptr) {
-    this->ski_sensor_->publish_state(this->cert_store_.get_ski());
+    this->ski_sensor_->publish_state(this->rt_->cert_store.get_ski());
   }
   if (this->ems_sensor_ != nullptr) {
     this->ems_sensor_->publish_state("–");
@@ -110,7 +123,7 @@ void EEBusComponent::stop_eebus_subsystem() {
   ESP_LOGI(TAG, "EEBus component stopping (disabled)...");
 
   // Stop SHIP listener & mDNS
-  this->ship_listener_.stop();
+  this->rt_->ship_listener.stop();
   eebus_mdns_stop();
   this->listener_started_ = false;
   this->mdns_advertised_ = false;
@@ -118,8 +131,8 @@ void EEBusComponent::stop_eebus_subsystem() {
   this->last_mdns_reannounce_ms_ = 0;
 
   // Release any active consumption limits / dimming / boost
-  if (this->lpc_.is_dimmed()) {
-    this->lpc_.release_limit();
+  if (this->rt_->lpc.is_dimmed()) {
+    this->rt_->lpc.release_limit();
   }
   if (this->apply_dim_) {
     this->apply_dim_(false);
@@ -170,15 +183,15 @@ void EEBusComponent::loop() {
         xSemaphoreGive(static_cast<SemaphoreHandle_t>(this->inbound_mutex_));
       }
       for (const auto &msg : to_process) {
-        std::string reply = this->node_.handle_inbound(msg);
+        std::string reply = this->rt_->node.handle_inbound(msg);
         ESP_LOGI(TAG, "SPINE handled in loop -> reply size=%u", static_cast<unsigned>(reply.size()));
         if (!reply.empty()) {
-          this->ship_listener_.send_ship_data(reply);
+          this->rt_->ship_listener.send_ship_data(reply);
         }
       }
     }
 
-    bool is_conn = this->ship_listener_.is_connected();
+    bool is_conn = this->rt_->ship_listener.is_connected();
     if (is_conn != this->last_connected_) {
       this->check_connection_state();
     }
@@ -231,6 +244,8 @@ void EEBusComponent::update() {
 
   if (!this->initialized_) {
     this->start_eebus_subsystem();
+    if (!this->initialized_)
+      return;
   }
 
   // Check / update model from callback
@@ -240,7 +255,7 @@ void EEBusComponent::update() {
       if (this->model_ != detected) {
         this->model_ = detected;
         this->device_sku_ = this->brand_ + "-" + detected;
-        this->node_.set_model(this->model_);
+        this->rt_->node.set_model(this->model_);
         ESP_LOGI(TAG, "EEBUS model configured via callback: %s (sku=%s)",
                  this->model_.c_str(), this->device_sku_.c_str());
         this->mdns_advertised_ = false;  // Force re-advertisement with new model
@@ -269,7 +284,7 @@ void EEBusComponent::update() {
   if (network::is_connected() && this->model_detected_) {
     uint32_t now = millis();
     bool should_advertise = !this->mdns_advertised_ ||
-                            (!this->ship_listener_.is_connected() && (now - this->last_mdns_reannounce_ms_ >= 45000UL));
+                            (!this->rt_->ship_listener.is_connected() && (now - this->last_mdns_reannounce_ms_ >= 45000UL));
     if (should_advertise) {
       if (this->advertise_mdns()) {
         this->mdns_advertised_ = true;
@@ -286,23 +301,23 @@ void EEBusComponent::update() {
   float power_w = 0.0f;
   if (this->read_power_) {
     power_w = this->read_power_();
-    this->mpc_.set_power_w(power_w);
+    this->rt_->mpc.set_power_w(power_w);
   }
   float temp_c = 0.0f;
   if (this->enable_mdt_ && this->read_dhw_temp_) {
     temp_c = this->read_dhw_temp_();
-    this->mdt_.set_temperature_c(temp_c);
+    this->rt_->mdt.set_temperature_c(temp_c);
   }
   if (this->read_voltage_) {
-    this->mpc_.set_voltage_v(this->read_voltage_());
+    this->rt_->mpc.set_voltage_v(this->read_voltage_());
   }
   if (this->read_current_) {
-    this->mpc_.set_current_a(this->read_current_());
+    this->rt_->mpc.set_current_a(this->read_current_());
   }
   if (this->read_energy_) {
     float en = this->read_energy_();
     if (en > 0.0f) {
-      this->mpc_.set_energy_wh(en);
+      this->rt_->mpc.set_energy_wh(en);
     }
   }
 
@@ -311,55 +326,55 @@ void EEBusComponent::update() {
     if (this->read_power_estimate_) {
       float est = this->read_power_estimate_();
       if (est >= 0.0f) {
-        this->ohpcf_.set_requested_power(est);
+        this->rt_->ohpcf.set_requested_power(est);
         if (fabsf(est - this->last_power_estimate_w_) >= 50.0f) {
           this->last_power_estimate_w_ = est;
-          if (this->ship_listener_.is_connected() && this->node_.has_subscriptions()) {
+          if (this->rt_->ship_listener.is_connected() && this->rt_->node.has_subscriptions()) {
             ESP_LOGD(TAG, "EEBUS power estimate updated to %.0f W", est);
-            this->node_.notify_ohpcf();
+            this->rt_->node.notify_ohpcf();
           }
         }
       }
     }
 
     // If OHPCF is RUNNING, verify if host boost mode is still active
-    if (this->ohpcf_.get_state() == OhpcfState::RUNNING) {
+    if (this->rt_->ohpcf.get_state() == OhpcfState::RUNNING) {
       uint32_t now = millis();
       // Allow a 60-second grace period after boost starts before checking if boost ended
       if (now - this->last_boost_start_ms_ >= 60000UL) {
         if (this->is_boost_active_ && !this->is_boost_active_()) {
           ESP_LOGI(TAG, "Boost mode ended externally; updating EEBUS OHPCF state to AVAILABLE (inactive)");
           this->record_action("Boost ended");
-          this->ohpcf_.abort();
+          this->rt_->ohpcf.abort();
         }
       }
     }
   }
 
   // If connected, push measurement updates periodically (every 5s)
-  if (this->ship_listener_.is_connected() && this->node_.has_remote_device()) {
+  if (this->rt_->ship_listener.is_connected() && this->rt_->node.has_remote_device()) {
     uint32_t now = millis();
     if (now - this->last_measurement_notify_ms_ >= 5000) {
       this->last_measurement_notify_ms_ = now;
-      this->node_.notify_measurements(power_w, temp_c);
+      this->rt_->node.notify_measurements(power_w, temp_c);
     }
   }
 
   // Push OHPCF state periodically (every 10s) when connected
-  if (this->enable_ohpcf_ && this->ship_listener_.is_connected() && this->node_.has_remote_device()) {
+  if (this->enable_ohpcf_ && this->rt_->ship_listener.is_connected() && this->rt_->node.has_remote_device()) {
     uint32_t now = millis();
     if (now - this->last_ohpcf_notify_ms_ >= 10000) {
       this->last_ohpcf_notify_ms_ = now;
-      this->node_.notify_ohpcf();
+      this->rt_->node.notify_ohpcf();
     }
   }
 
   // Push Use Case announcements periodically (every 30s) so EVCC never loses compressor entity
-  if (this->ship_listener_.is_connected() && this->node_.has_remote_device()) {
+  if (this->rt_->ship_listener.is_connected() && this->rt_->node.has_remote_device()) {
     uint32_t now = millis();
     if (now - this->last_use_case_notify_ms_ >= 30000) {
       this->last_use_case_notify_ms_ = now;
-      this->node_.notify_use_cases();
+      this->rt_->node.notify_use_cases();
     }
   }
 
@@ -369,10 +384,10 @@ void EEBusComponent::update() {
 void EEBusComponent::init_certificate_and_keys() {
   std::string cn = this->device_name_.empty() ? this->brand_ : this->device_name_;
   if (cn.empty()) cn = "EEBUS-Device";
-  this->cert_store_.set_common_name(cn);
-  if (!this->cert_store_.load_or_create())
+  this->rt_->cert_store.set_common_name(cn);
+  if (!this->rt_->cert_store.load_or_create())
     ESP_LOGE(TAG, "Failed to initialise EEBus certificate store");
-  this->ship_id_ = this->cert_store_.get_ski();
+  this->ship_id_ = this->rt_->cert_store.get_ski();
 }
 
 void EEBusComponent::wire_use_cases() {
@@ -381,17 +396,17 @@ void EEBusComponent::wire_use_cases() {
     if (this->read_power_estimate_) {
       initial_power = this->read_power_estimate_();
     }
-    this->ohpcf_.announce(initial_power, 600, 600);
+    this->rt_->ohpcf.announce(initial_power, 600, 600);
     this->last_power_estimate_w_ = initial_power;
 
-    this->ohpcf_.set_applier([this](bool enabled) -> bool {
+    this->rt_->ohpcf.set_applier([this](bool enabled) -> bool {
       // Route the CEM's optional-consumption request through the bridge; the
       // bridge decides whether the request is granted (safety first).
       // An active LPC limit (e.g. §14a dim) takes precedence over an OHPCF
       // boost request: never switch to Boost when the limit is below the
       // power the boost would draw (always the case for a 0 W block).
-      if (enabled && this->lpc_.is_dimmed() &&
-          this->lpc_.get_limit_value_w() < this->ohpcf_.get_requested_power_estimate_w()) {
+      if (enabled && this->rt_->lpc.is_dimmed() &&
+          this->rt_->lpc.get_limit_value_w() < this->rt_->ohpcf.get_requested_power_estimate_w()) {
         this->record_action("EMS Boost rejected (LPC limit active)");
         return false;
       }
@@ -411,12 +426,12 @@ void EEBusComponent::wire_use_cases() {
       return true;
     });
 
-    this->ohpcf_.set_change_callback([this](OhpcfState state) {
-      this->node_.notify_ohpcf();
+    this->rt_->ohpcf.set_change_callback([this](OhpcfState state) {
+      this->rt_->node.notify_ohpcf();
     });
   }
 
-  this->lpc_.set_dimmer([this](bool dim) {
+  this->rt_->lpc.set_dimmer([this](bool dim) {
     // Dim -> SG-Ready block path, again safety-gated by the bridge.
     if (this->apply_dim_) {
       this->apply_dim_(dim);
@@ -428,16 +443,16 @@ void EEBusComponent::wire_use_cases() {
     }
   });
 
-  this->lpc_.set_limit_applier([this](bool active, float limit_w) {
+  this->rt_->lpc.set_limit_applier([this](bool active, float limit_w) {
     if (this->apply_limit_) {
       this->apply_limit_(active, limit_w);
     }
     // A running OHPCF boost cannot coexist with a limit below its requested
     // power (always true for a 0 W block): report it as paused so the CEM sees
     // the real state. Runs before the dimmer callback (see LpcServer::apply).
-    if (active && this->enable_ohpcf_ && this->ohpcf_.get_state() == OhpcfState::RUNNING &&
-        limit_w < this->ohpcf_.get_requested_power_estimate_w()) {
-      this->ohpcf_.pause();
+    if (active && this->enable_ohpcf_ && this->rt_->ohpcf.get_state() == OhpcfState::RUNNING &&
+        limit_w < this->rt_->ohpcf.get_requested_power_estimate_w()) {
+      this->rt_->ohpcf.pause();
     }
     if (active) {
       char buf[64];
@@ -448,35 +463,35 @@ void EEBusComponent::wire_use_cases() {
     }
   });
 
-  this->lpc_.set_change_callback([this](bool active, float limit_w) {
-    this->node_.notify_lpc(active, limit_w);
+  this->rt_->lpc.set_change_callback([this](bool active, float limit_w) {
+    this->rt_->node.notify_lpc(active, limit_w);
     this->pending_limit_state_ = active ? limit_w : NAN;
     this->pending_limit_update_ = true;
   });
 
-  this->node_.set_ship_sender([this](const std::string &spine_json) -> bool {
-    return this->ship_listener_.send_ship_data(spine_json);
+  this->rt_->node.set_ship_sender([this](const std::string &spine_json) -> bool {
+    return this->rt_->ship_listener.send_ship_data(spine_json);
   });
 
-  this->node_.set_ohpcf(this->enable_ohpcf_ ? &this->ohpcf_ : nullptr);
-  this->node_.set_lpc(&this->lpc_);
-  this->node_.set_mpc(&this->mpc_);
-  this->node_.set_mdt(this->enable_mdt_ ? &this->mdt_ : nullptr);
-  this->node_.set_device_id(this->ship_id_);
-  this->node_.set_brand(this->brand_);
-  this->node_.set_model(this->model_);
-  this->node_.set_device_name(this->device_name_.empty() ? this->brand_ : this->device_name_);
-  this->node_.set_device_category(this->device_category_);
-  this->node_.set_device_type(this->device_type_);
-  this->node_.set_entity_type(this->entity_type_);
-  this->node_.set_enable_ohpcf(this->enable_ohpcf_);
-  this->node_.set_enable_mdt(this->enable_mdt_);
-  this->node_.set_failsafe_duration_s(this->failsafe_duration_s_);
-  this->node_.set_on_remote_device_changed([this](const std::string &) {
+  this->rt_->node.set_ohpcf(this->enable_ohpcf_ ? &this->rt_->ohpcf : nullptr);
+  this->rt_->node.set_lpc(&this->rt_->lpc);
+  this->rt_->node.set_mpc(&this->rt_->mpc);
+  this->rt_->node.set_mdt(this->enable_mdt_ ? &this->rt_->mdt : nullptr);
+  this->rt_->node.set_device_id(this->ship_id_);
+  this->rt_->node.set_brand(this->brand_);
+  this->rt_->node.set_model(this->model_);
+  this->rt_->node.set_device_name(this->device_name_.empty() ? this->brand_ : this->device_name_);
+  this->rt_->node.set_device_category(this->device_category_);
+  this->rt_->node.set_device_type(this->device_type_);
+  this->rt_->node.set_entity_type(this->entity_type_);
+  this->rt_->node.set_enable_ohpcf(this->enable_ohpcf_);
+  this->rt_->node.set_enable_mdt(this->enable_mdt_);
+  this->rt_->node.set_failsafe_duration_s(this->failsafe_duration_s_);
+  this->rt_->node.set_on_remote_device_changed([this](const std::string &) {
     this->pending_remote_changed_ = true;
   });
 
-  this->ship_listener_.set_frame_handler([this](const std::vector<uint8_t> &frame)
+  this->rt_->ship_listener.set_frame_handler([this](const std::vector<uint8_t> &frame)
                                              -> std::vector<uint8_t> {
     std::vector<uint8_t> out;  // WS-encoded bytes to send back (empty = none)
     auto send_data = [&out](const std::vector<uint8_t> &payload) {
@@ -536,7 +551,7 @@ void EEBusComponent::wire_use_cases() {
       // Do not answer an abort; the peer is tearing the connection down.
       if (json.find("\"aborted\"") != std::string::npos) {
         ESP_LOGW(TAG, "Peer aborted handshake (connectionHello aborted)");
-        this->ship_listener_.request_close();
+        this->rt_->ship_listener.request_close();
         return out;
       }
       // HELLO: reply ready -> HELLO_OK on the peer, it then runs the protocol
@@ -580,11 +595,11 @@ void EEBusComponent::wire_use_cases() {
       return out;
     } else if (json.find("connectionClose") != std::string::npos) {
       ESP_LOGI(TAG, "Peer closed connection (connectionClose)");
-      this->node_.reset_subscriptions();
+      this->rt_->node.reset_subscriptions();
       if (json.find("\"confirm\"") == std::string::npos) {
         send_data(ship_control_frame("{\"connectionClose\":{\"phase\":\"confirm\"}}"));
       }
-      this->ship_listener_.request_close();
+      this->rt_->ship_listener.request_close();
     } else {
       // HS_hello/init/prot/pin/access etc. logged for the next iteration.
       ESP_LOGI(TAG, "SHIP control received (handshake TODO): %s", json.c_str());
@@ -594,37 +609,37 @@ void EEBusComponent::wire_use_cases() {
 }
 
 void EEBusComponent::start_ship_listener() {
-  if (!this->cert_store_.is_loaded()) {
+  if (!this->rt_->cert_store.is_loaded()) {
     ESP_LOGE(TAG, "Cannot start SHIP listener: certificate store is not loaded");
     return;
   }
-  this->ship_listener_.begin(this->cert_store_, 4712);
+  this->rt_->ship_listener.begin(this->rt_->cert_store, 4712);
 }
 
 bool EEBusComponent::advertise_mdns() {
   return eebus_mdns_start(this->device_sku_, this->brand_, this->model_,
                           this->device_category_, this->device_type_,
-                          this->cert_store_.get_ski(), this->ship_id_,
-                          this->ship_listener_.get_port());
+                          this->rt_->cert_store.get_ski(), this->ship_id_,
+                          this->rt_->ship_listener.get_port());
 }
 
 void EEBusComponent::check_failsafe() {
   // When the EEBus link is down for longer than the configured failsafe, any
   // active dim/block must be released so the heat pump returns to normal
   // operation.
-  if (this->lpc_.is_dimmed() && !this->ship_listener_.is_connected()) {
+  if (this->rt_->lpc.is_dimmed() && !this->rt_->ship_listener.is_connected()) {
     uint32_t now = millis();
-    uint32_t last_act = this->node_.get_last_activity_ms();
+    uint32_t last_act = this->rt_->node.get_last_activity_ms();
     if (last_act > 0 && (now - last_act > this->failsafe_duration_s_ * 1000UL)) {
       ESP_LOGW(TAG, "EEBUS failsafe duration elapsed without peer activity; releasing consumption limit");
       this->record_action("Failsafe triggered: limit released");
-      this->lpc_.release_limit();
+      this->rt_->lpc.release_limit();
     }
   }
 }
 
 void EEBusComponent::check_connection_state() {
-  bool is_conn = this->ship_listener_.is_connected();
+  bool is_conn = this->rt_->ship_listener.is_connected();
   if (is_conn != this->last_connected_) {
     this->last_connected_ = is_conn;
     eebus_mdns_set_registered(is_conn);
@@ -637,13 +652,13 @@ void EEBusComponent::check_connection_state() {
       this->last_use_case_notify_ms_ = 0;
     } else {
       this->record_action("Disconnected from EMS");
-      this->node_.reset_subscriptions();
+      this->rt_->node.reset_subscriptions();
       // An OHPCF boost is owned by the EMS session. evcc forgets its on/off
       // intent on reconnect/restart and only re-sends a stop when it believes
       // the boost is on, so a boost left running here would never be ended.
-      if (this->enable_ohpcf_ && this->ohpcf_.get_state() != OhpcfState::AVAILABLE) {
+      if (this->enable_ohpcf_ && this->rt_->ohpcf.get_state() != OhpcfState::AVAILABLE) {
         ESP_LOGI(TAG, "EMS disconnected; releasing OHPCF optional consumption");
-        this->ohpcf_.abort();
+        this->rt_->ohpcf.abort();
         this->record_action("Boost released (EMS disconnected)");
       }
     }
@@ -653,14 +668,14 @@ void EEBusComponent::check_connection_state() {
 
   std::string new_status = "Disconnected";
   if (is_conn) {
-    if (this->enable_ohpcf_ && this->ohpcf_.get_state() == OhpcfState::RUNNING) {
+    if (this->enable_ohpcf_ && this->rt_->ohpcf.get_state() == OhpcfState::RUNNING) {
       new_status = "Boost active (OHPCF)";
-    } else if (this->lpc_.is_dimmed()) {
-      if (this->lpc_.get_limit_value_w() <= 0.0f) {
+    } else if (this->rt_->lpc.is_dimmed()) {
+      if (this->rt_->lpc.get_limit_value_w() <= 0.0f) {
         new_status = "Dimmed / Blocked (0W)";
       } else {
         char buf[64];
-        snprintf(buf, sizeof(buf), "Limited to %.0f W", this->lpc_.get_limit_value_w());
+        snprintf(buf, sizeof(buf), "Limited to %.0f W", this->rt_->lpc.get_limit_value_w());
         new_status = buf;
       }
     } else {
@@ -677,14 +692,14 @@ void EEBusComponent::check_connection_state() {
 
 void EEBusComponent::update_ems_status() {
   std::string ems_desc = "–";
-  if (this->ship_listener_.is_connected()) {
+  if (this->rt_->ship_listener.is_connected()) {
     std::string name;
-    std::string rdev = this->node_.remote_device();
-    std::string ip = this->ship_listener_.get_remote_ip();
+    std::string rdev = this->rt_->node.remote_device();
+    std::string ip = this->rt_->ship_listener.get_remote_ip();
 
     std::string lower_rdev = rdev;
     for (auto &c : lower_rdev) c = std::tolower(c);
-    std::string lower_peer = this->ship_listener_.get_peer_name();
+    std::string lower_peer = this->rt_->ship_listener.get_peer_name();
     for (auto &c : lower_peer) c = std::tolower(c);
 
     if (lower_rdev.find("evcc") != std::string::npos || lower_peer.find("evcc") != std::string::npos) {
@@ -694,8 +709,8 @@ void EEBusComponent::update_ems_status() {
       if (clean.rfind("d:_n:", 0) == 0) clean = clean.substr(5);
       else if (clean.rfind("d:_i:", 0) == 0) clean = clean.substr(5);
       name = clean;
-    } else if (!this->ship_listener_.get_peer_name().empty()) {
-      name = this->ship_listener_.get_peer_name();
+    } else if (!this->rt_->ship_listener.get_peer_name().empty()) {
+      name = this->rt_->ship_listener.get_peer_name();
     } else {
       name = "EMS";
     }
@@ -729,14 +744,19 @@ EEBusComponent::~EEBusComponent() {
     vSemaphoreDelete(static_cast<SemaphoreHandle_t>(this->inbound_mutex_));
     this->inbound_mutex_ = nullptr;
   }
+  if (this->rt_ != nullptr) {
+    this->rt_->~EEBusRuntime();
+    heap_caps_free(this->rt_);
+    this->rt_ = nullptr;
+  }
 }
 
 void EEBusComponent::disconnect_ems() {
-  if (this->ship_listener_.is_connected()) {
+  if (this->rt_ != nullptr && this->rt_->ship_listener.is_connected()) {
     ESP_LOGI(TAG, "Disconnect requested by user from UI");
     this->record_action("Disconnected by user");
-    this->ship_listener_.send_ship_control("{\"connectionClose\":{\"phase\":\"announce\"}}");
-    this->ship_listener_.request_close();
+    this->rt_->ship_listener.send_ship_control("{\"connectionClose\":{\"phase\":\"announce\"}}");
+    this->rt_->ship_listener.request_close();
   }
 }
 
