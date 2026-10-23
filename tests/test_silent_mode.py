@@ -26,7 +26,7 @@ import pytest
 def test_silent_mode_entities_and_ui_navigation(clean_system):
     """
     Verify silent mode entities default values and UI interactions:
-    1. Default states: switch=False, start=22:00, end=07:00, mode=Gemiddeld, active=False.
+    1. Default states: switch=False, start=23:00, end=07:00, mode=Gemiddeld, active=False.
     2. Navigate to Settings -> Algemeen -> Stiltemodus subtab.
     3. Modify start and end times via UI buttons.
     4. Change power limit via UI dropdown.
@@ -40,7 +40,7 @@ def test_silent_mode_entities_and_ui_navigation(clean_system):
     assert openamber.get_entity("silent_mode_active_sensor") is False
 
     start_ent = openamber.get_entity("silent_mode_start_time")
-    assert start_ent is not None and "22:00" in start_ent
+    assert start_ent is not None and "23:00" in start_ent
     end_ent = openamber.get_entity("silent_mode_end_time")
     assert end_ent is not None and "07:00" in end_ent
 
@@ -55,7 +55,7 @@ def test_silent_mode_entities_and_ui_navigation(clean_system):
     assert openamber.is_visible("panel_general_page_stiltemodus")
 
     # Verify labels in UI
-    assert openamber.get_label("set_silent_mode_start_time_val") == "22:00"
+    assert openamber.get_label("set_silent_mode_start_time_val") == "23:00"
     assert openamber.get_label("set_silent_mode_end_time_val") == "07:00"
 
     # 3. Enable silent mode via UI switch
@@ -63,16 +63,16 @@ def test_silent_mode_entities_and_ui_navigation(clean_system):
     openamber.step(ms=50)
     assert openamber.get_entity("silent_mode_enabled_switch") is True
 
-    # 4. Increment start time: 22:00 -> 22:30
+    # 4. Increment start time: 23:00 -> 23:30
     assert openamber.click("set_silent_mode_start_time_inc")
     openamber.step(ms=50)
-    assert openamber.get_label("set_silent_mode_start_time_val") == "22:30"
-    assert "22:30" in openamber.get_entity("silent_mode_start_time")
+    assert openamber.get_label("set_silent_mode_start_time_val") == "23:30"
+    assert "23:30" in openamber.get_entity("silent_mode_start_time")
 
-    # Decrement back: 22:30 -> 22:00
+    # Decrement back: 23:30 -> 23:00
     assert openamber.click("set_silent_mode_start_time_dec")
     openamber.step(ms=50)
-    assert openamber.get_label("set_silent_mode_start_time_val") == "22:00"
+    assert openamber.get_label("set_silent_mode_start_time_val") == "23:00"
 
     # Decrement end time: 07:00 -> 06:30
     assert openamber.click("set_silent_mode_end_time_dec")

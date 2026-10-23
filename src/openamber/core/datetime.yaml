@@ -29,16 +29,16 @@ datetime:
   - platform: template
     id: silent_mode_start_time
     type: time
-    name: "Stiltemodus starttijd"
+    name: "Stille modus starttijd"
     optimistic: true
-    initial_value: "22:00:00"
+    initial_value: "23:00:00"
     restore_value: true
     entity_category: config
 
   - platform: template
     id: silent_mode_end_time
     type: time
-    name: "Stiltemodus eindtijd"
+    name: "Stille modus eindtijd"
     optimistic: true
     initial_value: "07:00:00"
     restore_value: true

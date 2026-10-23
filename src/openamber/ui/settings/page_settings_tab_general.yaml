@@ -139,7 +139,7 @@ obj:
                     id: general_select_tab
                     tab_index: 4
               widgets:
-                - label: { id: general_stab_stiltemodus_lbl, text: "Stiltemodus", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
+                - label: { id: general_stab_stiltemodus_lbl, text: "Stille modus", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
 
     - obj:
         id: panel_general_page_systeem
@@ -935,7 +935,7 @@ obj:
               border_opa: 0%
               pad_all: 6
               widgets:
-                - label: { text: "Stiltemodus inschakelen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Stille modus inschakelen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
                 - label: { text: "Limiteer het maximale compressorvermogen binnen het tijdsvenster", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
                 - switch:
                     id: set_silent_mode_switch_ui
@@ -963,7 +963,7 @@ obj:
               pad_all: 6
               widgets:
                 - label: { id: set_silent_mode_start_time_lbl, text: "Starttijd", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-                - label: { id: set_silent_mode_start_time_sub, text: "Tijdstip waarop de stiltemodus start", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - label: { id: set_silent_mode_start_time_sub, text: "Tijdstip waarop de stille modus start", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
                 - obj:
                     width: SIZE_CONTENT
                     height: SIZE_CONTENT
@@ -1003,7 +1003,7 @@ obj:
                                         args: ['id(silent_mode_start_time).hour', 'id(silent_mode_start_time).minute']
                           widgets:
                             - label: { id: set_silent_mode_start_time_dec_lbl, text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                      - label: { id: set_silent_mode_start_time_val, text: "22:00", text_color: 0x1F2933, text_font: font_text_24 }
+                      - label: { id: set_silent_mode_start_time_val, text: "23:00", text_color: 0x1F2933, text_font: font_text_24 }
                       - obj:
                           id: set_silent_mode_start_time_inc
                           width: 40
@@ -1044,7 +1044,7 @@ obj:
               pad_all: 6
               widgets:
                 - label: { id: set_silent_mode_end_time_lbl, text: "Eindtijd", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-                - label: { id: set_silent_mode_end_time_sub, text: "Tijdstip waarop de stiltemodus stopt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - label: { id: set_silent_mode_end_time_sub, text: "Tijdstip waarop de stille modus stopt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
                 - obj:
                     width: SIZE_CONTENT
                     height: SIZE_CONTENT
@@ -1124,8 +1124,8 @@ obj:
               border_opa: 0%
               pad_all: 6
               widgets:
-                - label: { id: set_silent_mode_power_lbl, text: "Stiltemodus vermogen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-                - label: { id: set_silent_mode_power_sub, text: "Max compressorvermogen tijdens stiltemodus", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - label: { id: set_silent_mode_power_lbl, text: "Stille modus vermogen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { id: set_silent_mode_power_sub, text: "Max compressorvermogen tijdens stille modus", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
                 - dropdown:
                     id: set_silent_mode_power_dd
                     symbol: "\U000F0140"

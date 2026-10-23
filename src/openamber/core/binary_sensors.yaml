@@ -91,7 +91,7 @@ binary_sensor:
 
 - platform: template
   id: silent_mode_active_sensor
-  name: "Stiltemodus actief"
+  name: "Stille modus actief"
   device_class: running
   lambda: |-
     return IsSilentModeActive();

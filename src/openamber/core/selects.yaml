@@ -50,7 +50,7 @@ select:
 
 - platform: template
   id: silent_mode_compressor_mode
-  name: "Stiltemodus vermogen"
+  name: "Stille modus vermogen"
   restore_value: True
   optimistic: True
   options:
