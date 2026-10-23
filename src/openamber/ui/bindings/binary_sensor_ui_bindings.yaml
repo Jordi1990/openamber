@@ -8,46 +8,46 @@
 - id: !extend defrost_active_sensor
   on_state:
     then:
-      - lvgl.widget.update:
-          id: tile_defrost
-          bg_color: !lambda |-
+      - lambda: |-
+          lv_obj_set_style_bg_color(id(tile_defrost), [&]() -> lv_color_t {
             if (x) return lv_color_hex(0xF5F8FC);
             return lv_color_hex(0x919191);
-      - lvgl.label.update:
-          id: tile_defrost_state
-          text: !lambda |-
+          }(), LV_PART_MAIN);
+          lv_label_set_text(id(tile_defrost_state), std::string([&]() -> std::string {
             if (x) return "AAN";
             return "UIT";
-      - script.execute: update_service_diag_summary_ui
+          }()).c_str());
+          lv_obj_send_event(id(tile_defrost_state), lvgl::lv_update_event, nullptr);
+          id(update_service_diag_summary_ui).execute();
 
 - id: !extend backup_heater_active_sensor
   on_state:
     then:
-      - lvgl.widget.update:
-          id: tile_backup_heater
-          bg_color: !lambda |-
+      - lambda: |-
+          lv_obj_set_style_bg_color(id(tile_backup_heater), [&]() -> lv_color_t {
             if (x) return lv_color_hex(0xF5F8FC);
             return lv_color_hex(0x919191);
-      - lvgl.label.update:
-          id: tile_backup_state
-          text: !lambda |-
+          }(), LV_PART_MAIN);
+          lv_label_set_text(id(tile_backup_state), std::string([&]() -> std::string {
             if (x) return "AAN";
             return "UIT";
+          }()).c_str());
+          lv_obj_send_event(id(tile_backup_state), lvgl::lv_update_event, nullptr);
 
 - id: !extend bottom_heater_active_sensor
   on_state:
     then:
-      - lvgl.widget.update:
-          id: tile_baseplate
-          bg_color: !lambda |-
+      - lambda: |-
+          lv_obj_set_style_bg_color(id(tile_baseplate), [&]() -> lv_color_t {
             if (x) return lv_color_hex(0xF5F8FC);
             return lv_color_hex(0x919191);
-      - lvgl.label.update:
-          id: tile_baseplate_state
-          text: !lambda |-
+          }(), LV_PART_MAIN);
+          lv_label_set_text(id(tile_baseplate_state), std::string([&]() -> std::string {
             if (x) return "AAN";
             return "UIT";
-      - script.execute: update_service_diag_summary_ui
+          }()).c_str());
+          lv_obj_send_event(id(tile_baseplate_state), lvgl::lv_update_event, nullptr);
+          id(update_service_diag_summary_ui).execute();
 
 # ── Nav bar: Demand icons ──
 - id: !extend heat_demand_active_sensor
@@ -60,10 +60,13 @@
 - id: !extend cool_demand_active_sensor
   on_state:
     then:
-      - lvgl.widget.update:
-          id: nav_status_cool_icon
-          hidden: !lambda 'return !x;'
-      - script.execute: update_service_diag_summary_ui
+      - lambda: |-
+          if (!x) {
+            lv_obj_add_flag(id(nav_status_cool_icon), LV_OBJ_FLAG_HIDDEN);
+          } else {
+            lv_obj_remove_flag(id(nav_status_cool_icon), LV_OBJ_FLAG_HIDDEN);
+          }
+          id(update_service_diag_summary_ui).execute();
 
 - id: !extend dhw_demand_active_sensor
   on_state:
@@ -76,30 +79,35 @@
 - id: !extend dhw_pump_active_sensor
   on_state:
     then:
-      - lvgl.widget.update:
-          id: dhw_circulation_spinner
-          hidden: !lambda 'return !x;'
-      - lvgl.widget.update:
-          id: dhw_flow_arrow_up
-          hidden: !lambda 'return !x;'
-      - lvgl.widget.update:
-          id: dhw_flow_arrow_down
-          hidden: !lambda 'return !x;'
-      - lvgl.label.update:
-          id: dhw_pump_state_label
-          text: !lambda |-
+      - lambda: |-
+          if (!x) {
+            lv_obj_add_flag(id(dhw_circulation_spinner), LV_OBJ_FLAG_HIDDEN);
+          } else {
+            lv_obj_remove_flag(id(dhw_circulation_spinner), LV_OBJ_FLAG_HIDDEN);
+          }
+          if (!x) {
+            lv_obj_add_flag(id(dhw_flow_arrow_up), LV_OBJ_FLAG_HIDDEN);
+          } else {
+            lv_obj_remove_flag(id(dhw_flow_arrow_up), LV_OBJ_FLAG_HIDDEN);
+          }
+          if (!x) {
+            lv_obj_add_flag(id(dhw_flow_arrow_down), LV_OBJ_FLAG_HIDDEN);
+          } else {
+            lv_obj_remove_flag(id(dhw_flow_arrow_down), LV_OBJ_FLAG_HIDDEN);
+          }
+          lv_label_set_text(id(dhw_pump_state_label), std::string([&]() -> std::string {
             if (x) return "AAN";
             return "UIT";
-      - lvgl.widget.update:
-          id: dhw_pump_icon
-          text_color: !lambda |-
+          }()).c_str());
+          lv_obj_send_event(id(dhw_pump_state_label), lvgl::lv_update_event, nullptr);
+          lv_obj_set_style_text_color(id(dhw_pump_icon), [&]() -> lv_color_t {
             if (x) return lv_color_hex(0x22D3EE);
             return lv_color_hex(0x919191);
-      - lvgl.widget.update:
-          id: dhw_pump_state_label
-          text_color: !lambda |-
+          }(), LV_PART_MAIN);
+          lv_obj_set_style_text_color(id(dhw_pump_state_label), [&]() -> lv_color_t {
             if (x) return lv_color_hex(0x22D3EE);
             return lv_color_hex(0x919191);
+          }(), LV_PART_MAIN);
 
 - id: !extend sg_ready_a_active_sensor
   on_state:
@@ -140,27 +148,31 @@
 - id: !extend modbus_inside_online
   on_state:
     then:
-      - script.execute: update_service_diag_summary_ui
-      - script.execute: update_header_model_badge
+      - lambda: |-
+          id(update_service_diag_summary_ui).execute();
+          id(update_header_model_badge).execute();
 
 - id: !extend modbus_outside_online
   on_state:
     then:
-      - script.execute: update_service_diag_summary_ui
-      - script.execute: update_header_model_badge
+      - lambda: |-
+          id(update_service_diag_summary_ui).execute();
+          id(update_header_model_badge).execute();
 
 # ── Service page: error/warning cards with pagination ──
 - id: !extend error_active
   on_state:
     then:
-      - script.execute: update_service_errors_ui
-      - script.execute: update_header_alert_icons
+      - lambda: |-
+          id(update_service_errors_ui).execute();
+          id(update_header_alert_icons).execute();
 
 - id: !extend warning_active
   on_state:
     then:
-      - script.execute: update_service_warnings_ui
-      - script.execute: update_header_alert_icons
+      - lambda: |-
+          id(update_service_warnings_ui).execute();
+          id(update_header_alert_icons).execute();
 
 - id: !extend error_flag_p01
   on_state:

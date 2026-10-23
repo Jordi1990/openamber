@@ -263,44 +263,29 @@
 - id: !extend pump_p0_pid_kp
   on_value:
     then:
-      - lvgl.label.update:
-          id: set_pump_pid_kp_val
-          text:
-            format: "%.2f"
-            args: ['x']
-      - lvgl.label.update:
-          id: set_adv_pump_pid_kp_val
-          text:
-            format: "%.2f"
-            args: ['x']
+      - lambda: |-
+          lv_label_set_text(id(set_pump_pid_kp_val), str_sprintf("%.2f", x).c_str());
+          lv_obj_send_event(id(set_pump_pid_kp_val), lvgl::lv_update_event, nullptr);
+          lv_label_set_text(id(set_adv_pump_pid_kp_val), str_sprintf("%.2f", x).c_str());
+          lv_obj_send_event(id(set_adv_pump_pid_kp_val), lvgl::lv_update_event, nullptr);
 
 - id: !extend pump_p0_pid_ki
   on_value:
     then:
-      - lvgl.label.update:
-          id: set_pump_pid_ki_val
-          text:
-            format: "%.4f"
-            args: ['x']
-      - lvgl.label.update:
-          id: set_adv_pump_pid_ki_val
-          text:
-            format: "%.4f"
-            args: ['x']
+      - lambda: |-
+          lv_label_set_text(id(set_pump_pid_ki_val), str_sprintf("%.4f", x).c_str());
+          lv_obj_send_event(id(set_pump_pid_ki_val), lvgl::lv_update_event, nullptr);
+          lv_label_set_text(id(set_adv_pump_pid_ki_val), str_sprintf("%.4f", x).c_str());
+          lv_obj_send_event(id(set_adv_pump_pid_ki_val), lvgl::lv_update_event, nullptr);
 
 - id: !extend pump_p0_pid_kd
   on_value:
     then:
-      - lvgl.label.update:
-          id: set_pump_pid_kd_val
-          text:
-            format: "%.2f"
-            args: ['x']
-      - lvgl.label.update:
-          id: set_adv_pump_pid_kd_val
-          text:
-            format: "%.2f"
-            args: ['x']
+      - lambda: |-
+          lv_label_set_text(id(set_pump_pid_kd_val), str_sprintf("%.2f", x).c_str());
+          lv_obj_send_event(id(set_pump_pid_kd_val), lvgl::lv_update_event, nullptr);
+          lv_label_set_text(id(set_adv_pump_pid_kd_val), str_sprintf("%.2f", x).c_str());
+          lv_obj_send_event(id(set_adv_pump_pid_kd_val), lvgl::lv_update_event, nullptr);
 
 # ── Compressor ──
 - id: !extend compressor_start_delta_heating
@@ -342,14 +327,13 @@
 - id: !extend fan_speed_manual_number
   on_value:
     then:
-      - lvgl.label.update:
-          id: service_fan_slider_value
-          text:
-            format: "%.0f RPM"
-            args: ['id(fan_speed_manual_number).state']
       - lambda: |-
-          if (id(service_fan_slider) != nullptr) {
-            lv_slider_set_value(id(service_fan_slider), (int) id(fan_speed_manual_number).state, LV_ANIM_OFF);
+          lv_label_set_text(id(service_fan_slider_value), str_sprintf("%.0f RPM", id(fan_speed_manual_number).state).c_str());
+          lv_obj_send_event(id(service_fan_slider_value), lvgl::lv_update_event, nullptr);
+          {
+            if (id(service_fan_slider) != nullptr) {
+              lv_slider_set_value(id(service_fan_slider), (int) id(fan_speed_manual_number).state, LV_ANIM_OFF);
+            }
           }
 
 - id: !extend pid_heat_kp

@@ -8,17 +8,13 @@
 - id: !extend analytics_enabled_switch
   on_state:
     then:
-      - lvgl.widget.update:
-          id: set_analytics_enabled_switch_ui
-          state:
-            checked: !lambda 'return x;'
-      - if:
-          condition:
-            lambda: 'return x;'
-          then:
-            - lvgl.widget.show: { id: set_analytics_id_row }
-          else:
-            - lvgl.widget.hide: { id: set_analytics_id_row }
+      - lambda: |-
+          lvgl::LvglComponent::lv_obj_set_state_value(id(set_analytics_enabled_switch_ui), LV_STATE_CHECKED, (x));
+          if (x) {
+            lv_obj_remove_flag(id(set_analytics_id_row), LV_OBJ_FLAG_HIDDEN);
+          } else {
+            lv_obj_add_flag(id(set_analytics_id_row), LV_OBJ_FLAG_HIDDEN);
+          }
 
 # ── Settings page: Advanced settings toggle ──
 - id: !extend advanced_settings_enabled
@@ -36,8 +32,9 @@
 - id: !extend service_mode_enabled
   on_state:
     then:
-      - script.execute: update_service_mode_ui
-      - script.execute: update_service_diag_summary_ui
+      - lambda: |-
+          id(update_service_mode_ui).execute();
+          id(update_service_diag_summary_ui).execute();
 
 - id: !extend deaeration_short_switch
   on_state:
@@ -52,23 +49,19 @@
 - id: !extend flow_sensor_enabled
   on_state:
     then:
-      - lvgl.widget.update:
-          id: set_flow_sensor_enabled_switch_ui
-          state:
-            checked: !lambda 'return x;'
-      - script.execute: update_flow_sensor_calibration_ui
-      - script.execute: update_home_pump_tile_state
-      - script.execute: update_water_mode_efficiency_display
+      - lambda: |-
+          lvgl::LvglComponent::lv_obj_set_state_value(id(set_flow_sensor_enabled_switch_ui), LV_STATE_CHECKED, (x));
+          id(update_flow_sensor_calibration_ui).execute();
+          id(update_home_pump_tile_state).execute();
+          id(update_water_mode_efficiency_display).execute();
 
 # ── Settings page: EEBUS enabled toggle ──
 - id: !extend eebus_enabled_switch
   on_state:
     then:
-      - lvgl.widget.update:
-          id: set_eebus_enabled_switch_ui
-          state:
-            checked: !lambda 'return x;'
-      - script.execute: update_eebus_settings_ui
+      - lambda: |-
+          lvgl::LvglComponent::lv_obj_set_state_value(id(set_eebus_enabled_switch_ui), LV_STATE_CHECKED, (x));
+          id(update_eebus_settings_ui).execute();
       - if:
           condition:
             lambda: 'return x;'
@@ -147,8 +140,9 @@
 - id: !extend three_way_valve_heat_cool_switch
   on_state:
     then:
-      - script.execute: update_service_valve_ui
-      - script.execute: update_service_diag_summary_ui
+      - lambda: |-
+          id(update_service_valve_ui).execute();
+          id(update_service_diag_summary_ui).execute();
 
 - id: !extend three_way_valve_dhw_switch
   on_state:
@@ -173,44 +167,32 @@
 - id: !extend dhw_enabled_switch
   on_state:
     then:
-      - lvgl.widget.update:
-          id: set_dhw_enabled_switch_ui
-          state:
-            checked: !lambda 'return x;'
-      - if:
-          condition:
-            lambda: 'return x;'
-          then:
-            - lvgl.widget.show: { id: stab_dhw }
-            - lvgl.widget.update:
-                id: dhw_tank_card
-                opa: 100%
-          else:
-            - lvgl.widget.hide: { id: stab_dhw }
-            - lvgl.widget.update:
-                id: dhw_tank_card
-                opa: 40%
-      - script.execute: update_service_deaeration_ui
+      - lambda: |-
+          lvgl::LvglComponent::lv_obj_set_state_value(id(set_dhw_enabled_switch_ui), LV_STATE_CHECKED, (x));
+          if (x) {
+            lv_obj_remove_flag(id(stab_dhw), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_opa(id(dhw_tank_card), static_cast<uint8_t>(255.0f), LV_PART_MAIN);
+          } else {
+            lv_obj_add_flag(id(stab_dhw), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_opa(id(dhw_tank_card), static_cast<uint8_t>(102.0f), LV_PART_MAIN);
+          }
+          id(update_service_deaeration_ui).execute();
 
 # ── Settings: DHW schedule toggle ──
 # ── Settings: Legionella toggle ──
 - id: !extend legio_enabled_switch
   on_state:
     then:
-      - lvgl.widget.update:
-          id: set_legio_switch
-          state:
-            checked: !lambda 'return x;'
-      - script.execute: update_legio_ui
+      - lambda: |-
+          lvgl::LvglComponent::lv_obj_set_state_value(id(set_legio_switch), LV_STATE_CHECKED, (x));
+          id(update_legio_ui).execute();
 
 - id: !extend dhw_schedule_enabled_switch
   on_state:
     then:
-      - lvgl.widget.update:
-          id: set_dhw_sched_switch
-          state:
-            checked: !lambda 'return x;'
-      - script.execute: update_dhw_schedule_ui
+      - lambda: |-
+          lvgl::LvglComponent::lv_obj_set_state_value(id(set_dhw_sched_switch), LV_STATE_CHECKED, (x));
+          id(update_dhw_schedule_ui).execute();
 
 # ── Settings: DHW schedule day switches ──
 - id: !extend dhw_schedule_monday_enabled_switch
@@ -252,19 +234,15 @@
 - id: !extend mixing_valve_zone1_enabled
   on_state:
     then:
-      - lvgl.widget.update:
-          id: set_mv_z1_enabled_switch_ui
-          state:
-            checked: !lambda 'return x;'
-      - script.execute: update_control_temp_source_ui
-      - component.update: current_setpoint
+      - lambda: |-
+          lvgl::LvglComponent::lv_obj_set_state_value(id(set_mv_z1_enabled_switch_ui), LV_STATE_CHECKED, (x));
+          id(update_control_temp_source_ui).execute();
+          if (id(current_setpoint).is_ready()) id(current_setpoint).update();
 
 - id: !extend mixing_valve_zone2_enabled
   on_state:
     then:
-      - lvgl.widget.update:
-          id: set_mv_z2_enabled_switch_ui
-          state:
-            checked: !lambda 'return x;'
-      - script.execute: update_control_temp_source_ui
-      - component.update: current_setpoint
+      - lambda: |-
+          lvgl::LvglComponent::lv_obj_set_state_value(id(set_mv_z2_enabled_switch_ui), LV_STATE_CHECKED, (x));
+          id(update_control_temp_source_ui).execute();
+          if (id(current_setpoint).is_ready()) id(current_setpoint).update();
