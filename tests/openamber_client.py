@@ -106,6 +106,11 @@ class OpenAmberClient:
         w = self.get_widget(widget_id)
         return bool(w.get("hidden", True))
 
+    def is_disabled(self, widget_id: str) -> bool:
+        """Check if widget is disabled."""
+        w = self.get_widget(widget_id)
+        return bool(w.get("disabled", False))
+
     def get_label(self, widget_id: str) -> str:
         """Get text of a label widget."""
         w = self.get_widget(widget_id)

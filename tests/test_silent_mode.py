@@ -58,10 +58,24 @@ def test_silent_mode_entities_and_ui_navigation(clean_system):
     assert openamber.get_label("set_silent_mode_start_time_val") == "23:00"
     assert openamber.get_label("set_silent_mode_end_time_val") == "07:00"
 
+    # Verify power dropdown and buttons are disabled initially when switch is OFF
+    assert openamber.is_disabled("set_silent_mode_power_dd"), "Power dropdown must be disabled when silent mode is off"
+    assert openamber.is_disabled("set_silent_mode_start_time_dec"), "Start time dec button must be disabled when silent mode is off"
+    assert openamber.is_disabled("set_silent_mode_start_time_inc"), "Start time inc button must be disabled when silent mode is off"
+    assert openamber.is_disabled("set_silent_mode_end_time_dec"), "End time dec button must be disabled when silent mode is off"
+    assert openamber.is_disabled("set_silent_mode_end_time_inc"), "End time inc button must be disabled when silent mode is off"
+
     # 3. Enable silent mode via UI switch
     assert openamber.click("set_silent_mode_switch_ui")
     openamber.step(ms=50)
     assert openamber.get_entity("silent_mode_enabled_switch") is True
+
+    # Verify power dropdown and buttons are now enabled
+    assert not openamber.is_disabled("set_silent_mode_power_dd"), "Power dropdown must be enabled when silent mode is on"
+    assert not openamber.is_disabled("set_silent_mode_start_time_dec"), "Start time dec button must be enabled when silent mode is on"
+    assert not openamber.is_disabled("set_silent_mode_start_time_inc"), "Start time inc button must be enabled when silent mode is on"
+    assert not openamber.is_disabled("set_silent_mode_end_time_dec"), "End time dec button must be enabled when silent mode is on"
+    assert not openamber.is_disabled("set_silent_mode_end_time_inc"), "End time inc button must be enabled when silent mode is on" 
 
     # 4. Increment start time: 23:00 -> 23:30
     assert openamber.click("set_silent_mode_start_time_inc")
@@ -101,6 +115,7 @@ def test_silent_mode_entities_and_ui_navigation(clean_system):
     openamber.set_switch("silent_mode_enabled_switch", False)
     openamber.set_select("silent_mode_compressor_mode", "Gemiddeld")
     openamber.step(ms=50)
+    assert openamber.is_disabled("set_silent_mode_power_dd"), "Power dropdown must be disabled again after switch turned off" 
 
 
 def test_silent_mode_heating_limits_and_dynamic_adjustment(clean_system):

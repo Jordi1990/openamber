@@ -875,6 +875,24 @@
         selected_index: !lambda |-
           auto idx = id(silent_mode_compressor_mode).active_index();
           return idx.has_value() ? idx.value() : 3;
+    - lambda: |-
+        if (!id(set_silent_mode_power_dd) || !id(set_silent_mode_power_dd)->obj) return;
+        bool enabled = id(silent_mode_enabled_switch).state;
+        if (enabled) {
+          lv_obj_clear_state(id(set_silent_mode_power_dd)->obj, LV_STATE_DISABLED);
+          lv_obj_set_style_opa(id(set_silent_mode_power_dd)->obj, LV_OPA_COVER, LV_PART_MAIN);
+          lv_obj_clear_state(id(set_silent_mode_start_time_dec), LV_STATE_DISABLED);
+          lv_obj_clear_state(id(set_silent_mode_start_time_inc), LV_STATE_DISABLED);
+          lv_obj_clear_state(id(set_silent_mode_end_time_dec), LV_STATE_DISABLED);
+          lv_obj_clear_state(id(set_silent_mode_end_time_inc), LV_STATE_DISABLED);
+        } else {
+          lv_obj_add_state(id(set_silent_mode_power_dd)->obj, LV_STATE_DISABLED);
+          lv_obj_set_style_opa(id(set_silent_mode_power_dd)->obj, LV_OPA_40, LV_PART_MAIN);
+          lv_obj_add_state(id(set_silent_mode_start_time_dec), LV_STATE_DISABLED);
+          lv_obj_add_state(id(set_silent_mode_start_time_inc), LV_STATE_DISABLED);
+          lv_obj_add_state(id(set_silent_mode_end_time_dec), LV_STATE_DISABLED);
+          lv_obj_add_state(id(set_silent_mode_end_time_inc), LV_STATE_DISABLED);
+        }
 
 - id: update_analytics_ui
   mode: restart
