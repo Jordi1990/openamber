@@ -147,6 +147,23 @@
                   return idx.has_value() ? idx.value() : 0;
       - script.execute: update_bottomplate_mode_ui
 
+# ── Settings: Silent mode power dropdown ──
+- id: !extend silent_mode_compressor_mode
+  on_value:
+    then:
+      - if:
+          condition:
+            lambda: |-
+              auto idx = id(silent_mode_compressor_mode).active_index();
+              if (!idx.has_value()) return false;
+              return lv_dropdown_get_selected(id(set_silent_mode_power_dd)->obj) != (uint16_t) idx.value();
+          then:
+            - lvgl.dropdown.update:
+                id: set_silent_mode_power_dd
+                selected_index: !lambda |-
+                  auto idx = id(silent_mode_compressor_mode).active_index();
+                  return idx.has_value() ? idx.value() : 3;
+
 # ── Settings: Heat power dropdown ──
 - id: !extend heat_compressor_mode
   on_value:

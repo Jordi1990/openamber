@@ -217,6 +217,15 @@ switch:
     sorting_group_id: general_settings
 
 - platform: template
+  name: "Stiltemodus"
+  id: silent_mode_enabled_switch
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server:
+    sorting_group_id: general_settings
+
+- platform: template
   id: reset_start_timeout_errors_switch
   name: "Reset systeem timeout fouten"
   optimistic: true

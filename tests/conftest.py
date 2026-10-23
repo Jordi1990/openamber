@@ -106,6 +106,8 @@ def clean_system(openamber):
     openamber.set_switch("emergency_mode_enabled", False)
     openamber.set_switch("dhw_enabled_switch", True)
     openamber.set_switch("dhw_schedule_enabled_switch", False)
+    openamber.set_switch("silent_mode_enabled_switch", False)
+    openamber.set_select("silent_mode_compressor_mode", "Gemiddeld")
     openamber.set_switch("legio_enabled_switch", True)
     openamber.set_switch("reset_start_timeout_errors_switch", True)
     openamber.set_switch("mixing_valve_zone1_enabled", False)

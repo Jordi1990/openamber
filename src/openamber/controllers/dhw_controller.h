@@ -114,6 +114,12 @@ private:
     {
       selected_dhw_compressor_mode = id(dhw_compressor_mode_max).active_index().value() + dhw_mode_max_offset;
     }
+    if (IsSilentModeActive())
+    {
+      int silent_offset = id(compressor_control_select).size() - id(silent_mode_compressor_mode).size();
+      int silent_limit = (int)id(silent_mode_compressor_mode).active_index().value_or(3) + silent_offset;
+      selected_dhw_compressor_mode = std::min(selected_dhw_compressor_mode, silent_limit);
+    }
     return selected_dhw_compressor_mode;
   }
 

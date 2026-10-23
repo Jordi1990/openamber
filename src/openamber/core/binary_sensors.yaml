@@ -90,6 +90,15 @@ binary_sensor:
     sorting_group_id: overview
 
 - platform: template
+  id: silent_mode_active_sensor
+  name: "Stiltemodus actief"
+  device_class: running
+  lambda: |-
+    return IsSilentModeActive();
+  web_server: 
+    sorting_group_id: overview
+
+- platform: template
   id: dhw_active
 
 - platform: template

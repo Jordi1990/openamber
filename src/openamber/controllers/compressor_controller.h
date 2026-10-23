@@ -24,6 +24,26 @@
 
 using namespace esphome;
 
+inline bool IsSilentModeActive()
+{
+  if (!id(silent_mode_enabled_switch).state) {
+    return false;
+  }
+  if (!id(silent_mode_start_time).has_state() || !id(silent_mode_end_time).has_state()) {
+    return false;
+  }
+  auto now = id(my_time).now();
+  const int now_min   = now.hour * 60 + now.minute;
+  const int start_min = id(silent_mode_start_time).hour * 60 + id(silent_mode_start_time).minute;
+  const int end_min   = id(silent_mode_end_time).hour * 60 + id(silent_mode_end_time).minute;
+
+  if (start_min <= end_min) {
+    return (now_min >= start_min && now_min <= end_min);
+  } else {
+    return (now_min >= start_min || now_min <= end_min);
+  }
+}
+
 class CompressorController
 {
 private:
@@ -134,6 +154,12 @@ public:
     auto compressor_set_call = id(compressor_control_select).make_call();
     int mode_offset = id(compressor_control_select).size() - id(heat_compressor_mode).size();
     int capped_mode_index = std::min(defrost_recovery_mode, (int)id(heat_compressor_mode).active_index().value() + mode_offset);
+    if (IsSilentModeActive())
+    {
+      int silent_offset = id(compressor_control_select).size() - id(silent_mode_compressor_mode).size();
+      int silent_limit = (int)id(silent_mode_compressor_mode).active_index().value_or(3) + silent_offset;
+      capped_mode_index = std::min(capped_mode_index, silent_limit);
+    }
     compressor_set_call.set_index(capped_mode_index);
     compressor_set_call.perform();
     last_compressor_mode_change_ms_ = App.get_loop_component_start_time();

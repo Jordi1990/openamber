@@ -121,6 +121,13 @@ async def to_code(config):
             c_id = str(getattr(c["id"], "id", c["id"]))
             cg.add(var.register_climate(c_id, cg.RawExpression(c_id)))
 
+    # Register time entities
+    for dt in CORE.config.get("datetime", []):
+        if isinstance(dt, dict) and "id" in dt and dt["id"]:
+            if str(dt.get("type", "")).upper() == "TIME":
+                dt_id = str(getattr(dt["id"], "id", dt["id"]))
+                cg.add(var.register_time_entity(dt_id, cg.RawExpression(dt_id)))
+
     # Register text sensors
     for ts in CORE.config.get("text_sensor", []):
         if isinstance(ts, dict) and "id" in ts and ts["id"]:

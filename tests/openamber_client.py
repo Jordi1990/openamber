@@ -136,6 +136,11 @@ class OpenAmberClient:
         res = self.send_cmd({"cmd": "set_select", "id": select_id, "option": str(option)})
         return self._check_status(res, f"set_select({select_id}, {option})")
 
+    def set_time(self, time_id: str, hour: int, minute: int, second: int = 0) -> bool:
+        """Set time on a datetime entity."""
+        res = self.send_cmd({"cmd": "set_time", "id": time_id, "hour": int(hour), "minute": int(minute), "second": int(second)})
+        return self._check_status(res, f"set_time({time_id})")
+
     def set_climate(
         self,
         climate_id: str,
