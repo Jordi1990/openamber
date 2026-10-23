@@ -704,22 +704,22 @@
           id(panel_general_page_systeem),
           id(panel_general_page_mengventielen),
           id(panel_general_page_sensor_kalibratie),
-          id(panel_general_page_hardware),
-          id(panel_general_page_stiltemodus)
+          id(panel_general_page_stiltemodus),
+          id(panel_general_page_hardware)
         };
         lv_obj_t* tabs[5] = {
           id(general_stab_systeem),
           id(general_stab_mengventielen),
           id(general_stab_sensor_kalibratie),
-          id(general_stab_hardware),
-          id(general_stab_stiltemodus)
+          id(general_stab_stiltemodus),
+          id(general_stab_hardware)
         };
         lv_obj_t* labels[5] = {
           id(general_stab_systeem_lbl),
           id(general_stab_mengventielen_lbl),
           id(general_stab_sensor_kalibratie_lbl),
-          id(general_stab_hardware_lbl),
-          id(general_stab_stiltemodus_lbl)
+          id(general_stab_stiltemodus_lbl),
+          id(general_stab_hardware_lbl)
         };
 
         if (tab_index == 1) {
@@ -771,12 +771,12 @@
         condition:
           lambda: 'return tab_index == 3;'
         then:
-          - script.execute: update_flow_sensor_calibration_ui
+          - script.execute: update_silent_mode_ui
     - if:
         condition:
           lambda: 'return tab_index == 4;'
         then:
-          - script.execute: update_silent_mode_ui
+          - script.execute: update_flow_sensor_calibration_ui
 
 - id: update_silent_mode_ui
   mode: restart
