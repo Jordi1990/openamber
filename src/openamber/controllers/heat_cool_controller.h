@@ -241,7 +241,7 @@ private:
       mode_offset -= 3;
     }
     int max_allowed = (int)active_mode.active_index().value() + mode_offset;
-    if (IsSilentModeActive())
+    if (id(silent_mode_active_sensor).state)
     {
       int silent_offset = id(compressor_control_select).size() - id(silent_mode_compressor_mode).size();
       if (IsCoolingDemand())
