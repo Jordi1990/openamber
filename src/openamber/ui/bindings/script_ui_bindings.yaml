@@ -539,6 +539,7 @@
                       - script.execute: update_thermostat_settings_ui
                       - script.execute: update_pump_pid_ui
                       - script.execute: update_control_temp_source_ui
+                      - script.execute: update_silent_mode_ui
                     else:
                       - if:
                           condition:
@@ -786,14 +787,22 @@
           checked: !lambda 'return id(silent_mode_enabled_switch).state;'
     - lvgl.label.update:
         id: set_silent_mode_start_time_val
-        text:
-          format: "%02d:%02d"
-          args: ['id(silent_mode_start_time).hour', 'id(silent_mode_start_time).minute']
+        text: !lambda |-
+          if (id(silent_mode_start_time).has_state()) {
+            char buf[8];
+            snprintf(buf, sizeof(buf), "%02d:%02d", id(silent_mode_start_time).hour, id(silent_mode_start_time).minute);
+            return std::string(buf);
+          }
+          return std::string("23:00");
     - lvgl.label.update:
         id: set_silent_mode_end_time_val
-        text:
-          format: "%02d:%02d"
-          args: ['id(silent_mode_end_time).hour', 'id(silent_mode_end_time).minute']
+        text: !lambda |-
+          if (id(silent_mode_end_time).has_state()) {
+            char buf[8];
+            snprintf(buf, sizeof(buf), "%02d:%02d", id(silent_mode_end_time).hour, id(silent_mode_end_time).minute);
+            return std::string(buf);
+          }
+          return std::string("07:00");
 
     - lvgl.label.update:
         id: set_silent_mode_start_time_lbl

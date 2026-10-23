@@ -84,6 +84,14 @@ def test_silent_mode_entities_and_ui_navigation(clean_system):
     openamber.step(ms=50)
     assert openamber.get_label("set_silent_mode_end_time_val") == "07:00"
 
+    # Test reactive UI update when time entity is updated via API / Home Assistant
+    assert openamber.set_time("silent_mode_start_time", 22, 0, 0)
+    openamber.step(ms=50)
+    assert openamber.get_label("set_silent_mode_start_time_val") == "22:00"
+    assert openamber.set_time("silent_mode_start_time", 23, 0, 0)
+    openamber.step(ms=50)
+    assert openamber.get_label("set_silent_mode_start_time_val") == "23:00"
+
     # 5. Set dropdown to "Beperkt" (index 0)
     assert openamber.set_dropdown("set_silent_mode_power_dd", 0)
     openamber.step(ms=50)
@@ -287,3 +295,8 @@ def test_silent_mode_dhw_limit(clean_system):
     # In winter mode, dhw_compressor_mode_max is 10, but silent mode still caps it to 7
     actual_mode = int(openamber.get_entity("compressor_control_select") or 0)
     assert actual_mode == 7, f"DHW winter mode should still be capped at mode 7 by silent mode, got {actual_mode}"
+
+    # Reset silent mode entities to defaults
+    openamber.set_switch("silent_mode_enabled_switch", False)
+    openamber.set_time("silent_mode_start_time", 23, 0, 0)
+    openamber.set_time("silent_mode_end_time", 7, 0, 0)
