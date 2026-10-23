@@ -1,3 +1,10 @@
+import os
+
+# ESPHome 2026.10 precompiled header pulls in namespace esphome::time (via datetime
+# entities), which breaks the unqualified time() call in logger_host.cpp.
+# Ensure virtual display / host builds always disable PCH.
+os.environ["ESPHOME_PCH_ENABLE"] = "0"
+
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.const import CONF_ID, CONF_PORT

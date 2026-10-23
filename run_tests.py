@@ -36,6 +36,7 @@ def main():
     env = os.environ.copy()
     env.setdefault("SDL_VIDEODRIVER", "dummy")
     env.setdefault("SDL_AUDIODRIVER", "dummy")
+    env.setdefault("ESPHOME_PCH_ENABLE", "0")
 
     res = subprocess.run(cmd, cwd=PROJECT_ROOT, env=env)
     sys.exit(res.returncode)

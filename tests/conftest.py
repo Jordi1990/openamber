@@ -38,7 +38,7 @@ def openamber_proc():
         time.sleep(0.5)
         cmd = [
             "wsl", "-d", "Debian", "bash", "-c",
-            f"SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy {shlex.quote(wsl_bin)}"
+            f"SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy ESPHOME_PCH_ENABLE=0 {shlex.quote(wsl_bin)}"
         ]
         started_proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     else:
@@ -54,6 +54,7 @@ def openamber_proc():
         env = os.environ.copy()
         env["SDL_VIDEODRIVER"] = "dummy"
         env["SDL_AUDIODRIVER"] = "dummy"
+        env["ESPHOME_PCH_ENABLE"] = "0"
         started_proc = subprocess.Popen([bin_path], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     time.sleep(2.0)
