@@ -11,7 +11,7 @@ on:
         type: string
       esphome-version:
         required: false
-        default: '2026.9.1'
+        default: '2026.10.0'
         type: string
       run-tests:
         required: false
@@ -95,6 +95,10 @@ jobs:
           pip install "esphome==$ESPHOME_VERSION" -r requirements-test.txt
 
       - name: Compile OpenAmber Headless Simulator
+        env:
+          # ESPHome 2026.10's precompiled header pulls in namespace esphome::time (via the
+          # datetime entities), which breaks the unqualified time() call in logger_host.cpp.
+          ESPHOME_PCH_ENABLE: "0"
         run: |
           cd src
           esphome compile openamber-virtual-display.yaml

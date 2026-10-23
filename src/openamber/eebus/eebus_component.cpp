@@ -638,6 +638,14 @@ void EEBusComponent::check_connection_state() {
     } else {
       this->record_action("Disconnected from EMS");
       this->node_.reset_subscriptions();
+      // An OHPCF boost is owned by the EMS session. evcc forgets its on/off
+      // intent on reconnect/restart and only re-sends a stop when it believes
+      // the boost is on, so a boost left running here would never be ended.
+      if (this->enable_ohpcf_ && this->ohpcf_.get_state() != OhpcfState::AVAILABLE) {
+        ESP_LOGI(TAG, "EMS disconnected; releasing OHPCF optional consumption");
+        this->ohpcf_.abort();
+        this->record_action("Boost released (EMS disconnected)");
+      }
     }
   }
 

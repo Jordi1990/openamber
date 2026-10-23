@@ -655,14 +655,15 @@ public:
 
         if(!HasPumpDemand())
         {
+          StopPumpP1IfNeeded();
           break;
         }
 
+        StartPumpP1IfNeeded();
         // Start pump on interval, without the pump running we cannot determine if there is actual compressor demand as Tc can change.
         if (pump_controller_->ShouldStartNextPumpCycle())
         {
           pump_controller_->Start();
-          StartPumpP1IfNeeded();
           SetNextState(HeatCoolState::WAIT_PUMP_RUNNING);
         }
         break;
@@ -985,7 +986,7 @@ public:
   }
 
   void StopPumpP1IfNeeded()
-  {
+  {  
     if(id(pump_p1_enabled).state && id(pump_p1_relay_switch).state)
     {
       ESP_LOGI("amber", "Stopping pump P1");
