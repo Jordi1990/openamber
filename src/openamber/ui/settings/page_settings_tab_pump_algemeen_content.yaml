@@ -16,13 +16,12 @@
           knob:
             bg_color: 0xFFFFFF
           on_click:
-            - if:
-                condition:
-                  switch.is_on: pump_p1_enabled
-                then:
-                  - switch.turn_off: pump_p1_enabled
-                else:
-                  - switch.turn_on: pump_p1_enabled
+            - lambda: |-
+                if (id(pump_p1_enabled).state) {
+                  id(pump_p1_enabled).turn_off();
+                } else {
+                  id(pump_p1_enabled).turn_on();
+                }
       
 
 - obj:
