@@ -219,6 +219,8 @@ script:
             root["oj"] = buf;
           }
 
+          root["ok"] = id(default_compressor_frequencies_enabled).state;
+
 - id: send_modes
   then:
     - mqtt.publish_json:

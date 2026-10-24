@@ -278,3 +278,12 @@
             checked: !lambda 'return x;'
       - script.execute: update_control_temp_source_ui
       - component.update: current_setpoint
+
+# ── Settings page: Default compressor frequencies toggle ──
+- id: !extend default_compressor_frequencies_enabled
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_default_compressor_frequencies_enabled_switch_ui
+          state:
+            checked: !lambda 'return x;'

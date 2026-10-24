@@ -146,6 +146,19 @@ switch:
     sorting_group_id: general_settings
 
 - platform: template
+  id: default_compressor_frequencies_enabled
+  name: "Gebruik standaard compressorfrequenties"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server:
+    sorting_group_id: general_settings
+  on_state:
+    then:
+      - lambda: |-
+          global_preferences->sync();
+
+- platform: template
   id: eebus_enabled_switch
   name: "EEBUS ingeschakeld"
   optimistic: True
