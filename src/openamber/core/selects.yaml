@@ -162,7 +162,7 @@ select:
     - "Boost"
     - "Max boost"
   initial_option: "Normaal"
-  restore_value: True
+  restore_value: false
   entity_category: config
   web_server: 
     sorting_group_id: manual_control
