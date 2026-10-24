@@ -1731,20 +1731,23 @@
         lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
 
-        lv_obj_t* panels[3] = {
+        lv_obj_t* panels[4] = {
           id(panel_advanced_page_pid),
           id(panel_advanced_page_bodemplaat),
-          id(panel_advanced_page_defrost)
+          id(panel_advanced_page_defrost),
+          id(panel_advanced_page_compressor)
         };
-        lv_obj_t* tabs[3] = {
+        lv_obj_t* tabs[4] = {
           id(advanced_stab_pid),
           id(advanced_stab_bodemplaat),
-          id(advanced_stab_defrost)
+          id(advanced_stab_defrost),
+          id(advanced_stab_compressor)
         };
-        lv_obj_t* labels[3] = {
+        lv_obj_t* labels[4] = {
           id(advanced_stab_pid_lbl),
           id(advanced_stab_bodemplaat_lbl),
-          id(advanced_stab_defrost_lbl)
+          id(advanced_stab_defrost_lbl),
+          id(advanced_stab_compressor_lbl)
         };
 
         if (tab_index == 0) {
@@ -1759,7 +1762,7 @@
           lv_obj_add_flag(id(advanced_defrost_pager), LV_OBJ_FLAG_HIDDEN);
         }
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
           if (i == tab_index) {
             lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
             lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
@@ -2070,7 +2073,7 @@
         }
         lv_obj_clear_flag(id(set_pid_section), LV_OBJ_FLAG_HIDDEN);
 
-        lv_obj_t* adv_rows[8] = {
+        lv_obj_t* adv_rows[9] = {
           id(set_general_bodemplaat_mode_row),
           id(set_general_bodemplaat_start_row),
           id(set_general_bodemplaat_hysteresis_row),
@@ -2078,9 +2081,10 @@
           id(set_general_defrost_max_time_row),
           id(set_general_defrost_enter1_row),
           id(set_defrost_advanced_section),
-          id(set_pump_flow_switch_safety_row)
+          id(set_pump_flow_switch_safety_row),
+          id(set_advanced_compressor_default_frequencies_row)
         };
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 9; i++) {
           if (enabled) {
             lv_obj_clear_state(adv_rows[i], LV_STATE_DISABLED);
             lv_obj_set_style_opa(adv_rows[i], LV_OPA_COVER, LV_PART_MAIN);

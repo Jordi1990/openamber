@@ -8,9 +8,13 @@ Covers:
    - When default_compressor_frequencies_enabled is False, initialization writes OpenAmber's custom frequencies.
    - When default_compressor_frequencies_enabled is True, initialization skips writing frequency tables,
      preserving any existing frequencies on the unit.
-3. LVGL UI integration:
-   - Widget set_default_compressor_frequencies_enabled_switch_ui in Settings -> Algemeen -> Opties.
-   - Clicking the UI switch toggles default_compressor_frequencies_enabled.
+3. LVGL UI integration & restart dialog:
+   - Widget set_default_compressor_frequencies_enabled_switch_ui in Settings -> Geavanceerd -> Compressor.
+   - Clicking the UI switch to enable toggles default_compressor_frequencies_enabled ON and shows
+     default_compressor_frequencies_modal instructing the user to power-cycle the complete heat pump
+     including outdoor unit.
+   - Clicking default_compressor_frequencies_modal_ok_button dismisses the modal.
+   - Clicking the UI switch to disable turns default_compressor_frequencies_enabled OFF without showing the modal.
 """
 
 import pytest
@@ -131,26 +135,38 @@ def test_default_compressor_frequencies_prevents_overwrite(clean_system):
     )
 
 
-def test_default_compressor_frequencies_ui_switch(openamber):
+def test_default_compressor_frequencies_ui_switch_and_dialog(openamber):
     """
-    Verify navigating to Settings -> Algemeen -> Opties and toggling
-    the 'Gebruik standaard compressorfrequenties' switch.
+    Verify navigating to Settings -> Geavanceerd -> Compressor and toggling
+    the 'Gebruik standaard compressorfrequenties' switch shows the restart dialog
+    when enabled, and can be dismissed.
     """
     assert openamber.click("nav_settings"), "Clicking nav_settings must succeed"
     openamber.step(ms=100)
     assert openamber.is_visible("page_settings"), "page_settings must be visible"
 
-    # Click Algemeen tab
-    assert openamber.click("stab_general"), "Clicking stab_general must succeed"
+    # Enable advanced settings so stab_advanced is visible
+    openamber.set_switch("advanced_settings_enabled", True)
+    openamber.step(ms=100)
+    assert openamber.is_visible("stab_advanced"), "stab_advanced must be visible when advanced_settings_enabled is True"
+
+    # Click Geavanceerd tab
+    assert openamber.click("stab_advanced"), "Clicking stab_advanced must succeed"
     openamber.step(ms=50)
 
-    # Click Opties subtab (index 3)
-    assert openamber.click("general_stab_hardware"), "Clicking general_stab_hardware (Opties) must succeed"
+    # Click Compressor subtab (index 3)
+    assert openamber.click("advanced_stab_compressor"), "Clicking advanced_stab_compressor must succeed"
     openamber.step(ms=50)
 
-    # Widget should be visible
+    # Widget should be visible and modal should be hidden
+    assert openamber.is_visible("panel_advanced_page_compressor"), (
+        "panel_advanced_page_compressor must be visible"
+    )
     assert openamber.is_visible("set_default_compressor_frequencies_enabled_switch_ui"), (
         "set_default_compressor_frequencies_enabled_switch_ui must be visible"
+    )
+    assert not openamber.is_visible("default_compressor_frequencies_modal"), (
+        "default_compressor_frequencies_modal must initially be hidden"
     )
 
     # Initially switch is unchecked (False)
@@ -158,7 +174,7 @@ def test_default_compressor_frequencies_ui_switch(openamber):
     widget_info = openamber.get_widget("set_default_compressor_frequencies_enabled_switch_ui")
     assert widget_info.get("checked") is False, "Switch widget should initially be unchecked"
 
-    # Click to toggle ON
+    # Click to toggle ON -> should enable setting AND show restart dialog
     assert openamber.click("set_default_compressor_frequencies_enabled_switch_ui")
     openamber.step(ms=50)
 
@@ -168,7 +184,26 @@ def test_default_compressor_frequencies_ui_switch(openamber):
     widget_info = openamber.get_widget("set_default_compressor_frequencies_enabled_switch_ui")
     assert widget_info.get("checked") is True, "Switch widget should be checked after click"
 
-    # Click to toggle OFF
+    assert openamber.is_visible("default_compressor_frequencies_modal"), (
+        "default_compressor_frequencies_modal must be shown when enabling the setting"
+    )
+    modal_text = openamber.get_label("default_compressor_frequencies_modal_text")
+    assert "buitenunit" in modal_text and "stroom" in modal_text, (
+        f"Modal text should instruct power-cycling the heat pump including outdoor unit, got: {modal_text}"
+    )
+
+    # Dismiss dialog by clicking 'Begrepen' button
+    assert openamber.click("default_compressor_frequencies_modal_ok_button")
+    openamber.step(ms=50)
+
+    assert not openamber.is_visible("default_compressor_frequencies_modal"), (
+        "default_compressor_frequencies_modal must be hidden after clicking OK button"
+    )
+    assert openamber.get_entity("default_compressor_frequencies_enabled") is True, (
+        "Entity state should remain True after dismissing dialog"
+    )
+
+    # Click to toggle OFF -> should disable setting WITHOUT showing dialog
     assert openamber.click("set_default_compressor_frequencies_enabled_switch_ui")
     openamber.step(ms=50)
 
@@ -177,3 +212,10 @@ def test_default_compressor_frequencies_ui_switch(openamber):
     )
     widget_info = openamber.get_widget("set_default_compressor_frequencies_enabled_switch_ui")
     assert widget_info.get("checked") is False, "Switch widget should be unchecked after second click"
+    assert not openamber.is_visible("default_compressor_frequencies_modal"), (
+        "default_compressor_frequencies_modal must NOT be shown when disabling the setting"
+    )
+
+    # Reset advanced_settings_enabled
+    openamber.set_switch("advanced_settings_enabled", False)
+    openamber.step(ms=50)
