@@ -22,21 +22,20 @@
           on_value:
             then:
               - lambda: |-
-                  auto val = lv_dropdown_get_selected(id(set_heat_mode_dd)->obj);
-                  if (val == 0) id(heat_mode_select).make_call().set_option("Stooklijn").perform();
-                  else id(heat_mode_select).make_call().set_option("Extern setpoint").perform();
-              - if:
-                  condition:
-                    lambda: |-
-                      return lv_dropdown_get_selected(id(set_heat_mode_dd)->obj) == 0;
-                  then:
-                    - lvgl.widget.show: { id: set_heat_curve_title }
-                    - lvgl.widget.show: { id: set_heat_curve_chart_container }
-                    - lvgl.widget.show: { id: set_heat_curve_controls_container }
-                  else:
-                    - lvgl.widget.hide: { id: set_heat_curve_title }
-                    - lvgl.widget.hide: { id: set_heat_curve_chart_container }
-                    - lvgl.widget.hide: { id: set_heat_curve_controls_container }
+                  {
+                    auto val = lv_dropdown_get_selected(id(set_heat_mode_dd)->obj);
+                    if (val == 0) id(heat_mode_select).make_call().set_option("Stooklijn").perform();
+                    else id(heat_mode_select).make_call().set_option("Extern setpoint").perform();
+                  }
+                  if (lv_dropdown_get_selected(id(set_heat_mode_dd)->obj) == 0) {
+                    lv_obj_remove_flag(id(set_heat_curve_title), LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_remove_flag(id(set_heat_curve_chart_container), LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_remove_flag(id(set_heat_curve_controls_container), LV_OBJ_FLAG_HIDDEN);
+                  } else {
+                    lv_obj_add_flag(id(set_heat_curve_title), LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_add_flag(id(set_heat_curve_chart_container), LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_add_flag(id(set_heat_curve_controls_container), LV_OBJ_FLAG_HIDDEN);
+                  }
 - obj:
     width: 100%
     height: SIZE_CONTENT
@@ -66,16 +65,17 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - if:
-                      condition:
-                        lambda: 'return id(heat_mode_select).current_option() == "Extern setpoint";'
-                      then:
-                        - number.decrement: manual_setpoint
-                        - lvgl.label.update:
-                            id: set_manual_sp_val
-                            text:
-                              format: "%.0f°C"
-                              args: ['id(manual_setpoint).state']
+                  - lambda: |-
+                      if (id(heat_mode_select).current_option() == "Extern setpoint") {
+                        {
+                          auto call = id(manual_setpoint).make_call();
+                          call.with_operation(number::NUMBER_OP_DECREMENT);
+                          call.with_cycle(true);
+                          call.perform();
+                        }
+                        lv_label_set_text(id(set_manual_sp_val), str_sprintf("%.0f°C", id(manual_setpoint).state).c_str());
+                        lv_obj_send_event(id(set_manual_sp_val), lvgl::lv_update_event, nullptr);
+                      }
                 widgets:
                   - label: { id: set_manual_sp_dec_lbl, text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
             - label: { id: set_manual_sp_val, text: "30°C", text_color: 0x1F2933, text_font: font_text_24 }
@@ -90,16 +90,17 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - if:
-                      condition:
-                        lambda: 'return id(heat_mode_select).current_option() == "Extern setpoint";'
-                      then:
-                        - number.increment: manual_setpoint
-                        - lvgl.label.update:
-                            id: set_manual_sp_val
-                            text:
-                              format: "%.0f°C"
-                              args: ['id(manual_setpoint).state']
+                  - lambda: |-
+                      if (id(heat_mode_select).current_option() == "Extern setpoint") {
+                        {
+                          auto call = id(manual_setpoint).make_call();
+                          call.with_operation(number::NUMBER_OP_INCREMENT);
+                          call.with_cycle(true);
+                          call.perform();
+                        }
+                        lv_label_set_text(id(set_manual_sp_val), str_sprintf("%.0f°C", id(manual_setpoint).state).c_str());
+                        lv_obj_send_event(id(set_manual_sp_val), lvgl::lv_update_event, nullptr);
+                      }
                 widgets:
                   - label: { id: set_manual_sp_inc_lbl, text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 

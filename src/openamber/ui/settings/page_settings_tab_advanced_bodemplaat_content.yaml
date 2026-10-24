@@ -40,11 +40,13 @@
           on_value:
             then:
               - lambda: |-
-                  auto val = lv_dropdown_get_selected(id(set_bottomplate_mode_dd)->obj);
-                  if (val == 0) id(bottomplate_heater_mode).make_call().set_option("Onbekend").perform();
-                  else if (val == 1) id(bottomplate_heater_mode).make_call().set_option("Buitentemperatuur").perform();
-                  else id(bottomplate_heater_mode).make_call().set_option("Tijdens defrost").perform();
-              - script.execute: update_bottomplate_mode_ui
+                  {
+                    auto val = lv_dropdown_get_selected(id(set_bottomplate_mode_dd)->obj);
+                    if (val == 0) id(bottomplate_heater_mode).make_call().set_option("Onbekend").perform();
+                    else if (val == 1) id(bottomplate_heater_mode).make_call().set_option("Buitentemperatuur").perform();
+                    else id(bottomplate_heater_mode).make_call().set_option("Tijdens defrost").perform();
+                  }
+                  id(update_bottomplate_mode_ui).execute();
 
 - obj:
     id: set_general_bodemplaat_start_row

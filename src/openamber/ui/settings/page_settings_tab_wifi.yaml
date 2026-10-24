@@ -274,10 +274,10 @@ obj:
                       bg_color: 0x16A34A
                       radius: 10
                       on_click:
-                        - lvgl.label.update:
-                            id: wifi_connect_btn_label
-                            text: "Verbinden..."
-                        - script.execute: wifi_connect_selected
+                        - lambda: |-
+                            lv_label_set_text(id(wifi_connect_btn_label), "Verbinden...");
+                            lv_obj_send_event(id(wifi_connect_btn_label), lvgl::lv_update_event, nullptr);
+                            id(wifi_connect_selected).execute();
                       widgets:
                         - label: { id: wifi_connect_btn_label, text: "Verbinden", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
 

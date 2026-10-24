@@ -8,13 +8,10 @@
 - id: !extend working_mode_switch
   on_value:
     then:
-      - lvgl.label.update:
-          id: water_mode_text
-          text: !lambda |-
-            return id(working_mode_switch).current_option().c_str();
-      - lvgl.label.update:
-          id: water_mode_icon
-          text: !lambda |-
+      - lambda: |-
+          lv_label_set_text(id(water_mode_text), std::string((id(working_mode_switch).current_option().c_str())).c_str());
+          lv_obj_send_event(id(water_mode_text), lvgl::lv_update_event, nullptr);
+          lv_label_set_text(id(water_mode_icon), std::string([&]() -> std::string {
             auto idx = id(working_mode_switch).active_index();
             if (!idx.has_value()) return (std::string) "\U000F0906";
             switch (idx.value()) {
@@ -23,9 +20,9 @@
               case 2: return (std::string) "\U000F0238";
               default: return (std::string) "\U000F0906";
             }
-      - lvgl.widget.update:
-          id: water_mode_chip
-          bg_color: !lambda |-
+          }()).c_str());
+          lv_obj_send_event(id(water_mode_icon), lvgl::lv_update_event, nullptr);
+          lv_obj_set_style_bg_color(id(water_mode_chip), [&]() -> lv_color_t {
             auto idx = id(working_mode_switch).active_index();
             if (!idx.has_value()) return lv_color_hex(0xE5E7EB);
             switch (idx.value()) {
@@ -34,167 +31,167 @@
               case 2: return lv_color_hex(0xF97316);
               default: return lv_color_hex(0xE5E7EB);
             }
-      - script.execute: update_water_mode_temperature_display
-      - script.execute: update_water_mode_efficiency_display
+          }(), LV_PART_MAIN);
+          id(update_water_mode_temperature_display).execute();
+          id(update_water_mode_efficiency_display).execute();
 
 # ── Settings: Thermostat dropdown ──
 - id: !extend thermostat_mode_select
   on_value:
     then:
-      - if:
-          condition:
-            lambda: |-
-              auto idx = id(thermostat_mode_select).active_index();
-              if (!idx.has_value()) return false;
-              return lv_dropdown_get_selected(id(set_thermostat_dd)->obj) != (uint16_t) idx.value();
-          then:
-            - lvgl.dropdown.update:
-                id: set_thermostat_dd
-                selected_index: !lambda |-
-                  auto idx = id(thermostat_mode_select).active_index();
-                  return idx.has_value() ? idx.value() : 0;
-      - script.execute: update_thermostat_mode_ui
-      - script.execute: update_home_thermostat_mode_ui
+      - lambda: |-
+          if ([&]() -> bool {
+            auto idx = id(thermostat_mode_select).active_index();
+            if (!idx.has_value()) return false;
+            return lv_dropdown_get_selected(id(set_thermostat_dd)->obj) != (uint16_t) idx.value();
+          }()) {
+            id(set_thermostat_dd)->set_selected_index([&]() -> int {
+            auto idx = id(thermostat_mode_select).active_index();
+            return idx.has_value() ? idx.value() : 0;
+          }(), LV_ANIM_OFF);
+            lv_obj_send_event(id(set_thermostat_dd)->obj, lvgl::lv_update_event, nullptr);
+          }
+          id(update_thermostat_mode_ui).execute();
+          id(update_home_thermostat_mode_ui).execute();
 
 # ── Settings: Heat mode dropdown + heat curve visibility ──
 - id: !extend heat_mode_select
   on_value:
     then:
-      - if:
-          condition:
-            lambda: |-
-              auto idx = id(heat_mode_select).active_index();
-              if (!idx.has_value()) return false;
-              return lv_dropdown_get_selected(id(set_heat_mode_dd)->obj) != (uint16_t) idx.value();
-          then:
-            - lvgl.dropdown.update:
-                id: set_heat_mode_dd
-                selected_index: !lambda |-
-                  auto idx = id(heat_mode_select).active_index();
-                  return idx.has_value() ? idx.value() : 0;
-      - script.execute: update_manual_setpoint_ui
-      - if:
-          condition:
-            lambda: |-
-              auto idx = id(heat_mode_select).active_index();
-              return idx.has_value() && idx.value() == 0;
-          then:
-            - lvgl.widget.show: { id: set_heat_curve_title }
-            - lvgl.widget.show: { id: set_heat_curve_chart_container }
-            - lvgl.widget.show: { id: set_heat_curve_controls_container }
-          else:
-            - lvgl.widget.hide: { id: set_heat_curve_title }
-            - lvgl.widget.hide: { id: set_heat_curve_chart_container }
-            - lvgl.widget.hide: { id: set_heat_curve_controls_container }
+      - lambda: |-
+          if ([&]() -> bool {
+            auto idx = id(heat_mode_select).active_index();
+            if (!idx.has_value()) return false;
+            return lv_dropdown_get_selected(id(set_heat_mode_dd)->obj) != (uint16_t) idx.value();
+          }()) {
+            id(set_heat_mode_dd)->set_selected_index([&]() -> int {
+            auto idx = id(heat_mode_select).active_index();
+            return idx.has_value() ? idx.value() : 0;
+          }(), LV_ANIM_OFF);
+            lv_obj_send_event(id(set_heat_mode_dd)->obj, lvgl::lv_update_event, nullptr);
+          }
+          id(update_manual_setpoint_ui).execute();
+          if ([&]() -> bool {
+            auto idx = id(heat_mode_select).active_index();
+            return idx.has_value() && idx.value() == 0;
+          }()) {
+            lv_obj_remove_flag(id(set_heat_curve_title), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_remove_flag(id(set_heat_curve_chart_container), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_remove_flag(id(set_heat_curve_controls_container), LV_OBJ_FLAG_HIDDEN);
+          } else {
+            lv_obj_add_flag(id(set_heat_curve_title), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(id(set_heat_curve_chart_container), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(id(set_heat_curve_controls_container), LV_OBJ_FLAG_HIDDEN);
+          }
 
 # ── Settings: Control temperature source dropdown ──
 - id: !extend heat_cool_control_temperature_source_select
   on_value:
     then:
-      - if:
-          condition:
-            lambda: |-
-              bool mv_active = id(mixing_valve_zone1_enabled).state || id(mixing_valve_zone2_enabled).state;
-              if (mv_active) {
-                if (id(set_heat_control_temp_source_dd) && id(set_heat_control_temp_source_dd)->obj) {
-                  lv_dropdown_set_selected(id(set_heat_control_temp_source_dd)->obj, 0);
-                  lv_obj_add_state(id(set_heat_control_temp_source_dd)->obj, LV_STATE_DISABLED);
-                }
-                return false;
+      - lambda: |-
+          if ([&]() -> bool {
+            bool mv_active = id(mixing_valve_zone1_enabled).state || id(mixing_valve_zone2_enabled).state;
+            if (mv_active) {
+              if (id(set_heat_control_temp_source_dd) && id(set_heat_control_temp_source_dd)->obj) {
+                lv_dropdown_set_selected(id(set_heat_control_temp_source_dd)->obj, 0);
+                lv_obj_add_state(id(set_heat_control_temp_source_dd)->obj, LV_STATE_DISABLED);
               }
-              auto idx = id(heat_cool_control_temperature_source_select).active_index();
-              if (!idx.has_value()) return false;
-              return lv_dropdown_get_selected(id(set_heat_control_temp_source_dd)->obj) != (uint16_t) idx.value();
-          then:
-            - lvgl.dropdown.update:
-                id: set_heat_control_temp_source_dd
-                selected_index: !lambda |-
-                  auto idx = id(heat_cool_control_temperature_source_select).active_index();
-                  return idx.has_value() ? idx.value() : 0;
+              return false;
+            }
+            auto idx = id(heat_cool_control_temperature_source_select).active_index();
+            if (!idx.has_value()) return false;
+            return lv_dropdown_get_selected(id(set_heat_control_temp_source_dd)->obj) != (uint16_t) idx.value();
+          }()) {
+            id(set_heat_control_temp_source_dd)->set_selected_index([&]() -> int {
+            auto idx = id(heat_cool_control_temperature_source_select).active_index();
+            return idx.has_value() ? idx.value() : 0;
+          }(), LV_ANIM_OFF);
+            lv_obj_send_event(id(set_heat_control_temp_source_dd)->obj, lvgl::lv_update_event, nullptr);
+          }
 
 # ── Settings: Backup heating mode dropdown ──
 - id: !extend backup_heating_mode
   on_value:
     then:
-      - if:
-          condition:
-            lambda: |-
-              auto idx = id(backup_heating_mode).active_index();
-              if (!idx.has_value()) return false;
-              return lv_dropdown_get_selected(id(set_backup_heating_mode_dd)->obj) != (uint16_t) idx.value();
-          then:
-            - lvgl.dropdown.update:
-                id: set_backup_heating_mode_dd
-                selected_index: !lambda |-
-                  auto idx = id(backup_heating_mode).active_index();
-                  return idx.has_value() ? idx.value() : 0;
+      - lambda: |-
+          if ([&]() -> bool {
+            auto idx = id(backup_heating_mode).active_index();
+            if (!idx.has_value()) return false;
+            return lv_dropdown_get_selected(id(set_backup_heating_mode_dd)->obj) != (uint16_t) idx.value();
+          }()) {
+            id(set_backup_heating_mode_dd)->set_selected_index([&]() -> int {
+            auto idx = id(backup_heating_mode).active_index();
+            return idx.has_value() ? idx.value() : 0;
+          }(), LV_ANIM_OFF);
+            lv_obj_send_event(id(set_backup_heating_mode_dd)->obj, lvgl::lv_update_event, nullptr);
+          }
 
 # ── Settings: Bottomplate mode dropdown ──
 - id: !extend bottomplate_heater_mode
   on_value:
     then:
-      - if:
-          condition:
-            lambda: |-
-              auto idx = id(bottomplate_heater_mode).active_index();
-              if (!idx.has_value()) return false;
-              return lv_dropdown_get_selected(id(set_bottomplate_mode_dd)->obj) != (uint16_t) idx.value();
-          then:
-            - lvgl.dropdown.update:
-                id: set_bottomplate_mode_dd
-                selected_index: !lambda |-
-                  auto idx = id(bottomplate_heater_mode).active_index();
-                  return idx.has_value() ? idx.value() : 0;
-      - script.execute: update_bottomplate_mode_ui
+      - lambda: |-
+          if ([&]() -> bool {
+            auto idx = id(bottomplate_heater_mode).active_index();
+            if (!idx.has_value()) return false;
+            return lv_dropdown_get_selected(id(set_bottomplate_mode_dd)->obj) != (uint16_t) idx.value();
+          }()) {
+            id(set_bottomplate_mode_dd)->set_selected_index([&]() -> int {
+            auto idx = id(bottomplate_heater_mode).active_index();
+            return idx.has_value() ? idx.value() : 0;
+          }(), LV_ANIM_OFF);
+            lv_obj_send_event(id(set_bottomplate_mode_dd)->obj, lvgl::lv_update_event, nullptr);
+          }
+          id(update_bottomplate_mode_ui).execute();
 
 # ── Settings: Heat power dropdown ──
 - id: !extend heat_compressor_mode
   on_value:
     then:
-      - if:
-          condition:
-            lambda: |-
-              auto idx = id(heat_compressor_mode).active_index();
-              if (!idx.has_value()) return false;
-              return lv_dropdown_get_selected(id(set_heat_power_dd)->obj) != (uint16_t) idx.value();
-          then:
-            - lvgl.dropdown.update:
-                id: set_heat_power_dd
-                selected_index: !lambda |-
-                  auto idx = id(heat_compressor_mode).active_index();
-                  return idx.has_value() ? idx.value() : 0;
+      - lambda: |-
+          if ([&]() -> bool {
+            auto idx = id(heat_compressor_mode).active_index();
+            if (!idx.has_value()) return false;
+            return lv_dropdown_get_selected(id(set_heat_power_dd)->obj) != (uint16_t) idx.value();
+          }()) {
+            id(set_heat_power_dd)->set_selected_index([&]() -> int {
+            auto idx = id(heat_compressor_mode).active_index();
+            return idx.has_value() ? idx.value() : 0;
+          }(), LV_ANIM_OFF);
+            lv_obj_send_event(id(set_heat_power_dd)->obj, lvgl::lv_update_event, nullptr);
+          }
 
 # ── Settings: Cooling mode dropdown ──
 - id: !extend cool_mode_select
   on_value:
     then:
-      - if:
-          condition:
-            lambda: |-
-              auto idx = id(cool_mode_select).active_index();
-              if (!idx.has_value()) return false;
-              return lv_dropdown_get_selected(id(set_cool_mode_dd)->obj) != (uint16_t) idx.value();
-          then:
-            - lvgl.dropdown.update:
-                id: set_cool_mode_dd
-                selected_index: !lambda |-
-                  auto idx = id(cool_mode_select).active_index();
-                  return idx.has_value() ? idx.value() : 0;
-      - script.execute: update_manual_setpoint_ui
+      - lambda: |-
+          if ([&]() -> bool {
+            auto idx = id(cool_mode_select).active_index();
+            if (!idx.has_value()) return false;
+            return lv_dropdown_get_selected(id(set_cool_mode_dd)->obj) != (uint16_t) idx.value();
+          }()) {
+            id(set_cool_mode_dd)->set_selected_index([&]() -> int {
+            auto idx = id(cool_mode_select).active_index();
+            return idx.has_value() ? idx.value() : 0;
+          }(), LV_ANIM_OFF);
+            lv_obj_send_event(id(set_cool_mode_dd)->obj, lvgl::lv_update_event, nullptr);
+          }
+          id(update_manual_setpoint_ui).execute();
 
 # ── Settings: Cooling power dropdown ──
 - id: !extend cool_compressor_mode
   on_value:
     then:
-      - if:
-          condition:
-            lambda: |-
-              auto idx = id(cool_compressor_mode).active_index();
-              if (!idx.has_value()) return false;
-              return lv_dropdown_get_selected(id(set_cool_power_dd)->obj) != (uint16_t) idx.value();
-          then:
-            - lvgl.dropdown.update:
-                id: set_cool_power_dd
-                selected_index: !lambda |-
-                  auto idx = id(cool_compressor_mode).active_index();
-                  return idx.has_value() ? idx.value() : 0;
+      - lambda: |-
+          if ([&]() -> bool {
+            auto idx = id(cool_compressor_mode).active_index();
+            if (!idx.has_value()) return false;
+            return lv_dropdown_get_selected(id(set_cool_power_dd)->obj) != (uint16_t) idx.value();
+          }()) {
+            id(set_cool_power_dd)->set_selected_index([&]() -> int {
+            auto idx = id(cool_compressor_mode).active_index();
+            return idx.has_value() ? idx.value() : 0;
+          }(), LV_ANIM_OFF);
+            lv_obj_send_event(id(set_cool_power_dd)->obj, lvgl::lv_update_event, nullptr);
+          }

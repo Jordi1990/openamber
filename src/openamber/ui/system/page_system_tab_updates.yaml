@@ -37,20 +37,15 @@ obj:
           - globals.set:
               id: service_confirm_action
               value: '2'
-          - lvgl.label.update:
-              id: service_confirm_title
-              text: "Update bevestigen"
-          - lvgl.label.update:
-              id: service_confirm_text
-              text: "Wil je de firmware update nu starten?"
-          - lvgl.label.update:
-              id: service_confirm_button_label
-              text: "Update starten"
-          - lvgl.widget.update:
-              id: service_confirm_button
-              bg_color: 0x0072CE
-          - lvgl.widget.show:
-              id: service_confirm_modal
+          - lambda: |-
+              lv_label_set_text(id(service_confirm_title), "Update bevestigen");
+              lv_obj_send_event(id(service_confirm_title), lvgl::lv_update_event, nullptr);
+              lv_label_set_text(id(service_confirm_text), "Wil je de firmware update nu starten?");
+              lv_obj_send_event(id(service_confirm_text), lvgl::lv_update_event, nullptr);
+              lv_label_set_text(id(service_confirm_button_label), "Update starten");
+              lv_obj_send_event(id(service_confirm_button_label), lvgl::lv_update_event, nullptr);
+              lv_obj_set_style_bg_color(id(service_confirm_button), lv_color_hex(0x0072CE), LV_PART_MAIN);
+              lv_obj_remove_flag(id(service_confirm_modal), LV_OBJ_FLAG_HIDDEN);
         widgets:
           - label:
               id: service_update_button_label
@@ -79,17 +74,12 @@ obj:
           - globals.set:
               id: service_update_check_in_progress
               value: 'true'
-          - lvgl.widget.disable:
-              id: service_check_update_button
-          - lvgl.widget.update:
-              id: service_check_update_button
-              bg_color: 0xC7CDD6
-          - lvgl.label.update:
-              id: service_check_update_button_label
-              text: "Ophalen..."
-          - lvgl.widget.update:
-              id: service_check_update_button_label
-              text_color: 0x4B5563
+          - lambda: |-
+              lvgl::LvglComponent::lv_obj_set_state_value(id(service_check_update_button), LV_STATE_DISABLED, true);
+              lv_obj_set_style_bg_color(id(service_check_update_button), lv_color_hex(0xC7CDD6), LV_PART_MAIN);
+              lv_label_set_text(id(service_check_update_button_label), "Ophalen...");
+              lv_obj_send_event(id(service_check_update_button_label), lvgl::lv_update_event, nullptr);
+              lv_obj_set_style_text_color(id(service_check_update_button_label), lv_color_hex(0x4B5563), LV_PART_MAIN);
           - update.check:
               id: firmware_update
           - delay: 30s
@@ -176,20 +166,15 @@ obj:
           - globals.set:
               id: service_confirm_action
               value: '1'
-          - lvgl.label.update:
-              id: service_confirm_title
-              text: "Herstarten bevestigen"
-          - lvgl.label.update:
-              id: service_confirm_text
-              text: "Wil je OpenAmber nu herstarten?"
-          - lvgl.label.update:
-              id: service_confirm_button_label
-              text: "Herstarten"
-          - lvgl.widget.update:
-              id: service_confirm_button
-              bg_color: 0x0072CE
-          - lvgl.widget.show:
-              id: service_confirm_modal
+          - lambda: |-
+              lv_label_set_text(id(service_confirm_title), "Herstarten bevestigen");
+              lv_obj_send_event(id(service_confirm_title), lvgl::lv_update_event, nullptr);
+              lv_label_set_text(id(service_confirm_text), "Wil je OpenAmber nu herstarten?");
+              lv_obj_send_event(id(service_confirm_text), lvgl::lv_update_event, nullptr);
+              lv_label_set_text(id(service_confirm_button_label), "Herstarten");
+              lv_obj_send_event(id(service_confirm_button_label), lvgl::lv_update_event, nullptr);
+              lv_obj_set_style_bg_color(id(service_confirm_button), lv_color_hex(0x0072CE), LV_PART_MAIN);
+              lv_obj_remove_flag(id(service_confirm_modal), LV_OBJ_FLAG_HIDDEN);
         widgets:
           - label:
               id: service_restart_button_label

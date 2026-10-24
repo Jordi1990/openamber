@@ -8,24 +8,20 @@
 - id: !extend outlet_temperature_tuo
   on_value:
     then:
-      - lvgl.label.update:
-          id: water_aanvoer_value
-          text:
-            format: "%.1f°C"
-            args: ['x']
-      - script.execute: update_water_mode_temperature_display
-      - script.execute: update_service_diag_summary_ui
+      - lambda: |-
+          lv_label_set_text(id(water_aanvoer_value), str_sprintf("%.1f°C", x).c_str());
+          lv_obj_send_event(id(water_aanvoer_value), lvgl::lv_update_event, nullptr);
+          id(update_water_mode_temperature_display).execute();
+          id(update_service_diag_summary_ui).execute();
 
 - id: !extend inlet_temperature_tui
   on_value:
     then:
-      - lvgl.label.update:
-          id: water_retour_value
-          text:
-            format: "%.1f°C"
-            args: ['x']
-      - script.execute: update_water_mode_temperature_display
-      - script.execute: update_service_diag_summary_ui
+      - lambda: |-
+          lv_label_set_text(id(water_retour_value), str_sprintf("%.1f°C", x).c_str());
+          lv_obj_send_event(id(water_retour_value), lvgl::lv_update_event, nullptr);
+          id(update_water_mode_temperature_display).execute();
+          id(update_service_diag_summary_ui).execute();
 
 - id: !extend heat_exchanger_delta_t
   on_value:
@@ -40,36 +36,31 @@
 - id: !extend fan_rpm_sensor
   on_value:
     then:
-      - lvgl.widget.update:
-          id: tile_fan
-          bg_color: !lambda |-
+      - lambda: |-
+          lv_obj_set_style_bg_color(id(tile_fan), [&]() -> lv_color_t {
             if (x > 0) return lv_color_hex(0xF5F8FC);
             return lv_color_hex(0x919191);
-      - lvgl.label.update:
-          id: tile_fan_value
-          text:
-            format: "%.0f RPM"
-            args: ['x']
-      - script.execute: update_service_diag_summary_ui
+          }(), LV_PART_MAIN);
+          lv_label_set_text(id(tile_fan_value), str_sprintf("%.0f RPM", x).c_str());
+          lv_obj_send_event(id(tile_fan_value), lvgl::lv_update_event, nullptr);
+          id(update_service_diag_summary_ui).execute();
 
 - id: !extend pump_p0_current_pwm_sensor
   on_value:
     then:
-      - lvgl.widget.update:
-          id: tile_pump
-          bg_color: !lambda |-
+      - lambda: |-
+          lv_obj_set_style_bg_color(id(tile_pump), [&]() -> lv_color_t {
             if (x > 0) return lv_color_hex(0xF5F8FC);
             return lv_color_hex(0x919191);
-      - script.execute: update_home_pump_tile_state
-      - script.execute: update_service_diag_summary_ui
-      - lvgl.label.update:
-          id: service_p0_pwm_slider_value
-          text:
-            format: "%.0f %%"
-            args: ['x']
-      - lambda: |-
-          if (id(service_p0_pwm_slider) != nullptr) {
-            lv_slider_set_value(id(service_p0_pwm_slider), (int) x, LV_ANIM_OFF);
+          }(), LV_PART_MAIN);
+          id(update_home_pump_tile_state).execute();
+          id(update_service_diag_summary_ui).execute();
+          lv_label_set_text(id(service_p0_pwm_slider_value), str_sprintf("%.0f %%", x).c_str());
+          lv_obj_send_event(id(service_p0_pwm_slider_value), lvgl::lv_update_event, nullptr);
+          {
+            if (id(service_p0_pwm_slider) != nullptr) {
+              lv_slider_set_value(id(service_p0_pwm_slider), (int) x, LV_ANIM_OFF);
+            }
           }
 
 - id: !extend water_flow_rate
@@ -95,17 +86,14 @@
 - id: !extend current_compressor_frequency
   on_value:
     then:
-      - lvgl.widget.update:
-          id: tile_compressor
-          bg_color: !lambda |-
+      - lambda: |-
+          lv_obj_set_style_bg_color(id(tile_compressor), [&]() -> lv_color_t {
             if (x > 0) return lv_color_hex(0xF5F8FC);
             return lv_color_hex(0x919191);
-      - lvgl.label.update:
-          id: tile_compressor_value
-          text:
-            format: "%.0f Hz"
-            args: ['x']
-      - script.execute: update_service_diag_summary_ui
+          }(), LV_PART_MAIN);
+          lv_label_set_text(id(tile_compressor_value), str_sprintf("%.0f Hz", x).c_str());
+          lv_obj_send_event(id(tile_compressor_value), lvgl::lv_update_event, nullptr);
+          id(update_service_diag_summary_ui).execute();
 
 - id: !extend expansion_valve_position
   on_value:
@@ -116,88 +104,70 @@
 - id: !extend temperature_outside_ta
   on_value:
     then:
-      - if:
-          condition:
-            lambda: 'return !isnan(x);'
-          then:
-            - lvgl.label.update:
-                id: header_outdoor
-                text:
-                  format: "%.1f°C"
-                  args: ['x']
-          else:
-            - lvgl.label.update:
-                id: header_outdoor
-                text: "-.-°C"
-      - script.execute: update_service_diag_summary_ui
+      - lambda: |-
+          if (!isnan(x)) {
+            lv_label_set_text(id(header_outdoor), str_sprintf("%.1f°C", x).c_str());
+            lv_obj_send_event(id(header_outdoor), lvgl::lv_update_event, nullptr);
+          } else {
+            lv_label_set_text(id(header_outdoor), "-.-°C");
+            lv_obj_send_event(id(header_outdoor), lvgl::lv_update_event, nullptr);
+          }
+          id(update_service_diag_summary_ui).execute();
 
 # ── Home page: Mode temperature values ──
 - id: !extend dhw_temperature_tw_sensor
   on_value:
     then:
-      - script.execute: update_water_mode_temperature_display
-      - script.execute: update_service_diag_summary_ui
-      - if:
-          condition:
-            lambda: 'return isnan(x);'
-          then:
-            - lvgl.label.update:
-                id: dhw_tank_temp_value
-                text: "-°C"
-          else:
-            - lvgl.label.update:
-                id: dhw_tank_temp_value
-                text:
-                  format: "%.1f°C"
-                  args: ['x']
+      - lambda: |-
+          id(update_water_mode_temperature_display).execute();
+          id(update_service_diag_summary_ui).execute();
+          if (isnan(x)) {
+            lv_label_set_text(id(dhw_tank_temp_value), "-°C");
+            lv_obj_send_event(id(dhw_tank_temp_value), lvgl::lv_update_event, nullptr);
+          } else {
+            lv_label_set_text(id(dhw_tank_temp_value), str_sprintf("%.1f°C", x).c_str());
+            lv_obj_send_event(id(dhw_tank_temp_value), lvgl::lv_update_event, nullptr);
+          }
 
 - id: !extend current_dhw_setpoint_sensor
   on_value:
     then:
-      - script.execute: update_water_mode_temperature_display
-      - script.execute: update_service_diag_summary_ui
-      - if:
-          condition:
-            lambda: 'return isnan(x);'
-          then:
-            - lvgl.label.update:
-                id: dhw_tank_target_value
-                text: "-°C"
-          else:
-            - lvgl.label.update:
-                id: dhw_tank_target_value
-                text:
-                  format: "%.1f°C"
-                  args: ['x']
+      - lambda: |-
+          id(update_water_mode_temperature_display).execute();
+          id(update_service_diag_summary_ui).execute();
+          if (isnan(x)) {
+            lv_label_set_text(id(dhw_tank_target_value), "-°C");
+            lv_obj_send_event(id(dhw_tank_target_value), lvgl::lv_update_event, nullptr);
+          } else {
+            lv_label_set_text(id(dhw_tank_target_value), str_sprintf("%.1f°C", x).c_str());
+            lv_obj_send_event(id(dhw_tank_target_value), lvgl::lv_update_event, nullptr);
+          }
 
 - id: !extend heat_cool_control_temperature
   on_value:
     then:
-      - script.execute: update_water_mode_temperature_display
-      - script.execute: update_service_diag_summary_ui
+      - lambda: |-
+          id(update_water_mode_temperature_display).execute();
+          id(update_service_diag_summary_ui).execute();
 
 - id: !extend room_temperature
   on_value:
     then:
-      - if:
-          condition:
-            lambda: 'return isnan(x);'
-          then:
-            - lvgl.label.update:
-                id: home_therm_current_temp_value
-                text: "-.-°C"
-          else:
-            - lvgl.label.update:
-                id: home_therm_current_temp_value
-                text:
-                  format: "%.1f°C"
-                  args: ['x']
+      - lambda: |-
+          if (isnan(x)) {
+            lv_label_set_text(id(home_therm_current_temp_value), "-.-°C");
+            lv_obj_send_event(id(home_therm_current_temp_value), lvgl::lv_update_event, nullptr);
+          } else {
+            lv_label_set_text(id(home_therm_current_temp_value), str_sprintf("%.1f°C", x).c_str());
+            lv_obj_send_event(id(home_therm_current_temp_value), lvgl::lv_update_event, nullptr);
+          }
 
 - id: !extend current_setpoint
   on_value:
     then:
-      - script.execute: update_water_mode_temperature_display
-      - script.execute: update_service_diag_summary_ui
+      - lambda: |-
+          id(update_water_mode_temperature_display).execute();
+          id(update_service_diag_summary_ui).execute();
 
 - id: !extend thermal_power
   on_value:
@@ -233,49 +203,39 @@
 - id: !extend wifi_signal_db
   on_value:
     then:
-      - lvgl.label.update:
-          id: nav_status_wifi_icon
-          text: !lambda |-
+      - lambda: |-
+          lv_label_set_text(id(nav_status_wifi_icon), std::string([&]() -> std::string {
             if (isnan(x)) return (std::string) "\U000F092E";
             if (x >= -60.0f) return (std::string) "\U000F0928";
             if (x >= -70.0f) return (std::string) "\U000F0925";
             if (x >= -80.0f) return (std::string) "\U000F0922";
             return (std::string) "\U000F091F";
-      - lvgl.widget.update:
-          id: nav_status_wifi_icon
-          text_color: !lambda |-
+          }()).c_str());
+          lv_obj_send_event(id(nav_status_wifi_icon), lvgl::lv_update_event, nullptr);
+          lv_obj_set_style_text_color(id(nav_status_wifi_icon), [&]() -> lv_color_t {
             if (isnan(x)) return lv_color_hex(0x9CA3AF);
             if (x >= -70.0f) return lv_color_hex(0xD1D5DB);
             if (x >= -80.0f) return lv_color_hex(0xF59E0B);
             return lv_color_hex(0xEF4444);
-      - if:
-          condition:
-            lambda: 'return !isnan(x);'
-          then:
-            - lvgl.label.update:
-                id: wifi_status_label
-                text: "Verbonden"
-            - lvgl.widget.update:
-                id: wifi_status_label
-                text_color: 0x16A34A
-          else:
-            - lvgl.label.update:
-                id: wifi_status_label
-                text: "Niet verbonden"
-            - lvgl.widget.update:
-                id: wifi_status_label
-                text_color: 0xEF4444
-      - script.execute: update_wifi_connected_summary_ui
-      - script.execute: update_system_diagnostics_ui
-      - if:
-          condition:
-            lambda: 'return isnan(x);'
-          then:
-            - lvgl.widget.hide: { id: wifi_connected_section }
-            - lvgl.widget.show: { id: wifi_disconnected_section }
-          else:
-            - lvgl.widget.show: { id: wifi_connected_section }
-            - lvgl.widget.hide: { id: wifi_disconnected_section }
+          }(), LV_PART_MAIN);
+          if (!isnan(x)) {
+            lv_label_set_text(id(wifi_status_label), "Verbonden");
+            lv_obj_send_event(id(wifi_status_label), lvgl::lv_update_event, nullptr);
+            lv_obj_set_style_text_color(id(wifi_status_label), lv_color_hex(0x16A34A), LV_PART_MAIN);
+          } else {
+            lv_label_set_text(id(wifi_status_label), "Niet verbonden");
+            lv_obj_send_event(id(wifi_status_label), lvgl::lv_update_event, nullptr);
+            lv_obj_set_style_text_color(id(wifi_status_label), lv_color_hex(0xEF4444), LV_PART_MAIN);
+          }
+          id(update_wifi_connected_summary_ui).execute();
+          id(update_system_diagnostics_ui).execute();
+          if (isnan(x)) {
+            lv_obj_add_flag(id(wifi_connected_section), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_remove_flag(id(wifi_disconnected_section), LV_OBJ_FLAG_HIDDEN);
+          } else {
+            lv_obj_remove_flag(id(wifi_connected_section), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(id(wifi_disconnected_section), LV_OBJ_FLAG_HIDDEN);
+          }
 
 # ── Header: Heat pump model badge ──
 - id: !extend model_identification_1

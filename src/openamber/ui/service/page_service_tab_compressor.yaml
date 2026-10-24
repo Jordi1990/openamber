@@ -43,17 +43,17 @@ obj:
                 lv_label_set_text_fmt(id(service_fan_slider_value), "%d RPM", duty);
         on_release:
           then:
-            - if:
-                condition:
-                  lambda: 'return id(state_machine_state_main).state == "Maintenance";'
-                then:
-                  - lambda: |-
-                      const auto duty = lv_slider_get_value(id(service_fan_slider));
-                      auto fan_call = id(fan_speed_manual_number).make_call();
-                      fan_call.set_value(duty);
-                      fan_call.perform();
-                else:
-                  - script.execute: update_service_mode_ui
+            - lambda: |-
+                if (id(state_machine_state_main).state == "Maintenance") {
+                  {
+                    const auto duty = lv_slider_get_value(id(service_fan_slider));
+                    auto fan_call = id(fan_speed_manual_number).make_call();
+                    fan_call.set_value(duty);
+                    fan_call.perform();
+                  }
+                } else {
+                  id(update_service_mode_ui).execute();
+                }
     - label:
         text: "Carterverwarming"
         text_color: 0x1F2933
@@ -77,13 +77,12 @@ obj:
         knob:
           bg_color: 0xFFFFFF
         on_click:
-          - if:
-              condition:
-                lambda: 'return id(state_machine_state_main).state == "Maintenance";'
-              then:
-                - switch.toggle: compressor_crankcase_heater_manual_switch
-              else:
-                - script.execute: update_service_mode_ui
+          - lambda: |-
+              if (id(state_machine_state_main).state == "Maintenance") {
+                id(compressor_crankcase_heater_manual_switch).toggle();
+              } else {
+                id(update_service_mode_ui).execute();
+              }
     - label:
         text: "Bodemplaat verwarming"
         text_color: 0x1F2933
@@ -107,11 +106,10 @@ obj:
         knob:
           bg_color: 0xFFFFFF
         on_click:
-          - if:
-              condition:
-                lambda: 'return id(state_machine_state_main).state == "Maintenance";'
-              then:
-                - switch.toggle: bottom_plate_heater_manual_switch
-              else:
-                - script.execute: update_service_mode_ui
+          - lambda: |-
+              if (id(state_machine_state_main).state == "Maintenance") {
+                id(bottom_plate_heater_manual_switch).toggle();
+              } else {
+                id(update_service_mode_ui).execute();
+              }
 
