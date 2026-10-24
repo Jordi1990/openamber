@@ -153,6 +153,10 @@ switch:
   entity_category: config
   web_server:
     sorting_group_id: general_settings
+  on_state:
+    then:
+      - lambda: |-
+          global_preferences->sync();
 
 - platform: template
   id: eebus_enabled_switch
