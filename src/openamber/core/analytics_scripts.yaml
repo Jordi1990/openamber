@@ -273,7 +273,6 @@ script:
           root["wp"] = id(pump_p1_enabled).state;
 
           root["xs"] = id(emergency_mode_enabled).state;
-          root["xt"] = id(service_mode_enabled).state;
           root["xu"] = id(flow_sensor_enabled).state;
           root["xv"] = id(pump_p0_pid_enabled).state;
           root["xw"] = id(pump_p0_pid_target_delta_t).state;
