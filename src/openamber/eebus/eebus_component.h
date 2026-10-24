@@ -151,7 +151,7 @@ class EEBusComponent : public PollingComponent {
   std::vector<std::string> inbound_spine_queue_;
 
   void init_certificate_and_keys();
-  void start_ship_listener();
+  bool start_ship_listener();
   bool advertise_mdns();
   void wire_use_cases();
   void check_failsafe();

@@ -267,8 +267,7 @@ void EEBusComponent::update() {
   }
 
   if (!this->listener_started_) {
-    this->listener_started_ = true;
-    this->start_ship_listener();
+    this->listener_started_ = this->start_ship_listener();
   }
 
   // Update action message
@@ -276,12 +275,13 @@ void EEBusComponent::update() {
     if (this->last_action_ == "Starting" || this->last_action_ == "Initialization") {
       this->record_action("Waiting for device model...");
     }
-  } else if (this->last_action_ == "Waiting for device model..." || this->last_action_ == "Starting") {
+  } else if (this->listener_started_ &&
+             (this->last_action_ == "Waiting for device model..." || this->last_action_ == "Starting")) {
     this->record_action("EEBUS listener started, waiting for EMS");
   }
 
-  // Only advertise mDNS once network/WiFi is connected AND model is known!
-  if (network::is_connected() && this->model_detected_) {
+  // Only advertise mDNS once network/WiFi is connected, model is known, AND listener started!
+  if (this->listener_started_ && network::is_connected() && this->model_detected_) {
     uint32_t now = millis();
     bool should_advertise = !this->mdns_advertised_ ||
                             (!this->rt_->ship_listener.is_connected() && (now - this->last_mdns_reannounce_ms_ >= 45000UL));
@@ -608,12 +608,12 @@ void EEBusComponent::wire_use_cases() {
   });
 }
 
-void EEBusComponent::start_ship_listener() {
+bool EEBusComponent::start_ship_listener() {
   if (!this->rt_->cert_store.is_loaded()) {
     ESP_LOGE(TAG, "Cannot start SHIP listener: certificate store is not loaded");
-    return;
+    return false;
   }
-  this->rt_->ship_listener.begin(this->rt_->cert_store, 4712);
+  return this->rt_->ship_listener.begin(this->rt_->cert_store, 4712);
 }
 
 bool EEBusComponent::advertise_mdns() {
@@ -740,14 +740,15 @@ EEBusComponent::~EEBusComponent() {
   if (global_eebus_component == this) {
     global_eebus_component = nullptr;
   }
-  if (this->inbound_mutex_ != nullptr) {
-    vSemaphoreDelete(static_cast<SemaphoreHandle_t>(this->inbound_mutex_));
-    this->inbound_mutex_ = nullptr;
-  }
   if (this->rt_ != nullptr) {
+    this->rt_->ship_listener.stop();
     this->rt_->~EEBusRuntime();
     heap_caps_free(this->rt_);
     this->rt_ = nullptr;
+  }
+  if (this->inbound_mutex_ != nullptr) {
+    vSemaphoreDelete(static_cast<SemaphoreHandle_t>(this->inbound_mutex_));
+    this->inbound_mutex_ = nullptr;
   }
 }
 
