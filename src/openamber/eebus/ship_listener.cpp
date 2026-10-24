@@ -168,7 +168,7 @@ void EEBusShipListener::stop() {
 }
 
 bool EEBusShipListener::begin(const EEBusCertificateStore &cert, uint16_t port) {
-  this->teardown();
+  this->stop();
   this->port_ = port ? port : kShipPort;
   active_listener = this;
   if (this->queue_mutex_ == nullptr) {
@@ -186,6 +186,7 @@ bool EEBusShipListener::begin(const EEBusCertificateStore &cert, uint16_t port) 
                             sizeof(pers)) != 0) {
     ESP_LOGE(TAG, "CTR_DRBG seed failed");
     this->teardown();
+    active_listener = nullptr;
     return false;
   }
 
@@ -194,6 +195,7 @@ bool EEBusShipListener::begin(const EEBusCertificateStore &cert, uint16_t port) 
                                   MBEDTLS_SSL_PRESET_DEFAULT) != 0) {
     ESP_LOGE(TAG, "SSL config defaults failed");
     this->teardown();
+    active_listener = nullptr;
     return false;
   }
   mbedtls_ssl_conf_authmode(&this->ssl_conf_, MBEDTLS_SSL_VERIFY_OPTIONAL);
@@ -212,6 +214,7 @@ bool EEBusShipListener::begin(const EEBusCertificateStore &cert, uint16_t port) 
   if (ret != 0) {
     ESP_LOGE(TAG, "Failed to parse certificate: -0x%04x", static_cast<unsigned>(-ret));
     this->teardown();
+    active_listener = nullptr;
     return false;
   }
   ret = mbedtls_pk_parse_key(&this->own_key_,
@@ -221,12 +224,14 @@ bool EEBusShipListener::begin(const EEBusCertificateStore &cert, uint16_t port) 
   if (ret != 0) {
     ESP_LOGE(TAG, "Failed to parse private key: -0x%04x", static_cast<unsigned>(-ret));
     this->teardown();
+    active_listener = nullptr;
     return false;
   }
   ret = mbedtls_ssl_conf_own_cert(&this->ssl_conf_, &this->own_cert_, &this->own_key_);
   if (ret != 0) {
     ESP_LOGE(TAG, "Failed to set own cert: -0x%04x", static_cast<unsigned>(-ret));
     this->teardown();
+    active_listener = nullptr;
     return false;
   }
 
@@ -239,8 +244,44 @@ bool EEBusShipListener::begin(const EEBusCertificateStore &cert, uint16_t port) 
   if (setup_ret != 0) {
     ESP_LOGE(TAG, "mbedtls_ssl_setup (reused) failed -0x%04x", static_cast<unsigned>(-setup_ret));
     this->teardown();
+    active_listener = nullptr;
     return false;
   }
+
+  // Open, bind, and listen synchronously so begin() only reports success once
+  // the listening socket is ready to accept connections.
+  int listen_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  if (listen_fd < 0) {
+    ESP_LOGE(TAG, "socket() failed: %d", errno);
+    this->teardown();
+    active_listener = nullptr;
+    return false;
+  }
+
+  int opt = 1;
+  setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+  struct sockaddr_in addr;
+  memset(&addr, 0, sizeof(addr));
+  addr.sin_family = AF_INET;
+  addr.sin_port = htons(this->port_);
+  addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+  if (bind(listen_fd, reinterpret_cast<struct sockaddr *>(&addr), sizeof(addr)) < 0) {
+    ESP_LOGE(TAG, "bind() to port %u failed: %d", static_cast<unsigned>(this->port_), errno);
+    close(listen_fd);
+    this->teardown();
+    active_listener = nullptr;
+    return false;
+  }
+  if (listen(listen_fd, kAcceptQueueSize) < 0) {
+    ESP_LOGE(TAG, "listen() failed: %d", errno);
+    close(listen_fd);
+    this->teardown();
+    active_listener = nullptr;
+    return false;
+  }
+  ship_listen_fd = listen_fd;
 
   // Run the accept/handshake task from PSRAM to keep internal SRAM free.
   size_t stack_words = kShipTaskStackBytes / sizeof(StackType_t);
@@ -249,7 +290,10 @@ bool EEBusShipListener::begin(const EEBusCertificateStore &cert, uint16_t port) 
   if (ship_task_stack == nullptr) {
     ESP_LOGE(TAG, "Failed to allocate %u bytes PSRAM task stack",
              static_cast<unsigned>(kShipTaskStackBytes));
+    close(ship_listen_fd);
+    ship_listen_fd = -1;
     this->teardown();
+    active_listener = nullptr;
     return false;
   }
   if (ship_task_tcb == nullptr) {
@@ -259,7 +303,10 @@ bool EEBusShipListener::begin(const EEBusCertificateStore &cert, uint16_t port) 
       ESP_LOGE(TAG, "Failed to allocate SHIP task TCB");
       free(ship_task_stack);
       ship_task_stack = nullptr;
+      close(ship_listen_fd);
+      ship_listen_fd = -1;
       this->teardown();
+      active_listener = nullptr;
       return false;
     }
   }
@@ -269,49 +316,21 @@ bool EEBusShipListener::begin(const EEBusCertificateStore &cert, uint16_t port) 
     ESP_LOGE(TAG, "Failed to create SHIP accept task");
     free(ship_task_stack);
     ship_task_stack = nullptr;
+    close(ship_listen_fd);
+    ship_listen_fd = -1;
     this->teardown();
+    active_listener = nullptr;
     return false;
   }
+  ESP_LOGI(TAG, "SHIP TLS listener ready on port %u", static_cast<unsigned>(this->port_));
   return true;
 }
 
 static void ship_accept_task(void *arg) {
   (void)arg;
-  int listen_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-  if (listen_fd < 0) {
-    ESP_LOGE(TAG, "socket() failed: %d", errno);
-    ship_task_handle = nullptr;
-    vTaskDelete(nullptr);
-    return;
-  }
-
-  int opt = 1;
-  setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-
+  int listen_fd = ship_listen_fd;
   struct sockaddr_in addr;
   memset(&addr, 0, sizeof(addr));
-  addr.sin_family = AF_INET;
-  addr.sin_port = htons(active_listener->get_port());
-  addr.sin_addr.s_addr = htonl(INADDR_ANY);
-
-  if (bind(listen_fd, reinterpret_cast<struct sockaddr *>(&addr), sizeof(addr)) < 0) {
-    ESP_LOGE(TAG, "bind() to port %u failed: %d", static_cast<unsigned>(active_listener->get_port()), errno);
-    close(listen_fd);
-    ship_task_handle = nullptr;
-    vTaskDelete(nullptr);
-    return;
-  }
-  if (listen(listen_fd, kAcceptQueueSize) < 0) {
-    ESP_LOGE(TAG, "listen() failed: %d", errno);
-    close(listen_fd);
-    ship_task_handle = nullptr;
-    vTaskDelete(nullptr);
-    return;
-  }
-  ship_listen_fd = listen_fd;
-  ESP_LOGI(TAG, "SHIP TLS listener ready on port %u",
-           static_cast<unsigned>(active_listener->get_port()));
-
   socklen_t addr_len = sizeof(addr);
   while (ship_listen_fd >= 0) {
     int conn = accept(listen_fd, reinterpret_cast<struct sockaddr *>(&addr), &addr_len);
@@ -326,9 +345,10 @@ static void ship_accept_task(void *arg) {
       active_listener->handle_connection(conn, std::string(ip_str));
   }
 
-  if (listen_fd >= 0)
-    close(listen_fd);
-  ship_listen_fd = -1;
+  if (ship_listen_fd >= 0) {
+    close(ship_listen_fd);
+    ship_listen_fd = -1;
+  }
   ship_task_handle = nullptr;
   vTaskDelete(nullptr);
 }
