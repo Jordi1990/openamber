@@ -78,7 +78,9 @@ static const uint16_t kEebusSigAlgs[] = {MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA2
 
 // The accept+handshake task runs its stack from PSRAM to spare the scarce
 // internal SRAM (internal RAM is tight on the S3 with LVGL + WiFi).
-static StaticTask_t ship_task_tcb;
+// The TCB must live in internal RAM; it is allocated on first begin() (never
+// freed, as the self-deleting task's TCB is still touched by the idle task).
+static StaticTask_t *ship_task_tcb = nullptr;
 static StackType_t *ship_task_stack = nullptr;
 static const uint32_t kShipTaskStackBytes = 32 * 1024;
 static TaskHandle_t ship_task_handle = nullptr;
@@ -165,7 +167,8 @@ void EEBusShipListener::stop() {
   active_listener = nullptr;
 }
 
-void EEBusShipListener::begin(const EEBusCertificateStore &cert, uint16_t port) {
+bool EEBusShipListener::begin(const EEBusCertificateStore &cert, uint16_t port) {
+  this->teardown();
   this->port_ = port ? port : kShipPort;
   active_listener = this;
   if (this->queue_mutex_ == nullptr) {
@@ -176,19 +179,22 @@ void EEBusShipListener::begin(const EEBusCertificateStore &cert, uint16_t port) 
   mbedtls_x509_crt_init(&this->own_cert_);
   mbedtls_pk_init(&this->own_key_);
   mbedtls_ctr_drbg_init(&this->ctr_drbg_);
+  this->ready_ = true;
 
   const unsigned char pers[] = "eebus-ship";
   if (mbedtls_ctr_drbg_seed(&this->ctr_drbg_, esp_mbedtls_rng, nullptr, pers,
                             sizeof(pers)) != 0) {
     ESP_LOGE(TAG, "CTR_DRBG seed failed");
-    return;
+    this->teardown();
+    return false;
   }
 
   if (mbedtls_ssl_config_defaults(&this->ssl_conf_, MBEDTLS_SSL_IS_SERVER,
                                   MBEDTLS_SSL_TRANSPORT_STREAM,
                                   MBEDTLS_SSL_PRESET_DEFAULT) != 0) {
     ESP_LOGE(TAG, "SSL config defaults failed");
-    return;
+    this->teardown();
+    return false;
   }
   mbedtls_ssl_conf_authmode(&this->ssl_conf_, MBEDTLS_SSL_VERIFY_OPTIONAL);
   mbedtls_ssl_conf_rng(&this->ssl_conf_, mbedtls_ctr_drbg_random, &this->ctr_drbg_);
@@ -205,7 +211,8 @@ void EEBusShipListener::begin(const EEBusCertificateStore &cert, uint16_t port) 
                                    cert.get_cert_pem().size() + 1);
   if (ret != 0) {
     ESP_LOGE(TAG, "Failed to parse certificate: -0x%04x", static_cast<unsigned>(-ret));
-    return;
+    this->teardown();
+    return false;
   }
   ret = mbedtls_pk_parse_key(&this->own_key_,
                              reinterpret_cast<const unsigned char *>(cert.get_key_pem().c_str()),
@@ -213,26 +220,27 @@ void EEBusShipListener::begin(const EEBusCertificateStore &cert, uint16_t port) 
                              mbedtls_ctr_drbg_random, &this->ctr_drbg_);
   if (ret != 0) {
     ESP_LOGE(TAG, "Failed to parse private key: -0x%04x", static_cast<unsigned>(-ret));
-    return;
+    this->teardown();
+    return false;
   }
   ret = mbedtls_ssl_conf_own_cert(&this->ssl_conf_, &this->own_cert_, &this->own_key_);
   if (ret != 0) {
     ESP_LOGE(TAG, "Failed to set own cert: -0x%04x", static_cast<unsigned>(-ret));
-    return;
+    this->teardown();
+    return false;
   }
-
-  this->ready_ = true;
 
   // Prepare the reused TLS session (one connection at a time).  Doing the
   // (heap-allocating) mbedtls_ssl_setup once avoids the intermittent
   // MBEDTLS_ERR_SSL_BAD_CONFIG seen with per-connection setup.
   mbedtls_ssl_init(&this->ssl_);
+  this->ssl_ready_ = true;
   int setup_ret = mbedtls_ssl_setup(&this->ssl_, &this->ssl_conf_);
   if (setup_ret != 0) {
     ESP_LOGE(TAG, "mbedtls_ssl_setup (reused) failed -0x%04x", static_cast<unsigned>(-setup_ret));
-    return;
+    this->teardown();
+    return false;
   }
-  this->ssl_ready_ = true;
 
   // Run the accept/handshake task from PSRAM to keep internal SRAM free.
   size_t stack_words = kShipTaskStackBytes / sizeof(StackType_t);
@@ -241,10 +249,30 @@ void EEBusShipListener::begin(const EEBusCertificateStore &cert, uint16_t port) 
   if (ship_task_stack == nullptr) {
     ESP_LOGE(TAG, "Failed to allocate %u bytes PSRAM task stack",
              static_cast<unsigned>(kShipTaskStackBytes));
-    return;
+    this->teardown();
+    return false;
+  }
+  if (ship_task_tcb == nullptr) {
+    ship_task_tcb = static_cast<StaticTask_t *>(
+        heap_caps_malloc(sizeof(StaticTask_t), MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
+    if (ship_task_tcb == nullptr) {
+      ESP_LOGE(TAG, "Failed to allocate SHIP task TCB");
+      free(ship_task_stack);
+      ship_task_stack = nullptr;
+      this->teardown();
+      return false;
+    }
   }
   ship_task_handle = xTaskCreateStatic(ship_accept_task, "eebus_ship", stack_words, nullptr,
-                                       tskIDLE_PRIORITY + 3, ship_task_stack, &ship_task_tcb);
+                                       tskIDLE_PRIORITY + 3, ship_task_stack, ship_task_tcb);
+  if (ship_task_handle == nullptr) {
+    ESP_LOGE(TAG, "Failed to create SHIP accept task");
+    free(ship_task_stack);
+    ship_task_stack = nullptr;
+    this->teardown();
+    return false;
+  }
+  return true;
 }
 
 static void ship_accept_task(void *arg) {
