@@ -207,7 +207,6 @@ script:
           root["of"] = id(tc_offset).state;
           root["og"] = id(tui_offset).state;
           root["oh"] = id(tuo_offset).state;
-          root["oi"] = id(default_compressor_frequencies_enabled).state;
 
           if (id(silent_mode_start_time).has_state()) {
             char buf[8];
@@ -219,6 +218,8 @@ script:
             snprintf(buf, sizeof(buf), "%02d:%02d", id(silent_mode_end_time).hour, id(silent_mode_end_time).minute);
             root["oj"] = buf;
           }
+
+          root["ok"] = id(default_compressor_frequencies_enabled).state;
 
 - id: send_modes
   then:

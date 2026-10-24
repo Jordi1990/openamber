@@ -2093,6 +2093,12 @@
             lv_obj_set_style_opa(adv_rows[i], LV_OPA_40, LV_PART_MAIN);
           }
         }
+
+        if (id(default_compressor_frequencies_enabled).state) {
+          lv_obj_add_state(id(set_default_compressor_frequencies_enabled_switch_ui), LV_STATE_CHECKED);
+        } else {
+          lv_obj_clear_state(id(set_default_compressor_frequencies_enabled_switch_ui), LV_STATE_CHECKED);
+        }
     - if:
         condition:
           switch.is_on: advanced_settings_enabled
