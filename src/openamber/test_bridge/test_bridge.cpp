@@ -518,6 +518,22 @@ void TestBridge::process_line(const std::string &line) {
           return true;
         }
       }
+      auto it_time = this->time_entities_.find(id);
+      if (it_time != this->time_entities_.end() && it_time->second != nullptr) {
+        std::string resp = json::build_json([&](JsonObject out) {
+          out["status"] = "ok";
+          out["type"] = "time";
+          char time_buf[16];
+          snprintf(time_buf, sizeof(time_buf), "%02d:%02d:%02d", it_time->second->hour, it_time->second->minute, it_time->second->second);
+          out["state"] = time_buf;
+          out["hour"] = it_time->second->hour;
+          out["minute"] = it_time->second->minute;
+          out["second"] = it_time->second->second;
+        });
+        this->send_response(resp);
+        return true;
+      }
+
       auto it_sel = this->selects_.find(id);
       if (it_sel != this->selects_.end() && it_sel->second != nullptr) {
         std::string resp = json::build_json([&](JsonObject out) {
@@ -618,6 +634,23 @@ void TestBridge::process_line(const std::string &line) {
         }
       }
       this->send_response(build_error_json("Select not found: " + id));
+      return true;
+    }
+
+    if (cmd == "set_time") {
+      std::string id = root["id"] | "";
+      int hour = root["hour"] | 0;
+      int minute = root["minute"] | 0;
+      int second = root["second"] | 0;
+      auto it = this->time_entities_.find(id);
+      if (it != this->time_entities_.end() && it->second != nullptr) {
+        auto call = it->second->make_call();
+        call.set_time(hour, minute, second);
+        call.perform();
+        this->send_response("{\"status\":\"ok\"}");
+        return true;
+      }
+      this->send_response(build_error_json("Time entity not found: " + id));
       return true;
     }
 

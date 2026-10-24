@@ -1,0 +1,25 @@
+# ══════════════════════════════════════════════════════════════
+# Datetime → LVGL UI bindings (event-driven via !extend)
+# These extend datetime entities defined in core/datetime.yaml
+# to add on_value callbacks that update LVGL widgets on change.
+# ══════════════════════════════════════════════════════════════
+
+# ── Settings page: Silent mode start time ──
+- id: !extend silent_mode_start_time
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_silent_mode_start_time_val
+          text:
+            format: "%02d:%02d"
+            args: ['x.hour', 'x.minute']
+
+# ── Settings page: Silent mode end time ──
+- id: !extend silent_mode_end_time
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_silent_mode_end_time_val
+          text:
+            format: "%02d:%02d"
+            args: ['x.hour', 'x.minute']

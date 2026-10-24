@@ -17,6 +17,18 @@
 namespace esphome {
 namespace eebus {
 
+// TLS/SHIP/SPINE state. Allocated (preferably in PSRAM) only once EEBUS is
+// enabled, so a disabled EEBUS costs no internal SRAM.
+struct EEBusRuntime {
+  EEBusCertificateStore cert_store;
+  EEBusShipListener ship_listener;
+  OhpcfServer ohpcf;
+  LpcServer lpc;
+  MpcServer mpc;
+  MdtServer mdt;
+  EebusNode node;
+};
+
 class EEBusComponent : public PollingComponent {
  public:
   EEBusComponent();
@@ -68,12 +80,8 @@ class EEBusComponent : public PollingComponent {
   void update() override;
 
   // Getters exposed to the SHIP/SPINE layer for outbound use-case data.
-  float get_dhw_temperature_c() const { return this->mdt_.get_temperature_c(); }
-  float get_power_w() const { return this->mpc_.get_power_w(); }
-
-  OhpcfServer &ohpcf() { return this->ohpcf_; }
-  LpcServer &lpc() { return this->lpc_; }
-  EebusNode &node() { return this->node_; }
+  float get_dhw_temperature_c() const { return this->rt_ ? this->rt_->mdt.get_temperature_c() : NAN; }
+  float get_power_w() const { return this->rt_ ? this->rt_->mpc.get_power_w() : 0.0f; }
 
  private:
   std::string device_sku_{"EEBUS-Device"};
@@ -120,13 +128,9 @@ class EEBusComponent : public PollingComponent {
   bool pending_limit_update_{false};
   bool pending_remote_changed_{false};
 
-  EEBusCertificateStore cert_store_;
-  EEBusShipListener ship_listener_;
-  OhpcfServer ohpcf_;
-  LpcServer lpc_;
-  MpcServer mpc_;
-  MdtServer mdt_;
-  EebusNode node_;
+  // Created on first enable and kept afterwards: the use-case callbacks and the
+  // SHIP task hold references into it.
+  EEBusRuntime *rt_{nullptr};
 
   std::function<std::string()> read_model_{nullptr};
   std::function<float()> read_power_;
@@ -147,7 +151,7 @@ class EEBusComponent : public PollingComponent {
   std::vector<std::string> inbound_spine_queue_;
 
   void init_certificate_and_keys();
-  void start_ship_listener();
+  bool start_ship_listener();
   bool advertise_mdns();
   void wire_use_cases();
   void check_failsafe();

@@ -24,6 +24,7 @@
 
 using namespace esphome;
 
+
 class CompressorController
 {
 private:
@@ -134,6 +135,12 @@ public:
     auto compressor_set_call = id(compressor_control_select).make_call();
     int mode_offset = id(compressor_control_select).size() - id(heat_compressor_mode).size();
     int capped_mode_index = std::min(defrost_recovery_mode, (int)id(heat_compressor_mode).active_index().value() + mode_offset);
+    if (id(silent_mode_active_sensor).state)
+    {
+      int silent_offset = id(compressor_control_select).size() - id(silent_mode_compressor_mode).size();
+      int silent_limit = (int)id(silent_mode_compressor_mode).active_index().value_or(3) + silent_offset;
+      capped_mode_index = std::min(capped_mode_index, silent_limit);
+    }
     compressor_set_call.set_index(capped_mode_index);
     compressor_set_call.perform();
     last_compressor_mode_change_ms_ = App.get_loop_component_start_time();

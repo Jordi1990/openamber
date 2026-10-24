@@ -1,3 +1,10 @@
+import os
+
+# ESPHome 2026.10 precompiled header pulls in namespace esphome::time (via datetime
+# entities), which breaks the unqualified time() call in logger_host.cpp.
+# Ensure virtual display / host builds always disable PCH.
+os.environ["ESPHOME_PCH_ENABLE"] = "0"
+
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.const import CONF_ID, CONF_PORT
@@ -120,6 +127,13 @@ async def to_code(config):
         if isinstance(c, dict) and "id" in c and c["id"]:
             c_id = str(getattr(c["id"], "id", c["id"]))
             cg.add(var.register_climate(c_id, cg.RawExpression(c_id)))
+
+    # Register time entities
+    for dt in CORE.config.get("datetime", []):
+        if isinstance(dt, dict) and "id" in dt and dt["id"]:
+            if str(dt.get("type", "")).upper() == "TIME":
+                dt_id = str(getattr(dt["id"], "id", dt["id"]))
+                cg.add(var.register_time_entity(dt_id, cg.RawExpression(dt_id)))
 
     # Register text sensors
     for ts in CORE.config.get("text_sensor", []):

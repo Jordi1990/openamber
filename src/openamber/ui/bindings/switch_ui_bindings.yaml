@@ -4,6 +4,16 @@
 # on_state callbacks that update LVGL widgets on change.
 # ══════════════════════════════════════════════════════════════
 
+# ── Settings page: Silent mode toggle ──
+- id: !extend silent_mode_enabled_switch
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_silent_mode_switch_ui
+          state:
+            checked: !lambda 'return x;'
+      - script.execute: update_silent_mode_ui
+
 # ── Settings page: Analytics toggle ──
 - id: !extend analytics_enabled_switch
   on_state:

@@ -106,6 +106,11 @@ class OpenAmberClient:
         w = self.get_widget(widget_id)
         return bool(w.get("hidden", True))
 
+    def is_disabled(self, widget_id: str) -> bool:
+        """Check if widget is disabled."""
+        w = self.get_widget(widget_id)
+        return bool(w.get("disabled", False))
+
     def get_label(self, widget_id: str) -> str:
         """Get text of a label widget."""
         w = self.get_widget(widget_id)
@@ -135,6 +140,11 @@ class OpenAmberClient:
         """Set the active option of a select entity."""
         res = self.send_cmd({"cmd": "set_select", "id": select_id, "option": str(option)})
         return self._check_status(res, f"set_select({select_id}, {option})")
+
+    def set_time(self, time_id: str, hour: int, minute: int, second: int = 0) -> bool:
+        """Set time on a datetime entity."""
+        res = self.send_cmd({"cmd": "set_time", "id": time_id, "hour": int(hour), "minute": int(minute), "second": int(second)})
+        return self._check_status(res, f"set_time({time_id})")
 
     def set_climate(
         self,

@@ -28,7 +28,7 @@ class EEBusShipListener {
  public:
   ~EEBusShipListener() { this->teardown(); }
 
-  void begin(const EEBusCertificateStore &cert, uint16_t port);
+  bool begin(const EEBusCertificateStore &cert, uint16_t port);
   void stop();
   uint16_t get_port() const { return this->port_; }
 
