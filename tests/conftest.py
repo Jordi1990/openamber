@@ -101,6 +101,7 @@ def openamber(openamber_proc):
 def clean_system(openamber):
     """Reset system to clean idle state with fully completed initialization."""
     openamber.set_switch("heat_demand_switch", False)
+    openamber.set_switch("default_compressor_frequencies_enabled", False)
     openamber.set_switch("heat_demand_zone_2_switch", False)
     openamber.set_switch("cool_demand_switch", False)
     openamber.set_switch("emergency_mode_enabled", False)

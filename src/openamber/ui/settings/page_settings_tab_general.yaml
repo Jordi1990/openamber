@@ -842,6 +842,33 @@ obj:
                             - switch.turn_on: flow_sensor_enabled
 
           - obj:
+              id: set_general_hardware_default_compressor_frequencies
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Gebruik standaard compressorfrequenties", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Compressorfrequenties van de buitenunit niet overschrijven", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - switch:
+                    id: set_default_compressor_frequencies_enabled_switch_ui
+                    align: TOP_RIGHT
+                    bg_color: 0x9CA3AF
+                    indicator:
+                      bg_color: 0x16A34A
+                    knob:
+                      bg_color: 0xFFFFFF
+                    on_click:
+                      - if:
+                          condition:
+                            switch.is_on: default_compressor_frequencies_enabled
+                          then:
+                            - switch.turn_off: default_compressor_frequencies_enabled
+                          else:
+                            - switch.turn_on: default_compressor_frequencies_enabled
+
+          - obj:
               id: set_general_hardware_flow_sensor_calibration
               width: 100%
               height: SIZE_CONTENT

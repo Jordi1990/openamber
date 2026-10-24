@@ -207,6 +207,7 @@ script:
           root["of"] = id(tc_offset).state;
           root["og"] = id(tui_offset).state;
           root["oh"] = id(tuo_offset).state;
+          root["oi"] = id(default_compressor_frequencies_enabled).state;
 
 - id: send_modes
   then:
