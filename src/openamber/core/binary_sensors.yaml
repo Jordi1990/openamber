@@ -90,6 +90,43 @@ binary_sensor:
     sorting_group_id: overview
 
 - platform: template
+  id: silent_mode_active_sensor
+  name: "Stille modus actief"
+  device_class: running
+  lambda: |-
+    if (!id(silent_mode_enabled_switch).state)
+    {
+      return false;
+    }
+
+    auto now = id(my_time).now();
+    if (!now.is_valid() || !id(silent_mode_start_time).has_state() || !id(silent_mode_end_time).has_state())
+    {
+      return false;
+    }
+
+    const int now_min   = now.hour * 60 + now.minute;
+    const int start_min = id(silent_mode_start_time).hour * 60 + id(silent_mode_start_time).minute;
+    const int end_min   = id(silent_mode_end_time).hour * 60 + id(silent_mode_end_time).minute;
+
+    bool in_window = false;
+    if (start_min <= end_min) {
+      // same day (e.g. 06:00-22:00)
+      in_window = (now_min >= start_min && now_min <= end_min);
+    } else {
+      // overnight (e.g. 22:00-06:00)
+      in_window = (now_min >= start_min || now_min <= end_min);
+    }
+
+    if (!in_window) {
+      return false;
+    }
+
+    return true;
+  web_server: 
+    sorting_group_id: overview
+
+- platform: template
   id: dhw_active
 
 - platform: template

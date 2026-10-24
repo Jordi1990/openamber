@@ -38,7 +38,7 @@ def openamber_proc():
         time.sleep(0.5)
         cmd = [
             "wsl", "-d", "Debian", "bash", "-c",
-            f"SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy {shlex.quote(wsl_bin)}"
+            f"SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy ESPHOME_PCH_ENABLE=0 {shlex.quote(wsl_bin)}"
         ]
         started_proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     else:
@@ -54,6 +54,7 @@ def openamber_proc():
         env = os.environ.copy()
         env["SDL_VIDEODRIVER"] = "dummy"
         env["SDL_AUDIODRIVER"] = "dummy"
+        env["ESPHOME_PCH_ENABLE"] = "0"
         started_proc = subprocess.Popen([bin_path], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     time.sleep(2.0)
@@ -73,8 +74,15 @@ def openamber_proc():
             if os.name == "nt":
                 if wsl_bin:
                     subprocess.run(["wsl", "-u", "root", "-d", "Debian", "pkill", "-9", "-f", wsl_bin], capture_output=True)
+                subprocess.run(["wsl", "-d", "Debian", "bash", "-c", "rm -f ~/.esphome/prefs/openamber-test.prefs"], capture_output=True)
             else:
                 subprocess.run(["pkill", "-9", "-f", bin_path], capture_output=True)
+                pref_file = os.path.expanduser("~/.esphome/prefs/openamber-test.prefs")
+                if os.path.exists(pref_file):
+                    try:
+                        os.remove(pref_file)
+                    except OSError:
+                        pass
 
 
 @pytest.fixture(scope="session")
@@ -106,6 +114,10 @@ def clean_system(openamber):
     openamber.set_switch("emergency_mode_enabled", False)
     openamber.set_switch("dhw_enabled_switch", True)
     openamber.set_switch("dhw_schedule_enabled_switch", False)
+    openamber.set_switch("silent_mode_enabled_switch", False)
+    openamber.set_select("silent_mode_compressor_mode", "Gemiddeld")
+    openamber.set_time("silent_mode_start_time", 23, 0, 0)
+    openamber.set_time("silent_mode_end_time", 7, 0, 0)
     openamber.set_switch("legio_enabled_switch", True)
     openamber.set_switch("reset_start_timeout_errors_switch", True)
     openamber.set_switch("mixing_valve_zone1_enabled", False)

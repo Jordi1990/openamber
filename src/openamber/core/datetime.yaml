@@ -25,3 +25,21 @@ datetime:
     initial_value: "17:00:00"
     restore_value: true
     entity_category: config
+
+  - platform: template
+    id: silent_mode_start_time
+    type: time
+    name: "Stille modus starttijd"
+    optimistic: true
+    initial_value: "23:00:00"
+    restore_value: true
+    entity_category: config
+
+  - platform: template
+    id: silent_mode_end_time
+    type: time
+    name: "Stille modus eindtijd"
+    optimistic: true
+    initial_value: "07:00:00"
+    restore_value: true
+    entity_category: config

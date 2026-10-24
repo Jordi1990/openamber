@@ -231,6 +231,29 @@ private:
     return id(heat_cool_temperature_tc).state;
   }
 
+  int GetMaxAllowedCompressorMode()
+  {
+    auto& active_mode = GetActiveCompressorMode();
+    int mode_offset = id(compressor_control_select).size() - active_mode.size();
+    if (IsCoolingDemand())
+    {
+      // Cooling maximum range is limited to make the mode selection based on the lower frequencies, maximum compressor modes should not be needed for cooling.
+      mode_offset -= 3;
+    }
+    int max_allowed = (int)active_mode.active_index().value() + mode_offset;
+    if (id(silent_mode_active_sensor).state)
+    {
+      int silent_offset = id(compressor_control_select).size() - id(silent_mode_compressor_mode).size();
+      if (IsCoolingDemand())
+      {
+        silent_offset -= 3;
+      }
+      int silent_limit = (int)id(silent_mode_compressor_mode).active_index().value_or(3) + silent_offset;
+      max_allowed = std::min(max_allowed, silent_limit);
+    }
+    return max_allowed;
+  }
+
   int MapPIDToCompressorMode()
   {
     float pid = GetPIDValue();
@@ -238,14 +261,7 @@ private:
     if (raw > 1.0f)
       raw = 1.0f;
 
-    auto& active_mode = GetActiveCompressorMode();
-    int mode_offset = id(compressor_control_select).size() - active_mode.size();
-    if(IsCoolingDemand())
-    {
-      // Cooling maximum range is limited to make the mode selection based on the lower frequencies, maximum compressor modes should not be needed for cooling.
-      mode_offset -= 3;
-    }
-    int amount_of_modes = active_mode.active_index().value() + mode_offset;
+    int amount_of_modes = GetMaxAllowedCompressorMode();
     int desired_mode = (int)roundf(raw * (amount_of_modes - 1)) + 1;
     return std::max(1, std::min(desired_mode, (int)amount_of_modes));
   }
@@ -276,9 +292,7 @@ private:
     }
 
     // Cap by the user-selected compressor mode
-    auto& active_mode = GetActiveCompressorMode();
-    int mode_offset = id(compressor_control_select).size() - active_mode.size();
-    int max_allowed = (int)active_mode.active_index().value() + mode_offset;
+    int max_allowed = GetMaxAllowedCompressorMode();
     return std::min(start_compressor_frequency_mode, max_allowed);
   }
 
@@ -302,8 +316,7 @@ private:
     backup_degmin_last_ms_ = now;
     const float dt_min = (float)dt_ms / 60000.0f;
 
-    int mode_offset = id(compressor_control_select).size() - id(heat_compressor_mode).size();
-    int max_compressor_mode = id(heat_compressor_mode).active_index().value() + mode_offset;
+    int max_compressor_mode = GetMaxAllowedCompressorMode();
     bool is_at_max_mode = id(compressor_control_select).active_index().value() >= max_compressor_mode;
 
     // Reset accumulated degmin if there is no difference or we are not at max compressor mode
@@ -527,6 +540,7 @@ public:
     const uint32_t now = App.get_loop_component_start_time();
     int desired_compressor_mode = MapPIDToCompressorMode();
     auto current_compressor_mode = id(compressor_control_select).active_index().value();
+    int max_allowed = GetMaxAllowedCompressorMode();
     float current_temperature = GetControlTemperature();
     float target = GetPidController().target_temperature;
     float dt = current_temperature - target;
@@ -534,8 +548,9 @@ public:
     // Deadband on control temperature to avoid too frequent changes around setpoint
     if (fabsf(dt) < DEAD_BAND_DT)
     {
-      ESP_LOGI("amber", "ΔT=%.2f°C within deadband, compressor mode remains at %d", dt, current_compressor_mode);
-      return current_compressor_mode;
+      int clamped_mode = std::min((int)current_compressor_mode, max_allowed);
+      ESP_LOGI("amber", "ΔT=%.2f°C within deadband, compressor mode remains at %d", dt, clamped_mode);
+      return clamped_mode;
     }
 
     // Guard: never modulate up when temperature has already overshot the setpoint
@@ -549,9 +564,7 @@ public:
       return current_compressor_mode;
     }
 
-    auto& active_mode = GetActiveCompressorMode();
-    int mode_offset = id(compressor_control_select).size() - active_mode.size();
-    int capped_mode_index = std::min(desired_compressor_mode, (int)active_mode.active_index().value() + mode_offset);
+    int capped_mode_index = std::min(desired_compressor_mode, max_allowed);
 
     ESP_LOGI("amber", "PID %.2f -> mode %d (previous mode %d)", GetPIDValue(), capped_mode_index, current_compressor_mode);
     return capped_mode_index;
