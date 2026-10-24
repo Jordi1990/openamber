@@ -100,7 +100,7 @@ binary_sensor:
     }
 
     auto now = id(my_time).now();
-    if (!id(silent_mode_start_time).has_state() || !id(silent_mode_end_time).has_state())
+    if (!now.is_valid() || !id(silent_mode_start_time).has_state() || !id(silent_mode_end_time).has_state())
     {
       return false;
     }

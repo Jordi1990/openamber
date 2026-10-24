@@ -540,6 +540,7 @@ public:
     const uint32_t now = App.get_loop_component_start_time();
     int desired_compressor_mode = MapPIDToCompressorMode();
     auto current_compressor_mode = id(compressor_control_select).active_index().value();
+    int max_allowed = GetMaxAllowedCompressorMode();
     float current_temperature = GetControlTemperature();
     float target = GetPidController().target_temperature;
     float dt = current_temperature - target;
@@ -547,8 +548,9 @@ public:
     // Deadband on control temperature to avoid too frequent changes around setpoint
     if (fabsf(dt) < DEAD_BAND_DT)
     {
-      ESP_LOGI("amber", "ΔT=%.2f°C within deadband, compressor mode remains at %d", dt, current_compressor_mode);
-      return current_compressor_mode;
+      int clamped_mode = std::min((int)current_compressor_mode, max_allowed);
+      ESP_LOGI("amber", "ΔT=%.2f°C within deadband, compressor mode remains at %d", dt, clamped_mode);
+      return clamped_mode;
     }
 
     // Guard: never modulate up when temperature has already overshot the setpoint
@@ -562,7 +564,6 @@ public:
       return current_compressor_mode;
     }
 
-    int max_allowed = GetMaxAllowedCompressorMode();
     int capped_mode_index = std::min(desired_compressor_mode, max_allowed);
 
     ESP_LOGI("amber", "PID %.2f -> mode %d (previous mode %d)", GetPIDValue(), capped_mode_index, current_compressor_mode);
