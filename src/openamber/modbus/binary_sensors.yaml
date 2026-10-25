@@ -63,6 +63,7 @@ binary_sensor:
   address: 1220
   register_type: holding
   reuse_previous_range: true
+  bitmask: 0x1
   device_class: running
   web_server: 
     sorting_group_id: diagnostic
