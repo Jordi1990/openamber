@@ -696,7 +696,7 @@ public:
         pump_controller_->ApplySpeedChangeIfNeeded(false);
 
         // Stop if there is no compressor demand or the compressor is not allowed to start and pump interval is finished.
-        if ((!IsCompressorAllowedToStart() || !HasCompressorDemand()) && pump_controller_->IsIntervalCycleFinished())
+        if ((!HasCompressorDemand() || !IsCompressorAllowedToStart()) && pump_controller_->IsIntervalCycleFinished())
         {
           ESP_LOGI("amber", "Stopping pump (interval cycle finished)");
           StopPumps();
