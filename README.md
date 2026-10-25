@@ -103,7 +103,28 @@ When using the Waveshare ESP32-S3 Touch LCD 5'' you need to set the RS485 resist
 | 1305       | Threeway valve state                |
 | 1309       | Backup heater active                |
 | 1208       | Outdoor coil temperature (Tv2)      |
+| 1225       | Status / sensor error register (see below) |
 | 1303       | Internal pump state                 |
+
+#### Status / Alarm codes (Address 1225)
+
+| Bitmask    | Function                                        |
+|:----------:|:-----------------------------------------------:|
+| 0x0001     | Storing sensor ruimtetemperatuur (F13, Tr 1199) |
+| 0x0002     | Storing sensor tapwatertemperatuur (F14, Tw 1200)|
+| 0x0004     | Storing sensor cv-aanvoertemperatuur (F15, Tc 1201)|
+| 0x0008     | Storing sensor aanvoertemperatuur Tuo (F16, 1202)|
+| 0x0010     | Storing sensor retourtemperatuur Tui (F17, 1203)|
+| 0x0020     | Storing sensor condensortemperatuur Tup (F18, 1204)|
+| 0x0040     | Sensor 1205                                     |
+| 0x0080     | Sensor 1206                                     |
+| 0x0100     | Storing sensor cv-aanvoertemperatuur zone 1 (F21, Tv1 1207)|
+| 0x0200     | Storing sensor cv-aanvoertemperatuur zone 2 (F22, Tv2 1208)|
+| 0x0400     | Sensor 1209                                     |
+| 0x0800     | Sensor 1210                                     |
+| 0x1000     | Communicatie-failsafe binnenunit                |
+| 0x4000     | EEPROM-fout binnenunit                          |
+| 0x8000     | Pompterugmelding P0 alarm                       |
 
 #### Write
 | Address    | Function                                           |

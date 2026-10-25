@@ -60,7 +60,7 @@ binary_sensor:
         return false;
       }
 
-      if(id(error_active).state)
+      if(id(error_active).state || id(error_flag_f14).state || std::isnan(tw))
       {
         return false;
       }
@@ -137,6 +137,9 @@ binary_sensor:
       return false;
     }
     if (id(thermostat_mode_select).current_option() == "Intern") {
+      if (id(error_flag_f13).state || std::isnan(id(room_temperature).state)) {
+        return true;
+      }
       return id(climate_controller).action == climate::CLIMATE_ACTION_HEATING;
     }
     return id(external_heat_demand_wired_delayed).state || id(heat_demand_switch).state;
@@ -151,6 +154,10 @@ binary_sensor:
   device_class: running
   lambda: |-
     if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state) {
+      return false;
+    }
+
+    if (id(error_flag_f22).state || std::isnan(id(heat_cool_temperature_tv2).state)) {
       return false;
     }
 
@@ -188,6 +195,9 @@ binary_sensor:
       return false;
     }
     if (id(thermostat_mode_select).current_option() == "Intern") {
+      if (id(error_flag_f13).state || std::isnan(id(room_temperature).state)) {
+        return false;
+      }
       return id(climate_controller).action == climate::CLIMATE_ACTION_COOLING;
     }
     return id(external_cool_demand_wired_delayed).state || id(cool_demand_switch).state;
@@ -641,14 +651,50 @@ binary_sensor:
     sorting_group_id: error_codes
 
 - platform: template
+  id: error_flag_f13
+  name: "Storing sensor ruimtetemperatuur (F13)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(inside_unit_status_1225_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
+    return (raw & 0x0001) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_f14
+  name: "Storing sensor tapwatertemperatuur (F14)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(inside_unit_status_1225_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
+    return (raw & 0x0002) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_f15
+  name: "Storing sensor cv-aanvoertemperatuur (F15)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(inside_unit_status_1225_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
+    return (raw & 0x0004) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
   id: error_flag_f16
   name: "Storing sensor aanvoertemperatuur Tuo (F16)"
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    if (!id(error_register_2121_raw).has_state()) return false;
-    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
-    return (raw & 0x0200) != 0;
+    bool err_2121 = id(error_register_2121_raw).has_state() && (((uint16_t) id(error_register_2121_raw).state & 0x0200) != 0);
+    bool err_1225 = id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0008) != 0);
+    return err_2121 || err_1225;
   web_server: 
     sorting_group_id: error_codes
 
@@ -658,9 +704,9 @@ binary_sensor:
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    if (!id(error_register_2121_raw).has_state()) return false;
-    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
-    return (raw & 0x0400) != 0;
+    bool err_2121 = id(error_register_2121_raw).has_state() && (((uint16_t) id(error_register_2121_raw).state & 0x0400) != 0);
+    bool err_1225 = id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0010) != 0);
+    return err_2121 || err_1225;
   web_server: 
     sorting_group_id: error_codes
 
@@ -670,9 +716,69 @@ binary_sensor:
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    if (!id(error_register_2121_raw).has_state()) return false;
-    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
-    return (raw & 0x0800) != 0;
+    bool err_2121 = id(error_register_2121_raw).has_state() && (((uint16_t) id(error_register_2121_raw).state & 0x0800) != 0);
+    bool err_1225 = id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0020) != 0);
+    return err_2121 || err_1225;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_f21
+  name: "Storing sensor cv-aanvoertemperatuur zone 1 (F21)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(inside_unit_status_1225_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
+    return (raw & 0x0100) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_f22
+  name: "Storing sensor cv-aanvoertemperatuur zone 2 (F22)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(inside_unit_status_1225_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
+    return (raw & 0x0200) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_inside_comm_failsafe
+  name: "Communicatie-failsafe binnenunit"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(inside_unit_status_1225_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
+    return (raw & 0x1000) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_inside_eeprom
+  name: "EEPROM-fout binnenunit"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(inside_unit_status_1225_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
+    return (raw & 0x4000) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_pump_p0_alarm
+  name: "Pompterugmelding P0 alarm"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(inside_unit_status_1225_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
+    return (raw & 0x8000) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -764,6 +870,7 @@ binary_sensor:
            id(error_flag_e07).state ||
            id(error_flag_e08).state ||
            id(error_flag_f10).state ||
+           id(error_flag_f15).state ||
            id(error_flag_f16).state ||
            id(error_flag_f17).state ||
            id(error_flag_f18).state ||
@@ -787,4 +894,7 @@ binary_sensor:
            id(error_flag_p06).state ||
            id(error_flag_p11).state ||
            id(error_flag_p12).state ||
-           id(error_flag_p13).state;
+           id(error_flag_p13).state ||
+           id(error_flag_inside_comm_failsafe).state ||
+           id(error_flag_inside_eeprom).state ||
+           id(error_flag_pump_p0_alarm).state;

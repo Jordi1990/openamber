@@ -71,7 +71,12 @@ private:
     // Zone 1
     if (mixing_z1_enabled)
     {
-      if (!z1_demand)
+      if (id(error_flag_f21).state || std::isnan(id(heat_cool_temperature_tv1).state))
+      {
+        mixing_valve_zone1_->CloseValve();
+        id(pid_mixing_valve_zone1).reset_integral_term();
+      }
+      else if (!z1_demand)
       {
         if (frost_protection_active)
         {
@@ -97,7 +102,12 @@ private:
     // Zone 2
     if (mixing_z2_enabled)
     {
-      if (!z2_demand)
+      if (id(error_flag_f22).state || std::isnan(id(heat_cool_temperature_tv2).state))
+      {
+        mixing_valve_zone2_->CloseValve();
+        id(pid_mixing_valve_zone2).reset_integral_term();
+      }
+      else if (!z2_demand)
       {
         if (frost_protection_active)
         {

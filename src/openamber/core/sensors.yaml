@@ -622,7 +622,10 @@ sensor:
     int source = (selected_source.has_value() && selected_source.value() == 1) ? 1 : 0;
     if (source == 1)
     {
-      return id(heat_cool_temperature_tv1).state;
+      if (!id(error_flag_f21).state && !std::isnan(id(heat_cool_temperature_tv1).state))
+      {
+        return id(heat_cool_temperature_tv1).state;
+      }
     }
     return id(heat_cool_temperature_tc).state;
 
