@@ -167,10 +167,50 @@ sensor:
         return ((x * -1) + 1000) / 10;
   web_server: 
     sorting_group_id: overview
-  on_value: 
+  on_value:
     then:
-      - lambda: 
+      - lambda:
           id(modbus_inside_is_online) = true;
+
+# PWM feedback signal of circulation pump P0 (Shimge APM25-9-130 PWM1 / Wilo Para iPWM compatible).
+# The inside unit measures the duty cycle of the pump's 75 Hz feedback output on PD3 and stores it in 0.1 %.
+# Wilo Para iPWM output: 0 % = interface fault, 2 % = standby, 5-75 % = running (flow or power info),
+# 80 % = warning, 85-90 % = error, 95 % = permanent failure, 100 % = no power / interface fault.
+# The original HeatStar controller derives the flow from this value (clamped to 5-70 %).
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: pump_p0_feedback_duty
+  name: "Pomp P0 terugmelding"
+  address: 1221
+  register_type: holding
+  value_type: U_WORD
+  unit_of_measurement: "%"
+  state_class: measurement
+  accuracy_decimals: 1
+  entity_category: diagnostic
+  filters:
+    - multiply: 0.1
+  web_server:
+    sorting_group_id: diagnostic
+
+# Flow measured by the inside unit itself from a pulse flow sensor input (TIM1 capture).
+# Scale still to be verified (expected 0.1 L/min per count); reads 0 when no sensor is wired to that input.
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: inside_unit_flow_rate
+  name: "Debiet binnenunit (1314)"
+  address: 1314
+  register_type: holding
+  value_type: U_WORD
+  device_class: volume_flow_rate
+  unit_of_measurement: "L/min"
+  state_class: measurement
+  accuracy_decimals: 1
+  entity_category: diagnostic
+  filters:
+    - multiply: 0.1
+  web_server:
+    sorting_group_id: diagnostic
 
 # Outside unit
 - platform: modbus_controller

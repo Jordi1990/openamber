@@ -106,6 +106,8 @@ When using the Waveshare ESP32-S3 Touch LCD 5'' you need to set the RS485 resist
 | 1309       | Backup heater active                |
 | 1208       | Outdoor coil temperature (Tv2)      |
 | 1303       | Internal pump state                 |
+| 1221       | Pump P0 PWM feedback duty (0.1 %)   |
+| 1314       | Flow from inside unit pulse input (0.1 L/min, to be verified) |
 
 #### Write
 | Address    | Function                                           |
