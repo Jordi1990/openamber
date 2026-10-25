@@ -384,3 +384,77 @@ obj:
                             - label: { id: eebus_page_2_button_lbl, text: "\U000F0142", text_color: 0x4B5563, text_font: font_mdi_24, align: CENTER }
                 - !include settings/page_settings_tab_wifi.yaml
                 - !include settings/page_settings_tab_thermostat.yaml
+
+    - obj:
+        id: default_compressor_frequencies_modal
+        width: 100%
+        height: 100%
+        hidden: true
+        bg_color: 0x000000
+        bg_opa: 45%
+        radius: 18
+        border_width: 0
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+
+        widgets:
+          - obj:
+              id: default_compressor_frequencies_modal_card
+              width: 580
+              height: 260
+              align: CENTER
+              bg_color: 0xFFFFFF
+              bg_opa: 100%
+              radius: 18
+              border_width: 0
+              border_opa: 0%
+              pad_left: 22
+              pad_right: 22
+              pad_top: 18
+              pad_bottom: 18
+              scrollbar_mode: "OFF"
+              scrollable: false
+
+              widgets:
+                - label:
+                    id: default_compressor_frequencies_modal_title
+                    text: "Herstart vereist"
+                    text_color: 0x1F2933
+                    text_font: font_text_24
+                    align: TOP_LEFT
+
+                - label:
+                    id: default_compressor_frequencies_modal_text
+                    width: 100%
+                    text: "Om de standaard compressorfrequenties te activeren moet de complete warmtepomp inclusief buitenunit opnieuw worden opgestart door de stroom kort te onderbreken."
+                    text_color: 0x1F2933
+                    text_font: font_text_20
+                    long_mode: WRAP
+                    align: TOP_LEFT
+                    y: 48
+
+                - obj:
+                    id: default_compressor_frequencies_modal_ok_button
+                    width: 200
+                    height: 52
+                    align: BOTTOM_RIGHT
+                    bg_color: 0x0072CE
+                    bg_opa: 100%
+                    radius: 14
+                    border_width: 0
+                    border_opa: 0%
+                    pad_all: 0
+                    scrollbar_mode: "OFF"
+                    scrollable: false
+                    on_click:
+                      - lvgl.widget.hide:
+                          id: default_compressor_frequencies_modal
+                    widgets:
+                      - label:
+                          id: default_compressor_frequencies_modal_ok_label
+                          text: "Begrepen"
+                          text_color: 0xFFFFFF
+                          text_font: font_text_24
+                          align: CENTER

@@ -96,7 +96,9 @@ When using the Waveshare ESP32-S3 Touch LCD 5'' you need to set the RS485 resist
 | 1212       | Pump P0 active                      |
 | 1213       | External cooling signal             |
 | 1214       | External heating signal             |
+| 1219       | External heating signal Zone 2      |
 | 1220       | Digital inputs / SG-Ready SGB (bit field, see below) | 
+| 1220       | SmartGrid Ready SGB                 | 
 | 1300       | Pump P1 active                      |
 | 1301       | Pump P2 active                      |
 | 1302       | DHW pump active                     |

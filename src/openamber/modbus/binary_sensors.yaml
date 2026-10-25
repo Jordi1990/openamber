@@ -48,7 +48,8 @@ binary_sensor:
   id: external_heat_demand_wired_zone_2
   internal: True
   name: "Externe warmtevraag Zone 2 (bedraad)"
-  address: 1215
+  address: 1219
+  reuse_previous_range: true
   register_type: holding
   device_class: running
   web_server: 

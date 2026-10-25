@@ -208,6 +208,19 @@ script:
           root["og"] = id(tui_offset).state;
           root["oh"] = id(tuo_offset).state;
 
+          if (id(silent_mode_start_time).has_state()) {
+            char buf[8];
+            snprintf(buf, sizeof(buf), "%02d:%02d", id(silent_mode_start_time).hour, id(silent_mode_start_time).minute);
+            root["oi"] = buf;
+          }
+          if (id(silent_mode_end_time).has_state()) {
+            char buf[8];
+            snprintf(buf, sizeof(buf), "%02d:%02d", id(silent_mode_end_time).hour, id(silent_mode_end_time).minute);
+            root["oj"] = buf;
+          }
+
+          root["ok"] = id(default_compressor_frequencies_enabled).state;
+
 - id: send_modes
   then:
     - mqtt.publish_json:
@@ -231,6 +244,10 @@ script:
           {
             auto idx = id(dhw_compressor_mode_max).active_index();
             root["mx"] = idx.has_value() ? idx.value() : -1;
+          }
+          {
+            auto idx = id(silent_mode_compressor_mode).active_index();
+            root["mm"] = idx.has_value() ? idx.value() : -1;
           }
 
           {
@@ -270,10 +287,10 @@ script:
           root["wc"] = id(cool_demand_switch).state;
 
           root["ws"] = id(dhw_schedule_enabled_switch).state;
+          root["wm"] = id(silent_mode_enabled_switch).state;
           root["wp"] = id(pump_p1_enabled).state;
 
           root["xs"] = id(emergency_mode_enabled).state;
-          root["xt"] = id(service_mode_enabled).state;
           root["xu"] = id(flow_sensor_enabled).state;
           root["xv"] = id(pump_p0_pid_enabled).state;
           root["xw"] = id(pump_p0_pid_target_delta_t).state;
@@ -368,6 +385,7 @@ script:
           }
 
           root["vs"] = id(oil_return_cycle_active).state;
+          root["vt"] = id(silent_mode_active_sensor).state;
 
 - id: send_telemetry_4
   then:

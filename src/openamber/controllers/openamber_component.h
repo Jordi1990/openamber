@@ -130,6 +130,10 @@ void OpenAmberComponent::update()
       {
         ESP_LOGI("amber", "Detected HPS unit based on EEPROM version, not writing heating frequency table.");
       }
+      else if(id(default_compressor_frequencies_enabled).state)
+      {
+        ESP_LOGI("amber", "Default compressor frequencies setting enabled, not writing frequency tables.");
+      }
       else
       {
         WriteHeatingFrequencyTable();
