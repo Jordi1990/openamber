@@ -229,6 +229,7 @@
               id: general_select_tab
               tab_index: 0
           - script.execute: update_advanced_settings_ui
+          - script.execute: update_silent_mode_ui
     - if:
         condition:
           lambda: 'return tab_index == 1;'
@@ -538,6 +539,7 @@
                       - script.execute: update_thermostat_settings_ui
                       - script.execute: update_pump_pid_ui
                       - script.execute: update_control_temp_source_ui
+                      - script.execute: update_silent_mode_ui
                     else:
                       - if:
                           condition:
@@ -698,22 +700,25 @@
         lv_obj_add_flag(id(advanced_defrost_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(eebus_pager), LV_OBJ_FLAG_HIDDEN);
 
-        lv_obj_t* panels[4] = {
+        lv_obj_t* panels[5] = {
           id(panel_general_page_systeem),
           id(panel_general_page_mengventielen),
           id(panel_general_page_sensor_kalibratie),
+          id(panel_general_page_stiltemodus),
           id(panel_general_page_hardware)
         };
-        lv_obj_t* tabs[4] = {
+        lv_obj_t* tabs[5] = {
           id(general_stab_systeem),
           id(general_stab_mengventielen),
           id(general_stab_sensor_kalibratie),
+          id(general_stab_stiltemodus),
           id(general_stab_hardware)
         };
-        lv_obj_t* labels[4] = {
+        lv_obj_t* labels[5] = {
           id(general_stab_systeem_lbl),
           id(general_stab_mengventielen_lbl),
           id(general_stab_sensor_kalibratie_lbl),
+          id(general_stab_stiltemodus_lbl),
           id(general_stab_hardware_lbl)
         };
 
@@ -729,7 +734,7 @@
           lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
         }
 
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 5; i++) {
           if (i == tab_index) {
             lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
             lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
@@ -766,7 +771,128 @@
         condition:
           lambda: 'return tab_index == 3;'
         then:
+          - script.execute: update_silent_mode_ui
+    - if:
+        condition:
+          lambda: 'return tab_index == 4;'
+        then:
           - script.execute: update_flow_sensor_calibration_ui
+
+- id: update_silent_mode_ui
+  mode: restart
+  then:
+    - lvgl.widget.update:
+        id: set_silent_mode_switch_ui
+        state:
+          checked: !lambda 'return id(silent_mode_enabled_switch).state;'
+    - lvgl.label.update:
+        id: set_silent_mode_start_time_val
+        text: !lambda |-
+          if (id(silent_mode_start_time).has_state()) {
+            char buf[8];
+            snprintf(buf, sizeof(buf), "%02d:%02d", id(silent_mode_start_time).hour, id(silent_mode_start_time).minute);
+            return std::string(buf);
+          }
+          return std::string("23:00");
+    - lvgl.label.update:
+        id: set_silent_mode_end_time_val
+        text: !lambda |-
+          if (id(silent_mode_end_time).has_state()) {
+            char buf[8];
+            snprintf(buf, sizeof(buf), "%02d:%02d", id(silent_mode_end_time).hour, id(silent_mode_end_time).minute);
+            return std::string(buf);
+          }
+          return std::string("07:00");
+
+    - lvgl.label.update:
+        id: set_silent_mode_start_time_lbl
+        text_color: !lambda |-
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF);
+    - lvgl.label.update:
+        id: set_silent_mode_start_time_sub
+        text_color: !lambda |-
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0x6B7280) : lv_color_hex(0x9CA3AF);
+    - lvgl.label.update:
+        id: set_silent_mode_start_time_val
+        text_color: !lambda |-
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF);
+    - lvgl.widget.update:
+        id: set_silent_mode_start_time_dec
+        bg_color: !lambda |-
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+    - lvgl.label.update:
+        id: set_silent_mode_start_time_dec_lbl
+        text_color: !lambda |-
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF);
+    - lvgl.widget.update:
+        id: set_silent_mode_start_time_inc
+        bg_color: !lambda |-
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+    - lvgl.label.update:
+        id: set_silent_mode_start_time_inc_lbl
+        text_color: !lambda |-
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF);
+
+    - lvgl.label.update:
+        id: set_silent_mode_end_time_lbl
+        text_color: !lambda |-
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF);
+    - lvgl.label.update:
+        id: set_silent_mode_end_time_sub
+        text_color: !lambda |-
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0x6B7280) : lv_color_hex(0x9CA3AF);
+    - lvgl.label.update:
+        id: set_silent_mode_end_time_val
+        text_color: !lambda |-
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF);
+    - lvgl.widget.update:
+        id: set_silent_mode_end_time_dec
+        bg_color: !lambda |-
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+    - lvgl.label.update:
+        id: set_silent_mode_end_time_dec_lbl
+        text_color: !lambda |-
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF);
+    - lvgl.widget.update:
+        id: set_silent_mode_end_time_inc
+        bg_color: !lambda |-
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+    - lvgl.label.update:
+        id: set_silent_mode_end_time_inc_lbl
+        text_color: !lambda |-
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF);
+
+    - lvgl.label.update:
+        id: set_silent_mode_power_lbl
+        text_color: !lambda |-
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF);
+    - lvgl.label.update:
+        id: set_silent_mode_power_sub
+        text_color: !lambda |-
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0x6B7280) : lv_color_hex(0x9CA3AF);
+    - lvgl.dropdown.update:
+        id: set_silent_mode_power_dd
+        selected_index: !lambda |-
+          auto idx = id(silent_mode_compressor_mode).active_index();
+          return idx.has_value() ? idx.value() : 3;
+    - lambda: |-
+        if (!id(set_silent_mode_power_dd) || !id(set_silent_mode_power_dd)->obj) return;
+        bool enabled = id(silent_mode_enabled_switch).state;
+        if (enabled) {
+          lv_obj_clear_state(id(set_silent_mode_power_dd)->obj, LV_STATE_DISABLED);
+          lv_obj_set_style_opa(id(set_silent_mode_power_dd)->obj, LV_OPA_COVER, LV_PART_MAIN);
+          lv_obj_clear_state(id(set_silent_mode_start_time_dec), LV_STATE_DISABLED);
+          lv_obj_clear_state(id(set_silent_mode_start_time_inc), LV_STATE_DISABLED);
+          lv_obj_clear_state(id(set_silent_mode_end_time_dec), LV_STATE_DISABLED);
+          lv_obj_clear_state(id(set_silent_mode_end_time_inc), LV_STATE_DISABLED);
+        } else {
+          lv_obj_add_state(id(set_silent_mode_power_dd)->obj, LV_STATE_DISABLED);
+          lv_obj_set_style_opa(id(set_silent_mode_power_dd)->obj, LV_OPA_40, LV_PART_MAIN);
+          lv_obj_add_state(id(set_silent_mode_start_time_dec), LV_STATE_DISABLED);
+          lv_obj_add_state(id(set_silent_mode_start_time_inc), LV_STATE_DISABLED);
+          lv_obj_add_state(id(set_silent_mode_end_time_dec), LV_STATE_DISABLED);
+          lv_obj_add_state(id(set_silent_mode_end_time_inc), LV_STATE_DISABLED);
+        }
 
 - id: update_analytics_ui
   mode: restart
@@ -1605,20 +1731,23 @@
         lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
 
-        lv_obj_t* panels[3] = {
+        lv_obj_t* panels[4] = {
           id(panel_advanced_page_pid),
           id(panel_advanced_page_bodemplaat),
-          id(panel_advanced_page_defrost)
+          id(panel_advanced_page_defrost),
+          id(panel_advanced_page_compressor)
         };
-        lv_obj_t* tabs[3] = {
+        lv_obj_t* tabs[4] = {
           id(advanced_stab_pid),
           id(advanced_stab_bodemplaat),
-          id(advanced_stab_defrost)
+          id(advanced_stab_defrost),
+          id(advanced_stab_compressor)
         };
-        lv_obj_t* labels[3] = {
+        lv_obj_t* labels[4] = {
           id(advanced_stab_pid_lbl),
           id(advanced_stab_bodemplaat_lbl),
-          id(advanced_stab_defrost_lbl)
+          id(advanced_stab_defrost_lbl),
+          id(advanced_stab_compressor_lbl)
         };
 
         if (tab_index == 0) {
@@ -1633,7 +1762,7 @@
           lv_obj_add_flag(id(advanced_defrost_pager), LV_OBJ_FLAG_HIDDEN);
         }
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
           if (i == tab_index) {
             lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
             lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
@@ -1944,7 +2073,7 @@
         }
         lv_obj_clear_flag(id(set_pid_section), LV_OBJ_FLAG_HIDDEN);
 
-        lv_obj_t* adv_rows[8] = {
+        lv_obj_t* adv_rows[9] = {
           id(set_general_bodemplaat_mode_row),
           id(set_general_bodemplaat_start_row),
           id(set_general_bodemplaat_hysteresis_row),
@@ -1952,9 +2081,10 @@
           id(set_general_defrost_max_time_row),
           id(set_general_defrost_enter1_row),
           id(set_defrost_advanced_section),
-          id(set_pump_flow_switch_safety_row)
+          id(set_pump_flow_switch_safety_row),
+          id(set_advanced_compressor_default_frequencies_row)
         };
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 9; i++) {
           if (enabled) {
             lv_obj_clear_state(adv_rows[i], LV_STATE_DISABLED);
             lv_obj_set_style_opa(adv_rows[i], LV_OPA_COVER, LV_PART_MAIN);
@@ -1962,6 +2092,12 @@
             lv_obj_add_state(adv_rows[i], LV_STATE_DISABLED);
             lv_obj_set_style_opa(adv_rows[i], LV_OPA_40, LV_PART_MAIN);
           }
+        }
+
+        if (id(default_compressor_frequencies_enabled).state) {
+          lv_obj_add_state(id(set_default_compressor_frequencies_enabled_switch_ui), LV_STATE_CHECKED);
+        } else {
+          lv_obj_clear_state(id(set_default_compressor_frequencies_enabled_switch_ui), LV_STATE_CHECKED);
         }
     - if:
         condition:
@@ -2565,9 +2701,14 @@
           {"TO04 - 3-weg klep status fout", "De 3-weg klep bevindt zich niet in de verwachte stand (temperatuurafwijking overschreden). Controleer klepaansturing, bedrading en klepmotor.", id(error_three_way_valve_state_timeout).state},
           {"TO05 - Modbus verbinding timeout", "De Modbus-communicatie met de binnen- of buitenunit kon niet worden hersteld binnen de verwachte tijd. Controleer bekabeling, voeding en Modbus-instellingen.", id(error_modbus_connection_timeout).state},
           {"TO06 - Binnenunit failsafe / herstart", "De binnenunit bevindt zich in failsafe of is herstart. Een of meer uitgangsregisters (1099-1113) wijken af van de verwachte status. De regeling is gestopt.", id(error_inside_unit_failsafe).state},
+          {"F13 - Storing sensor ruimtetemperatuur", "Storing sensor ruimtetemperatuur.", id(error_flag_f13).state},
+          {"F14 - Storing sensor tapwatertemperatuur", "Storing sensor tapwatertemperatuur.", id(error_flag_f14).state},
+          {"F15 - Storing sensor cv-aanvoertemperatuur", "Storing sensor cv-aanvoertemperatuur.", id(error_flag_f15).state},
           {"F16 - Storing sensor aanvoertemperatuur Tuo", "Storing sensor aanvoertemperatuur Tuo.", id(error_flag_f16).state},
           {"F17 - Storing sensor retourtemperatuur Tui", "Storing sensor retourtemperatuur Tui.", id(error_flag_f17).state},
-          {"F18 - Storing sensor condensortemperatuur Tup", "Storing sensor condensortemperatuur Tup.", id(error_flag_f18).state}
+          {"F18 - Storing sensor condensortemperatuur Tup", "Storing sensor condensortemperatuur Tup.", id(error_flag_f18).state},
+          {"F21 - Storing sensor cv-aanvoertemperatuur zone 1", "Storing sensor cv-aanvoertemperatuur zone 1.", id(error_flag_f21).state},
+          {"F22 - Storing sensor cv-aanvoertemperatuur zone 2", "Storing sensor cv-aanvoertemperatuur zone 2.", id(error_flag_f22).state}
         };
 
         const bool timeout_error_active =
@@ -2618,7 +2759,10 @@
           {"P07 - Compressor voorverwarming", "De compressor wordt voorverwarmd om te kunnen starten. Het zal maximaal 30 minuten duren voordat de compressor op bedrijfstemperatuur is. Daarna zal deze storing vanzelf verdwijnen en zal de compressor starten.", id(error_flag_p07).state},
           {"P11 - Compressor frequentiebegrenzing op buitentemperatuur", "De warmtepomp is geblokkeerd. De buitentemperatuur (Ta) is te laag of te hoog om op maximale capaciteit te kunnen werken.", id(error_flag_p11).state},
           {"P12 - Compressor frequentiebegrenzing op buitentemperatuur", "Toerental compressor wordt verlaagd.", id(error_flag_p12).state},
-          {"P13 - Storing compressor - laag drukverschil", "Toerental compressor wordt verlaagd. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart.", id(error_flag_p13).state}
+          {"P13 - Storing compressor - laag drukverschil", "Toerental compressor wordt verlaagd. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart.", id(error_flag_p13).state},
+          {"Communicatie-failsafe binnenunit", "Communicatie-failsafe binnenunit actief.", id(error_flag_inside_comm_failsafe).state},
+          {"EEPROM-fout binnenunit", "EEPROM- of statusfout binnenunit.", id(error_flag_inside_eeprom).state},
+          {"Pompterugmelding P0 alarm", "Alarm pompterugmelding P0.", id(error_flag_pump_p0_alarm).state}
         };
 
         lv_obj_clean(id(service_warnings_list));

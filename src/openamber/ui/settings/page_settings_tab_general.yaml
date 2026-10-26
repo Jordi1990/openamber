@@ -100,7 +100,7 @@ obj:
                 - label: { id: general_stab_sensor_kalibratie_lbl, text: "Sensor kalibratie", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
 
           - obj:
-              id: general_stab_hardware
+              id: general_stab_stiltemodus
               width: SIZE_CONTENT
               height: 34
               bg_color: 0xCBD5E1
@@ -117,6 +117,27 @@ obj:
                 - script.execute:
                     id: general_select_tab
                     tab_index: 3
+              widgets:
+                - label: { id: general_stab_stiltemodus_lbl, text: "Stille modus", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
+
+          - obj:
+              id: general_stab_hardware
+              width: SIZE_CONTENT
+              height: 34
+              bg_color: 0xCBD5E1
+              bg_opa: 100%
+              radius: 8
+              border_opa: 0%
+              pad_left: 12
+              pad_right: 12
+              pad_top: 4
+              pad_bottom: 4
+              scrollbar_mode: "OFF"
+              scrollable: false
+              on_click:
+                - script.execute:
+                    id: general_select_tab
+                    tab_index: 4
               widgets:
                 - label: { id: general_stab_hardware_lbl, text: "Opties", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
 
@@ -798,6 +819,250 @@ obj:
 
 
     - obj:
+        id: panel_general_page_stiltemodus
+        hidden: true
+        width: 100%
+        height: 0
+        flex_grow: 1
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: true
+        layout:
+          type: FLEX
+          flex_flow: COLUMN
+          flex_align_main: START
+          flex_align_cross: CENTER
+          pad_row: 6
+        widgets:
+          - obj:
+              id: set_silent_mode_enabled_row
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { text: "Stille modus inschakelen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Limiteer het maximale compressorvermogen binnen het tijdsvenster", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - switch:
+                    id: set_silent_mode_switch_ui
+                    align: TOP_RIGHT
+                    bg_color: 0x9CA3AF
+                    indicator:
+                      bg_color: 0x16A34A
+                    knob:
+                      bg_color: 0xFFFFFF
+                    on_click:
+                      - if:
+                          condition:
+                            switch.is_on: silent_mode_enabled_switch
+                          then:
+                            - switch.turn_off: silent_mode_enabled_switch
+                          else:
+                            - switch.turn_on: silent_mode_enabled_switch
+
+          - obj:
+              id: set_silent_mode_start_time_row
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { id: set_silent_mode_start_time_lbl, text: "Starttijd", text_color: 0x9CA3AF, text_font: font_text_24, align: TOP_LEFT }
+                - label: { id: set_silent_mode_start_time_sub, text: "Tijdstip waarop de stille modus start", text_color: 0x9CA3AF, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - obj:
+                    width: SIZE_CONTENT
+                    height: SIZE_CONTENT
+                    align: TOP_RIGHT
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_all: 0
+                    layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 4 }
+                    widgets:
+                      - obj:
+                          id: set_silent_mode_start_time_dec
+                          width: 40
+                          height: 40
+                          bg_color: 0xE5E7EB
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - if:
+                                condition:
+                                  switch.is_on: silent_mode_enabled_switch
+                                then:
+                                  - lambda: |-
+                                      int h = id(silent_mode_start_time).hour;
+                                      int m = id(silent_mode_start_time).minute;
+                                      m -= 30;
+                                      if (m < 0) { m += 60; h = (h + 23) % 24; }
+                                      auto call = id(silent_mode_start_time).make_call();
+                                      call.set_time(h, m, 0);
+                                      call.perform();
+                                  - lvgl.label.update:
+                                      id: set_silent_mode_start_time_val
+                                      text:
+                                        format: "%02d:%02d"
+                                        args: ['id(silent_mode_start_time).hour', 'id(silent_mode_start_time).minute']
+                          widgets:
+                            - label: { id: set_silent_mode_start_time_dec_lbl, text: "\U000F0374", text_color: 0x9CA3AF, text_font: font_mdi_24, align: CENTER }
+                      - label: { id: set_silent_mode_start_time_val, text: "23:00", text_color: 0x9CA3AF, text_font: font_text_24 }
+                      - obj:
+                          id: set_silent_mode_start_time_inc
+                          width: 40
+                          height: 40
+                          bg_color: 0xE5E7EB
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - if:
+                                condition:
+                                  switch.is_on: silent_mode_enabled_switch
+                                then:
+                                  - lambda: |-
+                                      int h = id(silent_mode_start_time).hour;
+                                      int m = id(silent_mode_start_time).minute;
+                                      m += 30;
+                                      if (m >= 60) { m -= 60; h = (h + 1) % 24; }
+                                      auto call = id(silent_mode_start_time).make_call();
+                                      call.set_time(h, m, 0);
+                                      call.perform();
+                                  - lvgl.label.update:
+                                      id: set_silent_mode_start_time_val
+                                      text:
+                                        format: "%02d:%02d"
+                                        args: ['id(silent_mode_start_time).hour', 'id(silent_mode_start_time).minute']
+                          widgets:
+                            - label: { id: set_silent_mode_start_time_inc_lbl, text: "\U000F0415", text_color: 0x9CA3AF, text_font: font_mdi_24, align: CENTER }
+
+          - obj:
+              id: set_silent_mode_end_time_row
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { id: set_silent_mode_end_time_lbl, text: "Eindtijd", text_color: 0x9CA3AF, text_font: font_text_24, align: TOP_LEFT }
+                - label: { id: set_silent_mode_end_time_sub, text: "Tijdstip waarop de stille modus stopt", text_color: 0x9CA3AF, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - obj:
+                    width: SIZE_CONTENT
+                    height: SIZE_CONTENT
+                    align: TOP_RIGHT
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_all: 0
+                    layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 4 }
+                    widgets:
+                      - obj:
+                          id: set_silent_mode_end_time_dec
+                          width: 40
+                          height: 40
+                          bg_color: 0xE5E7EB
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - if:
+                                condition:
+                                  switch.is_on: silent_mode_enabled_switch
+                                then:
+                                  - lambda: |-
+                                      int h = id(silent_mode_end_time).hour;
+                                      int m = id(silent_mode_end_time).minute;
+                                      m -= 30;
+                                      if (m < 0) { m += 60; h = (h + 23) % 24; }
+                                      auto call = id(silent_mode_end_time).make_call();
+                                      call.set_time(h, m, 0);
+                                      call.perform();
+                                  - lvgl.label.update:
+                                      id: set_silent_mode_end_time_val
+                                      text:
+                                        format: "%02d:%02d"
+                                        args: ['id(silent_mode_end_time).hour', 'id(silent_mode_end_time).minute']
+                          widgets:
+                            - label: { id: set_silent_mode_end_time_dec_lbl, text: "\U000F0374", text_color: 0x9CA3AF, text_font: font_mdi_24, align: CENTER }
+                      - label: { id: set_silent_mode_end_time_val, text: "07:00", text_color: 0x9CA3AF, text_font: font_text_24 }
+                      - obj:
+                          id: set_silent_mode_end_time_inc
+                          width: 40
+                          height: 40
+                          bg_color: 0xE5E7EB
+                          bg_opa: 100%
+                          radius: 10
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - if:
+                                condition:
+                                  switch.is_on: silent_mode_enabled_switch
+                                then:
+                                  - lambda: |-
+                                      int h = id(silent_mode_end_time).hour;
+                                      int m = id(silent_mode_end_time).minute;
+                                      m += 30;
+                                      if (m >= 60) { m -= 60; h = (h + 1) % 24; }
+                                      auto call = id(silent_mode_end_time).make_call();
+                                      call.set_time(h, m, 0);
+                                      call.perform();
+                                  - lvgl.label.update:
+                                      id: set_silent_mode_end_time_val
+                                      text:
+                                        format: "%02d:%02d"
+                                        args: ['id(silent_mode_end_time).hour', 'id(silent_mode_end_time).minute']
+                          widgets:
+                            - label: { id: set_silent_mode_end_time_inc_lbl, text: "\U000F0415", text_color: 0x9CA3AF, text_font: font_mdi_24, align: CENTER }
+
+          - obj:
+              id: set_silent_mode_power_row
+              width: 100%
+              height: SIZE_CONTENT
+              bg_opa: 0%
+              border_opa: 0%
+              pad_all: 6
+              widgets:
+                - label: { id: set_silent_mode_power_lbl, text: "Stille modus vermogen", text_color: 0x9CA3AF, text_font: font_text_24, align: TOP_LEFT }
+                - label: { id: set_silent_mode_power_sub, text: "Max compressorvermogen tijdens stille modus", text_color: 0x9CA3AF, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - dropdown:
+                    id: set_silent_mode_power_dd
+                    symbol: "\U000F0140"
+                    width: 220
+                    align: TOP_RIGHT
+                    y: 0
+                    options:
+                      - "Beperkt"
+                      - "Zeer laag"
+                      - "Laag"
+                      - "Gemiddeld"
+                      - "Verhoogd"
+                      - "Hoog"
+                      - "Maximaal"
+                    text_font: font_text_20
+                    dropdown_list:
+                      text_font: font_text_20
+                    on_value:
+                      then:
+                        - if:
+                            condition:
+                              switch.is_on: silent_mode_enabled_switch
+                            then:
+                              - lambda: |-
+                                  const char* opts[] = {"Beperkt","Zeer laag","Laag","Gemiddeld","Verhoogd","Hoog","Maximaal"};
+                                  auto val = lv_dropdown_get_selected(id(set_silent_mode_power_dd)->obj);
+                                  if (val < 7) id(silent_mode_compressor_mode).make_call().set_option(opts[val]).perform();
+    - obj:
         id: panel_general_page_hardware
         hidden: true
         width: 100%
@@ -887,6 +1152,7 @@ obj:
                             - number.increment: flow_sensor_calibration
                           widgets:
                             - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
 
 # ------------------------------------------------------------
 

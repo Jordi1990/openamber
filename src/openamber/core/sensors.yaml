@@ -49,8 +49,12 @@ sensor:
 - platform: template
   id: dhw_backup_current_avg_rate_sensor
   name: "DHW verwarmsnelheid"
+  state_class: measurement
   unit_of_measurement: "°C/min"
   accuracy_decimals: 2
+  entity_category: diagnostic
+  web_server: 
+    sorting_group_id: diagnostic
   update_interval: 5s
 
 - platform: template
@@ -622,7 +626,10 @@ sensor:
     int source = (selected_source.has_value() && selected_source.value() == 1) ? 1 : 0;
     if (source == 1)
     {
-      return id(heat_cool_temperature_tv1).state;
+      if (!id(error_flag_f21).state && !std::isnan(id(heat_cool_temperature_tv1).state))
+      {
+        return id(heat_cool_temperature_tv1).state;
+      }
     }
     return id(heat_cool_temperature_tc).state;
 
