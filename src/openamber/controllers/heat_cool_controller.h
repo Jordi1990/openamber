@@ -543,15 +543,9 @@ public:
     int max_allowed = GetMaxAllowedCompressorMode();
     float current_temperature = GetControlTemperature();
     float target = GetPidController().target_temperature;
-    float dt = current_temperature - target;
 
-    // Deadband on control temperature to avoid too frequent changes around setpoint
-    if (fabsf(dt) < DEAD_BAND_DT)
-    {
-      int clamped_mode = std::min((int)current_compressor_mode, max_allowed);
-      ESP_LOGI("amber", "ΔT=%.2f°C within deadband, compressor mode remains at %d", dt, clamped_mode);
-      return clamped_mode;
-    }
+    // No separate deadband here: the PID deadband (configurable via pid_heat_deadband / pid_cool_deadband)
+    // already freezes the integral and shallows the proportional term around the setpoint.
 
     // Guard: never modulate up when temperature has already overshot the setpoint
     const float TEMP_MARGIN = 0.3f;

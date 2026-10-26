@@ -112,3 +112,63 @@ def test_pid_deadband_stabilization_with_virtual_time(clean_system):
     assert out < settled - 50.0, (
         f"Outside the deadband (+2°C overshoot) the output must drop strongly from {settled:.1f}%, got {out:.1f}%"
     )
+
+
+@pytest.mark.parametrize("deadband,expect_mode_drop", [
+    (1.0, False),  # +0.5°C overshoot is inside the PID deadband: integral frozen, compressor mode holds
+    (0.2, True),   # +0.5°C overshoot is outside the PID deadband: PID reacts and the compressor modulates down
+])
+def test_pid_deadband_setting_governs_compressor_modulation(clean_system, deadband, expect_mode_drop):
+    """
+    The configured PID deadband (pid_heat_deadband) must be the only deadband between Tc and the
+    setpoint. Previously a hardcoded 1.0°C deadband in the heat/cool controller froze the compressor
+    mode regardless of this setting, so a 0.2°C deadband still only reacted at 1.0°C deviation.
+    1. Run the compressor at full demand until it saturates at mode 10.
+    2. Raise Tc to 0.5°C above the setpoint (stop delta is 5°C, so the compressor keeps running).
+    3. With a 1.0°C deadband the mode holds; with a 0.2°C deadband the mode drops.
+    """
+    openamber = clean_system
+
+    openamber.set_select("thermostat_mode_select", "Extern")
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 40.0)
+    openamber.set_climate("pid_heat_temperature_control", target_temperature=40.0)
+    openamber.set_number("pid_heat_deadband", deadband)
+    openamber.set_number("backup_heater_degmin_threshold", 999.0)
+    openamber.set_select("heat_compressor_mode", "Maximaal")
+    openamber.set_switch("heat_demand_switch", True)
+    openamber.set_sensor("current_water_temperature_tc_sensor", 25.0)
+    openamber.set_sensor("heat_cool_temperature_tc", 25.0)
+    openamber.set_sensor("outlet_temperature_tuo", 25.0)
+    openamber.set_sensor("inlet_temperature_tui", 22.0)
+    openamber.step(ms=50)
+
+    # Pump interval + settle + soft start, then ramp up to mode 10 (one step per 300s)
+    openamber.advance_time(seconds=900, step_s=30)
+    openamber.advance_time(seconds=140, step_s=10)
+    openamber.advance_time(seconds=190, step_s=10)
+    openamber.advance_time(seconds=1900, step_s=30)
+    openamber.step(ms=50)
+
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    saturated_mode = int(openamber.get_entity("compressor_control_select"))
+    assert saturated_mode == 10, f"Compressor should saturate at mode 10 under full demand, got {saturated_mode}"
+
+    # Slight overshoot: 0.5°C above setpoint
+    openamber.set_sensor("current_water_temperature_tc_sensor", 40.5)
+    openamber.set_sensor("heat_cool_temperature_tc", 40.5)
+    openamber.set_sensor("outlet_temperature_tuo", 40.5)
+    openamber.set_sensor("inlet_temperature_tui", 37.5)
+    openamber.advance_time(seconds=120, step_s=5)
+    openamber.step(ms=50)
+
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    mode = int(openamber.get_entity("compressor_control_select"))
+    if expect_mode_drop:
+        assert mode < saturated_mode, (
+            f"With a {deadband}°C deadband a 0.5°C overshoot must modulate the compressor down, mode stayed at {mode}"
+        )
+    else:
+        assert mode == saturated_mode, (
+            f"With a {deadband}°C deadband a 0.5°C overshoot is inside the deadband, mode should hold at {saturated_mode}, got {mode}"
+        )
