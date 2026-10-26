@@ -60,7 +60,7 @@ binary_sensor:
         return false;
       }
 
-      if(id(error_active).state || id(error_dhw_active).state)
+      if(id(error_active).state)
       {
         return false;
       }
@@ -170,13 +170,10 @@ binary_sensor:
   id: heat_demand_active_sensor_zone_1
   device_class: running
   lambda: |-
-    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state || id(error_cv_active).state) {
+    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state) {
       return false;
     }
     if (id(thermostat_mode_select).current_option() == "Intern") {
-      if (id(error_flag_f13).state || std::isnan(id(room_temperature).state)) {
-        return true;
-      }
       return id(climate_controller).action == climate::CLIMATE_ACTION_HEATING;
     }
     return id(external_heat_demand_wired_delayed).state || id(heat_demand_switch).state;
@@ -190,11 +187,7 @@ binary_sensor:
   id: heat_demand_active_sensor_zone_2
   device_class: running
   lambda: |-
-    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state || id(error_cv_active).state) {
-      return false;
-    }
-
-    if (id(error_flag_f22).state || std::isnan(id(heat_cool_temperature_tv2).state)) {
+    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state) {
       return false;
     }
 
@@ -214,7 +207,7 @@ binary_sensor:
   id: heat_demand_active_sensor
   device_class: running
   lambda: |-
-    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state || id(error_cv_active).state) {
+    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state) {
       return false;
     }
     return id(heat_demand_active_sensor_zone_1).state || id(heat_demand_active_sensor_zone_2).state;
@@ -228,13 +221,10 @@ binary_sensor:
   id: cool_demand_active_sensor
   device_class: running
   lambda: |-
-    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state || id(error_cv_active).state || id(heat_demand_active_sensor).state) {
+    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state || id(heat_demand_active_sensor).state) {
       return false;
     }
     if (id(thermostat_mode_select).current_option() == "Intern") {
-      if (id(error_flag_f13).state || std::isnan(id(room_temperature).state)) {
-        return false;
-      }
       return id(climate_controller).action == climate::CLIMATE_ACTION_COOLING;
     }
     return id(external_cool_demand_wired_delayed).state || id(cool_demand_switch).state;
@@ -693,6 +683,7 @@ binary_sensor:
   device_class: problem
   entity_category: diagnostic
   lambda: |-
+    if (id(thermostat_mode_select).current_option() != "Intern") return false;
     if (!id(inside_unit_status_1225_raw).has_state()) return false;
     const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
     return (raw & 0x0001) != 0;
@@ -705,6 +696,7 @@ binary_sensor:
   device_class: problem
   entity_category: diagnostic
   lambda: |-
+    if (!id(dhw_enabled_switch).state) return false;
     if (!id(inside_unit_status_1225_raw).has_state()) return false;
     const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
     return (raw & 0x0002) != 0;
@@ -717,6 +709,9 @@ binary_sensor:
   device_class: problem
   entity_category: diagnostic
   lambda: |-
+    bool mixing_enabled = id(mixing_valve_zone1_enabled).state || id(mixing_valve_zone2_enabled).state;
+    bool tc_selected = id(heat_cool_control_temperature_source_select).current_option() != "CV-aanvoer zone 1 (Tv1)";
+    if (!mixing_enabled && !tc_selected) return false;
     if (!id(inside_unit_status_1225_raw).has_state()) return false;
     const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
     return (raw & 0x0004) != 0;
@@ -765,6 +760,9 @@ binary_sensor:
   device_class: problem
   entity_category: diagnostic
   lambda: |-
+    bool tv1_selected = !id(mixing_valve_zone2_enabled).state &&
+                        id(heat_cool_control_temperature_source_select).current_option() == "CV-aanvoer zone 1 (Tv1)";
+    if (!id(mixing_valve_zone1_enabled).state && !tv1_selected) return false;
     if (!id(inside_unit_status_1225_raw).has_state()) return false;
     const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
     return (raw & 0x0100) != 0;
@@ -777,6 +775,7 @@ binary_sensor:
   device_class: problem
   entity_category: diagnostic
   lambda: |-
+    if (!id(mixing_valve_zone2_enabled).state) return false;
     if (!id(inside_unit_status_1225_raw).has_state()) return false;
     const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
     return (raw & 0x0200) != 0;
@@ -886,23 +885,6 @@ binary_sensor:
     sorting_group_id: error_codes
 
 - platform: template
-  id: error_dhw_active
-  name: "Tapwater storing actief"
-  internal: true
-  lambda: |-
-    return id(error_flag_f14).state ||
-           std::isnan(id(dhw_temperature_tw_sensor).state) ||
-           id(error_three_way_valve_state_timeout).state;
-
-- platform: template
-  id: error_cv_active
-  name: "CV storing actief"
-  internal: true
-  lambda: |-
-    return id(error_flag_f15).state ||
-           std::isnan(id(heat_cool_temperature_tc).state);
-
-- platform: template
   id: error_active
   name: "Error actief"
   device_class: problem
@@ -910,8 +892,7 @@ binary_sensor:
   web_server: 
     sorting_group_id: error_codes
   lambda: |-
-    bool general_error =
-           id(error_flag_p03).state ||
+    return id(error_flag_p03).state ||
            id(error_flag_p05).state ||
            id(error_flag_p08).state ||
            id(error_flag_p09).state ||
@@ -933,24 +914,20 @@ binary_sensor:
            id(error_flag_e07).state ||
            id(error_flag_e08).state ||
            id(error_flag_f10).state ||
+           id(error_flag_f13).state ||
+           id(error_flag_f14).state ||
+           id(error_flag_f15).state ||
            id(error_flag_f16).state ||
            id(error_flag_f17).state ||
            id(error_flag_f18).state ||
+           id(error_flag_f21).state ||
+           id(error_flag_f22).state ||
            id(error_pump_start_timeout).state ||
            id(error_compressor_start_timeout).state ||
            id(error_pump_stop_timeout).state ||
            id(error_modbus_connection_timeout).state ||
+           id(error_three_way_valve_state_timeout).state ||
            id(error_inside_unit_failsafe).state;
-
-    if (general_error) {
-      return true;
-    }
-
-    if (id(dhw_active).state || id(state_machine_state_main).state == "DHW") {
-      return id(error_dhw_active).state;
-    }
-
-    return id(error_cv_active).state;
 
 - platform: template
   id: warning_active

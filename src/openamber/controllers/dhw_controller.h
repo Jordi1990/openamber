@@ -285,7 +285,7 @@ private:
   bool PerformSafetyChecks()
   {
 
-    if((id(error_active).state || id(error_dhw_active).state) && state_ != DHWState::IDLE)
+    if(id(error_active).state && state_ != DHWState::IDLE)
     {
       ESP_LOGI("amber", "Error active, stopping heatpump.");
       return true;
