@@ -285,9 +285,9 @@ private:
   bool PerformSafetyChecks()
   {
 
-    if((id(error_active).state || id(error_flag_f14).state || std::isnan(id(dhw_temperature_tw_sensor).state)) && state_ != DHWState::IDLE)
+    if((id(error_active).state || id(error_dhw_active).state) && state_ != DHWState::IDLE)
     {
-      ESP_LOGI("amber", "Error active or DHW sensor fault (F14), stopping heatpump.");
+      ESP_LOGI("amber", "Error active, stopping heatpump.");
       return true;
     }
 

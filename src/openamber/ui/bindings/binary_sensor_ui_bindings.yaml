@@ -400,3 +400,20 @@
     then:
       - script.execute: update_service_warnings_ui
       - script.execute: update_header_alert_icons
+
+- id: !extend error_dhw_active
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+      - script.execute: update_header_alert_icons
+
+- id: !extend error_cv_active
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+      - script.execute: update_header_alert_icons
+
+- id: !extend dhw_active
+  on_state:
+    then:
+      - script.execute: update_header_alert_icons

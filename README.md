@@ -114,21 +114,21 @@ When using the Waveshare ESP32-S3 Touch LCD 5'' you need to set the RS485 resist
 
 | Bitmask    | Function                                        |
 |:----------:|:-----------------------------------------------:|
-| 0x0001     | Storing sensor ruimtetemperatuur (F13, Tr 1199) |
-| 0x0002     | Storing sensor tapwatertemperatuur (F14, Tw 1200)|
-| 0x0004     | Storing sensor cv-aanvoertemperatuur (F15, Tc 1201)|
-| 0x0008     | Storing sensor aanvoertemperatuur Tuo (F16, 1202)|
-| 0x0010     | Storing sensor retourtemperatuur Tui (F17, 1203)|
-| 0x0020     | Storing sensor condensortemperatuur Tup (F18, 1204)|
+| 0x0001     | Room temperature sensor fault (F13, Tr 1199) |
+| 0x0002     | DHW temperature sensor fault (F14, Tw 1200)|
+| 0x0004     | Flow temperature sensor fault (F15, Tc 1201)|
+| 0x0008     | Heat pump flow temperature sensor fault (F16, Tuo 1202)|
+| 0x0010     | Heat pump return temperature sensor fault (F17, Tui 1203)|
+| 0x0020     | Condenser temperature sensor fault (F18, Tup 1204)|
 | 0x0040     | Sensor 1205                                     |
 | 0x0080     | Sensor 1206                                     |
-| 0x0100     | Storing sensor cv-aanvoertemperatuur zone 1 (F21, Tv1 1207)|
-| 0x0200     | Storing sensor cv-aanvoertemperatuur zone 2 (F22, Tv2 1208)|
+| 0x0100     | Zone 1 flow temperature sensor fault (F21, Tv1 1207)|
+| 0x0200     | Zone 2 flow temperature sensor fault (F22, Tv2 1208)|
 | 0x0400     | Sensor 1209                                     |
 | 0x0800     | Sensor 1210                                     |
-| 0x1000     | Communicatie-failsafe binnenunit                |
-| 0x4000     | EEPROM-fout binnenunit                          |
-| 0x8000     | Pompterugmelding P0 alarm                       |
+| 0x1000     | Inside unit communication failsafe                |
+| 0x4000     | Inside unit EEPROM fault                          |
+| 0x8000     | Pump feedback P0 alarm                       |
 
 #### Write
 | Address    | Function                                           |
@@ -161,9 +161,9 @@ OpenAmber reads back registers 1099–1113 every Modbus cycle (15 s) via FC3 and
 
 | Bitmask    | Function                                  |
 |:----------:|:-----------------------------------------:|
-| 0x01       | Ingang PE6 (SmartGrid Ready SGB)          |
-| 0x02       | Ingang PE14 binnenunit                    |
-| 0x04       | Ingang PE15 binnenunit                    |
+| 0x01       | Digital input PE6 (SmartGrid Ready SGB)          |
+| 0x02       | Digital input PE14 inside unit                    |
+| 0x04       | Digital input PE15 inside unit                    |
 
 ### Outside unit (Address 2)
 #### Read

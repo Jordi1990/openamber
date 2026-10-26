@@ -244,3 +244,75 @@ def test_sensor_fault_f15_f21_f22_and_warnings(clean_system):
     openamber.step(ms=50)
     assert openamber.get_entity("warning_active") is False
     assert openamber.get_entity("error_active") is False
+
+
+def test_error_active_mode_dependent_dhw_and_cv(clean_system):
+    """
+    Verify mode-dependent error_active aggregation:
+    1. F14 (DHW fault) sets error_dhw_active=True.
+       - While active mode is CV (dhw_active=False), error_active=False.
+       - When active mode becomes DHW (dhw_active=True), error_active=True.
+    2. F15 (CV fault) sets error_cv_active=True.
+       - While active mode is CV (dhw_active=False), error_active=True.
+       - When active mode becomes DHW (dhw_active=True) and Tw is healthy, error_active=False.
+    """
+    openamber = clean_system
+
+    # 1. Test F14 (DHW error)
+    assert openamber.set_sensor("inside_unit_status_1225_raw", 2.0) is True
+    assert openamber.set_sensor("dhw_temperature_tw_sensor", 0.0) is True
+    openamber.step(ms=50)
+
+    assert openamber.get_entity("error_flag_f14") is True
+    assert openamber.get_entity("error_dhw_active") is True
+    # In CV mode (dhw_active=False), error_active should remain False
+    assert openamber.get_entity("error_active") is False
+
+    # Simulate entering DHW mode
+    assert openamber.set_binary_sensor("dhw_active", True) is True
+    openamber.step(ms=50)
+    assert openamber.get_entity("error_active") is True, (
+        "error_active must become True when in DHW mode with active DHW error"
+    )
+
+    # Leave DHW mode
+    assert openamber.set_binary_sensor("dhw_active", False) is True
+    openamber.step(ms=50)
+    assert openamber.get_entity("error_active") is False, (
+        "error_active must become False when returning to CV mode with only DHW error"
+    )
+
+    # Clear F14
+    assert openamber.set_sensor("inside_unit_status_1225_raw", 0.0) is True
+    assert openamber.set_sensor("dhw_temperature_tw_sensor", 45.0) is True
+    openamber.step(ms=50)
+    assert openamber.get_entity("error_dhw_active") is False
+
+    # 2. Test F15 (CV error)
+    assert openamber.set_sensor("inside_unit_status_1225_raw", 4.0) is True
+    assert openamber.set_sensor("heat_cool_temperature_tc", 0.0) is True
+    openamber.step(ms=50)
+
+    assert openamber.get_entity("error_flag_f15") is True
+    assert openamber.get_entity("error_cv_active") is True
+    # In CV mode (dhw_active=False), error_active must be True
+    assert openamber.get_entity("error_active") is True
+
+    # When DHW mode is active, CV fault should not trigger error_active
+    assert openamber.set_binary_sensor("dhw_active", True) is True
+    openamber.step(ms=50)
+    assert openamber.get_entity("error_active") is False, (
+        "error_active must be False in DHW mode when only CV error is present"
+    )
+
+    # Leave DHW mode -> returns to CV mode, error_active becomes True again
+    assert openamber.set_binary_sensor("dhw_active", False) is True
+    openamber.step(ms=50)
+    assert openamber.get_entity("error_active") is True
+
+    # Clear F15
+    assert openamber.set_sensor("inside_unit_status_1225_raw", 0.0) is True
+    assert openamber.set_sensor("heat_cool_temperature_tc", 30.0) is True
+    openamber.step(ms=50)
+    assert openamber.get_entity("error_cv_active") is False
+    assert openamber.get_entity("error_active") is False

@@ -60,7 +60,7 @@ binary_sensor:
         return false;
       }
 
-      if(id(error_active).state || id(error_flag_f14).state || std::isnan(tw))
+      if(id(error_active).state || id(error_dhw_active).state)
       {
         return false;
       }
@@ -170,7 +170,7 @@ binary_sensor:
   id: heat_demand_active_sensor_zone_1
   device_class: running
   lambda: |-
-    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state) {
+    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state || id(error_cv_active).state) {
       return false;
     }
     if (id(thermostat_mode_select).current_option() == "Intern") {
@@ -190,7 +190,7 @@ binary_sensor:
   id: heat_demand_active_sensor_zone_2
   device_class: running
   lambda: |-
-    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state) {
+    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state || id(error_cv_active).state) {
       return false;
     }
 
@@ -214,7 +214,7 @@ binary_sensor:
   id: heat_demand_active_sensor
   device_class: running
   lambda: |-
-    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state) {
+    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state || id(error_cv_active).state) {
       return false;
     }
     return id(heat_demand_active_sensor_zone_1).state || id(heat_demand_active_sensor_zone_2).state;
@@ -228,7 +228,7 @@ binary_sensor:
   id: cool_demand_active_sensor
   device_class: running
   lambda: |-
-    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state || id(heat_demand_active_sensor).state) {
+    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state || id(error_cv_active).state || id(heat_demand_active_sensor).state) {
       return false;
     }
     if (id(thermostat_mode_select).current_option() == "Intern") {
@@ -886,6 +886,23 @@ binary_sensor:
     sorting_group_id: error_codes
 
 - platform: template
+  id: error_dhw_active
+  name: "Tapwater storing actief"
+  internal: true
+  lambda: |-
+    return id(error_flag_f14).state ||
+           std::isnan(id(dhw_temperature_tw_sensor).state) ||
+           id(error_three_way_valve_state_timeout).state;
+
+- platform: template
+  id: error_cv_active
+  name: "CV storing actief"
+  internal: true
+  lambda: |-
+    return id(error_flag_f15).state ||
+           std::isnan(id(heat_cool_temperature_tc).state);
+
+- platform: template
   id: error_active
   name: "Error actief"
   device_class: problem
@@ -893,7 +910,8 @@ binary_sensor:
   web_server: 
     sorting_group_id: error_codes
   lambda: |-
-    return id(error_flag_p03).state ||
+    bool general_error =
+           id(error_flag_p03).state ||
            id(error_flag_p05).state ||
            id(error_flag_p08).state ||
            id(error_flag_p09).state ||
@@ -915,7 +933,6 @@ binary_sensor:
            id(error_flag_e07).state ||
            id(error_flag_e08).state ||
            id(error_flag_f10).state ||
-           id(error_flag_f15).state ||
            id(error_flag_f16).state ||
            id(error_flag_f17).state ||
            id(error_flag_f18).state ||
@@ -923,8 +940,17 @@ binary_sensor:
            id(error_compressor_start_timeout).state ||
            id(error_pump_stop_timeout).state ||
            id(error_modbus_connection_timeout).state ||
-           id(error_three_way_valve_state_timeout).state ||
            id(error_inside_unit_failsafe).state;
+
+    if (general_error) {
+      return true;
+    }
+
+    if (id(dhw_active).state || id(state_machine_state_main).state == "DHW") {
+      return id(error_dhw_active).state;
+    }
+
+    return id(error_cv_active).state;
 
 - platform: template
   id: warning_active
