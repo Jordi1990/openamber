@@ -155,6 +155,13 @@ def test_service_sensors_demand_and_external_signals_page_5(clean_system):
     assert rows["Warmtevraag Zone 2"] == "AAN"
     assert rows["Warmtevraag Zone 2 (Extern signaal)"] == "AAN"
 
+    # Deactivate wired Zone 2 signal while mixing valve remains enabled -> both return to UIT
+    openamber.set_binary_sensor("external_heat_demand_wired_zone_2", False)
+    openamber.step(ms=150)
+    rows = dict(openamber.get_widget("service_diag_demand_table").get("rows"))
+    assert rows["Warmtevraag Zone 2"] == "UIT"
+    assert rows["Warmtevraag Zone 2 (Extern signaal)"] == "UIT"
+
     # 3. Activate wired cooling signal while heat demand is active -> effective Koudevraag stays UIT
     openamber.set_binary_sensor("external_cool_demand_wired", True)
     openamber.step(ms=150)
