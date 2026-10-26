@@ -157,8 +157,10 @@ def test_pid_deadband_setting_governs_compressor_modulation(clean_system, deadba
     # Slight overshoot: 0.5°C above setpoint
     openamber.set_sensor("current_water_temperature_tc_sensor", 40.5)
     openamber.set_sensor("heat_cool_temperature_tc", 40.5)
-    openamber.set_sensor("outlet_temperature_tuo", 40.5)
+    # Stage Tuo/Tui so no intermediate update exceeds the 8°C Tuo-Tui safety limit
+    openamber.set_sensor("outlet_temperature_tuo", 30.0)
     openamber.set_sensor("inlet_temperature_tui", 37.5)
+    openamber.set_sensor("outlet_temperature_tuo", 40.5)
     openamber.advance_time(seconds=120, step_s=5)
     openamber.step(ms=50)
 
