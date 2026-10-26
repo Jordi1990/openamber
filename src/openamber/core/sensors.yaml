@@ -49,8 +49,12 @@ sensor:
 - platform: template
   id: dhw_backup_current_avg_rate_sensor
   name: "DHW verwarmsnelheid"
+  state_class: measurement
   unit_of_measurement: "°C/min"
   accuracy_decimals: 2
+  entity_category: diagnostic
+  web_server: 
+    sorting_group_id: diagnostic
   update_interval: 5s
 
 - platform: template
