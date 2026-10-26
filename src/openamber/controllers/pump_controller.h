@@ -35,6 +35,7 @@ private:
   uint32_t start_wait_started_ms_ = 0;
   uint32_t stop_wait_started_ms_ = 0;
   float pump_p0_pid_output_ = 0.0f;
+  float expected_pwm_ = 1000.0f;
 
   float CalculateHeatingPidPumpSpeed()
   {
@@ -95,6 +96,7 @@ public:
     const uint32_t now = App.get_loop_component_start_time();
 
     const float control_speed = ((duty_cycle * 10.0f) * -1.0f) + 1000.0f;
+    expected_pwm_ = control_speed;
     if (id(pump_p0_current_pwm_sensor).get_raw_state() != control_speed)
     {
       ESP_LOGI("amber", "Applying pump speed change to %.0f (Duty cycle: %.0f%%)", control_speed, duty_cycle);
@@ -131,6 +133,9 @@ public:
   {
     pump_p0_pid_output_ = std::max(0.0f, std::min(1.0f, output));
   }
+
+  float GetExpectedPwm() const { return expected_pwm_; }
+  void SetExpectedPwm(float val) { expected_pwm_ = val; }
 
   void ResetHeatingPidState()
   {

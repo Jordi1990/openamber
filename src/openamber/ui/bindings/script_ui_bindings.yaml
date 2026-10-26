@@ -2564,6 +2564,7 @@
           {"TO03 - Pomp stop timeout", "De pomp stopte niet binnen de verwachte tijd. Controleer relaisstatus, besturingslogica en de flow (flow switch), omdat deze timeout op flow-detectie wordt bepaald.", id(error_pump_stop_timeout).state},
           {"TO04 - 3-weg klep status fout", "De 3-weg klep bevindt zich niet in de verwachte stand (temperatuurafwijking overschreden). Controleer klepaansturing, bedrading en klepmotor.", id(error_three_way_valve_state_timeout).state},
           {"TO05 - Modbus verbinding timeout", "De Modbus-communicatie met de binnen- of buitenunit kon niet worden hersteld binnen de verwachte tijd. Controleer bekabeling, voeding en Modbus-instellingen.", id(error_modbus_connection_timeout).state},
+          {"TO06 - Binnenunit failsafe / herstart", "De binnenunit bevindt zich in failsafe of is herstart. Een of meer uitgangsregisters (1099-1113) wijken af van de verwachte status. De regeling is gestopt.", id(error_inside_unit_failsafe).state},
           {"F16 - Storing sensor aanvoertemperatuur Tuo", "Storing sensor aanvoertemperatuur Tuo.", id(error_flag_f16).state},
           {"F17 - Storing sensor retourtemperatuur Tui", "Storing sensor retourtemperatuur Tui.", id(error_flag_f17).state},
           {"F18 - Storing sensor condensortemperatuur Tup", "Storing sensor condensortemperatuur Tup.", id(error_flag_f18).state}
@@ -2574,7 +2575,8 @@
             id(error_compressor_start_timeout).state ||
             id(error_pump_stop_timeout).state ||
             id(error_modbus_connection_timeout).state ||
-            id(error_three_way_valve_state_timeout).state;
+            id(error_three_way_valve_state_timeout).state ||
+            id(error_inside_unit_failsafe).state;
 
         if (id(service_errors_reset_timeout_btn) != nullptr) {
           if (timeout_error_active) lv_obj_clear_flag(id(service_errors_reset_timeout_btn), LV_OBJ_FLAG_HIDDEN);

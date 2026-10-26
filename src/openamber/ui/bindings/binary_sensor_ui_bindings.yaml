@@ -346,3 +346,8 @@
   on_state:
     then:
       - script.execute: update_service_errors_ui
+
+- id: !extend error_inside_unit_failsafe
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui

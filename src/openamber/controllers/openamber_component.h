@@ -71,6 +71,27 @@ void OpenAmberComponent::loop()
 
 void OpenAmberComponent::update()
 {
+  if (failsafe_error_active_)
+  {
+    if (!id(error_inside_unit_failsafe).state)
+    {
+      failsafe_error_active_ = false;
+      initialized_ = false;
+      ESP_LOGI("amber", "Inside unit failsafe error cleared. Re-initializing controller.");
+      SetNextState(State::INITIALIZING);
+    }
+    else
+    {
+      return;
+    }
+  }
+
+  CheckInsideUnitFailsafe();
+  if (id(error_inside_unit_failsafe).state)
+  {
+    return;
+  }
+
   bool modbus_connected = id(modbus_inside_online).state && id(modbus_outside_online).state && id(outside_unit_eeprom_version).has_state();
   ThreeWayValvePosition current_valve_position = GetThreeWayValvePosition();
   ThreeWayValvePosition desired_valve_position = GetDesiredThreeWayValvePosition();
@@ -149,6 +170,7 @@ void OpenAmberComponent::update()
 
     case State::HEAT_COOL:
     {
+      initialized_ = true;
       dhw_controller_->CheckLegionellaCycle();
 
       if((desired_valve_position == ThreeWayValvePosition::DHW || maintenance_requested) && !heat_cool_controller_->IsRequestedToStop())
@@ -181,6 +203,7 @@ void OpenAmberComponent::update()
 
     case State::DHW_HEAT:
     {
+      initialized_ = true;
       dhw_controller_->CheckLegionellaCycle();
 
       if(maintenance_requested && !dhw_controller_->IsRequestedToStop())
@@ -212,6 +235,7 @@ void OpenAmberComponent::update()
 
     case State::MAINTENANCE:
     {
+      initialized_ = true;
       if (!maintenance_requested)
       {
         if (!deaeration_routine_->IsIdle())
@@ -391,6 +415,7 @@ void OpenAmberComponent::SetThreeWayValve(ThreeWayValvePosition position)
     id(three_way_valve_heat_cool_switch).turn_on();
   }
 
+  last_output_write_time_ms_ = App.get_loop_component_start_time();
   ESP_LOGI("amber", "Setting 3-way valve to %s.", position == ThreeWayValvePosition::DHW ? "DHW" : "Heating/Cooling");
 }
 
@@ -495,5 +520,149 @@ float OpenAmberComponent::get_mixing_valve_zone2_position() const
 {
   return mixing_valve_zone2_ ? mixing_valve_zone2_->GetValvePositionPercent() : 0.0f;
 }
+
+uint16_t OpenAmberComponent::GetExpectedRegisterValue(uint16_t reg) const
+{
+  switch (reg)
+  {
+    case 1099:
+      return id(pump_p0_relay_switch).state ? 1 : 0;
+    case 1100:
+      return id(pump_p1_relay_switch).state ? 1 : 0;
+    case 1101:
+      return id(pump_p2_relay_switch).state ? 1 : 0;
+    case 1102:
+      return id(dhw_pump_relay_switch).state ? 1 : 0;
+    case 1103:
+      return static_cast<uint16_t>(pump_controller_->GetExpectedPwm());
+    case 1104:
+      return id(initialize_relay_switch).state ? 1 : 0;
+    case 1105:
+      return id(three_way_valve_heat_cool_switch).state ? 1 : 0;
+    case 1106:
+      return static_cast<uint16_t>(std::round(id(mixing_valve_zone1_output).state));
+    case 1107:
+      return static_cast<uint16_t>(std::round(id(mixing_valve_zone2_output).state));
+    case 1108:
+      return id(external_backup_heating_relay).state ? 1 : 0;
+    case 1109:
+      return id(backup_heater_stage_1).state ? 1 : 0;
+    case 1110:
+      return id(backup_heater_stage_2).state ? 1 : 0;
+    case 1111:
+      return 0;
+    case 1112:
+      return id(three_way_valve_dhw_switch).state ? 1 : 0;
+    case 1113:
+      return 0;
+    default:
+      return 0;
+  }
+}
+
+void OpenAmberComponent::StopRegulationDueToFailsafe()
+{
+  ESP_LOGE("amber", "Stopping regulation due to inside unit failsafe/reboot.");
+  failsafe_error_active_ = true;
+  initialized_ = false;
+  compressor_controller_->Stop();
+  pump_controller_->Stop();
+  heat_cool_controller_->StopAndSetIdleState();
+  dhw_controller_->StopAndSetIdleState();
+  auto working_mode_call = id(working_mode_switch).make_call();
+  working_mode_call.set_index(WORKING_MODE_STANDBY);
+  working_mode_call.perform();
+}
+
+void OpenAmberComponent::CheckInsideUnitFailsafe()
+{
+  if (!id(modbus_inside_online).state || !initialized_)
+  {
+    return;
+  }
+
+  if (id(error_inside_unit_failsafe).state)
+  {
+    return;
+  }
+
+  const uint32_t now = App.get_loop_component_start_time();
+  const bool in_grace_period = (last_output_write_time_ms_ != 0 && (now - last_output_write_time_ms_) < 20000UL);
+
+  if (!id(inside_unit_register_1099).has_state())
+  {
+    return;
+  }
+
+  static const uint16_t REGISTERS[] = {
+    1099, 1100, 1101, 1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1113
+  };
+
+  for (uint16_t reg : REGISTERS)
+  {
+    // Skip regular output registers if an output change was written recently,
+    // but ALWAYS check register 1111 (PD6) which OpenAmber never commands.
+    if (in_grace_period && reg != 1111)
+    {
+      continue;
+    }
+
+    float actual_f = 0.0f;
+    switch (reg)
+    {
+      case 1099: actual_f = id(inside_unit_register_1099).state; break;
+      case 1100: actual_f = id(inside_unit_register_1100).state; break;
+      case 1101: actual_f = id(inside_unit_register_1101).state; break;
+      case 1102: actual_f = id(inside_unit_register_1102).state; break;
+      case 1103: actual_f = id(inside_unit_register_1103).state; break;
+      case 1104: actual_f = id(inside_unit_register_1104).state; break;
+      case 1105: actual_f = id(inside_unit_register_1105).state; break;
+      case 1106: actual_f = id(inside_unit_register_1106).state; break;
+      case 1107: actual_f = id(inside_unit_register_1107).state; break;
+      case 1108: actual_f = id(inside_unit_register_1108).state; break;
+      case 1109: actual_f = id(inside_unit_register_1109).state; break;
+      case 1110: actual_f = id(inside_unit_register_1110).state; break;
+      case 1111: actual_f = id(inside_unit_register_1111).state; break;
+      case 1112: actual_f = id(inside_unit_register_1112).state; break;
+      case 1113: actual_f = id(inside_unit_register_1113).state; break;
+    }
+
+    uint16_t actual = static_cast<uint16_t>(std::round(actual_f));
+    uint16_t expected = GetExpectedRegisterValue(reg);
+
+    bool mismatch = false;
+    if (reg == 1103)
+    {
+      if (std::abs(static_cast<int>(actual) - static_cast<int>(expected)) > 15)
+      {
+        mismatch = true;
+      }
+    }
+    else if (reg == 1106 || reg == 1107)
+    {
+      if (std::abs(static_cast<int>(actual) - static_cast<int>(expected)) > 5)
+      {
+        mismatch = true;
+      }
+    }
+    else
+    {
+      if (actual != expected)
+      {
+        mismatch = true;
+      }
+    }
+
+    if (mismatch)
+    {
+      ESP_LOGE("amber", "Inside unit failsafe/reboot detected! Register %u mismatch: expected %u, got %u.",
+               reg, expected, actual);
+      id(error_inside_unit_failsafe).publish_state(true);
+      StopRegulationDueToFailsafe();
+      break;
+    }
+  }
+}
+
 }  // namespace openamber
 }  // namespace esphome

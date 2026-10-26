@@ -264,6 +264,7 @@ private:
     return false;
   }
 
+public:
   void StopAndSetIdleState()
   {
     compressor_controller_->Stop();
@@ -273,6 +274,7 @@ private:
     id(dhw_active).publish_state(false);
     SetNextState(DHWState::IDLE);
   }
+private:
 
   bool PerformSafetyChecks()
   {

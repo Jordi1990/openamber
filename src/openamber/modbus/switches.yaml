@@ -28,6 +28,7 @@ switch:
   internal: True
   address: 1099
   register_type: holding
+  assumed_state: true
     
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -36,6 +37,7 @@ switch:
   internal: True
   address: 1100
   register_type: holding
+  assumed_state: true
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -44,6 +46,7 @@ switch:
   internal: True
   address: 1101
   register_type: holding
+  assumed_state: true
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -52,6 +55,7 @@ switch:
   internal: True
   address: 1102
   register_type: holding
+  assumed_state: true
     
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -60,7 +64,7 @@ switch:
   name: "Binnen unit relais onbekend"
   address: 1104
   register_type: holding
-  reuse_previous_range: true
+  assumed_state: true
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -69,6 +73,7 @@ switch:
   internal: True
   address: 1105
   register_type: holding
+  assumed_state: true
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -76,7 +81,7 @@ switch:
   internal: True
   address: 1108
   register_type: holding
-  reuse_previous_range: true
+  assumed_state: true
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -85,6 +90,7 @@ switch:
   internal: True
   address: 1109
   register_type: holding
+  assumed_state: true
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -93,6 +99,16 @@ switch:
   internal: True
   address: 1110
   register_type: holding
+  assumed_state: true
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: relay_pd6_switch
+  name: "Relais PD6"
+  internal: True
+  address: 1111
+  register_type: holding
+  assumed_state: true
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -101,5 +117,14 @@ switch:
   internal: True
   address: 1112
   register_type: holding
-  reuse_previous_range: true
+  assumed_state: true
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: relay_pd8_switch
+  name: "Relais PD8"
+  internal: True
+  address: 1113
+  register_type: holding
+  assumed_state: true
 

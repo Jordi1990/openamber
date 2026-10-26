@@ -31,6 +31,7 @@ Open source control firmware based on ESPHome for Itho Daalderop Amber heat pump
 - Sensors for error codes
 - Support external thermostats (Heating/Cooling input)
 - Support SG-Ready
+- Inside unit failsafe & reboot state synchronization (stops regulation and raises error TO06 on register mismatch)
 
 ## Todo
 - Tv1/Tv2 buffer support
@@ -85,6 +86,7 @@ When using the Waveshare ESP32-S3 Touch LCD 5'' you need to set the RS485 resist
 #### Read
 | Address    | Function                            |
 |:----------:|:-----------------------------------:|
+| 1099–1113  | Output readback registers (see Write table below for mapping; polled every 15s to monitor for failsafe / reboot) |
 | 1199       | Room temperature (Tr)               |
 | 1200       | DHW Temperature (Tw)                |
 | 1201       | Heat/Cool water temperature (Tc)    |
@@ -111,12 +113,26 @@ When using the Waveshare ESP32-S3 Touch LCD 5'' you need to set the RS485 resist
 | 1099       | Pump P0 relay                                      |
 | 1100       | Pump P1 relay                                      |
 | 1101       | Pump P2 relay                                      |
-| 1103       | Pump P0 duty cycle (1000=OFF, 0=HIGH)              |
-| 1104       | Unknown, needed for initialization                 |
+| 1102       | DHW pump relay                                     |
+| 1103       | Pump P0 PWM duty cycle (0–1000, >900=OFF, 0=MAX)   |
+| 1104       | Main initialization relay (HO)                     |
 | 1105       | 3-way valve Heat/Cool                              |
+| 1106       | Mixing valve zone 1 (0–100%)                       |
+| 1107       | Mixing valve zone 2 (0–100%)                       |
+| 1108       | External backup heating relay (Hybrid setup)       |
 | 1109       | Backup heater stage 1 relay                        |
 | 1110       | Backup heater stage 2 relay                        |
-| 1112       | 3-way valve SWW                                    |
+| 1111       | Relay PD6 (hardware failsafe activates this relay) |
+| 1112       | 3-way valve DHW                                    |
+| 1113       | Relay PD8                                          |
+
+#### Inside Unit Failsafe & Reboot Monitoring
+The inside unit controller has an autonomous hardware failsafe: after approximately 120 seconds without a valid Modbus poll or command, it turns off all outputs (except relay 1111 which turns ON), sets PWM register 1103 to 950, and clears registers 1099–1113 to 0. After an inside unit reboot (watchdog or power dip), all output registers also initialize to 0.
+
+OpenAmber reads back registers 1099–1113 every Modbus cycle (15 s) via FC3 and compares each value with its commanded state:
+- If a mismatch is detected (e.g. relay 1111 activates, or running outputs reset to 0), heat pump regulation is halted immediately (compressor stopped, pumps stopped, controllers set to idle).
+- Diagnostic problem sensor `error_inside_unit_failsafe` and `error_active` are set to `true`, and error code **TO06** (*"Binnenunit failsafe / herstart"*) is displayed in the UI.
+- Once communication and inside unit states normalize, the error can be cleared via `reset_start_timeout_errors_switch` or the reset button on the Service screen.
 
 ### Outside unit (Address 2)
 #### Read

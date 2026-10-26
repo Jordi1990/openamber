@@ -124,6 +124,29 @@ def clean_system(openamber):
     # Mocked Modbus registers now keep injected values, so clear them explicitly
     for reg in ("error_register_2119_raw", "error_register_2120_raw", "error_register_2121_raw"):
         openamber.set_sensor(reg, 0.0)
+    # Clear any injected fault overrides on inside unit registers
+    openamber.set_sensor("inside_unit_register_1111", 0.0)
+    openamber.set_sensor("inside_unit_register_1113", 0.0)
+    for reg, switch_id in (
+        ("inside_unit_register_1099", "pump_p0_relay_switch"),
+        ("inside_unit_register_1100", "pump_p1_relay_switch"),
+        ("inside_unit_register_1101", "pump_p2_relay_switch"),
+        ("inside_unit_register_1102", "dhw_pump_relay_switch"),
+        ("inside_unit_register_1104", "initialize_relay_switch"),
+        ("inside_unit_register_1105", "three_way_valve_heat_cool_switch"),
+        ("inside_unit_register_1108", "external_backup_heating_relay"),
+        ("inside_unit_register_1109", "backup_heater_stage_1"),
+        ("inside_unit_register_1110", "backup_heater_stage_2"),
+        ("inside_unit_register_1112", "three_way_valve_dhw_switch"),
+    ):
+        sw_state = openamber.get_entity(switch_id)
+        openamber.set_sensor(reg, 1.0 if sw_state else 0.0)
+    pwm = openamber.get_entity("pump_control_pwm_number")
+    openamber.set_sensor("inside_unit_register_1103", float(pwm) if pwm is not None else 1000.0)
+    mv1 = openamber.get_entity("mixing_valve_zone1_output")
+    openamber.set_sensor("inside_unit_register_1106", float(mv1) if mv1 is not None else 0.0)
+    mv2 = openamber.get_entity("mixing_valve_zone2_output")
+    openamber.set_sensor("inside_unit_register_1107", float(mv2) if mv2 is not None else 0.0)
     openamber.set_number("backup_heater_degmin_threshold", 50.0)
     openamber.set_number("dhw_setpoint_temperature", 50.0)
     openamber.set_number("dhw_restart_dhw_delta", 5.0)

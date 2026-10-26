@@ -432,6 +432,7 @@ private:
     return true;
   }
 
+public:
   void StopAndSetIdleState()
   {
     compressor_controller_->Stop();
@@ -440,6 +441,7 @@ private:
     CloseMixingValves();
     SetNextState(HeatCoolState::IDLE);
   }
+private:
 
   bool PerformSafetyChecks()
   {

@@ -74,6 +74,12 @@ private:
   void WriteHeatingFrequencyTable();
   void WriteCoolingFrequencyTable();
   void CheckModbusConnectionTimeout();
+  bool initialized_ = false;
+  bool failsafe_error_active_ = false;
+  uint32_t last_output_write_time_ms_ = 0;
+  void CheckInsideUnitFailsafe();
+  void StopRegulationDueToFailsafe();
+  uint16_t GetExpectedRegisterValue(uint16_t reg) const;
 public:
   OpenAmberComponent();
   ~OpenAmberComponent();
