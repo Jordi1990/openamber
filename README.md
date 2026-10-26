@@ -81,6 +81,8 @@ When using the Waveshare ESP32-S3 Touch LCD 5'' you need to set the RS485 resist
 - Test and provide feedback/bugs/suggestions
 
 ## Modbus addresses overview
+For a detailed reference of the inside unit firmware (all registers, fault bits, failsafe, EEPROM) and how the original HeatStar controller drives the units, see [docs/inside-unit-and-heatstar.md](docs/inside-unit-and-heatstar.md).
+
 ### Inside unit (Address 11)
 #### Read
 | Address    | Function                            |
