@@ -187,21 +187,14 @@ def test_sensor_fault_f15_f21_f22_and_warnings(clean_system):
     """
     openamber = clean_system
 
-    # 1. F15 (0x0004) - Tc fault
+    # 1. F15 (0x0004) - Tc fault (always active)
     assert openamber.set_sensor("inside_unit_status_1225_raw", 4.0) is True
     openamber.step(ms=50)
     assert openamber.get_entity("error_flag_f15") is True
     assert openamber.get_entity("error_active") is True
     assert openamber.get_entity("heat_cool_temperature_tc") is None
 
-    # Switch control temperature source to Tv1 (mixing valves are off) -> F15 is ignored
-    openamber.set_select("heat_cool_control_temperature_source_select", "CV-aanvoer zone 1 (Tv1)")
-    openamber.step(ms=50)
-    assert openamber.get_entity("error_flag_f15") is False
-    assert openamber.get_entity("error_active") is False
-
-    # Restore source to Tc and clear F15
-    openamber.set_select("heat_cool_control_temperature_source_select", "CV-aanvoer (Tc)")
+    # Clear F15
     assert openamber.set_sensor("inside_unit_status_1225_raw", 0.0) is True
     assert openamber.set_sensor("heat_cool_temperature_tc", 35.0) is True
     openamber.step(ms=50)

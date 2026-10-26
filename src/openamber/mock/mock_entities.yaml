@@ -21,81 +21,6 @@ update:
 
 sensor:
   - platform: template
-    id: inside_unit_register_1099
-    name: "Binnenunit register 1099 (P0)"
-    accuracy_decimals: 0
-    update_interval: never
-  - platform: template
-    id: inside_unit_register_1100
-    name: "Binnenunit register 1100 (P1)"
-    accuracy_decimals: 0
-    update_interval: never
-  - platform: template
-    id: inside_unit_register_1101
-    name: "Binnenunit register 1101 (P2)"
-    accuracy_decimals: 0
-    update_interval: never
-  - platform: template
-    id: inside_unit_register_1102
-    name: "Binnenunit register 1102 (Tapwaterpomp)"
-    accuracy_decimals: 0
-    update_interval: never
-  - platform: template
-    id: inside_unit_register_1103
-    name: "Binnenunit register 1103 (PWM P0)"
-    accuracy_decimals: 0
-    update_interval: never
-  - platform: template
-    id: inside_unit_register_1104
-    name: "Binnenunit register 1104 (Relais HO)"
-    accuracy_decimals: 0
-    update_interval: never
-  - platform: template
-    id: inside_unit_register_1105
-    name: "Binnenunit register 1105 (3-weg V-K)"
-    accuracy_decimals: 0
-    update_interval: never
-  - platform: template
-    id: inside_unit_register_1106
-    name: "Binnenunit register 1106 (Mengventiel 1)"
-    accuracy_decimals: 0
-    update_interval: never
-  - platform: template
-    id: inside_unit_register_1107
-    name: "Binnenunit register 1107 (Mengventiel 2)"
-    accuracy_decimals: 0
-    update_interval: never
-  - platform: template
-    id: inside_unit_register_1108
-    name: "Binnenunit register 1108 (Extern bijverwarmingsrelais)"
-    accuracy_decimals: 0
-    update_interval: never
-  - platform: template
-    id: inside_unit_register_1109
-    name: "Binnenunit register 1109 (Element 1)"
-    accuracy_decimals: 0
-    update_interval: never
-  - platform: template
-    id: inside_unit_register_1110
-    name: "Binnenunit register 1110 (Element 2)"
-    accuracy_decimals: 0
-    update_interval: never
-  - platform: template
-    id: inside_unit_register_1111
-    name: "Binnenunit register 1111 (Relais PD6)"
-    accuracy_decimals: 0
-    update_interval: never
-  - platform: template
-    id: inside_unit_register_1112
-    name: "Binnenunit register 1112 (3-weg tapwater)"
-    accuracy_decimals: 0
-    update_interval: never
-  - platform: template
-    id: inside_unit_register_1113
-    name: "Binnenunit register 1113 (Relais PD8)"
-    accuracy_decimals: 0
-    update_interval: never
-  - platform: template
     id: voltage_outside_unit
     name: "Spanning buitenunit"
     unit_of_measurement: "V"
@@ -657,8 +582,6 @@ number:
     max_value: 100
     step: 1
     initial_value: 0
-    set_action:
-      - lambda: 'id(inside_unit_register_1106).publish_state(x);'
   - platform: template
     id: mixing_valve_zone2_output
     name: "Mengventiel zone 2"
@@ -667,8 +590,6 @@ number:
     max_value: 100
     step: 1
     initial_value: 0
-    set_action:
-      - lambda: 'id(inside_unit_register_1107).publish_state(x);'
   - platform: template
     id: bottomplate_heater_ambient_temperature_start
     name: "Bodemplaatverwarming start temp"
@@ -746,73 +667,49 @@ number:
     max_value: 1000.0
     step: 1.0
     initial_value: 1000.0
-    set_action:
-      - lambda: 'id(inside_unit_register_1103).publish_state(x);'
 switch:
   - platform: template
     id: pump_p0_relay_switch
     name: "Pomp P0 relais"
     optimistic: true
-    turn_on_action:
-      - lambda: 'id(inside_unit_register_1099).publish_state(1.0f);'
-    turn_off_action:
-      - lambda: 'id(inside_unit_register_1099).publish_state(0.0f);'
+    turn_on_action: []
+    turn_off_action: []
   - platform: template
     id: pump_p1_relay_switch
     name: "Pomp P1 relais"
     optimistic: true
-    turn_on_action:
-      - lambda: 'id(inside_unit_register_1100).publish_state(1.0f);'
-    turn_off_action:
-      - lambda: 'id(inside_unit_register_1100).publish_state(0.0f);'
+    turn_on_action: []
+    turn_off_action: []
   - platform: template
     id: pump_p2_relay_switch
     name: "Pomp P2 relais"
     optimistic: true
-    turn_on_action:
-      - lambda: 'id(inside_unit_register_1101).publish_state(1.0f);'
-    turn_off_action:
-      - lambda: 'id(inside_unit_register_1101).publish_state(0.0f);'
+    turn_on_action: []
+    turn_off_action: []
   - platform: template
     id: dhw_pump_relay_switch
     name: "Tapwater pomp relais"
     optimistic: true
-    turn_on_action:
-      - lambda: 'id(inside_unit_register_1102).publish_state(1.0f);'
-    turn_off_action:
-      - lambda: 'id(inside_unit_register_1102).publish_state(0.0f);'
+    turn_on_action: []
+    turn_off_action: []
   - platform: template
     id: initialize_relay_switch
     name: "Initialize relay"
     optimistic: true
-    turn_on_action:
-      - lambda: 'id(inside_unit_register_1104).publish_state(1.0f);'
-    turn_off_action:
-      - lambda: 'id(inside_unit_register_1104).publish_state(0.0f);'
   - platform: template
     id: backup_heater_stage_1
     name: "Backup heater stage 1"
     optimistic: true
-    turn_on_action:
-      - lambda: 'id(inside_unit_register_1109).publish_state(1.0f);'
-    turn_off_action:
-      - lambda: 'id(inside_unit_register_1109).publish_state(0.0f);'
   - platform: template
     id: backup_heater_stage_2
     name: "Backup heater stage 2"
     optimistic: true
-    turn_on_action:
-      - lambda: 'id(inside_unit_register_1110).publish_state(1.0f);'
-    turn_off_action:
-      - lambda: 'id(inside_unit_register_1110).publish_state(0.0f);'
   - platform: template
     id: external_backup_heating_relay
     name: "Externe bijverwarming relais"
     optimistic: true
-    turn_on_action:
-      - lambda: 'id(inside_unit_register_1108).publish_state(1.0f);'
-    turn_off_action:
-      - lambda: 'id(inside_unit_register_1108).publish_state(0.0f);'
+    turn_on_action: []
+    turn_off_action: []
   - platform: template
     id: compressor_crankcase_heater_manual_switch
     name: "Carterverwarming"
@@ -829,34 +726,14 @@ switch:
     id: three_way_valve_heat_cool_switch
     name: "Driewegklep verwarmen/koelen"
     optimistic: true
-    turn_on_action:
-      - lambda: 'id(inside_unit_register_1105).publish_state(1.0f);'
-    turn_off_action:
-      - lambda: 'id(inside_unit_register_1105).publish_state(0.0f);'
-  - platform: template
-    id: relay_pd6_switch
-    name: "Relais PD6"
-    optimistic: true
-    turn_on_action:
-      - lambda: 'id(inside_unit_register_1111).publish_state(1.0f);'
-    turn_off_action:
-      - lambda: 'id(inside_unit_register_1111).publish_state(0.0f);'
+    turn_on_action: []
+    turn_off_action: []
   - platform: template
     id: three_way_valve_dhw_switch
     name: "Driewegklep tapwater"
     optimistic: true
-    turn_on_action:
-      - lambda: 'id(inside_unit_register_1112).publish_state(1.0f);'
-    turn_off_action:
-      - lambda: 'id(inside_unit_register_1112).publish_state(0.0f);'
-  - platform: template
-    id: relay_pd8_switch
-    name: "Relais PD8"
-    optimistic: true
-    turn_on_action:
-      - lambda: 'id(inside_unit_register_1113).publish_state(1.0f);'
-    turn_off_action:
-      - lambda: 'id(inside_unit_register_1113).publish_state(0.0f);'
+    turn_on_action: []
+    turn_off_action: []
 select:
   - platform: template
     id: compressor_control_select

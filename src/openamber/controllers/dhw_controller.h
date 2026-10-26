@@ -270,18 +270,6 @@ private:
     return false;
   }
 
-public:
-  void StopAndSetIdleState()
-  {
-    compressor_controller_->Stop();
-    pump_controller_->Stop();
-    TurnOffBackupHeater();
-    StopDhwPump();
-    id(dhw_active).publish_state(false);
-    SetNextState(DHWState::IDLE);
-  }
-private:
-
   bool PerformSafetyChecks()
   {
 
@@ -373,6 +361,16 @@ public:
         : BaseController(pump_controller, compressor_controller, DHWState::WAIT_FOR_STATE_SWITCH, DHWState::UNKNOWN, DHWState::IDLE) {
           PublishState(StateToString(state_));
         }
+
+  void StopAndSetIdleState()
+  {
+    compressor_controller_->Stop();
+    pump_controller_->Stop();
+    TurnOffBackupHeater();
+    StopDhwPump();
+    id(dhw_active).publish_state(false);
+    SetNextState(DHWState::IDLE);
+  }
 
   void UpdateStateMachine()
   {

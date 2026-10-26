@@ -709,9 +709,6 @@ binary_sensor:
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    bool mixing_enabled = id(mixing_valve_zone1_enabled).state || id(mixing_valve_zone2_enabled).state;
-    bool tc_selected = id(heat_cool_control_temperature_source_select).current_option() != "CV-aanvoer zone 1 (Tv1)";
-    if (!mixing_enabled && !tc_selected) return false;
     if (!id(inside_unit_status_1225_raw).has_state()) return false;
     const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
     return (raw & 0x0004) != 0;
@@ -760,9 +757,9 @@ binary_sensor:
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    bool tv1_selected = !id(mixing_valve_zone2_enabled).state &&
+    bool tv1_used = id(mixing_valve_zone1_enabled).state ||
                         id(heat_cool_control_temperature_source_select).current_option() == "CV-aanvoer zone 1 (Tv1)";
-    if (!id(mixing_valve_zone1_enabled).state && !tv1_selected) return false;
+    if (!tv1_used) return false;
     if (!id(inside_unit_status_1225_raw).has_state()) return false;
     const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
     return (raw & 0x0100) != 0;

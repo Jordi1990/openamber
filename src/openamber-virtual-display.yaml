@@ -13,21 +13,6 @@ esphome:
             id(outside_unit_eeprom_version).publish_state(114.0f);
             id(modbus_inside_is_online) = true;
             id(modbus_outside_is_online) = true;
-            id(inside_unit_register_1099).publish_state(0.0f);
-            id(inside_unit_register_1100).publish_state(0.0f);
-            id(inside_unit_register_1101).publish_state(0.0f);
-            id(inside_unit_register_1102).publish_state(0.0f);
-            id(inside_unit_register_1103).publish_state(1000.0f);
-            id(inside_unit_register_1104).publish_state(0.0f);
-            id(inside_unit_register_1105).publish_state(0.0f);
-            id(inside_unit_register_1106).publish_state(0.0f);
-            id(inside_unit_register_1107).publish_state(0.0f);
-            id(inside_unit_register_1108).publish_state(0.0f);
-            id(inside_unit_register_1109).publish_state(0.0f);
-            id(inside_unit_register_1110).publish_state(0.0f);
-            id(inside_unit_register_1111).publish_state(0.0f);
-            id(inside_unit_register_1112).publish_state(0.0f);
-            id(inside_unit_register_1113).publish_state(0.0f);
     - priority: -100
       then:
         - lvgl.label.update:
