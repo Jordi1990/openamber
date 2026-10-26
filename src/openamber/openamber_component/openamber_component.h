@@ -74,10 +74,7 @@ private:
   void WriteHeatingFrequencyTable();
   void WriteCoolingFrequencyTable();
   void CheckModbusConnectionTimeout();
-  bool initialized_ = false;
-  bool failsafe_error_active_ = false;
-  void CheckInsideUnitFailsafe();
-  void StopRegulationDueToFailsafe();
+  void StopControllers();
 public:
   OpenAmberComponent();
   ~OpenAmberComponent();

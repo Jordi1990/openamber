@@ -72,7 +72,7 @@ def test_failsafe_error_reset_via_switch_reinitializes_register_1099(clean_syste
 
     # Trigger reset switch -> controller re-runs INITIALIZING and turns pump_p0_relay_switch back ON
     assert openamber.set_switch("reset_start_timeout_errors_switch", True)
-    openamber.advance_time(seconds=6, step_s=1)
+    openamber.advance_time(seconds=12, step_s=1)
 
     assert openamber.get_entity("error_inside_unit_failsafe") is False, (
         "error_inside_unit_failsafe should be cleared after reset"
@@ -112,7 +112,7 @@ def test_service_ui_displays_failsafe_error(clean_system):
 
     # Click reset button
     assert openamber.click("service_errors_reset_timeout_btn")
-    openamber.advance_time(seconds=6, step_s=1)
+    openamber.advance_time(seconds=12, step_s=1)
 
     assert openamber.get_entity("error_inside_unit_failsafe") is False
     assert openamber.get_entity("error_active") is False

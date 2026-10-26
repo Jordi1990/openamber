@@ -71,24 +71,12 @@ void OpenAmberComponent::loop()
 
 void OpenAmberComponent::update()
 {
-  if (failsafe_error_active_)
+  if ((state_ == State::HEAT_COOL || state_ == State::DHW_HEAT) && !id(pump_p0_relay_switch).state)
   {
-    if (!id(error_inside_unit_failsafe).state)
-    {
-      failsafe_error_active_ = false;
-      initialized_ = false;
-      ESP_LOGI("amber", "Inside unit failsafe error cleared. Re-initializing controller.");
-      SetNextState(State::INITIALIZING);
-    }
-    else
-    {
-      return;
-    }
-  }
-
-  CheckInsideUnitFailsafe();
-  if (id(error_inside_unit_failsafe).state)
-  {
+    id(error_inside_unit_failsafe).publish_state(true);
+    StopControllers();
+    ESP_LOGI("amber", "Inside unit pump relay switch unexpectedly turned off. Re-initializing controller.");
+    SetNextState(State::WAIT_MODBUS_CONNECTION);
     return;
   }
 
@@ -139,7 +127,7 @@ void OpenAmberComponent::update()
       id(three_way_valve_heat_cool_switch).turn_off();
       id(backup_heater_stage_1).turn_off();
       id(backup_heater_stage_2).turn_off();
-      // Sluit mengventielen bij initialisatie
+      // Close mixing valves during init.
       id(mixing_valve_zone1_output).make_call().set_value(0).perform();
       id(mixing_valve_zone2_output).make_call().set_value(0).perform();
       auto working_mode_call = id(working_mode_switch).make_call();
@@ -174,7 +162,6 @@ void OpenAmberComponent::update()
 
     case State::HEAT_COOL:
     {
-      initialized_ = true;
       dhw_controller_->CheckLegionellaCycle();
 
       if((desired_valve_position == ThreeWayValvePosition::DHW || maintenance_requested) && !heat_cool_controller_->IsRequestedToStop())
@@ -207,7 +194,6 @@ void OpenAmberComponent::update()
 
     case State::DHW_HEAT:
     {
-      initialized_ = true;
       dhw_controller_->CheckLegionellaCycle();
 
       if(maintenance_requested && !dhw_controller_->IsRequestedToStop())
@@ -239,7 +225,6 @@ void OpenAmberComponent::update()
 
     case State::MAINTENANCE:
     {
-      initialized_ = false;
       if (!maintenance_requested)
       {
         if (!deaeration_routine_->IsIdle())
@@ -524,11 +509,9 @@ float OpenAmberComponent::get_mixing_valve_zone2_position() const
   return mixing_valve_zone2_ ? mixing_valve_zone2_->GetValvePositionPercent() : 0.0f;
 }
 
-void OpenAmberComponent::StopRegulationDueToFailsafe()
+void OpenAmberComponent::StopControllers()
 {
   ESP_LOGE("amber", "Stopping regulation due to inside unit failsafe/reboot.");
-  failsafe_error_active_ = true;
-  initialized_ = false;
   compressor_controller_->Stop();
   pump_controller_->Stop();
   heat_cool_controller_->StopAndSetIdleState();
@@ -536,26 +519,6 @@ void OpenAmberComponent::StopRegulationDueToFailsafe()
   auto working_mode_call = id(working_mode_switch).make_call();
   working_mode_call.set_index(WORKING_MODE_STANDBY);
   working_mode_call.perform();
-}
-
-void OpenAmberComponent::CheckInsideUnitFailsafe()
-{
-  if (!id(modbus_inside_online).state || !initialized_ || id(service_mode_enabled).state)
-  {
-    return;
-  }
-
-  if (id(error_inside_unit_failsafe).state)
-  {
-    return;
-  }
-
-  if (!id(pump_p0_relay_switch).state)
-  {
-    ESP_LOGE("amber", "Inside unit failsafe/reboot detected! Register 1099 (P0 relay) is OFF while controller is active.");
-    id(error_inside_unit_failsafe).publish_state(true);
-    StopRegulationDueToFailsafe();
-  }
 }
 
 }  // namespace openamber
