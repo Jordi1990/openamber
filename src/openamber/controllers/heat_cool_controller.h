@@ -544,9 +544,6 @@ public:
     float current_temperature = GetControlTemperature();
     float target = GetPidController().target_temperature;
 
-    // No separate deadband here: the PID deadband (configurable via pid_heat_deadband / pid_cool_deadband)
-    // already freezes the integral and shallows the proportional term around the setpoint.
-
     // Guard: never modulate up when temperature has already overshot the setpoint
     const float TEMP_MARGIN = 0.3f;
     bool overshoot = IsWorkingMode(WORKING_MODE_COOLING)
