@@ -198,3 +198,54 @@
                 selected_index: !lambda |-
                   auto idx = id(cool_compressor_mode).active_index();
                   return idx.has_value() ? idx.value() : 0;
+
+# ── Settings: DHW base power dropdown ──
+- id: !extend dhw_compressor_mode
+  on_value:
+    then:
+      - if:
+          condition:
+            lambda: |-
+              auto idx = id(dhw_compressor_mode).active_index();
+              if (!idx.has_value()) return false;
+              return lv_dropdown_get_selected(id(set_dhw_power_dd)->obj) != (uint16_t) idx.value();
+          then:
+            - lvgl.dropdown.update:
+                id: set_dhw_power_dd
+                selected_index: !lambda |-
+                  auto idx = id(dhw_compressor_mode).active_index();
+                  return idx.has_value() ? idx.value() : 0;
+
+# ── Settings: DHW winter power dropdown ──
+- id: !extend dhw_compressor_mode_max
+  on_value:
+    then:
+      - if:
+          condition:
+            lambda: |-
+              auto idx = id(dhw_compressor_mode_max).active_index();
+              if (!idx.has_value()) return false;
+              return lv_dropdown_get_selected(id(set_dhw_winter_dd)->obj) != (uint16_t) idx.value();
+          then:
+            - lvgl.dropdown.update:
+                id: set_dhw_winter_dd
+                selected_index: !lambda |-
+                  auto idx = id(dhw_compressor_mode_max).active_index();
+                  return idx.has_value() ? idx.value() : 0;
+
+# ── Settings: DHW pump start mode dropdown ──
+- id: !extend dhw_pump_start_mode_select
+  on_value:
+    then:
+      - if:
+          condition:
+            lambda: |-
+              auto idx = id(dhw_pump_start_mode_select).active_index();
+              if (!idx.has_value()) return false;
+              return lv_dropdown_get_selected(id(set_dhw_pump_dd)->obj) != (uint16_t) idx.value();
+          then:
+            - lvgl.dropdown.update:
+                id: set_dhw_pump_dd
+                selected_index: !lambda |-
+                  auto idx = id(dhw_pump_start_mode_select).active_index();
+                  return idx.has_value() ? idx.value() : 0;

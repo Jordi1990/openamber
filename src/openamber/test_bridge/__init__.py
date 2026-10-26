@@ -24,7 +24,7 @@ SUPPORTED_TYPES = {
     "checkbox", "switch", "roller", "textarea",
     "container", "spinner",
 }
-DROPDOWN_TYPES = {"dropdown"}
+DROPDOWN_TYPES = {"dropdown", "table"}
 
 
 def _collect_widgets(obj, result, dropdown_result, excluded_ids):

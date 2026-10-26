@@ -112,9 +112,17 @@
         if (!internal_mode) {
           lv_obj_clear_state(id(thermostat_row_off_delay), LV_STATE_DISABLED);
           lv_obj_set_style_opa(id(thermostat_row_off_delay), LV_OPA_COVER, LV_PART_MAIN);
+          lv_obj_clear_state(id(set_therm_off_delay_dec_btn), LV_STATE_DISABLED);
+          lv_obj_clear_state(id(set_therm_off_delay_inc_btn), LV_STATE_DISABLED);
+          lv_obj_add_flag(id(set_therm_off_delay_dec_btn), LV_OBJ_FLAG_CLICKABLE);
+          lv_obj_add_flag(id(set_therm_off_delay_inc_btn), LV_OBJ_FLAG_CLICKABLE);
         } else {
           lv_obj_add_state(id(thermostat_row_off_delay), LV_STATE_DISABLED);
           lv_obj_set_style_opa(id(thermostat_row_off_delay), LV_OPA_40, LV_PART_MAIN);
+          lv_obj_add_state(id(set_therm_off_delay_dec_btn), LV_STATE_DISABLED);
+          lv_obj_add_state(id(set_therm_off_delay_inc_btn), LV_STATE_DISABLED);
+          lv_obj_clear_flag(id(set_therm_off_delay_dec_btn), LV_OBJ_FLAG_CLICKABLE);
+          lv_obj_clear_flag(id(set_therm_off_delay_inc_btn), LV_OBJ_FLAG_CLICKABLE);
         }
 
 - id: thermostat_select_tab
@@ -389,11 +397,12 @@
           - lvgl.widget.hide: { id: service_sensors_page_2 }
           - lvgl.widget.hide: { id: service_sensors_page_3 }
           - lvgl.widget.hide: { id: service_sensors_page_4 }
+          - lvgl.widget.hide: { id: service_sensors_page_5 }
           - lvgl.widget.update: { id: service_sensors_page_prev_button, bg_color: 0xCBD5E1 }
           - lvgl.label.update: { id: service_sensors_page_prev_button_lbl, text_color: 0x4B5563 }
           - lvgl.widget.update: { id: service_sensors_page_next_button, bg_color: 0x1F3B68 }
           - lvgl.label.update: { id: service_sensors_page_next_button_lbl, text_color: 0xFFFFFF }
-          - lvgl.label.update: { id: service_sensors_page_indicator, text: "Pagina 1 / 4" }
+          - lvgl.label.update: { id: service_sensors_page_indicator, text: "Pagina 1 / 5" }
         else:
           - if:
               condition:
@@ -403,11 +412,12 @@
                 - lvgl.widget.show: { id: service_sensors_page_2 }
                 - lvgl.widget.hide: { id: service_sensors_page_3 }
                 - lvgl.widget.hide: { id: service_sensors_page_4 }
+                - lvgl.widget.hide: { id: service_sensors_page_5 }
                 - lvgl.widget.update: { id: service_sensors_page_prev_button, bg_color: 0x1F3B68 }
                 - lvgl.label.update: { id: service_sensors_page_prev_button_lbl, text_color: 0xFFFFFF }
                 - lvgl.widget.update: { id: service_sensors_page_next_button, bg_color: 0x1F3B68 }
                 - lvgl.label.update: { id: service_sensors_page_next_button_lbl, text_color: 0xFFFFFF }
-                - lvgl.label.update: { id: service_sensors_page_indicator, text: "Pagina 2 / 4" }
+                - lvgl.label.update: { id: service_sensors_page_indicator, text: "Pagina 2 / 5" }
               else:
                 - if:
                     condition:
@@ -417,48 +427,73 @@
                       - lvgl.widget.hide: { id: service_sensors_page_2 }
                       - lvgl.widget.show: { id: service_sensors_page_3 }
                       - lvgl.widget.hide: { id: service_sensors_page_4 }
+                      - lvgl.widget.hide: { id: service_sensors_page_5 }
                       - lvgl.widget.update: { id: service_sensors_page_prev_button, bg_color: 0x1F3B68 }
                       - lvgl.label.update: { id: service_sensors_page_prev_button_lbl, text_color: 0xFFFFFF }
                       - lvgl.widget.update: { id: service_sensors_page_next_button, bg_color: 0x1F3B68 }
                       - lvgl.label.update: { id: service_sensors_page_next_button_lbl, text_color: 0xFFFFFF }
-                      - lvgl.label.update: { id: service_sensors_page_indicator, text: "Pagina 3 / 4" }
+                      - lvgl.label.update: { id: service_sensors_page_indicator, text: "Pagina 3 / 5" }
                     else:
-                      - lvgl.widget.hide: { id: service_sensors_page_1 }
-                      - lvgl.widget.hide: { id: service_sensors_page_2 }
-                      - lvgl.widget.hide: { id: service_sensors_page_3 }
-                      - lvgl.widget.show: { id: service_sensors_page_4 }
-                      - lvgl.widget.update: { id: service_sensors_page_prev_button, bg_color: 0x1F3B68 }
-                      - lvgl.label.update: { id: service_sensors_page_prev_button_lbl, text_color: 0xFFFFFF }
-                      - lvgl.widget.update: { id: service_sensors_page_next_button, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: service_sensors_page_next_button_lbl, text_color: 0x4B5563 }
-                      - lvgl.label.update: { id: service_sensors_page_indicator, text: "Pagina 4 / 4" }
+                      - if:
+                          condition:
+                            lambda: 'return page == 4;'
+                          then:
+                            - lvgl.widget.hide: { id: service_sensors_page_1 }
+                            - lvgl.widget.hide: { id: service_sensors_page_2 }
+                            - lvgl.widget.hide: { id: service_sensors_page_3 }
+                            - lvgl.widget.show: { id: service_sensors_page_4 }
+                            - lvgl.widget.hide: { id: service_sensors_page_5 }
+                            - lvgl.widget.update: { id: service_sensors_page_prev_button, bg_color: 0x1F3B68 }
+                            - lvgl.label.update: { id: service_sensors_page_prev_button_lbl, text_color: 0xFFFFFF }
+                            - lvgl.widget.update: { id: service_sensors_page_next_button, bg_color: 0x1F3B68 }
+                            - lvgl.label.update: { id: service_sensors_page_next_button_lbl, text_color: 0xFFFFFF }
+                            - lvgl.label.update: { id: service_sensors_page_indicator, text: "Pagina 4 / 5" }
+                          else:
+                            - lvgl.widget.hide: { id: service_sensors_page_1 }
+                            - lvgl.widget.hide: { id: service_sensors_page_2 }
+                            - lvgl.widget.hide: { id: service_sensors_page_3 }
+                            - lvgl.widget.hide: { id: service_sensors_page_4 }
+                            - lvgl.widget.show: { id: service_sensors_page_5 }
+                            - lvgl.widget.update: { id: service_sensors_page_prev_button, bg_color: 0x1F3B68 }
+                            - lvgl.label.update: { id: service_sensors_page_prev_button_lbl, text_color: 0xFFFFFF }
+                            - lvgl.widget.update: { id: service_sensors_page_next_button, bg_color: 0xCBD5E1 }
+                            - lvgl.label.update: { id: service_sensors_page_next_button_lbl, text_color: 0x4B5563 }
+                            - lvgl.label.update: { id: service_sensors_page_indicator, text: "Pagina 5 / 5" }
 
 - id: service_sensors_prev_page
   mode: restart
   then:
     - if:
         condition:
-          lambda: 'return !lv_obj_has_flag(id(service_sensors_page_4), LV_OBJ_FLAG_HIDDEN);'
+          lambda: 'return !lv_obj_has_flag(id(service_sensors_page_5), LV_OBJ_FLAG_HIDDEN);'
         then:
           - script.execute:
               id: service_sensors_select_page
-              page: 3
+              page: 4
         else:
           - if:
               condition:
-                lambda: 'return !lv_obj_has_flag(id(service_sensors_page_3), LV_OBJ_FLAG_HIDDEN);'
+                lambda: 'return !lv_obj_has_flag(id(service_sensors_page_4), LV_OBJ_FLAG_HIDDEN);'
               then:
                 - script.execute:
                     id: service_sensors_select_page
-                    page: 2
+                    page: 3
               else:
                 - if:
                     condition:
-                      lambda: 'return !lv_obj_has_flag(id(service_sensors_page_2), LV_OBJ_FLAG_HIDDEN);'
+                      lambda: 'return !lv_obj_has_flag(id(service_sensors_page_3), LV_OBJ_FLAG_HIDDEN);'
                     then:
                       - script.execute:
                           id: service_sensors_select_page
-                          page: 1
+                          page: 2
+                    else:
+                      - if:
+                          condition:
+                            lambda: 'return !lv_obj_has_flag(id(service_sensors_page_2), LV_OBJ_FLAG_HIDDEN);'
+                          then:
+                            - script.execute:
+                                id: service_sensors_select_page
+                                page: 1
 
 - id: service_sensors_next_page
   mode: restart
@@ -486,6 +521,14 @@
                       - script.execute:
                           id: service_sensors_select_page
                           page: 4
+                    else:
+                      - if:
+                          condition:
+                            lambda: 'return !lv_obj_has_flag(id(service_sensors_page_4), LV_OBJ_FLAG_HIDDEN);'
+                          then:
+                            - script.execute:
+                                id: service_sensors_select_page
+                                page: 5
 
 - id: nav_select_tab
   mode: restart
@@ -2275,7 +2318,8 @@
               if (id(service_diag_status_table) == nullptr ||
                   id(service_diag_temp_table) == nullptr ||
                   id(service_diag_control_table) == nullptr ||
-                  id(service_diag_system_table) == nullptr) return;
+                  id(service_diag_system_table) == nullptr ||
+                  id(service_diag_demand_table) == nullptr) return;
 
               auto *st = id(service_diag_status_table)->obj;
               lv_table_set_cell_value(st, 0, 1, id(state_machine_state_main).state.empty() ? "-" : id(state_machine_state_main).state.c_str());
@@ -2316,9 +2360,14 @@
               lv_table_set_cell_value(sy, 3, 1, id(modbus_outside_online).state ? "Online" : "Offline");
               std::string sg_ab = str_sprintf("%s / %s", id(sg_ready_a_active_sensor).state ? "AAN" : "UIT", id(sg_ready_b_active_sensor).state ? "AAN" : "UIT");
               lv_table_set_cell_value(sy, 4, 1, sg_ab.c_str());
-              lv_table_set_cell_value(sy, 5, 1, id(external_heat_demand_wired).state ? "AAN" : "UIT");
-              lv_table_set_cell_value(sy, 6, 1, id(external_heat_demand_wired_zone_2).state ? "AAN" : "UIT");
-              lv_table_set_cell_value(sy, 7, 1, id(external_cool_demand_wired).state ? "AAN" : "UIT");
+
+              auto *dm = id(service_diag_demand_table)->obj;
+              lv_table_set_cell_value(dm, 0, 1, id(heat_demand_active_sensor_zone_1).state ? "AAN" : "UIT");
+              lv_table_set_cell_value(dm, 1, 1, id(heat_demand_active_sensor_zone_2).state ? "AAN" : "UIT");
+              lv_table_set_cell_value(dm, 2, 1, id(cool_demand_active_sensor).state ? "AAN" : "UIT");
+              lv_table_set_cell_value(dm, 3, 1, id(external_heat_demand_wired).state ? "AAN" : "UIT");
+              lv_table_set_cell_value(dm, 4, 1, id(external_heat_demand_wired_zone_2).state ? "AAN" : "UIT");
+              lv_table_set_cell_value(dm, 5, 1, id(external_cool_demand_wired).state ? "AAN" : "UIT");
 
 - id: update_system_diagnostics_ui
   mode: restart

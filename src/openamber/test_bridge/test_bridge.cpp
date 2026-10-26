@@ -277,6 +277,7 @@ void TestBridge::process_line(const std::string &line) {
 
       std::string text = "";
       int selected_index = -1;
+      bool is_table = lv_obj_check_type(obj, &lv_table_class);
       if (lv_obj_check_type(obj, &lv_dropdown_class)) {
         selected_index = static_cast<int>(lv_dropdown_get_selected(obj));
         char buf[128] = {0};
@@ -305,6 +306,18 @@ void TestBridge::process_line(const std::string &line) {
         out["text"] = text;
         if (selected_index >= 0) {
           out["selected_index"] = selected_index;
+        }
+        if (is_table) {
+          JsonArray rows_arr = out["rows"].to<JsonArray>();
+          uint32_t row_cnt = lv_table_get_row_count(obj);
+          uint32_t col_cnt = lv_table_get_column_count(obj);
+          for (uint32_t r = 0; r < row_cnt; r++) {
+            JsonArray row_arr = rows_arr.add<JsonArray>();
+            for (uint32_t c = 0; c < col_cnt; c++) {
+              const char *val = lv_table_get_cell_value(obj, r, c);
+              row_arr.add(val ? val : "");
+            }
+          }
         }
       });
       this->send_response(resp);
