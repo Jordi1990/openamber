@@ -141,11 +141,6 @@ public:
   void Start()
   {
     ESP_LOGI("amber", "Starting pump (interval cycle)");
-    if (!id(pump_p0_relay_switch).state)
-    {
-      ESP_LOGW("amber", "Pump P0 relay is not active, activating it now.");
-      id(pump_p0_relay_switch).turn_on();
-    }
 
     pump_start_time_ = App.get_loop_component_start_time();
     start_wait_started_ms_ = pump_start_time_;

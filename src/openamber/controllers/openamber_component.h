@@ -71,6 +71,15 @@ void OpenAmberComponent::loop()
 
 void OpenAmberComponent::update()
 {
+  if ((state_ == State::HEAT_COOL || state_ == State::DHW_HEAT) && !id(pump_p0_relay_switch).state)
+  {
+    id(error_inside_unit_failsafe).publish_state(true);
+    StopControllers();
+    ESP_LOGI("amber", "Inside unit pump relay switch unexpectedly turned off. Re-initializing controller.");
+    SetNextState(State::WAIT_MODBUS_CONNECTION);
+    return;
+  }
+
   bool modbus_connected = id(modbus_inside_online).state && id(modbus_outside_online).state && id(outside_unit_eeprom_version).has_state();
   ThreeWayValvePosition current_valve_position = GetThreeWayValvePosition();
   ThreeWayValvePosition desired_valve_position = GetDesiredThreeWayValvePosition();
@@ -118,7 +127,7 @@ void OpenAmberComponent::update()
       id(three_way_valve_heat_cool_switch).turn_off();
       id(backup_heater_stage_1).turn_off();
       id(backup_heater_stage_2).turn_off();
-      // Sluit mengventielen bij initialisatie
+      // Close mixing valves during init.
       id(mixing_valve_zone1_output).make_call().set_value(0).perform();
       id(mixing_valve_zone2_output).make_call().set_value(0).perform();
       auto working_mode_call = id(working_mode_switch).make_call();
@@ -499,5 +508,18 @@ float OpenAmberComponent::get_mixing_valve_zone2_position() const
 {
   return mixing_valve_zone2_ ? mixing_valve_zone2_->GetValvePositionPercent() : 0.0f;
 }
+
+void OpenAmberComponent::StopControllers()
+{
+  ESP_LOGE("amber", "Stopping regulation due to inside unit failsafe/reboot.");
+  compressor_controller_->Stop();
+  pump_controller_->Stop();
+  heat_cool_controller_->StopAndSetIdleState();
+  dhw_controller_->StopAndSetIdleState();
+  auto working_mode_call = id(working_mode_switch).make_call();
+  working_mode_call.set_index(WORKING_MODE_STANDBY);
+  working_mode_call.perform();
+}
+
 }  // namespace openamber
 }  // namespace esphome

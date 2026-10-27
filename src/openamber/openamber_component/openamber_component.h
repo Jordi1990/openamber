@@ -74,6 +74,7 @@ private:
   void WriteHeatingFrequencyTable();
   void WriteCoolingFrequencyTable();
   void CheckModbusConnectionTimeout();
+  void StopControllers();
 public:
   OpenAmberComponent();
   ~OpenAmberComponent();

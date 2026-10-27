@@ -445,14 +445,6 @@ private:
     return true;
   }
 
-  void StopAndSetIdleState()
-  {
-    compressor_controller_->Stop();
-    TurnOffBackupHeater();
-    StopPumps();
-    CloseMixingValves();
-    SetNextState(HeatCoolState::IDLE);
-  }
 
   bool PerformSafetyChecks()
   {
@@ -514,6 +506,15 @@ public:
       mixing_valve_zone2_ = mv_zone2;
       PublishState(StateToString(state_));
     }
+
+  void StopAndSetIdleState()
+  {
+    compressor_controller_->Stop();
+    TurnOffBackupHeater();
+    StopPumps();
+    CloseMixingValves();
+    SetNextState(HeatCoolState::IDLE);
+  }
 
   void SetHeatPIDValue(float pid_value)
   {
