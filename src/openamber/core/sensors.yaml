@@ -87,7 +87,8 @@ sensor:
     bool inside_online = id(modbus_inside_is_online);
 
     // Compressor current flickers 0 / 0.1 A when idle, only count it while running
-    float compressor = id(power_compressor).state;
+    // Read V and I directly, power_compressor only refreshes every 60 s
+    float compressor = id(voltage_outside_unit).state * id(current_outside_unit).state;
     if (outside_online && id(current_compressor_frequency).state > 0 && !std::isnan(compressor))
       p += POWER_ESTIMATE_COMPRESSOR_FACTOR * compressor;
 
