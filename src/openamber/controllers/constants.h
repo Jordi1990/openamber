@@ -106,24 +106,3 @@ static const uint32_t DEAERATION_SHORT_LOW_SPEED_DURATION_S = 30;
 static const uint32_t DEAERATION_EXTENDED_CYCLES = 5;
 static const uint32_t DEAERATION_EXTENDED_HIGH_SPEED_DURATION_S = 2 * 60;
 static const uint32_t DEAERATION_EXTENDED_LOW_SPEED_DURATION_S = 60;
-
-// ============================================================================
-// POWER ESTIMATION (Stroomverbruik totaal)
-// ============================================================================
-
-// Model identification (register 3257, model_identification_1)
-static const int MODEL_ID_AMBER_65 = 140;
-static const int MODEL_ID_AMBER_95 = 150;
-static const int MODEL_ID_AMBER_120 = 15;
-
-// Compressor sensor (V * I outside unit) vs. measured active power (Shelly Pro 3EM)
-static const float POWER_ESTIMATE_COMPRESSOR_FACTOR = 1.015f;
-// Inside unit electronics, controller and display while idle
-static const float POWER_ESTIMATE_STANDBY_W = 10.0f;
-
-// Pump P0 power at 100% PWM, scaled cubic with speed: P = max * (pwm / 100)^3.
-// Amber 65: measured (35 W at 70%, fit on two weeks of data).
-// Amber 95 / 120: not measured yet, uses the Amber 65 value until data is available.
-static const float POWER_ESTIMATE_PUMP_MAX_W_AMBER_65 = 102.0f;
-static const float POWER_ESTIMATE_PUMP_MAX_W_AMBER_95 = 102.0f;
-static const float POWER_ESTIMATE_PUMP_MAX_W_AMBER_120 = 102.0f;
