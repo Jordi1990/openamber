@@ -360,6 +360,10 @@ binary_sensor:
     name: "Bodemverwarming actief"
     lambda: 'return false;'
   - platform: template
+    id: crankcase_heater_active_sensor
+    name: "Carterverwarming"
+    lambda: 'return false;'
+  - platform: template
     id: external_heat_demand_wired
     name: "Externe warmtevraag"
   - platform: template

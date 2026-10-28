@@ -483,6 +483,21 @@ number:
       sorting_group_id: general_settings
 
 - platform: template
+  id: power_estimate_crankcase_heater_w
+  name: "Vermogen carterverwarming"
+  unit_of_measurement: "W"
+  min_value: 0
+  max_value: 200
+  initial_value: 30
+  step: 1
+  optimistic: true
+  restore_value: true
+  entity_category: config
+  icon: mdi:heat-wave
+  web_server: 
+      sorting_group_id: general_settings
+
+- platform: template
   id: pump_speed_heating_number
   name: "Pomp snelheid verwarmen"
   optimistic: True
