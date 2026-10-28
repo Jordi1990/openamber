@@ -69,8 +69,8 @@ sensor:
     sorting_group_id: diagnostic
 
 # Estimated total electrical power: corrected compressor reading + pump P0
-# (cubic with PWM, per model) + backup heater and crankcase heater (fixed power)
-# + standby.
+# (cubic with PWM, per model) + backup, crankcase and bottom plate heaters
+# (fixed power) + standby.
 - platform: template
   id: power_total_estimated
   name: "Stroomverbruik totaal"
@@ -109,10 +109,14 @@ sensor:
     if (inside_online && id(backup_heater_active_sensor).state)
       p += id(power_estimate_backup_heater_w).state;
 
-    // Crankcase heater is fed by the outside unit, but its current is only counted
-    // above while the compressor runs; it is only on while the compressor is off.
-    if (outside_online && id(crankcase_heater_active_sensor).state && id(current_compressor_frequency).state <= 0)
-      p += id(power_estimate_crankcase_heater_w).state;
+    // Crankcase and bottom plate heaters are fed by the outside unit. Its current is
+    // only counted above while the compressor runs, so add them while it is off.
+    if (outside_online && id(current_compressor_frequency).state <= 0) {
+      if (id(crankcase_heater_active_sensor).state)
+        p += id(power_estimate_crankcase_heater_w).state;
+      if (id(bottom_heater_active_sensor).state)
+        p += id(power_estimate_bottom_heater_w).state;
+    }
 
     return p;
   web_server:

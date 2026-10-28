@@ -498,6 +498,21 @@ number:
       sorting_group_id: general_settings
 
 - platform: template
+  id: power_estimate_bottom_heater_w
+  name: "Vermogen bodemplaatverwarming"
+  unit_of_measurement: "W"
+  min_value: 0
+  max_value: 500
+  initial_value: 150
+  step: 1
+  optimistic: true
+  restore_value: true
+  entity_category: config
+  icon: mdi:heat-wave
+  web_server: 
+      sorting_group_id: general_settings
+
+- platform: template
   id: pump_speed_heating_number
   name: "Pomp snelheid verwarmen"
   optimistic: True
