@@ -65,8 +65,63 @@ sensor:
   unit_of_measurement: "W"
   lambda: |-
     return id(voltage_outside_unit).state * id(current_outside_unit).state;
-  web_server: 
+  web_server:
     sorting_group_id: diagnostic
+
+# Estimated total electrical power: corrected compressor reading + pump P0
+# (cubic with PWM, per model) + backup heater (fixed power) + standby.
+- platform: template
+  id: power_total_estimated
+  name: "Stroomverbruik totaal"
+  device_class: power
+  state_class: measurement
+  unit_of_measurement: "W"
+  accuracy_decimals: 0
+  update_interval: 10s
+  lambda: |-
+    float p = POWER_ESTIMATE_STANDBY_W;
+
+    // Compressor current flickers 0 / 0.1 A when idle, only count it while running
+    float compressor = id(power_compressor).state;
+    if (id(current_compressor_frequency).state > 0 && !std::isnan(compressor))
+      p += POWER_ESTIMATE_COMPRESSOR_FACTOR * compressor;
+
+    float pwm = id(pump_p0_current_pwm_sensor).state;
+    if (!std::isnan(pwm) && pwm > 0) {
+      float pump_max_w = id(power_estimate_pump_max_w).state;
+      if (std::isnan(pump_max_w) || pump_max_w <= 0) {
+        switch ((int) id(model_identification_1).state) {
+          case MODEL_ID_AMBER_95:  pump_max_w = POWER_ESTIMATE_PUMP_MAX_W_AMBER_95; break;
+          case MODEL_ID_AMBER_120: pump_max_w = POWER_ESTIMATE_PUMP_MAX_W_AMBER_120; break;
+          default:                 pump_max_w = POWER_ESTIMATE_PUMP_MAX_W_AMBER_65; break;
+        }
+      }
+      float speed = std::min(pwm, 100.0f) / 100.0f;
+      p += pump_max_w * speed * speed * speed;
+    }
+
+    if (id(backup_heater_active_sensor).state)
+      p += id(power_estimate_backup_heater_w).state;
+
+    return p;
+  web_server:
+    sorting_group_id: overview
+
+- platform: integration
+  id: energy_total_estimated
+  name: "Energieverbruik totaal"
+  sensor: power_total_estimated
+  time_unit: h
+  integration_method: left
+  device_class: energy
+  state_class: total_increasing
+  unit_of_measurement: "kWh"
+  accuracy_decimals: 2
+  restore: true
+  filters:
+    - multiply: 0.001
+  web_server:
+    sorting_group_id: overview
 
 - platform: template
   id: cop_thermal_power_heating

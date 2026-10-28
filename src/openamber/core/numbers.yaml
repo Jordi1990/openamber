@@ -453,6 +453,36 @@ number:
       sorting_group_id: heating_settings
 
 - platform: template
+  id: power_estimate_pump_max_w
+  name: "Pomp P0 vermogen bij 100% (0 = automatisch)"
+  unit_of_measurement: "W"
+  min_value: 0
+  max_value: 300
+  initial_value: 0
+  step: 1
+  optimistic: true
+  restore_value: true
+  entity_category: config
+  icon: mdi:pump
+  web_server:
+      sorting_group_id: general_settings
+
+- platform: template
+  id: power_estimate_backup_heater_w
+  name: "Vermogen backup verwarmingselement"
+  unit_of_measurement: "W"
+  min_value: 0
+  max_value: 9000
+  initial_value: 3000
+  step: 100
+  optimistic: true
+  restore_value: true
+  entity_category: config
+  icon: mdi:heat-wave
+  web_server:
+      sorting_group_id: general_settings
+
+- platform: template
   id: pump_speed_heating_number
   name: "Pomp snelheid verwarmen"
   optimistic: True
