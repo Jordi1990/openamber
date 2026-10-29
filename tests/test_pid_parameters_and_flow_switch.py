@@ -136,8 +136,8 @@ def test_flow_switch_missing_pump_safety_delay_stops_compressor(clean_system):
     assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
     assert int(openamber.get_entity("compressor_control_select") or 0) > 0
 
-    # Simulate pump failure/flow lost: turn off pump_p0_relay_switch
-    openamber.set_switch("pump_p0_relay_switch", False)
+    # Simulate pump failure/flow lost: set pump_control_pwm_number to 1000.0 (0% PWM -> flow lost while relay stays ON)
+    openamber.set_number("pump_control_pwm_number", 1000.0)
     openamber.step(ms=50)
     assert openamber.get_entity("internal_pump_active") is False, "internal_pump_active must be False"
 

@@ -346,3 +346,58 @@
   on_state:
     then:
       - script.execute: update_service_errors_ui
+
+- id: !extend error_inside_unit_failsafe
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+      - script.execute: update_header_alert_icons
+
+- id: !extend error_flag_f13
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+      - script.execute: update_header_alert_icons
+
+- id: !extend error_flag_f14
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+      - script.execute: update_header_alert_icons
+
+- id: !extend error_flag_f15
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+      - script.execute: update_header_alert_icons
+
+- id: !extend error_flag_f21
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+      - script.execute: update_header_alert_icons
+
+- id: !extend error_flag_f22
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+      - script.execute: update_header_alert_icons
+
+- id: !extend error_flag_inside_comm_failsafe
+  on_state:
+    then:
+      - script.execute: update_service_warnings_ui
+      - script.execute: update_header_alert_icons
+
+- id: !extend error_flag_inside_eeprom
+  on_state:
+    then:
+      - script.execute: update_service_warnings_ui
+      - script.execute: update_header_alert_icons
+
+- id: !extend error_flag_pump_p0_alarm
+  on_state:
+    then:
+      - script.execute: update_service_warnings_ui
+      - script.execute: update_header_alert_icons
+

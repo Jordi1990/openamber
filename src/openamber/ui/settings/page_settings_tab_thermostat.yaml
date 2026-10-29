@@ -251,7 +251,7 @@ obj:
               border_opa: 0%
               pad_all: 6
               widgets:
-                - label: { text: "Uitschakelvertraging", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                - label: { text: "Uitschakelvertraging (Extern signaal)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
                 - label: { text: "Vertraging voor stoppen bij wegvallen warmte- of koudevraag", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
                 - obj:
                     width: SIZE_CONTENT
@@ -263,6 +263,7 @@ obj:
                     layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                     widgets:
                       - obj:
+                          id: set_therm_off_delay_dec_btn
                           width: 40
                           height: 40
                           bg_color: 0x1F3B68
@@ -272,11 +273,18 @@ obj:
                           scrollbar_mode: "OFF"
                           scrollable: false
                           on_click:
-                            - number.decrement: thermostat_off_delay
+                            - if:
+                                condition:
+                                  lambda: |-
+                                    auto idx = id(thermostat_mode_select).active_index();
+                                    return idx.has_value() && idx.value() != 0;
+                                then:
+                                  - number.decrement: thermostat_off_delay
                           widgets:
                             - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
                       - label: { id: set_therm_off_delay_val, text: "0 min", text_color: 0x1F2933, text_font: font_text_24 }
                       - obj:
+                          id: set_therm_off_delay_inc_btn
                           width: 40
                           height: 40
                           bg_color: 0x1F3B68
@@ -286,7 +294,13 @@ obj:
                           scrollbar_mode: "OFF"
                           scrollable: false
                           on_click:
-                            - number.increment: thermostat_off_delay
+                            - if:
+                                condition:
+                                  lambda: |-
+                                    auto idx = id(thermostat_mode_select).active_index();
+                                    return idx.has_value() && idx.value() != 0;
+                                then:
+                                  - number.increment: thermostat_off_delay
                           widgets:
                             - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 

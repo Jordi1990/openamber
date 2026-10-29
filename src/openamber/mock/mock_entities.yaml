@@ -62,6 +62,23 @@ sensor:
       return 0.0f;
     update_interval: 5s
   - platform: template
+    id: inside_unit_status_1225_raw
+    name: "Binnenunit status register 1225"
+    accuracy_decimals: 0
+    lambda: |-
+      if (id(inside_unit_status_1225_raw).has_state()) return id(inside_unit_status_1225_raw).state;
+      return 0.0f;
+    update_interval: 5s
+    on_value:
+      then:
+        - component.update: room_temperature
+        - component.update: dhw_temperature_tw_sensor
+        - component.update: heat_cool_temperature_tc
+        - component.update: outlet_temperature_tuo
+        - component.update: inlet_temperature_tui
+        - component.update: heat_cool_temperature_tv1
+        - component.update: heat_cool_temperature_tv2
+  - platform: template
     id: outside_unit_program_version
     name: "Buitenunit programmaversie"
     accuracy_decimals: 0
@@ -108,8 +125,17 @@ sensor:
     id: outlet_temperature_tuo
     name: "Aanvoertemperatuur (Tuo)"
     lambda: |-
+      if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0008) != 0)) {
+        return NAN;
+      }
       if (id(outlet_temperature_tuo).has_state()) return id(outlet_temperature_tuo).state;
       return 35.4f;
+    filters:
+      - lambda: |-
+          if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0008) != 0)) {
+            return NAN;
+          }
+          return x;
     update_interval: 5s
     # Same trigger as modbus/sensors.yaml: heat_exchanger_delta_t has update_interval: never
     # and is only recalculated when Tuo/Tui publish. Without this the P0 pump PID never runs.
@@ -120,8 +146,17 @@ sensor:
     id: inlet_temperature_tui
     name: "Retourtemperatuur (Tui)"
     lambda: |-
+      if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0010) != 0)) {
+        return NAN;
+      }
       if (id(inlet_temperature_tui).has_state()) return id(inlet_temperature_tui).state;
       return 30.1f;
+    filters:
+      - lambda: |-
+          if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0010) != 0)) {
+            return NAN;
+          }
+          return x;
     update_interval: 5s
     on_value:
       then:
@@ -151,8 +186,17 @@ sensor:
     id: dhw_temperature_tw_sensor
     name: "Tapwatertemperatuur (Tw)"
     lambda: |-
+      if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0002) != 0)) {
+        return NAN;
+      }
       if (id(dhw_temperature_tw_sensor).has_state()) return id(dhw_temperature_tw_sensor).state;
       return 52.0f;
+    filters:
+      - lambda: |-
+          if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0002) != 0)) {
+            return NAN;
+          }
+          return x;
     update_interval: 5s
   - platform: template
     id: current_heating_temperature_setpoint
@@ -173,29 +217,82 @@ sensor:
     id: room_temperature
     name: "Kamertemperatuur (Tr)"
     lambda: |-
+      if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0001) != 0)) {
+        return NAN;
+      }
       if (id(room_temperature).has_state()) return id(room_temperature).state;
       return 20.8f;
+    filters:
+      - lambda: |-
+          if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0001) != 0)) {
+            return NAN;
+          }
+          return x;
     update_interval: 5s
   - platform: template
     id: heat_cool_temperature_tc
     name: "Cv-aanvoertemperatuur (Tc)"
     update_interval: 5s
     lambda: |-
+      if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0004) != 0)) {
+        return NAN;
+      }
       if (id(heat_cool_temperature_tc).has_state()) return id(heat_cool_temperature_tc).state;
       return id(current_water_temperature_tc_sensor).state;
+    filters:
+      - lambda: |-
+          if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0004) != 0)) {
+            return NAN;
+          }
+          return x;
   - platform: template
     id: heat_cool_temperature_tv1
     name: "Cv-aanvoertemperatuur zone 1 (Tv1)"
     lambda: |-
+      if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0100) != 0)) {
+        return NAN;
+      }
       if (id(heat_cool_temperature_tv1).has_state()) return id(heat_cool_temperature_tv1).state;
       return 30.0f;
+    filters:
+      - lambda: |-
+          if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0100) != 0)) {
+            return NAN;
+          }
+          return x;
     update_interval: 5s
   - platform: template
     id: heat_cool_temperature_tv2
     name: "Cv-aanvoertemperatuur zone 2 (Tv2)"
     lambda: |-
+      if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0200) != 0)) {
+        return NAN;
+      }
       if (id(heat_cool_temperature_tv2).has_state()) return id(heat_cool_temperature_tv2).state;
       return 28.0f;
+    filters:
+      - lambda: |-
+          if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0200) != 0)) {
+            return NAN;
+          }
+          return x;
+    update_interval: 5s
+  - platform: template
+    id: condensate_temperature_tup
+    name: "Condensatietemperatuur (Tup)"
+    disabled_by_default: True
+    lambda: |-
+      if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0020) != 0)) {
+        return NAN;
+      }
+      if (id(condensate_temperature_tup).has_state()) return id(condensate_temperature_tup).state;
+      return 30.0f;
+    filters:
+      - lambda: |-
+          if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0020) != 0)) {
+            return NAN;
+          }
+          return x;
     update_interval: 5s
   - platform: template
     id: fan_rpm_sensor

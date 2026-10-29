@@ -85,6 +85,7 @@ When using the Waveshare ESP32-S3 Touch LCD 5'' you need to set the RS485 resist
 #### Read
 | Address    | Function                            |
 |:----------:|:-----------------------------------:|
+| 1099–1113  | Output readback registers (see Write table below for mapping; polled every 15s to monitor for failsafe / reboot) |
 | 1199       | Room temperature (Tr)               |
 | 1200       | DHW Temperature (Tw)                |
 | 1201       | Heat/Cool water temperature (Tc)    |
@@ -105,7 +106,28 @@ When using the Waveshare ESP32-S3 Touch LCD 5'' you need to set the RS485 resist
 | 1305       | Threeway valve state                |
 | 1309       | Backup heater active                |
 | 1208       | Outdoor coil temperature (Tv2)      |
+| 1225       | Status / sensor error register (see below) |
 | 1303       | Internal pump state                 |
+
+#### Status / Alarm codes (Address 1225)
+
+| Bitmask    | Function                                        |
+|:----------:|:-----------------------------------------------:|
+| 0x0001     | Room temperature sensor fault (F13, Tr 1199) |
+| 0x0002     | DHW temperature sensor fault (F14, Tw 1200)|
+| 0x0004     | Flow temperature sensor fault (F15, Tc 1201)|
+| 0x0008     | Heat pump flow temperature sensor fault (F16, Tuo 1202)|
+| 0x0010     | Heat pump return temperature sensor fault (F17, Tui 1203)|
+| 0x0020     | Condenser temperature sensor fault (F18, Tup 1204)|
+| 0x0040     | Sensor 1205                                     |
+| 0x0080     | Sensor 1206                                     |
+| 0x0100     | Zone 1 flow temperature sensor fault (F21, Tv1 1207)|
+| 0x0200     | Zone 2 flow temperature sensor fault (F22, Tv2 1208)|
+| 0x0400     | Sensor 1209                                     |
+| 0x0800     | Sensor 1210                                     |
+| 0x1000     | Inside unit communication failsafe                |
+| 0x4000     | Inside unit EEPROM fault                          |
+| 0x8000     | Pump feedback P0 alarm                       |
 
 #### Write
 | Address    | Function                                           |
@@ -113,20 +135,34 @@ When using the Waveshare ESP32-S3 Touch LCD 5'' you need to set the RS485 resist
 | 1099       | Pump P0 relay                                      |
 | 1100       | Pump P1 relay                                      |
 | 1101       | Pump P2 relay                                      |
-| 1103       | Pump P0 duty cycle (1000=OFF, 0=HIGH)              |
-| 1104       | Unknown, needed for initialization                 |
+| 1102       | DHW pump relay                                     |
+| 1103       | Pump P0 PWM duty cycle (0–1000, >900=OFF, 0=MAX)   |
+| 1104       | Main initialization relay (HO)                     |
 | 1105       | 3-way valve Heat/Cool                              |
+| 1106       | Mixing valve zone 1 (0–100%)                       |
+| 1107       | Mixing valve zone 2 (0–100%)                       |
+| 1108       | External backup heating relay (Hybrid setup)       |
 | 1109       | Backup heater stage 1 relay                        |
 | 1110       | Backup heater stage 2 relay                        |
-| 1112       | 3-way valve SWW                                    |
+| 1111       | Relay PD6 (hardware failsafe activates this relay) |
+| 1112       | 3-way valve DHW                                    |
+| 1113       | Relay PD8                                          |
+
+#### Inside Unit Failsafe & Reboot Monitoring
+The inside unit controller has an autonomous hardware failsafe: after approximately 120 seconds without a valid Modbus poll or command, it turns off all outputs (except relay 1111 which turns ON), sets PWM register 1103 to 950, and clears registers 1099–1113 to 0. After an inside unit reboot (watchdog or power dip), all output registers also initialize to 0.
+
+OpenAmber turns on register 1099 (`pump_p0_relay_switch`) during initialization and keeps it ON throughout normal operation. Every Modbus cycle (15 s), register 1099 is read back via FC3:
+- If register 1099 drops to `0` while the controller is active (indicating an inside unit failsafe or reboot), heat pump regulation is halted immediately (compressor stopped, pumps stopped, controllers set to idle).
+- Diagnostic problem sensor `error_inside_unit_failsafe` and `error_active` are set to `true`, and error code **TO06** (*"Binnenunit failsafe / herstart"*) is displayed in the UI.
+- Once communication and inside unit states normalize, the error can be cleared via `reset_start_timeout_errors_switch` or the reset button on the Service screen.
 
 #### Digital inputs (Address 1220)
 
 | Bitmask    | Function                                  |
 |:----------:|:-----------------------------------------:|
-| 0x01       | Ingang PE6 (SmartGrid Ready SGB)          |
-| 0x02       | Ingang PE14 binnenunit                    |
-| 0x04       | Ingang PE15 binnenunit                    |
+| 0x01       | Digital input PE6 (SmartGrid Ready SGB)          |
+| 0x02       | Digital input PE14 inside unit                    |
+| 0x04       | Digital input PE15 inside unit                    |
 
 ### Outside unit (Address 2)
 #### Read

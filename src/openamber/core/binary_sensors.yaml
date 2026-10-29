@@ -678,14 +678,52 @@ binary_sensor:
     sorting_group_id: error_codes
 
 - platform: template
+  id: error_flag_f13
+  name: "Storing sensor ruimtetemperatuur (F13)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (id(thermostat_mode_select).current_option() != "Intern") return false;
+    if (!id(inside_unit_status_1225_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
+    return (raw & 0x0001) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_f14
+  name: "Storing sensor tapwatertemperatuur (F14)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(dhw_enabled_switch).state) return false;
+    if (!id(inside_unit_status_1225_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
+    return (raw & 0x0002) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_f15
+  name: "Storing sensor cv-aanvoertemperatuur (F15)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(inside_unit_status_1225_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
+    return (raw & 0x0004) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
   id: error_flag_f16
   name: "Storing sensor aanvoertemperatuur Tuo (F16)"
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    if (!id(error_register_2121_raw).has_state()) return false;
-    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
-    return (raw & 0x0200) != 0;
+    bool err_2121 = id(error_register_2121_raw).has_state() && (((uint16_t) id(error_register_2121_raw).state & 0x0200) != 0);
+    bool err_1225 = id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0008) != 0);
+    return err_2121 || err_1225;
   web_server: 
     sorting_group_id: error_codes
 
@@ -695,9 +733,9 @@ binary_sensor:
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    if (!id(error_register_2121_raw).has_state()) return false;
-    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
-    return (raw & 0x0400) != 0;
+    bool err_2121 = id(error_register_2121_raw).has_state() && (((uint16_t) id(error_register_2121_raw).state & 0x0400) != 0);
+    bool err_1225 = id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0010) != 0);
+    return err_2121 || err_1225;
   web_server: 
     sorting_group_id: error_codes
 
@@ -707,9 +745,73 @@ binary_sensor:
   device_class: problem
   entity_category: diagnostic
   lambda: |-
-    if (!id(error_register_2121_raw).has_state()) return false;
-    const uint16_t raw = (uint16_t) id(error_register_2121_raw).state;
-    return (raw & 0x0800) != 0;
+    bool err_2121 = id(error_register_2121_raw).has_state() && (((uint16_t) id(error_register_2121_raw).state & 0x0800) != 0);
+    bool err_1225 = id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0020) != 0);
+    return err_2121 || err_1225;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_f21
+  name: "Storing sensor cv-aanvoertemperatuur zone 1 (F21)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    bool tv1_used = id(mixing_valve_zone1_enabled).state ||
+                        id(heat_cool_control_temperature_source_select).current_option() == "CV-aanvoer zone 1 (Tv1)";
+    if (!tv1_used) return false;
+    if (!id(inside_unit_status_1225_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
+    return (raw & 0x0100) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_f22
+  name: "Storing sensor cv-aanvoertemperatuur zone 2 (F22)"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(mixing_valve_zone2_enabled).state) return false;
+    if (!id(inside_unit_status_1225_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
+    return (raw & 0x0200) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_inside_comm_failsafe
+  name: "Communicatie-failsafe binnenunit"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(inside_unit_status_1225_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
+    return (raw & 0x1000) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_inside_eeprom
+  name: "EEPROM-fout binnenunit"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(inside_unit_status_1225_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
+    return (raw & 0x4000) != 0;
+  web_server: 
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_flag_pump_p0_alarm
+  name: "Pompterugmelding P0 alarm"
+  device_class: problem
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(inside_unit_status_1225_raw).has_state()) return false;
+    const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
+    return (raw & 0x8000) != 0;
   web_server: 
     sorting_group_id: error_codes
 
@@ -772,6 +874,14 @@ binary_sensor:
     sorting_group_id: error_codes
 
 - platform: template
+  id: error_inside_unit_failsafe
+  name: "Binnenunit failsafe - herstart fout"
+  device_class: problem
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: error_codes
+
+- platform: template
   id: error_active
   name: "Error actief"
   device_class: problem
@@ -801,14 +911,20 @@ binary_sensor:
            id(error_flag_e07).state ||
            id(error_flag_e08).state ||
            id(error_flag_f10).state ||
+           id(error_flag_f13).state ||
+           id(error_flag_f14).state ||
+           id(error_flag_f15).state ||
            id(error_flag_f16).state ||
            id(error_flag_f17).state ||
            id(error_flag_f18).state ||
+           id(error_flag_f21).state ||
+           id(error_flag_f22).state ||
            id(error_pump_start_timeout).state ||
            id(error_compressor_start_timeout).state ||
            id(error_pump_stop_timeout).state ||
            id(error_modbus_connection_timeout).state ||
-           id(error_three_way_valve_state_timeout).state;
+           id(error_three_way_valve_state_timeout).state ||
+           id(error_inside_unit_failsafe).state;
 
 - platform: template
   id: warning_active
@@ -824,4 +940,7 @@ binary_sensor:
            id(error_flag_p06).state ||
            id(error_flag_p11).state ||
            id(error_flag_p12).state ||
-           id(error_flag_p13).state;
+           id(error_flag_p13).state ||
+           id(error_flag_inside_comm_failsafe).state ||
+           id(error_flag_inside_eeprom).state ||
+           id(error_flag_pump_p0_alarm).state;

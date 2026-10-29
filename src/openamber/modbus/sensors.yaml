@@ -14,7 +14,11 @@ sensor:
   filters:
     - offset: -3000
     - multiply: 0.01
-    - lambda: return x + id(tr_offset).state;
+    - lambda: |-
+        if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0001) != 0)) {
+          return NAN;
+        }
+        return x + id(tr_offset).state;
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -32,7 +36,11 @@ sensor:
   filters:
     - offset: -3000
     - multiply: 0.01
-    - lambda: return x + id(tw_offset).state;
+    - lambda: |-
+        if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0002) != 0)) {
+          return NAN;
+        }
+        return x + id(tw_offset).state;
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -50,7 +58,11 @@ sensor:
   filters:
     - offset: -3000
     - multiply: 0.01
-    - lambda: return x + id(tc_offset).state;
+    - lambda: |-
+        if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0004) != 0)) {
+          return NAN;
+        }
+        return x + id(tc_offset).state;
     - throttle: 30s # Throttle because PID loop depends on this
 
 - platform: modbus_controller
@@ -69,7 +81,11 @@ sensor:
   filters:
     - offset: -3000
     - multiply: 0.01
-    - lambda: return x + id(tuo_offset).state;
+    - lambda: |-
+        if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0008) != 0)) {
+          return NAN;
+        }
+        return x + id(tuo_offset).state;
   on_value: 
     then:
       - component.update: heat_exchanger_delta_t
@@ -90,7 +106,11 @@ sensor:
   filters:
     - offset: -3000
     - multiply: 0.01
-    - lambda: return x + id(tui_offset).state;
+    - lambda: |-
+        if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0010) != 0)) {
+          return NAN;
+        }
+        return x + id(tui_offset).state;
   on_raw_value: 
     then:
       - number.set: 
@@ -117,6 +137,11 @@ sensor:
   filters:
     - offset: -3000
     - multiply: 0.01
+    - lambda: |-
+        if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0020) != 0)) {
+          return NAN;
+        }
+        return x;
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -135,6 +160,11 @@ sensor:
   filters:
     - offset: -3000
     - multiply: 0.01
+    - lambda: |-
+        if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0100) != 0)) {
+          return NAN;
+        }
+        return x;
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -152,6 +182,11 @@ sensor:
   filters:
     - offset: -3000
     - multiply: 0.01
+    - lambda: |-
+        if (id(inside_unit_status_1225_raw).has_state() && (((uint16_t) id(inside_unit_status_1225_raw).state & 0x0200) != 0)) {
+          return NAN;
+        }
+        return x;
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -171,6 +206,14 @@ sensor:
     then:
       - lambda: 
           id(modbus_inside_is_online) = true;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: inside_unit_status_1225_raw
+  internal: True
+  address: 1225
+  register_type: holding
+  value_type: U_WORD
 
 # Outside unit
 - platform: modbus_controller

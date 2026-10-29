@@ -112,9 +112,17 @@
         if (!internal_mode) {
           lv_obj_clear_state(id(thermostat_row_off_delay), LV_STATE_DISABLED);
           lv_obj_set_style_opa(id(thermostat_row_off_delay), LV_OPA_COVER, LV_PART_MAIN);
+          lv_obj_clear_state(id(set_therm_off_delay_dec_btn), LV_STATE_DISABLED);
+          lv_obj_clear_state(id(set_therm_off_delay_inc_btn), LV_STATE_DISABLED);
+          lv_obj_add_flag(id(set_therm_off_delay_dec_btn), LV_OBJ_FLAG_CLICKABLE);
+          lv_obj_add_flag(id(set_therm_off_delay_inc_btn), LV_OBJ_FLAG_CLICKABLE);
         } else {
           lv_obj_add_state(id(thermostat_row_off_delay), LV_STATE_DISABLED);
           lv_obj_set_style_opa(id(thermostat_row_off_delay), LV_OPA_40, LV_PART_MAIN);
+          lv_obj_add_state(id(set_therm_off_delay_dec_btn), LV_STATE_DISABLED);
+          lv_obj_add_state(id(set_therm_off_delay_inc_btn), LV_STATE_DISABLED);
+          lv_obj_clear_flag(id(set_therm_off_delay_dec_btn), LV_OBJ_FLAG_CLICKABLE);
+          lv_obj_clear_flag(id(set_therm_off_delay_inc_btn), LV_OBJ_FLAG_CLICKABLE);
         }
 
 - id: thermostat_select_tab
@@ -390,11 +398,12 @@
           - lvgl.widget.hide: { id: service_sensors_page_2 }
           - lvgl.widget.hide: { id: service_sensors_page_3 }
           - lvgl.widget.hide: { id: service_sensors_page_4 }
+          - lvgl.widget.hide: { id: service_sensors_page_5 }
           - lvgl.widget.update: { id: service_sensors_page_prev_button, bg_color: 0xCBD5E1 }
           - lvgl.label.update: { id: service_sensors_page_prev_button_lbl, text_color: 0x4B5563 }
           - lvgl.widget.update: { id: service_sensors_page_next_button, bg_color: 0x1F3B68 }
           - lvgl.label.update: { id: service_sensors_page_next_button_lbl, text_color: 0xFFFFFF }
-          - lvgl.label.update: { id: service_sensors_page_indicator, text: "Pagina 1 / 4" }
+          - lvgl.label.update: { id: service_sensors_page_indicator, text: "Pagina 1 / 5" }
         else:
           - if:
               condition:
@@ -404,11 +413,12 @@
                 - lvgl.widget.show: { id: service_sensors_page_2 }
                 - lvgl.widget.hide: { id: service_sensors_page_3 }
                 - lvgl.widget.hide: { id: service_sensors_page_4 }
+                - lvgl.widget.hide: { id: service_sensors_page_5 }
                 - lvgl.widget.update: { id: service_sensors_page_prev_button, bg_color: 0x1F3B68 }
                 - lvgl.label.update: { id: service_sensors_page_prev_button_lbl, text_color: 0xFFFFFF }
                 - lvgl.widget.update: { id: service_sensors_page_next_button, bg_color: 0x1F3B68 }
                 - lvgl.label.update: { id: service_sensors_page_next_button_lbl, text_color: 0xFFFFFF }
-                - lvgl.label.update: { id: service_sensors_page_indicator, text: "Pagina 2 / 4" }
+                - lvgl.label.update: { id: service_sensors_page_indicator, text: "Pagina 2 / 5" }
               else:
                 - if:
                     condition:
@@ -418,48 +428,73 @@
                       - lvgl.widget.hide: { id: service_sensors_page_2 }
                       - lvgl.widget.show: { id: service_sensors_page_3 }
                       - lvgl.widget.hide: { id: service_sensors_page_4 }
+                      - lvgl.widget.hide: { id: service_sensors_page_5 }
                       - lvgl.widget.update: { id: service_sensors_page_prev_button, bg_color: 0x1F3B68 }
                       - lvgl.label.update: { id: service_sensors_page_prev_button_lbl, text_color: 0xFFFFFF }
                       - lvgl.widget.update: { id: service_sensors_page_next_button, bg_color: 0x1F3B68 }
                       - lvgl.label.update: { id: service_sensors_page_next_button_lbl, text_color: 0xFFFFFF }
-                      - lvgl.label.update: { id: service_sensors_page_indicator, text: "Pagina 3 / 4" }
+                      - lvgl.label.update: { id: service_sensors_page_indicator, text: "Pagina 3 / 5" }
                     else:
-                      - lvgl.widget.hide: { id: service_sensors_page_1 }
-                      - lvgl.widget.hide: { id: service_sensors_page_2 }
-                      - lvgl.widget.hide: { id: service_sensors_page_3 }
-                      - lvgl.widget.show: { id: service_sensors_page_4 }
-                      - lvgl.widget.update: { id: service_sensors_page_prev_button, bg_color: 0x1F3B68 }
-                      - lvgl.label.update: { id: service_sensors_page_prev_button_lbl, text_color: 0xFFFFFF }
-                      - lvgl.widget.update: { id: service_sensors_page_next_button, bg_color: 0xCBD5E1 }
-                      - lvgl.label.update: { id: service_sensors_page_next_button_lbl, text_color: 0x4B5563 }
-                      - lvgl.label.update: { id: service_sensors_page_indicator, text: "Pagina 4 / 4" }
+                      - if:
+                          condition:
+                            lambda: 'return page == 4;'
+                          then:
+                            - lvgl.widget.hide: { id: service_sensors_page_1 }
+                            - lvgl.widget.hide: { id: service_sensors_page_2 }
+                            - lvgl.widget.hide: { id: service_sensors_page_3 }
+                            - lvgl.widget.show: { id: service_sensors_page_4 }
+                            - lvgl.widget.hide: { id: service_sensors_page_5 }
+                            - lvgl.widget.update: { id: service_sensors_page_prev_button, bg_color: 0x1F3B68 }
+                            - lvgl.label.update: { id: service_sensors_page_prev_button_lbl, text_color: 0xFFFFFF }
+                            - lvgl.widget.update: { id: service_sensors_page_next_button, bg_color: 0x1F3B68 }
+                            - lvgl.label.update: { id: service_sensors_page_next_button_lbl, text_color: 0xFFFFFF }
+                            - lvgl.label.update: { id: service_sensors_page_indicator, text: "Pagina 4 / 5" }
+                          else:
+                            - lvgl.widget.hide: { id: service_sensors_page_1 }
+                            - lvgl.widget.hide: { id: service_sensors_page_2 }
+                            - lvgl.widget.hide: { id: service_sensors_page_3 }
+                            - lvgl.widget.hide: { id: service_sensors_page_4 }
+                            - lvgl.widget.show: { id: service_sensors_page_5 }
+                            - lvgl.widget.update: { id: service_sensors_page_prev_button, bg_color: 0x1F3B68 }
+                            - lvgl.label.update: { id: service_sensors_page_prev_button_lbl, text_color: 0xFFFFFF }
+                            - lvgl.widget.update: { id: service_sensors_page_next_button, bg_color: 0xCBD5E1 }
+                            - lvgl.label.update: { id: service_sensors_page_next_button_lbl, text_color: 0x4B5563 }
+                            - lvgl.label.update: { id: service_sensors_page_indicator, text: "Pagina 5 / 5" }
 
 - id: service_sensors_prev_page
   mode: restart
   then:
     - if:
         condition:
-          lambda: 'return !lv_obj_has_flag(id(service_sensors_page_4), LV_OBJ_FLAG_HIDDEN);'
+          lambda: 'return !lv_obj_has_flag(id(service_sensors_page_5), LV_OBJ_FLAG_HIDDEN);'
         then:
           - script.execute:
               id: service_sensors_select_page
-              page: 3
+              page: 4
         else:
           - if:
               condition:
-                lambda: 'return !lv_obj_has_flag(id(service_sensors_page_3), LV_OBJ_FLAG_HIDDEN);'
+                lambda: 'return !lv_obj_has_flag(id(service_sensors_page_4), LV_OBJ_FLAG_HIDDEN);'
               then:
                 - script.execute:
                     id: service_sensors_select_page
-                    page: 2
+                    page: 3
               else:
                 - if:
                     condition:
-                      lambda: 'return !lv_obj_has_flag(id(service_sensors_page_2), LV_OBJ_FLAG_HIDDEN);'
+                      lambda: 'return !lv_obj_has_flag(id(service_sensors_page_3), LV_OBJ_FLAG_HIDDEN);'
                     then:
                       - script.execute:
                           id: service_sensors_select_page
-                          page: 1
+                          page: 2
+                    else:
+                      - if:
+                          condition:
+                            lambda: 'return !lv_obj_has_flag(id(service_sensors_page_2), LV_OBJ_FLAG_HIDDEN);'
+                          then:
+                            - script.execute:
+                                id: service_sensors_select_page
+                                page: 1
 
 - id: service_sensors_next_page
   mode: restart
@@ -487,6 +522,14 @@
                       - script.execute:
                           id: service_sensors_select_page
                           page: 4
+                    else:
+                      - if:
+                          condition:
+                            lambda: 'return !lv_obj_has_flag(id(service_sensors_page_4), LV_OBJ_FLAG_HIDDEN);'
+                          then:
+                            - script.execute:
+                                id: service_sensors_select_page
+                                page: 5
 
 - id: nav_select_tab
   mode: restart
@@ -2411,7 +2454,8 @@
               if (id(service_diag_status_table) == nullptr ||
                   id(service_diag_temp_table) == nullptr ||
                   id(service_diag_control_table) == nullptr ||
-                  id(service_diag_system_table) == nullptr) return;
+                  id(service_diag_system_table) == nullptr ||
+                  id(service_diag_demand_table) == nullptr) return;
 
               auto *st = id(service_diag_status_table)->obj;
               lv_table_set_cell_value(st, 0, 1, id(state_machine_state_main).state.empty() ? "-" : id(state_machine_state_main).state.c_str());
@@ -2452,9 +2496,14 @@
               lv_table_set_cell_value(sy, 3, 1, id(modbus_outside_online).state ? "Online" : "Offline");
               std::string sg_ab = str_sprintf("%s / %s", id(sg_ready_a_active_sensor).state ? "AAN" : "UIT", id(sg_ready_b_active_sensor).state ? "AAN" : "UIT");
               lv_table_set_cell_value(sy, 4, 1, sg_ab.c_str());
-              lv_table_set_cell_value(sy, 5, 1, id(external_heat_demand_wired).state ? "AAN" : "UIT");
-              lv_table_set_cell_value(sy, 6, 1, id(external_heat_demand_wired_zone_2).state ? "AAN" : "UIT");
-              lv_table_set_cell_value(sy, 7, 1, id(external_cool_demand_wired).state ? "AAN" : "UIT");
+
+              auto *dm = id(service_diag_demand_table)->obj;
+              lv_table_set_cell_value(dm, 0, 1, id(heat_demand_active_sensor_zone_1).state ? "AAN" : "UIT");
+              lv_table_set_cell_value(dm, 1, 1, id(heat_demand_active_sensor_zone_2).state ? "AAN" : "UIT");
+              lv_table_set_cell_value(dm, 2, 1, id(cool_demand_active_sensor).state ? "AAN" : "UIT");
+              lv_table_set_cell_value(dm, 3, 1, id(external_heat_demand_wired).state ? "AAN" : "UIT");
+              lv_table_set_cell_value(dm, 4, 1, id(external_heat_demand_wired_zone_2).state ? "AAN" : "UIT");
+              lv_table_set_cell_value(dm, 5, 1, id(external_cool_demand_wired).state ? "AAN" : "UIT");
 
 - id: update_system_diagnostics_ui
   mode: restart
@@ -2700,9 +2749,15 @@
           {"TO03 - Pomp stop timeout", "De pomp stopte niet binnen de verwachte tijd. Controleer relaisstatus, besturingslogica en de flow (flow switch), omdat deze timeout op flow-detectie wordt bepaald.", id(error_pump_stop_timeout).state},
           {"TO04 - 3-weg klep status fout", "De 3-weg klep bevindt zich niet in de verwachte stand (temperatuurafwijking overschreden). Controleer klepaansturing, bedrading en klepmotor.", id(error_three_way_valve_state_timeout).state},
           {"TO05 - Modbus verbinding timeout", "De Modbus-communicatie met de binnen- of buitenunit kon niet worden hersteld binnen de verwachte tijd. Controleer bekabeling, voeding en Modbus-instellingen.", id(error_modbus_connection_timeout).state},
+          {"TO06 - Binnenunit failsafe / herstart", "De binnenunit bevindt zich in failsafe of is herstart. Een of meer uitgangsregisters (1099-1113) wijken af van de verwachte status. De regeling is gestopt.", id(error_inside_unit_failsafe).state},
+          {"F13 - Storing sensor ruimtetemperatuur", "Storing sensor ruimtetemperatuur.", id(error_flag_f13).state},
+          {"F14 - Storing sensor tapwatertemperatuur", "Storing sensor tapwatertemperatuur.", id(error_flag_f14).state},
+          {"F15 - Storing sensor cv-aanvoertemperatuur", "Storing sensor cv-aanvoertemperatuur.", id(error_flag_f15).state},
           {"F16 - Storing sensor aanvoertemperatuur Tuo", "Storing sensor aanvoertemperatuur Tuo.", id(error_flag_f16).state},
           {"F17 - Storing sensor retourtemperatuur Tui", "Storing sensor retourtemperatuur Tui.", id(error_flag_f17).state},
-          {"F18 - Storing sensor condensortemperatuur Tup", "Storing sensor condensortemperatuur Tup.", id(error_flag_f18).state}
+          {"F18 - Storing sensor condensortemperatuur Tup", "Storing sensor condensortemperatuur Tup.", id(error_flag_f18).state},
+          {"F21 - Storing sensor cv-aanvoertemperatuur zone 1", "Storing sensor cv-aanvoertemperatuur zone 1.", id(error_flag_f21).state},
+          {"F22 - Storing sensor cv-aanvoertemperatuur zone 2", "Storing sensor cv-aanvoertemperatuur zone 2.", id(error_flag_f22).state}
         };
 
         const bool timeout_error_active =
@@ -2710,7 +2765,8 @@
             id(error_compressor_start_timeout).state ||
             id(error_pump_stop_timeout).state ||
             id(error_modbus_connection_timeout).state ||
-            id(error_three_way_valve_state_timeout).state;
+            id(error_three_way_valve_state_timeout).state ||
+            id(error_inside_unit_failsafe).state;
 
         if (id(service_errors_reset_timeout_btn) != nullptr) {
           if (timeout_error_active) lv_obj_clear_flag(id(service_errors_reset_timeout_btn), LV_OBJ_FLAG_HIDDEN);
@@ -2752,7 +2808,10 @@
           {"P07 - Compressor voorverwarming", "De compressor wordt voorverwarmd om te kunnen starten. Het zal maximaal 30 minuten duren voordat de compressor op bedrijfstemperatuur is. Daarna zal deze storing vanzelf verdwijnen en zal de compressor starten.", id(error_flag_p07).state},
           {"P11 - Compressor frequentiebegrenzing op buitentemperatuur", "De warmtepomp is geblokkeerd. De buitentemperatuur (Ta) is te laag of te hoog om op maximale capaciteit te kunnen werken.", id(error_flag_p11).state},
           {"P12 - Compressor frequentiebegrenzing op buitentemperatuur", "Toerental compressor wordt verlaagd.", id(error_flag_p12).state},
-          {"P13 - Storing compressor - laag drukverschil", "Toerental compressor wordt verlaagd. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart.", id(error_flag_p13).state}
+          {"P13 - Storing compressor - laag drukverschil", "Toerental compressor wordt verlaagd. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart.", id(error_flag_p13).state},
+          {"Communicatie-failsafe binnenunit", "Communicatie-failsafe binnenunit actief.", id(error_flag_inside_comm_failsafe).state},
+          {"EEPROM-fout binnenunit", "EEPROM- of statusfout binnenunit.", id(error_flag_inside_eeprom).state},
+          {"Pompterugmelding P0 alarm", "Alarm pompterugmelding P0.", id(error_flag_pump_p0_alarm).state}
         };
 
         lv_obj_clean(id(service_warnings_list));

@@ -445,14 +445,6 @@ private:
     return true;
   }
 
-  void StopAndSetIdleState()
-  {
-    compressor_controller_->Stop();
-    TurnOffBackupHeater();
-    StopPumps();
-    CloseMixingValves();
-    SetNextState(HeatCoolState::IDLE);
-  }
 
   bool PerformSafetyChecks()
   {
@@ -515,6 +507,15 @@ public:
       PublishState(StateToString(state_));
     }
 
+  void StopAndSetIdleState()
+  {
+    compressor_controller_->Stop();
+    TurnOffBackupHeater();
+    StopPumps();
+    CloseMixingValves();
+    SetNextState(HeatCoolState::IDLE);
+  }
+
   void SetHeatPIDValue(float pid_value)
   {
     compressor_heat_pid_ = pid_value;
@@ -543,15 +544,6 @@ public:
     int max_allowed = GetMaxAllowedCompressorMode();
     float current_temperature = GetControlTemperature();
     float target = GetPidController().target_temperature;
-    float dt = current_temperature - target;
-
-    // Deadband on control temperature to avoid too frequent changes around setpoint
-    if (fabsf(dt) < DEAD_BAND_DT)
-    {
-      int clamped_mode = std::min((int)current_compressor_mode, max_allowed);
-      ESP_LOGI("amber", "ΔT=%.2f°C within deadband, compressor mode remains at %d", dt, clamped_mode);
-      return clamped_mode;
-    }
 
     // Guard: never modulate up when temperature has already overshot the setpoint
     const float TEMP_MARGIN = 0.3f;
@@ -696,7 +688,7 @@ public:
         pump_controller_->ApplySpeedChangeIfNeeded(false);
 
         // Stop if there is no compressor demand or the compressor is not allowed to start and pump interval is finished.
-        if ((!IsCompressorAllowedToStart() || !HasCompressorDemand()) && pump_controller_->IsIntervalCycleFinished())
+        if ((!HasCompressorDemand() || !IsCompressorAllowedToStart()) && pump_controller_->IsIntervalCycleFinished())
         {
           ESP_LOGI("amber", "Stopping pump (interval cycle finished)");
           StopPumps();
