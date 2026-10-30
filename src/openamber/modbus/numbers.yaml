@@ -275,7 +275,9 @@ number:
   id: enter_defrost_temperature
   unit_of_measurement: "°C"
   device_class: "temperature"
-  internal: True
+  name: "EEPROM defrost starttemperatuur (3276)"
+  disabled_by_default: true
+  entity_category: config
   address: 3276
   register_type: holding
   value_type: S_WORD
@@ -290,7 +292,9 @@ number:
   id: exit_defrost_temperature
   unit_of_measurement: "°C"
   device_class: "temperature"
-  internal: True
+  name: "EEPROM defrost stoptemperatuur (3277)"
+  disabled_by_default: true
+  entity_category: config
   address: 3277
   register_type: holding
   value_type: S_WORD
@@ -302,7 +306,9 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: max_defrost_time
-  internal: True
+  name: "EEPROM maximale ontdooitijd (3278)"
+  disabled_by_default: true
+  entity_category: config
   address: 3278
   register_type: holding
   value_type: S_WORD
@@ -315,7 +321,9 @@ number:
   step: 0.1
   unit_of_measurement: "°C"
   device_class: "temperature"
-  internal: True
+  name: "EEPROM defrost starttemperatuur 2 (3336)"
+  disabled_by_default: true
+  entity_category: config
   address: 3336
   register_type: holding
   value_type: S_WORD
@@ -333,7 +341,9 @@ number:
   step: 0.1
   unit_of_measurement: "°C"
   device_class: "temperature"
-  internal: True
+  name: "EEPROM defrost starttemperatuur 3 (3337)"
+  disabled_by_default: true
+  entity_category: config
   address: 3337
   register_type: holding
   value_type: S_WORD
@@ -350,7 +360,9 @@ number:
   step: 0.1
   unit_of_measurement: "°C"
   device_class: "temperature"
-  internal: True
+  name: "EEPROM defrost starttemperatuur 4 (3338)"
+  disabled_by_default: true
+  entity_category: config
   address: 3338
   register_type: holding
   value_type: S_WORD
@@ -364,7 +376,9 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outdoor_unit_fan_param_3301
-  internal: True
+  name: "EEPROM fan verwarmen Ta vanaf 17°C (3301)"
+  disabled_by_default: true
+  entity_category: config
   address: 3301
   register_type: holding
   value_type: S_WORD
@@ -380,7 +394,9 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outdoor_unit_fan_param_3303
-  internal: True
+  name: "EEPROM fan verwarmen compressor onder F4 (3303)"
+  disabled_by_default: true
+  entity_category: config
   address: 3303
   register_type: holding
   value_type: S_WORD
@@ -396,7 +412,9 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outdoor_unit_fan_param_3304
-  internal: True
+  name: "EEPROM fan verwarmen Ta 11-17°C (3304)"
+  disabled_by_default: true
+  entity_category: config
   address: 3304
   register_type: holding
   value_type: S_WORD
@@ -412,7 +430,9 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outdoor_unit_fan_param_3305
-  internal: True
+  name: "EEPROM fan verwarmen compressor F4-F7 (3305)"
+  disabled_by_default: true
+  entity_category: config
   address: 3305
   register_type: holding
   value_type: S_WORD
@@ -428,7 +448,9 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outdoor_unit_fan_param_3306
-  internal: True
+  name: "EEPROM fan verwarmen Ta onder 11°C of compressor vanaf F7 (3306)"
+  disabled_by_default: true
+  entity_category: config
   address: 3306
   register_type: holding
   value_type: S_WORD
@@ -444,7 +466,9 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outdoor_unit_fan_param_3323
-  internal: True
+  name: "EEPROM fan koelen Ta onder 14°C (3323)"
+  disabled_by_default: true
+  entity_category: config
   address: 3323
   register_type: holding
   value_type: S_WORD
@@ -460,7 +484,9 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outdoor_unit_fan_param_3325
-  internal: True
+  name: "EEPROM fan koelen compressor onder F4 (3325)"
+  disabled_by_default: true
+  entity_category: config
   address: 3325
   register_type: holding
   value_type: S_WORD
@@ -476,7 +502,9 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outdoor_unit_fan_param_3326
-  internal: True
+  name: "EEPROM fan koelen Ta 14-25°C (3326)"
+  disabled_by_default: true
+  entity_category: config
   address: 3326
   register_type: holding
   value_type: S_WORD
@@ -492,7 +520,9 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outdoor_unit_fan_param_3327
-  internal: True
+  name: "EEPROM fan koelen compressor F4-F7 (3327)"
+  disabled_by_default: true
+  entity_category: config
   address: 3327
   register_type: holding
   value_type: S_WORD
@@ -508,7 +538,9 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outdoor_unit_fan_param_3328
-  internal: True
+  name: "EEPROM fan koelen Ta vanaf 25°C of compressor vanaf F7 (3328)"
+  disabled_by_default: true
+  entity_category: config
   address: 3328
   register_type: holding
   value_type: S_WORD
