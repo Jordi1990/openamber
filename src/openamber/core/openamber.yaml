@@ -26,6 +26,7 @@ esphome:
     - openamber/controllers/constants.h
     - openamber/controllers/pump_controller.h
     - openamber/controllers/compressor_controller.h
+    - openamber/controllers/custom_defrost_controller.h
     - openamber/controllers/base_controller.h
     - openamber/controllers/dhw_controller.h
     - openamber/controllers/mixing_valve_actuator.h
@@ -142,6 +143,9 @@ web_server:
     - id: diagnostic
       name: "Diagnostiek"
       sorting_weight: 60
+    - id: custom_defrost
+      name: "Eigen defrost"
+      sorting_weight: 65
     - id: error_codes
       name: "Foutcodes"
       sorting_weight: 70

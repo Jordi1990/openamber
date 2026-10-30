@@ -283,3 +283,32 @@
     then:
       - script.execute: update_header_model_badge
 
+# ── Geavanceerd: Eigen defrost ──
+- id: !extend custom_defrost_runtime_sensor
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_custom_defrost_runtime_val
+          text:
+            format: "%.0f min"
+            args: ['x']
+
+- id: !extend custom_defrost_last_duration
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_custom_defrost_last_duration_val
+          text: !lambda |-
+            if (std::isnan(x)) return std::string("-");
+            char buf[24];
+            snprintf(buf, sizeof(buf), "%d:%02d min", (int) x / 60, (int) x % 60);
+            return std::string(buf);
+
+- id: !extend custom_defrost_count_24h
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_custom_defrost_count_val
+          text:
+            format: "%.0f"
+            args: ['x']

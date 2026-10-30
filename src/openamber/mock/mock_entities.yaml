@@ -169,6 +169,20 @@ sensor:
       return 7.2f;
     update_interval: 5s
   - platform: template
+    id: evaporation_temperature_tp
+    name: "Verdampingstemperatuur (Tp)"
+    lambda: |-
+      if (id(evaporation_temperature_tp).has_state()) return id(evaporation_temperature_tp).state;
+      return 5.0f;
+    update_interval: 5s
+  - platform: template
+    id: evaporating_temperature_te
+    name: "Evaporating Temperature"
+    lambda: |-
+      if (id(evaporating_temperature_te).has_state()) return id(evaporating_temperature_te).state;
+      return 2.0f;
+    update_interval: 5s
+  - platform: template
     id: outdoor_temperature_tp_sensor
     name: "Buitencondensor (Tp)"
     lambda: |-
@@ -647,10 +661,10 @@ number:
   - platform: template
     id: enter_defrost_temperature_4
     optimistic: true
-    min_value: -10.0
-    max_value: -3.0
+    min_value: -15.0
+    max_value: -8.0
     step: 0.1
-    initial_value: -7.0
+    initial_value: -12.0
   - platform: template
     id: fan_speed_manual_number
     name: "Ventilatorsnelheid handmatig"
@@ -761,7 +775,16 @@ select:
       - "Koelen"
       - "Verwarmen"
       - "Onderhoud"
+      - "Geforceerde defrost"
     initial_option: "Verwarmen"
+  - platform: template
+    id: defrost_control_mode_select
+    name: "Defrost regie buitenunit"
+    optimistic: true
+    options:
+      - "Master"
+      - "Buitenunit"
+    initial_option: "Buitenunit"
   - platform: template
     id: bottomplate_heater_mode
     name: "Bodemplaat verwarmingsmodus"

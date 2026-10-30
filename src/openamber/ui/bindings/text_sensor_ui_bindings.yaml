@@ -110,3 +110,18 @@
             return;
           }
           lv_dropdown_set_options(id(wifi_network_dd)->obj, options.c_str());
+
+# ── Geavanceerd: Eigen defrost ──
+- id: !extend custom_defrost_status
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_custom_defrost_status_val
+          text: !lambda 'return x;'
+
+- id: !extend custom_defrost_last_trigger
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_custom_defrost_last_trigger_val
+          text: !lambda 'return x;'

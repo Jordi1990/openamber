@@ -1774,23 +1774,26 @@
         lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
 
-        lv_obj_t* panels[4] = {
+        lv_obj_t* panels[5] = {
           id(panel_advanced_page_pid),
           id(panel_advanced_page_bodemplaat),
           id(panel_advanced_page_defrost),
-          id(panel_advanced_page_compressor)
+          id(panel_advanced_page_compressor),
+          id(panel_advanced_page_custom_defrost)
         };
-        lv_obj_t* tabs[4] = {
+        lv_obj_t* tabs[5] = {
           id(advanced_stab_pid),
           id(advanced_stab_bodemplaat),
           id(advanced_stab_defrost),
-          id(advanced_stab_compressor)
+          id(advanced_stab_compressor),
+          id(advanced_stab_custom_defrost)
         };
-        lv_obj_t* labels[4] = {
+        lv_obj_t* labels[5] = {
           id(advanced_stab_pid_lbl),
           id(advanced_stab_bodemplaat_lbl),
           id(advanced_stab_defrost_lbl),
-          id(advanced_stab_compressor_lbl)
+          id(advanced_stab_compressor_lbl),
+          id(advanced_stab_custom_defrost_lbl)
         };
 
         if (tab_index == 0) {
@@ -1805,7 +1808,13 @@
           lv_obj_add_flag(id(advanced_defrost_pager), LV_OBJ_FLAG_HIDDEN);
         }
 
-        for (int i = 0; i < 4; i++) {
+        if (tab_index == 4) {
+          lv_obj_clear_flag(id(custom_defrost_pager), LV_OBJ_FLAG_HIDDEN);
+        } else {
+          lv_obj_add_flag(id(custom_defrost_pager), LV_OBJ_FLAG_HIDDEN);
+        }
+
+        for (int i = 0; i < 5; i++) {
           if (i == tab_index) {
             lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
             lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
@@ -1830,7 +1839,66 @@
           - script.execute:
               id: advanced_defrost_select_page
               page: 1
+    - if:
+        condition:
+          lambda: 'return tab_index == 4;'
+        then:
+          - script.execute:
+              id: custom_defrost_select_page
+              page: 1
     - script.execute: update_advanced_settings_ui
+
+- id: custom_defrost_select_page
+  mode: restart
+  parameters:
+    page: int
+  then:
+    - lambda: |-
+        const int page_count = 6;
+        if (page < 1) page = 1;
+        if (page > page_count) page = page_count;
+        id(custom_defrost_page) = page;
+
+        struct PageRow {
+          lv_obj_t* row;
+          int page;
+        };
+        const PageRow rows[] = {
+          {id(set_custom_defrost_mode_row), 1},
+          {id(set_custom_defrost_max_ta_row), 1},
+          {id(set_custom_defrost_tp_enable_row), 1},
+          {id(set_custom_defrost_tp_debounce_row), 1},
+          {id(set_custom_defrost_tp_band1_row), 2},
+          {id(set_custom_defrost_tp_band2_row), 2},
+          {id(set_custom_defrost_tp_band3_row), 2},
+          {id(set_custom_defrost_tp_band4_row), 2},
+          {id(set_custom_defrost_dt_enable_row), 3},
+          {id(set_custom_defrost_dt_threshold_row), 3},
+          {id(set_custom_defrost_dt_debounce_row), 3},
+          {id(set_custom_defrost_max_runtime_row), 3},
+          {id(set_custom_defrost_fallback_tp_row), 4},
+          {id(set_custom_defrost_min_runtime_row), 4},
+          {id(set_custom_defrost_min_on_row), 4},
+          {id(set_custom_defrost_min_return_row), 4},
+          {id(set_custom_defrost_max_return_wait_row), 5},
+          {id(set_custom_defrost_confirm_timeout_row), 5},
+          {id(set_custom_defrost_status_row), 6},
+          {id(set_custom_defrost_runtime_row), 6},
+          {id(set_custom_defrost_last_duration_row), 6},
+          {id(set_custom_defrost_count_row), 6},
+        };
+        for (const auto &r : rows) {
+          if (r.page == page) lv_obj_clear_flag(r.row, LV_OBJ_FLAG_HIDDEN);
+          else lv_obj_add_flag(r.row, LV_OBJ_FLAG_HIDDEN);
+        }
+
+        bool has_prev = page > 1;
+        bool has_next = page < page_count;
+        lv_obj_set_style_bg_color(id(custom_defrost_page_prev_button), lv_color_hex(has_prev ? 0x1F3B68 : 0xCBD5E1), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(custom_defrost_page_prev_button_lbl), lv_color_hex(has_prev ? 0xFFFFFF : 0x4B5563), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(id(custom_defrost_page_next_button), lv_color_hex(has_next ? 0x1F3B68 : 0xCBD5E1), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(custom_defrost_page_next_button_lbl), lv_color_hex(has_next ? 0xFFFFFF : 0x4B5563), LV_PART_MAIN);
+        lv_label_set_text_fmt(id(custom_defrost_page_indicator), "Pagina %d / %d", page, page_count);
 
 - id: dhw_select_tab
   mode: restart
@@ -2811,7 +2879,8 @@
           {"P13 - Storing compressor - laag drukverschil", "Toerental compressor wordt verlaagd. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart.", id(error_flag_p13).state},
           {"Communicatie-failsafe binnenunit", "Communicatie-failsafe binnenunit actief.", id(error_flag_inside_comm_failsafe).state},
           {"EEPROM-fout binnenunit", "EEPROM- of statusfout binnenunit.", id(error_flag_inside_eeprom).state},
-          {"Pompterugmelding P0 alarm", "Alarm pompterugmelding P0.", id(error_flag_pump_p0_alarm).state}
+          {"Pompterugmelding P0 alarm", "Alarm pompterugmelding P0.", id(error_flag_pump_p0_alarm).state},
+          {"OA01 - Eigen defrost mislukt", "De buitenunit startte geen defrost na de aanvraag van OpenAmber. De defrost-regie is teruggezet naar de buitenunit. Zet de regie opnieuw op OpenAmber om de melding te wissen.", id(warning_custom_defrost_failed).state}
         };
 
         lv_obj_clean(id(service_warnings_list));

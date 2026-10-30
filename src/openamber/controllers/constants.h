@@ -72,6 +72,7 @@ static const uint32_t WORKING_MODE_STANDBY = 0;
 static const uint32_t WORKING_MODE_COOLING = 1;
 static const uint32_t WORKING_MODE_HEATING = 2;
 static const uint32_t WORKING_MODE_MAINTENANCE = 3;
+static const uint32_t WORKING_MODE_FORCED_DEFROST = 4;
 
 
 // ============================================================================
@@ -106,3 +107,23 @@ static const uint32_t DEAERATION_SHORT_LOW_SPEED_DURATION_S = 30;
 static const uint32_t DEAERATION_EXTENDED_CYCLES = 5;
 static const uint32_t DEAERATION_EXTENDED_HIGH_SPEED_DURATION_S = 2 * 60;
 static const uint32_t DEAERATION_EXTENDED_LOW_SPEED_DURATION_S = 60;
+
+// ============================================================================
+// CUSTOM DEFROST
+// ============================================================================
+
+// Defrost control mode (EEPROM 3274) select indices
+static const uint32_t DEFROST_CONTROL_BY_MASTER = 0;
+static const uint32_t DEFROST_CONTROL_BY_OUTDOOR_UNIT = 1;
+
+// Custom defrost mode select indices
+static const uint32_t CUSTOM_DEFROST_MODE_OUTDOOR_UNIT = 0;
+static const uint32_t CUSTOM_DEFROST_MODE_DRY_RUN = 1;
+static const uint32_t CUSTOM_DEFROST_MODE_OPENAMBER = 2;
+
+static const uint32_t CUSTOM_DEFROST_CONTROL_MODE_WRITE_INTERVAL_S = 60;
+static const uint32_t CUSTOM_DEFROST_RESTORE_WORKING_MODE_DELAY_S = 2 * 60;
+static const uint32_t CUSTOM_DEFROST_DRY_RUN_MATCH_WINDOW_S = 60 * 60;
+static const uint32_t CUSTOM_DEFROST_MAX_REQUEST_ATTEMPTS = 2;
+static const uint32_t CUSTOM_DEFROST_OVERRUN_MARGIN_S = 5 * 60;
+static const uint32_t CUSTOM_DEFROST_TRIGGER_PULSE_S = 10;

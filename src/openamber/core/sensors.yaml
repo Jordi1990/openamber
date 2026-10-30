@@ -630,3 +630,79 @@ sensor:
     }
     return id(heat_cool_temperature_tc).state;
 
+# ── Eigen defrost ──
+- platform: template
+  id: custom_defrost_runtime_sensor
+  name: "Eigen defrost draaitijd sinds defrost"
+  update_interval: never
+  accuracy_decimals: 0
+  unit_of_measurement: "min"
+  icon: "mdi:timer-outline"
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_dry_run_delta
+  name: "Eigen defrost dry-run verschil met unit"
+  update_interval: never
+  accuracy_decimals: 1
+  unit_of_measurement: "min"
+  icon: "mdi:timer-sync-outline"
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_last_duration
+  name: "Eigen defrost laatste defrostduur"
+  update_interval: never
+  accuracy_decimals: 0
+  unit_of_measurement: "s"
+  icon: "mdi:timer-outline"
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_count_24h
+  name: "Eigen defrost aantal per 24 uur"
+  update_interval: never
+  accuracy_decimals: 0
+  icon: "mdi:counter"
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_start_tp
+  name: "Eigen defrost Tp bij start"
+  update_interval: never
+  accuracy_decimals: 1
+  unit_of_measurement: "°C"
+  device_class: temperature
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_start_ta
+  name: "Eigen defrost Ta bij start"
+  update_interval: never
+  accuracy_decimals: 1
+  unit_of_measurement: "°C"
+  device_class: temperature
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_ta_te
+  name: "Eigen defrost Ta-Te"
+  update_interval: never
+  accuracy_decimals: 1
+  unit_of_measurement: "K"
+  icon: "mdi:thermometer-minus"
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost

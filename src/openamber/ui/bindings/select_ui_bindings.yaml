@@ -266,3 +266,20 @@
                 selected_index: !lambda |-
                   auto idx = id(dhw_pump_start_mode_select).active_index();
                   return idx.has_value() ? idx.value() : 0;
+
+# ── Settings: Eigen defrost regie dropdown ──
+- id: !extend custom_defrost_mode_select
+  on_value:
+    then:
+      - if:
+          condition:
+            lambda: |-
+              auto idx = id(custom_defrost_mode_select).active_index();
+              if (!idx.has_value()) return false;
+              return lv_dropdown_get_selected(id(set_custom_defrost_mode_dd)->obj) != (uint16_t) idx.value();
+          then:
+            - lvgl.dropdown.update:
+                id: set_custom_defrost_mode_dd
+                selected_index: !lambda |-
+                  auto idx = id(custom_defrost_mode_select).active_index();
+                  return idx.has_value() ? idx.value() : 0;

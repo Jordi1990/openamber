@@ -943,4 +943,21 @@ binary_sensor:
            id(error_flag_p13).state ||
            id(error_flag_inside_comm_failsafe).state ||
            id(error_flag_inside_eeprom).state ||
-           id(error_flag_pump_p0_alarm).state;
+           id(error_flag_pump_p0_alarm).state ||
+           id(warning_custom_defrost_failed).state;
+
+- platform: template
+  id: warning_custom_defrost_failed
+  name: "Eigen defrost mislukt"
+  device_class: problem
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: error_codes
+
+- platform: template
+  id: custom_defrost_trigger_active
+  name: "Eigen defrost trigger"
+  icon: "mdi:snowflake-alert"
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost

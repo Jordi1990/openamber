@@ -287,3 +287,20 @@
           id: set_default_compressor_frequencies_enabled_switch_ui
           state:
             checked: !lambda 'return x;'
+
+# ── Geavanceerd: Eigen defrost ──
+- id: !extend custom_defrost_tp_trigger_switch
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_custom_defrost_tp_enable_switch_ui
+          state:
+            checked: !lambda 'return x;'
+
+- id: !extend custom_defrost_dt_trigger_switch
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_custom_defrost_dt_enable_switch_ui
+          state:
+            checked: !lambda 'return x;'

@@ -499,6 +499,7 @@ sensor:
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
+  id: evaporating_temperature_te
   name: "Evaporating Temperature"
   disabled_by_default: True
   register_type: holding

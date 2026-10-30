@@ -22,6 +22,7 @@ esphome:
     - openamber/controllers/constants.h
     - openamber/controllers/pump_controller.h
     - openamber/controllers/compressor_controller.h
+    - openamber/controllers/custom_defrost_controller.h
     - openamber/controllers/base_controller.h
     - openamber/controllers/dhw_controller.h
     - openamber/controllers/mixing_valve_actuator.h

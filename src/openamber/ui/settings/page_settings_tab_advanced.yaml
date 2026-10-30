@@ -29,7 +29,8 @@ obj:
         border_opa: 0%
         pad_all: 0
         scrollbar_mode: "OFF"
-        scrollable: false
+        scrollable: true
+        scroll_dir: HOR
         layout:
           type: FLEX
           flex_flow: ROW
@@ -99,6 +100,27 @@ obj:
                     tab_index: 2
               widgets:
                 - label: { id: advanced_stab_defrost_lbl, text: "Defrost", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
+
+          - obj:
+              id: advanced_stab_custom_defrost
+              width: SIZE_CONTENT
+              height: 34
+              bg_color: 0xCBD5E1
+              bg_opa: 100%
+              radius: 8
+              border_opa: 0%
+              pad_left: 12
+              pad_right: 12
+              pad_top: 4
+              pad_bottom: 4
+              scrollbar_mode: "OFF"
+              scrollable: false
+              on_click:
+                - script.execute:
+                    id: advanced_select_tab
+                    tab_index: 4
+              widgets:
+                - label: { id: advanced_stab_custom_defrost_lbl, text: "Eigen defrost", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
 
           - obj:
               id: advanced_stab_compressor
@@ -176,6 +198,25 @@ obj:
           flex_align_cross: CENTER
           pad_row: 6
         widgets: !include page_settings_tab_advanced_defrost_content.yaml
+
+    - obj:
+        id: panel_advanced_page_custom_defrost
+        hidden: true
+        width: 100%
+        height: 0
+        flex_grow: 1
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: COLUMN
+          flex_align_main: START
+          flex_align_cross: CENTER
+          pad_row: 6
+        widgets: !include page_settings_tab_advanced_custom_defrost_content.yaml
 
     - obj:
         id: panel_advanced_page_compressor

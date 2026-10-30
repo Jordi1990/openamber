@@ -12,3 +12,12 @@ button:
     entity_category: diagnostic
     on_press:
       - script.execute: dump_eeprom_parameters
+  - platform: template
+    id: custom_defrost_start_button
+    name: "Eigen defrost nu starten"
+    icon: "mdi:snowflake-melt"
+    web_server:
+      sorting_group_id: custom_defrost
+    on_press:
+      - lambda: |-
+          id(amber_ctrl).request_custom_defrost();

@@ -29,6 +29,7 @@ class OpenAmberComponent : public PollingComponent {
   float get_mixing_valve_zone1_position() const { return 0.0f; }
   float get_mixing_valve_zone2_position() const { return 0.0f; }
   void reset_pump_interval() {}
+  void request_custom_defrost() {}
 
   bool is_maintenance_state() const { return false; }
   void start_deaeration_routine(bool extended) {}

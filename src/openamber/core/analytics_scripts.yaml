@@ -301,6 +301,14 @@ script:
           root["zb"] = id(pump_p0_pid_kd).state;
           root["zc"] = id(pump_p0_pid_defrost_pwm).state;
 
+          root["zd"] = id(custom_defrost_mode_select).active_index().value_or(0);
+          root["ze"] = id(custom_defrost_tp_trigger_switch).state;
+          root["zf"] = id(custom_defrost_tp_band2).state;
+          root["zg"] = id(custom_defrost_tp_band3).state;
+          root["zh"] = id(custom_defrost_max_runtime).state;
+          root["zi"] = id(custom_defrost_dt_trigger_switch).state;
+          root["zj"] = id(custom_defrost_dt_threshold).state;
+
 - id: send_telemetry_1
   then:
     - mqtt.publish_json:
@@ -400,6 +408,13 @@ script:
           root["yc"] = id(system_heap_fragmentation).state;
           root["yd"] = id(system_heap_max_block).state;
           root["ye"] = id(water_flow_rate).state;
+
+          root["yf"] = id(custom_defrost_status).state;
+          root["yg"] = id(custom_defrost_ta_te).state;
+          root["yh"] = id(custom_defrost_runtime_sensor).state;
+          root["yi"] = id(custom_defrost_dry_run_delta).state;
+          root["yj"] = id(custom_defrost_last_duration).state;
+          root["yk"] = id(custom_defrost_trigger_active).state;
 
 - id: schedule_send_errors_realtime
   mode: restart

@@ -30,6 +30,7 @@ enum class DHWState
   PUMP_RUNNING,
   WAIT_COMPRESSOR_RUNNING,
   COMPRESSOR_RUNNING,
+  DEFROST_REQUESTED,
   DEFROSTING,
   WAIT_DHW_PUMP_RUNNING,
   DHW_PUMP_SETTLED,
@@ -78,6 +79,8 @@ private:
         return "Wait pump stop";
       case DHWState::WAIT_FOR_STATE_SWITCH:
         return "Wait for state switch";
+      case DHWState::DEFROST_REQUESTED:
+        return "Defrost requested";
       case DHWState::DEFROSTING:
         return "Defrosting";
       case DHWState::DHW_PUMP_SETTLED:
@@ -476,6 +479,13 @@ public:
           break;
         }
 
+        if (custom_defrost_ != nullptr && custom_defrost_->ShouldRequestDefrost())
+        {
+          custom_defrost_->StartRequest();
+          SetNextState(DHWState::DEFROST_REQUESTED);
+          break;
+        }
+
         if (compressor_controller_->HasPassedMinOnTime())
         {
           if(!HasDemand())
@@ -512,6 +522,22 @@ public:
         compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
         break;
         
+      case DHWState::DEFROST_REQUESTED:
+        pump_controller_->ApplySpeedChangeIfNeeded(true);
+
+        if (id(defrost_active_sensor).state)
+        {
+          SetNextState(DHWState::DEFROSTING);
+          break;
+        }
+
+        // Request timed out or was cancelled, continue heating.
+        if (custom_defrost_ == nullptr || !custom_defrost_->IsRequestActive())
+        {
+          SetNextState(DHWState::COMPRESSOR_RUNNING);
+        }
+        break;
+
       case DHWState::DEFROSTING:
         if (!id(defrost_active_sensor).state)
         {
