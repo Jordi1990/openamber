@@ -1869,7 +1869,6 @@
         };
         const PageRow rows[] = {
           {id(set_fan_note_row), 1},
-          {id(set_fan_enable_row), 1},
           {id(set_fan_actual_row), 1},
           {id(set_fan_heat_max_row), 2},
           {id(set_fan_heat_mild_row), 2},
@@ -2179,7 +2178,7 @@
         }
         lv_obj_clear_flag(id(set_pid_section), LV_OBJ_FLAG_HIDDEN);
 
-        lv_obj_t* adv_rows[20] = {
+        lv_obj_t* adv_rows[19] = {
           id(set_general_bodemplaat_mode_row),
           id(set_general_bodemplaat_start_row),
           id(set_general_bodemplaat_hysteresis_row),
@@ -2189,7 +2188,6 @@
           id(set_defrost_advanced_section),
           id(set_pump_flow_switch_safety_row),
           id(set_advanced_compressor_default_frequencies_row),
-          id(set_fan_enable_row),
           id(set_fan_heat_max_row),
           id(set_fan_heat_mild_row),
           id(set_fan_heat_warm_row),
@@ -2201,7 +2199,7 @@
           id(set_fan_cool_hz_low_row),
           id(set_fan_cool_hz_mid_row)
         };
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 19; i++) {
           if (enabled) {
             lv_obj_clear_state(adv_rows[i], LV_STATE_DISABLED);
             lv_obj_set_style_opa(adv_rows[i], LV_OPA_COVER, LV_PART_MAIN);

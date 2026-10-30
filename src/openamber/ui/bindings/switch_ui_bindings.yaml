@@ -287,12 +287,3 @@
           id: set_default_compressor_frequencies_enabled_switch_ui
           state:
             checked: !lambda 'return x;'
-
-# ── Geavanceerd: Ventilator ──
-- id: !extend outdoor_fan_table_enabled
-  on_state:
-    then:
-      - lvgl.widget.update:
-          id: set_fan_enable_switch_ui
-          state:
-            checked: !lambda 'return x;'

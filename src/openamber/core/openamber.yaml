@@ -54,13 +54,6 @@ esphome:
               - mqtt.enable:
 
 interval:
-  - interval: 60s
-    then:
-      - if:
-          condition:
-            switch.is_on: outdoor_fan_table_enabled
-          then:
-            - script.execute: apply_outdoor_fan_table
   - interval: 5min
     then:
       - if:

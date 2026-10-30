@@ -752,7 +752,7 @@
             args: ['x']
 
 # ── Geavanceerd: Ventilator ──
-- id: !extend outdoor_fan_heat_max_rpm
+- id: !extend outdoor_unit_fan_param_3306
   on_value:
     then:
       - lvgl.label.update:
@@ -761,7 +761,7 @@
             format: "%.0f rpm"
             args: ['x']
 
-- id: !extend outdoor_fan_heat_mild_rpm
+- id: !extend outdoor_unit_fan_param_3304
   on_value:
     then:
       - lvgl.label.update:
@@ -770,7 +770,7 @@
             format: "%.0f rpm"
             args: ['x']
 
-- id: !extend outdoor_fan_heat_warm_rpm
+- id: !extend outdoor_unit_fan_param_3301
   on_value:
     then:
       - lvgl.label.update:
@@ -779,7 +779,7 @@
             format: "%.0f rpm"
             args: ['x']
 
-- id: !extend outdoor_fan_heat_hz_low_rpm
+- id: !extend outdoor_unit_fan_param_3303
   on_value:
     then:
       - lvgl.label.update:
@@ -788,7 +788,7 @@
             format: "%.0f rpm"
             args: ['x']
 
-- id: !extend outdoor_fan_heat_hz_mid_rpm
+- id: !extend outdoor_unit_fan_param_3305
   on_value:
     then:
       - lvgl.label.update:
@@ -797,7 +797,7 @@
             format: "%.0f rpm"
             args: ['x']
 
-- id: !extend outdoor_fan_cool_max_rpm
+- id: !extend outdoor_unit_fan_param_3328
   on_value:
     then:
       - lvgl.label.update:
@@ -806,7 +806,7 @@
             format: "%.0f rpm"
             args: ['x']
 
-- id: !extend outdoor_fan_cool_mild_rpm
+- id: !extend outdoor_unit_fan_param_3326
   on_value:
     then:
       - lvgl.label.update:
@@ -815,7 +815,7 @@
             format: "%.0f rpm"
             args: ['x']
 
-- id: !extend outdoor_fan_cool_low_rpm
+- id: !extend outdoor_unit_fan_param_3323
   on_value:
     then:
       - lvgl.label.update:
@@ -824,7 +824,7 @@
             format: "%.0f rpm"
             args: ['x']
 
-- id: !extend outdoor_fan_cool_hz_low_rpm
+- id: !extend outdoor_unit_fan_param_3325
   on_value:
     then:
       - lvgl.label.update:
@@ -833,7 +833,7 @@
             format: "%.0f rpm"
             args: ['x']
 
-- id: !extend outdoor_fan_cool_hz_mid_rpm
+- id: !extend outdoor_unit_fan_param_3327
   on_value:
     then:
       - lvgl.label.update:

@@ -1,4 +1,4 @@
-# ── Pagina 1: aan/uit en actueel toerental ──
+# ── Pagina 1: uitleg en actueel toerental ──
 - obj:
     id: set_fan_note_row
     width: 100%
@@ -9,38 +9,11 @@
     widgets:
       - label:
           width: 100%
-          text: "Let op: experimenteel. De buitenunit regelt de fan zelf en neemt het laagste van het plafond op buitentemperatuur en het plafond op compressorfrequentie. OpenAmber zet deze tabel elke minuut terug in de buitenunit (niet in de EEPROM)."
+          text: "Let op: experimenteel. De buitenunit regelt de fan zelf en neemt het laagste van het plafond op buitentemperatuur en het plafond op compressorfrequentie. Wijzigingen gaan direct naar de buitenunit, niet naar de EEPROM, en zijn weg na een power cycle van de buitenunit."
           text_color: 0xB45309
           text_font: font_text_20
           long_mode: WRAP
           align: TOP_LEFT
-
-- obj:
-    id: set_fan_enable_row
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
-    widgets:
-      - label: { text: "Eigen fantabel", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Uit: fabriekstabel terugzetten", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-      - switch:
-          id: set_fan_enable_switch_ui
-          align: TOP_RIGHT
-          bg_color: 0x9CA3AF
-          indicator:
-            bg_color: 0x16A34A
-          knob:
-            bg_color: 0xFFFFFF
-          on_click:
-            - if:
-                condition:
-                  switch.is_on: outdoor_fan_table_enabled
-                then:
-                  - switch.turn_off: outdoor_fan_table_enabled
-                else:
-                  - switch.turn_on: outdoor_fan_table_enabled
 
 - obj:
     id: set_fan_actual_row
@@ -85,7 +58,7 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.decrement: outdoor_fan_heat_max_rpm
+                  - number.decrement: outdoor_unit_fan_param_3306
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
             - label: { id: set_fan_heat_max_val, text: "720 rpm", text_color: 0x1F2933, text_font: font_text_24 }
@@ -99,7 +72,7 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.increment: outdoor_fan_heat_max_rpm
+                  - number.increment: outdoor_unit_fan_param_3306
                 widgets:
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
@@ -133,7 +106,7 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.decrement: outdoor_fan_heat_mild_rpm
+                  - number.decrement: outdoor_unit_fan_param_3304
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
             - label: { id: set_fan_heat_mild_val, text: "620 rpm", text_color: 0x1F2933, text_font: font_text_24 }
@@ -147,7 +120,7 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.increment: outdoor_fan_heat_mild_rpm
+                  - number.increment: outdoor_unit_fan_param_3304
                 widgets:
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
@@ -181,7 +154,7 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.decrement: outdoor_fan_heat_warm_rpm
+                  - number.decrement: outdoor_unit_fan_param_3301
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
             - label: { id: set_fan_heat_warm_val, text: "520 rpm", text_color: 0x1F2933, text_font: font_text_24 }
@@ -195,7 +168,7 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.increment: outdoor_fan_heat_warm_rpm
+                  - number.increment: outdoor_unit_fan_param_3301
                 widgets:
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
@@ -230,7 +203,7 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.decrement: outdoor_fan_heat_hz_low_rpm
+                  - number.decrement: outdoor_unit_fan_param_3303
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
             - label: { id: set_fan_heat_hz_low_val, text: "560 rpm", text_color: 0x1F2933, text_font: font_text_24 }
@@ -244,7 +217,7 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.increment: outdoor_fan_heat_hz_low_rpm
+                  - number.increment: outdoor_unit_fan_param_3303
                 widgets:
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
@@ -278,7 +251,7 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.decrement: outdoor_fan_heat_hz_mid_rpm
+                  - number.decrement: outdoor_unit_fan_param_3305
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
             - label: { id: set_fan_heat_hz_mid_val, text: "680 rpm", text_color: 0x1F2933, text_font: font_text_24 }
@@ -292,7 +265,7 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.increment: outdoor_fan_heat_hz_mid_rpm
+                  - number.increment: outdoor_unit_fan_param_3305
                 widgets:
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
@@ -327,7 +300,7 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.decrement: outdoor_fan_cool_max_rpm
+                  - number.decrement: outdoor_unit_fan_param_3328
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
             - label: { id: set_fan_cool_max_val, text: "720 rpm", text_color: 0x1F2933, text_font: font_text_24 }
@@ -341,7 +314,7 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.increment: outdoor_fan_cool_max_rpm
+                  - number.increment: outdoor_unit_fan_param_3328
                 widgets:
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
@@ -375,7 +348,7 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.decrement: outdoor_fan_cool_mild_rpm
+                  - number.decrement: outdoor_unit_fan_param_3326
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
             - label: { id: set_fan_cool_mild_val, text: "720 rpm", text_color: 0x1F2933, text_font: font_text_24 }
@@ -389,7 +362,7 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.increment: outdoor_fan_cool_mild_rpm
+                  - number.increment: outdoor_unit_fan_param_3326
                 widgets:
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
@@ -423,7 +396,7 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.decrement: outdoor_fan_cool_low_rpm
+                  - number.decrement: outdoor_unit_fan_param_3323
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
             - label: { id: set_fan_cool_low_val, text: "620 rpm", text_color: 0x1F2933, text_font: font_text_24 }
@@ -437,7 +410,7 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.increment: outdoor_fan_cool_low_rpm
+                  - number.increment: outdoor_unit_fan_param_3323
                 widgets:
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
@@ -472,7 +445,7 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.decrement: outdoor_fan_cool_hz_low_rpm
+                  - number.decrement: outdoor_unit_fan_param_3325
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
             - label: { id: set_fan_cool_hz_low_val, text: "620 rpm", text_color: 0x1F2933, text_font: font_text_24 }
@@ -486,7 +459,7 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.increment: outdoor_fan_cool_hz_low_rpm
+                  - number.increment: outdoor_unit_fan_param_3325
                 widgets:
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
@@ -520,7 +493,7 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.decrement: outdoor_fan_cool_hz_mid_rpm
+                  - number.decrement: outdoor_unit_fan_param_3327
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
             - label: { id: set_fan_cool_hz_mid_val, text: "720 rpm", text_color: 0x1F2933, text_font: font_text_24 }
@@ -534,6 +507,6 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - number.increment: outdoor_fan_cool_hz_mid_rpm
+                  - number.increment: outdoor_unit_fan_param_3327
                 widgets:
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }

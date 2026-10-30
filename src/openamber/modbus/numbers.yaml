@@ -368,8 +368,8 @@ number:
   address: 3301
   register_type: holding
   value_type: S_WORD
-  min_value: 0
-  max_value: 1200
+  min_value: 300
+  max_value: 900
   step: 10
   unit_of_measurement: "rpm"
   lambda: |-
@@ -384,8 +384,8 @@ number:
   address: 3303
   register_type: holding
   value_type: S_WORD
-  min_value: 0
-  max_value: 1200
+  min_value: 300
+  max_value: 900
   step: 10
   unit_of_measurement: "rpm"
   lambda: |-
@@ -400,8 +400,8 @@ number:
   address: 3304
   register_type: holding
   value_type: S_WORD
-  min_value: 0
-  max_value: 1200
+  min_value: 300
+  max_value: 900
   step: 10
   unit_of_measurement: "rpm"
   lambda: |-
@@ -416,8 +416,8 @@ number:
   address: 3305
   register_type: holding
   value_type: S_WORD
-  min_value: 0
-  max_value: 1200
+  min_value: 300
+  max_value: 900
   step: 10
   unit_of_measurement: "rpm"
   lambda: |-
@@ -432,8 +432,8 @@ number:
   address: 3306
   register_type: holding
   value_type: S_WORD
-  min_value: 0
-  max_value: 1200
+  min_value: 300
+  max_value: 900
   step: 10
   unit_of_measurement: "rpm"
   lambda: |-
@@ -448,8 +448,8 @@ number:
   address: 3323
   register_type: holding
   value_type: S_WORD
-  min_value: 0
-  max_value: 1200
+  min_value: 300
+  max_value: 900
   step: 10
   unit_of_measurement: "rpm"
   lambda: |-
@@ -464,8 +464,8 @@ number:
   address: 3325
   register_type: holding
   value_type: S_WORD
-  min_value: 0
-  max_value: 1200
+  min_value: 300
+  max_value: 900
   step: 10
   unit_of_measurement: "rpm"
   lambda: |-
@@ -480,8 +480,8 @@ number:
   address: 3326
   register_type: holding
   value_type: S_WORD
-  min_value: 0
-  max_value: 1200
+  min_value: 300
+  max_value: 900
   step: 10
   unit_of_measurement: "rpm"
   lambda: |-
@@ -496,8 +496,8 @@ number:
   address: 3327
   register_type: holding
   value_type: S_WORD
-  min_value: 0
-  max_value: 1200
+  min_value: 300
+  max_value: 900
   step: 10
   unit_of_measurement: "rpm"
   lambda: |-
@@ -512,8 +512,8 @@ number:
   address: 3328
   register_type: holding
   value_type: S_WORD
-  min_value: 0
-  max_value: 1200
+  min_value: 300
+  max_value: 900
   step: 10
   unit_of_measurement: "rpm"
   lambda: |-
