@@ -275,7 +275,7 @@ number:
   id: enter_defrost_temperature
   unit_of_measurement: "°C"
   device_class: "temperature"
-  name: "EEPROM defrost starttemperatuur (3276)"
+  name: "EEPROM defrost starttemperatuur"
   disabled_by_default: true
   entity_category: config
   address: 3276
@@ -292,7 +292,7 @@ number:
   id: exit_defrost_temperature
   unit_of_measurement: "°C"
   device_class: "temperature"
-  name: "EEPROM defrost stoptemperatuur (3277)"
+  name: "EEPROM defrost stoptemperatuur"
   disabled_by_default: true
   entity_category: config
   address: 3277
@@ -306,7 +306,7 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: max_defrost_time
-  name: "EEPROM maximale ontdooitijd (3278)"
+  name: "EEPROM maximale ontdooitijd"
   disabled_by_default: true
   entity_category: config
   address: 3278
@@ -321,7 +321,7 @@ number:
   step: 0.1
   unit_of_measurement: "°C"
   device_class: "temperature"
-  name: "EEPROM defrost starttemperatuur 2 (3336)"
+  name: "EEPROM defrost starttemperatuur 2"
   disabled_by_default: true
   entity_category: config
   address: 3336
@@ -341,7 +341,7 @@ number:
   step: 0.1
   unit_of_measurement: "°C"
   device_class: "temperature"
-  name: "EEPROM defrost starttemperatuur 3 (3337)"
+  name: "EEPROM defrost starttemperatuur 3"
   disabled_by_default: true
   entity_category: config
   address: 3337
@@ -360,7 +360,7 @@ number:
   step: 0.1
   unit_of_measurement: "°C"
   device_class: "temperature"
-  name: "EEPROM defrost starttemperatuur 4 (3338)"
+  name: "EEPROM defrost starttemperatuur 4"
   disabled_by_default: true
   entity_category: config
   address: 3338
@@ -376,7 +376,7 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outdoor_unit_fan_param_3301
-  name: "EEPROM fan verwarmen Ta vanaf 17°C (3301)"
+  name: "EEPROM fan verwarmen Ta vanaf 17°C"
   disabled_by_default: true
   entity_category: config
   address: 3301
@@ -394,7 +394,7 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outdoor_unit_fan_param_3303
-  name: "EEPROM fan verwarmen compressor onder F4 (3303)"
+  name: "EEPROM fan verwarmen compressor onder F4"
   disabled_by_default: true
   entity_category: config
   address: 3303
@@ -412,7 +412,7 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outdoor_unit_fan_param_3304
-  name: "EEPROM fan verwarmen Ta 11-17°C (3304)"
+  name: "EEPROM fan verwarmen Ta 11-17°C"
   disabled_by_default: true
   entity_category: config
   address: 3304
@@ -430,7 +430,7 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outdoor_unit_fan_param_3305
-  name: "EEPROM fan verwarmen compressor F4-F7 (3305)"
+  name: "EEPROM fan verwarmen compressor F4-F7"
   disabled_by_default: true
   entity_category: config
   address: 3305
@@ -448,7 +448,7 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outdoor_unit_fan_param_3306
-  name: "EEPROM fan verwarmen Ta onder 11°C of compressor vanaf F7 (3306)"
+  name: "EEPROM fan verwarmen Ta onder 11°C of compressor vanaf F7"
   disabled_by_default: true
   entity_category: config
   address: 3306
@@ -466,7 +466,7 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outdoor_unit_fan_param_3323
-  name: "EEPROM fan koelen Ta onder 14°C (3323)"
+  name: "EEPROM fan koelen Ta onder 14°C"
   disabled_by_default: true
   entity_category: config
   address: 3323
@@ -484,7 +484,7 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outdoor_unit_fan_param_3325
-  name: "EEPROM fan koelen compressor onder F4 (3325)"
+  name: "EEPROM fan koelen compressor onder F4"
   disabled_by_default: true
   entity_category: config
   address: 3325
@@ -502,7 +502,7 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outdoor_unit_fan_param_3326
-  name: "EEPROM fan koelen Ta 14-25°C (3326)"
+  name: "EEPROM fan koelen Ta 14-25°C"
   disabled_by_default: true
   entity_category: config
   address: 3326
@@ -520,7 +520,7 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outdoor_unit_fan_param_3327
-  name: "EEPROM fan koelen compressor F4-F7 (3327)"
+  name: "EEPROM fan koelen compressor F4-F7"
   disabled_by_default: true
   entity_category: config
   address: 3327
@@ -538,7 +538,7 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: outdoor_unit_fan_param_3328
-  name: "EEPROM fan koelen Ta vanaf 25°C of compressor vanaf F7 (3328)"
+  name: "EEPROM fan koelen Ta vanaf 25°C of compressor vanaf F7"
   disabled_by_default: true
   entity_category: config
   address: 3328
