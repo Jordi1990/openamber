@@ -1,0 +1,495 @@
+- obj:
+    id: set_fan_note_row
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label:
+          width: 100%
+          text: "Let op: experimentele instellingen. Wijzigingen worden niet opgeslagen en na een power cycle teruggezet naar standaard."
+          text_color: 0xB45309
+          text_font: font_text_20
+          long_mode: WRAP
+          align: TOP_LEFT
+
+- obj:
+    id: set_fan_heat_max_row
+    hidden: true
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Verwarmen: koud of hoog", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Ta onder 11°C, of compressor vanaf F7", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: outdoor_unit_fan_param_3306
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_fan_heat_max_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: outdoor_unit_fan_param_3306
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    id: set_fan_heat_mild_row
+    hidden: true
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Verwarmen: Ta 11-17°C", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Buitentemperatuur 11 tot 17°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: outdoor_unit_fan_param_3304
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_fan_heat_mild_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: outdoor_unit_fan_param_3304
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    id: set_fan_heat_warm_row
+    hidden: true
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Verwarmen: Ta vanaf 17°C", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Buitentemperatuur vanaf 17°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: outdoor_unit_fan_param_3301
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_fan_heat_warm_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: outdoor_unit_fan_param_3301
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    id: set_fan_heat_hz_low_row
+    hidden: true
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Verwarmen: compressor laag", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Compressor onder F4", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: outdoor_unit_fan_param_3303
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_fan_heat_hz_low_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: outdoor_unit_fan_param_3303
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    id: set_fan_heat_hz_mid_row
+    hidden: true
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Verwarmen: compressor midden", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Compressor F4 tot F7 (vanaf F7: pagina 1)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: outdoor_unit_fan_param_3305
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_fan_heat_hz_mid_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: outdoor_unit_fan_param_3305
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    id: set_fan_cool_max_row
+    hidden: true
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Koelen: warm of hoog", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Ta vanaf 25°C, of compressor vanaf F7", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: outdoor_unit_fan_param_3328
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_fan_cool_max_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: outdoor_unit_fan_param_3328
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    id: set_fan_cool_mild_row
+    hidden: true
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Koelen: Ta 14-25°C", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Buitentemperatuur 14 tot 25°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: outdoor_unit_fan_param_3326
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_fan_cool_mild_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: outdoor_unit_fan_param_3326
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    id: set_fan_cool_low_row
+    hidden: true
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Koelen: Ta onder 14°C", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Buitentemperatuur onder 14°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: outdoor_unit_fan_param_3323
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_fan_cool_low_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: outdoor_unit_fan_param_3323
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    id: set_fan_cool_hz_low_row
+    hidden: true
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Koelen: compressor laag", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Compressor onder F4", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: outdoor_unit_fan_param_3325
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_fan_cool_hz_low_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: outdoor_unit_fan_param_3325
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    id: set_fan_cool_hz_mid_row
+    hidden: true
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Koelen: compressor midden", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Compressor F4 tot F7 (vanaf F7: pagina 3)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.decrement: outdoor_unit_fan_param_3327
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_fan_cool_hz_mid_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment: outdoor_unit_fan_param_3327
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
