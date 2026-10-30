@@ -341,7 +341,7 @@ script:
           root["uf"] = id(discharge_pressure_pd).state;
 
           root["ug"] = id(fan_rpm_sensor).state;
-          root["uh"] = id(power_compressor).state;
+          root["uh"] = id(estimated_power_usage).state;
 
           root["ui"] = id(current_compressor_frequency).state;
           root["uj"] = id(compressor_setpoint_frequency).state;

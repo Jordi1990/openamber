@@ -360,6 +360,10 @@ sensor:
 
 binary_sensor:
   - platform: template
+    id: crankcase_heater_active_sensor
+    name: "Carterverwarming actief"
+    lambda: 'return false;'
+  - platform: template
     id: backup_heater_active_sensor
     name: "Bijverwarming actief"
     lambda: 'return id(backup_heater_relay).state;'
