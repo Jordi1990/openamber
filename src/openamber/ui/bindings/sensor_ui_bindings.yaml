@@ -50,11 +50,6 @@
           text:
             format: "%.0f RPM"
             args: ['x']
-      - lvgl.label.update:
-          id: set_fan_actual_val
-          text:
-            format: "%.0f rpm"
-            args: ['x']
       - script.execute: update_service_diag_summary_ui
 
 - id: !extend pump_p0_current_pwm_sensor

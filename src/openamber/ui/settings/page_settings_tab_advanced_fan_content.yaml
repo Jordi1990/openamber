@@ -1,4 +1,3 @@
-# ── Pagina 1: uitleg en actueel toerental ──
 - obj:
     id: set_fan_note_row
     width: 100%
@@ -15,19 +14,6 @@
           long_mode: WRAP
           align: TOP_LEFT
 
-- obj:
-    id: set_fan_actual_row
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
-    widgets:
-      - label: { text: "Toerental nu", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Gemeten door de buitenunit", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-      - label: { id: set_fan_actual_val, text: "-", text_color: 0x1F2933, text_font: font_text_24, align: TOP_RIGHT }
-
-# ── Pagina 2: Verwarmen, plafond op buitentemperatuur ──
 - obj:
     id: set_fan_heat_max_row
     hidden: true
@@ -172,7 +158,6 @@
                 widgets:
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
-# ── Pagina 3: Verwarmen, plafond op compressorfrequentie ──
 - obj:
     id: set_fan_heat_hz_low_row
     hidden: true
@@ -231,7 +216,7 @@
     pad_all: 6
     widgets:
       - label: { text: "Verwarmen: compressor midden", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Compressor F4 tot F7 (vanaf F7: pagina 2)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Compressor F4 tot F7 (vanaf F7: pagina 1)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -269,7 +254,6 @@
                 widgets:
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
-# ── Pagina 4: Koelen, plafond op buitentemperatuur ──
 - obj:
     id: set_fan_cool_max_row
     hidden: true
@@ -414,7 +398,6 @@
                 widgets:
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
-# ── Pagina 5: Koelen, plafond op compressorfrequentie ──
 - obj:
     id: set_fan_cool_hz_low_row
     hidden: true
@@ -473,7 +456,7 @@
     pad_all: 6
     widgets:
       - label: { text: "Koelen: compressor midden", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Compressor F4 tot F7 (vanaf F7: pagina 4)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Compressor F4 tot F7 (vanaf F7: pagina 3)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

@@ -1858,7 +1858,7 @@
     page: int
   then:
     - lambda: |-
-        const int page_count = 5;
+        const int page_count = 4;
         if (page < 1) page = 1;
         if (page > page_count) page = page_count;
         id(advanced_fan_page) = page;
@@ -1869,17 +1869,16 @@
         };
         const PageRow rows[] = {
           {id(set_fan_note_row), 1},
-          {id(set_fan_actual_row), 1},
-          {id(set_fan_heat_max_row), 2},
-          {id(set_fan_heat_mild_row), 2},
+          {id(set_fan_heat_max_row), 1},
+          {id(set_fan_heat_mild_row), 1},
           {id(set_fan_heat_warm_row), 2},
-          {id(set_fan_heat_hz_low_row), 3},
-          {id(set_fan_heat_hz_mid_row), 3},
-          {id(set_fan_cool_max_row), 4},
-          {id(set_fan_cool_mild_row), 4},
-          {id(set_fan_cool_low_row), 4},
-          {id(set_fan_cool_hz_low_row), 5},
-          {id(set_fan_cool_hz_mid_row), 5},
+          {id(set_fan_heat_hz_low_row), 2},
+          {id(set_fan_heat_hz_mid_row), 2},
+          {id(set_fan_cool_max_row), 3},
+          {id(set_fan_cool_mild_row), 3},
+          {id(set_fan_cool_low_row), 3},
+          {id(set_fan_cool_hz_low_row), 4},
+          {id(set_fan_cool_hz_mid_row), 4},
         };
         for (const auto &r : rows) {
           if (r.page == page) lv_obj_clear_flag(r.row, LV_OBJ_FLAG_HIDDEN);
