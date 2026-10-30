@@ -927,6 +927,14 @@ binary_sensor:
            id(error_inside_unit_failsafe).state;
 
 - platform: template
+  id: discharge_side_limit_active_sensor
+  name: "Perskantbewaking actief"
+  device_class: running
+  entity_category: diagnostic
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
   id: warning_active
   name: "Waarschuwing actief"
   device_class: problem

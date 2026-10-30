@@ -332,7 +332,16 @@ sensor:
   - platform: template
     id: discharge_pressure_pd
     name: "Persdruk (Pd)"
-    lambda: 'return 2.15f;'
+    lambda: |-
+      if (id(discharge_pressure_pd).has_state()) return id(discharge_pressure_pd).state;
+      return 18.0f;
+    update_interval: 5s
+  - platform: template
+    id: discharge_temperature_td
+    name: "Persgastemperatuur (Td)"
+    lambda: |-
+      if (id(discharge_temperature_td).has_state()) return id(discharge_temperature_td).state;
+      return 60.0f;
     update_interval: 5s
   - platform: template
     id: expansion_valve_position

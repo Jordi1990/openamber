@@ -46,6 +46,17 @@ static const uint32_t COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 5 * 60;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_DOWN_S = 10;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_UP_S = 5 * 60;
 
+// Discharge side limiter: stay below the outdoor unit's own Pd/Td protection (Pd 26/28/30 bar,
+// Td 95/97/105°C, firmware v1.10) instead of running into it.
+static const float DISCHARGE_LIMIT_HOLD_PD_BAR = 24.0f;
+static const float DISCHARGE_LIMIT_STEP_DOWN_PD_BAR = 25.0f;
+static const float DISCHARGE_LIMIT_HOLD_TD_C = 90.0f;
+static const float DISCHARGE_LIMIT_STEP_DOWN_TD_C = 93.0f;
+static const float DISCHARGE_LIMIT_RELEASE_PD_BAR = 23.0f;
+static const float DISCHARGE_LIMIT_RELEASE_TD_C = 87.0f;
+static const uint32_t DISCHARGE_LIMIT_STEP_DOWN_INTERVAL_S = 60;
+static const int DISCHARGE_LIMIT_MIN_MODE = 1;
+
 // Pump timing
 static const uint32_t PUMP_START_TIMEOUT_S = 2 * 60;
 static const uint32_t PUMP_STOP_TIMEOUT_S = 2 * 60;

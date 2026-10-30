@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <cmath>
+
 #include "esphome.h"
 #include "constants.h"
 
@@ -32,6 +34,64 @@ private:
   uint32_t last_compressor_stop_ms_ = 0;
   uint32_t last_compressor_mode_change_ms_ = 0;
   uint32_t start_wait_started_ms_ = 0;
+  uint32_t last_discharge_limit_step_ms_ = 0;
+  bool discharge_limit_active_ = false;
+
+  /// @brief Keeps Pd and Td below the outdoor unit's own protection: hold the level when close,
+  /// step down one level per DISCHARGE_LIMIT_STEP_DOWN_INTERVAL_S when closer.
+  int ApplyDischargeSideLimit(int compressor_mode, int current_compressor_mode)
+  {
+    if (!id(discharge_side_limit_enabled).state || current_compressor_mode <= 0)
+    {
+      discharge_limit_active_ = false;
+      return compressor_mode;
+    }
+
+    const float pd = id(discharge_pressure_pd).state;
+    const float td = id(discharge_temperature_td).state;
+    const bool pd_valid = !std::isnan(pd) && pd > 0.0f;
+    const bool td_valid = !std::isnan(td) && td > 0.0f;
+    if (!pd_valid && !td_valid)
+    {
+      return compressor_mode;
+    }
+
+    const bool step_down = (pd_valid && pd >= DISCHARGE_LIMIT_STEP_DOWN_PD_BAR) || (td_valid && td >= DISCHARGE_LIMIT_STEP_DOWN_TD_C);
+    const bool hold = (pd_valid && pd >= DISCHARGE_LIMIT_HOLD_PD_BAR) || (td_valid && td >= DISCHARGE_LIMIT_HOLD_TD_C);
+    const bool released = (!pd_valid || pd < DISCHARGE_LIMIT_RELEASE_PD_BAR) && (!td_valid || td < DISCHARGE_LIMIT_RELEASE_TD_C);
+
+    if (step_down || hold)
+    {
+      if (!discharge_limit_active_)
+      {
+        ESP_LOGI("amber", "Discharge side limiter active (Pd %.1f bar, Td %.1f°C).", pd, td);
+      }
+      discharge_limit_active_ = true;
+    }
+    else if (discharge_limit_active_ && released)
+    {
+      ESP_LOGI("amber", "Discharge side limiter released (Pd %.1f bar, Td %.1f°C).", pd, td);
+      discharge_limit_active_ = false;
+    }
+    id(discharge_side_limit_active_sensor).publish_state(discharge_limit_active_);
+
+    if (!discharge_limit_active_)
+    {
+      return compressor_mode;
+    }
+
+    const uint32_t now = App.get_loop_component_start_time();
+    if (step_down && current_compressor_mode > DISCHARGE_LIMIT_MIN_MODE &&
+        (now - last_discharge_limit_step_ms_) >= DISCHARGE_LIMIT_STEP_DOWN_INTERVAL_S * 1000UL)
+    {
+      last_discharge_limit_step_ms_ = now;
+      ESP_LOGI("amber", "Discharge side limiter: stepping down to %d (Pd %.1f bar, Td %.1f°C).", current_compressor_mode - 1, pd, td);
+      return std::min(compressor_mode, current_compressor_mode - 1);
+    }
+
+    // Close to the limit, or between two step-downs: never go up.
+    return std::min(compressor_mode, current_compressor_mode);
+  }
 
 public:
   CompressorController() {}
@@ -44,6 +104,7 @@ public:
   void ApplyCompressorMode(int compressor_mode)
   {
     auto current_compressor_mode = id(compressor_control_select).active_index().value();
+    compressor_mode = ApplyDischargeSideLimit(compressor_mode, current_compressor_mode);
 
     // On initial start, allow any mode.
     if(current_compressor_mode != 0)
@@ -141,6 +202,7 @@ public:
       int silent_limit = (int)id(silent_mode_compressor_mode).active_index().value_or(3) + silent_offset;
       capped_mode_index = std::min(capped_mode_index, silent_limit);
     }
+    capped_mode_index = ApplyDischargeSideLimit(capped_mode_index, current_compressor_mode);
     compressor_set_call.set_index(capped_mode_index);
     compressor_set_call.perform();
     last_compressor_mode_change_ms_ = App.get_loop_component_start_time();
