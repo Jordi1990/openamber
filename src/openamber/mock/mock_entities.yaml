@@ -317,6 +317,14 @@ sensor:
     lambda: 'return 18.2f;'
     update_interval: 5s
   - platform: template
+    id: compressor_setpoint_frequency
+    name: "Compressor doelfrequentie"
+    lambda: |-
+      int mode = id(compressor_control_select).active_index().value_or(0);
+      if (mode > 0) return 30.0f + mode * 5.0f;
+      return 0.0f;
+    update_interval: 1s
+  - platform: template
     id: current_compressor_frequency
     name: "Compressorfrequentie"
     lambda: |-
