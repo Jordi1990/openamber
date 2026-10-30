@@ -121,7 +121,7 @@
       - lvgl.label.update:
           id: set_defrost_enter1_val
           text:
-            format: "%.1f°C"
+            format: "%.0f°C"
             args: ['x']
 
 - id: !extend exit_defrost_temperature
@@ -148,7 +148,7 @@
       - lvgl.label.update:
           id: set_defrost_enter2_val
           text:
-            format: "%.1f°C"
+            format: "%.0f°C"
             args: ['x']
 
 - id: !extend enter_defrost_temperature_3
@@ -157,7 +157,7 @@
       - lvgl.label.update:
           id: set_defrost_enter3_val
           text:
-            format: "%.1f°C"
+            format: "%.0f°C"
             args: ['x']
 
 - id: !extend enter_defrost_temperature_4
@@ -166,7 +166,7 @@
       - lvgl.label.update:
           id: set_defrost_enter4_val
           text:
-            format: "%.1f°C"
+            format: "%.0f°C"
             args: ['x']
 
 # ── Pomp ──

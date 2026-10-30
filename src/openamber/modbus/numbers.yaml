@@ -310,9 +310,10 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: enter_defrost_temperature_2
-  min_value: -3
-  max_value: 3
-  step: 0.1
+  # Coil temperature (Tp) threshold, not an ambient temperature band.
+  min_value: -15
+  max_value: 0
+  step: 1
   unit_of_measurement: "°C"
   device_class: "temperature"
   internal: True
@@ -328,9 +329,10 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: enter_defrost_temperature_3
-  min_value: -10
-  max_value: -3
-  step: 0.1
+  # Coil temperature (Tp) threshold, not an ambient temperature band.
+  min_value: -15
+  max_value: 0
+  step: 1
   unit_of_measurement: "°C"
   device_class: "temperature"
   internal: True
@@ -345,9 +347,10 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: enter_defrost_temperature_4
-  min_value: -10
-  max_value: -3
-  step: 0.1
+  # Coil temperature (Tp) threshold, not an ambient temperature band.
+  min_value: -15
+  max_value: 0
+  step: 1
   unit_of_measurement: "°C"
   device_class: "temperature"
   internal: True
