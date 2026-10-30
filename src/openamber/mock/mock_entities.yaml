@@ -328,10 +328,17 @@ sensor:
     id: current_compressor_frequency
     name: "Compressorfrequentie"
     lambda: |-
+      if (id(mock_compressor_frequency_override).state >= 0.0f) return id(mock_compressor_frequency_override).state;
+      // Like the outdoor unit: during a defrost the compressor runs at the defrost standby frequency.
+      if (id(defrost_active_sensor).state) return 36.0f;
       int mode = id(compressor_control_select).active_index().value_or(0);
       if (mode > 0) return 30.0f + mode * 5.0f;
       return 0.0f;
     update_interval: 1s
+  - platform: template
+    id: defrost_standby_frequency
+    lambda: 'return 36.0f;'
+    update_interval: 5s
   - platform: template
     id: suction_pressure_ps
     name: "Zuigdruk (Ps)"
@@ -410,6 +417,14 @@ binary_sensor:
     name: "SG Ready B actief"
 
 number:
+  - platform: template
+    id: mock_compressor_frequency_override
+    # Simulator only: forces the reported compressor frequency, -1 = off.
+    optimistic: true
+    min_value: -1
+    max_value: 120
+    step: 1
+    initial_value: -1
   - platform: template
     id: eev_open_setting_manual_number
     name: "EEV opening handmatig"

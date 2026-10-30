@@ -101,7 +101,7 @@ sensor:
   update_interval: 5s
   lambda: |-
     if (!id(flow_sensor_enabled).state) return 0.0f;
-    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_running_sensor).state) return 0.0f;
     if (id(dhw_active).state) return 0.0f;
     if (!id(heat_demand_active_sensor).state) return 0.0f;
     return fabsf(id(thermal_power).state);
@@ -116,7 +116,7 @@ sensor:
   update_interval: 5s
   lambda: |-
     if (!id(flow_sensor_enabled).state) return 0.0f;
-    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_running_sensor).state) return 0.0f;
     if (id(dhw_active).state) return 0.0f;
     if (!id(heat_demand_active_sensor).state) return 0.0f;
     return id(estimated_power_usage).state;
@@ -132,7 +132,7 @@ sensor:
   update_interval: 5s
   lambda: |-
     if (!id(flow_sensor_enabled).state) return 0.0f;
-    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_running_sensor).state) return 0.0f;
     if (id(dhw_active).state) return 0.0f;
     if (!id(cool_demand_active_sensor).state) return 0.0f;
     return fabsf(id(thermal_power).state);
@@ -147,7 +147,7 @@ sensor:
   update_interval: 5s
   lambda: |-
     if (!id(flow_sensor_enabled).state) return 0.0f;
-    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_running_sensor).state) return 0.0f;
     if (id(dhw_active).state) return 0.0f;
     if (!id(cool_demand_active_sensor).state) return 0.0f;
     return id(estimated_power_usage).state;
@@ -163,7 +163,7 @@ sensor:
   update_interval: 5s
   lambda: |-
     if (!id(flow_sensor_enabled).state) return 0.0f;
-    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_running_sensor).state) return 0.0f;
     if (!id(dhw_active).state) return 0.0f;
     return fabsf(id(thermal_power).state);
 
@@ -177,7 +177,7 @@ sensor:
   update_interval: 5s
   lambda: |-
     if (!id(flow_sensor_enabled).state) return 0.0f;
-    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_running_sensor).state) return 0.0f;
     if (!id(dhw_active).state) return 0.0f;
     return id(estimated_power_usage).state;
 

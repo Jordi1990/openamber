@@ -781,7 +781,8 @@ public:
           start_current_temperature_ = GetControlTemperature();
         }
 
-        if (id(defrost_active_sensor).state)
+        // Keep heating during the outdoor unit's pre-phase, react once the actual defrost starts.
+        if (id(defrost_running_sensor).state)
         {
           StopPumpP1IfNeeded();
           SetNextState(HeatCoolState::DEFROSTING);

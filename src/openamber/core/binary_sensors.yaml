@@ -930,6 +930,35 @@ binary_sensor:
            id(error_inside_unit_failsafe).state;
 
 - platform: template
+  id: defrost_running_sensor
+  name: "Ontdooien actief"
+  device_class: running
+  entity_category: diagnostic
+  # 2118 rises up to 300 s before the actual defrost when the outdoor unit decides itself.
+  # The actual defrost starts once the compressor has dropped to the defrost standby frequency (3279).
+  lambda: |-
+    static uint32_t prephase_started_ms = 0;
+    static bool running = false;
+    if (!id(defrost_active_sensor).state) {
+      prephase_started_ms = 0;
+      running = false;
+      return false;
+    }
+    if (running) return true;
+
+    const uint32_t now = millis();
+    if (prephase_started_ms == 0) prephase_started_ms = now == 0 ? 1 : now;
+
+    const float standby = id(defrost_standby_frequency).has_state() ? id(defrost_standby_frequency).state : 36.0f;
+    const float frequency = id(current_compressor_frequency).state;
+    const bool dropped = !std::isnan(frequency) && frequency <= standby + DEFROST_STANDBY_FREQUENCY_MARGIN_HZ;
+    const bool prephase_timeout = (now - prephase_started_ms) >= DEFROST_PREPHASE_MAX_S * 1000UL;
+    running = dropped || prephase_timeout;
+    return running;
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
   id: warning_active
   name: "Waarschuwing actief"
   device_class: problem

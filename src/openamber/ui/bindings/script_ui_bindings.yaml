@@ -2498,7 +2498,7 @@
               lv_table_set_cell_value(ct, 8, 1, id(three_way_valve_heat_cool_switch).state ? "CV" : "Tapwater");
 
               auto *sy = id(service_diag_system_table)->obj;
-              lv_table_set_cell_value(sy, 0, 1, id(defrost_active_sensor).state ? "AAN" : "UIT");
+              lv_table_set_cell_value(sy, 0, 1, id(defrost_phase_text).state.empty() ? "-" : id(defrost_phase_text).state.c_str());
               lv_table_set_cell_value(sy, 1, 1, id(bottom_heater_active_sensor).state ? "AAN" : "UIT");
               lv_table_set_cell_value(sy, 2, 1, id(modbus_inside_online).state ? "Online" : "Offline");
               lv_table_set_cell_value(sy, 3, 1, id(modbus_outside_online).state ? "Online" : "Offline");
