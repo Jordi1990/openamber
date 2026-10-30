@@ -11,18 +11,20 @@ def _stop_compressor_then_defrost(openamber):
     """Stop the compressor through the stop delta, then report a defrost while the pump runs on.
 
     A defrost that starts while the compressor still runs is handled by the 'Defrosting' state,
-    so 2118 is only raised once the stop sequence has begun (after the minimum compressor on time).
+    so 2118 is only raised once the compressor has stopped (after the minimum compressor on time).
     """
     openamber.set_sensor("heat_cool_temperature_tc", 38.0)
     openamber.set_sensor("current_water_temperature_tc_sensor", 38.0)
     waited = 0
-    while openamber.get_entity("state_machine_state_heat_cool") not in ("Wait compressor stop", "Pump running"):
+    while openamber.get_entity("state_machine_state_heat_cool") != "Pump running":
         assert waited < 1800, (
             f"Compressor never stopped (state: {openamber.get_entity('state_machine_state_heat_cool')})"
         )
         openamber.advance_time(seconds=5, step_s=5)
         openamber.step(ms=20)
         waited += 5
+    # The compressor is off; without the override the mock would report the 36 Hz defrost frequency.
+    openamber.set_number("mock_compressor_frequency_override", 0.0)
     openamber.set_binary_sensor("defrost_active_sensor", True)
     openamber.set_switch("heat_demand_switch", False)
     openamber.step(ms=50)

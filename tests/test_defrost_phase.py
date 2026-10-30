@@ -26,7 +26,7 @@ def test_prephase_keeps_heating_until_frequency_drops(clean_system):
 
     # Actual defrost: compressor drops to the standby frequency (36 Hz).
     openamber.set_number("mock_compressor_frequency_override", 36.0)
-    openamber.advance_time(seconds=4, step_s=1)
+    openamber.advance_time(seconds=10, step_s=1)
     openamber.step(ms=50)
 
     assert openamber.get_entity("defrost_running_sensor") is True
