@@ -71,8 +71,6 @@ void OpenAmberComponent::loop()
 
 void OpenAmberComponent::update()
 {
-  ApplyDeferredWorkingMode();
-
   if ((state_ == State::HEAT_COOL || state_ == State::DHW_HEAT) && !id(pump_p0_relay_switch).state)
   {
     id(error_inside_unit_failsafe).publish_state(true);
@@ -132,7 +130,6 @@ void OpenAmberComponent::update()
       // Close mixing valves during init.
       id(mixing_valve_zone1_output).make_call().set_value(0).perform();
       id(mixing_valve_zone2_output).make_call().set_value(0).perform();
-      deferred_working_mode = -1;
       auto working_mode_call = id(working_mode_switch).make_call();
       working_mode_call.set_index(WORKING_MODE_STANDBY);
       working_mode_call.perform();
@@ -176,10 +173,9 @@ void OpenAmberComponent::update()
       {
         if(maintenance_requested)
         {
-          if (!WriteWorkingModeDeferredDuringDefrost(WORKING_MODE_MAINTENANCE))
-          {
-            break;
-          }
+          auto working_mode_call = id(working_mode_switch).make_call();
+          working_mode_call.set_index(WORKING_MODE_MAINTENANCE);
+          working_mode_call.perform();
           id(pump_p0_relay_switch).turn_off();
           SetNextState(State::MAINTENANCE);          
           break;
@@ -209,10 +205,9 @@ void OpenAmberComponent::update()
       {
         if(maintenance_requested)
         {
-          if (!WriteWorkingModeDeferredDuringDefrost(WORKING_MODE_MAINTENANCE))
-          {
-            break;
-          }
+          auto working_mode_call = id(working_mode_switch).make_call();
+          working_mode_call.set_index(WORKING_MODE_MAINTENANCE);
+          working_mode_call.perform();
           SetNextState(State::MAINTENANCE);          
           break;
         }
@@ -521,8 +516,6 @@ void OpenAmberComponent::StopControllers()
   pump_controller_->Stop();
   heat_cool_controller_->StopAndSetIdleState();
   dhw_controller_->StopAndSetIdleState();
-  // Failsafe: write standby directly, also during a defrost, and drop any deferred mode change.
-  deferred_working_mode = -1;
   auto working_mode_call = id(working_mode_switch).make_call();
   working_mode_call.set_index(WORKING_MODE_STANDBY);
   working_mode_call.perform();

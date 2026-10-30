@@ -26,48 +26,6 @@
 
 using namespace esphome;
 
-// The outdoor unit aborts a running defrost without its recovery phase (4-way valve, fan) when
-// working mode 3999 leaves heating. Such writes are deferred until register 2118 drops.
-inline int deferred_working_mode = -1;
-
-inline bool WriteWorkingModeDeferredDuringDefrost(int working_mode)
-{
-  const int current_working_mode = id(working_mode_switch).active_index().value();
-  if (current_working_mode == working_mode)
-  {
-    deferred_working_mode = -1;
-    return true;
-  }
-
-  if (id(defrost_active_sensor).state && current_working_mode == (int) WORKING_MODE_HEATING)
-  {
-    if (deferred_working_mode != working_mode)
-    {
-      ESP_LOGI("amber", "Defrost active, deferring working mode change %d -> %d until defrost ends.", current_working_mode, working_mode);
-    }
-    deferred_working_mode = working_mode;
-    return false;
-  }
-
-  deferred_working_mode = -1;
-  auto working_mode_call = id(working_mode_switch).make_call();
-  working_mode_call.set_index(working_mode);
-  working_mode_call.perform();
-  return true;
-}
-
-inline void ApplyDeferredWorkingMode()
-{
-  if (deferred_working_mode < 0 || id(defrost_active_sensor).state)
-  {
-    return;
-  }
-
-  const int working_mode = deferred_working_mode;
-  ESP_LOGI("amber", "Defrost ended, applying deferred working mode %d.", working_mode);
-  WriteWorkingModeDeferredDuringDefrost(working_mode);
-}
-
 template <typename StateEnum>
 class BaseController
 {
@@ -158,7 +116,14 @@ protected:
 
   void SetWorkingMode(int working_mode)
   {
-    WriteWorkingModeDeferredDuringDefrost(working_mode);
+    if(id(working_mode_switch).active_index().value() == working_mode)
+    {
+      return;
+    }
+
+    auto working_mode_call = id(working_mode_switch).make_call();
+    working_mode_call.set_index(working_mode);
+    working_mode_call.perform();
   }
 
 public:

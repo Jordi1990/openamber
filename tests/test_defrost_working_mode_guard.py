@@ -1,7 +1,7 @@
-"""Working mode writes are deferred while the outdoor unit defrosts.
+"""Standby is not written while the outdoor unit defrosts.
 
 The outdoor unit aborts a running defrost without its recovery phase when 3999 leaves heating,
-so standby is only written once defrost_active_sensor (2118) drops.
+so the heat/cool controller waits in 'Wait pump stop' until defrost_active_sensor (2118) drops.
 """
 
 from helpers import advance_until_state, start_space_heating
@@ -21,16 +21,17 @@ def test_standby_deferred_until_defrost_ends(clean_system):
     openamber.set_switch("heat_demand_switch", False)
     openamber.step(ms=50)
 
-    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Idle", max_s=1800), (
-        f"Heat/cool controller never reached 'Idle' (state: {openamber.get_entity('state_machine_state_heat_cool')})"
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Wait pump stop", max_s=1800), (
+        f"Heat/cool controller never reached 'Wait pump stop' (state: {openamber.get_entity('state_machine_state_heat_cool')})"
     )
+    openamber.advance_time(seconds=120, step_s=5)
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Wait pump stop"
     assert openamber.get_entity("working_mode_switch") == "Verwarmen", (
         "Standby must not be written while the outdoor unit is defrosting"
     )
 
     openamber.set_binary_sensor("defrost_active_sensor", False)
-    openamber.advance_time(seconds=10, step_s=2)
-    openamber.step(ms=50)
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Idle", max_s=60)
     assert openamber.get_entity("working_mode_switch") == "Standby", (
-        "Deferred standby must be written once the defrost has ended"
+        "Standby must be written once the defrost has ended"
     )
