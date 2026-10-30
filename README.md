@@ -27,16 +27,19 @@ Open source control firmware based on ESPHome for Itho Daalderop Amber heat pump
 - Frost protection in 2 stages (similair to original software).
 - Software thermostat based on Tr sensor.
 - Heat curve(5-points).
+- Zone 2 support
+- Mixing zone 1 and zone 2 supported
 - Backup heater
 - External backup heater (Hybrid setup)
 - Boost after defrost using backup heater.
 - Sensors for error codes
 - Support external thermostats (Heating/Cooling input)
 - Support SG-Ready
+- Support EEBUS
+- Customizable defrost parameters
+- Customizable fan speed
 
 ## Todo
-- Tv1/Tv2 buffer support
-- Error handling
 - Support OpenTherm thermostats
 - .. More
 
@@ -149,14 +152,6 @@ When using the Waveshare ESP32-S3 Touch LCD 5'' you need to set the RS485 resist
 | 1111       | Relay PD6 (hardware failsafe activates this relay) |
 | 1112       | 3-way valve DHW                                    |
 | 1113       | Relay PD8                                          |
-
-#### Inside Unit Failsafe & Reboot Monitoring
-The inside unit controller has an autonomous hardware failsafe: after approximately 120 seconds without a valid Modbus poll or command, it turns off all outputs (except relay 1111 which turns ON), sets PWM register 1103 to 950, and clears registers 1099–1113 to 0. After an inside unit reboot (watchdog or power dip), all output registers also initialize to 0.
-
-OpenAmber turns on register 1099 (`pump_p0_relay_switch`) during initialization and keeps it ON throughout normal operation. Every Modbus cycle (15 s), register 1099 is read back via FC3:
-- If register 1099 drops to `0` while the controller is active (indicating an inside unit failsafe or reboot), heat pump regulation is halted immediately (compressor stopped, pumps stopped, controllers set to idle).
-- Diagnostic problem sensor `error_inside_unit_failsafe` and `error_active` are set to `true`, and error code **TO06** (*"Binnenunit failsafe / herstart"*) is displayed in the UI.
-- Once communication and inside unit states normalize, the error can be cleared via `reset_start_timeout_errors_switch` or the reset button on the Service screen.
 
 #### Digital inputs (Address 1220)
 
