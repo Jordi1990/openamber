@@ -439,7 +439,8 @@ binary_sensor:
 
 - platform: template
   id: error_flag_p11
-  name: "Compressor begrenzing (P11)"
+  # Outdoor unit firmware: ambient temperature limit table resolves to level 0, compressor blocked.
+  name: "Compressor geblokkeerd door buitentemperatuur (P11)"
   device_class: problem
   entity_category: diagnostic
   lambda: |-
@@ -451,7 +452,9 @@ binary_sensor:
 
 - platform: template
   id: error_flag_p12
-  name: "Compressor begrenzing (P12)"
+  # Outdoor unit firmware: requested compressor level is capped by the ambient temperature limit table (3292-3298).
+  # This is normal operation in mild weather, not a fault.
+  name: "Begrenzing op buitentemperatuur actief (P12)"
   device_class: running
   entity_category: diagnostic
   lambda: |-
@@ -459,7 +462,7 @@ binary_sensor:
     const uint16_t raw = (uint16_t) id(error_register_2119_raw).state;
     return (raw & 0x0800) != 0;
   web_server: 
-    sorting_group_id: error_codes
+    sorting_group_id: diagnostic
 
 - platform: template
   id: error_flag_p13
@@ -939,7 +942,6 @@ binary_sensor:
            id(error_flag_p07).state ||
            id(error_flag_p06).state ||
            id(error_flag_p11).state ||
-           id(error_flag_p12).state ||
            id(error_flag_p13).state ||
            id(error_flag_inside_comm_failsafe).state ||
            id(error_flag_inside_eeprom).state ||
