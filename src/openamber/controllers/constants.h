@@ -46,6 +46,12 @@ static const uint32_t COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 5 * 60;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_DOWN_S = 10;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_UP_S = 5 * 60;
 
+// Ambient temperature bands the outdoor unit uses to cap the compressor level (firmware v1.10).
+// A band is entered 1 K above and left 1 K below its boundary.
+static const float OUTDOOR_UNIT_HEATING_BAND_BOUNDS_C[] = {-25.0f, 12.0f, 20.0f, 24.0f, 28.0f, 46.0f};
+static const float OUTDOOR_UNIT_COOLING_BAND_BOUNDS_C[] = {0.0f, 12.0f, 18.0f, 24.0f, 30.0f, 41.0f, 45.0f, 51.0f, 65.0f};
+static const float OUTDOOR_UNIT_BAND_HYSTERESIS_C = 1.0f;
+
 // Pump timing
 static const uint32_t PUMP_START_TIMEOUT_S = 2 * 60;
 static const uint32_t PUMP_STOP_TIMEOUT_S = 2 * 60;

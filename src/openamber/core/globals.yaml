@@ -11,6 +11,13 @@ globals:
     type: int64_t
     restore_value: no
     initial_value: '1726320000'
+  # Outdoor unit registers 3281-3298: [0] = 3281 frequency limit mode, [1..10] = 3282-3291 cooling
+  # max level per ambient band, [11..17] = 3292-3298 heating max level per ambient band.
+  # Initial values are the firmware defaults, overwritten once the registers have been read.
+  - id: outdoor_unit_ambient_limit_registers
+    type: std::array<int, 18>
+    restore_value: no
+    initial_value: '{1, 0, 2, 3, 6, 10, 10, 7, 4, 1, 0, 0, 10, 8, 5, 3, 2, 0}'
   - id: modbus_outside_is_online
     type: bool
     restore_value: no

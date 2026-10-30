@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <cmath>
+
 #include "esphome.h"
 #include "constants.h"
 
@@ -32,6 +34,83 @@ private:
   uint32_t last_compressor_stop_ms_ = 0;
   uint32_t last_compressor_mode_change_ms_ = 0;
   uint32_t start_wait_started_ms_ = 0;
+  int heating_ambient_band_ = -1;
+  int cooling_ambient_band_ = -1;
+  int last_logged_ambient_limit_ = -1;
+
+  static int UpdateAmbientBand(int band, float ta, const float *bounds, int bound_count)
+  {
+    int raw_band = 0;
+    while (raw_band < bound_count && ta >= bounds[raw_band])
+    {
+      raw_band++;
+    }
+
+    if (band < 0)
+    {
+      return raw_band;
+    }
+
+    while (band < raw_band && ta >= bounds[band] + OUTDOOR_UNIT_BAND_HYSTERESIS_C)
+    {
+      band++;
+    }
+    while (band > raw_band && ta < bounds[band - 1] - OUTDOOR_UNIT_BAND_HYSTERESIS_C)
+    {
+      band--;
+    }
+    return band;
+  }
+
+  /// @brief Mirrors the outdoor unit's ambient temperature limit (3281-3298) so OpenAmber never requests
+  /// a level the unit would cap anyway. Returns -1 when there is no cap or the unit blocks the compressor
+  /// (level 0, reported as P11 and handled by the unit itself).
+  int GetOutdoorUnitAmbientLimit()
+  {
+    const auto &registers = id(outdoor_unit_ambient_limit_registers);
+    const float ta = id(temperature_outside_ta).state;
+    if (registers[0] != 1 || std::isnan(ta))
+    {
+      return -1;
+    }
+
+    int limit;
+    if (id(working_mode_switch).active_index().value_or(WORKING_MODE_STANDBY) == WORKING_MODE_COOLING)
+    {
+      const int bound_count = sizeof(OUTDOOR_UNIT_COOLING_BAND_BOUNDS_C) / sizeof(OUTDOOR_UNIT_COOLING_BAND_BOUNDS_C[0]);
+      cooling_ambient_band_ = UpdateAmbientBand(cooling_ambient_band_, ta, OUTDOOR_UNIT_COOLING_BAND_BOUNDS_C, bound_count);
+      limit = registers[1 + cooling_ambient_band_];
+    }
+    else
+    {
+      const int bound_count = sizeof(OUTDOOR_UNIT_HEATING_BAND_BOUNDS_C) / sizeof(OUTDOOR_UNIT_HEATING_BAND_BOUNDS_C[0]);
+      heating_ambient_band_ = UpdateAmbientBand(heating_ambient_band_, ta, OUTDOOR_UNIT_HEATING_BAND_BOUNDS_C, bound_count);
+      limit = registers[11 + heating_ambient_band_];
+    }
+
+    if (limit <= 0)
+    {
+      return -1;
+    }
+    return limit;
+  }
+
+  int CapToOutdoorUnitAmbientLimit(int compressor_mode)
+  {
+    const int limit = GetOutdoorUnitAmbientLimit();
+    if (limit < 0 || compressor_mode <= limit)
+    {
+      last_logged_ambient_limit_ = -1;
+      return compressor_mode;
+    }
+
+    if (last_logged_ambient_limit_ != limit)
+    {
+      ESP_LOGI("amber", "Outdoor unit caps compressor level to %d at Ta %.1f°C, requesting %d instead of %d.", limit, id(temperature_outside_ta).state, limit, compressor_mode);
+      last_logged_ambient_limit_ = limit;
+    }
+    return limit;
+  }
 
 public:
   CompressorController() {}
@@ -44,6 +123,7 @@ public:
   void ApplyCompressorMode(int compressor_mode)
   {
     auto current_compressor_mode = id(compressor_control_select).active_index().value();
+    compressor_mode = CapToOutdoorUnitAmbientLimit(compressor_mode);
 
     // On initial start, allow any mode.
     if(current_compressor_mode != 0)
@@ -141,6 +221,7 @@ public:
       int silent_limit = (int)id(silent_mode_compressor_mode).active_index().value_or(3) + silent_offset;
       capped_mode_index = std::min(capped_mode_index, silent_limit);
     }
+    capped_mode_index = CapToOutdoorUnitAmbientLimit(capped_mode_index);
     compressor_set_call.set_index(capped_mode_index);
     compressor_set_call.perform();
     last_compressor_mode_change_ms_ = App.get_loop_component_start_time();
