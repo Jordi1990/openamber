@@ -47,7 +47,7 @@
                   - number.decrement: outdoor_unit_fan_param_3306
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-            - label: { id: set_fan_heat_max_val, text: "720 rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_fan_heat_max_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 width: 40
                 height: 40
@@ -95,7 +95,7 @@
                   - number.decrement: outdoor_unit_fan_param_3304
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-            - label: { id: set_fan_heat_mild_val, text: "620 rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_fan_heat_mild_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 width: 40
                 height: 40
@@ -143,7 +143,7 @@
                   - number.decrement: outdoor_unit_fan_param_3301
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-            - label: { id: set_fan_heat_warm_val, text: "520 rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_fan_heat_warm_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 width: 40
                 height: 40
@@ -191,7 +191,7 @@
                   - number.decrement: outdoor_unit_fan_param_3303
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-            - label: { id: set_fan_heat_hz_low_val, text: "560 rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_fan_heat_hz_low_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 width: 40
                 height: 40
@@ -239,7 +239,7 @@
                   - number.decrement: outdoor_unit_fan_param_3305
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-            - label: { id: set_fan_heat_hz_mid_val, text: "680 rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_fan_heat_hz_mid_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 width: 40
                 height: 40
@@ -287,7 +287,7 @@
                   - number.decrement: outdoor_unit_fan_param_3328
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-            - label: { id: set_fan_cool_max_val, text: "720 rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_fan_cool_max_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 width: 40
                 height: 40
@@ -335,7 +335,7 @@
                   - number.decrement: outdoor_unit_fan_param_3326
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-            - label: { id: set_fan_cool_mild_val, text: "720 rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_fan_cool_mild_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 width: 40
                 height: 40
@@ -383,7 +383,7 @@
                   - number.decrement: outdoor_unit_fan_param_3323
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-            - label: { id: set_fan_cool_low_val, text: "620 rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_fan_cool_low_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 width: 40
                 height: 40
@@ -431,7 +431,7 @@
                   - number.decrement: outdoor_unit_fan_param_3325
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-            - label: { id: set_fan_cool_hz_low_val, text: "620 rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_fan_cool_hz_low_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 width: 40
                 height: 40
@@ -479,7 +479,7 @@
                   - number.decrement: outdoor_unit_fan_param_3327
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-            - label: { id: set_fan_cool_hz_mid_val, text: "720 rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_fan_cool_hz_mid_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 width: 40
                 height: 40
