@@ -5,7 +5,9 @@
 # OpenAmber
 Open source control firmware based on ESPHome for Itho Daalderop Amber heat pump, replaces the WinCE controller with an ESP32.
 
-![UI](/docs/images/screen_mounted.jpg)
+![UI](/docs/images/openamber-waveshare-display-ui.png)
+
+![UI](/docs/images/Bracket-Assembly-Front.jpeg)
 
 ![Settings](/docs/images/openamber-settings.png)
 
