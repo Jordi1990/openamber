@@ -9,7 +9,7 @@
     widgets:
       - label:
           width: 100%
-          text: "Let op: experimenteel. De buitenunit regelt de fan zelf en neemt het laagste van het plafond op buitentemperatuur en het plafond op compressorfrequentie. Wijzigingen gaan direct naar de buitenunit, niet naar de EEPROM, en zijn weg na een power cycle van de buitenunit."
+          text: "Let op: experimentele instellingen. Wijzigingen worden niet opgeslagen en na een power cycle teruggezet naar standaard."
           text_color: 0xB45309
           text_font: font_text_20
           long_mode: WRAP
