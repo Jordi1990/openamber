@@ -359,3 +359,164 @@ number:
   write_lambda: |-
     return x + 30;
 
+# Outdoor unit fan speed table (x 10 rpm), see docs/eeprom-parameters.md.
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_fan_param_3301
+  internal: True
+  address: 3301
+  register_type: holding
+  value_type: S_WORD
+  min_value: 0
+  max_value: 1200
+  step: 10
+  unit_of_measurement: "rpm"
+  lambda: |-
+    return x * 10;
+  write_lambda: |-
+    return x / 10;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_fan_param_3303
+  internal: True
+  address: 3303
+  register_type: holding
+  value_type: S_WORD
+  min_value: 0
+  max_value: 1200
+  step: 10
+  unit_of_measurement: "rpm"
+  lambda: |-
+    return x * 10;
+  write_lambda: |-
+    return x / 10;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_fan_param_3304
+  internal: True
+  address: 3304
+  register_type: holding
+  value_type: S_WORD
+  min_value: 0
+  max_value: 1200
+  step: 10
+  unit_of_measurement: "rpm"
+  lambda: |-
+    return x * 10;
+  write_lambda: |-
+    return x / 10;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_fan_param_3305
+  internal: True
+  address: 3305
+  register_type: holding
+  value_type: S_WORD
+  min_value: 0
+  max_value: 1200
+  step: 10
+  unit_of_measurement: "rpm"
+  lambda: |-
+    return x * 10;
+  write_lambda: |-
+    return x / 10;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_fan_param_3306
+  internal: True
+  address: 3306
+  register_type: holding
+  value_type: S_WORD
+  min_value: 0
+  max_value: 1200
+  step: 10
+  unit_of_measurement: "rpm"
+  lambda: |-
+    return x * 10;
+  write_lambda: |-
+    return x / 10;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_fan_param_3323
+  internal: True
+  address: 3323
+  register_type: holding
+  value_type: S_WORD
+  min_value: 0
+  max_value: 1200
+  step: 10
+  unit_of_measurement: "rpm"
+  lambda: |-
+    return x * 10;
+  write_lambda: |-
+    return x / 10;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_fan_param_3325
+  internal: True
+  address: 3325
+  register_type: holding
+  value_type: S_WORD
+  min_value: 0
+  max_value: 1200
+  step: 10
+  unit_of_measurement: "rpm"
+  lambda: |-
+    return x * 10;
+  write_lambda: |-
+    return x / 10;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_fan_param_3326
+  internal: True
+  address: 3326
+  register_type: holding
+  value_type: S_WORD
+  min_value: 0
+  max_value: 1200
+  step: 10
+  unit_of_measurement: "rpm"
+  lambda: |-
+    return x * 10;
+  write_lambda: |-
+    return x / 10;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_fan_param_3327
+  internal: True
+  address: 3327
+  register_type: holding
+  value_type: S_WORD
+  min_value: 0
+  max_value: 1200
+  step: 10
+  unit_of_measurement: "rpm"
+  lambda: |-
+    return x * 10;
+  write_lambda: |-
+    return x / 10;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_fan_param_3328
+  internal: True
+  address: 3328
+  register_type: holding
+  value_type: S_WORD
+  min_value: 0
+  max_value: 1200
+  step: 10
+  unit_of_measurement: "rpm"
+  lambda: |-
+    return x * 10;
+  write_lambda: |-
+    return x / 10;

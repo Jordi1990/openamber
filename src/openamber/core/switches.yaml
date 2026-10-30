@@ -509,3 +509,19 @@ switch:
   entity_category: config
   web_server:
     sorting_group_id: manual_control
+
+- platform: template
+  id: outdoor_fan_table_enabled
+  name: "Eigen fantabel buitenunit"
+  icon: "mdi:fan"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server:
+    sorting_group_id: general_settings
+  on_turn_on:
+    then:
+      - script.execute: apply_outdoor_fan_table
+  on_turn_off:
+    then:
+      - script.execute: restore_outdoor_fan_table

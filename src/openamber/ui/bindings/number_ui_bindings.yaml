@@ -750,3 +750,94 @@
           text:
             format: "%.0f min"
             args: ['x']
+
+# ── Geavanceerd: Ventilator ──
+- id: !extend outdoor_fan_heat_max_rpm
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_fan_heat_max_val
+          text:
+            format: "%.0f rpm"
+            args: ['x']
+
+- id: !extend outdoor_fan_heat_mild_rpm
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_fan_heat_mild_val
+          text:
+            format: "%.0f rpm"
+            args: ['x']
+
+- id: !extend outdoor_fan_heat_warm_rpm
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_fan_heat_warm_val
+          text:
+            format: "%.0f rpm"
+            args: ['x']
+
+- id: !extend outdoor_fan_heat_hz_low_rpm
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_fan_heat_hz_low_val
+          text:
+            format: "%.0f rpm"
+            args: ['x']
+
+- id: !extend outdoor_fan_heat_hz_mid_rpm
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_fan_heat_hz_mid_val
+          text:
+            format: "%.0f rpm"
+            args: ['x']
+
+- id: !extend outdoor_fan_cool_max_rpm
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_fan_cool_max_val
+          text:
+            format: "%.0f rpm"
+            args: ['x']
+
+- id: !extend outdoor_fan_cool_mild_rpm
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_fan_cool_mild_val
+          text:
+            format: "%.0f rpm"
+            args: ['x']
+
+- id: !extend outdoor_fan_cool_low_rpm
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_fan_cool_low_val
+          text:
+            format: "%.0f rpm"
+            args: ['x']
+
+- id: !extend outdoor_fan_cool_hz_low_rpm
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_fan_cool_hz_low_val
+          text:
+            format: "%.0f rpm"
+            args: ['x']
+
+- id: !extend outdoor_fan_cool_hz_mid_rpm
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_fan_cool_hz_mid_val
+          text:
+            format: "%.0f rpm"
+            args: ['x']
