@@ -577,3 +577,88 @@ sensor:
     name: "Heap Max Block"
     id: system_heap_max_block
     disabled_by_default: true
+
+# ── Internal defrost variables of the outdoor unit (firmware 0x0110 only) ──
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit_internal
+  id: outside_unit_defrost_confirm_counter
+  name: "Buitenunit defrost bevestigingsteller"
+  address: 5176
+  register_type: holding
+  value_type: U_WORD
+  accuracy_decimals: 0
+  unit_of_measurement: "s"
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit_internal
+  id: outside_unit_defrost_compressor_time
+  name: "Buitenunit compressortijd sinds defrost"
+  address: 5177
+  register_type: holding
+  value_type: U_WORD
+  accuracy_decimals: 0
+  unit_of_measurement: "s"
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit_internal
+  id: outside_unit_defrost_interval
+  name: "Buitenunit defrost interval"
+  address: 5178
+  register_type: holding
+  value_type: U_WORD
+  accuracy_decimals: 0
+  unit_of_measurement: "s"
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit_internal
+  id: outside_unit_defrost_prephase_counter
+  name: "Buitenunit defrost voorfaseteller"
+  address: 5179
+  register_type: holding
+  value_type: U_WORD
+  accuracy_decimals: 0
+  unit_of_measurement: "s"
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit_internal
+  id: outside_unit_defrost_last_duration
+  name: "Buitenunit laatste defrostduur"
+  address: 5194
+  register_type: holding
+  value_type: U_WORD
+  accuracy_decimals: 0
+  unit_of_measurement: "s"
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit_internal
+  id: outside_unit_defrost_status_word_1
+  internal: True
+  address: 5230
+  register_type: holding
+  value_type: U_WORD
+  accuracy_decimals: 0
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit_internal
+  id: outside_unit_defrost_status_word_2
+  internal: True
+  address: 5231
+  register_type: holding
+  value_type: U_WORD
+  accuracy_decimals: 0

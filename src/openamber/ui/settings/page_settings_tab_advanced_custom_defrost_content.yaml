@@ -881,3 +881,56 @@
       - label: { text: "Defrosts laatste 24 uur", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { text: "Door unit en OpenAmber samen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
       - label: { id: set_custom_defrost_count_val, text: "0", text_color: 0x1F2933, text_font: font_text_24, align: TOP_RIGHT }
+
+# ── Pagina 7: algoritme buitenunit (interne registers, alleen firmware 0x0110) ──
+- obj:
+    id: set_custom_defrost_unit_state_row
+    hidden: true
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Algoritme buitenunit", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Alleen lezen, uit interne registers", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { id: set_custom_defrost_unit_state_val, text: "-", text_color: 0x1F3B68, text_font: font_text_24, align: TOP_RIGHT }
+
+- obj:
+    id: set_custom_defrost_unit_runtime_row
+    hidden: true
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Compressortijd buitenunit", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Sinds vorige defrost / interval", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { id: set_custom_defrost_unit_runtime_val, text: "-", text_color: 0x1F2933, text_font: font_text_24, align: TOP_RIGHT }
+
+- obj:
+    id: set_custom_defrost_unit_counters_row
+    hidden: true
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Bevestiging / voorfase", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Tellers buitenunit (max 180 s / 300 s)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { id: set_custom_defrost_unit_counters_val, text: "-", text_color: 0x1F2933, text_font: font_text_24, align: TOP_RIGHT }
+
+- obj:
+    id: set_custom_defrost_unit_last_duration_row
+    hidden: true
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Laatste defrostduur unit", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Wordt door de unit na gebruik gewist", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { id: set_custom_defrost_unit_last_duration_val, text: "-", text_color: 0x1F2933, text_font: font_text_24, align: TOP_RIGHT }

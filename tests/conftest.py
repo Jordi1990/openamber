@@ -147,6 +147,7 @@ def clean_system(openamber):
     openamber.set_number("dhw_restart_dhw_delta", 5.0)
     openamber.set_sensor("dhw_temperature_tw_sensor", 55.0)
     openamber.set_sensor("temperature_outside_ta", 7.0)
+    openamber.set_sensor("outside_unit_program_version", 272.0)
     openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
     openamber.set_sensor("heat_cool_temperature_tc", 28.0)
     openamber.set_sensor("outlet_temperature_tuo", 28.0)

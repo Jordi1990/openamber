@@ -961,3 +961,15 @@ binary_sensor:
   entity_category: diagnostic
   web_server:
     sorting_group_id: custom_defrost
+
+# Registers 5149-5298 map onto the outdoor unit's RAM. The layout is only
+# verified for program version 0x0110, so reads are limited to that version.
+- platform: template
+  id: outside_unit_internal_registers_supported
+  name: "Buitenunit interne registers beschikbaar"
+  entity_category: diagnostic
+  lambda: |-
+    if (!id(outside_unit_program_version).has_state()) return false;
+    return (int) id(outside_unit_program_version).state == 0x0110;
+  web_server:
+    sorting_group_id: custom_defrost

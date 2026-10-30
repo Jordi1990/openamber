@@ -125,3 +125,9 @@
       - lvgl.label.update:
           id: set_custom_defrost_last_trigger_val
           text: !lambda 'return x;'
+
+# ── Geavanceerd: Eigen defrost, algoritme buitenunit ──
+- id: !extend outside_unit_defrost_internal_state_text
+  on_value:
+    then:
+      - script.execute: update_custom_defrost_unit_ui

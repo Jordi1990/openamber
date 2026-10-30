@@ -312,3 +312,29 @@
           text:
             format: "%.0f"
             args: ['x']
+
+# ── Geavanceerd: Eigen defrost, algoritme buitenunit ──
+- id: !extend outside_unit_defrost_compressor_time
+  on_value:
+    then:
+      - script.execute: update_custom_defrost_unit_ui
+
+- id: !extend outside_unit_defrost_interval
+  on_value:
+    then:
+      - script.execute: update_custom_defrost_unit_ui
+
+- id: !extend outside_unit_defrost_confirm_counter
+  on_value:
+    then:
+      - script.execute: update_custom_defrost_unit_ui
+
+- id: !extend outside_unit_defrost_prephase_counter
+  on_value:
+    then:
+      - script.execute: update_custom_defrost_unit_ui
+
+- id: !extend outside_unit_defrost_last_duration
+  on_value:
+    then:
+      - script.execute: update_custom_defrost_unit_ui

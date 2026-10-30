@@ -406,3 +406,8 @@
       - script.execute: update_service_warnings_ui
       - script.execute: update_header_alert_icons
 
+# ── Geavanceerd: Eigen defrost, algoritme buitenunit ──
+- id: !extend outside_unit_internal_registers_supported
+  on_state:
+    then:
+      - script.execute: update_custom_defrost_unit_ui

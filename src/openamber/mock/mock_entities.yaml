@@ -82,7 +82,10 @@ sensor:
     id: outside_unit_program_version
     name: "Buitenunit programmaversie"
     accuracy_decimals: 0
-    lambda: 'return 1.0f;'
+    lambda: |-
+      // 0x0110; keeps a value injected by tests
+      if (id(outside_unit_program_version).has_state()) return {};
+      return 272.0f;
     update_interval: 5s
   - platform: template
     id: outside_unit_eeprom_version_part1
@@ -362,6 +365,59 @@ sensor:
     id: system_psram_free
     name: "Vrij PSRAM"
     lambda: 'return 6500000.0f;'
+    update_interval: 5s
+
+  # Internal defrost variables of the outdoor unit (5176-5231)
+  - platform: template
+    id: outside_unit_defrost_compressor_time
+    name: "Buitenunit compressortijd sinds defrost"
+    unit_of_measurement: "s"
+    accuracy_decimals: 0
+    lambda: |-
+      static float seconds = 0.0f;
+      if (id(defrost_active_sensor).state) seconds = 0.0f;
+      else if (id(current_compressor_frequency).state > 0.0f) seconds += 5.0f;
+      return seconds;
+    update_interval: 5s
+  - platform: template
+    id: outside_unit_defrost_interval
+    name: "Buitenunit defrost interval"
+    unit_of_measurement: "s"
+    accuracy_decimals: 0
+    lambda: 'return 2700.0f;'
+    update_interval: 30s
+  - platform: template
+    id: outside_unit_defrost_confirm_counter
+    name: "Buitenunit defrost bevestigingsteller"
+    unit_of_measurement: "s"
+    accuracy_decimals: 0
+    lambda: 'return 0.0f;'
+    update_interval: 30s
+  - platform: template
+    id: outside_unit_defrost_prephase_counter
+    name: "Buitenunit defrost voorfaseteller"
+    unit_of_measurement: "s"
+    accuracy_decimals: 0
+    lambda: 'return 0.0f;'
+    update_interval: 30s
+  - platform: template
+    id: outside_unit_defrost_last_duration
+    name: "Buitenunit laatste defrostduur"
+    unit_of_measurement: "s"
+    accuracy_decimals: 0
+    lambda: 'return 0.0f;'
+    update_interval: 30s
+  - platform: template
+    id: outside_unit_defrost_status_word_1
+    internal: true
+    accuracy_decimals: 0
+    lambda: 'return id(defrost_active_sensor).state ? 0.0f : 24576.0f;  // bit 14 + bit 13'
+    update_interval: 5s
+  - platform: template
+    id: outside_unit_defrost_status_word_2
+    internal: true
+    accuracy_decimals: 0
+    lambda: 'return id(defrost_active_sensor).state ? 4096.0f : 0.0f;  // bit 12'
     update_interval: 5s
 
 binary_sensor:

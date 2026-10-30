@@ -110,3 +110,29 @@ text_sensor:
   entity_category: diagnostic
   web_server:
     sorting_group_id: custom_defrost
+
+- platform: template
+  id: outside_unit_defrost_internal_state_text
+  name: "Buitenunit defrost-algoritme status"
+  entity_category: diagnostic
+  update_interval: 30s
+  icon: "mdi:snowflake-melt"
+  lambda: |-
+    if (!id(outside_unit_internal_registers_supported).state) {
+      return std::string("Niet beschikbaar voor deze firmware");
+    }
+    if (!id(outside_unit_defrost_status_word_1).has_state() ||
+        !id(outside_unit_defrost_status_word_2).has_state() ||
+        std::isnan(id(outside_unit_defrost_status_word_1).state) ||
+        std::isnan(id(outside_unit_defrost_status_word_2).state)) {
+      return std::string("Onbekend");
+    }
+    uint16_t word1 = (uint16_t) id(outside_unit_defrost_status_word_1).state;
+    uint16_t word2 = (uint16_t) id(outside_unit_defrost_status_word_2).state;
+    if (word2 & 0x1000) return std::string("Ontdooien");
+    if (word1 & 0x8000) return std::string("Wachttijd na defrost");
+    if (word1 & 0x2000) return std::string("Detectie actief");
+    if (word1 & 0x4000) return std::string("Normaal bedrijf");
+    return std::string("Geen detectie");
+  web_server:
+    sorting_group_id: custom_defrost

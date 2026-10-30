@@ -238,18 +238,18 @@ def test_custom_defrost_settings_page(clean_system):
     assert openamber.is_hidden("panel_advanced_page_custom_defrost") is False
     assert openamber.is_hidden("set_custom_defrost_mode_row") is False
     assert openamber.is_hidden("set_custom_defrost_status_row") is True
-    assert openamber.get_label("custom_defrost_page_indicator") == "Pagina 1 / 6"
+    assert openamber.get_label("custom_defrost_page_indicator") == "Pagina 1 / 7"
 
     openamber.click("custom_defrost_page_next_button")
     openamber.step(ms=100)
     assert openamber.is_hidden("set_custom_defrost_mode_row") is True
     assert openamber.is_hidden("set_custom_defrost_tp_band1_row") is False
-    assert openamber.get_label("custom_defrost_page_indicator") == "Pagina 2 / 6"
+    assert openamber.get_label("custom_defrost_page_indicator") == "Pagina 2 / 7"
 
-    for _ in range(5):
+    for _ in range(4):
         openamber.click("custom_defrost_page_next_button")
         openamber.step(ms=50)
-    assert openamber.get_label("custom_defrost_page_indicator") == "Pagina 6 / 6"
+    assert openamber.get_label("custom_defrost_page_indicator") == "Pagina 6 / 7"
     assert openamber.is_hidden("set_custom_defrost_status_row") is False
     assert openamber.is_hidden("set_custom_defrost_runtime_row") is False
     openamber.advance_time(seconds=10, step_s=5)
@@ -257,7 +257,7 @@ def test_custom_defrost_settings_page(clean_system):
 
     openamber.click("custom_defrost_page_prev_button")
     openamber.step(ms=100)
-    assert openamber.get_label("custom_defrost_page_indicator") == "Pagina 5 / 6"
+    assert openamber.get_label("custom_defrost_page_indicator") == "Pagina 5 / 7"
 
     openamber.set_select("custom_defrost_mode_select", "Buitenunit")
     openamber.set_switch("advanced_settings_enabled", False)
