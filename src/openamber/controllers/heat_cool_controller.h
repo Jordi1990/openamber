@@ -513,6 +513,8 @@ public:
     TurnOffBackupHeater();
     StopPumps();
     CloseMixingValves();
+    // Safety stop: leave heating/cooling at once, also during a defrost.
+    SetWorkingMode(WORKING_MODE_STANDBY);
     SetNextState(HeatCoolState::IDLE);
   }
 
@@ -844,6 +846,12 @@ public:
       {
         if (!pump_controller_->IsRunning())
         {
+          // Leaving heating aborts a running defrost without its recovery phase, so wait for 2118 to drop.
+          if (id(defrost_active_sensor).state)
+          {
+            ESP_LOGI("amber", "Defrost active, waiting before switching to standby.");
+            break;
+          }
           pump_controller_->ClearStopWaitTimer();
           SetWorkingMode(WORKING_MODE_STANDBY);
           SetPidController(climate::CLIMATE_MODE_OFF);
