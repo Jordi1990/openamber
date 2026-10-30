@@ -2482,12 +2482,20 @@
 
               auto *ct = id(service_diag_control_table)->obj;
               lv_table_set_cell_value(ct, 0, 1, id(current_compressor_frequency).has_state() ? str_sprintf("%.0f Hz", id(current_compressor_frequency).state).c_str() : "- Hz");
-              lv_table_set_cell_value(ct, 1, 1, id(pump_p0_current_pwm_sensor).has_state() ? str_sprintf("%.0f %%", id(pump_p0_current_pwm_sensor).state).c_str() : "- %");
-              lv_table_set_cell_value(ct, 2, 1, id(fan_rpm_sensor).has_state() ? str_sprintf("%.0f rpm", id(fan_rpm_sensor).state).c_str() : "- rpm");
-              lv_table_set_cell_value(ct, 3, 1, id(expansion_valve_position).has_state() ? str_sprintf("%.0f %%", id(expansion_valve_position).state).c_str() : "- %");
-              lv_table_set_cell_value(ct, 4, 1, id(mixing_valve_zone1_position).has_state() ? str_sprintf("%.0f %%", id(mixing_valve_zone1_position).state).c_str() : "- %");
-              lv_table_set_cell_value(ct, 5, 1, id(mixing_valve_zone2_position).has_state() ? str_sprintf("%.0f %%", id(mixing_valve_zone2_position).state).c_str() : "- %");
-              lv_table_set_cell_value(ct, 6, 1, id(three_way_valve_heat_cool_switch).state ? "CV" : "Tapwater");
+              auto compressor_level = id(compressor_control_select).active_index();
+              lv_table_set_cell_value(ct, 1, 1, compressor_level.has_value() ? str_sprintf("%d", (int) compressor_level.value()).c_str() : "-");
+              // 2102 is the frequency the outdoor unit targets after applying its own limits (ambient temperature table, protections).
+              if (id(compressor_setpoint_frequency).has_state()) {
+                lv_table_set_cell_value(ct, 2, 1, str_sprintf(id(error_flag_p12).state ? "%.0f Hz (begrensd)" : "%.0f Hz", id(compressor_setpoint_frequency).state).c_str());
+              } else {
+                lv_table_set_cell_value(ct, 2, 1, "- Hz");
+              }
+              lv_table_set_cell_value(ct, 3, 1, id(pump_p0_current_pwm_sensor).has_state() ? str_sprintf("%.0f %%", id(pump_p0_current_pwm_sensor).state).c_str() : "- %");
+              lv_table_set_cell_value(ct, 4, 1, id(fan_rpm_sensor).has_state() ? str_sprintf("%.0f rpm", id(fan_rpm_sensor).state).c_str() : "- rpm");
+              lv_table_set_cell_value(ct, 5, 1, id(expansion_valve_position).has_state() ? str_sprintf("%.0f %%", id(expansion_valve_position).state).c_str() : "- %");
+              lv_table_set_cell_value(ct, 6, 1, id(mixing_valve_zone1_position).has_state() ? str_sprintf("%.0f %%", id(mixing_valve_zone1_position).state).c_str() : "- %");
+              lv_table_set_cell_value(ct, 7, 1, id(mixing_valve_zone2_position).has_state() ? str_sprintf("%.0f %%", id(mixing_valve_zone2_position).state).c_str() : "- %");
+              lv_table_set_cell_value(ct, 8, 1, id(three_way_valve_heat_cool_switch).state ? "CV" : "Tapwater");
 
               auto *sy = id(service_diag_system_table)->obj;
               lv_table_set_cell_value(sy, 0, 1, id(defrost_active_sensor).state ? "AAN" : "UIT");

@@ -190,6 +190,8 @@ obj:
                       - width: 40%
                     rows:
                       - ["Compressorfrequentie", "- Hz"]
+                      - ["Compressorniveau OpenAmber", "-"]
+                      - ["Doelfrequentie buitenunit", "- Hz"]
                       - ["Circulatiepomp (P0)", "- %"]
                       - ["Ventilator (Fan)", "- rpm"]
                       - ["Expansieklep", "- %"]
