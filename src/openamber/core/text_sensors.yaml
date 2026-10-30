@@ -20,6 +20,34 @@ text_sensor:
   icon: "mdi:chip"
 
 - platform: template
+  id: defrost_phase_text
+  name: "Defrost fase"
+  entity_category: diagnostic
+  update_interval: 2s
+  lambda: |-
+    static bool was_running = false;
+    static uint32_t recovery_started_ms = 0;
+    const uint32_t now = millis();
+    if (id(defrost_running_sensor).state) {
+      was_running = true;
+      recovery_started_ms = 0;
+      return std::string("Ontdooien");
+    }
+    if (id(defrost_active_sensor).state) {
+      return std::string("Voorfase");
+    }
+    if (was_running) {
+      was_running = false;
+      recovery_started_ms = now == 0 ? 1 : now;
+    }
+    if (recovery_started_ms != 0 && (now - recovery_started_ms) < DEFROST_RECOVERY_PHASE_S * 1000UL) {
+      return std::string("Herstel");
+    }
+    recovery_started_ms = 0;
+    return std::string("Geen");
+  icon: "mdi:snowflake-melt"
+
+- platform: template
   id: heatpump_model_name
   name: "Warmtepomp model"
   entity_category: diagnostic

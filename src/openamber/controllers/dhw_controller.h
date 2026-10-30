@@ -472,7 +472,8 @@ public:
           break;
         }
 
-        if (id(defrost_active_sensor).state)
+        // Keep heating during the outdoor unit's pre-phase, react once the actual defrost starts.
+        if (id(defrost_running_sensor).state)
         {
           SetNextState(DHWState::DEFROSTING);
           break;
