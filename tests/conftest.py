@@ -108,6 +108,7 @@ def openamber(openamber_proc):
 @pytest.fixture
 def clean_system(openamber):
     """Reset system to clean idle state with fully completed initialization."""
+    openamber.set_switch("mock_three_way_valve_feedback_missing", False)
     openamber.set_switch("heat_demand_switch", False)
     openamber.set_switch("default_compressor_frequencies_enabled", False)
     openamber.set_switch("heat_demand_zone_2_switch", False)

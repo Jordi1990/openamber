@@ -68,7 +68,6 @@ private:
   ThreeWayValvePosition valve_target_position_ = ThreeWayValvePosition::HEATING_COOLING;
   State valve_target_state_ = State::UNKNOWN;
   uint32_t valve_switch_started_ms_ = 0;
-  uint32_t valve_last_command_ms_ = 0;
   void SetThreeWayValve(ThreeWayValvePosition position);
   ThreeWayValvePosition GetThreeWayValvePosition();
   ThreeWayValvePosition GetDesiredThreeWayValvePosition();

@@ -422,11 +422,11 @@ binary_sensor:
   - platform: template
     id: three_way_valve_active_sensor
     name: "3-weg klep"
-    lambda: 'return id(three_way_valve_heat_cool_switch).state;'
+    lambda: 'return !id(mock_three_way_valve_feedback_missing).state && id(three_way_valve_heat_cool_switch).state;'
   - platform: template
     id: three_way_valve_dhw_active_sensor
     name: "3-weg klep SWW"
-    lambda: 'return id(three_way_valve_dhw_switch).state;'
+    lambda: 'return !id(mock_three_way_valve_feedback_missing).state && id(three_way_valve_dhw_switch).state;'
   - platform: template
     id: dhw_pump_active_sensor
     name: "Tapwater pomp actief"
@@ -841,6 +841,12 @@ switch:
   - platform: template
     id: bottom_plate_heater_manual_switch
     name: "Bodemplaatverwarming"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: mock_three_way_valve_feedback_missing
+    # Simulator only: keeps the relay feedback (1305/1312) off, as if the inside unit ignores the valve command.
     optimistic: true
     turn_on_action: []
     turn_off_action: []
