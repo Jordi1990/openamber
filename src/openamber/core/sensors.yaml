@@ -697,12 +697,56 @@ sensor:
     sorting_group_id: custom_defrost
 
 - platform: template
-  id: custom_defrost_ta_te
-  name: "Eigen defrost Ta-Te"
+  id: custom_defrost_ta_tp
+  name: "Eigen defrost Ta-Tp"
   update_interval: never
   accuracy_decimals: 1
   unit_of_measurement: "K"
   icon: "mdi:thermometer-minus"
   entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_start_temperature
+  name: "Eigen defrost starttemperatuur Tp"
+  update_interval: never
+  accuracy_decimals: 1
+  unit_of_measurement: "°C"
+  device_class: temperature
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_interval_sensor
+  name: "Eigen defrost interval"
+  update_interval: never
+  accuracy_decimals: 0
+  unit_of_measurement: "min"
+  icon: "mdi:timer-sync-outline"
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_frost_point
+  name: "Eigen defrost rijppunt buitenlucht"
+  update_interval: never
+  accuracy_decimals: 1
+  unit_of_measurement: "°C"
+  device_class: temperature
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+# Optional outdoor humidity sensor. Stays empty unless a sensor publishes into it, see docs/custom-defrost.md.
+- platform: template
+  id: outdoor_humidity
+  name: "Luchtvochtigheid buiten"
+  update_interval: never
+  accuracy_decimals: 0
+  unit_of_measurement: "%"
+  device_class: humidity
   web_server:
     sorting_group_id: custom_defrost

@@ -287,11 +287,12 @@
 - id: !extend custom_defrost_runtime_sensor
   on_value:
     then:
-      - lvgl.label.update:
-          id: set_custom_defrost_runtime_val
-          text:
-            format: "%.0f min"
-            args: ['x']
+      - script.execute: update_custom_defrost_runtime_ui
+
+- id: !extend custom_defrost_interval_sensor
+  on_value:
+    then:
+      - script.execute: update_custom_defrost_runtime_ui
 
 - id: !extend custom_defrost_last_duration
   on_value:

@@ -121,6 +121,24 @@ static const uint32_t CUSTOM_DEFROST_MODE_OUTDOOR_UNIT = 0;
 static const uint32_t CUSTOM_DEFROST_MODE_DRY_RUN = 1;
 static const uint32_t CUSTOM_DEFROST_MODE_OPENAMBER = 2;
 
+// Start condition after the Mitsubishi SRK-ZSX algorithm (technical manual 17-SRK-T-228, chapter 17c):
+// the coil temperature must stay below the start line for 3 minutes while the compressor runs.
+static const uint32_t CUSTOM_DEFROST_CONFIRM_S = 3 * 60;
+static const uint32_t CUSTOM_DEFROST_MIN_COMPRESSOR_ON_S = 5 * 60;
+static const float CUSTOM_DEFROST_COLD_REFERENCE_TA_C = -15.0f;
+// Cycling compressor route: at least 10 compressor stops since the last defrost and Ta at most 3 °C.
+static const uint32_t CUSTOM_DEFROST_CYCLING_MIN_STOPS = 10;
+static const float CUSTOM_DEFROST_CYCLING_MAX_TA_C = 3.0f;
+// After a forced defrost the outdoor unit only accepts a new one after 30 min compressor time.
+static const uint32_t CUSTOM_DEFROST_OUTDOOR_UNIT_LOCK_S = 30 * 60;
+// Interval between defrosts adapts to the duration of the last defrost, like the outdoor unit's Smart mode.
+static const uint32_t CUSTOM_DEFROST_INTERVAL_MAX_MIN = 120;
+static const uint32_t CUSTOM_DEFROST_INTERVAL_STEP_UP_MIN = 20;
+static const uint32_t CUSTOM_DEFROST_INTERVAL_STEP_DOWN_MIN = 10;
+static const uint32_t CUSTOM_DEFROST_SHORT_DEFROST_S = 3 * 60;
+static const uint32_t CUSTOM_DEFROST_LONG_DEFROST_S = 5 * 60;
+static const uint32_t CUSTOM_DEFROST_MANUAL_REQUEST_EXPIRY_S = 40 * 60;
+
 static const uint32_t CUSTOM_DEFROST_CONTROL_MODE_WRITE_INTERVAL_S = 60;
 static const uint32_t CUSTOM_DEFROST_RESTORE_WORKING_MODE_DELAY_S = 2 * 60;
 static const uint32_t CUSTOM_DEFROST_DRY_RUN_MATCH_WINDOW_S = 60 * 60;

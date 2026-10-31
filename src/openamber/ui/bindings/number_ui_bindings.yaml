@@ -761,67 +761,31 @@
             format: "%.0f°C"
             args: ['x']
 
-- id: !extend custom_defrost_tp_debounce
+- id: !extend custom_defrost_delta_at_zero
   on_value:
     then:
       - lvgl.label.update:
-          id: set_custom_defrost_tp_debounce_val
-          text:
-            format: "%.0f s"
-            args: ['x']
-
-- id: !extend custom_defrost_tp_band1
-  on_value:
-    then:
-      - lvgl.label.update:
-          id: set_custom_defrost_tp_band1_val
-          text:
-            format: "%.1f°C"
-            args: ['x']
-
-- id: !extend custom_defrost_tp_band2
-  on_value:
-    then:
-      - lvgl.label.update:
-          id: set_custom_defrost_tp_band2_val
-          text:
-            format: "%.1f°C"
-            args: ['x']
-
-- id: !extend custom_defrost_tp_band3
-  on_value:
-    then:
-      - lvgl.label.update:
-          id: set_custom_defrost_tp_band3_val
-          text:
-            format: "%.1f°C"
-            args: ['x']
-
-- id: !extend custom_defrost_tp_band4
-  on_value:
-    then:
-      - lvgl.label.update:
-          id: set_custom_defrost_tp_band4_val
-          text:
-            format: "%.1f°C"
-            args: ['x']
-
-- id: !extend custom_defrost_dt_threshold
-  on_value:
-    then:
-      - lvgl.label.update:
-          id: set_custom_defrost_dt_threshold_val
+          id: set_custom_defrost_delta_zero_val
           text:
             format: "%.1f K"
             args: ['x']
 
-- id: !extend custom_defrost_dt_debounce
+- id: !extend custom_defrost_delta_at_cold
   on_value:
     then:
       - lvgl.label.update:
-          id: set_custom_defrost_dt_debounce_val
+          id: set_custom_defrost_delta_cold_val
           text:
-            format: "%.0f s"
+            format: "%.1f K"
+            args: ['x']
+
+- id: !extend custom_defrost_max_coil_temperature
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_custom_defrost_max_coil_val
+          text:
+            format: "%.1f°C"
             args: ['x']
 
 - id: !extend custom_defrost_max_runtime
@@ -847,15 +811,6 @@
     then:
       - lvgl.label.update:
           id: set_custom_defrost_min_runtime_val
-          text:
-            format: "%.0f min"
-            args: ['x']
-
-- id: !extend custom_defrost_min_compressor_on
-  on_value:
-    then:
-      - lvgl.label.update:
-          id: set_custom_defrost_min_on_val
           text:
             format: "%.0f min"
             args: ['x']

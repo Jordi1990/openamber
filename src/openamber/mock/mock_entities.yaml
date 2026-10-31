@@ -374,9 +374,14 @@ sensor:
     unit_of_measurement: "s"
     accuracy_decimals: 0
     lambda: |-
+      // Count real elapsed time, so large virtual time steps in tests do not undercount.
       static float seconds = 0.0f;
+      static uint32_t last_ms = 0;
+      uint32_t now = millis();
+      float dt = last_ms == 0 ? 0.0f : (now - last_ms) / 1000.0f;
+      last_ms = now;
       if (id(defrost_active_sensor).state) seconds = 0.0f;
-      else if (id(current_compressor_frequency).state > 0.0f) seconds += 5.0f;
+      else if (id(current_compressor_frequency).state > 0.0f) seconds += dt;
       return seconds;
     update_interval: 5s
   - platform: template

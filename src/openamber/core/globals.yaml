@@ -19,3 +19,7 @@ globals:
     type: uint32_t
     restore_value: yes
     initial_value: '0'
+  - id: custom_defrost_interval_min
+    type: uint32_t
+    restore_value: yes
+    initial_value: '0'

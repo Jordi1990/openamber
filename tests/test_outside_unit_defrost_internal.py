@@ -1,5 +1,5 @@
 """Automated tests for the read-only view of the outdoor unit's internal defrost variables
-(registers 5176-5231, firmware 0x0110 only) on page 7 of the custom defrost settings.
+(registers 5176-5231, firmware 0x0110 only) on page 5 of the custom defrost settings.
 """
 
 
@@ -12,10 +12,10 @@ def _open_unit_algorithm_page(openamber):
     openamber.step(ms=50)
     assert openamber.click("advanced_stab_custom_defrost")
     openamber.step(ms=100)
-    for _ in range(6):
+    for _ in range(4):
         openamber.click("custom_defrost_page_next_button")
         openamber.step(ms=50)
-    assert openamber.get_label("custom_defrost_page_indicator") == "Pagina 7 / 7"
+    assert openamber.get_label("custom_defrost_page_indicator") == "Pagina 5 / 5"
 
 
 def test_unit_algorithm_page_shows_internal_state(clean_system):
