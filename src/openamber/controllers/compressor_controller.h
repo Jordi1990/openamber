@@ -53,7 +53,11 @@ private:
   {
     if (current_compressor_mode <= 0)
     {
-      discharge_limit_active_ = false;
+      if (discharge_limit_active_)
+      {
+        discharge_limit_active_ = false;
+        id(discharge_side_limit_active_sensor).publish_state(false);
+      }
       return compressor_mode;
     }
 
@@ -63,7 +67,8 @@ private:
     const bool td_valid = !std::isnan(td) && td > 0.0f;
     if (!pd_valid && !td_valid)
     {
-      return compressor_mode;
+      // No readings: keep the current cap while latched instead of letting the level rise.
+      return discharge_limit_active_ ? std::min(compressor_mode, current_compressor_mode) : compressor_mode;
     }
 
     const float unit_pd = GetUnitLimit(id(outdoor_unit_pd_no_increase_limit).state, DISCHARGE_LIMIT_DEFAULT_UNIT_PD_BAR, 15.0f, 45.0f);
@@ -95,7 +100,8 @@ private:
 
     const uint32_t now = App.get_loop_component_start_time();
     if (step_down && current_compressor_mode > DISCHARGE_LIMIT_MIN_MODE &&
-        (now - last_discharge_limit_step_ms_) >= DISCHARGE_LIMIT_STEP_DOWN_INTERVAL_S * 1000UL)
+        (now - last_discharge_limit_step_ms_) >= DISCHARGE_LIMIT_STEP_DOWN_INTERVAL_S * 1000UL &&
+        (now - last_compressor_mode_change_ms_) >= FREQUENCY_CHANGE_INTERVAL_DOWN_S * 1000UL)
     {
       last_discharge_limit_step_ms_ = now;
       ESP_LOGI("amber", "Discharge side limiter: stepping down to %d (Pd %.1f bar, Td %.1f°C).", current_compressor_mode - 1, pd, td);
@@ -216,6 +222,10 @@ public:
       capped_mode_index = std::min(capped_mode_index, silent_limit);
     }
     capped_mode_index = ApplyDischargeSideLimit(capped_mode_index, current_compressor_mode);
+    if (capped_mode_index == (int)current_compressor_mode)
+    {
+      return;
+    }
     compressor_set_call.set_index(capped_mode_index);
     compressor_set_call.perform();
     last_compressor_mode_change_ms_ = App.get_loop_component_start_time();
