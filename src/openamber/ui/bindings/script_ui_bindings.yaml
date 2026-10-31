@@ -644,6 +644,19 @@
     - lvgl.label.update: { id: nav_system_icon, text_color: !lambda 'return lv_color_hex(tab_index == 4 ? 0xFFFFFF : 0xD1D5DB);' }
     - lvgl.label.update: { id: nav_system_label, text_color: !lambda 'return lv_color_hex(tab_index == 4 ? 0xFFFFFF : 0xD1D5DB);' }
 
+# Called by the fixed (longer) LVGL idle timeout: bring the display back to
+# the home screen so a forgotten settings/service page doesn't stay open.
+- id: display_return_home
+  mode: restart
+  then:
+    - if:
+        condition:
+          lambda: 'return lv_obj_has_flag(id(page_home), LV_OBJ_FLAG_HIDDEN);'
+        then:
+          - script.execute:
+              id: nav_select_tab
+              tab_index: 0
+
 - id: update_home_thermostat_visibility
   mode: restart
   then:
