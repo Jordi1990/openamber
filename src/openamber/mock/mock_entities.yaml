@@ -422,6 +422,10 @@ binary_sensor:
   - platform: template
     id: three_way_valve_active_sensor
     name: "3-weg klep"
+    lambda: 'return id(three_way_valve_heat_cool_switch).state;'
+  - platform: template
+    id: three_way_valve_dhw_active_sensor
+    name: "3-weg klep SWW"
     lambda: 'return id(three_way_valve_dhw_switch).state;'
   - platform: template
     id: dhw_pump_active_sensor

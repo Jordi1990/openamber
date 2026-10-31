@@ -43,6 +43,7 @@ enum State {
   HEAT_COOL,
   MAINTENANCE,
   WAIT_FOR_STATE_SWITCH,
+  WAIT_THREE_WAY_VALVE,
 };
 namespace esphome {
 namespace openamber {
@@ -64,9 +65,15 @@ private:
   uint32_t modbus_disconnected_since_ms_ = 0;
   bool modbus_disconnected_error_occurred_ = false;
   State state_ = State::WAIT_MODBUS_CONNECTION;
+  ThreeWayValvePosition valve_target_position_ = ThreeWayValvePosition::HEATING_COOLING;
+  State valve_target_state_ = State::UNKNOWN;
+  uint32_t valve_switch_started_ms_ = 0;
+  uint32_t valve_last_command_ms_ = 0;
   void SetThreeWayValve(ThreeWayValvePosition position);
   ThreeWayValvePosition GetThreeWayValvePosition();
   ThreeWayValvePosition GetDesiredThreeWayValvePosition();
+  void SwitchThreeWayValveAndWait(ThreeWayValvePosition position, State next_state);
+  bool IsThreeWayValveFeedbackConfirmed(ThreeWayValvePosition position);
 
   void SetNextState(State state);
   void LeaveStateAndSetNextStateAfterWaitTime(State new_state, uint32_t defer_ms);

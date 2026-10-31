@@ -370,7 +370,7 @@ script:
           root["vj"] = id(current_dhw_setpoint_sensor).state;
           root["vk"] = id(dhw_legionella_run_active_sensor).state;
 
-          root["vl"] = id(three_way_valve_active_sensor).state;
+          root["vl"] = id(three_way_valve_dhw_active_sensor).state;
           root["vm"] = id(dhw_schedule_active_sensor).state;
 
           root["vn"] = id(pump_p1_relay_switch).state;
