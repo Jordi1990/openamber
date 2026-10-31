@@ -457,14 +457,12 @@ void OpenAmberComponent::SwitchThreeWayValveAndWait(ThreeWayValvePosition positi
 /// 1312 mirrors the DHW valve output (1112). They only confirm the output was switched, not the valve end position.
 bool OpenAmberComponent::IsThreeWayValveFeedbackConfirmed(ThreeWayValvePosition position)
 {
-  auto *heat_cool_feedback = id(three_way_valve_active_sensor);
-  auto *dhw_feedback = id(three_way_valve_dhw_active_sensor);
-  if (!heat_cool_feedback->has_state() || !dhw_feedback->has_state())
+  if (!id(three_way_valve_active_sensor).has_state() || !id(three_way_valve_dhw_active_sensor).has_state())
   {
     return false;
   }
   bool want_dhw = position == ThreeWayValvePosition::DHW;
-  return dhw_feedback->state == want_dhw && heat_cool_feedback->state == !want_dhw;
+  return id(three_way_valve_dhw_active_sensor).state == want_dhw && id(three_way_valve_active_sensor).state == !want_dhw;
 }
 
 ThreeWayValvePosition OpenAmberComponent::GetThreeWayValvePosition()
