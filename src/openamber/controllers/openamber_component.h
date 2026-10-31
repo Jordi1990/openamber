@@ -242,33 +242,18 @@ void OpenAmberComponent::update()
 
     case State::WAIT_THREE_WAY_VALVE:
     {
-      uint32_t elapsed_ms = App.get_loop_component_start_time() - valve_switch_started_ms_;
-      const char *target_txt = valve_target_position_ == ThreeWayValvePosition::DHW ? "DHW" : "Heating/Cooling";
-      if (maintenance_requested)
+      if (App.get_loop_component_start_time() - valve_switch_started_ms_ < THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL)
       {
-        // Do not block maintenance on the valve feedback, the next state handles the maintenance request.
-        SetNextState(valve_target_state_);
+        break;
       }
-      else if (IsThreeWayValveFeedbackConfirmed(valve_target_position_))
-      {
-        // The relay switched when the command was written; the feedback only lags by the Modbus poll interval.
-        // Count the valve travel time from that command so a confirmed switch does not add extra delay.
-        uint32_t travel_ms = THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL;
-        uint32_t remaining_ms = elapsed_ms >= travel_ms ? 0 : travel_ms - elapsed_ms;
-        ESP_LOGI("amber", "3-way valve relay feedback confirms %s after %lu ms, waiting %lu ms for valve travel time.", target_txt, (unsigned long) elapsed_ms, (unsigned long) remaining_ms);
-        LeaveStateAndSetNextStateAfterWaitTime(valve_target_state_, remaining_ms);
-      }
-      else if (elapsed_ms >= THREE_WAY_VALVE_FEEDBACK_TIMEOUT_S * 1000UL)
+
+      if (!IsThreeWayValveFeedbackConfirmed(valve_target_position_))
       {
         // The active error suppresses all demand, so the next state stays idle until the error is reset.
-        ESP_LOGE("amber", "3-way valve relay feedback did not confirm %s within %lu s, stopping system.", target_txt, (unsigned long) THREE_WAY_VALVE_FEEDBACK_TIMEOUT_S);
+        ESP_LOGE("amber", "3-way valve relay feedback did not confirm the requested position, stopping system.");
         id(error_three_way_valve_state_timeout).publish_state(true);
-        SetNextState(valve_target_state_);
       }
-      else
-      {
-        ESP_LOGD("amber", "Waiting for 3-way valve relay feedback (%s), %lu ms elapsed", target_txt, (unsigned long) elapsed_ms);
-      }
+      SetNextState(valve_target_state_);
       break;
     }
 
@@ -438,8 +423,8 @@ void OpenAmberComponent::SetThreeWayValve(ThreeWayValvePosition position)
   ESP_LOGI("amber", "Setting 3-way valve to %s.", position == ThreeWayValvePosition::DHW ? "DHW" : "Heating/Cooling");
 }
 
-/// @brief Sends the 3-way valve command and waits until the inside unit relay feedback confirms it,
-/// followed by the valve travel time, before entering next_state.
+/// @brief Sends the 3-way valve command and waits for the valve travel time before entering next_state.
+/// The inside unit relay feedback is checked at the end of that wait.
 void OpenAmberComponent::SwitchThreeWayValveAndWait(ThreeWayValvePosition position, State next_state)
 {
   SetThreeWayValve(position);

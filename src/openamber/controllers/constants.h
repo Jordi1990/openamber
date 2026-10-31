@@ -32,9 +32,6 @@ static const uint32_t MODBUS_CONNECTION_TIMEOUT_S = 2 * 60;
 
 // Three-way valve
 static const uint32_t THREE_WAY_VALVE_SWITCH_TIME_S = 1 * 60;
-// Max time to wait for the inside unit relay feedback (1305/1312) to confirm the requested valve position.
-// Inside unit Modbus is polled every 15s, so allow a few polls before raising the valve error.
-static const uint32_t THREE_WAY_VALVE_FEEDBACK_TIMEOUT_S = 60;
 static const uint32_t THREE_WAY_VALVE_PROTECTION_DELTA_TEMPERATURE_C = 5.0f;
 static const uint32_t THREE_WAY_VALVE_PROTECTION_HIGH_TEMPERATURE_TIME_S = 2 * 60;
 static const float THREE_WAY_VALVE_PROTECTION_TUO_TC_THRESHOLD_C = 5.0f;
