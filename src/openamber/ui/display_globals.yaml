@@ -34,7 +34,7 @@ globals:
 # Fixed timeout after which the display returns to the home screen.
 # Deliberately longer than the longest selectable screen-off timeout.
 substitutions:
-  display_return_home_timeout: 10min
+  display_return_home_timeout: 30min
 
 select:
   - platform: template

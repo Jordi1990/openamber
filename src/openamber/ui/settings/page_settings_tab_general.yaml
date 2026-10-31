@@ -235,7 +235,7 @@ obj:
               pad_all: 6
               widgets:
                 - label: { text: "Scherm uit na", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-                - label: { text: "Na 10 minuten gaat het scherm terug naar home", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                - label: { text: "Na 30 minuten gaat het scherm terug naar home", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
                 - dropdown:
                     id: set_display_screen_timeout_dd
                     symbol: "\U000F0140"
