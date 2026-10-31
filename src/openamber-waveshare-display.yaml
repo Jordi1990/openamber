@@ -161,7 +161,7 @@ sensor:
 
 lvgl:
   on_idle:
-    - timeout: 60s
+    - timeout: !lambda 'return id(display_screen_timeout_ms);'
       then:
         - globals.set:
             id: is_idled
@@ -171,4 +171,6 @@ lvgl:
             level: 50% # 50% turns off the backlight
         - lvgl.widget.show:
             id: idle_screen_overlay
-
+    - timeout: ${display_return_home_timeout}
+      then:
+        - script.execute: display_return_home

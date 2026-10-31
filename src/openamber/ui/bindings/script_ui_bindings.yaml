@@ -131,6 +131,7 @@
     tab_index: int
   then:
     - lambda: |-
+        lv_obj_add_flag(id(general_system_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(advanced_pid_pager), LV_OBJ_FLAG_HIDDEN);
@@ -212,6 +213,7 @@
           id(stab_advanced_lbl)
         };
 
+        lv_obj_add_flag(id(general_system_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(advanced_pid_pager), LV_OBJ_FLAG_HIDDEN);
@@ -644,6 +646,19 @@
     - lvgl.label.update: { id: nav_system_icon, text_color: !lambda 'return lv_color_hex(tab_index == 4 ? 0xFFFFFF : 0xD1D5DB);' }
     - lvgl.label.update: { id: nav_system_label, text_color: !lambda 'return lv_color_hex(tab_index == 4 ? 0xFFFFFF : 0xD1D5DB);' }
 
+# Called by the fixed (longer) LVGL idle timeout: bring the display back to
+# the home screen so a forgotten settings/service page doesn't stay open.
+- id: display_return_home
+  mode: restart
+  then:
+    - if:
+        condition:
+          lambda: 'return lv_obj_has_flag(id(page_home), LV_OBJ_FLAG_HIDDEN);'
+        then:
+          - script.execute:
+              id: nav_select_tab
+              tab_index: 0
+
 - id: update_home_thermostat_visibility
   mode: restart
   then:
@@ -768,6 +783,12 @@
           id(general_stab_hardware_lbl)
         };
 
+        if (tab_index == 0) {
+          lv_obj_clear_flag(id(general_system_pager), LV_OBJ_FLAG_HIDDEN);
+        } else {
+          lv_obj_add_flag(id(general_system_pager), LV_OBJ_FLAG_HIDDEN);
+        }
+
         if (tab_index == 1) {
           lv_obj_clear_flag(id(mengventielen_pager), LV_OBJ_FLAG_HIDDEN);
         } else {
@@ -795,6 +816,9 @@
         condition:
           lambda: 'return tab_index == 0;'
         then:
+          - script.execute:
+              id: general_system_select_page
+              page: 1
           - script.execute: update_advanced_settings_ui
           - script.execute: update_control_temp_source_ui
           - script.execute: update_analytics_ui
@@ -1035,6 +1059,31 @@
           - lvgl.label.update: { id: mengventielen_page_2_button_lbl, text_color: 0x4B5563 }
           - lvgl.label.update: { id: mengventielen_page_indicator, text: "Pagina 2 / 2" }
 
+- id: general_system_select_page
+  mode: restart
+  parameters:
+    page: int
+  then:
+    - if:
+        condition:
+          lambda: 'return page == 1;'
+        then:
+          - lvgl.widget.show: { id: general_system_page_1 }
+          - lvgl.widget.hide: { id: general_system_page_2 }
+          - lvgl.widget.update: { id: general_system_page_1_button, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: general_system_page_1_button_lbl, text_color: 0x4B5563 }
+          - lvgl.widget.update: { id: general_system_page_2_button, bg_color: 0x1F3B68 }
+          - lvgl.label.update: { id: general_system_page_2_button_lbl, text_color: 0xFFFFFF }
+          - lvgl.label.update: { id: general_system_page_indicator, text: "Pagina 1 / 2" }
+        else:
+          - lvgl.widget.hide: { id: general_system_page_1 }
+          - lvgl.widget.show: { id: general_system_page_2 }
+          - lvgl.widget.update: { id: general_system_page_1_button, bg_color: 0x1F3B68 }
+          - lvgl.label.update: { id: general_system_page_1_button_lbl, text_color: 0xFFFFFF }
+          - lvgl.widget.update: { id: general_system_page_2_button, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: general_system_page_2_button_lbl, text_color: 0x4B5563 }
+          - lvgl.label.update: { id: general_system_page_indicator, text: "Pagina 2 / 2" }
+
 - id: sensor_calibration_select_page
   mode: restart
   parameters:
@@ -1256,6 +1305,7 @@
   then:
     - script.execute: update_pump_pid_ui
     - lambda: |-
+        lv_obj_add_flag(id(general_system_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(advanced_pid_pager), LV_OBJ_FLAG_HIDDEN);
@@ -1775,6 +1825,7 @@
     tab_index: int
   then:
     - lambda: |-
+        lv_obj_add_flag(id(general_system_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
 
@@ -1979,6 +2030,7 @@
     tab_index: int
   then:
     - lambda: |-
+        lv_obj_add_flag(id(general_system_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
 
