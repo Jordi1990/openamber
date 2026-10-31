@@ -252,8 +252,13 @@ void OpenAmberComponent::update()
       }
       else if (IsThreeWayValveFeedbackConfirmed(valve_target_position_))
       {
-        ESP_LOGI("amber", "3-way valve relay feedback confirms %s after %lu ms, waiting for valve travel time.", target_txt, (unsigned long) elapsed_ms);
-        LeaveStateAndSetNextStateAfterWaitTime(valve_target_state_, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);
+        // The relay switched when the (last) command was written; the feedback only lags by the Modbus poll interval.
+        // Count the valve travel time from that command so a confirmed switch does not add extra delay.
+        uint32_t since_command_ms = now - valve_last_command_ms_;
+        uint32_t travel_ms = THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL;
+        uint32_t remaining_ms = since_command_ms >= travel_ms ? 0 : travel_ms - since_command_ms;
+        ESP_LOGI("amber", "3-way valve relay feedback confirms %s after %lu ms, waiting %lu ms for valve travel time.", target_txt, (unsigned long) elapsed_ms, (unsigned long) remaining_ms);
+        LeaveStateAndSetNextStateAfterWaitTime(valve_target_state_, remaining_ms);
       }
       else if (elapsed_ms >= THREE_WAY_VALVE_FEEDBACK_TIMEOUT_S * 1000UL)
       {

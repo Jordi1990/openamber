@@ -57,7 +57,7 @@ def test_switch_heat_to_dhw_and_return_to_heat(clean_system):
     # Verify transition to DHW mode
     assert openamber.get_entity("state_machine_state_main") == "DHW"
     assert openamber.get_entity("three_way_valve_dhw_switch") is True
-    assert openamber.get_entity("three_way_valve_active_sensor") is True
+    assert openamber.get_entity("three_way_valve_dhw_active_sensor") is True
     assert int(openamber.get_entity("compressor_control_select") or 0) > 0
     assert openamber.get_entity("dhw_pump_relay_switch") is True
 
@@ -330,7 +330,7 @@ def test_switch_dhw_demand_during_idle_and_return_to_cv(clean_system):
     # Verify transition to DHW mode
     assert openamber.get_entity("state_machine_state_main") == "DHW"
     assert openamber.get_entity("three_way_valve_dhw_switch") is True
-    assert openamber.get_entity("three_way_valve_active_sensor") is True
+    assert openamber.get_entity("three_way_valve_dhw_active_sensor") is True
     assert int(openamber.get_entity("compressor_control_select") or 0) > 0
     assert openamber.get_entity("dhw_pump_relay_switch") is True
 
