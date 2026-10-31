@@ -363,6 +363,26 @@ sensor:
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_td_no_increase_limit
+  internal: True
+  address: 3262
+  register_type: holding
+  value_type: S_WORD
+  unit_of_measurement: °C
+  lambda: |-
+    return x - 30;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_pd_no_increase_limit
+  internal: True
+  address: 3269
+  register_type: holding
+  value_type: S_WORD
+  unit_of_measurement: "bar"
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
   id: discharge_temperature_td
   name: "Persgastemperatuur (Td)"
   disabled_by_default: True
