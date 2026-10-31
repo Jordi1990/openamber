@@ -37,6 +37,16 @@ private:
   uint32_t last_discharge_limit_step_ms_ = 0;
   bool discharge_limit_active_ = false;
 
+  /// @brief Returns the outdoor unit's threshold when it was read and is plausible, otherwise the default.
+  static float GetUnitLimit(float value, float fallback, float min_value, float max_value)
+  {
+    if (std::isnan(value) || value < min_value || value > max_value)
+    {
+      return fallback;
+    }
+    return value;
+  }
+
   /// @brief Keeps Pd and Td below the outdoor unit's own protection: hold the level when close,
   /// step down one level per DISCHARGE_LIMIT_STEP_DOWN_INTERVAL_S when closer.
   int ApplyDischargeSideLimit(int compressor_mode, int current_compressor_mode)
@@ -56,9 +66,12 @@ private:
       return compressor_mode;
     }
 
-    const bool step_down = (pd_valid && pd >= DISCHARGE_LIMIT_STEP_DOWN_PD_BAR) || (td_valid && td >= DISCHARGE_LIMIT_STEP_DOWN_TD_C);
-    const bool hold = (pd_valid && pd >= DISCHARGE_LIMIT_HOLD_PD_BAR) || (td_valid && td >= DISCHARGE_LIMIT_HOLD_TD_C);
-    const bool released = (!pd_valid || pd < DISCHARGE_LIMIT_RELEASE_PD_BAR) && (!td_valid || td < DISCHARGE_LIMIT_RELEASE_TD_C);
+    const float unit_pd = GetUnitLimit(id(outdoor_unit_pd_no_increase_limit).state, DISCHARGE_LIMIT_DEFAULT_UNIT_PD_BAR, 15.0f, 45.0f);
+    const float unit_td = GetUnitLimit(id(outdoor_unit_td_no_increase_limit).state, DISCHARGE_LIMIT_DEFAULT_UNIT_TD_C, 70.0f, 130.0f);
+
+    const bool step_down = (pd_valid && pd >= unit_pd - DISCHARGE_LIMIT_STEP_DOWN_PD_MARGIN_BAR) || (td_valid && td >= unit_td - DISCHARGE_LIMIT_STEP_DOWN_TD_MARGIN_C);
+    const bool hold = (pd_valid && pd >= unit_pd - DISCHARGE_LIMIT_HOLD_PD_MARGIN_BAR) || (td_valid && td >= unit_td - DISCHARGE_LIMIT_HOLD_TD_MARGIN_C);
+    const bool released = (!pd_valid || pd < unit_pd - DISCHARGE_LIMIT_RELEASE_PD_MARGIN_BAR) && (!td_valid || td < unit_td - DISCHARGE_LIMIT_RELEASE_TD_MARGIN_C);
 
     if (step_down || hold)
     {

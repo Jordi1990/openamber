@@ -46,14 +46,17 @@ static const uint32_t COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 5 * 60;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_DOWN_S = 10;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_UP_S = 5 * 60;
 
-// Discharge side limiter: stay below the outdoor unit's own Pd/Td protection (Pd 26/28/30 bar,
-// Td 95/97/105°C, firmware v1.10) instead of running into it.
-static const float DISCHARGE_LIMIT_HOLD_PD_BAR = 24.0f;
-static const float DISCHARGE_LIMIT_STEP_DOWN_PD_BAR = 25.0f;
-static const float DISCHARGE_LIMIT_HOLD_TD_C = 90.0f;
-static const float DISCHARGE_LIMIT_STEP_DOWN_TD_C = 93.0f;
-static const float DISCHARGE_LIMIT_RELEASE_PD_BAR = 23.0f;
-static const float DISCHARGE_LIMIT_RELEASE_TD_C = 87.0f;
+// Discharge side limiter: stay below the outdoor unit's own Pd/Td protection instead of running
+// into it. The limits are margins below the unit's "no further frequency increase" thresholds,
+// read from 3269 (Pd) and 3262 (Td); the defaults are used until those are read (EEPROM 114).
+static const float DISCHARGE_LIMIT_DEFAULT_UNIT_PD_BAR = 26.0f;
+static const float DISCHARGE_LIMIT_DEFAULT_UNIT_TD_C = 95.0f;
+static const float DISCHARGE_LIMIT_HOLD_PD_MARGIN_BAR = 2.0f;
+static const float DISCHARGE_LIMIT_STEP_DOWN_PD_MARGIN_BAR = 1.0f;
+static const float DISCHARGE_LIMIT_RELEASE_PD_MARGIN_BAR = 3.0f;
+static const float DISCHARGE_LIMIT_HOLD_TD_MARGIN_C = 5.0f;
+static const float DISCHARGE_LIMIT_STEP_DOWN_TD_MARGIN_C = 2.0f;
+static const float DISCHARGE_LIMIT_RELEASE_TD_MARGIN_C = 8.0f;
 static const uint32_t DISCHARGE_LIMIT_STEP_DOWN_INTERVAL_S = 60;
 static const int DISCHARGE_LIMIT_MIN_MODE = 1;
 
