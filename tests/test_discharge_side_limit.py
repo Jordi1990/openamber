@@ -52,13 +52,3 @@ def test_hold_and_release(clean_system):
     openamber.step(ms=50)
     assert openamber.get_entity("discharge_side_limit_active_sensor") is False
 
-
-def test_disabled_switch(clean_system):
-    openamber = clean_system
-    openamber.set_switch("discharge_side_limit_enabled", False)
-    start_space_heating(openamber, tc=25.0, target=40.0)
-    openamber.set_sensor("discharge_pressure_pd", 25.5)
-    openamber.advance_time(seconds=130, step_s=5)
-    openamber.step(ms=50)
-    assert openamber.get_entity("discharge_side_limit_active_sensor") is not True
-    openamber.set_switch("discharge_side_limit_enabled", True)

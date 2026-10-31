@@ -1,14 +1,5 @@
 switch:
 - platform: template
-  id: discharge_side_limit_enabled
-  name: "Perskantbewaking (Pd/Td)"
-  optimistic: True
-  restore_mode: RESTORE_DEFAULT_ON
-  entity_category: config
-  web_server: 
-    sorting_group_id: heating_settings
-
-- platform: template
   id: pump_p1_enabled
   name: "Pomp P1 aanwezig"
   optimistic: True

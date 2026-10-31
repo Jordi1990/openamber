@@ -51,7 +51,7 @@ private:
   /// step down one level per DISCHARGE_LIMIT_STEP_DOWN_INTERVAL_S when closer.
   int ApplyDischargeSideLimit(int compressor_mode, int current_compressor_mode)
   {
-    if (!id(discharge_side_limit_enabled).state || current_compressor_mode <= 0)
+    if (current_compressor_mode <= 0)
     {
       discharge_limit_active_ = false;
       return compressor_mode;
