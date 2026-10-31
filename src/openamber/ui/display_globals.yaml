@@ -55,7 +55,5 @@ select:
       then:
         - lambda: |-
             static const uint32_t TIMEOUTS_MS[] = {UINT32_MAX, 30000, 60000, 120000, 300000};
-            auto idx = id(display_screen_timeout_select).active_index();
-            size_t i = idx.has_value() ? idx.value() : 2;
-            if (i >= sizeof(TIMEOUTS_MS) / sizeof(TIMEOUTS_MS[0])) i = 2;
-            id(display_screen_timeout_ms) = TIMEOUTS_MS[i];
+            const size_t count = sizeof(TIMEOUTS_MS) / sizeof(TIMEOUTS_MS[0]);
+            id(display_screen_timeout_ms) = TIMEOUTS_MS[i < count ? i : 2];
