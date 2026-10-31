@@ -317,13 +317,28 @@ sensor:
     lambda: 'return 18.2f;'
     update_interval: 5s
   - platform: template
-    id: current_compressor_frequency
-    name: "Compressorfrequentie"
+    id: compressor_setpoint_frequency
+    name: "Compressor doelfrequentie"
     lambda: |-
       int mode = id(compressor_control_select).active_index().value_or(0);
       if (mode > 0) return 30.0f + mode * 5.0f;
       return 0.0f;
     update_interval: 1s
+  - platform: template
+    id: current_compressor_frequency
+    name: "Compressorfrequentie"
+    lambda: |-
+      if (id(mock_compressor_frequency_override).state >= 0.0f) return id(mock_compressor_frequency_override).state;
+      // Like the outdoor unit: during a defrost the compressor runs at the defrost standby frequency.
+      if (id(defrost_active_sensor).state) return 36.0f;
+      int mode = id(compressor_control_select).active_index().value_or(0);
+      if (mode > 0) return 30.0f + mode * 5.0f;
+      return 0.0f;
+    update_interval: 1s
+  - platform: template
+    id: defrost_standby_frequency
+    lambda: 'return 36.0f;'
+    update_interval: 5s
   - platform: template
     id: suction_pressure_ps
     name: "Zuigdruk (Ps)"
@@ -373,6 +388,10 @@ sensor:
 
 binary_sensor:
   - platform: template
+    id: crankcase_heater_active_sensor
+    name: "Carterverwarming actief"
+    lambda: 'return false;'
+  - platform: template
     id: backup_heater_active_sensor
     name: "Bijverwarming actief"
     lambda: 'return id(backup_heater_relay).state;'
@@ -419,6 +438,14 @@ binary_sensor:
     name: "SG Ready B actief"
 
 number:
+  - platform: template
+    id: mock_compressor_frequency_override
+    # Simulator only: forces the reported compressor frequency, -1 = off.
+    optimistic: true
+    min_value: -1
+    max_value: 120
+    step: 1
+    initial_value: -1
   - platform: template
     id: eev_open_setting_manual_number
     name: "EEV opening handmatig"
@@ -652,26 +679,96 @@ number:
     step: 1.0
     initial_value: 10.0
   - platform: template
+    id: outdoor_unit_fan_param_3301
+    optimistic: true
+    min_value: 300
+    max_value: 900
+    step: 10
+    initial_value: 520
+  - platform: template
+    id: outdoor_unit_fan_param_3303
+    optimistic: true
+    min_value: 300
+    max_value: 900
+    step: 10
+    initial_value: 560
+  - platform: template
+    id: outdoor_unit_fan_param_3304
+    optimistic: true
+    min_value: 300
+    max_value: 900
+    step: 10
+    initial_value: 620
+  - platform: template
+    id: outdoor_unit_fan_param_3305
+    optimistic: true
+    min_value: 300
+    max_value: 900
+    step: 10
+    initial_value: 680
+  - platform: template
+    id: outdoor_unit_fan_param_3306
+    optimistic: true
+    min_value: 300
+    max_value: 900
+    step: 10
+    initial_value: 720
+  - platform: template
+    id: outdoor_unit_fan_param_3323
+    optimistic: true
+    min_value: 300
+    max_value: 900
+    step: 10
+    initial_value: 620
+  - platform: template
+    id: outdoor_unit_fan_param_3325
+    optimistic: true
+    min_value: 300
+    max_value: 900
+    step: 10
+    initial_value: 620
+  - platform: template
+    id: outdoor_unit_fan_param_3326
+    optimistic: true
+    min_value: 300
+    max_value: 900
+    step: 10
+    initial_value: 720
+  - platform: template
+    id: outdoor_unit_fan_param_3327
+    optimistic: true
+    min_value: 300
+    max_value: 900
+    step: 10
+    initial_value: 720
+  - platform: template
+    id: outdoor_unit_fan_param_3328
+    optimistic: true
+    min_value: 300
+    max_value: 900
+    step: 10
+    initial_value: 720
+  - platform: template
     id: enter_defrost_temperature_2
     optimistic: true
-    min_value: -3.0
-    max_value: 3.0
-    step: 0.1
-    initial_value: 0.0
+    min_value: -15.0
+    max_value: 0.0
+    step: 1.0
+    initial_value: -3.0
   - platform: template
     id: enter_defrost_temperature_3
     optimistic: true
-    min_value: -10.0
-    max_value: -3.0
-    step: 0.1
+    min_value: -15.0
+    max_value: 0.0
+    step: 1.0
     initial_value: -5.0
   - platform: template
     id: enter_defrost_temperature_4
     optimistic: true
-    min_value: -10.0
-    max_value: -3.0
-    step: 0.1
-    initial_value: -7.0
+    min_value: -15.0
+    max_value: 0.0
+    step: 1.0
+    initial_value: -12.0
   - platform: template
     id: fan_speed_manual_number
     name: "Ventilatorsnelheid handmatig"

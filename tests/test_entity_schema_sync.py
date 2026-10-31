@@ -187,6 +187,7 @@ def test_hardware_mocks_correspond_to_physical_modbus_or_subsystems():
         "eebus_power_limit_sensor",
         "eebus_ski",
         "eebus_status_sensor",
+        "mock_compressor_frequency_override",
     }
 
     mock_ids = set(mock_entities.keys())

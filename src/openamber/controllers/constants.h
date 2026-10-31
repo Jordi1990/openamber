@@ -43,6 +43,12 @@ static const uint32_t COMPRESSOR_SOFT_START_DURATION_S = 3 * 60;
 static const uint32_t COMPRESSOR_START_TIMEOUT_S = 2 * 60;
 static const uint32_t COMPRESSOR_MIN_TIME_PUMP_ON = 2 * 60;
 static const uint32_t COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 5 * 60;
+// The outdoor unit raises 2118 up to 300 s before the actual defrost when it decides itself (3274 = 1).
+// The actual defrost starts once the compressor runs at the defrost standby frequency (3279).
+static const uint32_t DEFROST_PREPHASE_MAX_S = 330;
+static const float DEFROST_STANDBY_FREQUENCY_MARGIN_HZ = 5.0f;
+// After 2118 drops the unit switches the 4-way valve back and restarts the fan within 30 s.
+static const uint32_t DEFROST_RECOVERY_PHASE_S = 30;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_DOWN_S = 10;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_UP_S = 5 * 60;
 

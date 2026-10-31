@@ -1,3 +1,11 @@
+# Outdoor unit EEPROM parameters
+
+Registers 2999-3510 of the outdoor unit (Modbus address 2). Descriptions marked *(firmware v1.10)* were derived from a firmware analysis of outdoor unit program version 0x0110 (register 2122).
+
+- Each register is stored as one byte in an external I2C EEPROM, so temperatures use the form Value = T + 30.
+- A Modbus write only changes RAM. The value is lost after a power cycle of the outdoor unit.
+- Saving to the EEPROM requires working mode 5 on 3999 followed by 4002 = 3, and a valid CRC-16/Modbus over 2999-3508 in 3509 (low byte) and 3510 (high byte). OpenAmber does not do this.
+
 | Register | Default | Explanation |
 |---:|---:|---|
 | 2999 | 255 | EEPROM data length |
@@ -134,10 +142,10 @@
 | 3227 | 167 | Internal parameters |
 | 3228 | 167 | Internal parameters |
 | 3229 | 1 | Internal parameters |
-| 3230 | 135 | Internal parameters |
+| 3230 | 135 | Normal EEV opening when heating (steps = value × 2). *(firmware v1.10)* |
 | 3231 | 135 | Internal parameters |
 | 3232 | 0 | Internal parameters |
-| 3233 | 0 | EEV setting during defrosting (Range: 0-450) |
+| 3233 | 0 | EEV setting during defrosting (Range: 0-450). Target = value × 2 steps. *(firmware v1.10)* |
 | 3234 | 4 | Baud Rate (Range: 0: 1200; 1: 2400; 2: 4800; 3: 9600; 4: 19200;) |
 | 3235 | 1 | Parity Check (Range: 0: Null 1 stop bit; 1: Even 1 stop bit; 2: Odd 1 stop bit;) |
 | 3236 | 2 | Working of bottom plate heater (Range: 1: According to ambient temperature; 2: ON when defrosting starts, and OFF two minutes after defrosting ends) |
@@ -154,57 +162,57 @@
 | 3247 | 4 | Low pressure protection shutdown value (Range: 5) |
 | 3248 | 1 | Fan control mode (Range: 0: By master control; 1: Control by outdoor unit) |
 | 3249 | 0 | Fan Type (Range: 0: DC Fan; 1: AC Fan;) |
-| 3250 | 40 | Internal parameters |
+| 3250 | 40 | Fan speed during defrost pressure relief and recovery, × 10 rpm. *(firmware v1.10)* |
 | 3251 | 44 | Internal parameters |
 | 3252 | 48 | Internal parameters |
 | 3253 | 160 | Internal parameters |
 | 3254 | 140 | Internal parameters |
 | 3255 | 120 | Internal parameters |
 | 3256 | 160 | Internal parameters |
-| 3257 | 140 | Internal parameters |
+| 3257 | 140 | Internal control parameter, value differs per model (140 = Amber 65, 150 = Amber 95, 15 = Amber 120, 145 = HP-S 95). OpenAmber uses it for model detection. |
 | 3258 | 120 | Internal parameters |
-| 3259 | 138 | Internal parameters |
-| 3260 | 135 | Internal parameters |
-| 3261 | 127 | Internal parameters |
-| 3262 | 125 | Internal parameters |
+| 3259 | 138 | Discharge temperature Td: compressor stop with fault (Value=T+30, default 108°C). *(firmware v1.10)* |
+| 3260 | 135 | Discharge temperature Td: strong frequency reduction (Value=T+30, default 105°C). *(firmware v1.10)* |
+| 3261 | 127 | Discharge temperature Td: frequency reduction (Value=T+30, default 97°C). *(firmware v1.10)* |
+| 3262 | 125 | Discharge temperature Td: no further frequency increase (Value=T+30, default 95°C). *(firmware v1.10)* |
 | 3263 | 92 | Internal parameters |
 | 3264 | 89 | Internal parameters |
 | 3265 | 87 | Internal parameters |
 | 3266 | 82 | Internal parameters |
-| 3267 | 30 | Internal parameters |
-| 3268 | 28 | Internal parameters |
-| 3269 | 26 | Internal parameters |
+| 3267 | 30 | High pressure Pd: strong frequency reduction (bar, default 30). *(firmware v1.10)* |
+| 3268 | 28 | High pressure Pd: frequency reduction (bar, default 28). *(firmware v1.10)* |
+| 3269 | 26 | High pressure Pd: no further frequency increase (bar, default 26). *(firmware v1.10)* |
 | 3270 | 0 | Internal parameters |
 | 3271 | 12 | Internal parameters |
 | 3272 | 32 | Internal parameters |
 | 3273 | 36 | Internal parameters |
-| 3274 | 1 | Defrost control mode (Range: 0: By master control; 1: Control by outdoor unit) |
-| 3275 | 0 | Defrost mode (Range: 0: Smart Defrost; 1: Fixed defrost; 2: Reserved; 3: AI Smart Defrost) |
-| 3276 | 27 | Enter defrost temperature 1 (Range: Value=T+30) |
+| 3274 | 1 | Defrost control mode (Range: 0: By master control, master starts a defrost with working mode 4 on 3999; 1: Control by outdoor unit; other values: never defrost) |
+| 3275 | 0 | Defrost mode, only used when 3274 = 1 (Range: 0: Smart Defrost, threshold per ambient band and adaptive 45-120 min interval; 1: Fixed defrost, single threshold and 45 min interval; 2: Reserved, no defrost; 3: AI Smart Defrost) |
+| 3276 | 27 | Enter defrost temperature 1, coil temperature Tp threshold when Ta ≥ 3°C; also the only threshold for Fixed and AI Smart (Range: Value=T+30) |
 | 3277 | 47 | Exit defrost temperature (Range: Value=T+30) |
 | 3278 | 8 | Maximum defrosting time (Range: 8) |
 | 3279 | 36 | Defrost Standby frequency (Range: 30) |
 | 3280 | 61 | Defrost running frequency (Range: 61) |
-| 3281 | 1 | frequency limitation control for Ambient outdoor temperature (Range: 0: By master control; 1: Control by outdoor unit) |
-| 3282 | 0 | Internal parameters |
-| 3283 | 2 | Internal parameters |
-| 3284 | 3 | Internal parameters |
-| 3285 | 6 | Internal parameters |
-| 3286 | 10 | Internal parameters |
-| 3287 | 10 | Internal parameters |
-| 3288 | 7 | Internal parameters |
-| 3289 | 4 | Internal parameters |
-| 3290 | 1 | Internal parameters |
-| 3291 | 0 | Internal parameters |
-| 3292 | 0 | Internal parameters |
-| 3293 | 10 | Internal parameters |
-| 3294 | 8 | Internal parameters |
-| 3295 | 5 | Internal parameters |
-| 3296 | 3 | Internal parameters |
-| 3297 | 2 | Internal parameters |
-| 3298 | 0 | Internal parameters |
+| 3281 | 1 | Frequency limitation control for ambient outdoor temperature (Range: 0: By master control; 1: Control by outdoor unit, caps the requested level using 3282-3298) |
+| 3282 | 0 | Cooling: max compressor level when Ta < 0°C. *(firmware v1.10)* |
+| 3283 | 2 | Cooling: max compressor level when 0 ≤ Ta < 12°C. *(firmware v1.10)* |
+| 3284 | 3 | Cooling: max compressor level when 12 ≤ Ta < 18°C. *(firmware v1.10)* |
+| 3285 | 6 | Cooling: max compressor level when 18 ≤ Ta < 24°C. *(firmware v1.10)* |
+| 3286 | 10 | Cooling: max compressor level when 24 ≤ Ta < 30°C. *(firmware v1.10)* |
+| 3287 | 10 | Cooling: max compressor level when 30 ≤ Ta < 41°C. *(firmware v1.10)* |
+| 3288 | 7 | Cooling: max compressor level when 41 ≤ Ta < 45°C. *(firmware v1.10)* |
+| 3289 | 4 | Cooling: max compressor level when 45 ≤ Ta < 51°C. *(firmware v1.10)* |
+| 3290 | 1 | Cooling: max compressor level when 51 ≤ Ta < 65°C. *(firmware v1.10)* |
+| 3291 | 0 | Cooling: max compressor level when Ta ≥ 65°C. *(firmware v1.10)* |
+| 3292 | 0 | Heating: max compressor level below the low ambient limit (3498 − 3499 − 30, default −25°C). *(firmware v1.10)* |
+| 3293 | 10 | Heating: max compressor level from the low ambient limit up to Ta 12°C. *(firmware v1.10)* |
+| 3294 | 8 | Heating: max compressor level when 12 ≤ Ta < 20°C. *(firmware v1.10)* |
+| 3295 | 5 | Heating: max compressor level when 20 ≤ Ta < 24°C. *(firmware v1.10)* |
+| 3296 | 3 | Heating: max compressor level when 24 ≤ Ta < 28°C. *(firmware v1.10)* |
+| 3297 | 2 | Heating: max compressor level when 28 ≤ Ta < 46°C. *(firmware v1.10)* |
+| 3298 | 0 | Heating: max compressor level when Ta ≥ 46°C. *(firmware v1.10)* |
 | 3299 | 3 | Internal parameters |
-| 3300 | 7 | Internal parameters |
+| 3300 | 7 | Compressor/model code, sent to the inverter and part of register 2114 ((3495 << 8) + 3300). |
 | 3301 | 52 | Internal parameters |
 | 3302 | 53 | Internal parameters |
 | 3303 | 56 | Internal parameters |
@@ -214,12 +222,12 @@
 | 3307 | 1 | Low noise mode switch (Range: 0: No Enable; 1: Enable;) |
 | 3308 | 62 | Low noise mode FAN speed value (Range: Value=R/10) |
 | 3309 | 1 | Number of DC fan (Range: 0: Double fan; 1: Single fan;) |
-| 3310 | 114 | Internal parameters |
-| 3311 | 10 | Internal parameters |
+| 3310 | 114 | EEPROM version, reported in register 2123. |
+| 3311 | 10 | AI Smart defrost: ambient limit, active below value − 2°C and off above value + 4°C. *(firmware v1.10)* |
 | 3312 | 0 | Internal parameters |
 | 3313 | 0 | Internal parameters |
 | 3314 | 0 | Internal parameters |
-| 3315 | 40 | Internal parameters |
+| 3315 | 40 | AI Smart defrost: deviation threshold (× 10) against the learned per fan step reference. *(firmware v1.10, hypothesis)* |
 | 3316 | 2 | Setting of the model(main pcb) address (Range: Only N30(PCB) is set via this address) |
 | 3317 | 0 | Internal parameters |
 | 3318 | 0 | Internal parameters |
@@ -240,12 +248,12 @@
 | 3333 | 2 | Internal parameters |
 | 3334 | 5 | Internal parameters |
 | 3335 | 6 | Internal parameters |
-| 3336 | 27 | Enter defrost temperature 2 (3 to -3) (Range: 27) |
-| 3337 | 25 | Enter defrost temperature 3 (-3 to -10) (Range: 27) |
-| 3338 | 18 | Enter defrost temperature 4 (Minus 10 degrees) (Range: 27) |
-| 3339 | 10 | Internal parameters |
-| 3340 | 55 | Internal parameters |
-| 3341 | 1 | Internal parameters |
+| 3336 | 27 | Enter defrost temperature 2, coil temperature Tp threshold when −3 ≤ Ta < 3°C (Range: Value=T+30) |
+| 3337 | 25 | Enter defrost temperature 3, coil temperature Tp threshold when −10 ≤ Ta < −3°C (Range: Value=T+30) |
+| 3338 | 18 | Enter defrost temperature 4, coil temperature Tp threshold when Ta < −10°C (Range: Value=T+30) |
+| 3339 | 10 | Minimum defrost time in seconds before the exit temperature is checked (only when the outdoor unit decides). *(firmware v1.10)* |
+| 3340 | 55 | Second exit defrost temperature, acts as upper limit (Value=T+30). Only when the outdoor unit decides. *(firmware v1.10)* |
+| 3341 | 1 | Smart defrost: fixed 45 minute interval when −3 ≤ Ta < 3°C (0: off; 1: on). *(firmware v1.10)* |
 | 3342 | 120 | Internal parameters |
 | 3343 | 100 | Internal parameters |
 | 3344 | 147 | Internal parameters |
@@ -399,12 +407,12 @@
 | 3492 | 0 | Internal parameters |
 | 3493 | 0 | Inlet and outlet water temperature and indoor coil temperature of enable (Range: 0: No Enable; 1: Enable;) |
 | 3494 | 0 | Water flow correction value (Range: Different models with different values) |
-| 3495 | 14 | Internal parameters |
+| 3495 | 14 | Compressor/model code, sent to the inverter and part of register 2114 ((3495 << 8) + 3300). |
 | 3496 | 0 | DC water pump fo enable (Range: 0: No Enable; 1: Enable;) |
 | 3497 | 1 | Refrigerant type (Range: 0: R32/R410A; 1: R290;) |
-| 3498 | 5 | Internal parameters |
-| 3499 | 0 | Internal parameters |
-| 3500 | 4 | Internal parameters |
+| 3498 | 5 | Heating low ambient limit, together with 3499: limit = 3498 − 3499 − 30 °C. *(firmware v1.10)* |
+| 3499 | 0 | Heating low ambient limit offset, see 3498. *(firmware v1.10)* |
+| 3500 | 4 | Heating low ambient limit hysteresis (K). *(firmware v1.10)* |
 | 3501 | 0 | Water pump high speed power (Range: Different models with different values) |
 | 3502 | 0 | Water pump medium speed power (Range: Different models with different values) |
 | 3503 | 0 | Water pump low speed power (Range: Different models with different values) |

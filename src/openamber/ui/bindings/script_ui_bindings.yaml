@@ -135,6 +135,7 @@
         lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(advanced_pid_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(advanced_defrost_pager), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(advanced_fan_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(mengventielen_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(eebus_pager), LV_OBJ_FLAG_HIDDEN);
 
@@ -215,6 +216,7 @@
         lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(advanced_pid_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(advanced_defrost_pager), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(advanced_fan_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(mengventielen_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(eebus_pager), LV_OBJ_FLAG_HIDDEN);
 
@@ -741,6 +743,7 @@
         lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(advanced_pid_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(advanced_defrost_pager), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(advanced_fan_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(eebus_pager), LV_OBJ_FLAG_HIDDEN);
 
         lv_obj_t* panels[5] = {
@@ -1257,6 +1260,7 @@
         lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(advanced_pid_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(advanced_defrost_pager), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(advanced_fan_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(mengventielen_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(eebus_pager), LV_OBJ_FLAG_HIDDEN);
 
@@ -1774,23 +1778,26 @@
         lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
 
-        lv_obj_t* panels[4] = {
+        lv_obj_t* panels[5] = {
           id(panel_advanced_page_pid),
           id(panel_advanced_page_bodemplaat),
           id(panel_advanced_page_defrost),
-          id(panel_advanced_page_compressor)
+          id(panel_advanced_page_compressor),
+          id(panel_advanced_page_fan)
         };
-        lv_obj_t* tabs[4] = {
+        lv_obj_t* tabs[5] = {
           id(advanced_stab_pid),
           id(advanced_stab_bodemplaat),
           id(advanced_stab_defrost),
-          id(advanced_stab_compressor)
+          id(advanced_stab_compressor),
+          id(advanced_stab_fan)
         };
-        lv_obj_t* labels[4] = {
+        lv_obj_t* labels[5] = {
           id(advanced_stab_pid_lbl),
           id(advanced_stab_bodemplaat_lbl),
           id(advanced_stab_defrost_lbl),
-          id(advanced_stab_compressor_lbl)
+          id(advanced_stab_compressor_lbl),
+          id(advanced_stab_fan_lbl)
         };
 
         if (tab_index == 0) {
@@ -1805,7 +1812,13 @@
           lv_obj_add_flag(id(advanced_defrost_pager), LV_OBJ_FLAG_HIDDEN);
         }
 
-        for (int i = 0; i < 4; i++) {
+        if (tab_index == 4) {
+          lv_obj_clear_flag(id(advanced_fan_pager), LV_OBJ_FLAG_HIDDEN);
+        } else {
+          lv_obj_add_flag(id(advanced_fan_pager), LV_OBJ_FLAG_HIDDEN);
+        }
+
+        for (int i = 0; i < 5; i++) {
           if (i == tab_index) {
             lv_obj_clear_flag(panels[i], LV_OBJ_FLAG_HIDDEN);
             lv_obj_set_style_bg_color(tabs[i], lv_color_hex(0x1F3B68), LV_PART_MAIN);
@@ -1830,7 +1843,55 @@
           - script.execute:
               id: advanced_defrost_select_page
               page: 1
+    - if:
+        condition:
+          lambda: 'return tab_index == 4;'
+        then:
+          - script.execute:
+              id: advanced_fan_select_page
+              page: 1
     - script.execute: update_advanced_settings_ui
+
+- id: advanced_fan_select_page
+  mode: restart
+  parameters:
+    page: int
+  then:
+    - lambda: |-
+        const int page_count = 4;
+        if (page < 1) page = 1;
+        if (page > page_count) page = page_count;
+        id(advanced_fan_page) = page;
+
+        struct PageRow {
+          lv_obj_t* row;
+          int page;
+        };
+        const PageRow rows[] = {
+          {id(set_fan_note_row), 1},
+          {id(set_fan_heat_max_row), 1},
+          {id(set_fan_heat_mild_row), 1},
+          {id(set_fan_heat_warm_row), 2},
+          {id(set_fan_heat_hz_low_row), 2},
+          {id(set_fan_heat_hz_mid_row), 2},
+          {id(set_fan_cool_max_row), 3},
+          {id(set_fan_cool_mild_row), 3},
+          {id(set_fan_cool_low_row), 3},
+          {id(set_fan_cool_hz_low_row), 4},
+          {id(set_fan_cool_hz_mid_row), 4},
+        };
+        for (const auto &r : rows) {
+          if (r.page == page) lv_obj_clear_flag(r.row, LV_OBJ_FLAG_HIDDEN);
+          else lv_obj_add_flag(r.row, LV_OBJ_FLAG_HIDDEN);
+        }
+
+        bool has_prev = page > 1;
+        bool has_next = page < page_count;
+        lv_obj_set_style_bg_color(id(advanced_fan_page_prev_button), lv_color_hex(has_prev ? 0x1F3B68 : 0xCBD5E1), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(advanced_fan_page_prev_button_lbl), lv_color_hex(has_prev ? 0xFFFFFF : 0x4B5563), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(id(advanced_fan_page_next_button), lv_color_hex(has_next ? 0x1F3B68 : 0xCBD5E1), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(advanced_fan_page_next_button_lbl), lv_color_hex(has_next ? 0xFFFFFF : 0x4B5563), LV_PART_MAIN);
+        lv_label_set_text_fmt(id(advanced_fan_page_indicator), "Pagina %d / %d", page, page_count);
 
 - id: dhw_select_tab
   mode: restart
@@ -2109,6 +2170,7 @@
           lv_obj_clear_state(id(set_advanced_settings_switch_ui), LV_STATE_CHECKED);
           lv_obj_add_flag(id(panel_advanced), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(stab_advanced), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(id(advanced_fan_pager), LV_OBJ_FLAG_HIDDEN);
           lv_obj_set_style_bg_color(id(stab_advanced), lv_color_hex(0xE8ECF1), LV_PART_MAIN);
           lv_obj_set_style_text_color(id(stab_advanced_lbl), lv_color_hex(0x4B5563), LV_PART_MAIN);
           lv_obj_clear_flag(id(set_pid_disabled_overlay), LV_OBJ_FLAG_HIDDEN);
@@ -2116,7 +2178,7 @@
         }
         lv_obj_clear_flag(id(set_pid_section), LV_OBJ_FLAG_HIDDEN);
 
-        lv_obj_t* adv_rows[9] = {
+        lv_obj_t* adv_rows[19] = {
           id(set_general_bodemplaat_mode_row),
           id(set_general_bodemplaat_start_row),
           id(set_general_bodemplaat_hysteresis_row),
@@ -2125,9 +2187,19 @@
           id(set_general_defrost_enter1_row),
           id(set_defrost_advanced_section),
           id(set_pump_flow_switch_safety_row),
-          id(set_advanced_compressor_default_frequencies_row)
+          id(set_advanced_compressor_default_frequencies_row),
+          id(set_fan_heat_max_row),
+          id(set_fan_heat_mild_row),
+          id(set_fan_heat_warm_row),
+          id(set_fan_heat_hz_low_row),
+          id(set_fan_heat_hz_mid_row),
+          id(set_fan_cool_max_row),
+          id(set_fan_cool_mild_row),
+          id(set_fan_cool_low_row),
+          id(set_fan_cool_hz_low_row),
+          id(set_fan_cool_hz_mid_row)
         };
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < 19; i++) {
           if (enabled) {
             lv_obj_clear_state(adv_rows[i], LV_STATE_DISABLED);
             lv_obj_set_style_opa(adv_rows[i], LV_OPA_COVER, LV_PART_MAIN);
@@ -2482,15 +2554,23 @@
 
               auto *ct = id(service_diag_control_table)->obj;
               lv_table_set_cell_value(ct, 0, 1, id(current_compressor_frequency).has_state() ? str_sprintf("%.0f Hz", id(current_compressor_frequency).state).c_str() : "- Hz");
-              lv_table_set_cell_value(ct, 1, 1, id(pump_p0_current_pwm_sensor).has_state() ? str_sprintf("%.0f %%", id(pump_p0_current_pwm_sensor).state).c_str() : "- %");
-              lv_table_set_cell_value(ct, 2, 1, id(fan_rpm_sensor).has_state() ? str_sprintf("%.0f rpm", id(fan_rpm_sensor).state).c_str() : "- rpm");
-              lv_table_set_cell_value(ct, 3, 1, id(expansion_valve_position).has_state() ? str_sprintf("%.0f %%", id(expansion_valve_position).state).c_str() : "- %");
-              lv_table_set_cell_value(ct, 4, 1, id(mixing_valve_zone1_position).has_state() ? str_sprintf("%.0f %%", id(mixing_valve_zone1_position).state).c_str() : "- %");
-              lv_table_set_cell_value(ct, 5, 1, id(mixing_valve_zone2_position).has_state() ? str_sprintf("%.0f %%", id(mixing_valve_zone2_position).state).c_str() : "- %");
-              lv_table_set_cell_value(ct, 6, 1, id(three_way_valve_heat_cool_switch).state ? "CV" : "Tapwater");
+              auto compressor_level = id(compressor_control_select).active_index();
+              lv_table_set_cell_value(ct, 1, 1, compressor_level.has_value() ? str_sprintf("%d", (int) compressor_level.value()).c_str() : "-");
+              // 2102 is the frequency the outdoor unit targets after applying its own limits (ambient temperature table, protections).
+              if (id(compressor_setpoint_frequency).has_state()) {
+                lv_table_set_cell_value(ct, 2, 1, str_sprintf(id(error_flag_p12).state ? "%.0f Hz (begrensd)" : "%.0f Hz", id(compressor_setpoint_frequency).state).c_str());
+              } else {
+                lv_table_set_cell_value(ct, 2, 1, "- Hz");
+              }
+              lv_table_set_cell_value(ct, 3, 1, id(pump_p0_current_pwm_sensor).has_state() ? str_sprintf("%.0f %%", id(pump_p0_current_pwm_sensor).state).c_str() : "- %");
+              lv_table_set_cell_value(ct, 4, 1, id(fan_rpm_sensor).has_state() ? str_sprintf("%.0f rpm", id(fan_rpm_sensor).state).c_str() : "- rpm");
+              lv_table_set_cell_value(ct, 5, 1, id(expansion_valve_position).has_state() ? str_sprintf("%.0f %%", id(expansion_valve_position).state).c_str() : "- %");
+              lv_table_set_cell_value(ct, 6, 1, id(mixing_valve_zone1_position).has_state() ? str_sprintf("%.0f %%", id(mixing_valve_zone1_position).state).c_str() : "- %");
+              lv_table_set_cell_value(ct, 7, 1, id(mixing_valve_zone2_position).has_state() ? str_sprintf("%.0f %%", id(mixing_valve_zone2_position).state).c_str() : "- %");
+              lv_table_set_cell_value(ct, 8, 1, id(three_way_valve_heat_cool_switch).state ? "CV" : "Tapwater");
 
               auto *sy = id(service_diag_system_table)->obj;
-              lv_table_set_cell_value(sy, 0, 1, id(defrost_active_sensor).state ? "AAN" : "UIT");
+              lv_table_set_cell_value(sy, 0, 1, id(defrost_phase_text).state.empty() ? "-" : id(defrost_phase_text).state.c_str());
               lv_table_set_cell_value(sy, 1, 1, id(bottom_heater_active_sensor).state ? "AAN" : "UIT");
               lv_table_set_cell_value(sy, 2, 1, id(modbus_inside_online).state ? "Online" : "Offline");
               lv_table_set_cell_value(sy, 3, 1, id(modbus_outside_online).state ? "Online" : "Offline");
@@ -2806,8 +2886,7 @@
           {"P02 - Bedrijfstroom warmtepomp", "De eerste keer wordt de normale werking van de warmtepomp na 5 minuten automatisch hervat. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart.", id(error_flag_p02).state},
           {"P06 - Storing compressor - laag drukverschil", "De compressorfrequentie zal worden begrensd. De druk zal hierdoor zakken en een normale werking wordt voortgezet.", id(error_flag_p06).state},
           {"P07 - Compressor voorverwarming", "De compressor wordt voorverwarmd om te kunnen starten. Het zal maximaal 30 minuten duren voordat de compressor op bedrijfstemperatuur is. Daarna zal deze storing vanzelf verdwijnen en zal de compressor starten.", id(error_flag_p07).state},
-          {"P11 - Compressor frequentiebegrenzing op buitentemperatuur", "De warmtepomp is geblokkeerd. De buitentemperatuur (Ta) is te laag of te hoog om op maximale capaciteit te kunnen werken.", id(error_flag_p11).state},
-          {"P12 - Compressor frequentiebegrenzing op buitentemperatuur", "Toerental compressor wordt verlaagd.", id(error_flag_p12).state},
+          {"P11 - Compressor geblokkeerd door buitentemperatuur", "De buitenunit laat de compressor niet draaien bij deze buitentemperatuur (Ta). Bij verwarmen gebeurt dit onder ongeveer -25°C en boven 46°C. De compressor start weer zodra Ta binnen het werkgebied valt.", id(error_flag_p11).state},
           {"P13 - Storing compressor - laag drukverschil", "Toerental compressor wordt verlaagd. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart.", id(error_flag_p13).state},
           {"Communicatie-failsafe binnenunit", "Communicatie-failsafe binnenunit actief.", id(error_flag_inside_comm_failsafe).state},
           {"EEPROM-fout binnenunit", "EEPROM- of statusfout binnenunit.", id(error_flag_inside_eeprom).state},

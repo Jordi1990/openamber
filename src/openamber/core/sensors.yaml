@@ -58,13 +58,36 @@ sensor:
   update_interval: 5s
 
 - platform: template
-  id: power_compressor
-  name: "Stroomverbruik compressor"
+  id: estimated_power_usage
+  name: "Stroomverbruik"
   device_class: power
   state_class: measurement
   unit_of_measurement: "W"
   lambda: |-
-    return id(voltage_outside_unit).state * id(current_outside_unit).state;
+    float compressor = id(voltage_outside_unit).state * id(current_outside_unit).state;
+    float p = 1.015f * compressor;
+
+    float pwm = id(pump_p0_current_pwm_sensor).state;
+    if (pwm > 0) {
+      float pump_max_w;
+      switch ((int) id(model_identification_1).state) {
+        case 150: pump_max_w = 102.0f; break;  // Amber 95
+        case 15:  pump_max_w = 102.0f; break;  // Amber 120
+        default:  pump_max_w = 102.0f; break;  // Amber 65
+      }
+      float speed = std::min(pwm, 100.0f) / 100.0f;
+      p += pump_max_w * speed * speed * speed;
+    }
+
+    if (id(backup_heater_active_sensor).state)
+      p += 3000.0f;
+
+    if (id(crankcase_heater_active_sensor).state)
+      p += 30.0f;
+    if (id(bottom_heater_active_sensor).state)
+      p += 150.0f;
+
+    return p;
   web_server: 
     sorting_group_id: diagnostic
 
@@ -78,7 +101,7 @@ sensor:
   update_interval: 5s
   lambda: |-
     if (!id(flow_sensor_enabled).state) return 0.0f;
-    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_running_sensor).state) return 0.0f;
     if (id(dhw_active).state) return 0.0f;
     if (!id(heat_demand_active_sensor).state) return 0.0f;
     return fabsf(id(thermal_power).state);
@@ -93,10 +116,10 @@ sensor:
   update_interval: 5s
   lambda: |-
     if (!id(flow_sensor_enabled).state) return 0.0f;
-    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_running_sensor).state) return 0.0f;
     if (id(dhw_active).state) return 0.0f;
     if (!id(heat_demand_active_sensor).state) return 0.0f;
-    return id(power_compressor).state;
+    return id(estimated_power_usage).state;
 
 # Cooling-only power samples for EER/SEER energy tracking.
 - platform: template
@@ -109,7 +132,7 @@ sensor:
   update_interval: 5s
   lambda: |-
     if (!id(flow_sensor_enabled).state) return 0.0f;
-    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_running_sensor).state) return 0.0f;
     if (id(dhw_active).state) return 0.0f;
     if (!id(cool_demand_active_sensor).state) return 0.0f;
     return fabsf(id(thermal_power).state);
@@ -124,10 +147,10 @@ sensor:
   update_interval: 5s
   lambda: |-
     if (!id(flow_sensor_enabled).state) return 0.0f;
-    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_running_sensor).state) return 0.0f;
     if (id(dhw_active).state) return 0.0f;
     if (!id(cool_demand_active_sensor).state) return 0.0f;
-    return id(power_compressor).state;
+    return id(estimated_power_usage).state;
 
 # DHW-only power samples for COP energy tracking.
 - platform: template
@@ -140,7 +163,7 @@ sensor:
   update_interval: 5s
   lambda: |-
     if (!id(flow_sensor_enabled).state) return 0.0f;
-    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_running_sensor).state) return 0.0f;
     if (!id(dhw_active).state) return 0.0f;
     return fabsf(id(thermal_power).state);
 
@@ -154,9 +177,9 @@ sensor:
   update_interval: 5s
   lambda: |-
     if (!id(flow_sensor_enabled).state) return 0.0f;
-    if (id(current_compressor_frequency).state <= 0 || id(defrost_active_sensor).state) return 0.0f;
+    if (id(current_compressor_frequency).state <= 0 || id(defrost_running_sensor).state) return 0.0f;
     if (!id(dhw_active).state) return 0.0f;
-    return id(power_compressor).state;
+    return id(estimated_power_usage).state;
 
 # Per-mode energy buckets (kWh). Reset by the time: component.
 - platform: integration

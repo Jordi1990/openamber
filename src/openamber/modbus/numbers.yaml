@@ -275,7 +275,9 @@ number:
   id: enter_defrost_temperature
   unit_of_measurement: "°C"
   device_class: "temperature"
-  internal: True
+  name: "EEPROM defrost starttemperatuur"
+  disabled_by_default: true
+  entity_category: config
   address: 3276
   register_type: holding
   value_type: S_WORD
@@ -290,7 +292,9 @@ number:
   id: exit_defrost_temperature
   unit_of_measurement: "°C"
   device_class: "temperature"
-  internal: True
+  name: "EEPROM defrost stoptemperatuur"
+  disabled_by_default: true
+  entity_category: config
   address: 3277
   register_type: holding
   value_type: S_WORD
@@ -302,7 +306,9 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: max_defrost_time
-  internal: True
+  name: "EEPROM maximale ontdooitijd"
+  disabled_by_default: true
+  entity_category: config
   address: 3278
   register_type: holding
   value_type: S_WORD
@@ -310,12 +316,15 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: enter_defrost_temperature_2
-  min_value: -3
-  max_value: 3
-  step: 0.1
+  # Coil temperature (Tp) threshold, not an ambient temperature band.
+  min_value: -15
+  max_value: 0
+  step: 1
   unit_of_measurement: "°C"
   device_class: "temperature"
-  internal: True
+  name: "EEPROM defrost starttemperatuur 2"
+  disabled_by_default: true
+  entity_category: config
   address: 3336
   register_type: holding
   value_type: S_WORD
@@ -328,12 +337,15 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: enter_defrost_temperature_3
-  min_value: -10
-  max_value: -3
-  step: 0.1
+  # Coil temperature (Tp) threshold, not an ambient temperature band.
+  min_value: -15
+  max_value: 0
+  step: 1
   unit_of_measurement: "°C"
   device_class: "temperature"
-  internal: True
+  name: "EEPROM defrost starttemperatuur 3"
+  disabled_by_default: true
+  entity_category: config
   address: 3337
   register_type: holding
   value_type: S_WORD
@@ -345,12 +357,15 @@ number:
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: enter_defrost_temperature_4
-  min_value: -10
-  max_value: -3
-  step: 0.1
+  # Coil temperature (Tp) threshold, not an ambient temperature band.
+  min_value: -15
+  max_value: 0
+  step: 1
   unit_of_measurement: "°C"
   device_class: "temperature"
-  internal: True
+  name: "EEPROM defrost starttemperatuur 4"
+  disabled_by_default: true
+  entity_category: config
   address: 3338
   register_type: holding
   value_type: S_WORD
@@ -359,3 +374,184 @@ number:
   write_lambda: |-
     return x + 30;
 
+# Outdoor unit fan speed table (x 10 rpm), see docs/eeprom-parameters.md.
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_fan_param_3301
+  name: "EEPROM fan verwarmen Ta vanaf 17°C"
+  disabled_by_default: true
+  entity_category: config
+  address: 3301
+  register_type: holding
+  value_type: S_WORD
+  min_value: 300
+  max_value: 900
+  step: 10
+  unit_of_measurement: "rpm"
+  lambda: |-
+    return x * 10;
+  write_lambda: |-
+    return x / 10;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_fan_param_3303
+  name: "EEPROM fan verwarmen compressor onder F4"
+  disabled_by_default: true
+  entity_category: config
+  address: 3303
+  register_type: holding
+  value_type: S_WORD
+  min_value: 300
+  max_value: 900
+  step: 10
+  unit_of_measurement: "rpm"
+  lambda: |-
+    return x * 10;
+  write_lambda: |-
+    return x / 10;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_fan_param_3304
+  name: "EEPROM fan verwarmen Ta 11-17°C"
+  disabled_by_default: true
+  entity_category: config
+  address: 3304
+  register_type: holding
+  value_type: S_WORD
+  min_value: 300
+  max_value: 900
+  step: 10
+  unit_of_measurement: "rpm"
+  lambda: |-
+    return x * 10;
+  write_lambda: |-
+    return x / 10;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_fan_param_3305
+  name: "EEPROM fan verwarmen compressor F4-F7"
+  disabled_by_default: true
+  entity_category: config
+  address: 3305
+  register_type: holding
+  value_type: S_WORD
+  min_value: 300
+  max_value: 900
+  step: 10
+  unit_of_measurement: "rpm"
+  lambda: |-
+    return x * 10;
+  write_lambda: |-
+    return x / 10;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_fan_param_3306
+  name: "EEPROM fan verwarmen Ta onder 11°C of compressor vanaf F7"
+  disabled_by_default: true
+  entity_category: config
+  address: 3306
+  register_type: holding
+  value_type: S_WORD
+  min_value: 300
+  max_value: 900
+  step: 10
+  unit_of_measurement: "rpm"
+  lambda: |-
+    return x * 10;
+  write_lambda: |-
+    return x / 10;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_fan_param_3323
+  name: "EEPROM fan koelen Ta onder 14°C"
+  disabled_by_default: true
+  entity_category: config
+  address: 3323
+  register_type: holding
+  value_type: S_WORD
+  min_value: 300
+  max_value: 900
+  step: 10
+  unit_of_measurement: "rpm"
+  lambda: |-
+    return x * 10;
+  write_lambda: |-
+    return x / 10;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_fan_param_3325
+  name: "EEPROM fan koelen compressor onder F4"
+  disabled_by_default: true
+  entity_category: config
+  address: 3325
+  register_type: holding
+  value_type: S_WORD
+  min_value: 300
+  max_value: 900
+  step: 10
+  unit_of_measurement: "rpm"
+  lambda: |-
+    return x * 10;
+  write_lambda: |-
+    return x / 10;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_fan_param_3326
+  name: "EEPROM fan koelen Ta 14-25°C"
+  disabled_by_default: true
+  entity_category: config
+  address: 3326
+  register_type: holding
+  value_type: S_WORD
+  min_value: 300
+  max_value: 900
+  step: 10
+  unit_of_measurement: "rpm"
+  lambda: |-
+    return x * 10;
+  write_lambda: |-
+    return x / 10;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_fan_param_3327
+  name: "EEPROM fan koelen compressor F4-F7"
+  disabled_by_default: true
+  entity_category: config
+  address: 3327
+  register_type: holding
+  value_type: S_WORD
+  min_value: 300
+  max_value: 900
+  step: 10
+  unit_of_measurement: "rpm"
+  lambda: |-
+    return x * 10;
+  write_lambda: |-
+    return x / 10;
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_fan_param_3328
+  name: "EEPROM fan koelen Ta vanaf 25°C of compressor vanaf F7"
+  disabled_by_default: true
+  entity_category: config
+  address: 3328
+  register_type: holding
+  value_type: S_WORD
+  min_value: 300
+  max_value: 900
+  step: 10
+  unit_of_measurement: "rpm"
+  lambda: |-
+    return x * 10;
+  write_lambda: |-
+    return x / 10;

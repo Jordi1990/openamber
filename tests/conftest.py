@@ -128,6 +128,7 @@ def clean_system(openamber):
     openamber.set_binary_sensor("external_cool_demand_wired", False)
     openamber.set_binary_sensor("sg_ready_block_mode_active_sensor", False)
     openamber.set_binary_sensor("defrost_active_sensor", False)
+    openamber.set_number("mock_compressor_frequency_override", -1.0)
     # Reset heating curves to their numbers.yaml defaults so curve edits in one test do not
     # silently change the setpoint (and with it the start/stop behaviour) of later tests.
     for anchor, z1, z2 in (("m10", 35.0, 30.0), ("0", 30.0, 28.0), ("p5", 28.0, 26.0),

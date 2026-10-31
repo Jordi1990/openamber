@@ -369,6 +369,8 @@ public:
     TurnOffBackupHeater();
     StopDhwPump();
     id(dhw_active).publish_state(false);
+    // Safety stop: leave heating/cooling at once, also during a defrost.
+    SetWorkingMode(WORKING_MODE_STANDBY);
     SetNextState(DHWState::IDLE);
   }
 
@@ -470,7 +472,8 @@ public:
           break;
         }
 
-        if (id(defrost_active_sensor).state)
+        // Keep heating during the outdoor unit's pre-phase, react once the actual defrost starts.
+        if (id(defrost_running_sensor).state)
         {
           SetNextState(DHWState::DEFROSTING);
           break;
@@ -556,6 +559,12 @@ public:
       case DHWState::WAIT_PUMP_STOP:
         if (!pump_controller_->IsRunning())
         {
+          // Leaving heating aborts a running defrost without its recovery phase, so wait for 2118 to drop.
+          if (id(defrost_active_sensor).state)
+          {
+            ESP_LOGI("amber", "Defrost active, waiting before switching to standby.");
+            break;
+          }
           pump_controller_->ClearStopWaitTimer();
           SetWorkingMode(WORKING_MODE_STANDBY);
           id(dhw_active).publish_state(false);
