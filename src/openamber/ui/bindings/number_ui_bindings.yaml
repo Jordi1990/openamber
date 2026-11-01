@@ -751,68 +751,68 @@
             format: "%.0f min"
             args: ['x']
 
-# ── Geavanceerd: Compressor, max. frequentie per Ta-bereik ──
-- id: !extend ambient_limit_heating_band_1_max_frequency
+# ── Geavanceerd: Compressor, max. stand per Ta-bereik ──
+- id: !extend ambient_limit_heating_band_1_max_level
   on_value:
     then:
       - script.execute: update_ambient_limit_ui
 
-- id: !extend ambient_limit_heating_band_2_max_frequency
+- id: !extend ambient_limit_heating_band_2_max_level
   on_value:
     then:
       - script.execute: update_ambient_limit_ui
 
-- id: !extend ambient_limit_heating_band_3_max_frequency
+- id: !extend ambient_limit_heating_band_3_max_level
   on_value:
     then:
       - script.execute: update_ambient_limit_ui
 
-- id: !extend ambient_limit_heating_band_4_max_frequency
+- id: !extend ambient_limit_heating_band_4_max_level
   on_value:
     then:
       - script.execute: update_ambient_limit_ui
 
-- id: !extend ambient_limit_heating_band_5_max_frequency
+- id: !extend ambient_limit_heating_band_5_max_level
   on_value:
     then:
       - script.execute: update_ambient_limit_ui
 
-- id: !extend ambient_limit_cooling_band_1_max_frequency
+- id: !extend ambient_limit_cooling_band_1_max_level
   on_value:
     then:
       - script.execute: update_ambient_limit_ui
 
-- id: !extend ambient_limit_cooling_band_2_max_frequency
+- id: !extend ambient_limit_cooling_band_2_max_level
   on_value:
     then:
       - script.execute: update_ambient_limit_ui
 
-- id: !extend ambient_limit_cooling_band_3_max_frequency
+- id: !extend ambient_limit_cooling_band_3_max_level
   on_value:
     then:
       - script.execute: update_ambient_limit_ui
 
-- id: !extend ambient_limit_cooling_band_4_max_frequency
+- id: !extend ambient_limit_cooling_band_4_max_level
   on_value:
     then:
       - script.execute: update_ambient_limit_ui
 
-- id: !extend ambient_limit_cooling_band_5_max_frequency
+- id: !extend ambient_limit_cooling_band_5_max_level
   on_value:
     then:
       - script.execute: update_ambient_limit_ui
 
-- id: !extend ambient_limit_cooling_band_6_max_frequency
+- id: !extend ambient_limit_cooling_band_6_max_level
   on_value:
     then:
       - script.execute: update_ambient_limit_ui
 
-- id: !extend ambient_limit_cooling_band_7_max_frequency
+- id: !extend ambient_limit_cooling_band_7_max_level
   on_value:
     then:
       - script.execute: update_ambient_limit_ui
 
-- id: !extend ambient_limit_cooling_band_8_max_frequency
+- id: !extend ambient_limit_cooling_band_8_max_level
   on_value:
     then:
       - script.execute: update_ambient_limit_ui

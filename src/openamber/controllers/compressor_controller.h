@@ -62,10 +62,10 @@ private:
     return band;
   }
 
-  /// @brief Maximum compressor frequency for the current outdoor temperature, using the Ta bands of the
-  /// outdoor unit (firmware v1.18). Returns NaN when there is no cap: Ta unknown, or a band outside the
-  /// operating range where the unit blocks the compressor itself (P11).
-  float GetAmbientMaxFrequency(bool cooling)
+  /// @brief Maximum compressor level for the current outdoor temperature, using the fixed Ta bands of the
+  /// outdoor unit (firmware v1.18) and the configured level per band. Returns NaN when there is no cap:
+  /// Ta unknown, or a band outside the operating range where the unit blocks the compressor itself (P11).
+  float GetAmbientMaxLevel(bool cooling)
   {
     const float ta = id(temperature_outside_ta).state;
     if (std::isnan(ta))
@@ -78,14 +78,14 @@ private:
       const int bound_count = sizeof(OUTDOOR_UNIT_COOLING_BAND_BOUNDS_C) / sizeof(OUTDOOR_UNIT_COOLING_BAND_BOUNDS_C[0]);
       cooling_ambient_band_ = UpdateAmbientBand(cooling_ambient_band_, ta, OUTDOOR_UNIT_COOLING_BAND_BOUNDS_C, bound_count);
       const float limits[OUTDOOR_UNIT_COOLING_LIMITED_BANDS] = {
-        id(ambient_limit_cooling_band_1_max_frequency).state,
-        id(ambient_limit_cooling_band_2_max_frequency).state,
-        id(ambient_limit_cooling_band_3_max_frequency).state,
-        id(ambient_limit_cooling_band_4_max_frequency).state,
-        id(ambient_limit_cooling_band_5_max_frequency).state,
-        id(ambient_limit_cooling_band_6_max_frequency).state,
-        id(ambient_limit_cooling_band_7_max_frequency).state,
-        id(ambient_limit_cooling_band_8_max_frequency).state,
+        id(ambient_limit_cooling_band_1_max_level).state,
+        id(ambient_limit_cooling_band_2_max_level).state,
+        id(ambient_limit_cooling_band_3_max_level).state,
+        id(ambient_limit_cooling_band_4_max_level).state,
+        id(ambient_limit_cooling_band_5_max_level).state,
+        id(ambient_limit_cooling_band_6_max_level).state,
+        id(ambient_limit_cooling_band_7_max_level).state,
+        id(ambient_limit_cooling_band_8_max_level).state,
       };
       const int band = cooling_ambient_band_ - 1;
       return (band >= 0 && band < OUTDOOR_UNIT_COOLING_LIMITED_BANDS) ? limits[band] : NAN;
@@ -94,57 +94,18 @@ private:
     const int bound_count = sizeof(OUTDOOR_UNIT_HEATING_BAND_BOUNDS_C) / sizeof(OUTDOOR_UNIT_HEATING_BAND_BOUNDS_C[0]);
     heating_ambient_band_ = UpdateAmbientBand(heating_ambient_band_, ta, OUTDOOR_UNIT_HEATING_BAND_BOUNDS_C, bound_count);
     const float limits[OUTDOOR_UNIT_HEATING_LIMITED_BANDS] = {
-      id(ambient_limit_heating_band_1_max_frequency).state,
-      id(ambient_limit_heating_band_2_max_frequency).state,
-      id(ambient_limit_heating_band_3_max_frequency).state,
-      id(ambient_limit_heating_band_4_max_frequency).state,
-      id(ambient_limit_heating_band_5_max_frequency).state,
+      id(ambient_limit_heating_band_1_max_level).state,
+      id(ambient_limit_heating_band_2_max_level).state,
+      id(ambient_limit_heating_band_3_max_level).state,
+      id(ambient_limit_heating_band_4_max_level).state,
+      id(ambient_limit_heating_band_5_max_level).state,
     };
     const int band = heating_ambient_band_ - 1;
     return (band >= 0 && band < OUTDOOR_UNIT_HEATING_LIMITED_BANDS) ? limits[band] : NAN;
   }
 
-  /// @brief Frequency the outdoor unit runs for a compressor level, from the table that is active in the
-  /// unit (3001-3010 cooling, 3012-3021 heating). NaN until the table has been read.
-  static float GetLevelFrequency(bool cooling, int level)
-  {
-    if (cooling)
-    {
-      switch (level)
-      {
-        case 1: return id(cooling_frequency_index_1).state;
-        case 2: return id(cooling_frequency_index_2).state;
-        case 3: return id(cooling_frequency_index_3).state;
-        case 4: return id(cooling_frequency_index_4).state;
-        case 5: return id(cooling_frequency_index_5).state;
-        case 6: return id(cooling_frequency_index_6).state;
-        case 7: return id(cooling_frequency_index_7).state;
-        case 8: return id(cooling_frequency_index_8).state;
-        case 9: return id(cooling_frequency_index_9).state;
-        case 10: return id(cooling_frequency_index_10).state;
-        default: return NAN;
-      }
-    }
-    switch (level)
-    {
-      case 1: return id(heating_frequency_index_1).state;
-      case 2: return id(heating_frequency_index_2).state;
-      case 3: return id(heating_frequency_index_3).state;
-      case 4: return id(heating_frequency_index_4).state;
-      case 5: return id(heating_frequency_index_5).state;
-      case 6: return id(heating_frequency_index_6).state;
-      case 7: return id(heating_frequency_index_7).state;
-      case 8: return id(heating_frequency_index_8).state;
-      case 9: return id(heating_frequency_index_9).state;
-      case 10: return id(heating_frequency_index_10).state;
-      default: return NAN;
-    }
-  }
-
-  /// @brief Caps the requested level so its frequency stays within the maximum frequency for the current
-  /// outdoor temperature. The cap is in Hz, so it keeps matching the stock unit when the frequency table
-  /// is changed. Level 1 is never capped further: below that the compressor would stop.
-  int CapToAmbientFrequencyLimit(int compressor_mode)
+  /// @brief Caps the requested level to the configured maximum level for the current outdoor temperature.
+  int CapToAmbientLevelLimit(int compressor_mode)
   {
     if (compressor_mode <= 1)
     {
@@ -152,40 +113,18 @@ private:
     }
 
     const bool cooling = id(working_mode_switch).active_index().value_or(WORKING_MODE_STANDBY) == WORKING_MODE_COOLING;
-    const float max_frequency = GetAmbientMaxFrequency(cooling);
-    if (std::isnan(max_frequency))
+    const float max_level = GetAmbientMaxLevel(cooling);
+    if (std::isnan(max_level) || compressor_mode <= (int) max_level)
     {
       last_logged_ambient_limit_ = -1;
       return compressor_mode;
     }
 
-    int capped = compressor_mode;
-    while (capped > 1)
-    {
-      const float frequency = GetLevelFrequency(cooling, capped);
-      if (std::isnan(frequency))
-      {
-        // Frequency table not read yet: do not guess.
-        last_logged_ambient_limit_ = -1;
-        return compressor_mode;
-      }
-      if (frequency <= max_frequency)
-      {
-        break;
-      }
-      capped--;
-    }
-
-    if (capped == compressor_mode)
-    {
-      last_logged_ambient_limit_ = -1;
-      return compressor_mode;
-    }
-
+    const int capped = std::max(1, (int) max_level);
     if (last_logged_ambient_limit_ != capped)
     {
-      ESP_LOGI("amber", "Ambient limit %.0f Hz at Ta %.1f°C caps compressor level to %d (%.0f Hz) instead of %d.",
-               max_frequency, id(temperature_outside_ta).state, capped, GetLevelFrequency(cooling, capped), compressor_mode);
+      ESP_LOGI("amber", "Ambient limit at Ta %.1f°C caps compressor level to %d instead of %d.",
+               id(temperature_outside_ta).state, capped, compressor_mode);
       last_logged_ambient_limit_ = capped;
     }
     return capped;
@@ -202,7 +141,7 @@ public:
   void ApplyCompressorMode(int compressor_mode)
   {
     auto current_compressor_mode = id(compressor_control_select).active_index().value();
-    compressor_mode = CapToAmbientFrequencyLimit(compressor_mode);
+    compressor_mode = CapToAmbientLevelLimit(compressor_mode);
 
     // On initial start, allow any mode.
     if(current_compressor_mode != 0)
@@ -300,7 +239,7 @@ public:
       int silent_limit = (int)id(silent_mode_compressor_mode).active_index().value_or(3) + silent_offset;
       capped_mode_index = std::min(capped_mode_index, silent_limit);
     }
-    capped_mode_index = CapToAmbientFrequencyLimit(capped_mode_index);
+    capped_mode_index = CapToAmbientLevelLimit(capped_mode_index);
     compressor_set_call.set_index(capped_mode_index);
     compressor_set_call.perform();
     last_compressor_mode_change_ms_ = App.get_loop_component_start_time();

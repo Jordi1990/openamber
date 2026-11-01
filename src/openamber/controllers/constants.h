@@ -53,8 +53,7 @@ static const float OUTDOOR_UNIT_HEATING_BAND_BOUNDS_C[] = {-25.0f, 12.0f, 20.0f,
 static const float OUTDOOR_UNIT_COOLING_BAND_BOUNDS_C[] = {0.0f, 12.0f, 18.0f, 24.0f, 30.0f, 41.0f, 45.0f, 51.0f, 65.0f};
 // The first and last band of each table are outside the operating range: the unit blocks the compressor
 // there (P11) and OpenAmber leaves that to the unit. The bands in between have a configurable maximum
-// frequency (core/numbers.yaml). Defaults: the level limits of the original v1.18 parameter set
-// (3283-3290, 3293-3297) looked up in its own frequency tables (3000-3021), so the cap matches the stock unit in Hz.
+// compressor level (core/numbers.yaml).
 static const int OUTDOOR_UNIT_HEATING_LIMITED_BANDS = 5;
 static const int OUTDOOR_UNIT_COOLING_LIMITED_BANDS = 8;
 static const float OUTDOOR_UNIT_BAND_HYSTERESIS_C = 1.0f;

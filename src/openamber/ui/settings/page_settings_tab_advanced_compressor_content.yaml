@@ -35,8 +35,8 @@
     border_opa: 0%
     pad_all: 6
     widgets:
-      - label: { text: "Max. frequentie per buitentemperatuur", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Kies het Ta-bereik (zoals de buitenunit v1.18)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Max. compressorstand per buitentemperatuur", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Kies het Ta-bereik (vast, zoals in de buitenunit)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
       - dropdown:
           id: set_ambient_limit_band_dd
           symbol: "\U000F0140"
@@ -72,8 +72,8 @@
     border_opa: 0%
     pad_all: 6
     widgets:
-      - label: { text: "Maximale frequentie", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "OpenAmber vraagt geen hogere stand dan deze Hz", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Maximale stand", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "OpenAmber vraagt in dit bereik geen hogere stand", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -98,7 +98,7 @@
                       delta: -1
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-            - label: { id: set_ambient_limit_val, text: "90 Hz", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_ambient_limit_val, text: "Stand 10", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 width: 40
                 height: 40

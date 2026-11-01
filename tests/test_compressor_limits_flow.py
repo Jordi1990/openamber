@@ -234,7 +234,7 @@ def test_cooling_compressor_mode_limits(clean_system, limit_setting, max_expecte
     openamber.set_sensor("heat_cool_temperature_tc", 28.0)
     openamber.set_sensor("outlet_temperature_tuo", 28.0)
     openamber.set_sensor("inlet_temperature_tui", 30.0)
-    # Summer ambient: at Ta 24-30°C the ambient limit (79 Hz) does not cap levels 1-7.
+    # Summer ambient: at Ta 24-30°C the ambient limit (level 9) does not cap levels 1-7.
     openamber.set_sensor("temperature_outside_ta", 28.0)
     openamber.step(ms=50)
 

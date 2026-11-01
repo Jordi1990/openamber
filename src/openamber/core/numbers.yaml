@@ -1351,160 +1351,150 @@ number:
   entity_category: config
 
 
-# Maximum compressor frequency per ambient band (CompressorController::CapToAmbientFrequencyLimit).
-# Ta bands from outdoor unit firmware v1.18; defaults are the stock v1.18 level limits in Hz.
+# Maximum compressor level per ambient band (CompressorController::CapToAmbientLevelLimit).
+# Ta bands are fixed, as in outdoor unit firmware v1.18. The defaults are the stock v1.18 limits
+# (3283-3290, 3293-3297) converted to Hz with the stock frequency table, and then to the highest
+# level in the table OpenAmber writes (WriteHeatingFrequencyTable / WriteCoolingFrequencyTable)
+# that stays at or below that frequency.
 - platform: template
-  name: "Max. frequentie verwarmen Ta -25..12°C"
-  id: ambient_limit_heating_band_1_max_frequency
+  name: "Max. compressorstand verwarmen Ta -25..12°C"
+  id: ambient_limit_heating_band_1_max_level
   entity_category: config
-  unit_of_measurement: Hz
-  min_value: 20
-  max_value: 120
+  min_value: 1
+  max_value: 10
   step: 1
-  initial_value: 90
+  initial_value: 10
   restore_value: true
   optimistic: true
 
 - platform: template
-  name: "Max. frequentie verwarmen Ta 12..20°C"
-  id: ambient_limit_heating_band_2_max_frequency
+  name: "Max. compressorstand verwarmen Ta 12..20°C"
+  id: ambient_limit_heating_band_2_max_level
   entity_category: config
-  unit_of_measurement: Hz
-  min_value: 20
-  max_value: 120
+  min_value: 1
+  max_value: 10
   step: 1
-  initial_value: 74
+  initial_value: 7
   restore_value: true
   optimistic: true
 
 - platform: template
-  name: "Max. frequentie verwarmen Ta 20..24°C"
-  id: ambient_limit_heating_band_3_max_frequency
+  name: "Max. compressorstand verwarmen Ta 20..24°C"
+  id: ambient_limit_heating_band_3_max_level
   entity_category: config
-  unit_of_measurement: Hz
-  min_value: 20
-  max_value: 120
+  min_value: 1
+  max_value: 10
   step: 1
-  initial_value: 55
+  initial_value: 4
   restore_value: true
   optimistic: true
 
 - platform: template
-  name: "Max. frequentie verwarmen Ta 24..28°C"
-  id: ambient_limit_heating_band_4_max_frequency
+  name: "Max. compressorstand verwarmen Ta 24..28°C"
+  id: ambient_limit_heating_band_4_max_level
   entity_category: config
-  unit_of_measurement: Hz
-  min_value: 20
-  max_value: 120
+  min_value: 1
+  max_value: 10
   step: 1
-  initial_value: 43
+  initial_value: 3
   restore_value: true
   optimistic: true
 
 - platform: template
-  name: "Max. frequentie verwarmen Ta 28..46°C"
-  id: ambient_limit_heating_band_5_max_frequency
+  name: "Max. compressorstand verwarmen Ta 28..46°C"
+  id: ambient_limit_heating_band_5_max_level
   entity_category: config
-  unit_of_measurement: Hz
-  min_value: 20
-  max_value: 120
+  min_value: 1
+  max_value: 10
   step: 1
-  initial_value: 36
+  initial_value: 2
   restore_value: true
   optimistic: true
 
 - platform: template
-  name: "Max. frequentie koelen Ta 0..12°C"
-  id: ambient_limit_cooling_band_1_max_frequency
+  name: "Max. compressorstand koelen Ta 0..12°C"
+  id: ambient_limit_cooling_band_1_max_level
   entity_category: config
-  unit_of_measurement: Hz
-  min_value: 20
-  max_value: 120
+  min_value: 1
+  max_value: 10
   step: 1
-  initial_value: 36
+  initial_value: 4
   restore_value: true
   optimistic: true
 
 - platform: template
-  name: "Max. frequentie koelen Ta 12..18°C"
-  id: ambient_limit_cooling_band_2_max_frequency
+  name: "Max. compressorstand koelen Ta 12..18°C"
+  id: ambient_limit_cooling_band_2_max_level
   entity_category: config
-  unit_of_measurement: Hz
-  min_value: 20
-  max_value: 120
+  min_value: 1
+  max_value: 10
   step: 1
-  initial_value: 42
+  initial_value: 4
   restore_value: true
   optimistic: true
 
 - platform: template
-  name: "Max. frequentie koelen Ta 18..24°C"
-  id: ambient_limit_cooling_band_3_max_frequency
+  name: "Max. compressorstand koelen Ta 18..24°C"
+  id: ambient_limit_cooling_band_3_max_level
   entity_category: config
-  unit_of_measurement: Hz
-  min_value: 20
-  max_value: 120
+  min_value: 1
+  max_value: 10
   step: 1
-  initial_value: 56
+  initial_value: 7
   restore_value: true
   optimistic: true
 
 - platform: template
-  name: "Max. frequentie koelen Ta 24..30°C"
-  id: ambient_limit_cooling_band_4_max_frequency
+  name: "Max. compressorstand koelen Ta 24..30°C"
+  id: ambient_limit_cooling_band_4_max_level
   entity_category: config
-  unit_of_measurement: Hz
-  min_value: 20
-  max_value: 120
+  min_value: 1
+  max_value: 10
   step: 1
-  initial_value: 79
+  initial_value: 9
   restore_value: true
   optimistic: true
 
 - platform: template
-  name: "Max. frequentie koelen Ta 30..41°C"
-  id: ambient_limit_cooling_band_5_max_frequency
+  name: "Max. compressorstand koelen Ta 30..41°C"
+  id: ambient_limit_cooling_band_5_max_level
   entity_category: config
-  unit_of_measurement: Hz
-  min_value: 20
-  max_value: 120
+  min_value: 1
+  max_value: 10
   step: 1
-  initial_value: 79
+  initial_value: 9
   restore_value: true
   optimistic: true
 
 - platform: template
-  name: "Max. frequentie koelen Ta 41..45°C"
-  id: ambient_limit_cooling_band_6_max_frequency
+  name: "Max. compressorstand koelen Ta 41..45°C"
+  id: ambient_limit_cooling_band_6_max_level
   entity_category: config
-  unit_of_measurement: Hz
-  min_value: 20
-  max_value: 120
+  min_value: 1
+  max_value: 10
   step: 1
-  initial_value: 61
+  initial_value: 7
   restore_value: true
   optimistic: true
 
 - platform: template
-  name: "Max. frequentie koelen Ta 45..51°C"
-  id: ambient_limit_cooling_band_7_max_frequency
+  name: "Max. compressorstand koelen Ta 45..51°C"
+  id: ambient_limit_cooling_band_7_max_level
   entity_category: config
-  unit_of_measurement: Hz
-  min_value: 20
-  max_value: 120
+  min_value: 1
+  max_value: 10
   step: 1
-  initial_value: 47
+  initial_value: 5
   restore_value: true
   optimistic: true
 
 - platform: template
-  name: "Max. frequentie koelen Ta 51..65°C"
-  id: ambient_limit_cooling_band_8_max_frequency
+  name: "Max. compressorstand koelen Ta 51..65°C"
+  id: ambient_limit_cooling_band_8_max_level
   entity_category: config
-  unit_of_measurement: Hz
-  min_value: 20
-  max_value: 120
+  min_value: 1
+  max_value: 10
   step: 1
-  initial_value: 30
+  initial_value: 3
   restore_value: true
   optimistic: true
