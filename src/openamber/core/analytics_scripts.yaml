@@ -208,6 +208,20 @@ script:
           root["og"] = id(tui_offset).state;
           root["oh"] = id(tuo_offset).state;
 
+          if (id(silent_mode_start_time).has_state()) {
+            char buf[8];
+            snprintf(buf, sizeof(buf), "%02d:%02d", id(silent_mode_start_time).hour, id(silent_mode_start_time).minute);
+            root["oi"] = buf;
+          }
+          if (id(silent_mode_end_time).has_state()) {
+            char buf[8];
+            snprintf(buf, sizeof(buf), "%02d:%02d", id(silent_mode_end_time).hour, id(silent_mode_end_time).minute);
+            root["oj"] = buf;
+          }
+
+          root["ok"] = id(default_compressor_frequencies_enabled).state;
+          root["ol"] = id(eebus_enabled_switch).state;
+
 - id: send_modes
   then:
     - mqtt.publish_json:
