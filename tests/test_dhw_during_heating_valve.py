@@ -1,8 +1,5 @@
 """DHW requested while space heating is active: 3-way valve and pump P1.
 
-Covers the report where Home Assistant turns on "Tapwater aanwezig" during a heating run, after
-which hot DHW water ended up in the floor (Tc rises) and OpenAmber raised the 3-way valve error.
-
 1. Turning dhw_enabled_switch on while the compressor heats switches the valve to DHW.
 2. Pump P1, left running while the heat/cool controller idles with heat demand, is stopped
    before the valve switches to DHW.
