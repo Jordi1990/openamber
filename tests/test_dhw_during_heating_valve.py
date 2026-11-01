@@ -6,8 +6,7 @@ which hot DHW water ended up in the floor (Tc rises) and OpenAmber raised the 3-
 1. Turning dhw_enabled_switch on while the compressor heats switches the valve to DHW.
 2. Pump P1, left running while the heat/cool controller idles with heat demand, is stopped
    before the valve switches to DHW.
-3. A 3-way valve output that drops back during DHW (lost Modbus write) is switched again.
-4. dhw_demand_switch ("Externe tapwatervraag") starts DHW without schedule and restart delta,
+3. dhw_demand_switch ("Externe tapwatervraag") starts DHW without schedule and restart delta,
    and stops at the setpoint.
 """
 
@@ -82,22 +81,6 @@ def test_pump_p1_stops_when_dhw_starts_from_idle_heating(clean_system):
     openamber.advance_time(seconds=120, step_s=10)
     openamber.step(ms=50)
     assert openamber.get_entity("pump_p1_relay_switch") is False
-
-
-def test_lost_valve_write_during_dhw_is_reapplied(clean_system):
-    openamber = clean_system
-    openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
-    openamber.step(ms=50)
-    assert advance_until_state(openamber, "state_machine_state_dhw", "Compressor running", max_s=600)
-    _assert_valve_dhw(openamber)
-
-    # Register 1112/1105 read back as if the valve never switched.
-    openamber.set_switch("three_way_valve_dhw_switch", False)
-    openamber.set_switch("three_way_valve_heat_cool_switch", True)
-    openamber.advance_time(seconds=10, step_s=5)
-    openamber.step(ms=50)
-    _assert_valve_dhw(openamber)
-    assert openamber.get_entity("state_machine_state_main") == "DHW"
 
 
 def test_external_dhw_demand_ignores_schedule_and_restart_delta(clean_system):

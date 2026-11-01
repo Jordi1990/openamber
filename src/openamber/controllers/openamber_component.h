@@ -188,7 +188,6 @@ void OpenAmberComponent::update()
         }
       }
 
-      EnsureThreeWayValvePosition(ThreeWayValvePosition::HEATING_COOLING);
       heat_cool_controller_->UpdateStateMachine();
       break;
     }
@@ -220,7 +219,6 @@ void OpenAmberComponent::update()
         }
       }
 
-      EnsureThreeWayValvePosition(ThreeWayValvePosition::DHW);
       dhw_controller_->UpdateStateMachine();
       break;
     }
@@ -414,21 +412,6 @@ void OpenAmberComponent::SetThreeWayValve(ThreeWayValvePosition position)
   }
 
   ESP_LOGI("amber", "Setting 3-way valve to %s.", position == ThreeWayValvePosition::DHW ? "DHW" : "Heating/Cooling");
-}
-
-/// @brief Re-applies the 3-way valve outputs when they no longer match the position the current state needs,
-/// for example when a Modbus write to 1105/1112 got lost or the register read back the old value.
-void OpenAmberComponent::EnsureThreeWayValvePosition(ThreeWayValvePosition expected)
-{
-  bool expect_dhw = expected == ThreeWayValvePosition::DHW;
-  if (id(three_way_valve_dhw_switch).state == expect_dhw && id(three_way_valve_heat_cool_switch).state == !expect_dhw)
-  {
-    return;
-  }
-
-  ESP_LOGW("amber", "3-way valve outputs do not match the %s state (DHW=%d, Heat/Cool=%d), switching again.",
-           expect_dhw ? "DHW" : "Heat/Cool", id(three_way_valve_dhw_switch).state, id(three_way_valve_heat_cool_switch).state);
-  SetThreeWayValve(expected);
 }
 
 ThreeWayValvePosition OpenAmberComponent::GetThreeWayValvePosition()

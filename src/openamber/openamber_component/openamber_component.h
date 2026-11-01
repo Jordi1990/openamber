@@ -65,7 +65,6 @@ private:
   bool modbus_disconnected_error_occurred_ = false;
   State state_ = State::WAIT_MODBUS_CONNECTION;
   void SetThreeWayValve(ThreeWayValvePosition position);
-  void EnsureThreeWayValvePosition(ThreeWayValvePosition expected);
   ThreeWayValvePosition GetThreeWayValvePosition();
   ThreeWayValvePosition GetDesiredThreeWayValvePosition();
 
