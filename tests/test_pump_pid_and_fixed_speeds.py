@@ -11,6 +11,23 @@ Covers:
 
 import pytest
 
+from helpers import advance_until_state
+
+
+def _start_idle_heat_demand_with_p1(openamber):
+    """Heat demand without a reason to start the compressor, so P0 only runs interval cycles."""
+    openamber.set_switch("pump_p1_enabled", True)
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 35.0)
+    openamber.set_climate("pid_heat_temperature_control", target_temperature=35.0)
+    openamber.set_sensor("heat_cool_temperature_tc", 35.0)
+    openamber.set_sensor("outlet_temperature_tuo", 35.0)
+    openamber.set_sensor("inlet_temperature_tui", 33.0)
+    openamber.set_switch("heat_demand_switch", True)
+    openamber.advance_time(seconds=10, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 should run while heat demand is active"
+
 
 def test_fixed_pump_speed_heating(clean_system):
     """
@@ -308,6 +325,64 @@ def test_secondary_pump_p1_starts_when_enabled(clean_system):
         "Secondary pump P1 must turn OFF after heating cycle concludes"
     )
     openamber.set_switch("pump_p1_enabled", False)
+    openamber.step(ms=50)
+
+
+def test_pump_p1_keeps_running_between_pump_cycles(clean_system):
+    """P1 stays on when a P0 interval cycle ends while heat demand is still active."""
+    openamber = clean_system
+    _start_idle_heat_demand_with_p1(openamber)
+
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Wait pump stop", max_s=3000)
+    assert openamber.get_entity("heat_demand_active_sensor") is True
+    assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 must keep running when the P0 cycle ends"
+
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Idle", max_s=300)
+    assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 must keep running in idle with heat demand"
+
+
+def test_pump_p1_stops_at_cycle_end_during_defrost(clean_system):
+    """WAIT_PUMP_STOP holds while a defrost is active, P1 must not run during that wait."""
+    openamber = clean_system
+    _start_idle_heat_demand_with_p1(openamber)
+
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Pump running", max_s=1200)
+    openamber.set_binary_sensor("defrost_active_sensor", True)
+    openamber.step(ms=50)
+
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Wait pump stop", max_s=1800)
+    assert openamber.get_entity("pump_p1_relay_switch") is False, "P1 must stop when the cycle ends during defrost"
+
+
+def test_pump_p1_stops_at_cycle_end_when_dhw_requested(clean_system):
+    """A DHW request during a P0 cycle stops P1 with P0 and leaves it off during DHW."""
+    openamber = clean_system
+    _start_idle_heat_demand_with_p1(openamber)
+
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Pump running", max_s=1200)
+    openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
+    openamber.step(ms=50)
+
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Wait pump stop", max_s=1800)
+    assert openamber.get_entity("pump_p1_relay_switch") is False, "P1 must stop with P0 when DHW is requested"
+
+    assert advance_until_state(openamber, "state_machine_state_main", "DHW", max_s=600)
+    assert openamber.get_entity("pump_p1_relay_switch") is False, "P1 must not run while the valve is on DHW"
+
+
+def test_pump_p1_stops_when_entering_maintenance_from_idle_heat_demand(clean_system):
+    """Entering maintenance from idle with heat demand stops P1, which idle leaves running."""
+    openamber = clean_system
+    _start_idle_heat_demand_with_p1(openamber)
+
+    openamber.set_switch("service_mode_enabled", True)
+    openamber.step(ms=50)
+    assert advance_until_state(openamber, "state_machine_state_main", "Maintenance", max_s=60)
+    openamber.step(ms=50)
+    assert openamber.get_entity("pump_p1_relay_switch") is False, "P1 must not keep running in maintenance"
+
+    openamber.set_switch("service_mode_enabled", False)
+    openamber.advance_time(seconds=10, step_s=1)
     openamber.step(ms=50)
 
 
