@@ -70,13 +70,6 @@ binary_sensor:
         return true;
       }
 
-      // External DHW demand (e.g. Home Assistant): heat the tank up to the setpoint now,
-      // regardless of the DHW schedule and the restart delta.
-      if(id(dhw_demand_switch).state)
-      {
-        return tw < setpoint;
-      }
-
       if(!id(dhw_schedule_active_sensor).state)
       {
          return false;

@@ -1,4 +1,4 @@
-"""DHW requested while space heating is active: 3-way valve, pump P1 and external DHW demand.
+"""DHW requested while space heating is active: 3-way valve and pump P1.
 
 Covers the report where Home Assistant turns on "Tapwater aanwezig" during a heating run, after
 which hot DHW water ended up in the floor (Tc rises) and OpenAmber raised the 3-way valve error.
@@ -6,13 +6,9 @@ which hot DHW water ended up in the floor (Tc rises) and OpenAmber raised the 3-
 1. Turning dhw_enabled_switch on while the compressor heats switches the valve to DHW.
 2. Pump P1, left running while the heat/cool controller idles with heat demand, is stopped
    before the valve switches to DHW.
-3. dhw_demand_switch ("Externe tapwatervraag") starts DHW without schedule and restart delta,
-   and stops at the setpoint.
 """
 
 from helpers import advance_until_state, start_space_heating
-
-WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 
 
 def _assert_valve_dhw(openamber):
@@ -81,40 +77,3 @@ def test_pump_p1_stops_when_dhw_starts_from_idle_heating(clean_system):
     openamber.advance_time(seconds=120, step_s=10)
     openamber.step(ms=50)
     assert openamber.get_entity("pump_p1_relay_switch") is False
-
-
-def test_external_dhw_demand_ignores_schedule_and_restart_delta(clean_system):
-    openamber = clean_system
-    weekdays = {d: openamber.get_entity(f"dhw_schedule_{d}_enabled_switch") for d in WEEKDAYS}
-    try:
-        # Schedule without any day: internal DHW demand never starts.
-        for d in WEEKDAYS:
-            openamber.set_switch(f"dhw_schedule_{d}_enabled_switch", False)
-        openamber.set_switch("dhw_schedule_enabled_switch", True)
-        # Within the restart delta (50 - 5 = 45°C).
-        openamber.set_sensor("dhw_temperature_tw_sensor", 47.0)
-        openamber.step(ms=50)
-        assert openamber.get_entity("dhw_demand_active_sensor") is False
-
-        openamber.set_switch("dhw_demand_switch", True)
-        openamber.step(ms=50)
-        assert openamber.get_entity("dhw_demand_active_sensor") is True
-        assert advance_until_state(openamber, "state_machine_state_main", "DHW", max_s=600)
-        _assert_valve_dhw(openamber)
-
-        # Setpoint reached: demand ends even though the external switch is still on.
-        openamber.set_sensor("dhw_temperature_tw_sensor", 50.5)
-        openamber.step(ms=50)
-        assert openamber.get_entity("dhw_demand_active_sensor") is False
-
-        # "Tapwater aanwezig" off still blocks external demand.
-        openamber.set_sensor("dhw_temperature_tw_sensor", 40.0)
-        openamber.set_switch("dhw_enabled_switch", False)
-        openamber.step(ms=50)
-        assert openamber.get_entity("dhw_demand_active_sensor") is False
-    finally:
-        openamber.set_switch("dhw_demand_switch", False)
-        openamber.set_switch("dhw_schedule_enabled_switch", False)
-        for d, state in weekdays.items():
-            if state is not None:
-                openamber.set_switch(f"dhw_schedule_{d}_enabled_switch", state)

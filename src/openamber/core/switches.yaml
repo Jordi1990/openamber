@@ -290,13 +290,6 @@ switch:
   optimistic: True
   web_server: 
     sorting_group_id: manual_control
-
-- platform: template
-  id: dhw_demand_switch
-  name: "Externe tapwatervraag"
-  optimistic: True
-  web_server: 
-    sorting_group_id: manual_control
 - platform: template
   id: maintenance_bottom_plate_heater_manual_proxy
   name: "Bodemplaat verwarming (Onderhoud)"
