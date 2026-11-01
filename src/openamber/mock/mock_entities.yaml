@@ -347,7 +347,28 @@ sensor:
   - platform: template
     id: discharge_pressure_pd
     name: "Persdruk (Pd)"
-    lambda: 'return 2.15f;'
+    lambda: |-
+      if (id(discharge_pressure_pd).has_state()) return id(discharge_pressure_pd).state;
+      return 18.0f;
+    update_interval: 5s
+  - platform: template
+    id: outdoor_unit_td_no_increase_limit
+    lambda: |-
+      if (id(outdoor_unit_td_no_increase_limit).has_state()) return {};
+      return 95.0f;
+    update_interval: 5s
+  - platform: template
+    id: outdoor_unit_pd_no_increase_limit
+    lambda: |-
+      if (id(outdoor_unit_pd_no_increase_limit).has_state()) return {};
+      return 26.0f;
+    update_interval: 5s
+  - platform: template
+    id: discharge_temperature_td
+    name: "Persgastemperatuur (Td)"
+    lambda: |-
+      if (id(discharge_temperature_td).has_state()) return id(discharge_temperature_td).state;
+      return 60.0f;
     update_interval: 5s
   - platform: template
     id: expansion_valve_position
@@ -401,7 +422,11 @@ binary_sensor:
   - platform: template
     id: three_way_valve_active_sensor
     name: "3-weg klep"
-    lambda: 'return id(three_way_valve_dhw_switch).state;'
+    lambda: 'return !id(mock_three_way_valve_feedback_missing).state && id(three_way_valve_heat_cool_switch).state;'
+  - platform: template
+    id: three_way_valve_dhw_active_sensor
+    name: "3-weg klep SWW"
+    lambda: 'return !id(mock_three_way_valve_feedback_missing).state && id(three_way_valve_dhw_switch).state;'
   - platform: template
     id: dhw_pump_active_sensor
     name: "Tapwater pomp actief"
@@ -816,6 +841,12 @@ switch:
   - platform: template
     id: bottom_plate_heater_manual_switch
     name: "Bodemplaatverwarming"
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: mock_three_way_valve_feedback_missing
+    # Simulator only: keeps the relay feedback (1305/1312) off, as if the inside unit ignores the valve command.
     optimistic: true
     turn_on_action: []
     turn_off_action: []

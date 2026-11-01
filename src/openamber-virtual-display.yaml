@@ -29,11 +29,10 @@ esphome:
     - openamber/controllers/routine_controller.h
     - openamber/controllers/deaeration_routine.h
     - openamber/controllers/openamber_component.h
-  platformio_options:
-    build_flags:
-      - "-Wl,--wrap=_ZN7esphome6millisEv"
-      - "-Wl,--wrap=_ZN7esphome9millis_64Ev"
-      - "-Wl,--wrap=_ZN7esphome6microsEv"
+  build_flags:
+    - "-Wl,--wrap=_ZN7esphome6millisEv"
+    - "-Wl,--wrap=_ZN7esphome9millis_64Ev"
+    - "-Wl,--wrap=_ZN7esphome6microsEv"
 
 host:
 

@@ -37,6 +37,36 @@ def test_settings_sidebar_tabs(openamber):
     assert openamber.is_hidden("panel_dhw"), "panel_dhw must be hidden when Bijverwarmen tab is selected"
 
 
+def test_general_system_pager_workflow(openamber):
+    """Verify the Systeem pager moves the screen timeout option to page 2 and resets on tab change."""
+    assert openamber.click("nav_settings"), "Clicking nav_settings must succeed"
+    openamber.step(ms=100)
+    assert openamber.click("stab_general"), "Clicking stab_general must succeed"
+    openamber.step(ms=100)
+
+    assert openamber.is_visible("general_system_pager"), "Pager must be visible on the Systeem tab"
+    assert openamber.is_visible("set_general_system_dhw"), "Page 1 rows must be visible"
+    assert openamber.is_hidden("general_system_page_2"), "Page 2 must be hidden initially"
+
+    assert openamber.click("general_system_page_2_button"), "Clicking page 2 button must succeed"
+    openamber.step(ms=100)
+    indicator = openamber.get_label("general_system_page_indicator")
+    assert "2 / 2" in indicator, f"Page indicator should show '2 / 2', got: '{indicator}'"
+    assert openamber.is_visible("set_general_system_screen_timeout"), "Screen timeout must be on page 2"
+    assert openamber.is_hidden("general_system_page_1"), "Page 1 must be hidden on page 2"
+
+    # Switching subtab hides the pager, returning starts on page 1 again
+    assert openamber.click("general_stab_hardware"), "Clicking general_stab_hardware must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_hidden("general_system_pager"), "Pager must be hidden outside the Systeem tab"
+
+    assert openamber.click("general_stab_systeem"), "Clicking general_stab_systeem must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("general_system_pager"), "Pager must be visible again on the Systeem tab"
+    indicator = openamber.get_label("general_system_page_indicator")
+    assert "1 / 2" in indicator, f"Page indicator should show '1 / 2', got: '{indicator}'"
+
+
 def test_sensor_calibration_pager_workflow(openamber):
     """Verify sensor calibration pager page navigation (Pagina 1 / 2 <-> Pagina 2 / 2)."""
     assert openamber.click("nav_settings"), "Clicking nav_settings must succeed"

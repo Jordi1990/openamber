@@ -104,6 +104,17 @@ binary_sensor:
   web_server: 
     sorting_group_id: overview
 
+# Read-back of the DHW 3-way valve relay output (1112). 1305 above is the read-back of the heat/cool valve output (1105).
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: three_way_valve_dhw_active_sensor
+  name: "3-weg klep SWW"
+  address: 1312
+  register_type: holding
+  device_class: running
+  web_server: 
+    sorting_group_id: overview
+
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
   id: backup_heater_active_sensor

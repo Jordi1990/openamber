@@ -5,7 +5,7 @@ Verifies:
 2. Zero entity ID collisions between Core logic (src/openamber/core/) and Modbus physical IO (src/openamber/modbus/).
 3. Uniqueness of entity IDs within Core, Modbus, and Mock.
 4. Parity: Hardware heat pump entities mocked in simulator correspond to physical Modbus registers.
-5. UI Bindings integrity: All entities extended in src/openamber/ui/bindings/ exist in Core, Modbus, or Mock.
+5. UI Bindings integrity: All entities extended in src/openamber/ui/bindings/ exist in Core, Modbus, Mock, or display_globals.yaml.
 6. Package configuration integrity: Packages include required domain packages for production and simulator.
 7. Modbus register 1220 bitmask mapping (SG-Ready B with bitmask 0x1).
 """
@@ -20,6 +20,7 @@ CORE_DIR = os.path.join(PROJECT_ROOT, "src", "openamber", "core")
 MODBUS_DIR = os.path.join(PROJECT_ROOT, "src", "openamber", "modbus")
 MOCK_FILE = os.path.join(PROJECT_ROOT, "src", "openamber", "mock", "mock_entities.yaml")
 UI_BINDINGS_DIR = os.path.join(PROJECT_ROOT, "src", "openamber", "ui", "bindings")
+DISPLAY_GLOBALS_FILE = os.path.join(PROJECT_ROOT, "src", "openamber", "ui", "display_globals.yaml")
 OPENAMBER_YAML = os.path.join(PROJECT_ROOT, "src", "openamber", "core", "openamber.yaml")
 VIRTUAL_DISPLAY_YAML = os.path.join(PROJECT_ROOT, "src", "openamber-virtual-display.yaml")
 
@@ -188,6 +189,7 @@ def test_hardware_mocks_correspond_to_physical_modbus_or_subsystems():
         "eebus_ski",
         "eebus_status_sensor",
         "mock_compressor_frequency_override",
+        "mock_three_way_valve_feedback_missing",
     }
 
     mock_ids = set(mock_entities.keys())
@@ -203,13 +205,20 @@ def test_hardware_mocks_correspond_to_physical_modbus_or_subsystems():
 
 def test_ui_bindings_reference_valid_entities():
     """
-    Verify that all entities extended or referenced in UI bindings exist in Core, Modbus, or Mock.
+    Verify that all entities extended or referenced in UI bindings exist in Core, Modbus, Mock,
+    or the display-only entities in display_globals.yaml.
     """
     core_entities, _ = get_core_entities()
     modbus_entities, _ = get_modbus_entities()
     mock_entities = get_mock_entities()
+    display_entities = extract_entity_ids(DISPLAY_GLOBALS_FILE)
 
-    known_ids = set(core_entities.keys()) | set(modbus_entities.keys()) | set(mock_entities.keys())
+    known_ids = (
+        set(core_entities.keys())
+        | set(modbus_entities.keys())
+        | set(mock_entities.keys())
+        | set(display_entities.keys())
+    )
 
     # Check all binding YAML files
     extended_ids = set()

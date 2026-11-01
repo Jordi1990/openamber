@@ -155,8 +155,7 @@ void OpenAmberComponent::update()
 
     case State::WAIT_INITIALIZATION:
     {
-      SetThreeWayValve(desired_valve_position);
-      LeaveStateAndSetNextStateAfterWaitTime(desired_state, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);
+      SwitchThreeWayValveAndWait(desired_valve_position, desired_state);
       break;
     }
 
@@ -186,8 +185,7 @@ void OpenAmberComponent::update()
           // P1 keeps running while the heat/cool controller idles with heat demand. Running it during DHW
           // pulls water through the CV side of the 3-way valve, so hot DHW water ends up in the floor.
           heat_cool_controller_->StopPumpP1IfNeeded();
-          SetThreeWayValve(desired_valve_position);
-          LeaveStateAndSetNextStateAfterWaitTime(desired_state, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);          
+          SwitchThreeWayValveAndWait(desired_valve_position, desired_state);
           break;
         }
       }
@@ -217,8 +215,7 @@ void OpenAmberComponent::update()
         }
         else if(desired_valve_position != current_valve_position)
         {
-          SetThreeWayValve(desired_valve_position);
-          LeaveStateAndSetNextStateAfterWaitTime(desired_state, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);          
+          SwitchThreeWayValveAndWait(desired_valve_position, desired_state);
           break;
         }
       }
@@ -244,6 +241,23 @@ void OpenAmberComponent::update()
       {
         deaeration_routine_->UpdateStateMachine();
       }
+      break;
+    }
+
+    case State::WAIT_THREE_WAY_VALVE:
+    {
+      if (App.get_loop_component_start_time() - valve_switch_started_ms_ < THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL)
+      {
+        break;
+      }
+
+      if (!IsThreeWayValveFeedbackConfirmed(valve_target_position_))
+      {
+        // The active error suppresses all demand, so the next state stays idle until the error is reset.
+        ESP_LOGE("amber", "3-way valve relay feedback did not confirm the requested position, stopping system.");
+        id(error_three_way_valve_state_timeout).publish_state(true);
+      }
+      SetNextState(valve_target_state_);
       break;
     }
 
@@ -384,6 +398,8 @@ const char* OpenAmberComponent::StateToString(State state)
       return "Waiting for initialization";
     case State::WAIT_FOR_STATE_SWITCH:
       return "Waiting for state switch";
+    case State::WAIT_THREE_WAY_VALVE:
+      return "Waiting for 3-way valve";
     case State::DHW_HEAT:
       return "DHW";
     case State::HEAT_COOL:
@@ -409,6 +425,29 @@ void OpenAmberComponent::SetThreeWayValve(ThreeWayValvePosition position)
   }
 
   ESP_LOGI("amber", "Setting 3-way valve to %s.", position == ThreeWayValvePosition::DHW ? "DHW" : "Heating/Cooling");
+}
+
+/// @brief Sends the 3-way valve command and waits for the valve travel time before entering next_state.
+/// The inside unit relay feedback is checked at the end of that wait.
+void OpenAmberComponent::SwitchThreeWayValveAndWait(ThreeWayValvePosition position, State next_state)
+{
+  SetThreeWayValve(position);
+  valve_target_position_ = position;
+  valve_target_state_ = next_state;
+  valve_switch_started_ms_ = App.get_loop_component_start_time();
+  SetNextState(State::WAIT_THREE_WAY_VALVE);
+}
+
+/// @brief Checks the inside unit relay feedback registers: 1305 mirrors the heat/cool valve output (1105),
+/// 1312 mirrors the DHW valve output (1112). They only confirm the output was switched, not the valve end position.
+bool OpenAmberComponent::IsThreeWayValveFeedbackConfirmed(ThreeWayValvePosition position)
+{
+  if (!id(three_way_valve_active_sensor).has_state() || !id(three_way_valve_dhw_active_sensor).has_state())
+  {
+    return false;
+  }
+  bool want_dhw = position == ThreeWayValvePosition::DHW;
+  return id(three_way_valve_dhw_active_sensor).state == want_dhw && id(three_way_valve_active_sensor).state == !want_dhw;
 }
 
 ThreeWayValvePosition OpenAmberComponent::GetThreeWayValvePosition()

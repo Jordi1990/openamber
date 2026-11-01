@@ -36,7 +36,8 @@ def test_dhw_demand_while_idle_heats_dhw(clean_system):
 
     # Valve must switch to DHW
     assert openamber.get_entity("three_way_valve_dhw_switch") is True, "3-way valve should switch to DHW"
-    assert openamber.get_entity("three_way_valve_active_sensor") is True, "3-way valve sensor should indicate DHW active"
+    assert openamber.get_entity("three_way_valve_dhw_active_sensor") is True, "DHW valve relay feedback (1312) should indicate DHW active"
+    assert openamber.get_entity("three_way_valve_active_sensor") is False, "Heat/cool valve relay feedback (1305) should be off in DHW"
 
     # Advance virtual time for DHW compressor start
     openamber.advance_time(seconds=80, step_s=10)
