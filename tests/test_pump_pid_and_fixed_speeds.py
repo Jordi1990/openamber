@@ -351,11 +351,14 @@ def test_pump_p1_stops_at_cycle_end_during_defrost(clean_system):
     openamber.step(ms=50)
 
     assert advance_until_state(openamber, "state_machine_state_heat_cool", "Wait pump stop", max_s=1800)
+    openamber.advance_time(seconds=10, step_s=1)
+    openamber.step(ms=50)
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Wait pump stop"
     assert openamber.get_entity("pump_p1_relay_switch") is False, "P1 must stop when the cycle ends during defrost"
 
 
-def test_pump_p1_stops_at_cycle_end_when_dhw_requested(clean_system):
-    """A DHW request during a P0 cycle stops P1 with P0 and leaves it off during DHW."""
+def test_pump_p1_stops_when_dhw_requested_during_pump_cycle(clean_system):
+    """A DHW request during a P0 cycle stops P1 when the valve switches and leaves it off during DHW."""
     openamber = clean_system
     _start_idle_heat_demand_with_p1(openamber)
 
@@ -363,10 +366,7 @@ def test_pump_p1_stops_at_cycle_end_when_dhw_requested(clean_system):
     openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
     openamber.step(ms=50)
 
-    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Wait pump stop", max_s=1800)
-    assert openamber.get_entity("pump_p1_relay_switch") is False, "P1 must stop with P0 when DHW is requested"
-
-    assert advance_until_state(openamber, "state_machine_state_main", "DHW", max_s=600)
+    assert advance_until_state(openamber, "state_machine_state_main", "DHW", max_s=2400)
     assert openamber.get_entity("pump_p1_relay_switch") is False, "P1 must not run while the valve is on DHW"
 
 

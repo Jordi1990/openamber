@@ -693,12 +693,8 @@ public:
         if ((!HasCompressorDemand() || !IsCompressorAllowedToStart()) && pump_controller_->IsIntervalCycleFinished())
         {
           ESP_LOGI("amber", "Stopping pump (interval cycle finished)");
+          // P1 keeps running between pump cycles while there is demand, idle stops it when the demand is gone.
           pump_controller_->Stop();
-          // P1 keeps running between pump cycles while there is demand.
-          if (!HasPumpDemand() || requested_to_stop_ || id(defrost_active_sensor).state)
-          {
-            StopPumpP1IfNeeded();
-          }
           SetNextState(HeatCoolState::WAIT_PUMP_STOP);
           break;
         }
@@ -856,6 +852,7 @@ public:
           if (id(defrost_active_sensor).state)
           {
             ESP_LOGI("amber", "Defrost active, waiting before switching to standby.");
+            StopPumpP1IfNeeded();
             break;
           }
           pump_controller_->ClearStopWaitTimer();
