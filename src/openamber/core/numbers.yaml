@@ -1350,3 +1350,161 @@ number:
   initial_value: 10.0
   entity_category: config
 
+
+# Maximum compressor frequency per ambient band (CompressorController::CapToAmbientFrequencyLimit).
+# Ta bands from outdoor unit firmware v1.18; defaults are the stock v1.18 level limits in Hz.
+- platform: template
+  name: "Max. frequentie verwarmen Ta -25..12°C"
+  id: ambient_limit_heating_band_1_max_frequency
+  entity_category: config
+  unit_of_measurement: Hz
+  min_value: 20
+  max_value: 120
+  step: 1
+  initial_value: 90
+  restore_value: true
+  optimistic: true
+
+- platform: template
+  name: "Max. frequentie verwarmen Ta 12..20°C"
+  id: ambient_limit_heating_band_2_max_frequency
+  entity_category: config
+  unit_of_measurement: Hz
+  min_value: 20
+  max_value: 120
+  step: 1
+  initial_value: 74
+  restore_value: true
+  optimistic: true
+
+- platform: template
+  name: "Max. frequentie verwarmen Ta 20..24°C"
+  id: ambient_limit_heating_band_3_max_frequency
+  entity_category: config
+  unit_of_measurement: Hz
+  min_value: 20
+  max_value: 120
+  step: 1
+  initial_value: 55
+  restore_value: true
+  optimistic: true
+
+- platform: template
+  name: "Max. frequentie verwarmen Ta 24..28°C"
+  id: ambient_limit_heating_band_4_max_frequency
+  entity_category: config
+  unit_of_measurement: Hz
+  min_value: 20
+  max_value: 120
+  step: 1
+  initial_value: 43
+  restore_value: true
+  optimistic: true
+
+- platform: template
+  name: "Max. frequentie verwarmen Ta 28..46°C"
+  id: ambient_limit_heating_band_5_max_frequency
+  entity_category: config
+  unit_of_measurement: Hz
+  min_value: 20
+  max_value: 120
+  step: 1
+  initial_value: 36
+  restore_value: true
+  optimistic: true
+
+- platform: template
+  name: "Max. frequentie koelen Ta 0..12°C"
+  id: ambient_limit_cooling_band_1_max_frequency
+  entity_category: config
+  unit_of_measurement: Hz
+  min_value: 20
+  max_value: 120
+  step: 1
+  initial_value: 36
+  restore_value: true
+  optimistic: true
+
+- platform: template
+  name: "Max. frequentie koelen Ta 12..18°C"
+  id: ambient_limit_cooling_band_2_max_frequency
+  entity_category: config
+  unit_of_measurement: Hz
+  min_value: 20
+  max_value: 120
+  step: 1
+  initial_value: 42
+  restore_value: true
+  optimistic: true
+
+- platform: template
+  name: "Max. frequentie koelen Ta 18..24°C"
+  id: ambient_limit_cooling_band_3_max_frequency
+  entity_category: config
+  unit_of_measurement: Hz
+  min_value: 20
+  max_value: 120
+  step: 1
+  initial_value: 56
+  restore_value: true
+  optimistic: true
+
+- platform: template
+  name: "Max. frequentie koelen Ta 24..30°C"
+  id: ambient_limit_cooling_band_4_max_frequency
+  entity_category: config
+  unit_of_measurement: Hz
+  min_value: 20
+  max_value: 120
+  step: 1
+  initial_value: 79
+  restore_value: true
+  optimistic: true
+
+- platform: template
+  name: "Max. frequentie koelen Ta 30..41°C"
+  id: ambient_limit_cooling_band_5_max_frequency
+  entity_category: config
+  unit_of_measurement: Hz
+  min_value: 20
+  max_value: 120
+  step: 1
+  initial_value: 79
+  restore_value: true
+  optimistic: true
+
+- platform: template
+  name: "Max. frequentie koelen Ta 41..45°C"
+  id: ambient_limit_cooling_band_6_max_frequency
+  entity_category: config
+  unit_of_measurement: Hz
+  min_value: 20
+  max_value: 120
+  step: 1
+  initial_value: 61
+  restore_value: true
+  optimistic: true
+
+- platform: template
+  name: "Max. frequentie koelen Ta 45..51°C"
+  id: ambient_limit_cooling_band_7_max_frequency
+  entity_category: config
+  unit_of_measurement: Hz
+  min_value: 20
+  max_value: 120
+  step: 1
+  initial_value: 47
+  restore_value: true
+  optimistic: true
+
+- platform: template
+  name: "Max. frequentie koelen Ta 51..65°C"
+  id: ambient_limit_cooling_band_8_max_frequency
+  entity_category: config
+  unit_of_measurement: Hz
+  min_value: 20
+  max_value: 120
+  step: 1
+  initial_value: 30
+  restore_value: true
+  optimistic: true

@@ -46,10 +46,17 @@ static const uint32_t COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 5 * 60;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_DOWN_S = 10;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_UP_S = 5 * 60;
 
-// Ambient temperature bands the outdoor unit uses to cap the compressor level (firmware v1.10).
-// A band is entered 1 K above and left 1 K below its boundary.
+// Ambient temperature bands the outdoor unit uses to cap the compressor (firmware v1.18, same as v1.10).
+// A band is entered 1 K above and left 1 K below its boundary. Band 0 is below the first boundary,
+// band N is at or above the last one.
 static const float OUTDOOR_UNIT_HEATING_BAND_BOUNDS_C[] = {-25.0f, 12.0f, 20.0f, 24.0f, 28.0f, 46.0f};
 static const float OUTDOOR_UNIT_COOLING_BAND_BOUNDS_C[] = {0.0f, 12.0f, 18.0f, 24.0f, 30.0f, 41.0f, 45.0f, 51.0f, 65.0f};
+// The first and last band of each table are outside the operating range: the unit blocks the compressor
+// there (P11) and OpenAmber leaves that to the unit. The bands in between have a configurable maximum
+// frequency (core/numbers.yaml). Defaults: the level limits of the original v1.18 parameter set
+// (3283-3290, 3293-3297) looked up in its own frequency tables (3000-3021), so the cap matches the stock unit in Hz.
+static const int OUTDOOR_UNIT_HEATING_LIMITED_BANDS = 5;
+static const int OUTDOOR_UNIT_COOLING_LIMITED_BANDS = 8;
 static const float OUTDOOR_UNIT_BAND_HYSTERESIS_C = 1.0f;
 
 // Pump timing

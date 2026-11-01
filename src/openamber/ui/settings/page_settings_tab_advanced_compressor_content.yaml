@@ -26,3 +26,91 @@
                   - switch.turn_on: default_compressor_frequencies_enabled
                   - lvgl.widget.show:
                       id: default_compressor_frequencies_modal
+
+- obj:
+    id: set_advanced_compressor_ambient_band_row
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Max. frequentie per buitentemperatuur", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Kies het Ta-bereik (zoals de buitenunit v1.18)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - dropdown:
+          id: set_ambient_limit_band_dd
+          symbol: "\U000F0140"
+          width: 260
+          align: TOP_RIGHT
+          y: 0
+          options:
+            - "Verwarmen -25..12°C"
+            - "Verwarmen 12..20°C"
+            - "Verwarmen 20..24°C"
+            - "Verwarmen 24..28°C"
+            - "Verwarmen 28..46°C"
+            - "Koelen 0..12°C"
+            - "Koelen 12..18°C"
+            - "Koelen 18..24°C"
+            - "Koelen 24..30°C"
+            - "Koelen 30..41°C"
+            - "Koelen 41..45°C"
+            - "Koelen 45..51°C"
+            - "Koelen 51..65°C"
+          text_font: font_text_20
+          dropdown_list:
+            text_font: font_text_20
+          on_value:
+            then:
+              - script.execute: update_ambient_limit_ui
+
+- obj:
+    id: set_advanced_compressor_ambient_limit_row
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Maximale frequentie", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "OpenAmber vraagt geen hogere stand dan deze Hz", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - script.execute:
+                      id: ambient_limit_adjust
+                      delta: -1
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_ambient_limit_val, text: "90 Hz", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - script.execute:
+                      id: ambient_limit_adjust
+                      delta: 1
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }

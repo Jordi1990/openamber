@@ -3710,3 +3710,56 @@
     - lvgl.widget.update: { id: nav_status_wifi_icon, text_color: 0x9CA3AF }
     - lvgl.widget.hide: { id: wifi_connected_section }
     - lvgl.widget.show: { id: wifi_disconnected_section }
+
+# ── Geavanceerd: Compressor, max. frequentie per Ta-bereik ──
+- id: update_ambient_limit_ui
+  mode: restart
+  then:
+    - lambda: |-
+        number::Number *limits[13] = {
+          id(ambient_limit_heating_band_1_max_frequency),
+          id(ambient_limit_heating_band_2_max_frequency),
+          id(ambient_limit_heating_band_3_max_frequency),
+          id(ambient_limit_heating_band_4_max_frequency),
+          id(ambient_limit_heating_band_5_max_frequency),
+          id(ambient_limit_cooling_band_1_max_frequency),
+          id(ambient_limit_cooling_band_2_max_frequency),
+          id(ambient_limit_cooling_band_3_max_frequency),
+          id(ambient_limit_cooling_band_4_max_frequency),
+          id(ambient_limit_cooling_band_5_max_frequency),
+          id(ambient_limit_cooling_band_6_max_frequency),
+          id(ambient_limit_cooling_band_7_max_frequency),
+          id(ambient_limit_cooling_band_8_max_frequency)
+        };
+        uint16_t band = lv_dropdown_get_selected(id(set_ambient_limit_band_dd)->obj);
+        if (band >= 13) return;
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%.0f Hz", limits[band]->state);
+        lv_label_set_text(id(set_ambient_limit_val), buf);
+
+- id: ambient_limit_adjust
+  mode: queued
+  parameters:
+    delta: int
+  then:
+    - lambda: |-
+        number::Number *limits[13] = {
+          id(ambient_limit_heating_band_1_max_frequency),
+          id(ambient_limit_heating_band_2_max_frequency),
+          id(ambient_limit_heating_band_3_max_frequency),
+          id(ambient_limit_heating_band_4_max_frequency),
+          id(ambient_limit_heating_band_5_max_frequency),
+          id(ambient_limit_cooling_band_1_max_frequency),
+          id(ambient_limit_cooling_band_2_max_frequency),
+          id(ambient_limit_cooling_band_3_max_frequency),
+          id(ambient_limit_cooling_band_4_max_frequency),
+          id(ambient_limit_cooling_band_5_max_frequency),
+          id(ambient_limit_cooling_band_6_max_frequency),
+          id(ambient_limit_cooling_band_7_max_frequency),
+          id(ambient_limit_cooling_band_8_max_frequency)
+        };
+        uint16_t band = lv_dropdown_get_selected(id(set_ambient_limit_band_dd)->obj);
+        if (band >= 13) return;
+        auto call = limits[band]->make_call();
+        call.set_value(limits[band]->state + delta);
+        call.perform();
