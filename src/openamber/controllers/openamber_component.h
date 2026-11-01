@@ -177,12 +177,15 @@ void OpenAmberComponent::update()
           working_mode_call.set_index(WORKING_MODE_MAINTENANCE);
           working_mode_call.perform();
           id(pump_p0_relay_switch).turn_off();
-          id(pump_p1_relay_switch).turn_off();
+          heat_cool_controller_->StopPumpP1IfNeeded();
           SetNextState(State::MAINTENANCE);
           break;
         }
         else if(desired_valve_position != current_valve_position)
         {
+          // P1 keeps running while the heat/cool controller idles with heat demand. Running it during DHW
+          // pulls water through the CV side of the 3-way valve, so hot DHW water ends up in the floor.
+          heat_cool_controller_->StopPumpP1IfNeeded();
           SetThreeWayValve(desired_valve_position);
           LeaveStateAndSetNextStateAfterWaitTime(desired_state, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL);          
           break;
@@ -396,13 +399,6 @@ void OpenAmberComponent::SetThreeWayValve(ThreeWayValvePosition position)
 {
   if(position == ThreeWayValvePosition::DHW)
   {
-    // P1 keeps running while the heat/cool controller idles with heat demand. Running it during DHW
-    // pulls water through the CV side of the 3-way valve, so hot DHW water ends up in the floor.
-    if(id(pump_p1_relay_switch).state)
-    {
-      ESP_LOGI("amber", "Stopping pump P1 before switching 3-way valve to DHW.");
-      id(pump_p1_relay_switch).turn_off();
-    }
     id(three_way_valve_dhw_switch).turn_on();
     id(three_way_valve_heat_cool_switch).turn_off();
   }
