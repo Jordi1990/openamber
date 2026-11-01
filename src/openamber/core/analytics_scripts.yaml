@@ -220,6 +220,7 @@ script:
           }
 
           root["ok"] = id(default_compressor_frequencies_enabled).state;
+          root["ol"] = id(eebus_enabled_switch).state;
 
 - id: send_modes
   then:
