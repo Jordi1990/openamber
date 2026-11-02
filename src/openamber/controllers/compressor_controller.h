@@ -38,7 +38,15 @@ private:
   int cooling_ambient_band_ = -1;
   int last_logged_ambient_limit_ = -1;
 
-  static int UpdateAmbientBand(int band, float ta, const float *bounds, int bound_count)
+  /// @brief Level cap of a band; bands where the unit blocks the compressor (0) are not capped here.
+  static int BandCap(const int *max_levels, int band)
+  {
+    return max_levels[band] > 0 ? max_levels[band] : 10;  // 10 = highest level, no cap
+  }
+
+  /// @brief Follows the outdoor unit's Ta band with its 1 K hysteresis. A step to a band with a lower limit
+  /// needs AMBIENT_LIMIT_TA_OFFSET_C extra, so OpenAmber caps a little later than the unit does.
+  static int UpdateAmbientBand(int band, float ta, const float *bounds, int bound_count, const int *max_levels)
   {
     int raw_band = 0;
     while (raw_band < bound_count && ta >= bounds[raw_band])
@@ -51,60 +59,49 @@ private:
       return raw_band;
     }
 
-    while (band < raw_band && ta >= bounds[band] + OUTDOOR_UNIT_BAND_HYSTERESIS_C)
+    while (band < raw_band)
     {
+      const float extra = BandCap(max_levels, band + 1) < BandCap(max_levels, band) ? AMBIENT_LIMIT_TA_OFFSET_C : 0.0f;
+      if (ta < bounds[band] + OUTDOOR_UNIT_BAND_HYSTERESIS_C + extra)
+      {
+        break;
+      }
       band++;
     }
-    while (band > raw_band && ta < bounds[band - 1] - OUTDOOR_UNIT_BAND_HYSTERESIS_C)
+    while (band > raw_band)
     {
+      const float extra = BandCap(max_levels, band - 1) < BandCap(max_levels, band) ? AMBIENT_LIMIT_TA_OFFSET_C : 0.0f;
+      if (ta >= bounds[band - 1] - OUTDOOR_UNIT_BAND_HYSTERESIS_C - extra)
+      {
+        break;
+      }
       band--;
     }
     return band;
   }
 
-  /// @brief Maximum compressor level for the current outdoor temperature, using the fixed Ta bands of the
-  /// outdoor unit (firmware v1.18) and the configured level per band. Returns NaN when there is no cap:
-  /// Ta unknown, or a band outside the operating range where the unit blocks the compressor itself (P11).
-  float GetAmbientMaxLevel(bool cooling)
+  /// @brief Maximum compressor level for the current outdoor temperature, with the fixed Ta bands and
+  /// levels of the outdoor unit (firmware v1.18). Returns -1 when there is no cap: Ta unknown, or a band
+  /// outside the operating range where the unit blocks the compressor itself (P11).
+  int GetAmbientMaxLevel(bool cooling)
   {
     const float ta = id(temperature_outside_ta).state;
     if (std::isnan(ta))
     {
-      return NAN;
+      return -1;
     }
 
-    if (cooling)
-    {
-      const int bound_count = sizeof(OUTDOOR_UNIT_COOLING_BAND_BOUNDS_C) / sizeof(OUTDOOR_UNIT_COOLING_BAND_BOUNDS_C[0]);
-      cooling_ambient_band_ = UpdateAmbientBand(cooling_ambient_band_, ta, OUTDOOR_UNIT_COOLING_BAND_BOUNDS_C, bound_count);
-      const float limits[OUTDOOR_UNIT_COOLING_LIMITED_BANDS] = {
-        id(ambient_limit_cooling_band_1_max_level).state,
-        id(ambient_limit_cooling_band_2_max_level).state,
-        id(ambient_limit_cooling_band_3_max_level).state,
-        id(ambient_limit_cooling_band_4_max_level).state,
-        id(ambient_limit_cooling_band_5_max_level).state,
-        id(ambient_limit_cooling_band_6_max_level).state,
-        id(ambient_limit_cooling_band_7_max_level).state,
-        id(ambient_limit_cooling_band_8_max_level).state,
-      };
-      const int band = cooling_ambient_band_ - 1;
-      return (band >= 0 && band < OUTDOOR_UNIT_COOLING_LIMITED_BANDS) ? limits[band] : NAN;
-    }
-
-    const int bound_count = sizeof(OUTDOOR_UNIT_HEATING_BAND_BOUNDS_C) / sizeof(OUTDOOR_UNIT_HEATING_BAND_BOUNDS_C[0]);
-    heating_ambient_band_ = UpdateAmbientBand(heating_ambient_band_, ta, OUTDOOR_UNIT_HEATING_BAND_BOUNDS_C, bound_count);
-    const float limits[OUTDOOR_UNIT_HEATING_LIMITED_BANDS] = {
-      id(ambient_limit_heating_band_1_max_level).state,
-      id(ambient_limit_heating_band_2_max_level).state,
-      id(ambient_limit_heating_band_3_max_level).state,
-      id(ambient_limit_heating_band_4_max_level).state,
-      id(ambient_limit_heating_band_5_max_level).state,
-    };
-    const int band = heating_ambient_band_ - 1;
-    return (band >= 0 && band < OUTDOOR_UNIT_HEATING_LIMITED_BANDS) ? limits[band] : NAN;
+    const float *bounds = cooling ? OUTDOOR_UNIT_COOLING_BAND_BOUNDS_C : OUTDOOR_UNIT_HEATING_BAND_BOUNDS_C;
+    const int *max_levels = cooling ? OUTDOOR_UNIT_COOLING_BAND_MAX_LEVEL : OUTDOOR_UNIT_HEATING_BAND_MAX_LEVEL;
+    const int bound_count = cooling
+      ? sizeof(OUTDOOR_UNIT_COOLING_BAND_BOUNDS_C) / sizeof(OUTDOOR_UNIT_COOLING_BAND_BOUNDS_C[0])
+      : sizeof(OUTDOOR_UNIT_HEATING_BAND_BOUNDS_C) / sizeof(OUTDOOR_UNIT_HEATING_BAND_BOUNDS_C[0]);
+    int &band = cooling ? cooling_ambient_band_ : heating_ambient_band_;
+    band = UpdateAmbientBand(band, ta, bounds, bound_count, max_levels);
+    return max_levels[band] > 0 ? max_levels[band] : -1;
   }
 
-  /// @brief Caps the requested level to the configured maximum level for the current outdoor temperature.
+  /// @brief Caps the requested level to the outdoor unit's maximum level for the current outdoor temperature.
   int CapToAmbientLevelLimit(int compressor_mode)
   {
     if (compressor_mode <= 1)
@@ -113,14 +110,14 @@ private:
     }
 
     const bool cooling = id(working_mode_switch).active_index().value_or(WORKING_MODE_STANDBY) == WORKING_MODE_COOLING;
-    const float max_level = GetAmbientMaxLevel(cooling);
-    if (std::isnan(max_level) || compressor_mode <= (int) max_level)
+    const int max_level = GetAmbientMaxLevel(cooling);
+    if (max_level < 0 || compressor_mode <= max_level)
     {
       last_logged_ambient_limit_ = -1;
       return compressor_mode;
     }
 
-    const int capped = std::max(1, (int) max_level);
+    const int capped = std::max(1, max_level);
     if (last_logged_ambient_limit_ != capped)
     {
       ESP_LOGI("amber", "Ambient limit at Ta %.1f°C caps compressor level to %d instead of %d.",
