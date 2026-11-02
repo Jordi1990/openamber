@@ -47,18 +47,19 @@ static const uint32_t FREQUENCY_CHANGE_INTERVAL_DOWN_S = 10;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_UP_S = 5 * 60;
 
 // Ambient temperature limit of the outdoor unit (firmware v1.18, same as v1.10, registers 3282-3298 with
-// 3281 = 1). Per Ta band the unit caps the requested compressor level. The cap is a level, not a frequency,
-// so it applies to the frequency table OpenAmber writes. A band is entered 1 K above and left 1 K below its
-// boundary. Band 0 is below the first boundary, band N is at or above the last one.
+// 3281 = 1). Per Ta band the unit caps the requested compressor level. A band is entered 1 K above and left
+// 1 K below its boundary. Band 0 is below the first boundary, band N is at or above the last one.
 static const float OUTDOOR_UNIT_HEATING_BAND_BOUNDS_C[] = {-25.0f, 12.0f, 20.0f, 24.0f, 28.0f, 46.0f};
 static const float OUTDOOR_UNIT_COOLING_BAND_BOUNDS_C[] = {0.0f, 12.0f, 18.0f, 24.0f, 30.0f, 41.0f, 45.0f, 51.0f, 65.0f};
-// Maximum level per band (3292-3298 heating, 3282-3291 cooling). 0 means the unit blocks the compressor
-// there (P11); OpenAmber leaves that to the unit and does not cap those bands itself.
-static const int OUTDOOR_UNIT_HEATING_BAND_MAX_LEVEL[] = {0, 10, 8, 5, 3, 2, 0};
-static const int OUTDOOR_UNIT_COOLING_BAND_MAX_LEVEL[] = {0, 2, 3, 6, 10, 10, 7, 4, 1, 0};
+// OpenAmber caps in Hz, so the limit does not move when its own frequency table changes. The values are the
+// stock v1.18 level limits (heating 10/8/5/3/2, cooling 2/3/6/10/10/7/4/1) looked up in the stock v1.18
+// frequency table (Amber parameter set, heating 30-90 Hz, cooling 30-79 Hz). 0 means the unit blocks the
+// compressor there (P11); OpenAmber leaves that to the unit and does not cap those bands itself.
+static const float OUTDOOR_UNIT_HEATING_BAND_MAX_HZ[] = {0.0f, 90.0f, 74.0f, 55.0f, 43.0f, 36.0f, 0.0f};
+static const float OUTDOOR_UNIT_COOLING_BAND_MAX_HZ[] = {0.0f, 36.0f, 42.0f, 56.0f, 79.0f, 79.0f, 61.0f, 47.0f, 30.0f, 0.0f};
 static const float OUTDOOR_UNIT_BAND_HYSTERESIS_C = 1.0f;
-// OpenAmber moves to a band with a lower limit this much later (in Ta) than the outdoor unit, so the unit
-// always caps first. Moving to a band with a higher limit happens at the same Ta as in the unit.
+// OpenAmber moves to a band with a lower limit this much later (in Ta) than the outdoor unit would.
+// Moving to a band with a higher limit happens at the same Ta as in the unit.
 static const float AMBIENT_LIMIT_TA_OFFSET_C = 1.0f;
 
 // Pump timing
