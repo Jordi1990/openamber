@@ -41,7 +41,7 @@ private:
   int last_logged_ambient_limit_ = -1;
 
   /// @brief Ta offset for a step from one band to another: only a step to a lower, non-zero limit is
-  /// delayed. Stopping outside the operating range is never delayed.
+  /// delayed. The step to a band outside the operating range (level 1) is never delayed.
   static float StepOffset(const float *max_hz, int from, int to)
   {
     return (max_hz[to] > 0.0f && max_hz[to] < max_hz[from]) ? AMBIENT_LIMIT_TA_OFFSET_C : 0.0f;
@@ -144,11 +144,11 @@ private:
   }
 
   /// @brief Caps the requested level to the highest level whose frequency in the active table stays within
-  /// the maximum frequency for the current outdoor temperature. Outside the operating range the level is 0,
-  /// so the compressor stays off, as the stock unit does (P11). Otherwise level 1 is never capped further.
+  /// the maximum frequency for the current outdoor temperature. The cap never goes below level 1: outside
+  /// the operating range (0 Hz) the compressor runs at level 1 instead of stopping.
   int CapToAmbientFrequencyLimit(int compressor_mode)
   {
-    if (compressor_mode <= 0)
+    if (compressor_mode <= 1)
     {
       return compressor_mode;
     }
@@ -156,23 +156,6 @@ private:
     const bool cooling = id(working_mode_switch).active_index().value_or(WORKING_MODE_STANDBY) == WORKING_MODE_COOLING;
     const float max_frequency = GetAmbientMaxFrequency(cooling);
     if (std::isnan(max_frequency))
-    {
-      last_logged_ambient_limit_ = -1;
-      return compressor_mode;
-    }
-
-    if (max_frequency <= 0.0f)
-    {
-      if (last_logged_ambient_limit_ != 0)
-      {
-        ESP_LOGW("amber", "Ta %.1f°C is outside the operating range for %s: compressor stays off.",
-                 id(temperature_outside_ta).state, cooling ? "cooling" : "heating");
-        last_logged_ambient_limit_ = 0;
-      }
-      return 0;
-    }
-
-    if (compressor_mode == 1)
     {
       last_logged_ambient_limit_ = -1;
       return compressor_mode;
@@ -297,18 +280,11 @@ public:
   void ApplyCompressorMode(int compressor_mode)
   {
     auto current_compressor_mode = id(compressor_control_select).active_index().value();
-    const int requested_mode = compressor_mode;
     compressor_mode = CapToAmbientFrequencyLimit(compressor_mode);
-    // Outside the operating range: stop right away, without the step limit and interval.
-    const bool ambient_stop = compressor_mode == 0 && requested_mode > 0;
-    if (ambient_stop && current_compressor_mode == 0)
-    {
-      return;
-    }
     compressor_mode = ApplyDischargeSideLimit(compressor_mode, current_compressor_mode);
 
     // On initial start, allow any mode.
-    if(current_compressor_mode != 0 && !ambient_stop)
+    if(current_compressor_mode != 0)
     {
       // Limit to a single frequency step per update
       if (compressor_mode > current_compressor_mode + 1)
