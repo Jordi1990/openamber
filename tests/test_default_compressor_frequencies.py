@@ -120,12 +120,12 @@ def test_default_compressor_frequencies_prevents_overwrite(clean_system):
     openamber.step(ms=50)
     assert openamber.get_entity("state_machine_state_main") == "Heat/Cool"
 
-    # Frequencies should now be overwritten by OpenAmber table values (heating index 1 = 28, index 2 = 36, cooling index 1 = 20, index 2 = 26)
-    assert float(openamber.get_entity("heating_frequency_index_1")) == 28.0, (
-        "heating_frequency_index_1 should be overwritten to 28 when setting is disabled"
+    # Frequencies should now be overwritten by OpenAmber table values (heating index 1 = 20, index 2 = 28, cooling index 1 = 20, index 2 = 26)
+    assert float(openamber.get_entity("heating_frequency_index_1")) == 20.0, (
+        "heating_frequency_index_1 should be overwritten to 20 when setting is disabled"
     )
-    assert float(openamber.get_entity("heating_frequency_index_2")) == 36.0, (
-        "heating_frequency_index_2 should be overwritten to 36 when setting is disabled"
+    assert float(openamber.get_entity("heating_frequency_index_2")) == 28.0, (
+        "heating_frequency_index_2 should be overwritten to 28 when setting is disabled"
     )
     assert float(openamber.get_entity("cooling_frequency_index_1")) == 20.0, (
         "cooling_frequency_index_1 should be overwritten to 20 when setting is disabled"
