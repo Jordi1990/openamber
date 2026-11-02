@@ -148,6 +148,12 @@ void OpenAmberComponent::update()
         WriteHeatingFrequencyTable();
         WriteCoolingFrequencyTable();
       }
+      if (!is_hp_s_model)
+      {
+        // OpenAmber limits the compressor per outdoor temperature in Hz (CompressorController), including
+        // the stop outside the operating range. Turn off the unit's own level-based limit (RAM-only).
+        id(outdoor_unit_ambient_limit_control).make_call().set_value(0).perform();
+      }
       ESP_LOGI("amber", "Initialized heat pump controller");
       LeaveStateAndSetNextStateAfterWaitTime(State::WAIT_INITIALIZATION, INITIALIZATION_DELAY_S * 1000UL);
       break;

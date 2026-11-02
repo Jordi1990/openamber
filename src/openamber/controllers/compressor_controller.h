@@ -38,15 +38,18 @@ private:
   int cooling_ambient_band_ = -1;
   int last_logged_ambient_limit_ = -1;
 
-  /// @brief Hz cap of a band; bands where the unit blocks the compressor (0) are not capped here.
-  static float BandCap(const float *max_hz, int band)
+  /// @brief Ta offset for a step from one band to another: only a step to a lower, non-zero limit is
+  /// delayed. Stopping outside the operating range is never delayed.
+  static float StepOffset(const float *max_hz, int from, int to)
   {
-    return max_hz[band] > 0.0f ? max_hz[band] : 1000.0f;  // no cap
+    return (max_hz[to] > 0.0f && max_hz[to] < max_hz[from]) ? AMBIENT_LIMIT_TA_OFFSET_C : 0.0f;
   }
 
   /// @brief Follows the outdoor unit's Ta band with its 1 K hysteresis. A step to a band with a lower limit
-  /// needs AMBIENT_LIMIT_TA_OFFSET_C extra, so OpenAmber caps a little later than the unit would.
-  static int UpdateAmbientBand(int band, float ta, const float *bounds, int bound_count, const float *max_hz)
+  /// needs AMBIENT_LIMIT_TA_OFFSET_C extra, so OpenAmber caps a little later than the stock unit would.
+  /// low_restart_c is extra hysteresis to leave band 0 (heating low ambient limit).
+  static int UpdateAmbientBand(int band, float ta, const float *bounds, int bound_count, const float *max_hz,
+                               float low_restart_c)
   {
     int raw_band = 0;
     while (raw_band < bound_count && ta >= bounds[raw_band])
@@ -61,7 +64,7 @@ private:
 
     while (band < raw_band)
     {
-      const float extra = BandCap(max_hz, band + 1) < BandCap(max_hz, band) ? AMBIENT_LIMIT_TA_OFFSET_C : 0.0f;
+      const float extra = StepOffset(max_hz, band, band + 1) + (band == 0 ? low_restart_c : 0.0f);
       if (ta < bounds[band] + OUTDOOR_UNIT_BAND_HYSTERESIS_C + extra)
       {
         break;
@@ -70,7 +73,7 @@ private:
     }
     while (band > raw_band)
     {
-      const float extra = BandCap(max_hz, band - 1) < BandCap(max_hz, band) ? AMBIENT_LIMIT_TA_OFFSET_C : 0.0f;
+      const float extra = StepOffset(max_hz, band, band - 1);
       if (ta >= bounds[band - 1] - OUTDOOR_UNIT_BAND_HYSTERESIS_C - extra)
       {
         break;
@@ -81,8 +84,7 @@ private:
   }
 
   /// @brief Maximum compressor frequency for the current outdoor temperature, with the fixed Ta bands and
-  /// limits of the outdoor unit (firmware v1.18). Returns NaN when there is no cap: Ta unknown, or a band
-  /// outside the operating range where the unit blocks the compressor itself (P11).
+  /// limits of the outdoor unit (firmware v1.18). 0 outside the operating range, NaN when Ta is unknown.
   float GetAmbientMaxFrequency(bool cooling)
   {
     const float ta = id(temperature_outside_ta).state;
@@ -97,8 +99,9 @@ private:
       ? sizeof(OUTDOOR_UNIT_COOLING_BAND_BOUNDS_C) / sizeof(OUTDOOR_UNIT_COOLING_BAND_BOUNDS_C[0])
       : sizeof(OUTDOOR_UNIT_HEATING_BAND_BOUNDS_C) / sizeof(OUTDOOR_UNIT_HEATING_BAND_BOUNDS_C[0]);
     int &band = cooling ? cooling_ambient_band_ : heating_ambient_band_;
-    band = UpdateAmbientBand(band, ta, bounds, bound_count, max_hz);
-    return max_hz[band] > 0.0f ? max_hz[band] : NAN;
+    band = UpdateAmbientBand(band, ta, bounds, bound_count, max_hz,
+                             cooling ? 0.0f : OUTDOOR_UNIT_HEATING_LOW_LIMIT_RESTART_C);
+    return max_hz[band];
   }
 
   /// @brief Frequency the outdoor unit runs for a compressor level, from the table OpenAmber has written
@@ -139,11 +142,11 @@ private:
   }
 
   /// @brief Caps the requested level to the highest level whose frequency in the active table stays within
-  /// the maximum frequency for the current outdoor temperature. Level 1 is never capped further: below
-  /// that the compressor would stop.
+  /// the maximum frequency for the current outdoor temperature. Outside the operating range the level is 0,
+  /// so the compressor stays off, as the stock unit does (P11). Otherwise level 1 is never capped further.
   int CapToAmbientFrequencyLimit(int compressor_mode)
   {
-    if (compressor_mode <= 1)
+    if (compressor_mode <= 0)
     {
       return compressor_mode;
     }
@@ -151,6 +154,23 @@ private:
     const bool cooling = id(working_mode_switch).active_index().value_or(WORKING_MODE_STANDBY) == WORKING_MODE_COOLING;
     const float max_frequency = GetAmbientMaxFrequency(cooling);
     if (std::isnan(max_frequency))
+    {
+      last_logged_ambient_limit_ = -1;
+      return compressor_mode;
+    }
+
+    if (max_frequency <= 0.0f)
+    {
+      if (last_logged_ambient_limit_ != 0)
+      {
+        ESP_LOGW("amber", "Ta %.1f°C is outside the operating range for %s: compressor stays off.",
+                 id(temperature_outside_ta).state, cooling ? "cooling" : "heating");
+        last_logged_ambient_limit_ = 0;
+      }
+      return 0;
+    }
+
+    if (compressor_mode == 1)
     {
       last_logged_ambient_limit_ = -1;
       return compressor_mode;
@@ -199,10 +219,17 @@ public:
   void ApplyCompressorMode(int compressor_mode)
   {
     auto current_compressor_mode = id(compressor_control_select).active_index().value();
+    const int requested_mode = compressor_mode;
     compressor_mode = CapToAmbientFrequencyLimit(compressor_mode);
+    // Outside the operating range: stop right away, without the step limit and interval.
+    const bool ambient_stop = compressor_mode == 0 && requested_mode > 0;
+    if (ambient_stop && current_compressor_mode == 0)
+    {
+      return;
+    }
 
     // On initial start, allow any mode.
-    if(current_compressor_mode != 0)
+    if(current_compressor_mode != 0 && !ambient_stop)
     {
       // Limit to a single frequency step per update
       if (compressor_mode > current_compressor_mode + 1)

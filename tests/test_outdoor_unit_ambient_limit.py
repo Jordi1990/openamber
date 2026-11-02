@@ -94,3 +94,24 @@ def test_band_hysteresis(clean_system):
     _set_ta(openamber, 22.5, seconds=1800)
     level = _level(openamber)
     assert level == 4, f"Below 23°C the 20-24°C limit (level 4) applies again, got {level}"
+
+
+def test_outdoor_unit_limit_turned_off(clean_system):
+    """OpenAmber writes 3281 = 0 at start, so only its own limit in Hz applies."""
+    assert int(clean_system.get_entity("outdoor_unit_ambient_limit_control")) == 0
+
+
+def test_compressor_stops_outside_operating_range(clean_system):
+    openamber = clean_system
+    _run_heating_at(openamber, 5.0)
+    assert _level(openamber) > 0
+
+    # Below -25°C (1 K hysteresis) heating is outside the operating range: the compressor stops at once.
+    _set_ta(openamber, -27.0, seconds=20)
+    assert _level(openamber) == 0, "Below the low ambient limit the compressor must stay off"
+
+    # It restarts only 4 K + 1 K above the limit, from -20°C.
+    _set_ta(openamber, -21.0, seconds=60)
+    assert _level(openamber) == 0, "Below -20°C the compressor must stay off"
+    _set_ta(openamber, -19.5, seconds=60)
+    assert _level(openamber) > 0, "From -20°C the compressor may run again"
