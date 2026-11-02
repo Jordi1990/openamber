@@ -5,8 +5,8 @@ up in the stock v1.18 frequency table. OpenAmber requests the highest level whos
 table stays within that limit, so the cap in Hz stays the same when the frequency table changes.
 A step to a band with a lower limit happens AMBIENT_LIMIT_TA_OFFSET_C (1 K) later than in the unit.
 
-Heating: Ta 20-24°C = 55 Hz (level 4 in OpenAmber's table 28, 36, 43, 55, ...), Ta 24-28°C = 43 Hz
-(level 3). The unit enters the 24-28°C band at 25°C (1 K hysteresis), OpenAmber at 26°C. Back down,
+Heating: Ta 20-24°C = 55 Hz (level 5 in OpenAmber's table 20, 28, 36, 43, 55, ...), Ta 24-28°C = 43 Hz
+(level 4). The unit enters the 24-28°C band at 25°C (1 K hysteresis), OpenAmber at 26°C. Back down,
 both leave it below 23°C.
 """
 
@@ -15,7 +15,7 @@ import pytest
 from helpers import start_space_heating
 
 # OpenAmber's heating table (WriteHeatingFrequencyTable).
-HEATING_TABLE_HZ = (28, 36, 43, 55, 61, 67, 72, 79, 85, 90)
+HEATING_TABLE_HZ = (20, 28, 36, 43, 55, 63, 72, 79, 85, 90)
 
 
 @pytest.fixture(autouse=True)
@@ -50,50 +50,50 @@ def test_requested_level_capped_by_ambient_band(clean_system):
     _run_heating_at(openamber, 27.0)
 
     level = _level(openamber)
-    assert 0 < level <= 3, f"Heating at Ta 27°C must be capped to 43 Hz = level 3, got {level}"
+    assert 0 < level <= 4, f"Heating at Ta 27°C must be capped to 43 Hz = level 4, got {level}"
 
 
 def test_cap_follows_frequency_table_not_level(clean_system):
     openamber = clean_system
-    # Level 4 = 40 Hz, levels 5-10 = 55-60 Hz. The cap is in Hz, so level 4 is now allowed and level 5 is not.
-    openamber.set_number("heating_frequency_index_4", 40)
-    for index in range(5, 11):
+    # Level 5 = 42 Hz, levels 6-10 = 56-60 Hz. The cap is in Hz, so level 5 is now allowed and level 6 is not.
+    openamber.set_number("heating_frequency_index_5", 42)
+    for index in range(6, 11):
         openamber.set_number(f"heating_frequency_index_{index}", 50 + index)
     _run_heating_at(openamber, 27.0)
 
     level = _level(openamber)
-    assert level == 4, f"Level 4 runs 40 Hz and level 5 55 Hz, so the 43 Hz limit allows level 4, got {level}"
+    assert level == 5, f"Level 5 runs 42 Hz and level 6 56 Hz, so the 43 Hz limit allows level 5, got {level}"
 
 
 def test_cap_kicks_in_after_the_outdoor_unit(clean_system):
     openamber = clean_system
     _run_heating_at(openamber, 22.0)
-    assert _level(openamber) <= 4
+    assert _level(openamber) <= 5
 
-    # 25.5°C: the unit is already in the 24-28°C band, OpenAmber still allows 55 Hz (level 4).
+    # 25.5°C: the stock unit would be in the 24-28°C band already, OpenAmber still allows 55 Hz (level 5).
     _set_ta(openamber, 25.5)
     level = _level(openamber)
-    assert level == 4, f"Within the Ta offset OpenAmber must keep the 20-24°C limit (level 4), got {level}"
+    assert level == 5, f"Within the Ta offset OpenAmber must keep the 20-24°C limit (level 5), got {level}"
 
     # 26°C: OpenAmber follows.
     _set_ta(openamber, 26.0, seconds=180)
     level = _level(openamber)
-    assert 0 < level <= 3, f"From 26°C OpenAmber must cap to 43 Hz = level 3, got {level}"
+    assert 0 < level <= 4, f"From 26°C OpenAmber must cap to 43 Hz = level 4, got {level}"
 
 
 def test_band_hysteresis(clean_system):
     openamber = clean_system
     _run_heating_at(openamber, 27.0)
-    assert _level(openamber) <= 3
+    assert _level(openamber) <= 4
 
     # 23.5°C is below the 24°C boundary but within the 1 K hysteresis: the band holds.
     _set_ta(openamber, 23.5)
-    assert _level(openamber) <= 3, "Within the hysteresis the previous band must hold"
+    assert _level(openamber) <= 4, "Within the hysteresis the previous band must hold"
 
-    # Below 23°C the 20-24°C limit (55 Hz = level 4) applies again, without offset on the way back.
+    # Below 23°C the 20-24°C limit (55 Hz = level 5) applies again, without offset on the way back.
     _set_ta(openamber, 22.5, seconds=1800)
     level = _level(openamber)
-    assert level == 4, f"Below 23°C the 20-24°C limit (level 4) applies again, got {level}"
+    assert level == 5, f"Below 23°C the 20-24°C limit (level 5) applies again, got {level}"
 
 
 def test_outdoor_unit_limit_turned_off(clean_system):

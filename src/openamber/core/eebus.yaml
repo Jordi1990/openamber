@@ -10,10 +10,10 @@ eebus:
       return id(heatpump_model_name).state;
     }
     return std::string("");
-  read_power: "return id(power_compressor).state;"
+  read_power: "return id(estimated_power_usage).state;"
   read_dhw_temp: "return id(dhw_temperature_tw_sensor).state;"
   read_voltage: "return (id(voltage_outside_unit).has_state() && id(voltage_outside_unit).state > 50.0f) ? id(voltage_outside_unit).state : 230.0f;"
-  read_current: "return (id(current_outside_unit).has_state() && !std::isnan(id(current_outside_unit).state)) ? id(current_outside_unit).state : (id(power_compressor).has_state() ? id(power_compressor).state / 230.0f : 0.0f);"
+  read_current: "return (id(current_outside_unit).has_state() && !std::isnan(id(current_outside_unit).state)) ? id(current_outside_unit).state : (id(estimated_power_usage).has_state() ? id(estimated_power_usage).state / 230.0f : 0.0f);"
   read_energy: |-
     float e = 0.0f;
     if (id(electrical_energy_day_heating).has_state()) e += id(electrical_energy_day_heating).state;

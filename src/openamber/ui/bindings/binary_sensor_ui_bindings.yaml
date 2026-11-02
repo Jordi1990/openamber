@@ -212,11 +212,6 @@
     then:
       - script.execute: update_service_warnings_ui
 
-- id: !extend error_flag_p12
-  on_state:
-    then:
-      - script.execute: update_service_warnings_ui
-
 - id: !extend error_flag_p13
   on_state:
     then:

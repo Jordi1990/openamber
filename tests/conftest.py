@@ -108,6 +108,7 @@ def openamber(openamber_proc):
 @pytest.fixture
 def clean_system(openamber):
     """Reset system to clean idle state with fully completed initialization."""
+    openamber.set_switch("mock_three_way_valve_feedback_missing", False)
     openamber.set_switch("heat_demand_switch", False)
     openamber.set_switch("default_compressor_frequencies_enabled", False)
     openamber.set_switch("heat_demand_zone_2_switch", False)
@@ -128,6 +129,7 @@ def clean_system(openamber):
     openamber.set_binary_sensor("external_cool_demand_wired", False)
     openamber.set_binary_sensor("sg_ready_block_mode_active_sensor", False)
     openamber.set_binary_sensor("defrost_active_sensor", False)
+    openamber.set_number("mock_compressor_frequency_override", -1.0)
     # Reset heating curves to their numbers.yaml defaults so curve edits in one test do not
     # silently change the setpoint (and with it the start/stop behaviour) of later tests.
     for anchor, z1, z2 in (("m10", 35.0, 30.0), ("0", 30.0, 28.0), ("p5", 28.0, 26.0),
@@ -143,6 +145,8 @@ def clean_system(openamber):
     openamber.set_number("dhw_restart_dhw_delta", 5.0)
     openamber.set_sensor("dhw_temperature_tw_sensor", 55.0)
     openamber.set_sensor("temperature_outside_ta", 7.0)
+    openamber.set_sensor("discharge_pressure_pd", 18.0)
+    openamber.set_sensor("discharge_temperature_td", 60.0)
     openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
     openamber.set_sensor("heat_cool_temperature_tc", 28.0)
     openamber.set_sensor("outlet_temperature_tuo", 28.0)

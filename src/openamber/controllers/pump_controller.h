@@ -111,7 +111,7 @@ public:
       return;
     }
 
-    if (id(pump_p0_pid_enabled).state && id(defrost_active_sensor).state)
+    if (id(pump_p0_pid_enabled).state && id(defrost_running_sensor).state)
     {
       SetPwmDutyCycle(id(pump_p0_pid_defrost_pwm).state);
       return;

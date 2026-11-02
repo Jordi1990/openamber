@@ -182,7 +182,7 @@ lvgl:
   rotation: 180
   byte_order: little_endian
   on_idle:
-    - timeout: 60s
+    - timeout: !lambda 'return id(display_screen_timeout_ms);'
       then:
         - globals.set:
             id: is_idled
@@ -190,3 +190,6 @@ lvgl:
         - output.set_level:
             id: backlight
             level: 0%
+    - timeout: ${display_return_home_timeout}
+      then:
+        - script.execute: display_return_home

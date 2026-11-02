@@ -57,7 +57,7 @@ def test_switch_heat_to_dhw_and_return_to_heat(clean_system):
     # Verify transition to DHW mode
     assert openamber.get_entity("state_machine_state_main") == "DHW"
     assert openamber.get_entity("three_way_valve_dhw_switch") is True
-    assert openamber.get_entity("three_way_valve_active_sensor") is True
+    assert openamber.get_entity("three_way_valve_dhw_active_sensor") is True
     assert int(openamber.get_entity("compressor_control_select") or 0) > 0
     assert openamber.get_entity("dhw_pump_relay_switch") is True
 
@@ -330,7 +330,7 @@ def test_switch_dhw_demand_during_idle_and_return_to_cv(clean_system):
     # Verify transition to DHW mode
     assert openamber.get_entity("state_machine_state_main") == "DHW"
     assert openamber.get_entity("three_way_valve_dhw_switch") is True
-    assert openamber.get_entity("three_way_valve_active_sensor") is True
+    assert openamber.get_entity("three_way_valve_dhw_active_sensor") is True
     assert int(openamber.get_entity("compressor_control_select") or 0) > 0
     assert openamber.get_entity("dhw_pump_relay_switch") is True
 
@@ -476,3 +476,47 @@ def test_simultaneous_demands_dhw_priority_over_heat_and_cool(clean_system):
     openamber.step(ms=50)
 
 
+def test_missing_valve_feedback_raises_error_without_retry(clean_system):
+    """
+    Failure Flow:
+    1. DHW demand switches the 3-way valve, but the relay feedback (1305/1312) never confirms it.
+    2. The main state waits for the feedback, the compressor stays off.
+    3. After the feedback timeout (60s) TO04 is raised, which removes the DHW demand.
+    4. The valve is returned to CV, and the system stays idle in Heat/Cool with the error latched.
+    5. After resetting the error with working feedback, DHW heating starts normally.
+    """
+    openamber = clean_system
+    assert openamber.set_switch("mock_three_way_valve_feedback_missing", True)
+
+    openamber.set_sensor("dhw_temperature_tw_sensor", 40.0)
+    openamber.advance_time(seconds=30, step_s=5)
+
+    assert openamber.get_entity("state_machine_state_main") == "Waiting for 3-way valve"
+    assert openamber.get_entity("three_way_valve_dhw_switch") is True
+    assert openamber.get_entity("error_three_way_valve_state_timeout") is False
+    assert int(openamber.get_entity("compressor_control_select") or 0) == 0
+
+    # Timeout of the DHW switch, followed by the timeout of the switch back to CV
+    openamber.advance_time(seconds=120, step_s=5)
+
+    assert openamber.get_entity("error_three_way_valve_state_timeout") is True
+    assert openamber.get_entity("error_active") is True
+    assert openamber.get_entity("state_machine_state_main") == "Heat/Cool"
+    assert openamber.get_entity("three_way_valve_dhw_switch") is False
+    assert int(openamber.get_entity("compressor_control_select") or 0) == 0
+
+    # The error stays latched, and no further valve switching takes place
+    openamber.advance_time(seconds=120, step_s=5)
+    assert openamber.get_entity("error_three_way_valve_state_timeout") is True
+    assert openamber.get_entity("state_machine_state_main") == "Heat/Cool"
+    assert openamber.get_entity("three_way_valve_dhw_switch") is False
+    assert int(openamber.get_entity("compressor_control_select") or 0) == 0
+
+    # Reset with restored feedback, DHW demand is back and the switch completes
+    assert openamber.set_switch("mock_three_way_valve_feedback_missing", False)
+    assert openamber.set_switch("reset_start_timeout_errors_switch", True)
+    openamber.advance_time(seconds=80, step_s=5)
+
+    assert openamber.get_entity("error_three_way_valve_state_timeout") is False
+    assert openamber.get_entity("state_machine_state_main") == "DHW"
+    assert openamber.get_entity("three_way_valve_dhw_switch") is True

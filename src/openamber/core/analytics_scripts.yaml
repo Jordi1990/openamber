@@ -220,6 +220,7 @@ script:
           }
 
           root["ok"] = id(default_compressor_frequencies_enabled).state;
+          root["ol"] = id(eebus_enabled_switch).state;
 
 - id: send_modes
   then:
@@ -341,7 +342,7 @@ script:
           root["uf"] = id(discharge_pressure_pd).state;
 
           root["ug"] = id(fan_rpm_sensor).state;
-          root["uh"] = id(power_compressor).state;
+          root["uh"] = id(estimated_power_usage).state;
 
           root["ui"] = id(current_compressor_frequency).state;
           root["uj"] = id(compressor_setpoint_frequency).state;
@@ -370,7 +371,7 @@ script:
           root["vj"] = id(current_dhw_setpoint_sensor).state;
           root["vk"] = id(dhw_legionella_run_active_sensor).state;
 
-          root["vl"] = id(three_way_valve_active_sensor).state;
+          root["vl"] = id(three_way_valve_dhw_active_sensor).state;
           root["vm"] = id(dhw_schedule_active_sensor).state;
 
           root["vn"] = id(pump_p1_relay_switch).state;

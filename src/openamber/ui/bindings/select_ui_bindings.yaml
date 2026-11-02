@@ -112,6 +112,23 @@
                   auto idx = id(heat_cool_control_temperature_source_select).active_index();
                   return idx.has_value() ? idx.value() : 0;
 
+# ── Settings: Screen-off timeout dropdown ──
+- id: !extend display_screen_timeout_select
+  on_value:
+    then:
+      - if:
+          condition:
+            lambda: |-
+              auto idx = id(display_screen_timeout_select).active_index();
+              if (!idx.has_value()) return false;
+              return lv_dropdown_get_selected(id(set_display_screen_timeout_dd)->obj) != (uint16_t) idx.value();
+          then:
+            - lvgl.dropdown.update:
+                id: set_display_screen_timeout_dd
+                selected_index: !lambda |-
+                  auto idx = id(display_screen_timeout_select).active_index();
+                  return idx.has_value() ? idx.value() : 2;
+
 # ── Settings: Backup heating mode dropdown ──
 - id: !extend backup_heating_mode
   on_value:

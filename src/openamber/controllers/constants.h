@@ -43,6 +43,12 @@ static const uint32_t COMPRESSOR_SOFT_START_DURATION_S = 3 * 60;
 static const uint32_t COMPRESSOR_START_TIMEOUT_S = 2 * 60;
 static const uint32_t COMPRESSOR_MIN_TIME_PUMP_ON = 2 * 60;
 static const uint32_t COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 5 * 60;
+// The outdoor unit raises 2118 up to 300 s before the actual defrost when it decides itself (3274 = 1).
+// The actual defrost starts once the compressor runs at the defrost standby frequency (3279).
+static const uint32_t DEFROST_PREPHASE_MAX_S = 330;
+static const float DEFROST_STANDBY_FREQUENCY_MARGIN_HZ = 5.0f;
+// After 2118 drops the unit switches the 4-way valve back and restarts the fan within 30 s.
+static const uint32_t DEFROST_RECOVERY_PHASE_S = 30;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_DOWN_S = 10;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_UP_S = 5 * 60;
 
@@ -65,6 +71,20 @@ static const float OUTDOOR_UNIT_HEATING_LOW_LIMIT_RESTART_C = 4.0f;
 // OpenAmber moves to a band with a lower (non-zero) limit this much later in Ta than the stock unit.
 // Moving to a band with a higher limit, and stopping outside the operating range, happen at the stock Ta.
 static const float AMBIENT_LIMIT_TA_OFFSET_C = 1.0f;
+
+// Discharge side limiter: stay below the outdoor unit's own Pd/Td protection instead of running
+// into it. The limits are margins below the unit's "no further frequency increase" thresholds,
+// read from 3269 (Pd) and 3262 (Td); the defaults are used until those are read (EEPROM 114).
+static const float DISCHARGE_LIMIT_DEFAULT_UNIT_PD_BAR = 26.0f;
+static const float DISCHARGE_LIMIT_DEFAULT_UNIT_TD_C = 95.0f;
+static const float DISCHARGE_LIMIT_HOLD_PD_MARGIN_BAR = 2.0f;
+static const float DISCHARGE_LIMIT_STEP_DOWN_PD_MARGIN_BAR = 1.0f;
+static const float DISCHARGE_LIMIT_RELEASE_PD_MARGIN_BAR = 3.0f;
+static const float DISCHARGE_LIMIT_HOLD_TD_MARGIN_C = 5.0f;
+static const float DISCHARGE_LIMIT_STEP_DOWN_TD_MARGIN_C = 2.0f;
+static const float DISCHARGE_LIMIT_RELEASE_TD_MARGIN_C = 8.0f;
+static const uint32_t DISCHARGE_LIMIT_STEP_DOWN_INTERVAL_S = 60;
+static const int DISCHARGE_LIMIT_MIN_MODE = 1;
 
 // Pump timing
 static const uint32_t PUMP_START_TIMEOUT_S = 2 * 60;
