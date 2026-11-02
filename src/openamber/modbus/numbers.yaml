@@ -307,6 +307,19 @@ number:
   register_type: holding
   value_type: S_WORD
 
+# 0: OpenAmber limits the compressor per outdoor temperature (CompressorController), 1: the outdoor unit
+# does (stock). RAM-only in the unit, so it is written at every start together with the frequency tables.
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_ambient_limit_control
+  internal: True
+  min_value: 0
+  max_value: 1
+  step: 1
+  address: 3281
+  register_type: holding
+  value_type: S_WORD
+
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
   id: enter_defrost_temperature_2
