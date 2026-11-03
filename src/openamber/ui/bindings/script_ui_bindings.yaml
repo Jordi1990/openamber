@@ -3805,6 +3805,7 @@
               lv_table_set_cell_value(wt, 3, 1, isnan(id(wifi_signal_db).state) ? "Geen signaal" : str_sprintf("%.0f dBm", id(wifi_signal_db).state).c_str());
 
 - id: wifi_connect_selected
+  mode: restart
   then:
     - lambda: |-
         char dd_buf[64];
@@ -3820,6 +3821,11 @@
         #ifdef USE_WIFI
         wifi::global_wifi_component->save_wifi_sta(ssid, password);
         #endif
+    # A connection is reported through the WiFi signal sensor; without one, re-enable the button text for another try.
+    - delay: 30s
+    - lvgl.label.update:
+        id: wifi_connect_btn_label
+        text: "Verbinden"
 
 - id: wifi_disconnect
   then:
