@@ -683,6 +683,11 @@ public:
           break;
         }
 
+        if (!HasCompressorDemand())
+        {
+          break;
+        }
+
         if(!IsCompressorAllowedToStart())
         {
           break;
