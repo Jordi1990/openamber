@@ -52,6 +52,26 @@ static const uint32_t DEFROST_RECOVERY_PHASE_S = 30;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_DOWN_S = 10;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_UP_S = 5 * 60;
 
+// Ambient temperature limit (outdoor unit firmware v1.18, same as v1.10, registers 3282-3298). OpenAmber
+// writes 3281 = 0 at start, which turns the unit's own level-based limit off, and applies the limit itself.
+// A band is entered 1 K above and left 1 K below its boundary. Band 0 is below the first boundary, band N
+// is at or above the last one.
+static const float OUTDOOR_UNIT_HEATING_BAND_BOUNDS_C[] = {-25.0f, 12.0f, 20.0f, 24.0f, 28.0f, 46.0f};
+static const float OUTDOOR_UNIT_COOLING_BAND_BOUNDS_C[] = {0.0f, 12.0f, 18.0f, 24.0f, 30.0f, 41.0f, 45.0f, 51.0f, 65.0f};
+// Maximum frequency per band, so the limit does not move when OpenAmber's frequency table changes. The
+// values are the stock v1.18 level limits (heating 0/10/8/5/3/2/0, cooling 0/2/3/6/10/10/7/4/1/0) looked up
+// in the stock v1.18 frequency table (Amber parameter set, heating 30-90 Hz, cooling 30-79 Hz).
+// 0 Hz is outside the operating range (P11 in the stock unit): OpenAmber caps to level 1 there, never to 0.
+static const float OUTDOOR_UNIT_HEATING_BAND_MAX_HZ[] = {0.0f, 90.0f, 74.0f, 55.0f, 43.0f, 36.0f, 0.0f};
+static const float OUTDOOR_UNIT_COOLING_BAND_MAX_HZ[] = {0.0f, 36.0f, 42.0f, 56.0f, 79.0f, 79.0f, 61.0f, 47.0f, 30.0f, 0.0f};
+static const float OUTDOOR_UNIT_BAND_HYSTERESIS_C = 1.0f;
+// Heating below the low ambient limit (-25 °C, 3498 - 3499 - 30) only restarts 3500 (4 K) higher on top of
+// the normal hysteresis, around -20 °C.
+static const float OUTDOOR_UNIT_HEATING_LOW_LIMIT_RESTART_C = 4.0f;
+// OpenAmber moves to a band with a lower (non-zero) limit this much later in Ta than the stock unit.
+// Moving to a band with a higher limit, and to a band outside the operating range, happen at the stock Ta.
+static const float AMBIENT_LIMIT_TA_OFFSET_C = 1.0f;
+
 // Discharge side limiter: stay below the outdoor unit's own Pd/Td protection instead of running
 // into it. The limits are margins below the unit's "no further frequency increase" thresholds,
 // read from 3269 (Pd) and 3262 (Td); the defaults are used until those are read (EEPROM 114).

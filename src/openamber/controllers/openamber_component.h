@@ -148,6 +148,12 @@ void OpenAmberComponent::update()
         WriteHeatingFrequencyTable();
         WriteCoolingFrequencyTable();
       }
+      if (!is_hp_s_model)
+      {
+        // OpenAmber limits the compressor per outdoor temperature in Hz (CompressorController), including
+        // outside the operating range. Turn off the unit's own level-based limit (RAM-only).
+        id(outdoor_unit_ambient_limit_control).make_call().set_value(0).perform();
+      }
       ESP_LOGI("amber", "Initialized heat pump controller");
       LeaveStateAndSetNextStateAfterWaitTime(State::WAIT_INITIALIZATION, INITIALIZATION_DELAY_S * 1000UL);
       break;
@@ -481,12 +487,12 @@ ThreeWayValvePosition OpenAmberComponent::GetDesiredThreeWayValvePosition()
 void OpenAmberComponent::WriteHeatingFrequencyTable()
 {
     // Patch heating frequency table to have more control in low load situations.
-    id(heating_frequency_index_1).make_call().set_value(28).perform();
-    id(heating_frequency_index_2).make_call().set_value(36).perform();
-    id(heating_frequency_index_3).make_call().set_value(43).perform();
-    id(heating_frequency_index_4).make_call().set_value(55).perform();
-    id(heating_frequency_index_5).make_call().set_value(61).perform();
-    id(heating_frequency_index_6).make_call().set_value(67).perform();
+    id(heating_frequency_index_1).make_call().set_value(20).perform();
+    id(heating_frequency_index_2).make_call().set_value(28).perform();
+    id(heating_frequency_index_3).make_call().set_value(36).perform();
+    id(heating_frequency_index_4).make_call().set_value(43).perform();
+    id(heating_frequency_index_5).make_call().set_value(55).perform();
+    id(heating_frequency_index_6).make_call().set_value(63).perform();
     id(heating_frequency_index_7).make_call().set_value(72).perform();
     id(heating_frequency_index_8).make_call().set_value(79).perform();
     id(heating_frequency_index_9).make_call().set_value(85).perform();
