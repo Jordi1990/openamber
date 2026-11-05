@@ -6,6 +6,7 @@ packages:
  - !include openamber/ui/display_globals.yaml
  - !include openamber/ui/bindings/ui_bindings_package.yaml
  - !include openamber/ui/ui_package.yaml
+ - !include openamber/thermostat_link/thermostat_link.yaml
  
 wifi:
   use_psram: true

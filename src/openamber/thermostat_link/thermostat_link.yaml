@@ -1,0 +1,348 @@
+# =====================================================================
+# Wireless thermostat link via ESP-NOW (packet_transport)
+#
+# Shares temperatures, status, setpoints and mode with the round OpenAmber
+# thermostat, and executes setpoint/mode commands sent by that thermostat.
+#
+# No MAC address is needed: packets are broadcast and encrypted with a shared
+# key. Pairing happens on the thermostat by selecting the pairing code of this
+# device: the last 6 hex characters of its MAC address (see the WiFi page).
+# Commands are only accepted from a thermostat that sends the matching code.
+#
+# Substitutions (defaults below, can be overridden in the device file):
+#   thermostat_link_key: shared encryption key, must be equal on both sides.
+#     The key ends up in the public firmware, so it keeps out other ESP-NOW
+#     devices, not a determined attacker. The pairing code is the real check.
+#     For a private key in your own build:  thermostat_link_key: !secret espnow_key
+#   thermostat_name: "esphome: name:" of the thermostat
+#
+# Notes:
+#  - Commands only affect the heat pump when "Thermostaat keuze" is set to
+#    "Intern" (default is "Extern").
+#  - Display builds only: rx_cmd calls update_thermostat_settings_ui, which
+#    only exists in the UI.
+#
+# Layout: 1. General  2. Sent by OpenAmber  3. Sent by the thermostat
+# =====================================================================
+
+substitutions:
+  thermostat_link_key: openamber-thermostat-link
+  thermostat_name: openamber-thermostaat
+
+# ---------------------------------------------------------------------
+# 1. GENERAL
+# ---------------------------------------------------------------------
+globals:
+  - id: thermostat_pin_ok         # true when the thermostat's pairing code equals our own
+    type: bool
+    initial_value: 'false'
+  - id: thermostat_last_cmd_seq   # sequence number of the last executed command
+    type: int
+    restore_value: yes            # kept across reboots, so nothing is executed twice
+    initial_value: '-1'
+
+espnow:
+  id: espnow_component
+  auto_add_peer: true             # unknown senders are added; without the key their packets are ignored
+
+packet_transport:
+  - platform: espnow
+    id: transport_thermostat
+    espnow_id: espnow_component
+    # No peer_address: packets are broadcast. Encryption makes sure only a
+    # device with the same key can use them.
+    encryption: ${thermostat_link_key}
+    rolling_code_enable: false
+    providers:
+      - name: ${thermostat_name}
+        encryption: ${thermostat_link_key}   # needed to read packets from the thermostat
+
+    # -------------------------------------------------------------
+    # 2. SENT BY OPENAMBER
+    # -------------------------------------------------------------
+    # broadcast_id is the name under which the thermostat receives the value.
+    # These names are the protocol with the thermostat: do not rename them.
+    sensors:
+      - id: thermostat_link_pin             # own pairing code, the thermostat checks it
+        broadcast_id: pin
+      - id: dhw_temperature_tw_sensor       # DHW temperature (Tw)
+        broadcast_id: tw
+      - id: current_dhw_setpoint_sensor     # DHW target temperature
+        broadcast_id: tws
+      - id: heat_cool_temperature_tc        # flow temperature (Tc)
+        broadcast_id: tc
+      - id: outlet_temperature_tuo          # flow temperature (Tuo)
+        broadcast_id: tuo
+      - id: inlet_temperature_tui           # return temperature (Tui)
+        broadcast_id: tui
+      - id: temperature_outside_ta          # outside temperature (Ta)
+        broadcast_id: ta
+      - id: room_temperature                # room temperature (Tr)
+        broadcast_id: rt
+      - id: thermostat_link_target_low      # low setpoint (heating)
+        broadcast_id: slo
+      - id: thermostat_link_target_high     # high setpoint (cooling)
+        broadcast_id: shi
+      - id: thermostat_link_mode            # mode: 0=off 1=heat 2=cool
+        broadcast_id: mode
+      - id: current_compressor_frequency    # compressor frequency (Hz)
+        broadcast_id: cf
+      - id: thermostat_link_error_code      # first active error or warning as a number
+        broadcast_id: ec
+      - id: current_setpoint                # current flow setpoint (heating curve, manual or cooling)
+        broadcast_id: wsp
+      - id: thermostat_link_time            # minutes since Monday 00:00 (for the thermostat's schedule)
+        broadcast_id: tm
+    binary_sensors:
+      - id: error_active
+        broadcast_id: err
+      - id: warning_active
+        broadcast_id: warn
+      - id: heat_demand_active_sensor
+        broadcast_id: wv
+      - id: cool_demand_active_sensor
+        broadcast_id: cd
+      - id: dhw_pump_active_sensor
+        broadcast_id: twp
+      - id: dhw_demand_active_sensor
+        broadcast_id: twv
+      - id: dhw_active                      # DHW is running
+        broadcast_id: da
+      - id: dhw_legionella_run_active_sensor
+        broadcast_id: lega
+      - id: defrost_active_sensor
+        broadcast_id: dfr
+      - id: backup_heater_active_sensor
+        broadcast_id: bu
+      - id: thermostat_link_dhw_enabled     # follows the switch "Tapwater aanwezig"
+        broadcast_id: twa
+      - id: thermostat_link_legio_enabled   # follows the switch "Legionellapreventie"
+        broadcast_id: legp
+
+# Read-only copies of switches, so they can be shared
+binary_sensor:
+  - platform: switch
+    id: thermostat_link_dhw_enabled
+    source_id: dhw_enabled_switch
+    internal: true
+  - platform: switch
+    id: thermostat_link_legio_enabled
+    source_id: legio_enabled_switch
+    internal: true
+
+script:
+  - id: thermostat_pin_check      # compares the thermostat's pairing code with our own
+    then:
+      - lambda: |-
+          // Own code = last 6 hex characters of the MAC address (as a number)
+          long mine = strtol(get_mac_address().substr(6).c_str(), nullptr, 16);
+          id(thermostat_pin_ok) = mine > 0 && id(thermostat_rx_pin).has_state() &&
+                                  lroundf(id(thermostat_rx_pin).state) == mine;
+
+sensor:
+  # Own pairing code: the last 6 hex characters of the MAC address,
+  # e.g. MAC AA:BB:CC:11:22:33 gives code 112233. Fits exactly in a float (24 bits).
+  - platform: template
+    id: thermostat_link_pin
+    internal: true
+    update_interval: 5s
+    lambda: 'return (float) strtol(get_mac_address().substr(6).c_str(), nullptr, 16);'
+
+  # Time for the thermostat: minutes since Monday 00:00 (0 to 10079). NAN without valid time.
+  - platform: template
+    id: thermostat_link_time
+    internal: true
+    update_interval: 30s
+    lambda: |-
+      auto now = id(my_time).now();
+      if (!now.is_valid()) return NAN;
+      return (float) (((now.day_of_week + 5) % 7) * 1440 + now.hour * 60 + now.minute);
+
+  # Pairing code selected on the thermostat: must equal our own code
+  - platform: packet_transport
+    provider: ${thermostat_name}
+    remote_id: pin
+    id: thermostat_rx_pin
+    internal: true
+    on_value:
+      then:
+        - script.execute: thermostat_pin_check
+
+  # Setpoints and mode of the climate, read every 5 s
+  - platform: template
+    id: thermostat_link_target_low
+    internal: true
+    update_interval: 5s
+    lambda: 'return id(climate_controller).target_temperature_low;'
+
+  - platform: template
+    id: thermostat_link_target_high
+    internal: true
+    update_interval: 5s
+    lambda: 'return id(climate_controller).target_temperature_high;'
+
+  - platform: template
+    id: thermostat_link_mode                # 0 = off, 1 = heat, 2 = cool
+    internal: true
+    update_interval: 5s
+    lambda: |-
+      auto m = id(climate_controller).mode;
+      if (m == climate::CLIMATE_MODE_HEAT) return 1.0f;
+      if (m == climate::CLIMATE_MODE_COOL) return 2.0f;
+      return 0.0f;
+
+  # First active error (then warning) as a number for the thermostat:
+  # 1xx = P code, 2xx = F code, 3xx = E code (P05 = 105, F14 = 214, E03 = 303),
+  # 401-406 = other errors, 407-409 = other warnings; 0 = nothing active.
+  # Same flags as error_active and warning_active.
+  - platform: template
+    id: thermostat_link_error_code
+    internal: true
+    update_interval: 5s
+    lambda: |-
+      if (id(error_flag_p03).state) return 103.0f;
+      if (id(error_flag_p05).state) return 105.0f;
+      if (id(error_flag_p08).state) return 108.0f;
+      if (id(error_flag_p09).state) return 109.0f;
+      if (id(error_flag_p10).state) return 110.0f;
+      if (id(error_flag_f01).state) return 201.0f;
+      if (id(error_flag_f02).state) return 202.0f;
+      if (id(error_flag_f03).state) return 203.0f;
+      if (id(error_flag_f04).state) return 204.0f;
+      if (id(error_flag_f05).state) return 205.0f;
+      if (id(error_flag_f06).state) return 206.0f;
+      if (id(error_flag_f07).state) return 207.0f;
+      if (id(error_flag_f09).state) return 209.0f;
+      if (id(error_flag_e01).state) return 301.0f;
+      if (id(error_flag_e02).state) return 302.0f;
+      if (id(error_flag_e03).state) return 303.0f;
+      if (id(error_flag_e04).state) return 304.0f;
+      if (id(error_flag_e05).state) return 305.0f;
+      if (id(error_flag_e06).state) return 306.0f;
+      if (id(error_flag_e07).state) return 307.0f;
+      if (id(error_flag_e08).state) return 308.0f;
+      if (id(error_flag_f10).state) return 210.0f;
+      if (id(error_flag_f13).state) return 213.0f;
+      if (id(error_flag_f14).state) return 214.0f;
+      if (id(error_flag_f15).state) return 215.0f;
+      if (id(error_flag_f16).state) return 216.0f;
+      if (id(error_flag_f17).state) return 217.0f;
+      if (id(error_flag_f18).state) return 218.0f;
+      if (id(error_flag_f21).state) return 221.0f;
+      if (id(error_flag_f22).state) return 222.0f;
+      if (id(error_pump_start_timeout).state) return 401.0f;
+      if (id(error_compressor_start_timeout).state) return 402.0f;
+      if (id(error_pump_stop_timeout).state) return 403.0f;
+      if (id(error_modbus_connection_timeout).state) return 404.0f;
+      if (id(error_three_way_valve_state_timeout).state) return 405.0f;
+      if (id(error_inside_unit_failsafe).state) return 406.0f;
+      if (id(error_flag_p01).state) return 101.0f;
+      if (id(error_flag_p02).state) return 102.0f;
+      if (id(error_flag_p07).state) return 107.0f;
+      if (id(error_flag_p06).state) return 106.0f;
+      if (id(error_flag_p11).state) return 111.0f;
+      if (id(error_flag_p13).state) return 113.0f;
+      if (id(error_flag_inside_comm_failsafe).state) return 407.0f;
+      if (id(error_flag_inside_eeprom).state) return 408.0f;
+      if (id(error_flag_pump_p0_alarm).state) return 409.0f;
+      return 0.0f;
+
+  # -------------------------------------------------------------
+  # 3. SENT BY THE THERMOSTAT
+  # -------------------------------------------------------------
+  # BME680 values of the thermostat, only with a matching pairing code
+  - platform: packet_transport
+    provider: ${thermostat_name}
+    filters:
+      - lambda: 'if (id(thermostat_pin_ok)) return x; return NAN;'
+    remote_id: bt                           # temperature
+    id: thermostat_temp
+    name: "Thermostaat temperatuur (BME680)"
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    accuracy_decimals: 1
+    internal: false
+    web_server:
+      sorting_group_id: temperature_sensors
+
+  - platform: packet_transport
+    provider: ${thermostat_name}
+    filters:
+      - lambda: 'if (id(thermostat_pin_ok)) return x; return NAN;'
+    remote_id: bh                           # humidity
+    id: thermostat_hum
+    name: "Thermostaat luchtvochtigheid (BME680)"
+    unit_of_measurement: "%"
+    device_class: humidity
+    state_class: measurement
+    accuracy_decimals: 1
+    internal: false
+    web_server:
+      sorting_group_id: temperature_sensors
+
+  - platform: packet_transport
+    provider: ${thermostat_name}
+    filters:
+      - lambda: 'if (id(thermostat_pin_ok)) return x; return NAN;'
+    remote_id: dp                           # dew point (calculated on the thermostat)
+    id: thermostat_dewpoint
+    name: "Thermostaat dauwpunt (BME680)"
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    accuracy_decimals: 1
+    internal: false
+    web_server:
+      sorting_group_id: temperature_sensors
+
+  # Command from the thermostat (setpoints and/or mode) packed in one number:
+  #   cmd = ((seq * 4 + mode) * 100 + low*2) * 100 + high*2
+  #   mode: 0 = off, 1 = heat, 2 = cool, 3 = leave unchanged (setpoints only)
+  # Only executed when the sequence number differs from the last one; the packet
+  # is repeated periodically, which does not produce a new command.
+  - platform: packet_transport
+    provider: ${thermostat_name}
+    remote_id: cmd
+    id: thermostat_rx_cmd
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            if (std::isnan(x)) return;
+            // Only accept commands from the paired thermostat
+            if (!id(thermostat_pin_ok)) return;
+            // Unpack: high*2, low*2, mode (0-3) and sequence number
+            long n = lroundf(x);
+            int hi2 = n % 100;  n /= 100;
+            int lo2 = n % 100;  n /= 100;
+            int mode = n % 4;
+            int seq = n / 4;
+            // Same sequence number as last time: repeated packet, ignore
+            if (seq == id(thermostat_last_cmd_seq)) return;
+            id(thermostat_last_cmd_seq) = seq;
+            float lo = lo2 / 2.0f;
+            float hi = hi2 / 2.0f;
+            auto call = id(climate_controller).make_call();
+            if (mode == 1)      call.set_mode(climate::CLIMATE_MODE_HEAT);
+            else if (mode == 2) call.set_mode(climate::CLIMATE_MODE_COOL);
+            else if (mode == 0) call.set_mode(climate::CLIMATE_MODE_OFF);
+            // Like the display: only the setpoint of the active mode is set (high when
+            // cooling, low otherwise); the climate keeps the minimum differential itself.
+            bool cool = mode == 2 || (mode == 3 && id(climate_controller).mode == climate::CLIMATE_MODE_COOL);
+            float sp = cool ? hi : lo;
+            if (sp >= 5 && sp <= 35) {
+              if (cool) call.set_target_temperature_high(sp);
+              else      call.set_target_temperature_low(sp);
+            } else {
+              ESP_LOGW("thermostat_link", "Setpoint ignored: %.1f", sp);
+            }
+            call.perform();
+            // Send the new setpoints and mode back right away instead of at the next 5 s poll,
+            // otherwise the thermostat briefly shows the old value again
+            id(thermostat_link_target_low).update();
+            id(thermostat_link_target_high).update();
+            id(thermostat_link_mode).update();
+            ESP_LOGI("thermostat_link", "Command %d: mode %d, %.1f - %.1f", seq, mode, lo, hi);
+            // Refresh the OpenAmber display
+            id(update_thermostat_settings_ui).execute();
