@@ -18,6 +18,7 @@
 #
 # A 6-digit code can be brute-forced from captured packets with some effort;
 # it keeps out neighbours and other ESP-NOW devices.
+# Captured command packets can be replayed while the code is unchanged (see packet_transport).
 #
 # Substitutions (defaults below, can be overridden in the device file):
 #   thermostat_link_key: base text for the key, must be equal on both sides.
@@ -97,6 +98,9 @@ packet_transport:
     # device with the same key can use them.
     encryption: ${thermostat_link_key}
     rolling_code_enable: false
+    # No replay protection: a captured command packet can be sent again while the pairing code is
+    # unchanged (a new code makes old packets useless). ping_pong_enable broke the link in a test
+    # with ESP-NOW broadcast, so it stays off for now.
     providers:
       - name: ${thermostat_name}
         encryption: ${thermostat_link_key}   # needed to read packets from the thermostat
@@ -195,6 +199,10 @@ script:
           id(transport_thermostat)->set_encryption_key(key);
           id(transport_thermostat)->set_provider_encryption("${thermostat_name}", key);
           id(thermostat_pin_ok) = false;   // a thermostat with the old code is no longer paired
+          // It cannot send anymore, so clear its last readings
+          id(thermostat_temp).publish_state(NAN);
+          id(thermostat_hum).publish_state(NAN);
+          id(thermostat_dewpoint).publish_state(NAN);
           ESP_LOGI("thermostat_link", "Pairing code %06d", id(thermostat_link_code));
       - component.update: thermostat_link_code_text
       - script.execute: thermostat_link_code_ui
