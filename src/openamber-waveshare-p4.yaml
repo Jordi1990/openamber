@@ -44,6 +44,8 @@ esp32:
       enable_idf_experimental_features: true
 
 esphome:
+  includes:
+    - <esp_wifi.h>
   project:
     version: dev
   on_boot:

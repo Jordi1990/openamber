@@ -3807,32 +3807,48 @@
 - id: wifi_connect_selected
   mode: restart
   then:
-    - lambda: |-
-        char dd_buf[64];
-        lv_dropdown_get_selected_str(id(wifi_network_dd)->obj, dd_buf, sizeof(dd_buf));
-        std::string ssid;
-        if (std::string(dd_buf) == "Handmatig...") {
-          ssid = lv_textarea_get_text(id(wifi_hidden_ssid_ta));
-        } else {
-          ssid = dd_buf;
-        }
-        if (ssid.empty() || ssid == "Geen netwerken gevonden" || ssid == "Zoeken..." || ssid == "Kies netwerk...") return;
-        std::string password = lv_textarea_get_text(id(wifi_password_ta));
-        #ifdef USE_WIFI
-        wifi::global_wifi_component->save_wifi_sta(ssid, password);
-        #endif
-    # A connection is reported through the WiFi signal sensor; without one, re-enable the button text for another try.
-    - delay: 30s
-    - lvgl.label.update:
-        id: wifi_connect_btn_label
-        text: "Verbinden"
+    - if:
+        # Saves the credentials and returns true when a real network was selected.
+        condition:
+          lambda: |-
+            char dd_buf[64];
+            lv_dropdown_get_selected_str(id(wifi_network_dd)->obj, dd_buf, sizeof(dd_buf));
+            std::string ssid;
+            if (std::string(dd_buf) == "Handmatig...") {
+              ssid = lv_textarea_get_text(id(wifi_hidden_ssid_ta));
+            } else {
+              ssid = dd_buf;
+            }
+            if (ssid.empty() || ssid == "Geen netwerken gevonden" || ssid == "Zoeken..." || ssid == "Kies netwerk...") return false;
+            std::string password = lv_textarea_get_text(id(wifi_password_ta));
+            #ifdef USE_WIFI
+            wifi::global_wifi_component->save_wifi_sta(ssid, password);
+            // save_wifi_sta() only kicks the state machine out of COOLDOWN; from the fallback AP
+            // (no network configured) it would never connect, so start it explicitly like Improv does.
+            wifi::global_wifi_component->start_connecting(wifi::global_wifi_component->get_sta());
+            #endif
+            return true;
+        then:
+          # On success the panel switches to the connected section; otherwise re-enable the button text for another try.
+          - delay: 30s
+          - lvgl.label.update:
+              id: wifi_connect_btn_label
+              text: "Verbinden"
+        else:
+          # Placeholder selected: nothing to connect, undo the "Verbinden..." set by on_click right away.
+          - lvgl.label.update:
+              id: wifi_connect_btn_label
+              text: "Verbinden"
 
 - id: wifi_disconnect
   then:
     - lambda: |-
         #ifdef USE_WIFI
         wifi::global_wifi_component->save_wifi_sta("", "");
+        // clear_sta() only empties the network list; the radio stays associated.
+        // With no networks left the WiFi state machine is skipped, so it won't reconnect.
         wifi::global_wifi_component->clear_sta();
+        esp_wifi_disconnect();
         if (id(wifi_connected_details_table) != nullptr) {
           auto *wt = id(wifi_connected_details_table)->obj;
           lv_table_set_cell_value(wt, 0, 1, "-");
