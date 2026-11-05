@@ -258,9 +258,6 @@
             - lvgl.widget.update:
                 id: wifi_status_label
                 text_color: 0x16A34A
-            - lvgl.label.update:
-                id: wifi_connect_btn_label
-                text: "Verbinden"
           else:
             - lvgl.label.update:
                 id: wifi_status_label
