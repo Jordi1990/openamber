@@ -181,6 +181,7 @@ binary_sensor:
 script:
   # Generates a pairing code when there is none yet and derives the encryption key from it
   - id: thermostat_link_apply_code
+    mode: restart
     then:
       - lambda: |-
           if (id(thermostat_link_code) < 100000 || id(thermostat_link_code) > 999999) {
@@ -206,6 +207,10 @@ script:
           ESP_LOGI("thermostat_link", "Pairing code %06d", id(thermostat_link_code));
       - component.update: thermostat_link_code_text
       - script.execute: thermostat_link_code_ui
+      # Write a new code to flash right away instead of at the next flash_write_interval (5 min),
+      # so a crash or power cut does not lose it (the global stores its value within 1 s)
+      - delay: 2s
+      - lambda: 'global_preferences->sync();'
 
   # Shows the pairing code on the display (Settings > Thermostat)
   - id: thermostat_link_code_ui
