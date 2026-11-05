@@ -83,8 +83,10 @@
             size_t end = result.find('\n', pos);
             if (end == std::string::npos) end = result.size();
             std::string line = result.substr(pos, end - pos);
-            size_t paren = line.rfind(" (");
-            std::string ssid = (paren != std::string::npos) ? line.substr(0, paren) : line;
+            // Each line is "SSID: -XXdB"; strip the signal strength suffix.
+            size_t sep = line.rfind(": ");
+            bool has_rssi = sep != std::string::npos && line.size() >= sep + 4 && line.compare(line.size() - 2, 2, "dB") == 0;
+            std::string ssid = has_rssi ? line.substr(0, sep) : line;
             if (!ssid.empty()) {
               std::string needle;
               needle.reserve(ssid.size() + 2);
@@ -109,4 +111,11 @@
           if (current_options != nullptr && options == current_options) {
             return;
           }
+          // New options reset the selection to the first entry; keep the network the user picked.
+          char selected[64];
+          lv_dropdown_get_selected_str(id(wifi_network_dd)->obj, selected, sizeof(selected));
           lv_dropdown_set_options(id(wifi_network_dd)->obj, options.c_str());
+          int32_t index = lv_dropdown_get_option_index(id(wifi_network_dd)->obj, selected);
+          if (index >= 0) {
+            lv_dropdown_set_selected(id(wifi_network_dd)->obj, index);
+          }
