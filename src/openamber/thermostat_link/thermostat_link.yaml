@@ -4,23 +4,32 @@
 # Shares temperatures, status, setpoints and mode with the round OpenAmber
 # thermostat, and executes setpoint/mode commands sent by that thermostat.
 #
-# No MAC address is needed: packets are broadcast and encrypted with a shared
-# key. Pairing happens on the thermostat by selecting the pairing code of this
-# device: the last 6 hex characters of its MAC address (see the WiFi page).
-# Commands are only accepted from a thermostat that sends the matching code.
+# Pairing: on first boot OpenAmber generates a random 6-digit pairing code,
+# shown in Settings > Thermostat on the display and as the text sensor
+# "Thermostaat koppelcode". The user enters that code on the thermostat.
+# Both sides derive the encryption key from it:
+#   key = SHA-256("${thermostat_link_key}:" + code)
+# so a thermostat without the code cannot read or send anything. "Nieuwe
+# koppelcode" (button on the display and as an entity) generates a new code;
+# the thermostat then has to be paired again.
+# On top of that, packets are broadcast with the last 6 hex characters of the
+# MAC address (pin); the thermostat locks on to the first OpenAmber it hears
+# and OpenAmber only accepts commands from a thermostat that sends its pin.
+#
+# A 6-digit code can be brute-forced from captured packets with some effort;
+# it keeps out neighbours and other ESP-NOW devices.
 #
 # Substitutions (defaults below, can be overridden in the device file):
-#   thermostat_link_key: shared encryption key, must be equal on both sides.
-#     The key ends up in the public firmware, so it keeps out other ESP-NOW
-#     devices, not a determined attacker. The pairing code is the real check.
-#     For a private key in your own build:  thermostat_link_key: !secret espnow_key
+#   thermostat_link_key: base text for the key, must be equal on both sides.
+#     It is also the key until the pairing code is applied at boot, so packets
+#     are never sent or accepted unencrypted.
 #   thermostat_name: "esphome: name:" of the thermostat
 #
 # Notes:
 #  - Commands only affect the heat pump when "Thermostaat keuze" is set to
 #    "Intern" (default is "Extern").
-#  - Display builds only: rx_cmd calls update_thermostat_settings_ui, which
-#    only exists in the UI.
+#  - Display builds only: rx_cmd calls update_thermostat_settings_ui and the
+#    pairing code is shown in the UI.
 #
 # Layout: 1. General  2. Sent by OpenAmber  3. Sent by the thermostat
 # =====================================================================
@@ -40,6 +49,41 @@ globals:
     type: int
     restore_value: yes            # kept across reboots, so nothing is executed twice
     initial_value: '-1'
+  - id: thermostat_link_code      # pairing code 100000-999999; 0 = not generated yet
+    type: int
+    restore_value: yes            # kept across reboots and updates
+    initial_value: '0'
+
+sha256:                           # key derivation from the pairing code
+
+esphome:
+  on_boot:
+    - priority: 600               # after globals are restored, before anything is sent
+      then:
+        - script.execute: thermostat_link_apply_code
+
+button:
+  - platform: template
+    id: thermostat_link_new_code
+    name: "Thermostaat nieuwe koppelcode"
+    icon: mdi:link-variant-plus
+    entity_category: config
+    on_press:
+      - globals.set:
+          id: thermostat_link_code
+          value: '0'
+      - script.execute: thermostat_link_apply_code
+
+text_sensor:
+  - platform: template
+    id: thermostat_link_code_text
+    name: "Thermostaat koppelcode"
+    icon: mdi:link-variant
+    entity_category: diagnostic
+    update_interval: never        # updated by thermostat_link_apply_code
+    lambda: |-
+      if (id(thermostat_link_code) <= 0) return std::string("-");
+      return str_sprintf("%06d", id(thermostat_link_code));
 
 espnow:
   id: espnow_component
@@ -131,6 +175,43 @@ binary_sensor:
     internal: true
 
 script:
+  # Generates a pairing code when there is none yet and derives the encryption key from it
+  - id: thermostat_link_apply_code
+    then:
+      - lambda: |-
+          if (id(thermostat_link_code) < 100000 || id(thermostat_link_code) > 999999) {
+            uint32_t r = 0;
+            random_bytes((uint8_t *) &r, sizeof(r));
+            id(thermostat_link_code) = 100000 + (int) (r % 900000);
+          }
+          char text[96];
+          snprintf(text, sizeof(text), "%s:%06d", "${thermostat_link_key}", id(thermostat_link_code));
+          sha256::SHA256 hash;
+          hash.init();
+          hash.add(text, strlen(text));
+          hash.calculate();
+          std::vector<uint8_t> key(32);
+          hash.get_bytes(key.data());
+          id(transport_thermostat)->set_encryption_key(key);
+          id(transport_thermostat)->set_provider_encryption("${thermostat_name}", key);
+          id(thermostat_pin_ok) = false;   // a thermostat with the old code is no longer paired
+          ESP_LOGI("thermostat_link", "Pairing code %06d", id(thermostat_link_code));
+      - component.update: thermostat_link_code_text
+      - script.execute: thermostat_link_code_ui
+
+  # Shows the pairing code on the display (Settings > Thermostat)
+  - id: thermostat_link_code_ui
+    then:
+      - lvgl.widget.show: thermostat_row_link_code
+      - lvgl.label.update:
+          id: set_therm_link_code_val
+          text: !lambda 'return str_sprintf("%06d", id(thermostat_link_code));'
+
+  # "Nieuw" on the display; the UI defines this script empty so builds without this package still compile
+  - id: !extend thermostat_link_new_code_ui
+    then:
+      - button.press: thermostat_link_new_code
+
   - id: thermostat_pin_check      # compares the thermostat's pairing code with our own
     then:
       - lambda: |-
