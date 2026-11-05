@@ -135,6 +135,8 @@ void OpenAmberComponent::update()
       working_mode_call.perform();
       compressor_controller_->Stop();
       pump_controller_->Stop();
+      // Stop() restarts the pump interval; after (re)initialization the pump must start right away on pump demand.
+      pump_controller_->ResetInterval();
       if(is_hp_s_model)
       {
         ESP_LOGI("amber", "Detected HPS unit based on EEPROM version, not writing heating frequency table.");
