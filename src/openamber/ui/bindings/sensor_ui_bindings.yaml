@@ -176,7 +176,7 @@
       - script.execute: update_water_mode_temperature_display
       - script.execute: update_service_diag_summary_ui
 
-- id: !extend room_temperature
+- id: !extend ${room_temperature_source}
   on_value:
     then:
       - if:

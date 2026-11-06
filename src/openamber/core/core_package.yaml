@@ -1,3 +1,6 @@
+substitutions:
+  room_temperature_source: room_temperature
+
 # ==============================================================================
 # OpenAmber Core Application Package (Hardware-Independent Business Logic)
 # ==============================================================================
