@@ -143,6 +143,69 @@ def test_frost_protection_stage2_triggers_compressor_demand_without_heat_demand(
     openamber.step(ms=100)
 
 
+def test_frost_protection_stage1_runs_pump_p1_only_with_p0_cycles(clean_system):
+    """
+    Pump P1 follows the P0 interval cycles during frost protection without heat demand:
+    1. P1 enabled, no heat/cool demand, Ta drops below stage 1 threshold.
+    2. Frost protection starts a P0 cycle and P1 runs together with P0.
+    3. After the pump duration P0 stops and P1 stops with it.
+    4. P1 stays OFF in IDLE between cycles (no continuous running on frost protection alone).
+    5. The next P0 interval cycle starts P1 again.
+    """
+    openamber = clean_system
+
+    openamber.set_switch("pump_p1_enabled", True)
+    openamber.set_binary_sensor("external_heat_demand_wired", False)
+    openamber.set_switch("heat_demand_switch", False)
+    openamber.set_number("frost_protection_stage_1_temp_ta", 5.0)
+    openamber.set_number("frost_protection_stage_2_temp_ta", -20.0)
+    openamber.set_number("pump_interval", 15.0)
+    openamber.set_number("pump_duration", 2.0)
+    openamber.set_sensor("inlet_temperature_tui", 20.0)
+    openamber.set_sensor("temperature_outside_ta", 7.0)
+    openamber.step(ms=100)
+
+    assert openamber.get_entity("pump_p1_relay_switch") is False, "Pump P1 must be OFF initially"
+
+    # Trigger stage 1 frost protection (300s delayed_on filter)
+    openamber.set_sensor("temperature_outside_ta", 2.0)
+    openamber.advance_time(seconds=305, step_s=5)
+    openamber.step(ms=100)
+
+    assert openamber.get_entity("frost_protection_stage1_active") is True
+    assert openamber.get_entity("frost_protection_stage2_active") is False
+    assert openamber.get_entity("internal_pump_active") is True, "P0 must start on frost protection"
+    assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 must run together with the P0 cycle"
+
+    # Pump duration (2 min) elapses: P0 stops, P1 must stop with it
+    openamber.advance_time(seconds=150, step_s=5)
+    openamber.step(ms=100)
+
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Idle"
+    assert openamber.get_entity("internal_pump_active") is False, "P0 must stop after the pump duration"
+    assert openamber.get_entity("pump_p1_relay_switch") is False, (
+        "P1 must not keep running in IDLE on frost protection alone"
+    )
+
+    # Stays off between cycles
+    openamber.advance_time(seconds=300, step_s=5)
+    openamber.step(ms=100)
+    assert openamber.get_entity("pump_p1_relay_switch") is False, "P1 must stay OFF between P0 cycles"
+
+    # Next interval cycle starts P0 and P1 again
+    openamber.advance_time(seconds=600, step_s=5)
+    openamber.step(ms=100)
+    assert openamber.get_entity("internal_pump_active") is True, "P0 must start on the next interval cycle"
+    assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 must start again with the next P0 cycle"
+
+    # Cleanup
+    openamber.set_sensor("temperature_outside_ta", 7.0)
+    openamber.advance_time(seconds=310, step_s=15)
+    openamber.step(ms=100)
+    openamber.set_switch("pump_p1_enabled", False)
+    openamber.step(ms=100)
+
+
 def test_frost_protection_stage1_opens_mixing_valves(clean_system):
     """
     Verify Frost Protection Stage 1 opens mixing valves when pump circulates:

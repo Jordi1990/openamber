@@ -654,11 +654,21 @@ public:
           break;
         }
 
-        StartPumpP1IfNeeded();
+        // P1 runs continuously on heat/cool demand; frost protection alone only runs P1 together with the P0 interval cycles.
+        if (id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state)
+        {
+          StartPumpP1IfNeeded();
+        }
+        else
+        {
+          StopPumpP1IfNeeded();
+        }
+
         // Start pump on interval, without the pump running we cannot determine if there is actual compressor demand as Tc can change.
         if (pump_controller_->ShouldStartNextPumpCycle())
         {
           pump_controller_->Start();
+          StartPumpP1IfNeeded();
           SetNextState(HeatCoolState::WAIT_PUMP_RUNNING);
         }
         break;
