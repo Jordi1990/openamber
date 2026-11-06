@@ -31,7 +31,8 @@ class PumpController
 {
 private:
   uint32_t pump_start_time_ = 0;
-  uint32_t next_pump_cycle_ = 0;
+  uint32_t pump_interval_start_time_ = 0;
+  uint32_t pump_interval_ms_ = 0;
   uint32_t start_wait_started_ms_ = 0;
   uint32_t stop_wait_started_ms_ = 0;
   float pump_p0_pid_output_ = 0.0f;
@@ -82,7 +83,7 @@ public:
 
   bool ShouldStartNextPumpCycle()
   {
-    return App.get_loop_component_start_time() >= next_pump_cycle_;
+    return App.get_loop_component_start_time() - pump_interval_start_time_ >= pump_interval_ms_;
   }
 
   bool IsPumpSettled()
@@ -182,18 +183,18 @@ public:
   bool IsIntervalCycleFinished()
   {
     uint32_t duration_ms = (uint32_t)id(pump_duration).state * 60000UL;
-    return App.get_loop_component_start_time() >= pump_start_time_ + duration_ms;
+    return App.get_loop_component_start_time() - pump_start_time_ >= duration_ms;
   }
 
   void ResetInterval()
   {
-    next_pump_cycle_ = 0;
+    pump_interval_ms_ = 0;
   }
 
   void RestartPumpInterval()
   {
-    uint32_t interval_ms = (uint32_t)id(pump_interval).state * 60000UL;
-    next_pump_cycle_ = App.get_loop_component_start_time() + interval_ms;
+    pump_interval_ms_ = (uint32_t)id(pump_interval).state * 60000UL;
+    pump_interval_start_time_ = App.get_loop_component_start_time();
   }
 
   void RestartPumpRunCycle()
