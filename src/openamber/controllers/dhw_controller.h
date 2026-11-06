@@ -374,6 +374,52 @@ public:
     SetNextState(DHWState::IDLE);
   }
 
+  /// @brief Takes over units that kept running while the ESP restarted, instead of stopping them.
+  /// Only called with the 3-way valve in the DHW position and pump P0 running.
+  void ResumeFromRunningUnits()
+  {
+    const bool compressor_running = compressor_controller_->IsRunning();
+    const bool compressor_commanded = compressor_controller_->IsCommanded();
+    requested_to_stop_ = false;
+    pump_flow_missing_since_ms_ = 0;
+    rate_window_active_ = false;
+    heating_rate_below_min_since_ms_ = 0;
+    pump_controller_->AdoptRunningPump();
+    id(dhw_active).publish_state(true);
+
+    if (compressor_running && compressor_commanded)
+    {
+      // The run time before the restart is unknown: keep the compressor on for at least the minimum on time.
+      compressor_controller_->RecordStartTime();
+      if (id(defrost_active_sensor).state)
+      {
+        SetNextState(DHWState::DEFROSTING);
+      }
+      else if (id(dhw_pump_relay_switch).state)
+      {
+        // Restart the settle time and the heating rate window of the DHW pump.
+        SetNextState(DHWState::WAIT_DHW_PUMP_RUNNING);
+      }
+      else
+      {
+        SetNextState(DHWState::COMPRESSOR_RUNNING);
+      }
+      return;
+    }
+
+    if (compressor_commanded)
+    {
+      ESP_LOGI("amber", "Resume: compressor was starting, cancelling the start.");
+      compressor_controller_->Stop();
+    }
+    else
+    {
+      compressor_controller_->RecordStopTime();
+    }
+    // Compressor starting, stopping or off: finish the stop. With DHW demand the cycle starts again from idle.
+    SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
+  }
+
   void UpdateStateMachine()
   {
     uint32_t now = App.get_loop_component_start_time();

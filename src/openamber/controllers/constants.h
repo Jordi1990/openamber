@@ -30,6 +30,10 @@ static const uint32_t INITIALIZATION_DELAY_S = 10;
 // Modbus connection
 static const uint32_t MODBUS_CONNECTION_TIMEOUT_S = 2 * 60;
 
+// Live update
+// The state machine is held while an OTA update is busy. Release it after this time when no end/error event arrives.
+static const uint32_t OTA_HOLD_TIMEOUT_S = 5 * 60;
+
 // Three-way valve
 static const uint32_t THREE_WAY_VALVE_SWITCH_TIME_S = 1 * 60;
 static const uint32_t THREE_WAY_VALVE_PROTECTION_DELTA_TEMPERATURE_C = 5.0f;

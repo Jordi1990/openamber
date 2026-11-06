@@ -518,6 +518,51 @@ public:
     SetNextState(HeatCoolState::IDLE);
   }
 
+  /// @brief Takes over units that kept running while the ESP restarted, instead of stopping them.
+  /// Only called with the 3-way valve in the heat/cool position and pump P0 running.
+  void ResumeFromRunningUnits()
+  {
+    const bool compressor_running = compressor_controller_->IsRunning();
+    const bool compressor_commanded = compressor_controller_->IsCommanded();
+    requested_to_stop_ = false;
+    start_current_temperature_ = 0.0f;
+    pump_flow_missing_since_ms_ = 0;
+    pump_controller_->AdoptRunningPump();
+    const bool cooling = IsWorkingMode(WORKING_MODE_COOLING);
+
+    if (compressor_running && compressor_commanded)
+    {
+      SetPidController(cooling ? climate::CLIMATE_MODE_COOL : climate::CLIMATE_MODE_HEAT);
+      GetPidController().reset_integral_term();
+      ResetMixingValvesIntegralTerm();
+      // The run time before the restart is unknown: keep the compressor on for at least the minimum on time.
+      compressor_controller_->RecordStartTime();
+      SetNextState(id(defrost_active_sensor).state ? HeatCoolState::DEFROSTING : HeatCoolState::COMPRESSOR_RUNNING);
+      return;
+    }
+
+    if (compressor_commanded)
+    {
+      // Level set but compressor not (yet) running: it was starting. Cancel the start, the normal flow
+      // starts it again with the minimum off time and pump settle time.
+      ESP_LOGI("amber", "Resume: compressor was starting, cancelling the start.");
+      compressor_controller_->Stop();
+      SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
+      return;
+    }
+
+    compressor_controller_->RecordStopTime();
+    if (compressor_running)
+    {
+      // Level 0 but still running: the compressor was stopping.
+      SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
+      return;
+    }
+
+    // Only the pump was running: continue the pump cycle.
+    SetNextState(HeatCoolState::PUMP_RUNNING);
+  }
+
   void SetHeatPIDValue(float pid_value)
   {
     compressor_heat_pid_ = pid_value;

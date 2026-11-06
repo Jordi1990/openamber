@@ -853,6 +853,14 @@ switch:
     turn_on_action: []
     turn_off_action: []
   - platform: template
+    id: mock_simulate_esp_restart
+    # Simulator only: drops all controller state as if the ESP restarted (OTA update), the units keep running.
+    optimistic: true
+    turn_on_action:
+      - lambda: 'id(amber_ctrl).simulate_restart();'
+      - switch.turn_off: mock_simulate_esp_restart
+    turn_off_action: []
+  - platform: template
     id: mock_three_way_valve_feedback_missing
     # Simulator only: keeps the relay feedback (1305/1312) off, as if the inside unit ignores the valve command.
     optimistic: true

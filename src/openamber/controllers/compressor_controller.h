@@ -327,6 +327,12 @@ public:
     return id(current_compressor_frequency).state > 0;
   }
 
+  /// @brief True when a compressor level above 0 is written (1999), also while it is still starting.
+  bool IsCommanded()
+  {
+    return id(compressor_control_select).active_index().value_or(0) > 0;
+  }
+
   bool HasPassedMinOnTime()
   {
     const uint32_t min_on_ms = COMPRESSOR_MIN_ON_S * 1000UL;
@@ -342,6 +348,15 @@ public:
   bool HasPassedSoftStartDuration()
   {
     return (App.get_loop_component_start_time() - last_compressor_start_ms_) >= COMPRESSOR_SOFT_START_DURATION_S * 1000UL;
+  }
+
+  /// @brief Restarts the minimum off time without sending a stop command, e.g. after a restart of the ESP
+  /// where it is unknown when the compressor stopped.
+  void RecordStopTime()
+  {
+    ClearStartWaitTimer();
+    last_compressor_start_ms_ = 0;
+    last_compressor_stop_ms_ = App.get_loop_component_start_time();
   }
 
   void RecordStartTime()

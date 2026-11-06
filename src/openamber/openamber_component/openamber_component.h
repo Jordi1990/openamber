@@ -44,6 +44,7 @@ enum State {
   MAINTENANCE,
   WAIT_FOR_STATE_SWITCH,
   WAIT_THREE_WAY_VALVE,
+  RESUME_CHECK,
 };
 namespace esphome {
 namespace openamber {
@@ -68,6 +69,9 @@ private:
   ThreeWayValvePosition valve_target_position_ = ThreeWayValvePosition::HEATING_COOLING;
   State valve_target_state_ = State::UNKNOWN;
   uint32_t valve_switch_started_ms_ = 0;
+  // Live update: hold the state machine while an OTA update is being written.
+  bool ota_in_progress_ = false;
+  uint32_t ota_started_ms_ = 0;
   void SetThreeWayValve(ThreeWayValvePosition position);
   ThreeWayValvePosition GetThreeWayValvePosition();
   ThreeWayValvePosition GetDesiredThreeWayValvePosition();
@@ -81,6 +85,9 @@ private:
   void WriteCoolingFrequencyTable();
   void CheckModbusConnectionTimeout();
   void StopControllers();
+  void WriteEEPROMConfiguration();
+  bool CanResumeRunningUnits();
+  void ResumeRunningUnits();
 public:
   OpenAmberComponent();
   ~OpenAmberComponent();
@@ -110,6 +117,15 @@ public:
   uint32_t get_deaeration_remaining_seconds() const;
   std::string get_deaeration_phase_text() const;
   uint32_t get_deaeration_duration_seconds(bool extended) const;
+
+  // Live update support
+  void on_ota_started();
+  void on_ota_finished(bool success);
+  bool is_ota_in_progress() const { return ota_in_progress_; }
+#ifdef USE_HOST
+  // Simulator only: drop all controller state as if the ESP restarted, while the units keep their state.
+  void simulate_restart();
+#endif
 };
 
 }  // namespace openamber
