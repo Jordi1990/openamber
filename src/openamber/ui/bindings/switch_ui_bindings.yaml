@@ -257,11 +257,11 @@
           id(update_control_temp_source_ui).execute();
           if (id(current_setpoint).is_ready()) id(current_setpoint).update();
 
-# ── Settings page: Default compressor frequencies toggle ──
-- id: !extend default_compressor_frequencies_enabled
+# ── Settings page: Outdoor unit optimizations toggle ──
+- id: !extend outdoor_unit_optimizations_enabled
   on_state:
     then:
       - lvgl.widget.update:
-          id: set_default_compressor_frequencies_enabled_switch_ui
+          id: set_outdoor_unit_optimizations_enabled_switch_ui
           state:
             checked: !lambda 'return x;'

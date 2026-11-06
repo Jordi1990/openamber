@@ -1,15 +1,15 @@
 - obj:
-    id: set_advanced_compressor_default_frequencies_row
+    id: set_advanced_compressor_outdoor_unit_optimizations_row
     width: 100%
     height: SIZE_CONTENT
     bg_opa: 0%
     border_opa: 0%
     pad_all: 6
     widgets:
-      - label: { text: "Gebruik standaard compressorfrequenties", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Compressorfrequenties van de buitenunit niet overschrijven", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Buitenunit optimalisaties", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Frequentietabel en buitentemperatuurlimiet aanpassen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
       - switch:
-          id: set_default_compressor_frequencies_enabled_switch_ui
+          id: set_outdoor_unit_optimizations_enabled_switch_ui
           align: TOP_RIGHT
           bg_color: 0x9CA3AF
           indicator:
@@ -19,13 +19,13 @@
           on_click:
             - if:
                 condition:
-                  switch.is_on: default_compressor_frequencies_enabled
+                  switch.is_on: outdoor_unit_optimizations_enabled
                 then:
-                  - switch.turn_off: default_compressor_frequencies_enabled
-                else:
-                  - switch.turn_on: default_compressor_frequencies_enabled
+                  - switch.turn_off: outdoor_unit_optimizations_enabled
                   - lvgl.widget.show:
-                      id: default_compressor_frequencies_modal
+                      id: outdoor_unit_optimizations_modal
+                else:
+                  - switch.turn_on: outdoor_unit_optimizations_enabled
 
 - obj:
     id: set_advanced_compressor_hysteresis_row
