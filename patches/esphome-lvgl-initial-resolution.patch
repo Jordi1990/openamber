@@ -1,0 +1,150 @@
+From 22425090dd6246186ba9d99b890e20f5fef4d1df Mon Sep 17 00:00:00 2001
+From: shady <shady@shadylog.com>
+Date: Sun, 25 Oct 2026 16:49:48 +0100
+Subject: [PATCH] fix(lvgl): initialize displays with configured dimensions
+
+---
+ esphome/components/lvgl/__init__.py           |  3 ++
+ esphome/components/lvgl/lvgl_esphome.cpp      |  5 ++-
+ esphome/components/lvgl/lvgl_esphome.h        |  3 +-
+ .../fixtures/lvgl_initial_resolution.yaml     | 37 +++++++++++++++++++
+ .../test_lvgl_initial_resolution.py           | 25 +++++++++++++
+ 5 files changed, 70 insertions(+), 3 deletions(-)
+ create mode 100644 tests/integration/fixtures/lvgl_initial_resolution.yaml
+ create mode 100644 tests/integration/test_lvgl_initial_resolution.py
+
+diff --git a/esphome/components/lvgl/__init__.py b/esphome/components/lvgl/__init__.py
+index 382e483d..d8d90e42 100644
+--- a/esphome/components/lvgl/__init__.py
++++ b/esphome/components/lvgl/__init__.py
+@@ -421,6 +421,7 @@ async def to_code(configs):
+                     df.LOGGER.info("LVGL will use software rotation (PPA accelerated)")
+                 else:
+                     df.LOGGER.info("LVGL will use software rotation")
++        display_metadata = get_display_metadata(config[df.CONF_DISPLAYS][0])
+         lv_component = cg.new_Pvariable(
+             config[CONF_ID],
+             displays,
+@@ -430,6 +431,8 @@ async def to_code(configs):
+             config[df.CONF_RESUME_ON_INPUT],
+             config[df.CONF_UPDATE_WHEN_DISPLAY_IDLE],
+             rotation_type,
++            display_metadata.width or 240,
++            display_metadata.height or 240,
+         )
+         await cg.register_component(lv_component, config)
+         if rotation := config.get(CONF_ROTATION):
+diff --git a/esphome/components/lvgl/lvgl_esphome.cpp b/esphome/components/lvgl/lvgl_esphome.cpp
+index 2c988473..f0faa421 100644
+--- a/esphome/components/lvgl/lvgl_esphome.cpp
++++ b/esphome/components/lvgl/lvgl_esphome.cpp
+@@ -752,7 +752,7 @@ void LvglComponent::write_random_() {
+  */
+ LvglComponent::LvglComponent(std::vector<display::Display *> displays, float buffer_frac, bool full_refresh,
+                              int draw_rounding, bool resume_on_input, bool update_when_display_idle,
+-                             RotationType rotation_type)
++                             RotationType rotation_type, int initial_width, int initial_height)
+     : draw_rounding(draw_rounding),
+       displays_(std::move(displays)),
+       buffer_frac_(buffer_frac),
+@@ -760,7 +760,8 @@ LvglComponent::LvglComponent(std::vector<display::Display *> displays, float buf
+       resume_on_input_(resume_on_input),
+       update_when_display_idle_(update_when_display_idle),
+       rotation_type_(rotation_type) {
+-  this->disp_ = lv_display_create(240, 240);
++  // Resizing a populated display can refresh the default theme across every widget.
++  this->disp_ = lv_display_create(initial_width, initial_height);
+ }
+ 
+ void LvglComponent::set_resolution_() const {
+diff --git a/esphome/components/lvgl/lvgl_esphome.h b/esphome/components/lvgl/lvgl_esphome.h
+index 8b7397c4..f0a73773 100644
+--- a/esphome/components/lvgl/lvgl_esphome.h
++++ b/esphome/components/lvgl/lvgl_esphome.h
+@@ -218,7 +218,8 @@ class LvglComponent final : public PollingComponent {
+ 
+  public:
+   LvglComponent(std::vector<display::Display *> displays, float buffer_frac, bool full_refresh, int draw_rounding,
+-                bool resume_on_input, bool update_when_display_idle, RotationType rotation_type);
++                bool resume_on_input, bool update_when_display_idle, RotationType rotation_type,
++                int initial_width = 240, int initial_height = 240);
+   static void static_flush_cb(lv_display_t *disp_drv, const lv_area_t *area, uint8_t *color_p);
+   /**
+    *
+diff --git a/tests/integration/fixtures/lvgl_initial_resolution.yaml b/tests/integration/fixtures/lvgl_initial_resolution.yaml
+new file mode 100644
+index 00000000..c86539fc
+--- /dev/null
++++ b/tests/integration/fixtures/lvgl_initial_resolution.yaml
+@@ -0,0 +1,37 @@
++esphome:
++  name: lvgl-initial-resolution-test
++  on_boot:
++    - priority: 1000
++      then:
++        - lambda: |-
++            auto *disp = id(screen_ui).get_disp();
++            ESP_LOGI("test", "INITIAL_RESOLUTION %ld %ld",
++                     static_cast<long>(lv_display_get_horizontal_resolution(disp)),
++                     static_cast<long>(lv_display_get_vertical_resolution(disp)));
++            lv_obj_add_event_cb(id(test_label), [](lv_event_t *) {
++              ESP_LOGI("test", "LATE_STYLE_REFRESH");
++            }, LV_EVENT_STYLE_CHANGED, nullptr);
++    - priority: -100
++      then:
++        - logger.log: "DISPLAY_SETUP_DONE"
++
++host:
++api:
++logger:
++  level: DEBUG
++
++display:
++  - platform: snapshot
++    id: test_display
++    auto_clear_enabled: false
++    dimensions:
++      width: 1024
++      height: 600
++
++lvgl:
++  id: screen_ui
++  displays: test_display
++  widgets:
++    - label:
++        id: test_label
++        text: "Initial resolution"
+diff --git a/tests/integration/test_lvgl_initial_resolution.py b/tests/integration/test_lvgl_initial_resolution.py
+new file mode 100644
+index 00000000..d29b1066
+--- /dev/null
++++ b/tests/integration/test_lvgl_initial_resolution.py
+@@ -0,0 +1,25 @@
++"""Known display dimensions must not trigger a theme refresh after widget creation."""
++
++import asyncio
++
++import pytest
++
++from .types import RunCompiledFunction
++
++
++@pytest.mark.asyncio
++async def test_lvgl_initial_resolution(
++    yaml_config: str, run_compiled: RunCompiledFunction
++) -> None:
++    lines: list[str] = []
++    setup_done = asyncio.Event()
++
++    def on_line(line: str) -> None:
++        lines.append(line)
++        if "DISPLAY_SETUP_DONE" in line:
++            setup_done.set()
++
++    async with run_compiled(yaml_config, line_callback=on_line):
++        await asyncio.wait_for(setup_done.wait(), timeout=10)
++        assert any("INITIAL_RESOLUTION 1024 600" in line for line in lines)
++        assert not any("LATE_STYLE_REFRESH" in line for line in lines)
+-- 
+2.54.0
+
