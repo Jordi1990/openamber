@@ -249,12 +249,11 @@ obj:
                     knob:
                       bg_color: 0xFFFFFF
                     on_click:
-                      - if:
-                          condition:
-                            switch.is_on: emergency_mode_enabled
-                          then:
-                            - switch.turn_off: emergency_mode_enabled
-                          else:
-                            - switch.turn_on: emergency_mode_enabled
+                      - lambda: |-
+                          if (id(emergency_mode_enabled).state) {
+                            id(emergency_mode_enabled).turn_off();
+                          } else {
+                            id(emergency_mode_enabled).turn_on();
+                          }
 
 
