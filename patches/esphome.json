@@ -1,0 +1,7 @@
+{
+  "version": "2026.10.1",
+  "repository": "https://github.com/esphome/esphome.git",
+  "commit": "4ea26ed65fefaf6ec9d1347285253801db096ee5",
+  "patch": "esphome-lvgl-initial-resolution.patch",
+  "patch_sha256": "51d2db50df9c9949da0bcc130553c21b4cf0374ced9a9667108724d6c8da7e65"
+}
