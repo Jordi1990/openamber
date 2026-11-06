@@ -58,6 +58,7 @@ script:
 
           root["ca"] = id(compressor_start_delta_heating).state;
           root["cb"] = id(compressor_stop_delta_heating).state;
+          root["cc"] = id(compressor_hysteresis).state;
 
 - id: send_config_2
   then:

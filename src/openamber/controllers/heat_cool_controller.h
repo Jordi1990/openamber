@@ -547,6 +547,18 @@ public:
     float current_temperature = GetControlTemperature();
     float target = GetPidController().target_temperature;
 
+    // Hysteresis: hold the compressor mode while the control temperature stays close to the setpoint.
+    // Inside the PID deadband the PID output still moves a little (kp_multiplier), which is enough to
+    // flip the rounded compressor mode back and forth between two adjacent modes.
+    const float hysteresis = id(compressor_hysteresis).state;
+    const float dt = current_temperature - target;
+    if (hysteresis > 0.0f && fabsf(dt) < hysteresis)
+    {
+      int clamped_mode = std::min((int)current_compressor_mode, max_allowed);
+      ESP_LOGI("amber", "ΔT=%.2f°C within compressor hysteresis %.1f°C, compressor mode remains at %d", dt, hysteresis, clamped_mode);
+      return clamped_mode;
+    }
+
     // Guard: never modulate up when temperature has already overshot the setpoint
     const float TEMP_MARGIN = 0.3f;
     bool overshoot = IsWorkingMode(WORKING_MODE_COOLING)
