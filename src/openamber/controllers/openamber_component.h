@@ -139,19 +139,16 @@ void OpenAmberComponent::update()
       pump_controller_->ResetInterval();
       if(is_hp_s_model)
       {
-        ESP_LOGI("amber", "Detected HPS unit based on EEPROM version, not writing heating frequency table.");
+        ESP_LOGI("amber", "Detected HPS unit based on EEPROM version, not applying outdoor unit optimizations.");
       }
-      else if(id(default_compressor_frequencies_enabled).state)
+      else if(!id(outdoor_unit_optimizations_enabled).state)
       {
-        ESP_LOGI("amber", "Default compressor frequencies setting enabled, not writing frequency tables.");
+        ESP_LOGI("amber", "Outdoor unit optimizations disabled, not writing any outdoor unit parameters.");
       }
       else
       {
         WriteHeatingFrequencyTable();
         WriteCoolingFrequencyTable();
-      }
-      if (!is_hp_s_model)
-      {
         // OpenAmber limits the compressor per outdoor temperature in Hz (CompressorController), including
         // outside the operating range. Turn off the unit's own level-based limit (RAM-only).
         id(outdoor_unit_ambient_limit_control).make_call().set_value(0).perform();
