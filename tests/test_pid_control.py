@@ -134,6 +134,7 @@ def test_pid_deadband_setting_governs_compressor_modulation(clean_system, deadba
     openamber.set_number("manual_setpoint", 40.0)
     openamber.set_climate("pid_heat_temperature_control", target_temperature=40.0)
     openamber.set_number("pid_heat_deadband", deadband)
+    openamber.set_number("compressor_hysteresis", 0.0)  # only the PID deadband under test
     openamber.set_number("backup_heater_degmin_threshold", 999.0)
     openamber.set_select("heat_compressor_mode", "Maximaal")
     openamber.set_switch("heat_demand_switch", True)
@@ -173,4 +174,68 @@ def test_pid_deadband_setting_governs_compressor_modulation(clean_system, deadba
     else:
         assert mode == saturated_mode, (
             f"With a {deadband}°C deadband a 0.5°C overshoot is inside the deadband, mode should hold at {saturated_mode}, got {mode}"
+        )
+
+
+@pytest.mark.parametrize("hysteresis,overshoot,expect_mode_drop", [
+    (1.0, 0.5, False),  # 0.5°C overshoot inside the 1.0°C compressor hysteresis: mode holds
+    (0.3, 0.5, True),   # 0.5°C overshoot outside the 0.3°C compressor hysteresis: PID modulates down
+    (0.0, 0.5, True),   # hysteresis disabled: PID modulates down
+])
+def test_compressor_hysteresis_holds_mode_near_setpoint(clean_system, hysteresis, overshoot, expect_mode_drop):
+    """
+    The compressor hysteresis (compressor_hysteresis) holds the compressor mode while Tc stays
+    within +/- hysteresis of the setpoint, independent of the PID deadband. Without it, the small P term
+    the PID keeps inside its deadband flips the rounded mode between two adjacent modes.
+    1. Use a small PID deadband (0.2°C) so the PID itself reacts to the overshoot.
+    2. Run the compressor at full demand until it saturates at mode 10.
+    3. Raise Tc above the setpoint and check whether the mode holds or drops.
+    """
+    openamber = clean_system
+
+    openamber.set_select("thermostat_mode_select", "Extern")
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 40.0)
+    openamber.set_climate("pid_heat_temperature_control", target_temperature=40.0)
+    openamber.set_number("pid_heat_deadband", 0.2)
+    openamber.set_number("compressor_hysteresis", hysteresis)
+    openamber.set_number("backup_heater_degmin_threshold", 999.0)
+    openamber.set_select("heat_compressor_mode", "Maximaal")
+    openamber.set_switch("heat_demand_switch", True)
+    openamber.set_sensor("current_water_temperature_tc_sensor", 25.0)
+    openamber.set_sensor("heat_cool_temperature_tc", 25.0)
+    openamber.set_sensor("outlet_temperature_tuo", 25.0)
+    openamber.set_sensor("inlet_temperature_tui", 22.0)
+    openamber.step(ms=50)
+
+    # Pump interval + settle + soft start, then ramp up to mode 10 (one step per 300s)
+    openamber.advance_time(seconds=900, step_s=30)
+    openamber.advance_time(seconds=140, step_s=10)
+    openamber.advance_time(seconds=190, step_s=10)
+    openamber.advance_time(seconds=1900, step_s=30)
+    openamber.step(ms=50)
+
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    saturated_mode = int(openamber.get_entity("compressor_control_select"))
+    assert saturated_mode == 10, f"Compressor should saturate at mode 10 under full demand, got {saturated_mode}"
+
+    tc = 40.0 + overshoot
+    openamber.set_sensor("current_water_temperature_tc_sensor", tc)
+    openamber.set_sensor("heat_cool_temperature_tc", tc)
+    # Stage Tuo/Tui so no intermediate update exceeds the 8°C Tuo-Tui safety limit
+    openamber.set_sensor("outlet_temperature_tuo", 30.0)
+    openamber.set_sensor("inlet_temperature_tui", tc - 3.0)
+    openamber.set_sensor("outlet_temperature_tuo", tc)
+    openamber.advance_time(seconds=120, step_s=5)
+    openamber.step(ms=50)
+
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    mode = int(openamber.get_entity("compressor_control_select"))
+    if expect_mode_drop:
+        assert mode < saturated_mode, (
+            f"With a {hysteresis}°C hysteresis a {overshoot}°C overshoot must modulate the compressor down, mode stayed at {mode}"
+        )
+    else:
+        assert mode == saturated_mode, (
+            f"With a {hysteresis}°C hysteresis a {overshoot}°C overshoot must hold the mode at {saturated_mode}, got {mode}"
         )
