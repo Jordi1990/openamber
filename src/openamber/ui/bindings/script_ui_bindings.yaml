@@ -2239,7 +2239,7 @@
           id(set_general_defrost_enter1_row),
           id(set_defrost_advanced_section),
           id(set_pump_flow_switch_safety_row),
-          id(set_advanced_compressor_default_frequencies_row),
+          id(set_advanced_compressor_outdoor_unit_optimizations_row),
           id(set_fan_heat_max_row),
           id(set_fan_heat_mild_row),
           id(set_fan_heat_warm_row),
@@ -2261,10 +2261,10 @@
           }
         }
 
-        if (id(default_compressor_frequencies_enabled).state) {
-          lv_obj_add_state(id(set_default_compressor_frequencies_enabled_switch_ui), LV_STATE_CHECKED);
+        if (id(outdoor_unit_optimizations_enabled).state) {
+          lv_obj_add_state(id(set_outdoor_unit_optimizations_enabled_switch_ui), LV_STATE_CHECKED);
         } else {
-          lv_obj_clear_state(id(set_default_compressor_frequencies_enabled_switch_ui), LV_STATE_CHECKED);
+          lv_obj_clear_state(id(set_outdoor_unit_optimizations_enabled_switch_ui), LV_STATE_CHECKED);
         }
     - if:
         condition:
