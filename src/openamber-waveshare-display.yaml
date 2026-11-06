@@ -64,6 +64,14 @@ psram:
   mode: octal
   speed: 80MHz
 
+external_components:
+  - source:
+      type: local
+      path: openamber
+    components: [psram_static]
+
+psram_static:
+
 ch422g:
   - id: ch422g_hub
 
