@@ -1,0 +1,22 @@
+obj:
+  id: ble_device_row_${index}
+  width: 100%
+  height: 76
+  hidden: true
+  bg_color: 0xFFFFFF
+  bg_opa: 100%
+  radius: 8
+  border_color: 0xCBD5E1
+  border_width: 1
+  pad_all: 10
+  scrollable: false
+  on_click:
+    - lambda: nimble_choose_device(${index});
+  widgets:
+    - label:
+        id: ble_device_label_${index}
+        text: ""
+        width: 100%
+        text_font: font_text_20
+        text_color: 0x1F2933
+        align: LEFT_MID

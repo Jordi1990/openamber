@@ -1,0 +1,197 @@
+packages:
+  settings: !include settings.yaml
+
+external_components:
+  - source:
+      type: local
+      path: openamber
+    components: [nimble_switchbot]
+
+nimble_switchbot:
+
+esp32:
+  framework:
+    sdkconfig_options:
+      CONFIG_SPIRAM_ALLOW_BSS_SEG_EXTERNAL_MEMORY: y
+
+web_server:
+  css_include: openamber/ble/web.css
+  js_include: openamber/ble/web.js
+
+text_sensor:
+  - platform: template
+    id: ble_discovery_state
+    name: "BLE sensorlijst"
+    internal: true
+    update_interval: 2s
+    lambda: return nimble_web_state();
+
+binary_sensor:
+  - id: !extend error_flag_f13
+    lambda: |-
+      if (id(thermostat_mode_select).current_option() != "Intern") return false;
+      if (nimble_source_is_ble()) return !nimble_reading_fresh();
+      if (!id(inside_unit_status_1225_raw).has_state()) return false;
+      const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
+      return (raw & 0x0001) != 0;
+
+esphome:
+  includes:
+    - openamber/controllers/nimble_switchbot_scanner.h
+    - openamber/controllers/nimble_switchbot_ui.h
+  on_shutdown:
+    - priority: -100
+      then:
+        - lambda: nimble_shutdown();
+  on_boot:
+    - priority: -100
+      then:
+        - delay: 10s
+        - lambda: |-
+            nimble_boot_ready = true;
+            if (nimble_source_is_ble() && id(ble_device_mac).state.empty()) nimble_begin_discovery();
+            nimble_update_source();
+            nimble_update_ui();
+
+interval:
+  - interval: 2s
+    then:
+      - lambda: |-
+          nimble_update_source();
+          nimble_update_ui();
+  - interval: 60s
+    then:
+      - lambda: nimble_log_heap();
+
+select:
+  - platform: template
+    id: room_temperature_source_select
+    name: "Ruimtetemperatuurbron"
+    optimistic: true
+    options: [Tr, BLE]
+    initial_option: Tr
+    restore_value: true
+    entity_category: config
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: return nimble_boot_ready;
+            then:
+              - lambda: |-
+                  if (nimble_source_is_ble()) nimble_begin_discovery();
+                  nimble_update_source();
+                  nimble_update_ui();
+                  if (nimble_source_is_ble()) lv_obj_clear_flag(id(ble_sensor_dialog), LV_OBJ_FLAG_HIDDEN);
+              - component.update: effective_room_temperature
+              - component.update: effective_room_humidity
+
+number:
+  - platform: template
+    id: ble_reading_timeout
+    name: "BLE meettimeout"
+    internal: true
+    unit_of_measurement: min
+    min_value: 1
+    max_value: 15
+    step: 1
+    initial_value: 5
+    restore_value: true
+    optimistic: true
+    on_value:
+      then:
+        - lambda: |-
+            if (std::isfinite(x) && x >= 1 && x <= 15) nimble_reading_timeout_ms = uint32_t(x) * 60000;
+            // Restoring this number runs before LVGL setup. Sensor callbacks update labels.
+            if (!nimble_boot_ready) return;
+            nimble_update_source();
+            nimble_update_ui();
+            id(effective_room_temperature).update();
+            id(effective_room_humidity).update();
+
+button:
+  - platform: template
+    id: ble_discovery_button
+    name: "BLE sensoren zoeken"
+    internal: true
+    on_press:
+      - lambda: |-
+          if (!nimble_boot_ready || !nimble_source_is_ble()) return;
+          nimble_begin_discovery();
+          nimble_update_source();
+          nimble_update_ui();
+
+text:
+  - platform: template
+    id: ble_device_mac
+    name: "SwitchBot MAC Adres"
+    mode: text
+    optimistic: true
+    restore_value: true
+    initial_value: ""
+    entity_category: config
+    internal: true
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: return nimble_boot_ready;
+            then:
+              - lambda: |-
+                  nimble_end_discovery();
+                  nimble_update_source();
+                  nimble_update_ui();
+                  lv_obj_add_flag(id(ble_sensor_dialog), LV_OBJ_FLAG_HIDDEN);
+              - component.update: effective_room_temperature
+              - component.update: effective_room_humidity
+
+globals:
+  - id: ble_temp_value
+    type: float
+    initial_value: 'NAN'
+  - id: ble_hum_value
+    type: float
+    initial_value: 'NAN'
+
+sensor:
+  - platform: template
+    name: "Effectieve ruimtetemperatuur"
+    id: effective_room_temperature
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: 10s
+    lambda: |-
+      if (nimble_source_is_ble()) {
+        return nimble_reading_fresh() ? id(ble_temp_value) : NAN;
+      }
+      return id(room_temperature).state;
+
+  - platform: template
+    name: "Effectieve luchtvochtigheid"
+    id: effective_room_humidity
+    unit_of_measurement: "%"
+    device_class: humidity
+    state_class: measurement
+    accuracy_decimals: 0
+    update_interval: 10s
+    lambda: |-
+      if (nimble_source_is_ble()) {
+        return nimble_reading_fresh() ? id(ble_hum_value) : NAN;
+      }
+      return NAN;
+
+  - platform: template
+    name: "Leeftijd BLE meting"
+    id: nimble_reading_age
+    unit_of_measurement: s
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    update_interval: 10s
+    lambda: |-
+      return nimble_reading.valid ? uint32_t(millis() - nimble_reading.received_ms) / 1000.0f : NAN;
+
+climate:
+  - id: !extend climate_controller
+    humidity_sensor: effective_room_humidity

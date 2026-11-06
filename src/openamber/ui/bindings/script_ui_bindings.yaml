@@ -73,7 +73,7 @@
                       args: ['id(climate_controller).target_temperature_low']
           - if:
               condition:
-                lambda: 'return isnan(id(room_temperature).state);'
+                lambda: 'return isnan(id(${room_temperature_source}).state);'
               then:
                 - lvgl.label.update:
                     id: home_therm_current_temp_value
@@ -83,7 +83,7 @@
                     id: home_therm_current_temp_value
                     text:
                       format: "%.1f°C"
-                      args: ['id(room_temperature).state']
+                      args: ['id(${room_temperature_source}).state']
           - script.execute: update_home_thermostat_mode_ui
 
 - id: update_thermostat_mode_ui

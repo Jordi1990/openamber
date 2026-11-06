@@ -1,11 +1,13 @@
 substitutions:
   device_model: waveshare-5-1024x600
+  room_temperature_source: effective_room_temperature
 
 packages:
  - !include openamber/core/openamber.yaml
  - !include openamber/ui/display_globals.yaml
  - !include openamber/ui/bindings/ui_bindings_package.yaml
  - !include openamber/ui/ui_package.yaml
+ - !include openamber/ble/ble_package.yaml
  
 wifi:
   use_psram: true
