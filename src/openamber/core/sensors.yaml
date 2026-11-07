@@ -398,7 +398,39 @@ sensor:
   accuracy_decimals: 1
   update_interval: 1s
   lambda: |-
-    return id(temperature_outside_ta).state;
+    // Exponential moving average for the heating curves. It holds its value during a defrost
+    // and shortly after it, because the outdoor unit then blows warm air past the Ta sensor.
+    static const float TIME_CONSTANT_S = 3600.0f;
+    static const uint32_t DEFROST_HOLD_MS = COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL;
+    static uint32_t last_update_ms = 0;
+    static uint32_t last_defrost_ms = 0;
+    static bool defrost_seen = false;
+
+    const uint32_t now = millis();
+    const float elapsed_s = (now - last_update_ms) / 1000.0f;
+    last_update_ms = now;
+
+    if (id(defrost_active_sensor).state)
+    {
+      defrost_seen = true;
+      last_defrost_ms = now;
+    }
+
+    const float ta = id(temperature_outside_ta).state;
+    float average = id(temperature_outside_ta_avg_1h).state;
+    if (std::isnan(ta))
+    {
+      return average;
+    }
+    if (std::isnan(average))
+    {
+      return ta;
+    }
+    if (defrost_seen && (now - last_defrost_ms) < DEFROST_HOLD_MS)
+    {
+      return average;
+    }
+    return average + (1.0f - std::exp(-elapsed_s / TIME_CONSTANT_S)) * (ta - average);
   on_value:
     then:
       - component.update: heat_curve_calculated_setpoint
