@@ -16,10 +16,12 @@ DEFROST_HOLD_S = 300
 
 
 def average(openamber):
+    """Return the averaged Ta used by the heating curves."""
     return float(openamber.get_entity(AVERAGE))
 
 
 def test_average_follows_outside_temperature_with_one_hour_time_constant(clean_system):
+    """After one time constant about 63% of a Ta step is reflected in the average."""
     openamber = clean_system
     set_outside_temperature(openamber, 5.0)
 
@@ -31,6 +33,7 @@ def test_average_follows_outside_temperature_with_one_hour_time_constant(clean_s
 
 
 def test_heating_curve_uses_the_average_instead_of_raw_outside_temperature(clean_system):
+    """The heating curve setpoint follows the average, so a short raw Ta jump barely moves it."""
     openamber = clean_system
     set_outside_temperature(openamber, 5.0)
     openamber.advance_time(seconds=10, step_s=5)
@@ -43,6 +46,7 @@ def test_heating_curve_uses_the_average_instead_of_raw_outside_temperature(clean
 
 
 def test_average_ignores_warm_air_spike_during_and_after_defrost(clean_system):
+    """The average holds during defrost and for the full hold time after it, then moves again."""
     openamber = clean_system
     set_outside_temperature(openamber, 1.0)
 
@@ -54,12 +58,19 @@ def test_average_ignores_warm_air_spike_during_and_after_defrost(clean_system):
     assert average(openamber) == pytest.approx(1.0, abs=0.01)
 
     openamber.set_binary_sensor("defrost_active_sensor", False)
-    openamber.advance_time(seconds=DEFROST_HOLD_S - 30, step_s=5)
-    assert average(openamber) == pytest.approx(1.0, abs=0.01)
+    openamber.advance_time(seconds=DEFROST_HOLD_S - 10, step_s=5)
+    assert average(openamber) == pytest.approx(1.0, abs=0.01), "Average must hold until the hold time ends"
     assert openamber.get_entity("temperature_outside_ta") == pytest.approx(21.0, abs=0.01)
+
+    # Just after the hold time the average starts following Ta again: at most about 30 s of
+    # averaging towards 21 °C moves it by about 0.17 °C.
+    openamber.advance_time(seconds=30, step_s=5)
+    moved = average(openamber)
+    assert 1.05 < moved < 1.25, f"Average must move again after the hold time, got {moved}"
 
 
 def test_average_resumes_after_defrost_hold_time(clean_system):
+    """After the hold time the average follows Ta with the normal time constant."""
     openamber = clean_system
     set_outside_temperature(openamber, 1.0)
 

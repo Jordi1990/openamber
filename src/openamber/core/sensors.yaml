@@ -402,7 +402,7 @@ sensor:
     // and shortly after it, because the outdoor unit then blows warm air past the Ta sensor.
     static const float TIME_CONSTANT_S = 3600.0f;
     static const uint32_t DEFROST_HOLD_MS = COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL;
-    static uint32_t last_update_ms = 0;
+    static uint32_t last_update_ms = millis();
     static uint32_t last_defrost_ms = 0;
     static bool defrost_seen = false;
 
