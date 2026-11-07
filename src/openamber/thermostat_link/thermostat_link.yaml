@@ -1,0 +1,499 @@
+# =====================================================================
+# Wireless thermostat link via ESP-NOW (packet_transport)
+#
+# Shares temperatures, status, setpoints and mode with the round OpenAmber
+# thermostat, and executes setpoint/mode commands sent by that thermostat.
+#
+# Off by default: ESP-NOW only runs when the switch "Draadloze thermostaat"
+# (Settings > Thermostat > Algemeen, page 2, or the entity) is on.
+#
+# Pairing: when the link is switched on for the first time, OpenAmber generates
+# a random 6-digit pairing code, shown below the switch on the display and as
+# the text sensor "Thermostaat koppelcode". The user enters it on the thermostat.
+# Both sides derive the encryption key from it:
+#   key = SHA-256("${thermostat_link_key}:" + code)
+# so a thermostat without the code cannot read or send anything. "Nieuwe
+# koppelcode" (button on the display and as an entity) generates a new code;
+# the thermostat then has to be paired again.
+# On top of that, packets are broadcast with the last 6 hex characters of the
+# MAC address (pin); the thermostat locks on to the first OpenAmber it hears
+# and OpenAmber only accepts commands from a thermostat that sends its pin.
+#
+# Both sides use rolling codes, so captured packets cannot be replayed.
+# A 6-digit code can be brute-forced from captured packets with some effort;
+# it keeps out neighbours and other ESP-NOW devices.
+#
+# Substitutions (defaults below, can be overridden in the device file):
+#   thermostat_link_key: base text for the key, must be equal on both sides.
+#     It is also the key until the pairing code is applied at boot, so packets
+#     are never sent or accepted unencrypted.
+#   thermostat_name: "esphome: name:" of the thermostat
+#
+# Notes:
+#  - Commands only affect the heat pump when "Thermostaat keuze" is set to
+#    "Intern" (default is "Extern").
+#  - Display builds only: thermostat_rx_cmd calls update_thermostat_settings_ui
+#    and the switch and pairing code are shown in the UI.
+#
+# Layout: 1. General  2. Sent by OpenAmber  3. Sent by the thermostat
+# =====================================================================
+
+substitutions:
+  thermostat_link_key: openamber-thermostat-link
+  thermostat_name: openamber-thermostat
+
+# ---------------------------------------------------------------------
+# 1. GENERAL
+# ---------------------------------------------------------------------
+globals:
+  - id: thermostat_pin_ok         # true when the thermostat's pairing code equals our own
+    type: bool
+    initial_value: 'false'
+  - id: thermostat_last_cmd_seq   # sequence number of the last executed command
+    type: int
+    restore_value: yes            # kept across reboots, so nothing is executed twice
+    initial_value: '-1'
+  - id: thermostat_link_code      # pairing code 100000-999999; 0 = not generated yet
+    type: int
+    restore_value: yes            # kept across reboots and updates
+    initial_value: '0'
+
+sha256:                           # key derivation from the pairing code
+
+esphome:
+  on_boot:
+    - priority: -100              # everything is set up; ESP-NOW starts disabled (enable_on_boot: false)
+      then:
+        - if:
+            condition:
+              switch.is_on: thermostat_link_enabled
+            then:
+              - lambda: 'id(espnow_component)->enable();'
+              - script.execute: thermostat_link_apply_code
+        - script.execute: thermostat_link_ui
+        # The rolling code counter is raised at every boot; write it to flash right away instead
+        # of at the next flash_write_interval (5 min), otherwise a reboot before that makes the
+        # thermostat reject our packets as old
+        - lambda: 'global_preferences->sync();'
+
+switch:
+  - platform: template
+    id: thermostat_link_enabled
+    name: "Draadloze thermostaat"
+    icon: mdi:thermostat
+    entity_category: config
+    disabled_by_default: true
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    # Restoring the state at setup also fires these triggers, before ESP-NOW and LVGL
+    # are set up (disable() on an uninitialised ESP-NOW crashes). The boot case is
+    # handled by on_boot above, so only act once ESP-NOW is ready.
+    on_turn_on:
+      - if:
+          condition:
+            lambda: 'return id(espnow_component)->is_ready();'
+          then:
+            - lambda: 'id(espnow_component)->enable();'
+            - script.execute: thermostat_link_apply_code
+    on_turn_off:
+      - if:
+          condition:
+            lambda: 'return id(espnow_component)->is_ready();'
+          then:
+            - lambda: |-
+                id(espnow_component)->disable();
+                id(thermostat_pin_ok) = false;
+                id(thermostat_temp).publish_state(NAN);
+                id(thermostat_hum).publish_state(NAN);
+                id(thermostat_dewpoint).publish_state(NAN);
+    on_state:
+      - if:
+          condition:
+            lambda: 'return id(espnow_component)->is_ready();'
+          then:
+            - script.execute: thermostat_link_ui
+
+button:
+  - platform: template
+    id: thermostat_link_new_code
+    name: "Thermostaat nieuwe koppelcode"
+    icon: mdi:link-variant-plus
+    entity_category: config
+    disabled_by_default: true
+    on_press:
+      - if:
+          condition:
+            switch.is_on: thermostat_link_enabled
+          then:
+            - globals.set:
+                id: thermostat_link_code
+                value: '0'
+            - script.execute: thermostat_link_apply_code
+
+text_sensor:
+  - platform: template
+    id: thermostat_link_code_text
+    name: "Thermostaat koppelcode"
+    icon: mdi:link-variant
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never        # updated by thermostat_link_apply_code
+    lambda: |-
+      if (id(thermostat_link_code) <= 0) return std::string("-");
+      return str_sprintf("%06d", id(thermostat_link_code));
+
+espnow:
+  id: espnow_component
+  enable_on_boot: false           # only with the switch "Draadloze thermostaat" on (see on_boot)
+  auto_add_peer: true             # unknown senders are added; without the key their packets are ignored
+
+packet_transport:
+  - platform: espnow
+    id: transport_thermostat
+    espnow_id: espnow_component
+    # No peer_address: packets are broadcast. Encryption makes sure only a
+    # device with the same key can use them.
+    encryption: ${thermostat_link_key}
+    # Rolling code: every packet carries a rising counter and packets with an older counter are
+    # rejected, so captured packets cannot be replayed. The counter is kept in flash (see on_boot).
+    rolling_code_enable: true
+    providers:
+      - name: ${thermostat_name}
+        encryption: ${thermostat_link_key}   # needed to read packets from the thermostat
+
+    # -------------------------------------------------------------
+    # 2. SENT BY OPENAMBER
+    # -------------------------------------------------------------
+    # broadcast_id is the name under which the thermostat receives the value.
+    # These names are the protocol with the thermostat: do not rename them.
+    sensors:
+      - id: thermostat_link_pin             # own pairing code, the thermostat checks it
+        broadcast_id: pin
+      - id: dhw_temperature_tw_sensor       # DHW temperature (Tw)
+        broadcast_id: tw
+      - id: current_dhw_setpoint_sensor     # DHW target temperature
+        broadcast_id: tws
+      - id: heat_cool_temperature_tc        # flow temperature (Tc)
+        broadcast_id: tc
+      - id: outlet_temperature_tuo          # flow temperature (Tuo)
+        broadcast_id: tuo
+      - id: inlet_temperature_tui           # return temperature (Tui)
+        broadcast_id: tui
+      - id: temperature_outside_ta          # outside temperature (Ta)
+        broadcast_id: ta
+      - id: room_temperature                # room temperature (Tr)
+        broadcast_id: rt
+      - id: thermostat_link_target_low      # low setpoint (heating)
+        broadcast_id: slo
+      - id: thermostat_link_target_high     # high setpoint (cooling)
+        broadcast_id: shi
+      - id: thermostat_link_mode            # climate mode as ESPHome number: 0=off 2=cool 3=heat
+        broadcast_id: mode
+      - id: current_compressor_frequency    # compressor frequency (Hz)
+        broadcast_id: cf
+      - id: thermostat_link_errors_1        # active error/warning flags, bits 0-23
+        broadcast_id: e1
+      - id: thermostat_link_errors_2        # active error/warning flags, bits 24-44
+        broadcast_id: e2
+      - id: current_setpoint                # current flow setpoint (heating curve, manual or cooling)
+        broadcast_id: wsp
+      - id: thermostat_link_time            # minutes since Monday 00:00 (for the thermostat's schedule)
+        broadcast_id: tm
+    binary_sensors:
+      - id: error_active
+        broadcast_id: err
+      - id: warning_active
+        broadcast_id: warn
+      - id: heat_demand_active_sensor
+        broadcast_id: wv
+      - id: cool_demand_active_sensor
+        broadcast_id: cd
+      - id: dhw_pump_active_sensor
+        broadcast_id: twp
+      - id: dhw_demand_active_sensor
+        broadcast_id: twv
+      - id: dhw_active                      # DHW is running
+        broadcast_id: da
+      - id: dhw_legionella_run_active_sensor
+        broadcast_id: lega
+      - id: defrost_active_sensor
+        broadcast_id: dfr
+      - id: backup_heater_active_sensor
+        broadcast_id: bu
+      - id: thermostat_link_dhw_enabled     # follows the switch "Tapwater aanwezig"
+        broadcast_id: twa
+      - id: thermostat_link_legio_enabled   # follows the switch "Legionellapreventie"
+        broadcast_id: legp
+
+# Read-only copies of switches, so they can be shared
+binary_sensor:
+  - platform: switch
+    id: thermostat_link_dhw_enabled
+    source_id: dhw_enabled_switch
+    internal: true
+  - platform: switch
+    id: thermostat_link_legio_enabled
+    source_id: legio_enabled_switch
+    internal: true
+
+script:
+  # Generates a pairing code when there is none yet and derives the encryption key from it
+  - id: thermostat_link_apply_code
+    mode: restart
+    then:
+      - lambda: |-
+          if (id(thermostat_link_code) < 100000 || id(thermostat_link_code) > 999999) {
+            uint32_t r = 0;
+            random_bytes((uint8_t *) &r, sizeof(r));
+            id(thermostat_link_code) = 100000 + (int) (r % 900000);
+          }
+          char text[96];
+          snprintf(text, sizeof(text), "%s:%06d", "${thermostat_link_key}", id(thermostat_link_code));
+          sha256::SHA256 hash;
+          hash.init();
+          hash.add(text, strlen(text));
+          hash.calculate();
+          std::vector<uint8_t> key(32);
+          hash.get_bytes(key.data());
+          id(transport_thermostat)->set_encryption_key(key);
+          id(transport_thermostat)->set_provider_encryption("${thermostat_name}", key);
+          id(thermostat_pin_ok) = false;   // a thermostat with the old code is no longer paired
+          // It cannot send anymore, so clear its last readings
+          id(thermostat_temp).publish_state(NAN);
+          id(thermostat_hum).publish_state(NAN);
+          id(thermostat_dewpoint).publish_state(NAN);
+          ESP_LOGI("thermostat_link", "Pairing code %06d", id(thermostat_link_code));
+      - component.update: thermostat_link_code_text
+      - script.execute: thermostat_link_ui
+      # Write a new code to flash right away instead of at the next flash_write_interval (5 min),
+      # so a crash or power cut does not lose it (the global stores its value within 1 s)
+      - delay: 2s
+      - lambda: 'global_preferences->sync();'
+
+  # Display (Settings > Thermostat > Algemeen, page 2): the switch row, and the pairing code only when on
+  - id: thermostat_link_ui
+    then:
+      - lvgl.widget.show: thermostat_row_link_enabled
+      - lvgl.widget.update:
+          id: set_therm_link_switch_ui
+          state:
+            checked: !lambda 'return id(thermostat_link_enabled).state;'
+      - if:
+          condition:
+            switch.is_on: thermostat_link_enabled
+          then:
+            - lvgl.widget.show: thermostat_row_link_code
+            - lvgl.label.update:
+                id: set_therm_link_code_val
+                text: !lambda 'return str_sprintf("%06d", id(thermostat_link_code));'
+          else:
+            - lvgl.widget.hide: thermostat_row_link_code
+
+  # The UI defines these scripts empty, so builds without this package still compile
+  - id: !extend thermostat_link_toggle_ui
+    then:
+      - switch.toggle: thermostat_link_enabled
+
+  - id: !extend thermostat_link_new_code_ui
+    then:
+      - button.press: thermostat_link_new_code
+
+  - id: thermostat_pin_check      # compares the thermostat's pairing code with our own
+    then:
+      - lambda: |-
+          // Own code = last 6 hex characters of the MAC address (as a number)
+          long mine = strtol(get_mac_address().substr(6).c_str(), nullptr, 16);
+          id(thermostat_pin_ok) = mine > 0 && id(thermostat_rx_pin).has_state() &&
+                                  lroundf(id(thermostat_rx_pin).state) == mine;
+
+sensor:
+  # Own pairing code: the last 6 hex characters of the MAC address,
+  # e.g. MAC AA:BB:CC:11:22:33 gives code 112233. Fits exactly in a float (24 bits).
+  - platform: template
+    id: thermostat_link_pin
+    internal: true
+    update_interval: 5s
+    lambda: 'return (float) strtol(get_mac_address().substr(6).c_str(), nullptr, 16);'
+
+  # Time for the thermostat: minutes since Monday 00:00 (0 to 10079). NAN without valid time.
+  - platform: template
+    id: thermostat_link_time
+    internal: true
+    update_interval: 30s
+    lambda: |-
+      auto now = id(my_time).now();
+      if (!now.is_valid()) return NAN;
+      return (float) (((now.day_of_week + 5) % 7) * 1440 + now.hour * 60 + now.minute);
+
+  # Pairing code selected on the thermostat: must equal our own code
+  - platform: packet_transport
+    provider: ${thermostat_name}
+    remote_id: pin
+    id: thermostat_rx_pin
+    internal: true
+    on_value:
+      then:
+        - script.execute: thermostat_pin_check
+
+  # Setpoints and mode of the climate, read every 5 s
+  - platform: template
+    id: thermostat_link_target_low
+    internal: true
+    update_interval: 5s
+    lambda: 'return id(climate_controller).target_temperature_low;'
+
+  - platform: template
+    id: thermostat_link_target_high
+    internal: true
+    update_interval: 5s
+    lambda: 'return id(climate_controller).target_temperature_high;'
+
+  - platform: template
+    id: thermostat_link_mode                # climate::ClimateMode: 0 = off, 2 = cool, 3 = heat
+    internal: true
+    update_interval: 5s
+    lambda: 'return (float) id(climate_controller).mode;'
+
+  # Active error and warning flags for the thermostat, one bit per flag (24 bits fit exactly in a float).
+  # Same flags as error_active (errors) and warning_active (warnings); the bit order is the order of
+  # the lists below and is the protocol with the thermostat: only append, do not reorder.
+  #   e1 bit 0-23:  P03 P05 P08 P09 P10, F01-F07 F09 F10 F13-F18 F21 F22, E01 E02
+  #   e2 bit 0-20:  E03-E08, 401-406 (pump/compressor/valve timeouts, modbus, inside unit failsafe),
+  #                 warnings P01 P02 P06 P07 P11 P13, 407-409 (inside unit comm/EEPROM, pump P0 alarm)
+  - platform: template
+    id: thermostat_link_errors_1
+    internal: true
+    update_interval: 5s
+    lambda: |-
+      const binary_sensor::BinarySensor *flags[] = {
+        id(error_flag_p03), id(error_flag_p05), id(error_flag_p08), id(error_flag_p09), id(error_flag_p10),
+        id(error_flag_f01), id(error_flag_f02), id(error_flag_f03), id(error_flag_f04), id(error_flag_f05),
+        id(error_flag_f06), id(error_flag_f07), id(error_flag_f09), id(error_flag_f10), id(error_flag_f13),
+        id(error_flag_f14), id(error_flag_f15), id(error_flag_f16), id(error_flag_f17), id(error_flag_f18),
+        id(error_flag_f21), id(error_flag_f22), id(error_flag_e01), id(error_flag_e02)
+      };
+      uint32_t bits = 0;
+      for (size_t i = 0; i < sizeof(flags) / sizeof(flags[0]); i++)
+        if (flags[i]->state) bits |= 1u << i;
+      return (float) bits;
+
+  - platform: template
+    id: thermostat_link_errors_2
+    internal: true
+    update_interval: 5s
+    lambda: |-
+      const binary_sensor::BinarySensor *flags[] = {
+        id(error_flag_e03), id(error_flag_e04), id(error_flag_e05), id(error_flag_e06), id(error_flag_e07),
+        id(error_flag_e08), id(error_pump_start_timeout), id(error_compressor_start_timeout),
+        id(error_pump_stop_timeout), id(error_modbus_connection_timeout),
+        id(error_three_way_valve_state_timeout), id(error_inside_unit_failsafe), id(error_flag_p01),
+        id(error_flag_p02), id(error_flag_p06), id(error_flag_p07), id(error_flag_p11), id(error_flag_p13),
+        id(error_flag_inside_comm_failsafe), id(error_flag_inside_eeprom), id(error_flag_pump_p0_alarm)
+      };
+      uint32_t bits = 0;
+      for (size_t i = 0; i < sizeof(flags) / sizeof(flags[0]); i++)
+        if (flags[i]->state) bits |= 1u << i;
+      return (float) bits;
+
+  # -------------------------------------------------------------
+  # 3. SENT BY THE THERMOSTAT
+  # -------------------------------------------------------------
+  # BME680 values of the thermostat, only with a matching pairing code
+  - platform: packet_transport
+    provider: ${thermostat_name}
+    filters:
+      - lambda: 'if (id(thermostat_pin_ok)) return x; return NAN;'
+    remote_id: bt                           # temperature
+    id: thermostat_temp
+    name: "Thermostaat temperatuur (BME680)"
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    accuracy_decimals: 1
+    internal: false
+    disabled_by_default: true
+    web_server:
+      sorting_group_id: temperature_sensors
+
+  - platform: packet_transport
+    provider: ${thermostat_name}
+    filters:
+      - lambda: 'if (id(thermostat_pin_ok)) return x; return NAN;'
+    remote_id: bh                           # humidity
+    id: thermostat_hum
+    name: "Thermostaat luchtvochtigheid (BME680)"
+    unit_of_measurement: "%"
+    device_class: humidity
+    state_class: measurement
+    accuracy_decimals: 1
+    internal: false
+    disabled_by_default: true
+    web_server:
+      sorting_group_id: temperature_sensors
+
+  - platform: packet_transport
+    provider: ${thermostat_name}
+    filters:
+      - lambda: 'if (id(thermostat_pin_ok)) return x; return NAN;'
+    remote_id: dp                           # dew point (calculated on the thermostat)
+    id: thermostat_dewpoint
+    name: "Thermostaat dauwpunt (BME680)"
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    accuracy_decimals: 1
+    internal: false
+    disabled_by_default: true
+    web_server:
+      sorting_group_id: temperature_sensors
+
+  # Command from the thermostat (setpoints and/or mode) packed in one number:
+  #   cmd = ((seq * 4 + mode) * 100 + low*2) * 100 + high*2
+  #   mode: 0 = off, 1 = heat, 2 = cool, 3 = leave unchanged (setpoints only)
+  # Only executed when the sequence number differs from the last one; the packet
+  # is repeated periodically, which does not produce a new command.
+  - platform: packet_transport
+    provider: ${thermostat_name}
+    remote_id: cmd
+    id: thermostat_rx_cmd
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            if (std::isnan(x)) return;
+            // Only accept commands from the paired thermostat
+            if (!id(thermostat_pin_ok)) return;
+            // Unpack: high*2, low*2, mode (0-3) and sequence number
+            long n = lroundf(x);
+            int hi2 = n % 100;  n /= 100;
+            int lo2 = n % 100;  n /= 100;
+            int mode = n % 4;
+            int seq = n / 4;
+            // Same sequence number as last time: repeated packet, ignore
+            if (seq == id(thermostat_last_cmd_seq)) return;
+            id(thermostat_last_cmd_seq) = seq;
+            float lo = lo2 / 2.0f;
+            float hi = hi2 / 2.0f;
+            auto call = id(climate_controller).make_call();
+            if (mode == 1)      call.set_mode(climate::CLIMATE_MODE_HEAT);
+            else if (mode == 2) call.set_mode(climate::CLIMATE_MODE_COOL);
+            else if (mode == 0) call.set_mode(climate::CLIMATE_MODE_OFF);
+            // Like the display: only the setpoint of the active mode is set (high when
+            // cooling, low otherwise); the climate keeps the minimum differential itself.
+            bool cool = mode == 2 || (mode == 3 && id(climate_controller).mode == climate::CLIMATE_MODE_COOL);
+            float sp = cool ? hi : lo;
+            if (sp >= 5 && sp <= 35) {
+              if (cool) call.set_target_temperature_high(sp);
+              else      call.set_target_temperature_low(sp);
+            } else {
+              ESP_LOGW("thermostat_link", "Setpoint ignored: %.1f", sp);
+            }
+            call.perform();
+            // Send the new setpoints and mode back right away instead of at the next 5 s poll,
+            // otherwise the thermostat briefly shows the old value again
+            id(thermostat_link_target_low).update();
+            id(thermostat_link_target_high).update();
+            id(thermostat_link_mode).update();
+            ESP_LOGI("thermostat_link", "Command %d: mode %d, %.1f - %.1f", seq, mode, lo, hi);
+            // Refresh the OpenAmber display
+            id(update_thermostat_settings_ui).execute();
