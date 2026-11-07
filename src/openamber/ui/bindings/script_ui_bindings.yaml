@@ -10,7 +10,10 @@
   then:
     - lvgl.widget.enable: { id: service_eeprom_dump_button }
 
-# "Nieuw" next to the wireless thermostat pairing code; filled in by thermostat_link.yaml
+# Wireless thermostat switch and "Nieuw" next to its pairing code; filled in by thermostat_link.yaml
+- id: thermostat_link_toggle_ui
+  then: []
+
 - id: thermostat_link_new_code_ui
   then: []
 

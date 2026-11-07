@@ -4,9 +4,12 @@
 # Shares temperatures, status, setpoints and mode with the round OpenAmber
 # thermostat, and executes setpoint/mode commands sent by that thermostat.
 #
-# Pairing: on first boot OpenAmber generates a random 6-digit pairing code,
-# shown in Settings > Thermostat on the display and as the text sensor
-# "Thermostaat koppelcode". The user enters that code on the thermostat.
+# Off by default: ESP-NOW only runs when the switch "Draadloze thermostaat"
+# (Settings > Thermostat > Algemeen, page 2, or the entity) is on.
+#
+# Pairing: when the link is switched on for the first time, OpenAmber generates
+# a random 6-digit pairing code, shown below the switch on the display and as
+# the text sensor "Thermostaat koppelcode". The user enters it on the thermostat.
 # Both sides derive the encryption key from it:
 #   key = SHA-256("${thermostat_link_key}:" + code)
 # so a thermostat without the code cannot read or send anything. "Nieuwe
@@ -16,9 +19,9 @@
 # MAC address (pin); the thermostat locks on to the first OpenAmber it hears
 # and OpenAmber only accepts commands from a thermostat that sends its pin.
 #
+# Both sides use rolling codes, so captured packets cannot be replayed.
 # A 6-digit code can be brute-forced from captured packets with some effort;
 # it keeps out neighbours and other ESP-NOW devices.
-# Captured command packets can be replayed while the code is unchanged (see packet_transport).
 #
 # Substitutions (defaults below, can be overridden in the device file):
 #   thermostat_link_key: base text for the key, must be equal on both sides.
@@ -29,15 +32,15 @@
 # Notes:
 #  - Commands only affect the heat pump when "Thermostaat keuze" is set to
 #    "Intern" (default is "Extern").
-#  - Display builds only: rx_cmd calls update_thermostat_settings_ui and the
-#    pairing code is shown in the UI.
+#  - Display builds only: thermostat_rx_cmd calls update_thermostat_settings_ui
+#    and the switch and pairing code are shown in the UI.
 #
 # Layout: 1. General  2. Sent by OpenAmber  3. Sent by the thermostat
 # =====================================================================
 
 substitutions:
   thermostat_link_key: openamber-thermostat-link
-  thermostat_name: openamber-thermostaat
+  thermostat_name: openamber-thermostat
 
 # ---------------------------------------------------------------------
 # 1. GENERAL
@@ -59,9 +62,56 @@ sha256:                           # key derivation from the pairing code
 
 esphome:
   on_boot:
-    - priority: 600               # after globals are restored, before anything is sent
+    - priority: -100              # everything is set up; ESP-NOW starts disabled (enable_on_boot: false)
       then:
-        - script.execute: thermostat_link_apply_code
+        - if:
+            condition:
+              switch.is_on: thermostat_link_enabled
+            then:
+              - lambda: 'id(espnow_component)->enable();'
+              - script.execute: thermostat_link_apply_code
+        - script.execute: thermostat_link_ui
+        # The rolling code counter is raised at every boot; write it to flash right away instead
+        # of at the next flash_write_interval (5 min), otherwise a reboot before that makes the
+        # thermostat reject our packets as old
+        - lambda: 'global_preferences->sync();'
+
+switch:
+  - platform: template
+    id: thermostat_link_enabled
+    name: "Draadloze thermostaat"
+    icon: mdi:thermostat
+    entity_category: config
+    disabled_by_default: true
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    # Restoring the state at setup also fires these triggers, before ESP-NOW and LVGL
+    # are set up (disable() on an uninitialised ESP-NOW crashes). The boot case is
+    # handled by on_boot above, so only act once ESP-NOW is ready.
+    on_turn_on:
+      - if:
+          condition:
+            lambda: 'return id(espnow_component)->is_ready();'
+          then:
+            - lambda: 'id(espnow_component)->enable();'
+            - script.execute: thermostat_link_apply_code
+    on_turn_off:
+      - if:
+          condition:
+            lambda: 'return id(espnow_component)->is_ready();'
+          then:
+            - lambda: |-
+                id(espnow_component)->disable();
+                id(thermostat_pin_ok) = false;
+                id(thermostat_temp).publish_state(NAN);
+                id(thermostat_hum).publish_state(NAN);
+                id(thermostat_dewpoint).publish_state(NAN);
+    on_state:
+      - if:
+          condition:
+            lambda: 'return id(espnow_component)->is_ready();'
+          then:
+            - script.execute: thermostat_link_ui
 
 button:
   - platform: template
@@ -69,11 +119,16 @@ button:
     name: "Thermostaat nieuwe koppelcode"
     icon: mdi:link-variant-plus
     entity_category: config
+    disabled_by_default: true
     on_press:
-      - globals.set:
-          id: thermostat_link_code
-          value: '0'
-      - script.execute: thermostat_link_apply_code
+      - if:
+          condition:
+            switch.is_on: thermostat_link_enabled
+          then:
+            - globals.set:
+                id: thermostat_link_code
+                value: '0'
+            - script.execute: thermostat_link_apply_code
 
 text_sensor:
   - platform: template
@@ -81,6 +136,7 @@ text_sensor:
     name: "Thermostaat koppelcode"
     icon: mdi:link-variant
     entity_category: diagnostic
+    disabled_by_default: true
     update_interval: never        # updated by thermostat_link_apply_code
     lambda: |-
       if (id(thermostat_link_code) <= 0) return std::string("-");
@@ -88,6 +144,7 @@ text_sensor:
 
 espnow:
   id: espnow_component
+  enable_on_boot: false           # only with the switch "Draadloze thermostaat" on (see on_boot)
   auto_add_peer: true             # unknown senders are added; without the key their packets are ignored
 
 packet_transport:
@@ -97,10 +154,9 @@ packet_transport:
     # No peer_address: packets are broadcast. Encryption makes sure only a
     # device with the same key can use them.
     encryption: ${thermostat_link_key}
-    rolling_code_enable: false
-    # No replay protection: a captured command packet can be sent again while the pairing code is
-    # unchanged (a new code makes old packets useless). ping_pong_enable broke the link in a test
-    # with ESP-NOW broadcast, so it stays off for now.
+    # Rolling code: every packet carries a rising counter and packets with an older counter are
+    # rejected, so captured packets cannot be replayed. The counter is kept in flash (see on_boot).
+    rolling_code_enable: true
     providers:
       - name: ${thermostat_name}
         encryption: ${thermostat_link_key}   # needed to read packets from the thermostat
@@ -131,12 +187,14 @@ packet_transport:
         broadcast_id: slo
       - id: thermostat_link_target_high     # high setpoint (cooling)
         broadcast_id: shi
-      - id: thermostat_link_mode            # mode: 0=off 1=heat 2=cool
+      - id: thermostat_link_mode            # climate mode as ESPHome number: 0=off 2=cool 3=heat
         broadcast_id: mode
       - id: current_compressor_frequency    # compressor frequency (Hz)
         broadcast_id: cf
-      - id: thermostat_link_error_code      # first active error or warning as a number
-        broadcast_id: ec
+      - id: thermostat_link_errors_1        # active error/warning flags, bits 0-23
+        broadcast_id: e1
+      - id: thermostat_link_errors_2        # active error/warning flags, bits 24-44
+        broadcast_id: e2
       - id: current_setpoint                # current flow setpoint (heating curve, manual or cooling)
         broadcast_id: wsp
       - id: thermostat_link_time            # minutes since Monday 00:00 (for the thermostat's schedule)
@@ -206,21 +264,36 @@ script:
           id(thermostat_dewpoint).publish_state(NAN);
           ESP_LOGI("thermostat_link", "Pairing code %06d", id(thermostat_link_code));
       - component.update: thermostat_link_code_text
-      - script.execute: thermostat_link_code_ui
+      - script.execute: thermostat_link_ui
       # Write a new code to flash right away instead of at the next flash_write_interval (5 min),
       # so a crash or power cut does not lose it (the global stores its value within 1 s)
       - delay: 2s
       - lambda: 'global_preferences->sync();'
 
-  # Shows the pairing code on the display (Settings > Thermostat)
-  - id: thermostat_link_code_ui
+  # Display (Settings > Thermostat > Algemeen, page 2): the switch row, and the pairing code only when on
+  - id: thermostat_link_ui
     then:
-      - lvgl.widget.show: thermostat_row_link_code
-      - lvgl.label.update:
-          id: set_therm_link_code_val
-          text: !lambda 'return str_sprintf("%06d", id(thermostat_link_code));'
+      - lvgl.widget.show: thermostat_row_link_enabled
+      - lvgl.widget.update:
+          id: set_therm_link_switch_ui
+          state:
+            checked: !lambda 'return id(thermostat_link_enabled).state;'
+      - if:
+          condition:
+            switch.is_on: thermostat_link_enabled
+          then:
+            - lvgl.widget.show: thermostat_row_link_code
+            - lvgl.label.update:
+                id: set_therm_link_code_val
+                text: !lambda 'return str_sprintf("%06d", id(thermostat_link_code));'
+          else:
+            - lvgl.widget.hide: thermostat_row_link_code
 
-  # "Nieuw" on the display; the UI defines this script empty so builds without this package still compile
+  # The UI defines these scripts empty, so builds without this package still compile
+  - id: !extend thermostat_link_toggle_ui
+    then:
+      - switch.toggle: thermostat_link_enabled
+
   - id: !extend thermostat_link_new_code_ui
     then:
       - button.press: thermostat_link_new_code
@@ -276,70 +349,51 @@ sensor:
     lambda: 'return id(climate_controller).target_temperature_high;'
 
   - platform: template
-    id: thermostat_link_mode                # 0 = off, 1 = heat, 2 = cool
+    id: thermostat_link_mode                # climate::ClimateMode: 0 = off, 2 = cool, 3 = heat
     internal: true
     update_interval: 5s
-    lambda: |-
-      auto m = id(climate_controller).mode;
-      if (m == climate::CLIMATE_MODE_HEAT) return 1.0f;
-      if (m == climate::CLIMATE_MODE_COOL) return 2.0f;
-      return 0.0f;
+    lambda: 'return (float) id(climate_controller).mode;'
 
-  # First active error (then warning) as a number for the thermostat:
-  # 1xx = P code, 2xx = F code, 3xx = E code (P05 = 105, F14 = 214, E03 = 303),
-  # 401-406 = other errors, 407-409 = other warnings; 0 = nothing active.
-  # Same flags as error_active and warning_active.
+  # Active error and warning flags for the thermostat, one bit per flag (24 bits fit exactly in a float).
+  # Same flags as error_active (errors) and warning_active (warnings); the bit order is the order of
+  # the lists below and is the protocol with the thermostat: only append, do not reorder.
+  #   e1 bit 0-23:  P03 P05 P08 P09 P10, F01-F07 F09 F10 F13-F18 F21 F22, E01 E02
+  #   e2 bit 0-20:  E03-E08, 401-406 (pump/compressor/valve timeouts, modbus, inside unit failsafe),
+  #                 warnings P01 P02 P06 P07 P11 P13, 407-409 (inside unit comm/EEPROM, pump P0 alarm)
   - platform: template
-    id: thermostat_link_error_code
+    id: thermostat_link_errors_1
     internal: true
     update_interval: 5s
     lambda: |-
-      if (id(error_flag_p03).state) return 103.0f;
-      if (id(error_flag_p05).state) return 105.0f;
-      if (id(error_flag_p08).state) return 108.0f;
-      if (id(error_flag_p09).state) return 109.0f;
-      if (id(error_flag_p10).state) return 110.0f;
-      if (id(error_flag_f01).state) return 201.0f;
-      if (id(error_flag_f02).state) return 202.0f;
-      if (id(error_flag_f03).state) return 203.0f;
-      if (id(error_flag_f04).state) return 204.0f;
-      if (id(error_flag_f05).state) return 205.0f;
-      if (id(error_flag_f06).state) return 206.0f;
-      if (id(error_flag_f07).state) return 207.0f;
-      if (id(error_flag_f09).state) return 209.0f;
-      if (id(error_flag_e01).state) return 301.0f;
-      if (id(error_flag_e02).state) return 302.0f;
-      if (id(error_flag_e03).state) return 303.0f;
-      if (id(error_flag_e04).state) return 304.0f;
-      if (id(error_flag_e05).state) return 305.0f;
-      if (id(error_flag_e06).state) return 306.0f;
-      if (id(error_flag_e07).state) return 307.0f;
-      if (id(error_flag_e08).state) return 308.0f;
-      if (id(error_flag_f10).state) return 210.0f;
-      if (id(error_flag_f13).state) return 213.0f;
-      if (id(error_flag_f14).state) return 214.0f;
-      if (id(error_flag_f15).state) return 215.0f;
-      if (id(error_flag_f16).state) return 216.0f;
-      if (id(error_flag_f17).state) return 217.0f;
-      if (id(error_flag_f18).state) return 218.0f;
-      if (id(error_flag_f21).state) return 221.0f;
-      if (id(error_flag_f22).state) return 222.0f;
-      if (id(error_pump_start_timeout).state) return 401.0f;
-      if (id(error_compressor_start_timeout).state) return 402.0f;
-      if (id(error_pump_stop_timeout).state) return 403.0f;
-      if (id(error_modbus_connection_timeout).state) return 404.0f;
-      if (id(error_three_way_valve_state_timeout).state) return 405.0f;
-      if (id(error_inside_unit_failsafe).state) return 406.0f;
-      if (id(error_flag_p01).state) return 101.0f;
-      if (id(error_flag_p02).state) return 102.0f;
-      if (id(error_flag_p07).state) return 107.0f;
-      if (id(error_flag_p06).state) return 106.0f;
-      if (id(error_flag_p11).state) return 111.0f;
-      if (id(error_flag_p13).state) return 113.0f;
-      if (id(error_flag_inside_comm_failsafe).state) return 407.0f;
-      if (id(error_flag_inside_eeprom).state) return 408.0f;
-      if (id(error_flag_pump_p0_alarm).state) return 409.0f;
-      return 0.0f;
+      const binary_sensor::BinarySensor *flags[] = {
+        id(error_flag_p03), id(error_flag_p05), id(error_flag_p08), id(error_flag_p09), id(error_flag_p10),
+        id(error_flag_f01), id(error_flag_f02), id(error_flag_f03), id(error_flag_f04), id(error_flag_f05),
+        id(error_flag_f06), id(error_flag_f07), id(error_flag_f09), id(error_flag_f10), id(error_flag_f13),
+        id(error_flag_f14), id(error_flag_f15), id(error_flag_f16), id(error_flag_f17), id(error_flag_f18),
+        id(error_flag_f21), id(error_flag_f22), id(error_flag_e01), id(error_flag_e02)
+      };
+      uint32_t bits = 0;
+      for (size_t i = 0; i < sizeof(flags) / sizeof(flags[0]); i++)
+        if (flags[i]->state) bits |= 1u << i;
+      return (float) bits;
+
+  - platform: template
+    id: thermostat_link_errors_2
+    internal: true
+    update_interval: 5s
+    lambda: |-
+      const binary_sensor::BinarySensor *flags[] = {
+        id(error_flag_e03), id(error_flag_e04), id(error_flag_e05), id(error_flag_e06), id(error_flag_e07),
+        id(error_flag_e08), id(error_pump_start_timeout), id(error_compressor_start_timeout),
+        id(error_pump_stop_timeout), id(error_modbus_connection_timeout),
+        id(error_three_way_valve_state_timeout), id(error_inside_unit_failsafe), id(error_flag_p01),
+        id(error_flag_p02), id(error_flag_p06), id(error_flag_p07), id(error_flag_p11), id(error_flag_p13),
+        id(error_flag_inside_comm_failsafe), id(error_flag_inside_eeprom), id(error_flag_pump_p0_alarm)
+      };
+      uint32_t bits = 0;
+      for (size_t i = 0; i < sizeof(flags) / sizeof(flags[0]); i++)
+        if (flags[i]->state) bits |= 1u << i;
+      return (float) bits;
 
   # -------------------------------------------------------------
   # 3. SENT BY THE THERMOSTAT
@@ -357,6 +411,7 @@ sensor:
     state_class: measurement
     accuracy_decimals: 1
     internal: false
+    disabled_by_default: true
     web_server:
       sorting_group_id: temperature_sensors
 
@@ -372,6 +427,7 @@ sensor:
     state_class: measurement
     accuracy_decimals: 1
     internal: false
+    disabled_by_default: true
     web_server:
       sorting_group_id: temperature_sensors
 
@@ -387,6 +443,7 @@ sensor:
     state_class: measurement
     accuracy_decimals: 1
     internal: false
+    disabled_by_default: true
     web_server:
       sorting_group_id: temperature_sensors
 

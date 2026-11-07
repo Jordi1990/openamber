@@ -337,7 +337,29 @@ obj:
                                 widgets:
                                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
-                # Wireless thermostat: shown by openamber/thermostat_link/thermostat_link.yaml
+                # Wireless thermostat: both rows are shown by openamber/thermostat_link/thermostat_link.yaml
+                - obj:
+                    id: thermostat_row_link_enabled
+                    hidden: true
+                    width: 100%
+                    height: SIZE_CONTENT
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_all: 6
+                    widgets:
+                      - label: { text: "Draadloze thermostaat", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                      - label: { text: "Koppeling met de ronde thermostaat via ESP-NOW", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                      - switch:
+                          id: set_therm_link_switch_ui
+                          align: TOP_RIGHT
+                          bg_color: 0x9CA3AF
+                          indicator:
+                            bg_color: 0x16A34A
+                          knob:
+                            bg_color: 0xFFFFFF
+                          on_click:
+                            - script.execute: thermostat_link_toggle_ui
+
                 - obj:
                     id: thermostat_row_link_code
                     hidden: true
