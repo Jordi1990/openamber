@@ -29,6 +29,12 @@ def advance_until_state(openamber, entity, wanted, max_s, step=10):
         waited += cur_step
 
 
+def set_outside_temperature(openamber, ta):
+    """Set Ta and start the averaged Ta used by the heating curves at the same value."""
+    openamber.set_sensor("temperature_outside_ta", ta)
+    openamber.set_sensor("temperature_outside_ta_avg_1h", ta)
+
+
 def start_space_heating(openamber, tc=28.0, target=35.0, use_curve=False):
     """Start space heating and advance until the heat/cool controller is in 'Compressor running'.
 
