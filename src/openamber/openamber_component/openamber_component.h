@@ -61,7 +61,8 @@ private:
   MixingValveActuator *mixing_valve_zone1_;
   MixingValveActuator *mixing_valve_zone2_;
   State deferred_machine_state_;
-  uint32_t defer_state_change_until_ms_;
+  uint32_t defer_state_change_started_ms_ = 0;
+  uint32_t defer_state_change_duration_ms_ = 0;
   uint32_t modbus_disconnected_since_ms_ = 0;
   bool modbus_disconnected_error_occurred_ = false;
   State state_ = State::WAIT_MODBUS_CONNECTION;

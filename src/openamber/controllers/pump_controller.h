@@ -30,8 +30,13 @@ using namespace esphome;
 class PumpController
 {
 private:
-  uint32_t pump_start_time_ = 0;
-  uint32_t pump_interval_start_time_ = 0;
+  // The pump run and interval timers use 64-bit millis_64() timestamps, which never wrap.
+  // Both can span arbitrarily long periods: a heat run can keep the pump on for weeks without
+  // restarting its run cycle, and the interval keeps waiting while there is no pump demand,
+  // so nothing checks it until demand returns. A 32-bit elapsed time would wrap after ~49.7
+  // days and make an already finished run or interval look unfinished again.
+  uint64_t pump_start_time_ms_ = 0;
+  uint64_t pump_interval_start_time_ms_ = 0;
   uint32_t pump_interval_ms_ = 0;
   uint32_t start_wait_started_ms_ = 0;
   uint32_t stop_wait_started_ms_ = 0;
@@ -83,12 +88,12 @@ public:
 
   bool ShouldStartNextPumpCycle()
   {
-    return App.get_loop_component_start_time() - pump_interval_start_time_ >= pump_interval_ms_;
+    return millis_64() - pump_interval_start_time_ms_ >= pump_interval_ms_;
   }
 
   bool IsPumpSettled()
   {
-    return App.get_loop_component_start_time() - pump_start_time_ >= COMPRESSOR_MIN_TIME_PUMP_ON * 1000UL;
+    return millis_64() - pump_start_time_ms_ >= COMPRESSOR_MIN_TIME_PUMP_ON * 1000ULL;
   }
 
   void SetPwmDutyCycle(float duty_cycle)
@@ -143,8 +148,8 @@ public:
   {
     ESP_LOGI("amber", "Starting pump (interval cycle)");
 
-    pump_start_time_ = App.get_loop_component_start_time();
-    start_wait_started_ms_ = pump_start_time_;
+    pump_start_time_ms_ = millis_64();
+    start_wait_started_ms_ = App.get_loop_component_start_time();
     ResetHeatingPidState();
     SetPwmDutyCycle(GetPreferredPumpSpeed());
     ClearStopWaitTimer();
@@ -183,7 +188,7 @@ public:
   bool IsIntervalCycleFinished()
   {
     uint32_t duration_ms = (uint32_t)id(pump_duration).state * 60000UL;
-    return App.get_loop_component_start_time() - pump_start_time_ >= duration_ms;
+    return millis_64() - pump_start_time_ms_ >= duration_ms;
   }
 
   void ResetInterval()
@@ -194,12 +199,12 @@ public:
   void RestartPumpInterval()
   {
     pump_interval_ms_ = (uint32_t)id(pump_interval).state * 60000UL;
-    pump_interval_start_time_ = App.get_loop_component_start_time();
+    pump_interval_start_time_ms_ = millis_64();
   }
 
   void RestartPumpRunCycle()
   {
-    pump_start_time_ = App.get_loop_component_start_time();
+    pump_start_time_ms_ = millis_64();
   }
 
   bool IsRunning()

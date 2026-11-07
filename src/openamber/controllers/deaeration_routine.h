@@ -272,7 +272,7 @@ public:
     if (IsIdle()) return;
     ESP_LOGI("amber", "DEAERATION: Stopping routine");
     requested_to_stop_ = false;
-    defer_state_change_until_ms_ = 0;
+    defer_state_change_duration_ms_ = 0;
     start_wait_started_ms_ = 0;
     StopPumps();
     SetNextState(DeaerationState::IDLE);
