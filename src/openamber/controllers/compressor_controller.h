@@ -35,7 +35,9 @@ private:
   // 64-bit, so a compressor that stays off for weeks never looks recently stopped after a millis() wrap.
   uint64_t last_started_compressor_stop_ms_ = 0;
   bool started_compressor_stopped_ = false;
-  // Separate from last_compressor_start_ms_, which can legitimately be 0 right after boot.
+  // A start was requested or confirmed since the last Stop(). Separate from last_compressor_start_ms_, which
+  // can legitimately be 0 right after boot, and also set for a start that timed out (TO02): the outdoor unit
+  // may still have reacted to it.
   bool compressor_started_ = false;
   uint32_t last_compressor_stop_ms_ = 0;
   uint32_t last_compressor_mode_change_ms_ = 0;
@@ -351,10 +353,13 @@ public:
     return (App.get_loop_component_start_time() - last_compressor_stop_ms_) > min_off_ms;
   }
 
-  /// @brief True when a started compressor was stopped at least off_ms ago, or when no started
-  /// compressor has been stopped since boot. Stop() calls while it was not started do not count.
+  /// @brief True when the compressor reports no frequency and a requested or started compressor was stopped at
+  /// least off_ms ago, or none has been stopped since boot. Stop() calls without a start request do not count.
   bool HasBeenOffFor(uint32_t off_ms)
   {
+    // Never while the outdoor unit still reports a frequency, whatever the recorded stop time says.
+    if (IsRunning())
+      return false;
     if (!started_compressor_stopped_)
       return true;
     return (esphome::millis_64() - last_started_compressor_stop_ms_) >= off_ms;
@@ -374,6 +379,7 @@ public:
 
   void ArmStartWaitTimer()
   {
+    compressor_started_ = true;
     start_wait_started_ms_ = App.get_loop_component_start_time();
   }
 
