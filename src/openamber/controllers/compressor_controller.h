@@ -32,7 +32,10 @@ class CompressorController
 private:
   uint32_t last_compressor_start_ms_ = 0;
   uint32_t not_running_since_ms_ = 0;
-  uint32_t unexpected_stop_times_ms_[COMPRESSOR_UNEXPECTED_STOP_ERROR_COUNT] = {};
+  // Last call of HasStoppedUnexpectedly(); a gap means the controller was in another state.
+  uint32_t last_unexpected_stop_check_ms_ = 0;
+  // 64-bit, so stops older than the window never look recent again after a millis() wrap.
+  uint64_t unexpected_stop_times_ms_[COMPRESSOR_UNEXPECTED_STOP_ERROR_COUNT] = {};
   uint32_t unexpected_stop_count_ = 0;
   uint32_t last_compressor_stop_ms_ = 0;
   uint32_t last_compressor_mode_change_ms_ = 0;
@@ -348,6 +351,13 @@ public:
   bool HasStoppedUnexpectedly()
   {
     const uint32_t now = App.get_loop_component_start_time();
+    // Only a continuous 0 Hz period while the check runs counts. The controllers call this in their
+    // running states only, so after a defrost, pump settling or other wait the period starts again.
+    if (now - last_unexpected_stop_check_ms_ > COMPRESSOR_UNEXPECTED_STOP_CHECK_GAP_S * 1000UL)
+    {
+      not_running_since_ms_ = 0;
+    }
+    last_unexpected_stop_check_ms_ = now;
     const float frequency = id(current_compressor_frequency).state;
     const bool requested = last_compressor_start_ms_ != 0 && id(compressor_control_select).active_index().value_or(0) > 0;
     // An unknown frequency (no Modbus data) is no proof that the compressor stopped.
@@ -368,7 +378,7 @@ public:
   /// within COMPRESSOR_UNEXPECTED_STOP_WINDOW_S.
   bool RegisterUnexpectedStop()
   {
-    const uint32_t now = App.get_loop_component_start_time();
+    const uint64_t now = esphome::millis_64();
     unexpected_stop_times_ms_[unexpected_stop_count_ % COMPRESSOR_UNEXPECTED_STOP_ERROR_COUNT] = now;
     unexpected_stop_count_++;
     if (unexpected_stop_count_ < COMPRESSOR_UNEXPECTED_STOP_ERROR_COUNT)
@@ -376,10 +386,11 @@ public:
       return false;
     }
     // The oldest of the last COMPRESSOR_UNEXPECTED_STOP_ERROR_COUNT stops.
-    const uint32_t oldest = unexpected_stop_times_ms_[unexpected_stop_count_ % COMPRESSOR_UNEXPECTED_STOP_ERROR_COUNT];
-    return (now - oldest) <= COMPRESSOR_UNEXPECTED_STOP_WINDOW_S * 1000UL;
+    const uint64_t oldest = unexpected_stop_times_ms_[unexpected_stop_count_ % COMPRESSOR_UNEXPECTED_STOP_ERROR_COUNT];
+    return (now - oldest) <= COMPRESSOR_UNEXPECTED_STOP_WINDOW_S * 1000ULL;
   }
 
+  /// @brief Forgets the recorded unexpected stops, after TO07 was raised.
   void ClearUnexpectedStops()
   {
     unexpected_stop_count_ = 0;

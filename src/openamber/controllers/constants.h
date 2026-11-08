@@ -49,6 +49,8 @@ static const uint32_t COMPRESSOR_UNEXPECTED_STOP_S = 3 * 60;
 // This many unexpected stops within the window raise an error instead of another restart.
 static const uint8_t COMPRESSOR_UNEXPECTED_STOP_ERROR_COUNT = 3;
 static const uint32_t COMPRESSOR_UNEXPECTED_STOP_WINDOW_S = 60 * 60;
+// A longer gap between two unexpected stop checks restarts the 0 Hz period.
+static const uint32_t COMPRESSOR_UNEXPECTED_STOP_CHECK_GAP_S = 10;
 // The outdoor unit raises 2118 up to 300 s before the actual defrost when it decides itself (3274 = 1).
 // The actual defrost starts once the compressor runs at the defrost standby frequency (3279).
 static const uint32_t DEFROST_PREPHASE_MAX_S = 330;
