@@ -1,3 +1,4 @@
+# A found, not yet paired sensor on the Bluetooth page.
 obj:
   id: ble_device_row_${index}
   width: 100%
@@ -10,13 +11,21 @@ obj:
   border_width: 1
   pad_all: 10
   scrollable: false
-  on_click:
-    - lambda: nimble_choose_device(${index});
   widgets:
     - label:
         id: ble_device_label_${index}
         text: ""
-        width: 100%
+        width: 76%
         text_font: font_text_20
         text_color: 0x1F2933
         align: LEFT_MID
+    - button:
+        id: ble_device_pair_${index}
+        width: 170
+        height: 42
+        align: RIGHT_MID
+        bg_color: 0x1F3B68
+        on_click:
+          - lambda: switchbot_pair(${index});
+        widgets:
+          - label: { text: "Koppelen", text_font: font_text_20, text_color: 0xFFFFFF, align: CENTER }

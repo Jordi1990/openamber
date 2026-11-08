@@ -1,4 +1,5 @@
-# Add source selection without changing upstream's Intern/Extern control logic.
+# BLE UI: the room temperature source dropdown on the thermostat setpoint page
+# and the Bluetooth sub-tab under Settings -> Connectiviteit.
 lvgl:
   widgets:
     - obj:
@@ -15,136 +16,147 @@ lvgl:
                           widgets:
                             - obj:
                                 id: !extend panel_thermostat_page_setpoint
-                                height: 86%
-                                scrollable: true
-                                scrollbar_mode: AUTO
                                 widgets:
                                   - obj:
                                       id: ble_source_row
                                       width: 100%
-                                      height: 58
+                                      height: SIZE_CONTENT
                                       bg_opa: 0%
                                       border_opa: 0%
                                       pad_all: 6
                                       scrollable: false
                                       widgets:
-                                        - label: { text: "Ruimtetemperatuurbron", text_font: font_text_24, text_color: 0x1F2933, align: LEFT_MID }
+                                        - label: { text: "Ruimtetemperatuur bron", text_font: font_text_24, text_color: 0x1F2933, align: TOP_LEFT }
+                                        - label: { text: "Bedrade Tr-sensor of gekoppelde Bluetooth-sensor", text_font: font_text_20, text_color: 0x6B7280, align: TOP_LEFT, y: 38 }
                                         - dropdown:
                                             id: ble_source_dropdown
-                                            width: 200
-                                            align: RIGHT_MID
+                                            width: 360
+                                            height: 40
+                                            align: TOP_RIGHT
+                                            # Lifted and kept compact so it clears the description line below the title.
+                                            y: -4
                                             symbol: "\U000F0140"
-                                            options: [Tr, BLE]
+                                            # Options are rebuilt from the paired sensors (switchbot_ble_ui.h).
+                                            options: ["Tr (Bedraad)"]
                                             text_font: font_text_20
                                             dropdown_list: { text_font: font_text_20 }
-                                            on_value:
-                                              - lambda: |-
-                                                  auto selected = lv_dropdown_get_selected(id(ble_source_dropdown)->obj);
-                                                  auto option = selected == 1 ? "BLE" : "Tr";
-                                                  if (id(room_temperature_source_select).current_option() != option)
-                                                      id(room_temperature_source_select).make_call().set_option(option).perform();
+                                            on_change:
+                                              - lambda: switchbot_source_dropdown_changed();
+                      - obj:
+                          id: !extend panel_wifi
+                          widgets:
+                            - obj:
+                                id: !extend connectivity_tab_bar
+                                hidden: false
+                                widgets:
                                   - obj:
-                                      id: ble_settings_panel
-                                      hidden: true
+                                      id: conn_stab_bluetooth
+                                      width: SIZE_CONTENT
+                                      height: 34
+                                      bg_color: 0xCBD5E1
+                                      bg_opa: 100%
+                                      radius: 8
+                                      border_opa: 0%
+                                      pad_left: 12
+                                      pad_right: 12
+                                      pad_top: 4
+                                      pad_bottom: 4
+                                      scrollbar_mode: "OFF"
+                                      scrollable: false
+                                      on_click:
+                                        - script.execute:
+                                            id: connectivity_select_tab
+                                            tab_index: 1
+                                      widgets:
+                                        - label: { id: conn_stab_bluetooth_lbl, text: "Bluetooth", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
+                            - obj:
+                                id: panel_wifi_page_bluetooth
+                                hidden: true
+                                width: 100%
+                                height: 0
+                                flex_grow: 1
+                                bg_opa: 0%
+                                border_opa: 0%
+                                pad_all: 0
+                                scrollbar_mode: AUTO
+                                scrollable: true
+                                layout:
+                                  type: FLEX
+                                  flex_flow: COLUMN
+                                  flex_align_main: START
+                                  flex_align_cross: CENTER
+                                  pad_row: 8
+                                widgets:
+                                  - obj:
                                       width: 100%
-                                      height: 186
+                                      height: SIZE_CONTENT
                                       bg_opa: 0%
                                       border_opa: 0%
                                       pad_all: 6
                                       scrollable: false
                                       widgets:
-                                        - label:
-                                            id: ble_selected_label
-                                            text: "Geen sensor gekozen"
-                                            text_font: font_text_20
-                                            text_color: 0x1F2933
-                                            width: 100%
-                                            align: TOP_LEFT
-                                        - label:
-                                            text: "Meting geldig"
-                                            text_font: font_text_20
-                                            text_color: 0x1F2933
-                                            align: TOP_LEFT
-                                            y: 68
-                                        - dropdown:
-                                            id: ble_timeout_dropdown
+                                        - label: { text: "Bluetooth", text_font: font_text_24, text_color: 0x1F2933, align: TOP_LEFT }
+                                        - label: { text: "SwitchBot-temperatuursensoren via BLE", text_font: font_text_20, text_color: 0x6B7280, align: TOP_LEFT, y: 38 }
+                                        - switch:
+                                            id: ble_enabled_switch_ui
                                             align: TOP_RIGHT
-                                            y: 60
-                                            width: 140
-                                            text_font: font_text_20
-                                            dropdown_list: { text_font: font_text_20 }
-                                            options: ["1 min", "2 min", "3 min", "4 min", "5 min", "6 min", "7 min", "8 min", "9 min", "10 min", "11 min", "12 min", "13 min", "14 min", "15 min"]
-                                            on_value:
+                                            bg_color: 0x9CA3AF
+                                            indicator:
+                                              bg_color: 0x9CA3AF
+                                              checked:
+                                                bg_color: 0x16A34A
+                                            knob:
+                                              bg_color: 0xFFFFFF
+                                            on_change:
                                               - lambda: |-
-                                                  auto minutes = lv_dropdown_get_selected(id(ble_timeout_dropdown).obj) + 1;
-                                                  if (id(ble_reading_timeout).state != minutes)
-                                                      id(ble_reading_timeout).make_call().set_value(minutes).perform();
-                                        - button:
-                                            width: 220
-                                            height: 44
-                                            align: BOTTOM_LEFT
-                                            bg_color: 0x1F3B68
-                                            on_click:
-                                              - button.press: ble_discovery_button
-                                              - lvgl.widget.show: ble_sensor_dialog
-                                              - lambda: nimble_update_ui();
+                                                  if (lv_obj_has_state(id(ble_enabled_switch_ui), LV_STATE_CHECKED)) id(ble_enabled_switch).turn_on();
+                                                  else id(ble_enabled_switch).turn_off();
+                                  - label:
+                                      id: ble_hint_label
+                                      width: 100%
+                                      text: "Schakel Bluetooth in om SwitchBot-sensoren te koppelen."
+                                      text_font: font_text_20
+                                      text_color: 0x6B7280
+                                      long_mode: WRAP
+                                      pad_left: 6
+                                  - obj:
+                                      id: ble_sensors_section
+                                      hidden: true
+                                      width: 100%
+                                      height: SIZE_CONTENT
+                                      bg_opa: 0%
+                                      border_opa: 0%
+                                      pad_all: 0
+                                      scrollable: false
+                                      layout: { type: FLEX, flex_flow: COLUMN, pad_row: 8 }
+                                      widgets:
+                                        - label: { id: ble_paired_title, text: "Gekoppelde sensoren", text_font: font_text_20, text_color: 0x4B5563, pad_left: 6 }
+                                        - !include { file: paired_row.yaml, vars: { index: 0 } }
+                                        - !include { file: paired_row.yaml, vars: { index: 1 } }
+                                        - !include { file: paired_row.yaml, vars: { index: 2 } }
+                                        - obj:
+                                            width: 100%
+                                            height: 52
+                                            bg_opa: 0%
+                                            border_opa: 0%
+                                            pad_all: 6
+                                            scrollable: false
                                             widgets:
-                                              - label: { text: "Sensor zoeken", text_font: font_text_20, text_color: 0xFFFFFF, align: CENTER }
-    - obj:
-        id: ble_sensor_dialog
-        hidden: true
-        width: 94%
-        height: 88%
-        align: CENTER
-        bg_color: 0xF5F8FC
-        bg_opa: 100%
-        border_color: 0xCBD5E1
-        border_width: 2
-        radius: 18
-        pad_all: 18
-        scrollable: false
-        widgets:
-          - label: { text: "SwitchBot-sensor kiezen", text_font: font_text_24, text_color: 0x1F2933, align: TOP_LEFT }
-          - button:
-              width: 110
-              height: 42
-              align: TOP_RIGHT
-              bg_color: 0x1F3B68
-              on_click:
-                - lvgl.widget.hide: ble_sensor_dialog
-              widgets:
-                - label: { text: "Sluiten", text_font: font_text_20, text_color: 0xFFFFFF, align: CENTER }
-          - label:
-              id: ble_discovery_status_label
-              text: "Zoeken..."
-              text_font: font_text_20
-              text_color: 0x4B5563
-              y: 50
-          - obj:
-              width: 100%
-              height: 66%
-              y: 86
-              bg_opa: 0%
-              border_opa: 0%
-              pad_all: 0
-              scrollable: true
-              scrollbar_mode: AUTO
-              layout: { type: FLEX, flex_flow: COLUMN, pad_row: 8 }
-              widgets:
-                - !include { file: sensor_row.yaml, vars: { index: 0 } }
-                - !include { file: sensor_row.yaml, vars: { index: 1 } }
-                - !include { file: sensor_row.yaml, vars: { index: 2 } }
-                - !include { file: sensor_row.yaml, vars: { index: 3 } }
-                - !include { file: sensor_row.yaml, vars: { index: 4 } }
-                - !include { file: sensor_row.yaml, vars: { index: 5 } }
-                - !include { file: sensor_row.yaml, vars: { index: 6 } }
-                - !include { file: sensor_row.yaml, vars: { index: 7 } }
-          - button:
-              width: 220
-              height: 44
-              align: BOTTOM_LEFT
-              bg_color: 0x1F3B68
-              on_click:
-                - button.press: ble_discovery_button
-              widgets:
-                - label: { text: "Opnieuw zoeken", text_font: font_text_20, text_color: 0xFFFFFF, align: CENTER }
+                                              - label: { id: ble_discovery_status_label, text: "Gevonden sensoren", text_font: font_text_20, text_color: 0x4B5563, align: LEFT_MID }
+                                              - button:
+                                                  width: 160
+                                                  height: 40
+                                                  align: RIGHT_MID
+                                                  bg_color: 0x1F3B68
+                                                  on_click:
+                                                    - button.press: ble_discovery_button
+                                                  widgets:
+                                                    - label: { text: "Zoeken", text_font: font_text_20, text_color: 0xFFFFFF, align: CENTER }
+                                        - !include { file: sensor_row.yaml, vars: { index: 0 } }
+                                        - !include { file: sensor_row.yaml, vars: { index: 1 } }
+                                        - !include { file: sensor_row.yaml, vars: { index: 2 } }
+                                        - !include { file: sensor_row.yaml, vars: { index: 3 } }
+                                        - !include { file: sensor_row.yaml, vars: { index: 4 } }
+                                        - !include { file: sensor_row.yaml, vars: { index: 5 } }
+                                        - !include { file: sensor_row.yaml, vars: { index: 6 } }
+                                        - !include { file: sensor_row.yaml, vars: { index: 7 } }

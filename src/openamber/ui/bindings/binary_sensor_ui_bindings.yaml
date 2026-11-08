@@ -354,6 +354,12 @@
       - script.execute: update_service_errors_ui
       - script.execute: update_header_alert_icons
 
+- id: !extend error_flag_b01
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+      - script.execute: update_header_alert_icons
+
 - id: !extend error_flag_f14
   on_state:
     then:

@@ -25,15 +25,21 @@ esp32:
       CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL: "0"
       CONFIG_SPIRAM_MALLOC_RESERVE_INTERNAL: "65536"
       CONFIG_SPIRAM_TRY_ALLOCATE_WIFI_LWIP: y
+      # Static WiFi buffers are internal DMA RAM (~1.6 kB each); the PSRAM
+      # defaults of 16 RX + 16 TX use ~51 kB. Dynamic RX buffers go to PSRAM.
+      # RX_BA_WIN (16) must stay <= 2 x STATIC_RX_BUFFER_NUM.
+      CONFIG_ESP_WIFI_STATIC_RX_BUFFER_NUM: "8"
+      CONFIG_ESP_WIFI_STATIC_TX_BUFFER_NUM: "8"
       CONFIG_MBEDTLS_EXTERNAL_MEM_ALLOC: y
       CONFIG_MDNS_TASK_CREATE_FROM_SPIRAM: y
       CONFIG_MDNS_MEMORY_ALLOC_SPIRAM: y
-      CONFIG_NVS_ALLOCATE_CACHE_IN_SPIRAM: y
       CONFIG_SPIRAM_RODATA: y
       CONFIG_ESP_TASK_WDT_TIMEOUT_S: "60"
     advanced:
       loop_task_stack_size: 10240
       execute_from_psram: true
+      nvs_cache_in_psram: true
+      flash_chip: generic
 
 esphome:
   includes:
@@ -67,6 +73,7 @@ uart:
 psram:
   mode: octal
   speed: 80MHz
+  ignore_not_found: false
 
 ch422g:
   - id: ch422g_hub
