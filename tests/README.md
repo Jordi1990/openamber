@@ -72,6 +72,7 @@ The tests are organized into modular, domain-specific test suites:
 | [`test_settings_workflow.py`](test_settings_workflow.py) | Settings sidebar tabs (Algemeen, Verwarmen, Tapwater, Bijverwarmen), sensor calibration pager navigation (`1 / 2` $\leftrightarrow$ `2 / 2`), Stooklijn Zone 2 subtab, and Mengventielen settings pager. |
 | [`test_zone2_curve_and_mixing_valves.py`](test_zone2_curve_and_mixing_valves.py) | Zone 2 heating curve anchor interpolation, dual-zone highest setpoint arbitration, Tv1 & Tv2 mixing valve PID modulation, deadband anti-jitter stabilization, min/max clamping & idle closure, defrost position freezing & resumption, control temperature Tc enforcement, fully opening valves to max position in cooling mode, and position template sensors. |
 | [`test_ui_navigation.py`](test_ui_navigation.py) | Header bar title and navbar navigation between Home, Settings, Service, and System pages. |
+| [`test_graph_page.py`](test_graph_page.py) | History graph page: Grafiek navbar navigation, one sample per minute with the newest Tc shown, empty hint hidden once data exists, and the Tuo/Tui pipes toggle. |
 | [`helpers.py`](helpers.py) | Shared helpers: `advance_until_state()` advances virtual time until a state is reached instead of assuming a fixed timeline; `start_space_heating()` brings the heat/cool controller to `Compressor running`. |
 
 ---

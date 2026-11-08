@@ -540,6 +540,7 @@
   parameters:
     tab_index: int
   then:
+    - lvgl.widget.update: { id: page_graph, hidden: true }
     - if:
         condition:
           lambda: 'return tab_index == 0;'
@@ -618,13 +619,29 @@
                             - script.execute: update_service_top_tabs_ui
                             - script.execute: update_service_diag_summary_ui
                           else:
-                            - lvgl.widget.update: { id: page_home, hidden: true }
-                            - lvgl.widget.update: { id: page_thermostat, hidden: true }
-                            - lvgl.widget.update: { id: page_service, hidden: true }
-                            - lvgl.widget.update: { id: page_system, hidden: false }
-                            - lvgl.widget.update: { id: page_settings, hidden: true }
-                            - script.execute: update_system_diagnostics_ui
-                            - script.execute: update_firmware_ui
+                            - if:
+                                condition:
+                                  lambda: 'return tab_index == 5;'
+                                then:
+                                  - lvgl.widget.update: { id: page_home, hidden: true }
+                                  - lvgl.widget.update: { id: page_thermostat, hidden: true }
+                                  - lvgl.widget.update: { id: page_service, hidden: true }
+                                  - lvgl.widget.update: { id: page_system, hidden: true }
+                                  - lvgl.widget.update: { id: page_settings, hidden: true }
+                                  - lvgl.widget.update: { id: page_graph, hidden: false }
+                                  - lambda: 'openamber_graph::page().on_opened();'
+                                else:
+                                  - lvgl.widget.update: { id: page_home, hidden: true }
+                                  - lvgl.widget.update: { id: page_thermostat, hidden: true }
+                                  - lvgl.widget.update: { id: page_service, hidden: true }
+                                  - lvgl.widget.update: { id: page_system, hidden: false }
+                                  - lvgl.widget.update: { id: page_settings, hidden: true }
+                                  - script.execute: update_system_diagnostics_ui
+                                  - script.execute: update_firmware_ui
+
+    - lvgl.widget.update: { id: nav_graph, bg_opa: !lambda 'return tab_index == 5 ? 100 : 0;' }
+    - lvgl.label.update: { id: nav_graph_icon, text_color: !lambda 'return lv_color_hex(tab_index == 5 ? 0xFFFFFF : 0xD1D5DB);' }
+    - lvgl.label.update: { id: nav_graph_label, text_color: !lambda 'return lv_color_hex(tab_index == 5 ? 0xFFFFFF : 0xD1D5DB);' }
 
     - lvgl.widget.update: { id: nav_home, bg_opa: !lambda 'return tab_index == 0 ? 100 : 0;' }
     - lvgl.label.update: { id: nav_home_icon, text_color: !lambda 'return lv_color_hex(tab_index == 0 ? 0xFFFFFF : 0xD1D5DB);' }

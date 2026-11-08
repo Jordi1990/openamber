@@ -1,3 +1,12 @@
+esphome:
+  includes:
+    - openamber/ui/graph_page.h
+
+interval:
+  - interval: 60s
+    then:
+      - lambda: 'openamber_graph::page().on_interval();'
+
 sensor: !include sensor_ui_bindings.yaml
 number: !include number_ui_bindings.yaml
 binary_sensor: !include binary_sensor_ui_bindings.yaml

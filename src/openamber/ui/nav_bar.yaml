@@ -114,8 +114,14 @@ obj:
         width: 120
         height: 100%
         pad_all: 0
+        bg_color: 0x1F3B68
         bg_opa: 0%
         border_opa: 0%
+        radius: 24
+        on_click:
+          - script.execute:
+              id: nav_select_tab
+              tab_index: 5
         widgets:
           - label:
               id: nav_graph_icon
