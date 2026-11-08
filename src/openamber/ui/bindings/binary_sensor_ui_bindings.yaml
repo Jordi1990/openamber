@@ -327,6 +327,11 @@
     then:
       - script.execute: update_service_errors_ui
 
+- id: !extend error_compressor_unexpected_stop
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+
 - id: !extend error_pump_stop_timeout
   on_state:
     then:

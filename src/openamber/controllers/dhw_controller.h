@@ -462,6 +462,11 @@ public:
         break;
 
       case DHWState::COMPRESSOR_RUNNING:
+        if (HandleUnexpectedCompressorStop())
+        {
+          SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
+          break;
+        }
         pump_controller_->ApplySpeedChangeIfNeeded(true);
 
         if(ShouldStartDhwPump())
@@ -594,6 +599,11 @@ public:
         break;
 
       case DHWState::BACKUP_HEATER_RUNNING:
+        if (HandleUnexpectedCompressorStop())
+        {
+          SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
+          break;
+        }
         if(id(emergency_mode_enabled).state)
         {
           if(ShouldStartDhwPump())

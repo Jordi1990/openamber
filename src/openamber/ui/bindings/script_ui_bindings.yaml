@@ -2882,6 +2882,7 @@
           {"TO04 - 3-weg klep status fout", "De 3-weg klep bevindt zich niet in de verwachte stand (relaisterugmelding ontbreekt of temperatuurafwijking overschreden). Controleer klepaansturing, bedrading en klepmotor.", id(error_three_way_valve_state_timeout).state},
           {"TO05 - Modbus verbinding timeout", "De Modbus-communicatie met de binnen- of buitenunit kon niet worden hersteld binnen de verwachte tijd. Controleer bekabeling, voeding en Modbus-instellingen.", id(error_modbus_connection_timeout).state},
           {"TO06 - Binnenunit failsafe / herstart", "De binnenunit bevindt zich in failsafe of is herstart. Een of meer uitgangsregisters (1099-1113) wijken af van de verwachte status. De regeling is gestopt.", id(error_inside_unit_failsafe).state},
+          {"TO07 - Compressor herhaaldelijk onverwacht gestopt", "De buitenunit stopte de compressor drie keer binnen een uur zelf terwijl OpenAmber hem liet draaien. Controleer beveiligingen, voeding en de Modbus-verbinding met de buitenunit.", id(error_compressor_unexpected_stop).state},
           {"F13 - Storing sensor ruimtetemperatuur", "Storing sensor ruimtetemperatuur.", id(error_flag_f13).state},
           {"F14 - Storing sensor tapwatertemperatuur", "Storing sensor tapwatertemperatuur.", id(error_flag_f14).state},
           {"F15 - Storing sensor cv-aanvoertemperatuur", "Storing sensor cv-aanvoertemperatuur.", id(error_flag_f15).state},
@@ -2895,6 +2896,7 @@
         const bool timeout_error_active =
             id(error_pump_start_timeout).state ||
             id(error_compressor_start_timeout).state ||
+            id(error_compressor_unexpected_stop).state ||
             id(error_pump_stop_timeout).state ||
             id(error_modbus_connection_timeout).state ||
             id(error_three_way_valve_state_timeout).state ||

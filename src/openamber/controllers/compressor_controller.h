@@ -31,6 +31,9 @@ class CompressorController
 {
 private:
   uint32_t last_compressor_start_ms_ = 0;
+  uint32_t not_running_since_ms_ = 0;
+  uint32_t unexpected_stop_times_ms_[COMPRESSOR_UNEXPECTED_STOP_ERROR_COUNT] = {};
+  uint32_t unexpected_stop_count_ = 0;
   uint32_t last_compressor_stop_ms_ = 0;
   uint32_t last_compressor_mode_change_ms_ = 0;
   uint32_t start_wait_started_ms_ = 0;
@@ -314,6 +317,7 @@ public:
 
   void Stop()
   {
+    not_running_since_ms_ = 0;
     ClearStartWaitTimer();
     last_compressor_start_ms_ = 0;
     last_compressor_stop_ms_ = App.get_loop_component_start_time();
@@ -339,6 +343,48 @@ public:
     return (App.get_loop_component_start_time() - last_compressor_stop_ms_) > min_off_ms;
   }
 
+  /// @brief True when a started compressor has reported 0 Hz for COMPRESSOR_UNEXPECTED_STOP_S, outside a
+  /// defrost or oil return cycle. Call it only in states where the compressor should run.
+  bool HasStoppedUnexpectedly()
+  {
+    const uint32_t now = App.get_loop_component_start_time();
+    const float frequency = id(current_compressor_frequency).state;
+    const bool requested = last_compressor_start_ms_ != 0 && id(compressor_control_select).active_index().value_or(0) > 0;
+    // An unknown frequency (no Modbus data) is no proof that the compressor stopped.
+    if (!requested || std::isnan(frequency) || frequency > 0 ||
+        id(defrost_active_sensor).state || id(oil_return_cycle_active).state)
+    {
+      not_running_since_ms_ = 0;
+      return false;
+    }
+    if (not_running_since_ms_ == 0)
+    {
+      not_running_since_ms_ = now;
+    }
+    return (now - not_running_since_ms_) >= COMPRESSOR_UNEXPECTED_STOP_S * 1000UL;
+  }
+
+  /// @brief Records an unexpected stop. Returns true when it is the COMPRESSOR_UNEXPECTED_STOP_ERROR_COUNT-th
+  /// within COMPRESSOR_UNEXPECTED_STOP_WINDOW_S.
+  bool RegisterUnexpectedStop()
+  {
+    const uint32_t now = App.get_loop_component_start_time();
+    unexpected_stop_times_ms_[unexpected_stop_count_ % COMPRESSOR_UNEXPECTED_STOP_ERROR_COUNT] = now;
+    unexpected_stop_count_++;
+    if (unexpected_stop_count_ < COMPRESSOR_UNEXPECTED_STOP_ERROR_COUNT)
+    {
+      return false;
+    }
+    // The oldest of the last COMPRESSOR_UNEXPECTED_STOP_ERROR_COUNT stops.
+    const uint32_t oldest = unexpected_stop_times_ms_[unexpected_stop_count_ % COMPRESSOR_UNEXPECTED_STOP_ERROR_COUNT];
+    return (now - oldest) <= COMPRESSOR_UNEXPECTED_STOP_WINDOW_S * 1000UL;
+  }
+
+  void ClearUnexpectedStops()
+  {
+    unexpected_stop_count_ = 0;
+  }
+
   bool HasPassedSoftStartDuration()
   {
     return (App.get_loop_component_start_time() - last_compressor_start_ms_) >= COMPRESSOR_SOFT_START_DURATION_S * 1000UL;
@@ -346,6 +392,7 @@ public:
 
   void RecordStartTime()
   {
+    not_running_since_ms_ = 0;
     ClearStartWaitTimer();
     last_compressor_start_ms_ = App.get_loop_component_start_time();
   }
