@@ -1187,7 +1187,8 @@
               case 140: return "Amber 65";
               case 150: return "Amber 95";
               case 15:  return "Amber 120";
-              case 145: return "HP-S 95";
+              case 145:
+              case 160: return "HP-S 95";
               default:  return "Onbekend model";
             }
           }
