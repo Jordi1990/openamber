@@ -179,6 +179,8 @@ static void switchbot_update_bluetooth_page()
     char text[160];
     if (!enabled)
         snprintf(text, sizeof(text), "Schakel Bluetooth in om SwitchBot-sensoren te koppelen.");
+    else if (switchbot_host_failed)
+        snprintf(text, sizeof(text), "Bluetooth kon niet starten. Herstart het display om het opnieuw te proberen.");
     else if (switchbot_restart_required)
         snprintf(text, sizeof(text), "Bluetooth start na een herstart: te weinig vrij geheugen om nu te starten.");
     else

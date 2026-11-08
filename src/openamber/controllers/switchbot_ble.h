@@ -57,6 +57,7 @@ struct SwitchbotSlot
     SwitchbotReading reading;
     uint8_t model = 0;          // model byte, 0 until its scan response is seen
     uint32_t tracking_since_ms = 0; // when tracking started (0: BLE off)
+    bool timed_out = false;     // no reading for the full timeout; cleared by a fresh reading
 };
 static SwitchbotSlot switchbot_slots[SWITCHBOT_SLOTS];
 // Slot used as room temperature source, -1 for the wired Tr sensor.
@@ -278,26 +279,28 @@ static void switchbot_on_advertise(const uint8_t *mac, const Datas &manufacturer
 {
     SwitchbotAddress address;
     memcpy(address.val, mac, 6);
-    int target = -1;
-    for (unsigned i = 0; i < SWITCHBOT_SLOTS; i++)
-        if (switchbot_slots[i].valid && memcmp(address.val, switchbot_slots[i].address.val, 6) == 0)
-            target = i;
+    bool paired = false;
+    for (const auto &slot : switchbot_slots)
+        paired |= slot.valid && memcmp(address.val, slot.address.val, 6) == 0;
     bool discover = switchbot_discovering &&
                     uint32_t(millis() - switchbot_discovery_started_ms) < SWITCHBOT_DISCOVERY_MS;
-    if (target < 0 && !discover)
+    if (!paired && !discover)
         return;
 
     SwitchbotReading reading;
     switchbot_parse(manufacturers, services, reading);
+    uint8_t model = switchbot_meter_model(services);
     if (discover)
-        switchbot_remember_device(address, switchbot_meter_model(services), reading);
-    if (target >= 0)
+        switchbot_remember_device(address, model, reading);
+    // The same MAC may be paired in more than one slot; all of them follow it.
+    for (auto &slot : switchbot_slots)
     {
-        uint8_t model = switchbot_meter_model(services);
+        if (!slot.valid || memcmp(address.val, slot.address.val, 6) != 0)
+            continue;
         if (model)
-            switchbot_slots[target].model = model;
+            slot.model = model;
         if (reading.valid)
-            switchbot_slots[target].reading = reading;
+            slot.reading = reading;
     }
 }
 
@@ -305,8 +308,11 @@ static bool switchbot_slot_fresh(unsigned slot)
 {
     if (slot >= SWITCHBOT_SLOTS)
         return false;
+    // Only an identified thermometer counts: manufacturer data of another
+    // SwitchBot product at a paired MAC could otherwise decode as a reading.
     const SwitchbotReading &r = switchbot_slots[slot].reading;
-    return r.valid && uint32_t(millis() - r.received_ms) < SWITCHBOT_READING_TIMEOUT_MS;
+    return switchbot_is_meter_model(switchbot_slots[slot].model) && r.valid &&
+           uint32_t(millis() - r.received_ms) < SWITCHBOT_READING_TIMEOUT_MS;
 }
 
 // Reading of the room temperature source slot (an empty one for Tr).
@@ -324,15 +330,13 @@ static bool switchbot_reading_fresh()
 // True once a BLE slot is the source and it has supplied no reading for the
 // full timeout: the last reading expired, or none arrived since tracking
 // started (boot, Bluetooth switched on, or another sensor paired). Drives B01.
+// The state is latched in switchbot_update(), so a millis() rollover during a
+// long outage cannot clear it.
 static bool switchbot_reading_missing()
 {
     if (!switchbot_boot_ready || switchbot_source_slot < 0 || switchbot_reading_fresh())
         return false;
-    const SwitchbotSlot &slot = switchbot_slots[switchbot_source_slot];
-    if (slot.tracking_since_ms == 0)
-        return false;
-    uint32_t since = slot.reading.received_ms ? slot.reading.received_ms : slot.tracking_since_ms;
-    return uint32_t(millis() - since) >= SWITCHBOT_READING_TIMEOUT_MS;
+    return switchbot_slots[switchbot_source_slot].timed_out;
 }
 
 static void switchbot_end_discovery()
@@ -350,6 +354,9 @@ static void switchbot_begin_discovery()
 
 // Set when BLE is selected but the controller cannot be started until reboot.
 static bool switchbot_restart_required = false;
+// Set when ESPHome's BLE host (Bluedroid) failed to initialise; esp32_ble then
+// stays failed until the next boot.
+static bool switchbot_host_failed = false;
 
 // The S3 controller allocates its exchange memory (0x7800 bytes with one BLE
 // activity) as one internal DMA-capable block, from its own task. If that
@@ -411,6 +418,12 @@ static void switchbot_set_ble(bool enabled)
 {
     if (!enabled)
         switchbot_restart_required = false;
+    if (switchbot_ble_requested && !switchbot_host_failed && esphome::esp32_ble::global_ble != nullptr &&
+        esphome::esp32_ble::global_ble->is_failed())
+    {
+        ESP_LOGE(SWITCHBOT_TAG, "BLE host failed to start; restart required");
+        switchbot_host_failed = true;
+    }
     if (enabled == switchbot_ble_requested)
         return;
     if (enabled)
@@ -493,6 +506,16 @@ static void switchbot_update(bool enabled, int source, const std::string *const 
         }
         if (slot.reading.valid && uint32_t(millis() - slot.reading.received_ms) >= SWITCHBOT_READING_TIMEOUT_MS)
             slot.reading.valid = false;
+        if (switchbot_slot_fresh(i))
+        {
+            slot.timed_out = false;
+        }
+        else if (!slot.timed_out)
+        {
+            bool identified = switchbot_is_meter_model(slot.model) && slot.reading.received_ms;
+            uint32_t since = identified ? slot.reading.received_ms : slot.tracking_since_ms;
+            slot.timed_out = uint32_t(millis() - since) >= SWITCHBOT_READING_TIMEOUT_MS;
+        }
     }
     switchbot_publish();
 }

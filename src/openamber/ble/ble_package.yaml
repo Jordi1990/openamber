@@ -66,6 +66,9 @@ esphome:
         - lambda: |-
             switchbot_boot_ready = true;
             switchbot_update_source();
+            // The Bluetooth page may have been opened during the boot delay.
+            if (id(ble_enabled_switch).state && !lv_obj_has_flag(id(panel_wifi_page_bluetooth), LV_OBJ_FLAG_HIDDEN))
+              switchbot_begin_discovery();
             switchbot_update_ui();
 
 interval:
