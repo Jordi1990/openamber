@@ -61,7 +61,8 @@ text_sensor:
       case 140: return std::string("Amber 65");
       case 150: return std::string("Amber 95");
       case 15:  return std::string("Amber 120");
-      case 145: return std::string("HP-S 95");
+      case 145:
+      case 160: return std::string("HP-S 95");
       default:  return std::string("Onbekend model");
     }
   icon: "mdi:heat-pump-outline"
