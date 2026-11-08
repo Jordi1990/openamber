@@ -31,6 +31,9 @@ class CompressorController
 {
 private:
   uint32_t last_compressor_start_ms_ = 0;
+  // Stop of a compressor that had been started; Stop() is also called when it was not running.
+  uint32_t last_started_compressor_stop_ms_ = 0;
+  bool started_compressor_stopped_ = false;
   uint32_t last_compressor_stop_ms_ = 0;
   uint32_t last_compressor_mode_change_ms_ = 0;
   uint32_t start_wait_started_ms_ = 0;
@@ -315,6 +318,11 @@ public:
   void Stop()
   {
     ClearStartWaitTimer();
+    if (last_compressor_start_ms_ != 0)
+    {
+      last_started_compressor_stop_ms_ = App.get_loop_component_start_time();
+      started_compressor_stopped_ = true;
+    }
     last_compressor_start_ms_ = 0;
     last_compressor_stop_ms_ = App.get_loop_component_start_time();
     auto compressor_set_call = id(compressor_control_select).make_call();
@@ -337,6 +345,15 @@ public:
   {
     const uint32_t min_off_ms = COMPRESSOR_MIN_OFF_S * 1000UL;
     return (App.get_loop_component_start_time() - last_compressor_stop_ms_) > min_off_ms;
+  }
+
+  /// @brief True when a started compressor was stopped at least off_ms ago, or when no started
+  /// compressor has been stopped since boot. Stop() calls while it was not started do not count.
+  bool HasBeenOffFor(uint32_t off_ms)
+  {
+    if (!started_compressor_stopped_)
+      return true;
+    return (App.get_loop_component_start_time() - last_started_compressor_stop_ms_) >= off_ms;
   }
 
   bool HasPassedSoftStartDuration()

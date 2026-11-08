@@ -362,6 +362,8 @@ public:
           PublishState(StateToString(state_));
         }
 
+  bool waiting_for_compressor_off_time_ = false;
+
   void StopAndSetIdleState()
   {
     compressor_controller_->Stop();
@@ -395,8 +397,23 @@ public:
 
         if(!HasDemand())
         {
+          waiting_for_compressor_off_time_ = false;
           break;
         }
+
+        // The outdoor unit delays a restart after a stop. Starting DHW right after heating
+        // stopped the compressor can run out the compressor start timeout (TO02).
+        if (!id(emergency_mode_enabled).state &&
+            !compressor_controller_->HasBeenOffFor(static_cast<uint32_t>(id(dhw_compressor_min_off_minutes).state) * 60000UL))
+        {
+          if (!waiting_for_compressor_off_time_)
+          {
+            ESP_LOGI("amber", "Waiting with DHW until the compressor has been off for %.0f min.", id(dhw_compressor_min_off_minutes).state);
+            waiting_for_compressor_off_time_ = true;
+          }
+          break;
+        }
+        waiting_for_compressor_off_time_ = false;
 
         id(dhw_active).publish_state(true);
         pump_controller_->Start();
