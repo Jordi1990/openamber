@@ -55,6 +55,9 @@ def test_dhw_waits_for_compressor_min_off_time_after_heating(clean_system, minut
 
     waited = started_at - stopped_at
     assert minutes * 60 <= waited <= minutes * 60 + 15, f"DHW started {waited:.0f} s after the compressor stop"
+    assert advance_until_state(openamber, "internal_pump_active", True, max_s=120, step=5), (
+        "The DHW pump must run after the wait"
+    )
 
 
 def test_dhw_starts_without_waiting_in_emergency_mode(clean_system):
@@ -78,3 +81,25 @@ def test_dhw_does_not_wait_when_setting_is_zero(clean_system):
     started_at = time_dhw_leaves_idle(openamber)
 
     assert started_at - stopped_at < 120
+
+
+def test_dhw_does_not_wait_after_a_stop_without_compressor_run(clean_system):
+    """Stop() calls while the compressor was not started (here: re-initialization) do not start a wait."""
+    openamber = clean_system
+    openamber.set_number(MIN_OFF_SETTING, 10)
+    openamber.set_switch("dhw_enabled_switch", False)
+    openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
+    # Any compressor run of an earlier test is now longer ago than the 10 min setting.
+    openamber.advance_time(seconds=11 * 60, step_s=30)
+
+    # Leaving maintenance mode re-initializes the controllers, which calls Stop() without a compressor run.
+    openamber.set_switch("service_mode_enabled", True)
+    assert advance_until_state(openamber, "state_machine_state_main", "Maintenance", max_s=120, step=5)
+    openamber.set_switch("service_mode_enabled", False)
+    assert advance_until_state(openamber, "state_machine_state_main", "Heat/Cool", max_s=300, step=5)
+    requested_at = offset_s(openamber)
+
+    openamber.set_switch("dhw_enabled_switch", True)
+    started_at = time_dhw_leaves_idle(openamber)
+
+    assert started_at - requested_at < 5 * 60, f"DHW waited {started_at - requested_at:.0f} s without a compressor run"

@@ -32,8 +32,11 @@ class CompressorController
 private:
   uint32_t last_compressor_start_ms_ = 0;
   // Stop of a compressor that had been started; Stop() is also called when it was not running.
-  uint32_t last_started_compressor_stop_ms_ = 0;
+  // 64-bit, so a compressor that stays off for weeks never looks recently stopped after a millis() wrap.
+  uint64_t last_started_compressor_stop_ms_ = 0;
   bool started_compressor_stopped_ = false;
+  // Separate from last_compressor_start_ms_, which can legitimately be 0 right after boot.
+  bool compressor_started_ = false;
   uint32_t last_compressor_stop_ms_ = 0;
   uint32_t last_compressor_mode_change_ms_ = 0;
   uint32_t start_wait_started_ms_ = 0;
@@ -318,10 +321,11 @@ public:
   void Stop()
   {
     ClearStartWaitTimer();
-    if (last_compressor_start_ms_ != 0)
+    if (compressor_started_)
     {
-      last_started_compressor_stop_ms_ = App.get_loop_component_start_time();
+      last_started_compressor_stop_ms_ = esphome::millis_64();
       started_compressor_stopped_ = true;
+      compressor_started_ = false;
     }
     last_compressor_start_ms_ = 0;
     last_compressor_stop_ms_ = App.get_loop_component_start_time();
@@ -353,7 +357,7 @@ public:
   {
     if (!started_compressor_stopped_)
       return true;
-    return (App.get_loop_component_start_time() - last_started_compressor_stop_ms_) >= off_ms;
+    return (esphome::millis_64() - last_started_compressor_stop_ms_) >= off_ms;
   }
 
   bool HasPassedSoftStartDuration()
@@ -363,6 +367,7 @@ public:
 
   void RecordStartTime()
   {
+    compressor_started_ = true;
     ClearStartWaitTimer();
     last_compressor_start_ms_ = App.get_loop_component_start_time();
   }
