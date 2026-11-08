@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include "constants.h"
 
 namespace openamber_graph {
@@ -29,6 +30,7 @@ static constexpr int MAX_POINTS = 240;
 static constexpr int BAND_COLUMNS = 60;
 static constexpr int MAX_TICKS = 7;
 static constexpr int MAX_HOUR_LINES = 8;
+static constexpr uint32_t REDRAW_WARN_MS = 20;
 
 class History {
  public:
@@ -140,13 +142,25 @@ class Page {
   void refresh() {
     if (lv_obj_has_flag(&id(page_graph), LV_OBJ_FLAG_HIDDEN))
       return;
-    uint32_t started = esphome::millis();
+    const uint32_t started = esphome::millis();
     this->create_widgets_();
     this->update_buttons_();
     this->update_values_();
+    const uint32_t values_done = esphome::millis();
     this->update_plot_();
+    const uint32_t plot_done = esphome::millis();
     this->update_lane_();
-    ESP_LOGD("graph", "Redraw prepared in %u ms", static_cast<unsigned>(esphome::millis() - started));
+    const uint32_t lane_done = esphome::millis();
+    const unsigned elapsed = static_cast<unsigned>(lane_done - started);
+    // Redraws run in the main loop, next to Modbus. A slow redraw starves the outdoor unit communication.
+    if (elapsed > REDRAW_WARN_MS) {
+      ESP_LOGW("graph", "Redraw prepared in %u ms (limit %u ms): values %u, plot %u, lane %u ms", elapsed,
+               static_cast<unsigned>(REDRAW_WARN_MS), static_cast<unsigned>(values_done - started),
+               static_cast<unsigned>(plot_done - values_done), static_cast<unsigned>(lane_done - plot_done));
+    } else {
+      ESP_LOGD("graph", "Redraw prepared in %u ms", elapsed);
+    }
+    id(graph_redraw_time).publish_state(elapsed);
   }
 
  private:
@@ -244,14 +258,40 @@ class Page {
       snprintf(text, sizeof(text), "%s-", prefix);
     else
       snprintf(text, sizeof(text), "%s%.1f%s", prefix, tenths / 10.0f, suffix);
-    lv_label_set_text(label, text);
+    set_label_text_(label, text);
   }
 
   void set_visible_(lv_obj_t *obj, bool visible) {
+    if (visible == !lv_obj_has_flag(obj, LV_OBJ_FLAG_HIDDEN))
+      return;
     if (visible)
       lv_obj_remove_flag(obj, LV_OBJ_FLAG_HIDDEN);
     else
       lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+  }
+
+  // Every label text, position or line change makes LVGL measure and lay out again (2-10 ms each on the
+  // ESP32). The tick and hour labels mostly stay the same between redraws, so only changes are applied.
+  static void set_label_text_(lv_obj_t *label, const char *text) {
+    const char *current = lv_label_get_text(label);
+    if (current == nullptr || strcmp(current, text) != 0)
+      lv_label_set_text(label, text);
+  }
+
+  static void set_pos_(lv_obj_t *obj, int x, int y) {
+    // Compare with the requested position; the computed coordinates only update at the next layout pass.
+    if (lv_obj_get_style_x(obj, LV_PART_MAIN) != x || lv_obj_get_style_y(obj, LV_PART_MAIN) != y)
+      lv_obj_set_pos(obj, x, y);
+  }
+
+  // Sets a two point line only when it moved.
+  static void set_two_points_(lv_obj_t *line, lv_point_precise_t *points, lv_point_precise_t a, lv_point_precise_t b) {
+    if (points[0].x == a.x && points[0].y == a.y && points[1].x == b.x && points[1].y == b.y &&
+        lv_line_get_point_count(line) == 2)
+      return;
+    points[0] = a;
+    points[1] = b;
+    lv_line_set_points(line, points, 2);
   }
 
   bool is_cooling_() { return id(working_mode_switch).active_index().value() == WORKING_MODE_COOLING; }
@@ -265,11 +305,11 @@ class Page {
     set_visible_(tuo, has_data && this->show_pipes_);
     set_visible_(tui, has_data && this->show_pipes_);
     if (!has_data) {
-      lv_label_set_text(&id(graph_tc_caption), "Tc nu");
-      lv_label_set_text(&id(graph_tc_value), "-");
-      lv_label_set_text(&id(graph_sp_value), "");
-      lv_label_set_text(&id(graph_hz_value), "-");
-      lv_label_set_text(state, "");
+      set_label_text_(&id(graph_tc_caption), "Tc nu");
+      set_label_text_(&id(graph_tc_value), "-");
+      set_label_text_(&id(graph_sp_value), "");
+      set_label_text_(&id(graph_hz_value), "-");
+      set_label_text_(state, "");
       lv_obj_add_flag(chip, LV_OBJ_FLAG_HIDDEN);
       return;
     }
@@ -279,15 +319,15 @@ class Page {
       char time_text[16], caption[24];
       format_time_(time_text, sizeof(time_text), this->cursor_age_);
       snprintf(caption, sizeof(caption), "Tc om %s", time_text);
-      lv_label_set_text(&id(graph_tc_caption), caption);
+      set_label_text_(&id(graph_tc_caption), caption);
     } else {
-      lv_label_set_text(&id(graph_tc_caption), "Tc nu");
+      set_label_text_(&id(graph_tc_caption), "Tc nu");
     }
     set_temp_(&id(graph_tc_value), "", s.tc, " °C");
     set_temp_(&id(graph_sp_value), "Setpoint ", s.sp, "");
     char hz_text[16];
     snprintf(hz_text, sizeof(hz_text), "%u Hz", s.hz);
-    lv_label_set_text(&id(graph_hz_value), hz_text);
+    set_label_text_(&id(graph_hz_value), hz_text);
 
     const char *state_text = "Staat stil";
     if (s.state == STATE_RUN)
@@ -298,7 +338,7 @@ class Page {
       state_text = "Tapwater";
     else if (s.state == STATE_DEFROST)
       state_text = "Ontdooien";
-    lv_label_set_text(state, state_text);
+    set_label_text_(state, state_text);
     set_visible_(chip, s.state != STATE_IDLE);
     lv_obj_set_x(state, s.state == STATE_IDLE ? 20 : 40);
     if (s.state != STATE_IDLE)
@@ -346,6 +386,7 @@ class Page {
   void update_plot_() {
     if (!this->created_)
       return;
+    const uint32_t t_start = esphome::millis();
     int span = this->hours_ * 60;
     int visible = std::min(this->history_.size(), span + 1);
     set_visible_(&id(graph_empty_label), visible == 0);
@@ -377,8 +418,10 @@ class Page {
     if (scale_high <= scale_low)
       scale_high = scale_low + tick_step;
     float px = static_cast<float>(PLOT_H) / (scale_high - scale_low);
+    const uint32_t t_scale = esphome::millis();
 
     this->update_band_(span, visible, above, below, scale_low, px);
+    const uint32_t t_band = esphome::millis();
 
     for (int i = 0; i < MAX_TICKS; i++) {
       int value = scale_low + i * tick_step;
@@ -388,13 +431,15 @@ class Page {
       if (!used)
         continue;
       int y = PLOT_H - static_cast<int>((value - scale_low) * px);
-      this->tick_points_[i][0] = {0, static_cast<lv_value_precise_t>(y)};
-      this->tick_points_[i][1] = {PLOT_W, static_cast<lv_value_precise_t>(y)};
-      lv_line_set_points(this->tick_lines_[i], this->tick_points_[i], 2);
-      lv_label_set_text_fmt(this->tick_labels_[i], "%d", value);
-      lv_obj_set_pos(this->tick_labels_[i], 206, 16 + y - 12);
+      set_two_points_(this->tick_lines_[i], this->tick_points_[i], {0, static_cast<lv_value_precise_t>(y)},
+                      {PLOT_W, static_cast<lv_value_precise_t>(y)});
+      char text[8];
+      snprintf(text, sizeof(text), "%d", value);
+      set_label_text_(this->tick_labels_[i], text);
+      set_pos_(this->tick_labels_[i], 206, 16 + y - 12);
     }
 
+    const uint32_t t_ticks = esphome::millis();
     int every = this->hours_ == 1 ? 15 : (this->hours_ == 6 ? 60 : 240);
     auto now = id(my_time).now();
     int now_minutes = now.is_valid() ? now.hour * 60 + now.minute : 0;
@@ -403,38 +448,44 @@ class Page {
       if (((now_minutes - age) % every + every) % every != 0)
         continue;
       int x = age_x_(age, span);
-      this->hour_points_[used_hours][0] = {static_cast<lv_value_precise_t>(x), 0};
-      this->hour_points_[used_hours][1] = {static_cast<lv_value_precise_t>(x), 352};
-      lv_line_set_points(this->hour_lines_[used_hours], this->hour_points_[used_hours], 2);
-      lv_obj_remove_flag(this->hour_lines_[used_hours], LV_OBJ_FLAG_HIDDEN);
+      set_two_points_(this->hour_lines_[used_hours], this->hour_points_[used_hours],
+                      {static_cast<lv_value_precise_t>(x), 0}, {static_cast<lv_value_precise_t>(x), 352});
+      set_visible_(this->hour_lines_[used_hours], true);
       lv_obj_t *label = this->hour_labels_[used_hours];
       bool show_label = x > 28 && x < PLOT_W - 28;
       set_visible_(label, show_label);
       if (show_label) {
         char text[16];
         format_time_(text, sizeof(text), age);
-        lv_label_set_text(label, text);
-        lv_obj_set_pos(label, x - 27, 358);
+        set_label_text_(label, text);
+        set_pos_(label, x - 27, 358);
       }
       used_hours++;
     }
     for (int i = used_hours; i < MAX_HOUR_LINES; i++) {
-      lv_obj_add_flag(this->hour_lines_[i], LV_OBJ_FLAG_HIDDEN);
-      lv_obj_add_flag(this->hour_labels_[i], LV_OBJ_FLAG_HIDDEN);
+      set_visible_(this->hour_lines_[i], false);
+      set_visible_(this->hour_labels_[i], false);
     }
 
+    const uint32_t t_hours = esphome::millis();
     set_line_(this->sp_line_, this->sp_points_, &Sample::sp, span, visible, scale_low, px, true);
     set_line_(this->tui_line_, this->tui_points_, &Sample::tui, span, visible, scale_low, px, this->show_pipes_);
     set_line_(this->tuo_line_, this->tuo_points_, &Sample::tuo, span, visible, scale_low, px, this->show_pipes_);
     set_line_(this->tc_line_, this->tc_points_, &Sample::tc, span, visible, scale_low, px, true);
+    const uint32_t t_lines = esphome::millis();
+    if (t_lines - t_start > REDRAW_WARN_MS) {
+      ESP_LOGW("graph", "Plot parts: scale %u, band %u, ticks %u, hours %u, lines %u ms (%d samples)",
+               static_cast<unsigned>(t_scale - t_start), static_cast<unsigned>(t_band - t_scale),
+               static_cast<unsigned>(t_ticks - t_band), static_cast<unsigned>(t_hours - t_ticks),
+               static_cast<unsigned>(t_lines - t_hours), visible);
+    }
 
     bool has_cursor = this->cursor_age_ >= 0 && this->cursor_age_ < visible;
     set_visible_(this->cursor_line_, has_cursor);
     if (has_cursor) {
       int x = age_x_(this->cursor_age_, span);
-      this->cursor_points_[0] = {static_cast<lv_value_precise_t>(x), 0};
-      this->cursor_points_[1] = {static_cast<lv_value_precise_t>(x), 352};
-      lv_line_set_points(this->cursor_line_, this->cursor_points_, 2);
+      set_two_points_(this->cursor_line_, this->cursor_points_, {static_cast<lv_value_precise_t>(x), 0},
+                      {static_cast<lv_value_precise_t>(x), 352});
     }
   }
 
@@ -456,31 +507,87 @@ class Page {
       set_visible_(this->band_columns_[i], n > 0);
       if (n == 0)
         continue;
-      lv_obj_set_pos(this->band_columns_[i], x0, static_cast<int>(PLOT_H - (sum / 10.0f / n + above - low) * px));
-      lv_obj_set_size(this->band_columns_[i], x1 - x0, height);
+      set_pos_(this->band_columns_[i], x0, static_cast<int>(PLOT_H - (sum / 10.0f / n + above - low) * px));
+      if (lv_obj_get_style_width(this->band_columns_[i], LV_PART_MAIN) != x1 - x0 ||
+          lv_obj_get_style_height(this->band_columns_[i], LV_PART_MAIN) != height)
+        lv_obj_set_size(this->band_columns_[i], x1 - x0, height);
     }
   }
 
   // Frequency sets the bar height, the control loop state sets the colour.
+  // The lane is written straight into the canvas buffer and invalidated once, instead of up to
+  // LANE_W * LANE_H lv_canvas_set_px calls per redraw.
   void update_lane_() {
     lv_obj_t *canvas = &id(graph_lane);
-    lv_canvas_fill_bg(canvas, lv_color_hex(0xE5E7EB), LV_OPA_COVER);
     int span = this->hours_ * 60;
     int visible = std::min(this->history_.size(), span + 1);
+    // Bar top (LANE_H = no bar) and colour per pixel column; columns come in groups of 3.
+    static int16_t top[LANE_W];
+    static lv_color_t color[LANE_W];
     for (int x = 0; x < LANE_W; x += 3) {
       int age = static_cast<int>(std::lround(static_cast<float>(LANE_W - 1 - x) / (LANE_W - 1) * span));
-      if (age >= visible)
-        continue;
-      const Sample &s = this->history_.at_age(age);
-      if (s.hz == 0)
-        continue;
-      int height = std::min<int>(s.hz, LANE_MAX_HZ) * LANE_H / LANE_MAX_HZ;
-      lv_color_t color = lv_color_hex(state_color(s.state == STATE_IDLE ? STATE_RUN : s.state));
-      for (int dx = 0; dx < 3 && x + dx < LANE_W; dx++)
-        for (int y = LANE_H - height; y < LANE_H; y++)
-          lv_canvas_set_px(canvas, x + dx, y, color, LV_OPA_COVER);
+      int16_t bar_top = LANE_H;
+      lv_color_t bar_color = lv_color_hex(0xE5E7EB);
+      if (age < visible) {
+        const Sample &s = this->history_.at_age(age);
+        if (s.hz != 0) {
+          bar_top = static_cast<int16_t>(LANE_H - std::min<int>(s.hz, LANE_MAX_HZ) * LANE_H / LANE_MAX_HZ);
+          bar_color = lv_color_hex(state_color(s.state == STATE_IDLE ? STATE_RUN : s.state));
+        }
+      }
+      for (int dx = 0; dx < 3 && x + dx < LANE_W; dx++) {
+        top[x + dx] = bar_top;
+        color[x + dx] = bar_color;
+      }
+    }
+    if (!fill_lane_buffer_(canvas, top, color)) {
+      // Unknown colour format: slow path, only expected if the canvas configuration changes.
+      ESP_LOGW("graph", "Compressor lane: unsupported canvas colour format, using per pixel drawing");
+      lv_canvas_fill_bg(canvas, lv_color_hex(0xE5E7EB), LV_OPA_COVER);
+      for (int x = 0; x < LANE_W; x++)
+        for (int y = top[x]; y < LANE_H; y++)
+          lv_canvas_set_px(canvas, x, y, color[x], LV_OPA_COVER);
     }
     lv_obj_invalidate(canvas);
+  }
+
+  static bool fill_lane_buffer_(lv_obj_t *canvas, const int16_t *top, const lv_color_t *color) {
+    lv_draw_buf_t *buf = lv_canvas_get_draw_buf(canvas);
+    if (buf == nullptr || buf->data == nullptr || buf->header.w < LANE_W || buf->header.h < LANE_H)
+      return false;
+    const lv_color_t background = lv_color_hex(0xE5E7EB);
+    const lv_color_format_t cf = static_cast<lv_color_format_t>(buf->header.cf);
+    if (cf == LV_COLOR_FORMAT_RGB565 || cf == LV_COLOR_FORMAT_RGB565_SWAPPED) {
+      const bool swapped = cf == LV_COLOR_FORMAT_RGB565_SWAPPED;
+      auto to565 = [swapped](lv_color_t c) -> uint16_t {
+        uint16_t v = lv_color_to_u16(c);
+        return swapped ? static_cast<uint16_t>((v << 8) | (v >> 8)) : v;
+      };
+      static uint16_t bar[LANE_W];
+      for (int x = 0; x < LANE_W; x++)
+        bar[x] = to565(color[x]);
+      const uint16_t bg = to565(background);
+      for (int y = 0; y < LANE_H; y++) {
+        uint16_t *row = static_cast<uint16_t *>(lv_draw_buf_goto_xy(buf, 0, y));
+        for (int x = 0; x < LANE_W; x++)
+          row[x] = y >= top[x] ? bar[x] : bg;
+      }
+      return true;
+    }
+    if (cf == LV_COLOR_FORMAT_ARGB8888 || cf == LV_COLOR_FORMAT_XRGB8888) {
+      static uint32_t bar[LANE_W];
+      auto to32 = [](lv_color_t c) -> uint32_t { return lv_color_to_u32(c); };
+      for (int x = 0; x < LANE_W; x++)
+        bar[x] = to32(color[x]);
+      const uint32_t bg = to32(background);
+      for (int y = 0; y < LANE_H; y++) {
+        uint32_t *row = static_cast<uint32_t *>(lv_draw_buf_goto_xy(buf, 0, y));
+        for (int x = 0; x < LANE_W; x++)
+          row[x] = y >= top[x] ? bar[x] : bg;
+      }
+      return true;
+    }
+    return false;
   }
 
   History history_;

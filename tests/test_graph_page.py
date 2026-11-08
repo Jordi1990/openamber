@@ -37,3 +37,29 @@ def test_graph_page_shows_latest_sample(clean_system):
 
     assert openamber.click("nav_home"), "Clicking nav_home must succeed"
     openamber.step(ms=100)
+
+
+def test_graph_redraw_with_full_day_of_compressor_history_is_fast(clean_system):
+    """A redraw of 24 h with the compressor running all day stays within the redraw limit.
+
+    The page reports its redraw time in graph_redraw_time. The simulator is much faster than the ESP32, so
+    this only catches large regressions; the real timing is checked on the device.
+    """
+    openamber = clean_system
+    openamber.set_number("mock_compressor_frequency_override", 60)
+    openamber.set_sensor("heat_cool_temperature_tc", 30.0)
+    # One sample per minute: fill the full 24 h history.
+    openamber.advance_time(seconds=24 * 3600 + 60, step_s=60)
+
+    assert openamber.click("nav_graph"), "Clicking nav_graph must succeed"
+    openamber.step(ms=100)
+    assert openamber.click("graph_btn_24h"), "Clicking graph_btn_24h must succeed"
+    openamber.step(ms=100)
+
+    redraw_ms = openamber.get_entity("graph_redraw_time")
+    assert redraw_ms is not None, "The graph page must report its redraw time"
+    assert float(redraw_ms) <= 20, f"Redraw of a full day took {redraw_ms} ms"
+
+    openamber.set_number("mock_compressor_frequency_override", -1)
+    assert openamber.click("nav_home"), "Clicking nav_home must succeed"
+    openamber.step(ms=100)
