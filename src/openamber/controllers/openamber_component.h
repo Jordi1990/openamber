@@ -135,18 +135,23 @@ void OpenAmberComponent::update()
       working_mode_call.perform();
       compressor_controller_->Stop();
       pump_controller_->Stop();
+      // Stop() restarts the pump interval; after (re)initialization the pump must start right away on pump demand.
+      pump_controller_->ResetInterval();
       if(is_hp_s_model)
       {
-        ESP_LOGI("amber", "Detected HPS unit based on EEPROM version, not writing heating frequency table.");
+        ESP_LOGI("amber", "Detected HPS unit based on EEPROM version, not applying outdoor unit optimizations.");
       }
-      else if(id(default_compressor_frequencies_enabled).state)
+      else if(!id(outdoor_unit_optimizations_enabled).state)
       {
-        ESP_LOGI("amber", "Default compressor frequencies setting enabled, not writing frequency tables.");
+        ESP_LOGI("amber", "Outdoor unit optimizations disabled, not writing any outdoor unit parameters.");
       }
       else
       {
         WriteHeatingFrequencyTable();
         WriteCoolingFrequencyTable();
+        // OpenAmber limits the compressor per outdoor temperature in Hz (CompressorController), including
+        // outside the operating range. Turn off the unit's own level-based limit (RAM-only).
+        id(outdoor_unit_ambient_limit_control).make_call().set_value(0).perform();
       }
       ESP_LOGI("amber", "Initialized heat pump controller");
       LeaveStateAndSetNextStateAfterWaitTime(State::WAIT_INITIALIZATION, INITIALIZATION_DELAY_S * 1000UL);
@@ -176,11 +181,15 @@ void OpenAmberComponent::update()
           working_mode_call.set_index(WORKING_MODE_MAINTENANCE);
           working_mode_call.perform();
           id(pump_p0_relay_switch).turn_off();
-          SetNextState(State::MAINTENANCE);          
+          heat_cool_controller_->StopPumpP1IfNeeded();
+          SetNextState(State::MAINTENANCE);
           break;
         }
         else if(desired_valve_position != current_valve_position)
         {
+          // P1 keeps running while the heat/cool controller idles with heat demand. Running it during DHW
+          // pulls water through the CV side of the 3-way valve, so hot DHW water ends up in the floor.
+          heat_cool_controller_->StopPumpP1IfNeeded();
           SwitchThreeWayValveAndWait(desired_valve_position, desired_state);
           break;
         }
@@ -477,12 +486,12 @@ ThreeWayValvePosition OpenAmberComponent::GetDesiredThreeWayValvePosition()
 void OpenAmberComponent::WriteHeatingFrequencyTable()
 {
     // Patch heating frequency table to have more control in low load situations.
-    id(heating_frequency_index_1).make_call().set_value(28).perform();
-    id(heating_frequency_index_2).make_call().set_value(36).perform();
-    id(heating_frequency_index_3).make_call().set_value(43).perform();
-    id(heating_frequency_index_4).make_call().set_value(55).perform();
-    id(heating_frequency_index_5).make_call().set_value(61).perform();
-    id(heating_frequency_index_6).make_call().set_value(67).perform();
+    id(heating_frequency_index_1).make_call().set_value(20).perform();
+    id(heating_frequency_index_2).make_call().set_value(28).perform();
+    id(heating_frequency_index_3).make_call().set_value(36).perform();
+    id(heating_frequency_index_4).make_call().set_value(43).perform();
+    id(heating_frequency_index_5).make_call().set_value(55).perform();
+    id(heating_frequency_index_6).make_call().set_value(63).perform();
     id(heating_frequency_index_7).make_call().set_value(72).perform();
     id(heating_frequency_index_8).make_call().set_value(79).perform();
     id(heating_frequency_index_9).make_call().set_value(85).perform();
