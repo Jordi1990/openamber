@@ -488,13 +488,20 @@ public:
           heating_rate_below_min_since_ms_ = 0;
           SetNextState(DHWState::WAIT_BACKUP_HEATER_RUNNING);
         }
-        else if (!compressor_controller_->HasPassedMinOffTime())
-        {
-          // E.g. a start cancelled after a restart of the ESP, or a compressor stop just before: the pump keeps running.
-          ESP_LOGI("amber", "Not starting DHW compressor because minimum compressor time off is not reached.");
-        }
         else
         {
+          // Same as heating: wait for the minimum compressor off time, the outdoor unit would not start yet.
+          if (!compressor_controller_->HasPassedMinOffTime())
+          {
+            if (!HasDemand())
+            {
+              ESP_LOGI("amber", "No more DHW demand while waiting for the minimum compressor off time, stopping pump.");
+              pump_controller_->Stop();
+              StopDhwPump();
+              SetNextState(DHWState::WAIT_PUMP_STOP);
+            }
+            break;
+          }
           compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
           compressor_controller_->ArmStartWaitTimer();
           SetNextState(DHWState::WAIT_COMPRESSOR_RUNNING);

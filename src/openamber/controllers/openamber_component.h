@@ -82,6 +82,19 @@ void OpenAmberComponent::update()
     return;
   }
 
+  // The outdoor unit stopped a running compressor by itself (protection, power or communication loss). We do not
+  // know why, so stop everything, re-initialize and wait for the user to reset the error.
+  if ((state_ == State::HEAT_COOL || state_ == State::DHW_HEAT) && compressor_controller_->HasStoppedUnexpectedly())
+  {
+    ota_in_progress_ = false;
+    id(error_compressor_unexpected_stop).publish_state(true);
+    ESP_LOGE("amber", "Compressor reports 0 Hz for %u s while it should run. Stopping and re-initializing controller.",
+             (unsigned) COMPRESSOR_UNEXPECTED_STOP_S);
+    StopControllers();
+    SetNextState(State::WAIT_MODBUS_CONNECTION);
+    return;
+  }
+
   // Also during the OTA hold: a lost Modbus connection must still raise its error (error_active), which the
   // safety check below turns into a stop.
   bool modbus_connected = id(modbus_inside_online).state && id(modbus_outside_online).state && id(outside_unit_eeprom_version).has_state();
@@ -818,7 +831,7 @@ float OpenAmberComponent::get_mixing_valve_zone2_position() const
 
 void OpenAmberComponent::StopControllers()
 {
-  ESP_LOGE("amber", "Stopping regulation due to inside unit failsafe/reboot.");
+  ESP_LOGE("amber", "Stopping regulation (inside unit failsafe/reboot or unexpected compressor stop).");
   compressor_controller_->Stop();
   pump_controller_->Stop();
   heat_cool_controller_->StopAndSetIdleState();
