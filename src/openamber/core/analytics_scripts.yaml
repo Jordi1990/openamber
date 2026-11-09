@@ -56,6 +56,7 @@ script:
 
           root["ca"] = id(compressor_start_delta_heating).state;
           root["cb"] = id(compressor_stop_delta_heating).state;
+          root["cc"] = id(compressor_hysteresis).state;
 
 - id: send_config_2
   then:
@@ -212,7 +213,7 @@ script:
             root["oj"] = buf;
           }
 
-          root["ok"] = id(default_compressor_frequencies_enabled).state;
+          root["ok"] = !id(outdoor_unit_optimizations_enabled).state;
           root["ol"] = id(eebus_enabled_switch).state;
 
 - id: send_modes

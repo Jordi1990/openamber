@@ -135,6 +135,21 @@ number:
       sorting_group_id: general_settings
 
 - platform: template
+  name: "Compressor hysterese"
+  id: compressor_hysteresis
+  optimistic: true
+  min_value: 0.1
+  max_value: 2.0
+  step: 0.1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  initial_value: 1
+  restore_value: True
+  entity_category: config
+  web_server: 
+      sorting_group_id: general_settings
+
+- platform: template
   id: heat_curve_p15
   name: "Stooklijn @ +15°C"
   optimistic: True
