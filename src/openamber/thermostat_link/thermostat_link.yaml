@@ -87,7 +87,8 @@ switch:
     restore_mode: RESTORE_DEFAULT_OFF
     # Restoring the state at setup also fires these triggers, before ESP-NOW and LVGL
     # are set up (disable() on an uninitialised ESP-NOW crashes). The boot case is
-    # handled by on_boot above, so only act once ESP-NOW is ready.
+    # handled by on_boot above, so only act once ESP-NOW is ready. The display follows
+    # the switch once setup is complete, also when ESP-NOW failed to start.
     on_turn_on:
       - if:
           condition:
@@ -109,7 +110,7 @@ switch:
     on_state:
       - if:
           condition:
-            lambda: 'return id(espnow_component)->is_ready();'
+            lambda: 'return App.is_setup_complete();'
           then:
             - script.execute: thermostat_link_ui
 

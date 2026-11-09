@@ -127,7 +127,10 @@
           lv_obj_add_flag(id(mengventielen_pager), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(eebus_pager), LV_OBJ_FLAG_HIDDEN);
 
-          if (tab_index == 0) lv_obj_clear_flag(id(thermostat_algemeen_pager), LV_OBJ_FLAG_HIDDEN);
+          if (tab_index == 0) {
+            lv_obj_clear_flag(id(thermostat_algemeen_pager), LV_OBJ_FLAG_HIDDEN);
+            id(thermostat_algemeen_select_page).execute(1);   // always start on page 1, like the other paged tabs
+          }
 
           lv_obj_t* panels[3] = {
             id(panel_thermostat_page_setpoint),
