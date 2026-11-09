@@ -31,14 +31,6 @@ class CompressorController
 {
 private:
   uint32_t last_compressor_start_ms_ = 0;
-  // Stop of a compressor that had been started; Stop() is also called when it was not running.
-  // 64-bit, so a compressor that stays off for weeks never looks recently stopped after a millis() wrap.
-  uint64_t last_started_compressor_stop_ms_ = 0;
-  bool started_compressor_stopped_ = false;
-  // A start was requested or confirmed since the last Stop(). Separate from last_compressor_start_ms_, which
-  // can legitimately be 0 right after boot, and also set for a start that timed out (TO02): the outdoor unit
-  // may still have reacted to it.
-  bool compressor_started_ = false;
   uint32_t last_compressor_stop_ms_ = 0;
   uint32_t last_compressor_mode_change_ms_ = 0;
   uint32_t start_wait_started_ms_ = 0;
@@ -323,12 +315,6 @@ public:
   void Stop()
   {
     ClearStartWaitTimer();
-    if (compressor_started_)
-    {
-      last_started_compressor_stop_ms_ = esphome::millis_64();
-      started_compressor_stopped_ = true;
-      compressor_started_ = false;
-    }
     last_compressor_start_ms_ = 0;
     last_compressor_stop_ms_ = App.get_loop_component_start_time();
     auto compressor_set_call = id(compressor_control_select).make_call();
@@ -353,18 +339,6 @@ public:
     return (App.get_loop_component_start_time() - last_compressor_stop_ms_) > min_off_ms;
   }
 
-  /// @brief True when the compressor reports no frequency and a requested or started compressor was stopped at
-  /// least off_ms ago, or none has been stopped since boot. Stop() calls without a start request do not count.
-  bool HasBeenOffFor(uint32_t off_ms)
-  {
-    // Never while the outdoor unit still reports a frequency, whatever the recorded stop time says.
-    if (IsRunning())
-      return false;
-    if (!started_compressor_stopped_)
-      return true;
-    return (esphome::millis_64() - last_started_compressor_stop_ms_) >= off_ms;
-  }
-
   bool HasPassedSoftStartDuration()
   {
     return (App.get_loop_component_start_time() - last_compressor_start_ms_) >= COMPRESSOR_SOFT_START_DURATION_S * 1000UL;
@@ -372,14 +346,12 @@ public:
 
   void RecordStartTime()
   {
-    compressor_started_ = true;
     ClearStartWaitTimer();
     last_compressor_start_ms_ = App.get_loop_component_start_time();
   }
 
   void ArmStartWaitTimer()
   {
-    compressor_started_ = true;
     start_wait_started_ms_ = App.get_loop_component_start_time();
   }
 

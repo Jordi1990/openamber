@@ -37,7 +37,9 @@ static const uint32_t THREE_WAY_VALVE_PROTECTION_HIGH_TEMPERATURE_TIME_S = 2 * 6
 static const float THREE_WAY_VALVE_PROTECTION_TUO_TC_THRESHOLD_C = 5.0f;
 
 // Compressor timing
-static const uint32_t COMPRESSOR_MIN_OFF_S = 2 * 60;
+// The outdoor unit firmware blocks a compressor restart for 180 s after a stop. It probably counts from the
+// actual stop, which comes 20-30 s after the stop command, so this keeps some margin.
+static const uint32_t COMPRESSOR_MIN_OFF_S = 200;
 static const uint32_t COMPRESSOR_MIN_ON_S = 10 * 60;
 static const uint32_t COMPRESSOR_SOFT_START_DURATION_S = 3 * 60;
 static const uint32_t COMPRESSOR_START_TIMEOUT_S = 2 * 60;

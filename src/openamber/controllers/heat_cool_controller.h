@@ -927,12 +927,6 @@ public:
         {
           ESP_LOGI("amber", "Disabling backup heater because measured temperature %.2f°C exceeded stop temperature delta %.2f°C.", current_temperature, target_temperature + id(compressor_stop_delta_heating).state);
           TurnOffBackupHeater();
-          if (id(emergency_mode_enabled).state)
-          {
-            // Emergency mode may have been enabled while the compressor ran next to the backup heater. Pump-only
-            // control must not leave it running: once heating idles, the 3-way valve may switch to DHW.
-            compressor_controller_->Stop();
-          }
           LeaveStateAndSetNextStateAfterWaitTime(id(emergency_mode_enabled).state ? HeatCoolState::PUMP_RUNNING : HeatCoolState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
           break;
         }
