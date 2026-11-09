@@ -44,8 +44,6 @@ class DHWController : public BaseController<DHWState>
 {
 private:
   bool rate_window_active_ = false;
-  // Set when the outdoor unit stopped the compressor by itself; DHW then restarts it without going idle.
-  bool restarting_after_unexpected_stop_ = false;
   uint32_t last_rate_measured_time_ = 0;
   uint32_t heating_rate_below_min_since_ms_ = 0;
   float last_temperature_rate_ = 0.0f;
@@ -366,7 +364,6 @@ public:
 
   void StopAndSetIdleState()
   {
-    restarting_after_unexpected_stop_ = false;
     compressor_controller_->Stop();
     pump_controller_->Stop();
     TurnOffBackupHeater();
@@ -429,24 +426,6 @@ public:
       }
 
       case DHWState::PUMP_RUNNING:
-        if (restarting_after_unexpected_stop_)
-        {
-          if (!HasDemand() || requested_to_stop_)
-          {
-            ESP_LOGI("amber", "No more DHW demand while waiting to restart the compressor, stopping.");
-            restarting_after_unexpected_stop_ = false;
-            pump_controller_->Stop();
-            StopDhwPump();
-            SetNextState(DHWState::WAIT_PUMP_STOP);
-            break;
-          }
-          if (!compressor_controller_->HasPassedMinOffTime())
-          {
-            break;
-          }
-          ESP_LOGI("amber", "Restarting the DHW compressor after an unexpected stop.");
-          restarting_after_unexpected_stop_ = false;
-        }
         SetWorkingMode(WORKING_MODE_HEATING);
         if(id(emergency_mode_enabled).state)
         {
@@ -483,12 +462,6 @@ public:
         break;
 
       case DHWState::COMPRESSOR_RUNNING:
-        if (HandleUnexpectedCompressorStop())
-        {
-          restarting_after_unexpected_stop_ = true;
-          SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
-          break;
-        }
         pump_controller_->ApplySpeedChangeIfNeeded(true);
 
         if(ShouldStartDhwPump())
@@ -575,14 +548,6 @@ public:
         break;
 
       case DHWState::WAIT_COMPRESSOR_STOP:
-        if (!compressor_controller_->IsRunning() && restarting_after_unexpected_stop_)
-        {
-          // Keep P0 and dhw_active: going through IDLE would drop the demand hysteresis and leave the
-          // tank half heated. PUMP_RUNNING waits for the minimum off time and starts the compressor again.
-          StopDhwPump();
-          SetNextState(DHWState::PUMP_RUNNING);
-          break;
-        }
         if (!compressor_controller_->IsRunning())
         {
           pump_controller_->Stop();
@@ -629,12 +594,6 @@ public:
         break;
 
       case DHWState::BACKUP_HEATER_RUNNING:
-        if (HandleUnexpectedCompressorStop())
-        {
-          restarting_after_unexpected_stop_ = true;
-          SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
-          break;
-        }
         if(id(emergency_mode_enabled).state)
         {
           if(ShouldStartDhwPump())

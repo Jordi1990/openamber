@@ -781,12 +781,6 @@ public:
 
       case HeatCoolState::COMPRESSOR_SOFTSTART:
       {
-        if (HandleUnexpectedCompressorStop())
-        {
-          CloseMixingValves();
-          SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
-          break;
-        }
         pump_controller_->ApplySpeedChangeIfNeeded(false);
         
         if(IsWorkingMode(WORKING_MODE_HEATING))
@@ -803,12 +797,6 @@ public:
 
       case HeatCoolState::COMPRESSOR_RUNNING:
       {
-        if (HandleUnexpectedCompressorStop())
-        {
-          CloseMixingValves();
-          SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
-          break;
-        }
         pump_controller_->ApplySpeedChangeIfNeeded(true);
 
         if(IsWorkingMode(WORKING_MODE_HEATING))
@@ -931,12 +919,6 @@ public:
 
       case HeatCoolState::BACKUP_HEATER_RUNNING:
       {
-        if (HandleUnexpectedCompressorStop())
-        {
-          CloseMixingValves();
-          SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
-          break;
-        }
         ApplyMixingValvePositions();
         float current_temperature = GetControlTemperature();
         float target_temperature = id(pid_heat_temperature_control).target_temperature;

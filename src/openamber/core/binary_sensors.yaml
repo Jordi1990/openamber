@@ -854,7 +854,7 @@ binary_sensor:
 
 - platform: template
   id: error_compressor_unexpected_stop
-  name: "Compressor herhaaldelijk onverwacht gestopt"
+  name: "Compressor onverwacht gestopt"
   device_class: problem
   entity_category: diagnostic
   web_server:

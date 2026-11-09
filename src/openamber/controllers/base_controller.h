@@ -138,29 +138,6 @@ public:
 
   virtual ~BaseController() = default;
 
-  /// @brief Stops a compressor that the outdoor unit stopped by itself while it should run, so the normal
-  /// start path can start it again. Also turns off the backup heater, which would otherwise do all the work.
-  /// Returns true when it stopped the compressor; the caller then moves to its WAIT_COMPRESSOR_STOP state.
-  bool HandleUnexpectedCompressorStop()
-  {
-    if (id(emergency_mode_enabled).state || !compressor_controller_->HasStoppedUnexpectedly())
-    {
-      return false;
-    }
-    ESP_LOGW("amber", "%s: compressor reports 0 Hz for %u s while it should run. Stopping it so it can start again.",
-             LogTag(), (unsigned) COMPRESSOR_UNEXPECTED_STOP_S);
-    if (compressor_controller_->RegisterUnexpectedStop())
-    {
-      ESP_LOGE("amber", "Compressor stopped unexpectedly %u times within %u min.",
-               (unsigned) COMPRESSOR_UNEXPECTED_STOP_ERROR_COUNT, (unsigned) (COMPRESSOR_UNEXPECTED_STOP_WINDOW_S / 60));
-      id(error_compressor_unexpected_stop).publish_state(true);
-      compressor_controller_->ClearUnexpectedStops();
-    }
-    TurnOffBackupHeater();
-    compressor_controller_->Stop();
-    return true;
-  }
-
   void RequestToStop()
   {
     requested_to_stop_ = true;
