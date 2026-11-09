@@ -5,6 +5,8 @@ compressor recovery boost mode (+3 steps), and low ambient backup heater boost.
 
 import pytest
 
+from helpers import set_outside_temperature
+
 
 def test_heat_defrost_recovery_boost_and_settle_time(clean_system):
     """
@@ -165,8 +167,7 @@ def test_heat_defrost_backup_heater_boost_low_outside_temp(clean_system):
     openamber.set_climate("pid_heat_temperature_control", target_temperature=35.0)
     openamber.set_number("compressor_stop_delta_heating", 5.0)
     openamber.set_number("defrost_backup_heater_boost_temperature_sensor", -3.0)
-    openamber.set_sensor("temperature_outside_ta", -5.0)  # <= -3.0°C threshold
-    openamber.set_sensor("temperature_outside_ta_avg_1h", -5.0)
+    set_outside_temperature(openamber, -5.0)  # <= -3.0°C threshold
     openamber.set_switch("heat_demand_switch", True)
     openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
     openamber.set_sensor("heat_cool_temperature_tc", 28.0)

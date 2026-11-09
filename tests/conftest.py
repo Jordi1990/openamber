@@ -4,6 +4,7 @@ import subprocess
 import time
 import pytest
 from openamber_client import OpenAmberClient
+from helpers import set_outside_temperature
 
 
 @pytest.fixture(scope="session")
@@ -149,7 +150,6 @@ def clean_system(openamber):
     openamber.set_sensor("temperature_outside_ta", 7.0)
     openamber.set_sensor("discharge_pressure_pd", 18.0)
     openamber.set_sensor("discharge_temperature_td", 60.0)
-    openamber.set_sensor("temperature_outside_ta_avg_1h", 7.0)
     openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
     openamber.set_sensor("heat_cool_temperature_tc", 28.0)
     openamber.set_sensor("outlet_temperature_tuo", 28.0)
@@ -199,6 +199,11 @@ def clean_system(openamber):
         openamber.advance_time(seconds=10, step_s=5)
         openamber.step(ms=50)
     openamber.step(ms=50)
+
+    # Restart the averaged Ta at 7 °C when an earlier test moved it (takes up to 60 s, see the helper).
+    average = openamber.get_entity("temperature_outside_ta_avg_1h")
+    if average is None or abs(float(average) - 7.0) >= 0.01:
+        set_outside_temperature(openamber, 7.0)
 
     assert openamber.get_entity("three_way_valve_dhw_switch") is False, "Valve should be in CV position in idle"
     return openamber

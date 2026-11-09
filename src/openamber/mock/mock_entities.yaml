@@ -799,6 +799,13 @@ number:
     initial_value: 1000.0
 switch:
   - platform: template
+    id: mock_reset_outside_temperature_average
+    # Simulator only: restarts the averaged Ta, so the next Ta value becomes the new average.
+    optimistic: true
+    turn_on_action:
+      - sensor.exponential_moving_average.reset: temperature_outside_ta_avg_1h
+      - switch.turn_off: mock_reset_outside_temperature_average
+  - platform: template
     id: pump_p0_relay_switch
     name: "Pomp P0 relais"
     optimistic: true

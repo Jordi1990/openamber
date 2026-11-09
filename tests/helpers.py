@@ -30,9 +30,23 @@ def advance_until_state(openamber, entity, wanted, max_s, step=10):
 
 
 def set_outside_temperature(openamber, ta):
-    """Set Ta and start the averaged Ta used by the heating curves at the same value."""
+    """Set Ta and restart the averaged Ta used by the heating curves at the same value.
+
+    The average is an exponential_moving_average sensor with a 60 s throttle on its output: after the reset
+    the new value is published at the latest 60 s later, so this advances until it shows. Right after a
+    defrost the Ta hold (5 min) drops values first, so it may take up to about 6 min.
+    """
+    openamber.set_switch("mock_reset_outside_temperature_average", True)
+    openamber.step(ms=20)
     openamber.set_sensor("temperature_outside_ta", ta)
-    openamber.set_sensor("temperature_outside_ta_avg_1h", ta)
+    openamber.step(ms=20)
+    for _ in range(80):
+        value = openamber.get_entity("temperature_outside_ta_avg_1h")
+        if value is not None and abs(float(value) - ta) < 0.01:
+            return
+        openamber.advance_time(seconds=5, step_s=5)
+        openamber.step(ms=20)
+    raise AssertionError(f"Average Ta did not restart at {ta} (got {openamber.get_entity('temperature_outside_ta_avg_1h')})")
 
 
 def start_space_heating(openamber, tc=28.0, target=35.0, use_curve=False):

@@ -1,7 +1,9 @@
 """Automated tests for the averaged outside temperature used by the heating curves.
 
-The outdoor unit blows warm air past the Ta sensor at the end of a defrost cycle. The average must
-ignore that spike, while still following real outside temperature changes slowly.
+The average is an exponential_moving_average sensor (time constant 60 min, time_weighting: previous) on a copy
+of Ta that drops values during a defrost and for 5 min after it. Its output is throttled to once a minute.
+The outdoor unit blows warm air past the Ta sensor at the end of a defrost cycle. The average must ignore that
+spike, while still following real outside temperature changes slowly.
 """
 
 import math
@@ -13,6 +15,8 @@ from helpers import set_outside_temperature
 AVERAGE = "temperature_outside_ta_avg_1h"
 TIME_CONSTANT_S = 3600.0
 DEFROST_HOLD_S = 300
+# The published average can be up to one throttle period old.
+THROTTLE_S = 60
 
 
 def average(openamber):
@@ -29,7 +33,10 @@ def test_average_follows_outside_temperature_with_one_hour_time_constant(clean_s
     openamber.advance_time(seconds=TIME_CONSTANT_S, step_s=30)
     openamber.step(ms=50)
 
-    assert average(openamber) == pytest.approx(5.0 * math.exp(-1.0), abs=0.1)
+    # Between the value of one throttle period ago and the current one.
+    newest = 5.0 * math.exp(-1.0)
+    oldest = 5.0 * math.exp(-(TIME_CONSTANT_S - THROTTLE_S) / TIME_CONSTANT_S)
+    assert newest - 0.05 <= average(openamber) <= oldest + 0.05
 
 
 def test_heating_curve_uses_the_average_instead_of_raw_outside_temperature(clean_system):
@@ -62,11 +69,16 @@ def test_average_ignores_warm_air_spike_during_and_after_defrost(clean_system):
     assert average(openamber) == pytest.approx(1.0, abs=0.01), "Average must hold until the hold time ends"
     assert openamber.get_entity("temperature_outside_ta") == pytest.approx(21.0, abs=0.01)
 
-    # Just after the hold time the average starts following Ta again: at most about 30 s of
-    # averaging towards 21 °C moves it by about 0.17 °C.
-    openamber.advance_time(seconds=30, step_s=5)
+    # The gap counts with the last Ta before the defrost (time_weighting: previous), so just after the hold
+    # time the average is still 1 °C.
+    openamber.advance_time(seconds=20, step_s=5)
+    assert average(openamber) == pytest.approx(1.0, abs=0.01), "The hold gap must count with the Ta before the defrost"
+
+    # After that it follows Ta again: the next published value reflects about one minute towards 21 °C.
+    openamber.advance_time(seconds=THROTTLE_S + 10, step_s=5)
     moved = average(openamber)
-    assert 1.05 < moved < 1.25, f"Average must move again after the hold time, got {moved}"
+    expected = 21.0 - 20.0 * math.exp(-THROTTLE_S / TIME_CONSTANT_S)
+    assert expected - 0.15 < moved < expected + 0.15, f"Average must move again after the hold time, got {moved}"
 
 
 def test_average_resumes_after_defrost_hold_time(clean_system):
@@ -82,5 +94,23 @@ def test_average_resumes_after_defrost_hold_time(clean_system):
     openamber.advance_time(seconds=600, step_s=30)
     openamber.step(ms=50)
 
-    expected = 11.0 - 10.0 * math.exp(-600.0 / TIME_CONSTANT_S)
-    assert average(openamber) == pytest.approx(expected, abs=0.1)
+    # About 600 s of 11 °C after the hold time; the published value can be one throttle period old.
+    newest = 11.0 - 10.0 * math.exp(-610.0 / TIME_CONSTANT_S)
+    oldest = 11.0 - 10.0 * math.exp(-(600.0 - THROTTLE_S) / TIME_CONSTANT_S)
+    assert oldest - 0.1 <= average(openamber) <= newest + 0.1
+
+
+def test_average_is_published_at_most_once_a_minute(clean_system):
+    """The output throttle limits heating curve updates (and Home Assistant traffic) to once a minute."""
+    openamber = clean_system
+    set_outside_temperature(openamber, 5.0)
+    openamber.advance_time(seconds=THROTTLE_S + 5, step_s=5)
+
+    openamber.set_sensor("temperature_outside_ta", 0.0)
+    values = set()
+    for _ in range(int(THROTTLE_S / 5) * 2):
+        openamber.advance_time(seconds=5, step_s=5)
+        openamber.step(ms=20)
+        values.add(round(average(openamber), 4))
+    # Two minutes of a falling average: at most three published values (start, +1 min, +2 min).
+    assert 2 <= len(values) <= 3, f"Expected a new value at most once a minute, got {sorted(values)}"
