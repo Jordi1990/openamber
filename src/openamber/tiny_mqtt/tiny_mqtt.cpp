@@ -5,6 +5,7 @@
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
 
+#include <algorithm>
 #include <cerrno>
 #include <cstring>
 
@@ -21,8 +22,10 @@ static constexpr uint8_t PKT_DISCONNECT = 0xE0;
 static constexpr uint8_t CONNECT_FLAG_USERNAME = 0x80;
 static constexpr uint8_t CONNECT_FLAG_PASSWORD = 0x40;
 static constexpr uint8_t CONNECT_FLAG_CLEAN_SESSION = 0x02;
-// The session never idles longer than `linger`, so the keepalive only needs to be generous.
-static constexpr uint16_t KEEPALIVE_S = 60;
+// The session idles at most `linger` after the last publish. The keepalive must outlast that,
+// otherwise the broker may drop the connection (after 1.5x keepalive) while we still linger.
+static constexpr uint32_t MIN_KEEPALIVE_S = 60;
+static constexpr uint32_t KEEPALIVE_MARGIN_S = 30;
 // MQTT remaining length is at most 4 bytes (268,435,455); our packets are far smaller.
 static constexpr size_t MAX_REMAINING_LENGTH = 268435455;
 
@@ -88,6 +91,11 @@ bool TinyMqttClient::publish(const char *topic, const char *payload, size_t payl
     ESP_LOGW(TAG, "Invalid topic length %u", (unsigned) topic_len);
     return false;
   }
+  // Wildcards are only valid in subscriptions; a broker closes the connection on such a PUBLISH.
+  if (strpbrk(topic, "+#") != nullptr) {
+    ESP_LOGW(TAG, "Wildcards are not allowed in publish topic '%s'", topic);
+    return false;
+  }
   const size_t remaining = 2 + topic_len + payload_len;
   if (remaining > MAX_REMAINING_LENGTH) {
     return false;
@@ -100,6 +108,15 @@ bool TinyMqttClient::publish(const char *topic, const char *payload, size_t payl
   }
 
   // While a session is open, append straight to the transmit buffer.
+  if (this->state_ == State::SESSION) {
+    if (this->tx_offset_ > 0) {
+      // Drop the already written prefix so tx_ never holds more than max_queue_size_ bytes.
+      this->tx_.erase(this->tx_.begin(), this->tx_.begin() + this->tx_offset_);
+      this->tx_offset_ = 0;
+    }
+    if (this->tx_.empty())
+      this->last_tx_progress_ms_ = millis();
+  }
   std::vector<uint8_t> &out = this->state_ == State::SESSION ? this->tx_ : this->pending_;
   out.reserve(out.size() + packet_len);
   out.push_back(PKT_PUBLISH | (retain ? 0x01 : 0x00));
@@ -248,6 +265,7 @@ void TinyMqttClient::poll_connack_() {
   this->tx_offset_ = 0;
   std::vector<uint8_t>().swap(this->pending_);
   this->state_ = State::SESSION;
+  this->last_tx_progress_ms_ = millis();
   this->flush_tx_();
 }
 
@@ -271,8 +289,13 @@ void TinyMqttClient::poll_session_() {
 
   if (!this->flush_tx_())
     return;
-  if (this->tx_offset_ < this->tx_.size())
-    return;  // Socket busy, try again next loop.
+  if (this->tx_offset_ < this->tx_.size()) {
+    // Socket busy, try again next loop. Give up when the broker stops reading altogether,
+    // so a later publish can start a fresh session instead of filling a dead one.
+    if (millis() - this->last_tx_progress_ms_ > this->connect_timeout_ms_)
+      this->fail_("Write stalled", ETIMEDOUT);
+    return;
+  }
   if (millis() - this->last_publish_ms_ < this->linger_ms_)
     return;
 
@@ -285,6 +308,7 @@ bool TinyMqttClient::flush_tx_() {
     ssize_t n = this->sock_->write(this->tx_.data() + this->tx_offset_, this->tx_.size() - this->tx_offset_);
     if (n > 0) {
       this->tx_offset_ += n;
+      this->last_tx_progress_ms_ = millis();
       continue;
     }
     if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK))
@@ -320,7 +344,9 @@ void TinyMqttClient::encode_connect_(std::vector<uint8_t> &out) const {
   put_string(out, "MQTT", 4);
   out.push_back(0x04);  // protocol level 3.1.1
   out.push_back(flags);
-  put_u16(out, KEEPALIVE_S);
+  const uint32_t keepalive_s =
+      std::min<uint32_t>(std::max(MIN_KEEPALIVE_S, this->linger_ms_ / 1000 + KEEPALIVE_MARGIN_S), 0xFFFF);
+  put_u16(out, static_cast<uint16_t>(keepalive_s));
   put_string(out, this->client_id_.data(), client_id_len);
   if (flags & CONNECT_FLAG_USERNAME)
     put_string(out, this->username_, username_len);

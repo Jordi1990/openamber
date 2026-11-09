@@ -89,6 +89,8 @@ class TinyMqttClient : public Component {
   State state_{State::IDLE};
   uint32_t state_start_ms_{0};
   uint32_t last_publish_ms_{0};
+  /// Last time the socket accepted bytes (or tx_ became non-empty); used to detect a stalled session.
+  uint32_t last_tx_progress_ms_{0};
   uint32_t dropped_{0};
 
   socket::Ipv4Resolve resolve_;
