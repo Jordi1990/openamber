@@ -20,6 +20,7 @@ esphome:
             text: "OpenAmber"
   includes:
     - openamber/controllers/constants.h
+    - openamber/controllers/timing.h
     - openamber/controllers/pump_controller.h
     - openamber/controllers/compressor_controller.h
     - openamber/controllers/base_controller.h

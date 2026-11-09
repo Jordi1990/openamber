@@ -973,9 +973,9 @@ public:
         ResetMixingValvesIntegralTerm();
         StartPumpP1IfNeeded();
 
-        if (id(temperature_outside_ta).state <= id(defrost_backup_heater_boost_temperature_sensor).state)
+        if (id(temperature_outside_ta_avg_1h).state <= id(defrost_backup_heater_boost_temperature_sensor).state)
         {
-          ESP_LOGI("amber", "Defrost ended, enabling backup heater as configured for outside temperature %.2f°C to boost temperature back to setpoint.", id(temperature_outside_ta).state);
+          ESP_LOGI("amber", "Defrost ended, enabling backup heater as configured for outside temperature %.2f°C to boost temperature back to setpoint.", id(temperature_outside_ta_avg_1h).state);
           TurnOnBackupHeater();
           SetNextState(HeatCoolState::WAIT_BACKUP_HEATER_RUNNING);
         }

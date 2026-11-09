@@ -28,11 +28,15 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - if:
-                      condition:
-                        lambda: 'return !id(pump_p0_pid_enabled).state;'
-                      then:
-                        - number.decrement: pump_speed_heating_number
+                  - lambda: |-
+                      if (!id(pump_p0_pid_enabled).state) {
+                        {
+                          auto call = id(pump_speed_heating_number).make_call();
+                          call.with_operation(number::NUMBER_OP_DECREMENT);
+                          call.with_cycle(true);
+                          call.perform();
+                        }
+                      }
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
             - label: { id: set_pump_heat_val, text: "100%", text_color: 0x1F2933, text_font: font_text_24 }
@@ -47,11 +51,15 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - if:
-                      condition:
-                        lambda: 'return !id(pump_p0_pid_enabled).state;'
-                      then:
-                        - number.increment: pump_speed_heating_number
+                  - lambda: |-
+                      if (!id(pump_p0_pid_enabled).state) {
+                        {
+                          auto call = id(pump_speed_heating_number).make_call();
+                          call.with_operation(number::NUMBER_OP_INCREMENT);
+                          call.with_cycle(true);
+                          call.perform();
+                        }
+                      }
                 widgets:
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
       - obj:

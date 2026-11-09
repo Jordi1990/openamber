@@ -345,6 +345,14 @@ binary_sensor:
   web_server: 
     sorting_group_id: error_codes
 
+# Ta hold for the heating curve average: during a defrost and 5 min after it.
+- platform: template
+  id: defrost_ta_hold
+  internal: true
+  lambda: return id(defrost_active_sensor).state;
+  filters:
+    - delayed_off: 5min
+
 - platform: template
   id: oil_return_cycle_active
   name: "Olieretourcyclus actief"
