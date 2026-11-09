@@ -1,11 +1,14 @@
 # =====================================================================
 # Wireless thermostat link via ESP-NOW (packet_transport)
 #
-# Shares temperatures, status, setpoints and mode with the round OpenAmber
+# Shares temperatures, status, setpoints and mode with the OpenAmber
 # thermostat, and executes setpoint/mode commands sent by that thermostat.
 #
 # Off by default: ESP-NOW only runs when the switch "Draadloze thermostaat"
-# (Settings > Thermostat > Algemeen, page 2, or the entity) is on.
+# (Settings > Thermostat > Algemeen, page 2, or the entity) is on. When it is off,
+# nothing of the link runs and nothing is written to flash: the values for the
+# thermostat are not polled, the transport is stopped and the rolling code is not
+# started.
 #
 # Pairing: when the link is switched on for the first time, OpenAmber generates
 # a random 6-digit pairing code, shown below the switch on the display and as
@@ -19,7 +22,9 @@
 # MAC address (pin); the thermostat locks on to the first OpenAmber it hears
 # and OpenAmber only accepts commands from a thermostat that sends its pin.
 #
-# Both sides use rolling codes, so captured packets cannot be replayed.
+# Both sides use rolling codes, so captured packets cannot be replayed. With the
+# link on, packet_transport raises the upper half of its counter at every boot and
+# writes it to flash (4 bytes in NVS).
 # A 6-digit code can be brute-forced from captured packets with some effort;
 # it keeps out neighbours and other ESP-NOW devices.
 #
@@ -57,11 +62,22 @@ globals:
     type: int
     restore_value: yes            # kept across reboots and updates
     initial_value: '0'
+  - id: thermostat_link_started   # the rolling code runs (started at boot or when switched on)
+    type: bool
+    initial_value: 'false'
 
 sha256:                           # key derivation from the pairing code
 
 esphome:
   on_boot:
+    # After the switch is restored (setup priority 798) and before packet_transport is set up (250):
+    # only start the rolling code when the link is on. At setup packet_transport then raises its
+    # counter and writes it to flash itself; with the link off nothing is written.
+    - priority: 600
+      then:
+        - lambda: |-
+            id(thermostat_link_started) = id(thermostat_link_enabled).state;
+            id(transport_thermostat)->set_rolling_code_enable(id(thermostat_link_started));
     - priority: -100              # everything is set up; ESP-NOW starts disabled (enable_on_boot: false)
       then:
         - if:
@@ -69,12 +85,10 @@ esphome:
               switch.is_on: thermostat_link_enabled
             then:
               - lambda: 'id(espnow_component)->enable();'
-              - script.execute: thermostat_link_apply_code
-        - script.execute: thermostat_link_ui
-        # The rolling code counter is raised at every boot; write it to flash right away instead
-        # of at the next flash_write_interval (5 min), otherwise a reboot before that makes the
-        # thermostat reject our packets as old
-        - lambda: 'global_preferences->sync();'
+              - script.execute: thermostat_link_apply_code   # also updates the display
+            else:
+              - script.execute: thermostat_link_stop
+              - lvgl.widget.show: thermostat_row_link_enabled   # only the switch, to turn it on
 
 switch:
   - platform: template
@@ -94,6 +108,12 @@ switch:
           condition:
             lambda: 'return id(espnow_component)->is_ready();'
           then:
+            - if:
+                condition:
+                  lambda: 'return !id(thermostat_link_started);'
+                then:
+                  - script.execute: thermostat_link_start_rolling_code
+            - script.execute: thermostat_link_start
             - lambda: 'id(espnow_component)->enable();'
             - script.execute: thermostat_link_apply_code
     on_turn_off:
@@ -107,6 +127,7 @@ switch:
                 id(thermostat_temp).publish_state(NAN);
                 id(thermostat_hum).publish_state(NAN);
                 id(thermostat_dewpoint).publish_state(NAN);
+            - script.execute: thermostat_link_stop
     on_state:
       - if:
           condition:
@@ -156,7 +177,8 @@ packet_transport:
     # device with the same key can use them.
     encryption: ${thermostat_link_key}
     # Rolling code: every packet carries a rising counter and packets with an older counter are
-    # rejected, so captured packets cannot be replayed. The counter is kept in flash (see on_boot).
+    # rejected, so captured packets cannot be replayed. The counter is kept in flash. Only
+    # started when the link is on at boot (see on_boot).
     rolling_code_enable: true
     providers:
       - name: ${thermostat_name}
@@ -270,6 +292,51 @@ script:
       # so a crash or power cut does not lose it (the global stores its value within 1 s)
       - delay: 2s
       - lambda: 'global_preferences->sync();'
+
+  # With the link off nothing of it runs: the values for the thermostat are no longer polled and the
+  # transport no longer builds packets when shared sensors change. Shared sensors keep running.
+  - id: thermostat_link_stop
+    then:
+      - lambda: |-
+          PollingComponent *pollers[] = {
+            id(transport_thermostat), id(thermostat_link_pin), id(thermostat_link_time),
+            id(thermostat_link_target_low), id(thermostat_link_target_high), id(thermostat_link_mode),
+            id(thermostat_link_errors_1), id(thermostat_link_errors_2)
+          };
+          for (auto *c : pollers) c->stop_poller();
+          id(transport_thermostat)->disable_loop();
+
+  # Off at boot, so packet_transport did not start its rolling code at setup: do the same now
+  # (raise the upper half of the counter, write it to flash, enable). The counter and its preference
+  # are protected members; a derived class gives access to them without changing packet_transport.
+  - id: thermostat_link_start_rolling_code
+    then:
+      - lambda: |-
+          struct Access : packet_transport::PacketTransport {
+            static uint32_t *code(packet_transport::PacketTransport *t) { return t->*(&Access::rolling_code_); }
+            static ESPPreferenceObject &pref(packet_transport::PacketTransport *t) { return t->*(&Access::pref_); }
+          };
+          auto *t = id(transport_thermostat);
+          uint32_t *code = Access::code(t);
+          Access::pref(t).load(&code[1]);
+          code[1]++;
+          code[0] = 0;
+          Access::pref(t).save(&code[1]);
+          global_preferences->sync();
+          t->set_rolling_code_enable(true);
+          id(thermostat_link_started) = true;
+          ESP_LOGI("thermostat_link", "Rolling code started, upper part now %u", (unsigned) code[1]);
+
+  - id: thermostat_link_start
+    then:
+      - lambda: |-
+          PollingComponent *pollers[] = {
+            id(transport_thermostat), id(thermostat_link_pin), id(thermostat_link_time),
+            id(thermostat_link_target_low), id(thermostat_link_target_high), id(thermostat_link_mode),
+            id(thermostat_link_errors_1), id(thermostat_link_errors_2)
+          };
+          for (auto *c : pollers) c->start_poller();
+          id(transport_thermostat)->enable_loop();
 
   # Display (Settings > Thermostat > Algemeen, page 2): the switch row, and the pairing code only when on
   - id: thermostat_link_ui
