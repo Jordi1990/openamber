@@ -30,6 +30,7 @@ def _restart_and_sample(openamber, seconds, step=5):
     samples = []
     waited = 0
     while waited < seconds:
+        millis_before = openamber.get_time()["millis"]
         openamber.advance_time(seconds=step, step_s=step)
         openamber.step(ms=20)
         waited += step
@@ -40,6 +41,8 @@ def _restart_and_sample(openamber, seconds, step=5):
             "level": int(openamber.get_entity("compressor_control_select") or 0),
             "mode": openamber.get_entity("working_mode_switch"),
             "pump": openamber.get_entity("internal_pump_active"),
+            # Simulator clock before this sample's update: a lower bound for when that update ran.
+            "millis_before": millis_before,
         })
     return samples
 
@@ -60,17 +63,25 @@ def _resumed_sample(samples):
     raise AssertionError(f"Units were not taken over after the restart: {samples}")
 
 
+def _seconds_since(openamber, start_millis):
+    """Seconds on the simulator clock since `start_millis` (32-bit millis, wrap-safe)."""
+    return ((openamber.get_time()["millis"] - start_millis) & 0xFFFFFFFF) / 1000.0
+
+
 def _assert_not_initialized(samples):
+    """The restart did not run the stopping initialization and pump P0 kept running."""
     assert all(s["main"] != "Initializing" for s in samples), f"Restart must not run the stopping initialization: {samples}"
     assert all(s["pump"] is True for s in samples), f"Pump stopped during the restart: {samples}"
 
 
 def _assert_initialized(samples):
+    """The restart fell back to the normal initialization, which stops the compressor."""
     assert any(s["main"] in INIT_STATES for s in samples), f"Expected a normal initialization: {samples}"
     assert samples[-1]["level"] == 0, f"Initialization must stop the compressor: {samples}"
 
 
 def _start_dhw(openamber):
+    """Start a DHW cycle and advance until the DHW compressor runs."""
     openamber.set_number("dhw_setpoint_temperature", 50.0)
     openamber.set_number("dhw_restart_dhw_delta", 5.0)
     openamber.set_sensor("dhw_temperature_tw_sensor", 40.0)
@@ -80,6 +91,7 @@ def _start_dhw(openamber):
 
 
 def _start_cooling(openamber):
+    """Start space cooling and advance until the compressor runs in cooling."""
     openamber.set_switch("heat_demand_switch", False)
     openamber.set_switch("cool_demand_switch", True)
     openamber.set_sensor("current_water_temperature_tc_sensor", 25.0)
@@ -96,6 +108,7 @@ def _start_cooling(openamber):
 # ---------------------------------------------------------------------------
 
 def test_running_heating_is_resumed_after_restart(clean_system):
+    """A running heating cycle is taken over: compressor, pump and working mode stay as they are."""
     openamber = clean_system
     start_space_heating(openamber, tc=28.0, target=35.0)
     openamber.advance_time(seconds=30, step_s=5)
@@ -112,6 +125,7 @@ def test_running_heating_is_resumed_after_restart(clean_system):
 
 
 def test_running_cooling_is_resumed_after_restart(clean_system):
+    """A running cooling cycle is taken over: compressor, pump and working mode stay as they are."""
     openamber = clean_system
     try:
         _start_cooling(openamber)
@@ -136,9 +150,8 @@ def test_resumed_heating_keeps_minimum_on_time(clean_system):
     assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
 
     samples = _restart_and_sample(openamber, seconds=30)
-    resumed_index = samples.index(_resumed_sample(samples))
-    # Elapsed time since the takeover at the end of the sampling (samples are 5 s apart, takeover at the end of its sample).
-    elapsed = (len(samples) - resumed_index - 1) * 5
+    # The takeover ran after this moment, so the time since it is an upper bound for the real time since the takeover.
+    takeover_lower_bound_ms = _resumed_sample(samples)["millis_before"]
     assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
 
     # Overshoot: would stop at once without minimum on time.
@@ -146,12 +159,11 @@ def test_resumed_heating_keeps_minimum_on_time(clean_system):
     openamber.set_sensor("outlet_temperature_tuo", 40.0)
     openamber.set_sensor("inlet_temperature_tui", 38.0)
 
-    # The compressor stays on for the whole minimum on time after the takeover. Margin: the simulator clock also
-    # advances with the real time the test loop takes (a few seconds over ~120 steps).
-    while elapsed < COMPRESSOR_MIN_ON_S - 30:
+    # The compressor stays on for the whole minimum on time after the takeover, measured on the simulator clock
+    # (which also advances with the real time the test takes). 5 s margin for the update grid.
+    while (elapsed := _seconds_since(openamber, takeover_lower_bound_ms)) < COMPRESSOR_MIN_ON_S - 5:
         openamber.advance_time(seconds=5, step_s=5)
         openamber.step(ms=20)
-        elapsed += 5
         assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running", f"Stopped {elapsed} s after the takeover"
         assert int(openamber.get_entity("compressor_control_select") or 0) > 0, f"Compressor stopped {elapsed} s after the takeover"
 
@@ -362,6 +374,7 @@ def test_backup_heater_stages_are_switched_off_on_resume(clean_system):
     (False, "Compressor running"),
 ])
 def test_running_dhw_is_resumed_after_restart(clean_system, dhw_pump_on, expected):
+    """A running DHW cycle is taken over; with the DHW pump on the pump settle time restarts."""
     openamber = clean_system
     _start_dhw(openamber)
     openamber.set_switch("dhw_pump_relay_switch", dhw_pump_on)
@@ -378,6 +391,7 @@ def test_running_dhw_is_resumed_after_restart(clean_system, dhw_pump_on, expecte
 
 
 def test_dhw_defrost_is_resumed_after_restart(clean_system):
+    """An actual defrost during DHW is taken over as DEFROSTING."""
     openamber = clean_system
     try:
         _start_dhw(openamber)
@@ -439,12 +453,11 @@ def test_dhw_starting_compressor_is_cancelled_after_restart(clean_system):
 
         # The DHW demand continues: the compressor may only start again after the minimum off time.
         openamber.set_number("mock_compressor_frequency_override", -1.0)
-        resumed_index = samples.index(resumed)
-        elapsed = (len(samples) - resumed_index - 1) * 5
-        while elapsed < COMPRESSOR_MIN_OFF_S - 20:
+        # The start was cancelled (compressor stop) after this moment: elapsed on the simulator clock is an upper bound.
+        cancel_lower_bound_ms = resumed["millis_before"]
+        while (elapsed := _seconds_since(openamber, cancel_lower_bound_ms)) < COMPRESSOR_MIN_OFF_S - 5:
             openamber.advance_time(seconds=5, step_s=5)
             openamber.step(ms=20)
-            elapsed += 5
             assert int(openamber.get_entity("compressor_control_select") or 0) == 0, \
                 f"DHW compressor restarted {elapsed} s after the cancelled start (minimum off time)"
         assert advance_until_state(openamber, "state_machine_state_dhw", "Compressor running", max_s=600, step=5)
@@ -471,6 +484,7 @@ def test_inside_unit_failsafe_falls_back_to_initialization(clean_system):
 
 
 def test_idle_system_initializes_normally_after_restart(clean_system):
+    """Nothing runs: the restart runs the normal initialization."""
     openamber = clean_system
     openamber.advance_time(seconds=30, step_s=5)
     assert openamber.get_entity("internal_pump_active") is False
@@ -482,25 +496,30 @@ def test_idle_system_initializes_normally_after_restart(clean_system):
 
 
 def _set_working_mode_standby(openamber):
+    """Inconsistent: pump running with working mode standby."""
     openamber.set_select("working_mode_switch", "Standby")
 
 
 def _set_both_valve_outputs(openamber):
+    """Inconsistent: both 3-way valve outputs on."""
     openamber.set_switch("three_way_valve_dhw_switch", True)
     openamber.set_switch("three_way_valve_heat_cool_switch", True)
 
 
 def _set_valve_feedback_missing(openamber):
+    """Inconsistent: 3-way valve feedback does not match the output."""
     openamber.set_switch("mock_three_way_valve_feedback_missing", True)
 
 
 def _set_dhw_position_while_cooling(openamber):
+    """Inconsistent: 3-way valve in the DHW position while the working mode is cooling."""
     openamber.set_switch("three_way_valve_dhw_switch", True)
     openamber.set_switch("three_way_valve_heat_cool_switch", False)
     openamber.set_select("working_mode_switch", "Koelen")
 
 
 def _set_error_active(openamber):
+    """An active error: no takeover."""
     openamber.set_binary_sensor("error_compressor_start_timeout", True)
 
 
@@ -512,6 +531,7 @@ def _set_error_active(openamber):
     _set_error_active,
 ], ids=["working_mode_standby", "both_valve_outputs", "valve_feedback_missing", "dhw_position_while_cooling", "error_active"])
 def test_inconsistent_state_falls_back_to_initialization(clean_system, make_inconsistent):
+    """An inconsistent unit state is not taken over: the restart runs the normal initialization."""
     openamber = clean_system
     try:
         start_space_heating(openamber, tc=28.0, target=35.0)
@@ -528,6 +548,7 @@ def test_inconsistent_state_falls_back_to_initialization(clean_system, make_inco
 
 
 def test_maintenance_requested_falls_back_to_initialization(clean_system):
+    """Maintenance requested: the restart runs the normal initialization."""
     openamber = clean_system
     try:
         start_space_heating(openamber, tc=28.0, target=35.0)
@@ -556,12 +577,14 @@ def _heating_past_min_on_time(openamber):
 
 
 def _overshoot(openamber):
+    """Temperatures above the setpoint plus stop delta: the compressor stops once allowed."""
     openamber.set_sensor("heat_cool_temperature_tc", 40.0)
     openamber.set_sensor("outlet_temperature_tuo", 40.0)
     openamber.set_sensor("inlet_temperature_tui", 38.0)
 
 
 def _level(openamber):
+    """Current compressor level (1999)."""
     return int(openamber.get_entity("compressor_control_select") or 0)
 
 
