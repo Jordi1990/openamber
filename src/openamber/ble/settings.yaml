@@ -18,30 +18,33 @@ lvgl:
                                 id: !extend panel_thermostat_page_setpoint
                                 widgets:
                                   - obj:
-                                      id: ble_source_row
-                                      width: 100%
-                                      height: SIZE_CONTENT
-                                      bg_opa: 0%
-                                      border_opa: 0%
-                                      pad_all: 6
-                                      scrollable: false
+                                      id: !extend thermostat_algemeen_page_1
                                       widgets:
-                                        - label: { text: "Ruimtetemperatuur bron", text_font: font_text_24, text_color: 0x1F2933, align: TOP_LEFT }
-                                        - label: { text: "Bedrade Tr-sensor of gekoppelde Bluetooth-sensor", text_font: font_text_20, text_color: 0x6B7280, align: TOP_LEFT, y: 38 }
-                                        - dropdown:
-                                            id: ble_source_dropdown
-                                            width: 360
-                                            height: 40
-                                            align: TOP_RIGHT
-                                            # Lifted and kept compact so it clears the description line below the title.
-                                            y: -4
-                                            symbol: "\U000F0140"
-                                            # Options are rebuilt from the paired sensors (switchbot_ble_ui.h).
-                                            options: ["Tr (Bedraad)"]
-                                            text_font: font_text_20
-                                            dropdown_list: { text_font: font_text_20 }
-                                            on_change:
-                                              - lambda: switchbot_source_dropdown_changed();
+                                        - obj:
+                                            id: ble_source_row
+                                            width: 100%
+                                            height: SIZE_CONTENT
+                                            bg_opa: 0%
+                                            border_opa: 0%
+                                            pad_all: 6
+                                            scrollable: false
+                                            widgets:
+                                              - label: { text: "Ruimtetemperatuur bron", text_font: font_text_24, text_color: 0x1F2933, align: TOP_LEFT }
+                                              - label: { text: "Bedrade Tr-sensor of gekoppelde Bluetooth-sensor", text_font: font_text_20, text_color: 0x6B7280, align: TOP_LEFT, y: 38 }
+                                              - dropdown:
+                                                  id: ble_source_dropdown
+                                                  width: 360
+                                                  height: 40
+                                                  align: TOP_RIGHT
+                                                  # Lifted and kept compact so it clears the description line below the title.
+                                                  y: -4
+                                                  symbol: "\U000F0140"
+                                                  # Options are rebuilt from the paired sensors (switchbot_ble_ui.h).
+                                                  options: ["Tr (Bedraad)"]
+                                                  text_font: font_text_20
+                                                  dropdown_list: { text_font: font_text_20 }
+                                                  on_change:
+                                                    - lambda: switchbot_source_dropdown_changed();
                       - obj:
                           id: !extend panel_wifi
                           widgets:

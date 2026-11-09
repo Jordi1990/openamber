@@ -21,6 +21,7 @@
 
 #include "esphome.h"
 #include "constants.h"
+#include "timing.h"
 #include "pump_controller.h"
 #include "compressor_controller.h"
 
@@ -32,7 +33,8 @@ class BaseController
 protected:
   StateEnum state_;
   StateEnum deferred_machine_state_;
-  uint32_t defer_state_change_until_ms_ = 0;
+  uint32_t defer_state_change_started_ms_ = 0;
+  uint32_t defer_state_change_duration_ms_ = 0;
   uint32_t backup_heater_start_time_ms_ = 0;
   bool requested_to_stop_ = false;
   PumpController* pump_controller_;
@@ -60,19 +62,21 @@ protected:
   void LeaveStateAndSetNextStateAfterWaitTime(StateEnum new_state, uint32_t defer_ms)
   {
     deferred_machine_state_ = new_state;
-    defer_state_change_until_ms_ = App.get_loop_component_start_time() + defer_ms;
+    defer_state_change_started_ms_ = App.get_loop_component_start_time();
+    defer_state_change_duration_ms_ = defer_ms;
     SetNextState(wait_for_state_switch_state_);
   }
 
   bool ProcessDeferredStateChange()
   {
     uint32_t now = App.get_loop_component_start_time();
-    if (defer_state_change_until_ms_ > now)
+    if (!HasElapsedMs(defer_state_change_started_ms_, defer_state_change_duration_ms_, now))
     {
-      ESP_LOGD("amber", "Waiting for state switch, transitioning to next state in %lu ms", defer_state_change_until_ms_ - now);
+      ESP_LOGD("amber", "Waiting for state switch, transitioning to next state in %lu ms",
+               (unsigned long) RemainingMs(defer_state_change_started_ms_, defer_state_change_duration_ms_, now));
       return false;
     }
-    defer_state_change_until_ms_ = 0;
+    defer_state_change_duration_ms_ = 0;
     SetNextState(deferred_machine_state_);
     deferred_machine_state_ = unknown_state_;
     return true;
