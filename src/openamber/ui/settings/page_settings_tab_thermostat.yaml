@@ -348,7 +348,7 @@ obj:
                     pad_all: 6
                     widgets:
                       - label: { text: "Draadloze thermostaat", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-                      - label: { text: "Koppeling met de thermostaat via ESP-NOW", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+                      - label: { text: "Koppeling met externe thermostaat; zet thermostaat bron op intern.", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
                       - switch:
                           id: set_therm_link_switch_ui
                           align: TOP_RIGHT
