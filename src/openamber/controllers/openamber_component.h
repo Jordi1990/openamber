@@ -72,25 +72,36 @@ void OpenAmberComponent::loop()
 
 void OpenAmberComponent::update()
 {
-  if (ota_in_progress_)
-  {
-    // Freeze the state machine while the new firmware is written: the units keep their current state and the
-    // controller takes them over again after the reboot (RESUME_CHECK). No new starts or stops just before a reboot.
-    if (App.get_loop_component_start_time() - ota_started_ms_ < OTA_HOLD_TIMEOUT_S * 1000UL)
-    {
-      return;
-    }
-    ESP_LOGW("amber", "OTA update did not finish within %lu s, resuming regulation.", (unsigned long) OTA_HOLD_TIMEOUT_S);
-    ota_in_progress_ = false;
-  }
-
   if ((state_ == State::HEAT_COOL || state_ == State::DHW_HEAT) && !id(pump_p0_relay_switch).state)
   {
+    ota_in_progress_ = false;
     id(error_inside_unit_failsafe).publish_state(true);
     StopControllers();
     ESP_LOGI("amber", "Inside unit pump relay switch unexpectedly turned off. Re-initializing controller.");
     SetNextState(State::WAIT_MODBUS_CONNECTION);
     return;
+  }
+
+  if (ota_in_progress_)
+  {
+    // Freeze the state machine while the new firmware is written: the units keep their current state and the
+    // controller takes them over again after the reboot (RESUME_CHECK). No new starts or stops just before a reboot.
+    // Every OTA progress report extends the hold, so it only times out when the update stopped reporting.
+    if (App.get_loop_component_start_time() - ota_last_activity_ms_ >= OTA_HOLD_TIMEOUT_S * 1000UL)
+    {
+      ESP_LOGW("amber", "No OTA progress for %lu s, resuming regulation.", (unsigned long) OTA_HOLD_TIMEOUT_S);
+      ota_in_progress_ = false;
+    }
+    else if (HasSafetyStopCondition())
+    {
+      // Safety stops are not held: release the hold, the regular state machine below performs the stop.
+      ESP_LOGW("amber", "Safety condition during OTA update, releasing the hold to stop the units.");
+      ota_in_progress_ = false;
+    }
+    else
+    {
+      return;
+    }
   }
 
   bool modbus_connected = id(modbus_inside_online).state && id(modbus_outside_online).state && id(outside_unit_eeprom_version).has_state();
@@ -130,6 +141,7 @@ void OpenAmberComponent::update()
         else
         {
           ESP_LOGI("amber", "Modbus connection established, checking whether the units are still running.");
+          resume_check_started_ms_ = App.get_loop_component_start_time();
           SetNextState(State::RESUME_CHECK);
         }
       }
@@ -139,8 +151,19 @@ void OpenAmberComponent::update()
     case State::RESUME_CHECK:
     {
       // After a restart of the ESP the units may still run on the commands from before the restart.
-      // Evaluated one update after the connection came up: the online flag of the inside unit is set by 1303,
-      // the valve feedback ranges (1305, 1312) of the same poll arrive shortly after.
+      // The online flag of the inside unit is set by 1303; other ranges (e.g. valve feedback 1305, 1312) can
+      // arrive later. Wait for those readbacks: an unread entity looks like "off" and would stop running units.
+      if (!AreResumeReadbacksAvailable())
+      {
+        if (!HasElapsedMs(resume_check_started_ms_, RESUME_READBACK_TIMEOUT_S * 1000UL, App.get_loop_component_start_time()))
+        {
+          ESP_LOGD("amber", "Resume: waiting for the Modbus readbacks of the units.");
+          break;
+        }
+        ESP_LOGW("amber", "Resume: readbacks not available after %lu s, normal initialization.", (unsigned long) RESUME_READBACK_TIMEOUT_S);
+        SetNextState(State::INITIALIZING);
+        break;
+      }
       if (CanResumeRunningUnits())
       {
         ResumeRunningUnits();
@@ -407,7 +430,19 @@ void OpenAmberComponent::on_ota_started()
     ESP_LOGI("amber", "OTA update started, holding the state machine. Main state: %s", StateToString(state_));
   }
   ota_in_progress_ = true;
-  ota_started_ms_ = App.get_loop_component_start_time();
+  ota_last_activity_ms_ = App.get_loop_component_start_time();
+}
+
+void OpenAmberComponent::on_ota_progress()
+{
+  // Each progress report extends the hold. It also restores a hold that another OTA source released by
+  // failing while this upload continues.
+  if (!ota_in_progress_)
+  {
+    ESP_LOGI("amber", "OTA update in progress, holding the state machine. Main state: %s", StateToString(state_));
+  }
+  ota_in_progress_ = true;
+  ota_last_activity_ms_ = App.get_loop_component_start_time();
 }
 
 void OpenAmberComponent::on_ota_finished(bool success)
@@ -449,6 +484,35 @@ void OpenAmberComponent::simulate_restart()
 #endif
 
 // Privates
+
+/// @brief True when the controller that owns the current main state wants a safety stop (error, missing flow,
+/// Tuo-Tui difference). Used during the OTA hold, where the regular state machine does not run.
+bool OpenAmberComponent::HasSafetyStopCondition()
+{
+  switch (state_)
+  {
+    case State::HEAT_COOL:
+      return heat_cool_controller_->HasSafetyStopCondition();
+    case State::DHW_HEAT:
+      return dhw_controller_->HasSafetyStopCondition();
+    default:
+      return false;
+  }
+}
+
+/// @brief True when the readbacks that CanResumeRunningUnits() relies on have been read at least once.
+bool OpenAmberComponent::AreResumeReadbacksAvailable()
+{
+  return id(internal_pump_active).has_state() &&
+         id(current_compressor_frequency).has_state() &&
+         id(compressor_control_select).has_state() &&
+         id(working_mode_switch).has_state() &&
+         id(three_way_valve_dhw_switch).has_state() &&
+         id(three_way_valve_heat_cool_switch).has_state() &&
+         id(three_way_valve_active_sensor).has_state() &&
+         id(three_way_valve_dhw_active_sensor).has_state() &&
+         id(dhw_pump_relay_switch).has_state();
+}
 
 /// @brief Writes the unit configuration that lives in RAM of the units. Safe to write while the units run.
 void OpenAmberComponent::WriteEEPROMConfiguration()
@@ -542,6 +606,10 @@ void OpenAmberComponent::ResumeRunningUnits()
   WriteEEPROMConfiguration();
   // The backup heater timing (prediction, settle time) is lost with the restart; the controllers switch it on again when needed.
   id(backup_heater_relay).turn_off();
+  // backup_heater_relay only forwards a change to the stages; after a reboot it is already off, so switch the
+  // stages off directly in case they were left on.
+  id(backup_heater_stage_1).turn_off();
+  id(backup_heater_stage_2).turn_off();
   id(external_backup_heating_relay).turn_off();
 
   const ThreeWayValvePosition position = GetThreeWayValvePosition();

@@ -535,9 +535,31 @@ public:
       SetPidController(cooling ? climate::CLIMATE_MODE_COOL : climate::CLIMATE_MODE_HEAT);
       GetPidController().reset_integral_term();
       ResetMixingValvesIntegralTerm();
+      if (cooling)
+      {
+        // Cooling runs with the enabled mixing valves fully open, normally set on PUMP_RUNNING entry which the resume
+        // skips. Reapply it (no write when a valve is already open) so a closed valve does not block the cooled water.
+        OpenMixingValves();
+      }
       // The run time before the restart is unknown: keep the compressor on for at least the minimum on time.
       compressor_controller_->RecordStartTime();
-      SetNextState(id(defrost_active_sensor).state ? HeatCoolState::DEFROSTING : HeatCoolState::COMPRESSOR_RUNNING);
+      if (id(defrost_running_sensor).state)
+      {
+        // Actual defrost: P1 is off during a defrost, DEFROSTING starts it again when the defrost ends.
+        StopPumpP1IfNeeded();
+        SetNextState(HeatCoolState::DEFROSTING);
+      }
+      else
+      {
+        // No defrost or still in the pre-phase: COMPRESSOR_RUNNING keeps heating and handles the switch to
+        // DEFROSTING (and stops P1) once the actual defrost starts. P1 may have stayed off when a defrost ended
+        // during the restart, run it again on demand as IDLE does.
+        if (id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state)
+        {
+          StartPumpP1IfNeeded();
+        }
+        SetNextState(HeatCoolState::COMPRESSOR_RUNNING);
+      }
       return;
     }
 
@@ -561,6 +583,12 @@ public:
 
     // Only the pump was running: continue the pump cycle.
     SetNextState(HeatCoolState::PUMP_RUNNING);
+  }
+
+  /// @brief Evaluates the safety checks without running the state machine (used while an OTA update holds it).
+  bool HasSafetyStopCondition()
+  {
+    return PerformSafetyChecks();
   }
 
   void SetHeatPIDValue(float pid_value)

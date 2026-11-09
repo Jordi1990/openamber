@@ -359,7 +359,7 @@ public:
   {
     ClearStartWaitTimer();
     last_compressor_start_ms_ = 0;
-    last_compressor_stop_ms_ = App.get_loop_component_start_time();
+    last_compressor_stop_ms_ = millis_64();
   }
 
   void RecordStartTime()

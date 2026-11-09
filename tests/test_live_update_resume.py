@@ -14,6 +14,10 @@ from helpers import advance_until_state, start_space_heating
 
 RESUMED_MAIN_STATES = ("Heat/Cool", "DHW")
 INIT_STATES = ("Initializing", "Waiting for state switch")
+COMPRESSOR_MIN_ON_S = 10 * 60   # constants.h
+COMPRESSOR_MIN_OFF_S = 2 * 60   # constants.h
+OTA_HOLD_TIMEOUT_S = 2 * 60     # constants.h
+DEFROST_STANDBY_HZ = 36.0       # actual defrost: compressor at the defrost standby frequency
 
 
 def _restart_and_sample(openamber, seconds, step=5):
@@ -40,10 +44,18 @@ def _restart_and_sample(openamber, seconds, step=5):
 
 
 def _resumed_sample(samples):
-    """The sample of the update that took over the units: right after 'Checking running units'."""
-    for previous, current in zip(samples, samples[1:]):
-        if previous["main"] == "Checking running units" and current["main"] in RESUMED_MAIN_STATES:
-            return current
+    """The sample of the update that took over the units: the first main controller state after 'Checking running units'.
+
+    Does not require the two to be in adjacent samples, so it also holds when the resume check waits a few updates.
+    """
+    checked = False
+    for sample in samples:
+        if sample["main"] == "Checking running units":
+            checked = True
+        elif checked and sample["main"] in RESUMED_MAIN_STATES:
+            return sample
+        elif checked and sample["main"] in INIT_STATES:
+            break
     raise AssertionError(f"Units were not taken over after the restart: {samples}")
 
 
@@ -118,25 +130,46 @@ def test_resumed_heating_keeps_minimum_on_time(clean_system):
     """The run time before the restart is unknown, so a resumed compressor runs at least the minimum on time."""
     openamber = clean_system
     start_space_heating(openamber, tc=28.0, target=35.0)
-    _restart_and_sample(openamber, seconds=30)
+    # Run past the minimum on time first, so only the restart can explain a held compressor.
+    openamber.advance_time(seconds=COMPRESSOR_MIN_ON_S + 30, step_s=10)
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+
+    samples = _restart_and_sample(openamber, seconds=30)
+    resumed_index = samples.index(_resumed_sample(samples))
+    # Elapsed time since the takeover at the end of the sampling (samples are 5 s apart, takeover at the end of its sample).
+    elapsed = (len(samples) - resumed_index - 1) * 5
     assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
 
     # Overshoot: would stop at once without minimum on time.
     openamber.set_sensor("heat_cool_temperature_tc", 40.0)
     openamber.set_sensor("outlet_temperature_tuo", 40.0)
     openamber.set_sensor("inlet_temperature_tui", 38.0)
-    openamber.advance_time(seconds=120, step_s=5)
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
 
-    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Wait compressor stop", max_s=900, step=10) or \
+    # The compressor stays on for the whole minimum on time after the takeover. Margin: the simulator clock also
+    # advances with the real time the test loop takes (a few seconds over ~120 steps).
+    while elapsed < COMPRESSOR_MIN_ON_S - 30:
+        openamber.advance_time(seconds=5, step_s=5)
+        openamber.step(ms=20)
+        elapsed += 5
+        assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running", f"Stopped {elapsed} s after the takeover"
+        assert int(openamber.get_entity("compressor_control_select") or 0) > 0, f"Compressor stopped {elapsed} s after the takeover"
+
+    # After the minimum on time the overshoot stops the compressor.
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Wait compressor stop", max_s=120, step=5) or \
         int(openamber.get_entity("compressor_control_select") or 0) == 0
 
 
 def test_defrost_is_resumed_after_restart(clean_system):
+    """Actual defrost (compressor at the standby frequency): taken over as DEFROSTING with P1 off."""
     openamber = clean_system
     try:
+        openamber.set_switch("pump_p1_enabled", True)
         start_space_heating(openamber, tc=28.0, target=35.0)
+        openamber.set_number("mock_compressor_frequency_override", DEFROST_STANDBY_HZ)
         openamber.set_binary_sensor("defrost_active_sensor", True)
+        openamber.advance_time(seconds=10, step_s=2)
+        # P1 left on, e.g. a defrost that started during the OTA hold.
+        openamber.set_switch("pump_p1_relay_switch", True)
 
         samples = _restart_and_sample(openamber, seconds=40)
 
@@ -145,8 +178,73 @@ def test_defrost_is_resumed_after_restart(clean_system):
         assert all(s["level"] > 0 for s in samples), f"Compressor was stopped during the defrost: {samples}"
         assert all(s["mode"] == "Verwarmen" for s in samples), f"Working mode changed during the defrost: {samples}"
         assert openamber.get_entity("state_machine_state_heat_cool") == "Defrosting"
+        assert openamber.get_entity("pump_p1_relay_switch") is False, "P1 must be off during a resumed defrost"
     finally:
         openamber.set_binary_sensor("defrost_active_sensor", False)
+        openamber.set_number("mock_compressor_frequency_override", -1.0)
+
+
+def test_defrost_prephase_is_resumed_as_compressor_running(clean_system):
+    """Restart in the defrost pre-phase: keep heating, stop P1 once the actual defrost starts."""
+    openamber = clean_system
+    try:
+        openamber.set_switch("pump_p1_enabled", True)
+        start_space_heating(openamber, tc=28.0, target=35.0)
+        assert openamber.get_entity("pump_p1_relay_switch") is True
+        # Pre-phase: 2118 set, compressor still at its normal frequency.
+        openamber.set_number("mock_compressor_frequency_override", 70.0)
+        openamber.set_binary_sensor("defrost_active_sensor", True)
+        openamber.advance_time(seconds=10, step_s=2)
+        assert openamber.get_entity("defrost_running_sensor") is False
+
+        samples = _restart_and_sample(openamber, seconds=30)
+
+        _assert_not_initialized(samples)
+        assert _resumed_sample(samples)["hc"] == "Compressor running"
+        assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 keeps running during the pre-phase"
+
+        # Actual defrost starts: the normal transition stops P1.
+        openamber.set_number("mock_compressor_frequency_override", DEFROST_STANDBY_HZ)
+        assert advance_until_state(openamber, "state_machine_state_heat_cool", "Defrosting", max_s=30, step=5)
+        assert openamber.get_entity("pump_p1_relay_switch") is False, "P1 must stop when the actual defrost starts"
+    finally:
+        openamber.set_binary_sensor("defrost_active_sensor", False)
+        openamber.set_number("mock_compressor_frequency_override", -1.0)
+
+
+def test_p1_is_restored_when_resuming_heating(clean_system):
+    """A defrost that ended during the OTA hold leaves P1 off: the takeover starts it again on demand."""
+    openamber = clean_system
+    openamber.set_switch("pump_p1_enabled", True)
+    start_space_heating(openamber, tc=28.0, target=35.0)
+    openamber.set_switch("pump_p1_relay_switch", False)
+
+    samples = _restart_and_sample(openamber, seconds=30)
+
+    _assert_not_initialized(samples)
+    assert _resumed_sample(samples)["hc"] == "Compressor running"
+    assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 must run again after the takeover"
+
+
+def test_cooling_resume_opens_mixing_valves(clean_system):
+    """Cooling runs with the enabled mixing valves fully open; the takeover reapplies that."""
+    openamber = clean_system
+    try:
+        openamber.set_switch("mixing_valve_zone1_enabled", True)
+        openamber.set_number("mixing_valve_zone1_max_position", 80.0)
+        _start_cooling(openamber)
+        assert int(openamber.get_entity("mixing_valve_zone1_output")) == 80
+        # Valve not at its cooling position when the ESP restarts.
+        openamber.set_number("mixing_valve_zone1_output", 20.0)
+
+        samples = _restart_and_sample(openamber, seconds=30)
+
+        _assert_not_initialized(samples)
+        assert _resumed_sample(samples)["hc"] == "Compressor running"
+        assert int(openamber.get_entity("mixing_valve_zone1_output")) == 80, "Mixing valve must be opened on a resumed cooling cycle"
+    finally:
+        openamber.set_switch("cool_demand_switch", False)
+        openamber.set_switch("mixing_valve_zone1_enabled", False)
 
 
 def test_starting_compressor_is_cancelled_after_restart(clean_system):
@@ -239,6 +337,21 @@ def test_backup_heater_is_switched_off_on_resume(clean_system):
     assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
 
 
+def test_backup_heater_stages_are_switched_off_on_resume(clean_system):
+    """After a reboot backup_heater_relay is already off and does not forward an off: the stages are switched off directly."""
+    openamber = clean_system
+    start_space_heating(openamber, tc=28.0, target=35.0)
+    assert openamber.get_entity("backup_heater_relay") is False
+    openamber.set_switch("backup_heater_stage_1", True)
+    openamber.set_switch("backup_heater_stage_2", True)
+
+    samples = _restart_and_sample(openamber, seconds=30)
+
+    _assert_not_initialized(samples)
+    assert openamber.get_entity("backup_heater_stage_1") is False
+    assert openamber.get_entity("backup_heater_stage_2") is False
+
+
 # ---------------------------------------------------------------------------
 # DHW: taken over
 # ---------------------------------------------------------------------------
@@ -267,7 +380,9 @@ def test_dhw_defrost_is_resumed_after_restart(clean_system):
     openamber = clean_system
     try:
         _start_dhw(openamber)
+        openamber.set_number("mock_compressor_frequency_override", DEFROST_STANDBY_HZ)
         openamber.set_binary_sensor("defrost_active_sensor", True)
+        openamber.advance_time(seconds=10, step_s=2)
 
         samples = _restart_and_sample(openamber, seconds=30)
 
@@ -276,6 +391,34 @@ def test_dhw_defrost_is_resumed_after_restart(clean_system):
         assert openamber.get_entity("state_machine_state_dhw") == "Defrosting"
     finally:
         openamber.set_binary_sensor("defrost_active_sensor", False)
+        openamber.set_number("mock_compressor_frequency_override", -1.0)
+
+
+def test_dhw_resumed_defrost_restarts_heating_rate_window(clean_system):
+    """DHW pump on during a resumed defrost: after the defrost the pump settle time and rate window start again."""
+    openamber = clean_system
+    try:
+        _start_dhw(openamber)
+        openamber.set_switch("dhw_pump_relay_switch", True)
+        openamber.set_number("mock_compressor_frequency_override", DEFROST_STANDBY_HZ)
+        openamber.set_binary_sensor("defrost_active_sensor", True)
+        openamber.advance_time(seconds=10, step_s=2)
+
+        samples = _restart_and_sample(openamber, seconds=30)
+        assert _resumed_sample(samples)["dhw"] == "Defrosting"
+
+        openamber.set_binary_sensor("defrost_active_sensor", False)
+        openamber.set_number("mock_compressor_frequency_override", -1.0)
+        states = []
+        for _ in range(0, 300 + 120 + 60, 5):  # settle after defrost + DHW pump settle + margin
+            openamber.advance_time(seconds=5, step_s=5)
+            openamber.step(ms=20)
+            states.append(openamber.get_entity("state_machine_state_dhw"))
+        assert "Wait DHW pump running" in states, f"Rate window not restarted after the resumed defrost: {states}"
+        assert "DHW pump settled" in states, f"Rate window not restarted after the resumed defrost: {states}"
+    finally:
+        openamber.set_binary_sensor("defrost_active_sensor", False)
+        openamber.set_number("mock_compressor_frequency_override", -1.0)
 
 
 def test_dhw_starting_compressor_is_cancelled_after_restart(clean_system):
@@ -292,6 +435,18 @@ def test_dhw_starting_compressor_is_cancelled_after_restart(clean_system):
         assert resumed["main"] == "DHW"
         assert resumed["dhw"] == "Wait compressor stop"
         assert samples[-1]["level"] == 0, "The pending compressor start must be cancelled"
+
+        # The DHW demand continues: the compressor may only start again after the minimum off time.
+        openamber.set_number("mock_compressor_frequency_override", -1.0)
+        resumed_index = samples.index(resumed)
+        elapsed = (len(samples) - resumed_index - 1) * 5
+        while elapsed < COMPRESSOR_MIN_OFF_S - 20:
+            openamber.advance_time(seconds=5, step_s=5)
+            openamber.step(ms=20)
+            elapsed += 5
+            assert int(openamber.get_entity("compressor_control_select") or 0) == 0, \
+                f"DHW compressor restarted {elapsed} s after the cancelled start (minimum off time)"
+        assert advance_until_state(openamber, "state_machine_state_dhw", "Compressor running", max_s=600, step=5)
     finally:
         openamber.set_number("mock_compressor_frequency_override", -1.0)
 
@@ -384,3 +539,87 @@ def test_maintenance_requested_falls_back_to_initialization(clean_system):
     finally:
         openamber.set_switch("service_mode_enabled", False)
         advance_until_state(openamber, "state_machine_state_main", "Heat/Cool", max_s=300, step=10)
+
+
+# ---------------------------------------------------------------------------
+# OTA hold: the state machine is frozen while an update is written
+# ---------------------------------------------------------------------------
+# The mock switches call the same controller hooks as the ota on_begin / on_progress / on_error callbacks
+# (core/openamber.yaml). The ESPHome OTA platforms themselves are not part of the host build.
+
+def _heating_past_min_on_time(openamber):
+    """Heating with the compressor past its minimum on time, so an overshoot stops it at the next update."""
+    start_space_heating(openamber, tc=28.0, target=35.0)
+    openamber.advance_time(seconds=COMPRESSOR_MIN_ON_S + 30, step_s=10)
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+
+
+def _overshoot(openamber):
+    openamber.set_sensor("heat_cool_temperature_tc", 40.0)
+    openamber.set_sensor("outlet_temperature_tuo", 40.0)
+    openamber.set_sensor("inlet_temperature_tui", 38.0)
+
+
+def _level(openamber):
+    return int(openamber.get_entity("compressor_control_select") or 0)
+
+
+def test_ota_hold_freezes_regulation_until_error(clean_system):
+    """OTA begin holds regulation (progress keeps it), an OTA error releases it before the hold timeout."""
+    openamber = clean_system
+    try:
+        _heating_past_min_on_time(openamber)
+        assert openamber.set_switch("mock_ota_begin", True)
+        _overshoot(openamber)
+
+        # Longer than the hold timeout, with progress reports: the hold stays.
+        for _ in range(OTA_HOLD_TIMEOUT_S // 30 + 2):
+            openamber.advance_time(seconds=30, step_s=5)
+            assert openamber.set_switch("mock_ota_progress", True)
+            assert _level(openamber) > 0, "Regulation must be held during the OTA update"
+            assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+
+        assert openamber.set_switch("mock_ota_error", True)
+        openamber.advance_time(seconds=10, step_s=5)
+        openamber.step(ms=50)
+        assert _level(openamber) == 0, "After the OTA error regulation resumes and stops on the overshoot"
+    finally:
+        openamber.set_switch("mock_ota_error", True)
+
+
+def test_ota_hold_times_out_without_progress(clean_system):
+    """No progress reports (e.g. a web upload that disconnected): the hold is released after the timeout."""
+    openamber = clean_system
+    try:
+        _heating_past_min_on_time(openamber)
+        assert openamber.set_switch("mock_ota_begin", True)
+        _overshoot(openamber)
+
+        openamber.advance_time(seconds=OTA_HOLD_TIMEOUT_S - 20, step_s=5)
+        openamber.step(ms=50)
+        assert _level(openamber) > 0, "Regulation must be held before the timeout"
+
+        openamber.advance_time(seconds=40, step_s=5)
+        openamber.step(ms=50)
+        assert _level(openamber) == 0, "Without OTA progress the hold must time out and regulation resume"
+    finally:
+        openamber.set_switch("mock_ota_error", True)
+
+
+def test_ota_hold_does_not_block_safety_stop(clean_system):
+    """A safety condition (Tuo-Tui difference) during the hold stops the compressor at once."""
+    openamber = clean_system
+    try:
+        _heating_past_min_on_time(openamber)
+        assert openamber.set_switch("mock_ota_begin", True)
+        openamber.advance_time(seconds=10, step_s=5)
+        assert _level(openamber) > 0
+
+        openamber.set_sensor("outlet_temperature_tuo", 40.0)
+        openamber.set_sensor("inlet_temperature_tui", 30.0)
+        assert openamber.set_switch("mock_ota_progress", True)
+        openamber.advance_time(seconds=10, step_s=5)
+        openamber.step(ms=50)
+        assert _level(openamber) == 0, "Safety stop must not be held by the OTA update"
+    finally:
+        openamber.set_switch("mock_ota_error", True)

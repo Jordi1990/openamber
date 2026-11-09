@@ -72,7 +72,8 @@ private:
   uint32_t valve_switch_started_ms_ = 0;
   // Live update: hold the state machine while an OTA update is being written.
   bool ota_in_progress_ = false;
-  uint32_t ota_started_ms_ = 0;
+  uint32_t ota_last_activity_ms_ = 0;
+  uint32_t resume_check_started_ms_ = 0;
   void SetThreeWayValve(ThreeWayValvePosition position);
   ThreeWayValvePosition GetThreeWayValvePosition();
   ThreeWayValvePosition GetDesiredThreeWayValvePosition();
@@ -87,6 +88,8 @@ private:
   void CheckModbusConnectionTimeout();
   void StopControllers();
   void WriteEEPROMConfiguration();
+  bool HasSafetyStopCondition();
+  bool AreResumeReadbacksAvailable();
   bool CanResumeRunningUnits();
   void ResumeRunningUnits();
 public:
@@ -121,6 +124,7 @@ public:
 
   // Live update support
   void on_ota_started();
+  void on_ota_progress();
   void on_ota_finished(bool success);
   bool is_ota_in_progress() const { return ota_in_progress_; }
 #ifdef USE_HOST

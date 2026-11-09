@@ -191,6 +191,9 @@ def test_hardware_mocks_correspond_to_physical_modbus_or_subsystems():
         "mock_compressor_frequency_override",
         "mock_three_way_valve_feedback_missing",
         "mock_simulate_esp_restart",
+        "mock_ota_begin",
+        "mock_ota_progress",
+        "mock_ota_error",
     }
 
     mock_ids = set(mock_entities.keys())

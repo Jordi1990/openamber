@@ -391,8 +391,10 @@ public:
     {
       // The run time before the restart is unknown: keep the compressor on for at least the minimum on time.
       compressor_controller_->RecordStartTime();
-      if (id(defrost_active_sensor).state)
+      // Pre-phase: keep heating in COMPRESSOR_RUNNING, which switches to DEFROSTING once the actual defrost starts.
+      if (id(defrost_running_sensor).state)
       {
+        // DEFROSTING continues with the DHW pump settle time and heating rate window when the DHW pump runs.
         SetNextState(DHWState::DEFROSTING);
       }
       else if (id(dhw_pump_relay_switch).state)
@@ -418,6 +420,12 @@ public:
     }
     // Compressor starting, stopping or off: finish the stop. With DHW demand the cycle starts again from idle.
     SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
+  }
+
+  /// @brief Evaluates the safety checks without running the state machine (used while an OTA update holds it).
+  bool HasSafetyStopCondition()
+  {
+    return PerformSafetyChecks();
   }
 
   void UpdateStateMachine()
@@ -479,6 +487,11 @@ public:
           TurnOnBackupHeater();
           heating_rate_below_min_since_ms_ = 0;
           SetNextState(DHWState::WAIT_BACKUP_HEATER_RUNNING);
+        }
+        else if (!compressor_controller_->HasPassedMinOffTime())
+        {
+          // E.g. a start cancelled after a restart of the ESP, or a compressor stop just before: the pump keeps running.
+          ESP_LOGI("amber", "Not starting DHW compressor because minimum compressor time off is not reached.");
         }
         else
         {
@@ -565,7 +578,11 @@ public:
         if (!id(defrost_active_sensor).state)
         {
           pump_controller_->ResetHeatingPidState();
-          LeaveStateAndSetNextStateAfterWaitTime(DHWState::COMPRESSOR_RUNNING, COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
+          // DHW pump on without a heating rate window (defrost taken over after a restart of the ESP): start the
+          // settle time and rate window first, otherwise slow heating never enables the backup heater this cycle.
+          const bool needs_rate_window = id(dhw_pump_relay_switch).state && !rate_window_active_;
+          LeaveStateAndSetNextStateAfterWaitTime(needs_rate_window ? DHWState::WAIT_DHW_PUMP_RUNNING : DHWState::COMPRESSOR_RUNNING,
+                                                 COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
         }
         else 
         {
