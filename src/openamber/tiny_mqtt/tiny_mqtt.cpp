@@ -5,7 +5,6 @@
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
 
-#include <algorithm>
 #include <cerrno>
 #include <cstring>
 
@@ -17,15 +16,16 @@ static const char *const TAG = "tiny_mqtt";
 static constexpr uint8_t PKT_CONNECT = 0x10;
 static constexpr uint8_t PKT_CONNACK = 0x20;
 static constexpr uint8_t PKT_PUBLISH = 0x30;
+static constexpr uint8_t PKT_PINGREQ = 0xC0;
 static constexpr uint8_t PKT_DISCONNECT = 0xE0;
 
 static constexpr uint8_t CONNECT_FLAG_USERNAME = 0x80;
 static constexpr uint8_t CONNECT_FLAG_PASSWORD = 0x40;
 static constexpr uint8_t CONNECT_FLAG_CLEAN_SESSION = 0x02;
-// The session idles at most `linger` after the last publish. The keepalive must outlast that,
-// otherwise the broker may drop the connection (after 1.5x keepalive) while we still linger.
-static constexpr uint32_t MIN_KEEPALIVE_S = 60;
-static constexpr uint32_t KEEPALIVE_MARGIN_S = 30;
+static constexpr uint16_t KEEPALIVE_S = 60;
+// While lingering, send a PINGREQ after this much idle time, well within the keepalive,
+// so the broker keeps the session open however long `linger` is.
+static constexpr uint32_t PING_INTERVAL_MS = KEEPALIVE_S * 1000 / 2;
 // MQTT remaining length is at most 4 bytes (268,435,455); our packets are far smaller.
 static constexpr size_t MAX_REMAINING_LENGTH = 268435455;
 
@@ -296,8 +296,17 @@ void TinyMqttClient::poll_session_() {
       this->fail_("Write stalled", ETIMEDOUT);
     return;
   }
-  if (millis() - this->last_publish_ms_ < this->linger_ms_)
+  if (millis() - this->last_publish_ms_ < this->linger_ms_) {
+    if (millis() - this->last_tx_progress_ms_ >= PING_INTERVAL_MS) {
+      // The PINGRESP is drained by the read loop above.
+      this->tx_.push_back(PKT_PINGREQ);
+      this->tx_.push_back(0x00);
+      this->tx_offset_ = 0;
+      this->last_tx_progress_ms_ = millis();
+      this->flush_tx_();
+    }
     return;
+  }
 
   ESP_LOGD(TAG, "Session done, disconnecting");
   this->close_(true);
@@ -344,9 +353,7 @@ void TinyMqttClient::encode_connect_(std::vector<uint8_t> &out) const {
   put_string(out, "MQTT", 4);
   out.push_back(0x04);  // protocol level 3.1.1
   out.push_back(flags);
-  const uint32_t keepalive_s =
-      std::min<uint32_t>(std::max(MIN_KEEPALIVE_S, this->linger_ms_ / 1000 + KEEPALIVE_MARGIN_S), 0xFFFF);
-  put_u16(out, static_cast<uint16_t>(keepalive_s));
+  put_u16(out, KEEPALIVE_S);
   put_string(out, this->client_id_.data(), client_id_len);
   if (flags & CONNECT_FLAG_USERNAME)
     put_string(out, this->username_, username_len);
