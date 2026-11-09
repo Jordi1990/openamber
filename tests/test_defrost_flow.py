@@ -5,6 +5,8 @@ compressor recovery boost mode (+3 steps), and low ambient backup heater boost.
 
 import pytest
 
+from helpers import set_outside_temperature
+
 
 def test_heat_defrost_recovery_boost_and_settle_time(clean_system):
     """
@@ -165,7 +167,7 @@ def test_heat_defrost_backup_heater_boost_low_outside_temp(clean_system):
     openamber.set_climate("pid_heat_temperature_control", target_temperature=35.0)
     openamber.set_number("compressor_stop_delta_heating", 5.0)
     openamber.set_number("defrost_backup_heater_boost_temperature_sensor", -3.0)
-    openamber.set_sensor("temperature_outside_ta", -5.0)  # <= -3.0°C threshold
+    set_outside_temperature(openamber, -5.0)  # <= -3.0°C threshold
     openamber.set_switch("heat_demand_switch", True)
     openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
     openamber.set_sensor("heat_cool_temperature_tc", 28.0)
@@ -187,12 +189,13 @@ def test_heat_defrost_backup_heater_boost_low_outside_temp(clean_system):
     openamber.step(ms=50)
     assert openamber.get_entity("state_machine_state_heat_cool") == "Defrosting", "State should be 'Defrosting'"
 
-    # Defrost completes
+    # Defrost completes, with warm air from the outdoor unit passing the Ta sensor
+    openamber.set_sensor("temperature_outside_ta", 20.0)
     openamber.set_binary_sensor("defrost_active_sensor", False)
     openamber.advance_time(seconds=10, step_s=2)
     openamber.step(ms=50)
 
-    # Backup heater must activate because Ta (-5°C) <= threshold (-3°C)
+    # Backup heater must activate because the averaged Ta (-5°C) <= threshold (-3°C)
     assert openamber.get_entity("backup_heater_relay") is True, "Backup heater must turn ON when Ta <= threshold after defrost"
     assert openamber.get_entity("state_machine_state_heat_cool") in (
         "Wait backup heater running", "Backup heater running"

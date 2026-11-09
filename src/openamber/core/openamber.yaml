@@ -13,7 +13,7 @@ external_components:
   - source:
       type: local
       path: openamber
-    components: [openamber_component, native_build_flags, eebus]
+    components: [openamber_component, native_build_flags, eebus, tiny_mqtt]
 
 debug:
 
@@ -52,7 +52,7 @@ esphome:
             condition:
               - switch.is_on: analytics_enabled_switch
             then:
-              - mqtt.enable:
+              - script.execute: fetch_analytics_device_id
 
 interval:
   - interval: 5min
@@ -82,25 +82,14 @@ logger:
 api:
   reboot_timeout: 0s
 
-# Broker used to push analytics data (Opt-In)
-mqtt:
-  id: mqtt_client
+# Broker used to push analytics data (Opt-In).
+# tiny_mqtt only opens a connection while it has messages to send, and unlike `mqtt:` it does not
+# create an MQTT shadow object per entity, so it costs almost no RAM while idle.
+tiny_mqtt:
+  id: analytics_mqtt
   broker: mqtt.openamber.nl
-  enable_on_boot: false
   username: openamber_write
   password: openamber
-  reboot_timeout: 0s
-  discovery: false
-  discover_ip: false
-  discovery_retain: false
-  log_topic: null
-  topic_prefix: null
-  on_connect:
-    - if:
-        condition:
-          - switch.is_on: analytics_enabled_switch
-        then:
-          - script.execute: fetch_analytics_device_id
 
 ota:
   - platform: esphome

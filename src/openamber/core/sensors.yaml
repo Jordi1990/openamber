@@ -390,15 +390,31 @@ sensor:
   web_server: 
     sorting_group_id: diagnostic
 
-- platform: template
+# Ta for the heating curve average. Values are dropped during a defrost and shortly after it,
+# because the outdoor unit then blows warm air past the Ta sensor.
+- platform: copy
+  source_id: temperature_outside_ta
+  id: temperature_outside_ta_for_avg
+  internal: true
+  filters:
+    - filter_out: nan
+    - lambda: |-
+        if (id(defrost_ta_hold).state) return {};
+        return x;
+
+# Time weighted average of Ta for the heating curves. During the defrost hold the last Ta
+# before the defrost counts for the gap (time_weighting: previous).
+- platform: exponential_moving_average
+  sensor: temperature_outside_ta_for_avg
   id: temperature_outside_ta_avg_1h
   name: "Buiten temperatuur (1h gemiddelde)"
   internal: true
-  unit_of_measurement: "°C"
+  time_constant: 60min
+  time_weighting: previous
+  restore: false
   accuracy_decimals: 1
-  update_interval: 1s
-  lambda: |-
-    return id(temperature_outside_ta).state;
+  filters:
+    - throttle: 60s
   on_value:
     then:
       - component.update: heat_curve_calculated_setpoint
