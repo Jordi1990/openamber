@@ -10,6 +10,29 @@
   then:
     - lvgl.widget.enable: { id: service_eeprom_dump_button }
 
+# Wireless thermostat switch and "Nieuw" next to its pairing code; filled in by thermostat_link.yaml
+- id: thermostat_link_toggle_ui
+  then: []
+
+- id: thermostat_link_new_code_ui
+  then: []
+
+# A new code breaks the pairing, so "Nieuw" asks for a second tap within 5 s
+- id: thermostat_link_new_code_confirm
+  mode: restart
+  then:
+    - if:
+        condition:
+          lambda: 'return strcmp(lv_label_get_text(id(set_therm_link_new_btn_lbl)), "Zeker?") == 0;'
+        then:
+          - script.execute: thermostat_link_new_code_ui
+        else:
+          - lvgl.label.update: { id: set_therm_link_new_btn_lbl, text: "Zeker?" }
+          - lvgl.widget.update: { id: set_therm_link_new_btn, bg_color: 0xDC2626 }
+          - delay: 5s
+    - lvgl.label.update: { id: set_therm_link_new_btn_lbl, text: "Nieuw" }
+    - lvgl.widget.update: { id: set_therm_link_new_btn, bg_color: 0x1F3B68 }
+
 - id: update_thermostat_settings_ui
   mode: restart
   then:
@@ -95,6 +118,7 @@
     - lambda: |-
         {
           lv_obj_add_flag(id(general_system_pager), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(id(thermostat_algemeen_pager), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(advanced_pid_pager), LV_OBJ_FLAG_HIDDEN);
@@ -102,6 +126,11 @@
           lv_obj_add_flag(id(advanced_fan_pager), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(mengventielen_pager), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(eebus_pager), LV_OBJ_FLAG_HIDDEN);
+
+          if (tab_index == 0) {
+            lv_obj_clear_flag(id(thermostat_algemeen_pager), LV_OBJ_FLAG_HIDDEN);
+            id(thermostat_algemeen_select_page).execute(1);   // always start on page 1, like the other paged tabs
+          }
 
           lv_obj_t* panels[3] = {
             id(panel_thermostat_page_setpoint),
@@ -179,6 +208,7 @@
           };
 
           lv_obj_add_flag(id(general_system_pager), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(id(thermostat_algemeen_pager), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(advanced_pid_pager), LV_OBJ_FLAG_HIDDEN);
@@ -657,6 +687,7 @@
           } else {
             lv_obj_add_flag(id(general_system_pager), LV_OBJ_FLAG_HIDDEN);
           }
+          lv_obj_add_flag(id(thermostat_algemeen_pager), LV_OBJ_FLAG_HIDDEN);
 
           if (tab_index == 1) {
             lv_obj_clear_flag(id(mengventielen_pager), LV_OBJ_FLAG_HIDDEN);
@@ -939,6 +970,31 @@
           - lvgl.label.update: { id: general_system_page_2_button_lbl, text_color: 0x4B5563 }
           - lvgl.label.update: { id: general_system_page_indicator, text: "Pagina 2 / 2" }
 
+- id: thermostat_algemeen_select_page
+  mode: restart
+  parameters:
+    page: int
+  then:
+    - if:
+        condition:
+          lambda: 'return page == 1;'
+        then:
+          - lvgl.widget.show: { id: thermostat_algemeen_page_1 }
+          - lvgl.widget.hide: { id: thermostat_algemeen_page_2 }
+          - lvgl.widget.update: { id: thermostat_algemeen_page_1_button, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: thermostat_algemeen_page_1_button_lbl, text_color: 0x4B5563 }
+          - lvgl.widget.update: { id: thermostat_algemeen_page_2_button, bg_color: 0x1F3B68 }
+          - lvgl.label.update: { id: thermostat_algemeen_page_2_button_lbl, text_color: 0xFFFFFF }
+          - lvgl.label.update: { id: thermostat_algemeen_page_indicator, text: "Pagina 1 / 2" }
+        else:
+          - lvgl.widget.hide: { id: thermostat_algemeen_page_1 }
+          - lvgl.widget.show: { id: thermostat_algemeen_page_2 }
+          - lvgl.widget.update: { id: thermostat_algemeen_page_1_button, bg_color: 0x1F3B68 }
+          - lvgl.label.update: { id: thermostat_algemeen_page_1_button_lbl, text_color: 0xFFFFFF }
+          - lvgl.widget.update: { id: thermostat_algemeen_page_2_button, bg_color: 0xCBD5E1 }
+          - lvgl.label.update: { id: thermostat_algemeen_page_2_button_lbl, text_color: 0x4B5563 }
+          - lvgl.label.update: { id: thermostat_algemeen_page_indicator, text: "Pagina 2 / 2" }
+
 - id: sensor_calibration_select_page
   mode: restart
   parameters:
@@ -1153,6 +1209,7 @@
         id(update_pump_pid_ui).execute();
         {
           lv_obj_add_flag(id(general_system_pager), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(id(thermostat_algemeen_pager), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(advanced_pid_pager), LV_OBJ_FLAG_HIDDEN);
@@ -1616,6 +1673,7 @@
     - lambda: |-
         {
           lv_obj_add_flag(id(general_system_pager), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(id(thermostat_algemeen_pager), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
 
@@ -1809,6 +1867,7 @@
     - lambda: |-
         {
           lv_obj_add_flag(id(general_system_pager), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(id(thermostat_algemeen_pager), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(sensor_calibration_pager), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(pump_p0_pid_pager), LV_OBJ_FLAG_HIDDEN);
 
