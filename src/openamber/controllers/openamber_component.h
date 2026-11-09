@@ -86,6 +86,9 @@ void OpenAmberComponent::update()
   ThreeWayValvePosition desired_valve_position = GetDesiredThreeWayValvePosition();
   State desired_state = modbus_disconnected_error_occurred_ ? State::WAIT_MODBUS_CONNECTION : (desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL);
   bool maintenance_requested = id(service_mode_enabled).state;
+  // Maintenance mode wins over a controlled stop when both are on.
+  bool controlled_stop_requested = id(controlled_stop_enabled).state && !maintenance_requested;
+  UpdateControlledStopStatus();
 
   if(!modbus_connected)
   {
@@ -169,7 +172,7 @@ void OpenAmberComponent::update()
     {
       dhw_controller_->CheckLegionellaCycle();
 
-      if((desired_valve_position == ThreeWayValvePosition::DHW || maintenance_requested) && !heat_cool_controller_->IsRequestedToStop())
+      if((desired_valve_position == ThreeWayValvePosition::DHW || maintenance_requested || controlled_stop_requested) && !heat_cool_controller_->IsRequestedToStop())
       {
         heat_cool_controller_->RequestToStop();
       }
@@ -184,6 +187,11 @@ void OpenAmberComponent::update()
           id(pump_p0_relay_switch).turn_off();
           heat_cool_controller_->StopPumpP1IfNeeded();
           SetNextState(State::MAINTENANCE);
+          break;
+        }
+        else if(controlled_stop_requested)
+        {
+          EnterStandby();
           break;
         }
         else if(desired_valve_position != current_valve_position)
@@ -204,7 +212,7 @@ void OpenAmberComponent::update()
     {
       dhw_controller_->CheckLegionellaCycle();
 
-      if(maintenance_requested && !dhw_controller_->IsRequestedToStop())
+      if((maintenance_requested || controlled_stop_requested) && !dhw_controller_->IsRequestedToStop())
       {
         dhw_controller_->RequestToStop();
       }
@@ -219,6 +227,11 @@ void OpenAmberComponent::update()
           SetNextState(State::MAINTENANCE);          
           break;
         }
+        else if(controlled_stop_requested)
+        {
+          EnterStandby();
+          break;
+        }
         else if(desired_valve_position != current_valve_position)
         {
           SwitchThreeWayValveAndWait(desired_valve_position, desired_state);
@@ -227,6 +240,30 @@ void OpenAmberComponent::update()
       }
 
       dhw_controller_->UpdateStateMachine();
+      break;
+    }
+
+    case State::STANDBY:
+    {
+      const bool frost_protection = id(frost_protection_stage1_active).state || id(frost_protection_stage2_active).state;
+      const bool timed_out = App.get_loop_component_start_time() - standby_started_ms_ >= CONTROLLED_STOP_AUTO_RESUME_S * 1000UL;
+      if (!controlled_stop_requested || frost_protection || timed_out)
+      {
+        if (timed_out || frost_protection)
+        {
+          ESP_LOGW("amber", "Controlled stop ends (%s), resuming regulation.", frost_protection ? "frost protection" : "30 min passed");
+        }
+        else
+        {
+          ESP_LOGI("amber", "Controlled stop ends, resuming regulation.");
+        }
+        if (id(controlled_stop_enabled).state)
+        {
+          id(controlled_stop_enabled).turn_off();
+        }
+        // Maintenance mode requested while stopped: re-initialize, it takes over from there.
+        SetNextState(State::WAIT_MODBUS_CONNECTION);
+      }
       break;
     }
 
@@ -414,6 +451,8 @@ const char* OpenAmberComponent::StateToString(State state)
       return "Heat/Cool";
     case State::MAINTENANCE:
       return "Maintenance";
+    case State::STANDBY:
+      return "Standby";
     default:
       return "Unknown";
   }
@@ -558,6 +597,49 @@ float OpenAmberComponent::get_mixing_valve_zone1_position() const
 float OpenAmberComponent::get_mixing_valve_zone2_position() const
 {
   return mixing_valve_zone2_ ? mixing_valve_zone2_->GetValvePositionPercent() : 0.0f;
+}
+
+/// @brief Both controllers are idle after a controlled stop: switch the inside unit to stand-by with the pumps off.
+void OpenAmberComponent::EnterStandby()
+{
+  auto working_mode_call = id(working_mode_switch).make_call();
+  working_mode_call.set_index(WORKING_MODE_STANDBY);
+  working_mode_call.perform();
+  id(pump_p0_relay_switch).turn_off();
+  heat_cool_controller_->StopPumpP1IfNeeded();
+  standby_started_ms_ = App.get_loop_component_start_time();
+  ESP_LOGI("amber", "Controlled stop: compressor and pumps stopped, safe to switch off.");
+  SetNextState(State::STANDBY);
+}
+
+/// @brief Publishes what a controlled stop is waiting for, so the user knows when it is safe to switch off.
+void OpenAmberComponent::UpdateControlledStopStatus()
+{
+  const char* status;
+  if (!id(controlled_stop_enabled).state)
+  {
+    status = "Uit";
+  }
+  else if (state_ == State::STANDBY)
+  {
+    status = "Gestopt - veilig om uit te schakelen";
+  }
+  else if (id(defrost_active_sensor).state || id(oil_return_cycle_active).state)
+  {
+    status = "Wacht op defrost/oliereturn";
+  }
+  else if (id(compressor_control_select).active_index().value_or(0) > 0 || id(current_compressor_frequency).state > 0)
+  {
+    status = "Compressor loopt uit";
+  }
+  else
+  {
+    status = "Pompen stoppen";
+  }
+  if (id(controlled_stop_status).state != status)
+  {
+    id(controlled_stop_status).publish_state(status);
+  }
 }
 
 void OpenAmberComponent::StopControllers()

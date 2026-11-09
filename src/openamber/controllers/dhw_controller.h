@@ -519,7 +519,7 @@ public:
           break;
         }
 
-        if (compressor_controller_->HasPassedMinOnTime())
+        if (compressor_controller_->HasPassedMinOnTime() || IsControlledStopRequested())
         {
           if(ShouldStop())
           {

@@ -153,6 +153,12 @@ public:
     return requested_to_stop_;
   }
 
+  /// @brief A stop requested by the user's controlled stop: it does not wait for the minimum compressor on time.
+  bool IsControlledStopRequested()
+  {
+    return requested_to_stop_ && id(controlled_stop_enabled).state;
+  }
+
   bool IsInIdleState()
   {
     return state_ == idle_state_;

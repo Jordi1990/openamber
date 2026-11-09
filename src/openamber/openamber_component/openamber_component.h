@@ -42,6 +42,7 @@ enum State {
   DHW_HEAT,
   HEAT_COOL,
   MAINTENANCE,
+  STANDBY,
   WAIT_FOR_STATE_SWITCH,
   WAIT_THREE_WAY_VALVE,
 };
@@ -69,6 +70,9 @@ private:
   ThreeWayValvePosition valve_target_position_ = ThreeWayValvePosition::HEATING_COOLING;
   State valve_target_state_ = State::UNKNOWN;
   uint32_t valve_switch_started_ms_ = 0;
+  uint32_t standby_started_ms_ = 0;
+  void EnterStandby();
+  void UpdateControlledStopStatus();
   void SetThreeWayValve(ThreeWayValvePosition position);
   ThreeWayValvePosition GetThreeWayValvePosition();
   ThreeWayValvePosition GetDesiredThreeWayValvePosition();

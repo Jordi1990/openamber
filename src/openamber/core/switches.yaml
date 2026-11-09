@@ -168,6 +168,16 @@ switch:
     sorting_group_id: general_settings
 
 - platform: template
+  id: controlled_stop_enabled
+  name: "Gecontroleerd stoppen"
+  icon: mdi:power-sleep
+  optimistic: True
+  # Always off after a restart: regulation must never stay stopped by accident.
+  restore_mode: ALWAYS_OFF
+  web_server:
+    sorting_group_id: manual_control
+
+- platform: template
   id: service_mode_enabled
   name: "Onderhoudsmodus"
   optimistic: True

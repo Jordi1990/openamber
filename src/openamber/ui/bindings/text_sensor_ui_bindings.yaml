@@ -120,3 +120,16 @@
           if (index >= 0) {
             lv_dropdown_set_selected(id(wifi_network_dd)->obj, index);
           }
+
+- id: !extend controlled_stop_status
+  on_value:
+    then:
+      - lambda: |-
+          const bool safe = x.rfind("Gestopt", 0) == 0;
+          const bool off = x == "Uit";
+          std::string text = off ? std::string("Gecontroleerd stoppen: uit")
+                                 : std::string("Gecontroleerd stoppen: ") + x + (safe ? " (hervat vanzelf na 30 min)" : "");
+          lv_label_set_text(id(service_controlled_stop_status), text.c_str());
+          lv_obj_set_style_text_color(id(service_controlled_stop_status),
+                                      lv_color_hex(safe ? 0x166534 : (off ? 0x6B7280 : 0xB45309)), LV_PART_MAIN);
+          lv_obj_send_event(id(service_controlled_stop_status), lvgl::lv_update_event, nullptr);
