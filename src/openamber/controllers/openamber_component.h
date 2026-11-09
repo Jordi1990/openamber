@@ -82,6 +82,19 @@ void OpenAmberComponent::update()
     return;
   }
 
+  // Also during the OTA hold: a lost Modbus connection must still raise its error (error_active), which the
+  // safety check below turns into a stop.
+  bool modbus_connected = id(modbus_inside_online).state && id(modbus_outside_online).state && id(outside_unit_eeprom_version).has_state();
+
+  if(!modbus_connected)
+  {
+    CheckModbusConnectionTimeout();
+  }
+  else 
+  {
+    modbus_disconnected_since_ms_ = 0;
+  }
+
   if (ota_in_progress_)
   {
     // Freeze the state machine while the new firmware is written: the units keep their current state and the
@@ -104,20 +117,10 @@ void OpenAmberComponent::update()
     }
   }
 
-  bool modbus_connected = id(modbus_inside_online).state && id(modbus_outside_online).state && id(outside_unit_eeprom_version).has_state();
   ThreeWayValvePosition current_valve_position = GetThreeWayValvePosition();
   ThreeWayValvePosition desired_valve_position = GetDesiredThreeWayValvePosition();
   State desired_state = modbus_disconnected_error_occurred_ ? State::WAIT_MODBUS_CONNECTION : (desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL);
   bool maintenance_requested = id(service_mode_enabled).state;
-
-  if(!modbus_connected)
-  {
-    CheckModbusConnectionTimeout();
-  }
-  else 
-  {
-    modbus_disconnected_since_ms_ = 0;
-  }
 
   switch (state_)
   {

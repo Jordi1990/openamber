@@ -17,6 +17,7 @@ INIT_STATES = ("Initializing", "Waiting for state switch")
 COMPRESSOR_MIN_ON_S = 10 * 60   # constants.h
 COMPRESSOR_MIN_OFF_S = 2 * 60   # constants.h
 OTA_HOLD_TIMEOUT_S = 2 * 60     # constants.h
+MODBUS_CONNECTION_TIMEOUT_S = 2 * 60  # constants.h
 DEFROST_STANDBY_HZ = 36.0       # actual defrost: compressor at the defrost standby frequency
 
 
@@ -623,3 +624,25 @@ def test_ota_hold_does_not_block_safety_stop(clean_system):
         assert _level(openamber) == 0, "Safety stop must not be held by the OTA update"
     finally:
         openamber.set_switch("mock_ota_error", True)
+
+
+def test_ota_hold_does_not_block_modbus_connection_timeout(clean_system):
+    """Modbus lost during the hold: the connection timeout still raises its error and stops the units."""
+    openamber = clean_system
+    try:
+        _heating_past_min_on_time(openamber)
+        assert openamber.set_switch("mock_ota_begin", True)
+        assert openamber.set_switch("mock_modbus_inside_offline", True)
+
+        # Keep the hold alive with progress reports past the Modbus connection timeout.
+        for _ in range(MODBUS_CONNECTION_TIMEOUT_S // 30 + 2):
+            openamber.advance_time(seconds=30, step_s=5)
+            assert openamber.set_switch("mock_ota_progress", True)
+        openamber.step(ms=50)
+
+        assert openamber.get_entity("error_modbus_connection_timeout") is True, "Modbus timeout must be raised during the hold"
+        assert _level(openamber) == 0, "The Modbus timeout error must stop the compressor during the hold"
+    finally:
+        openamber.set_switch("mock_modbus_inside_offline", False)
+        openamber.set_switch("mock_ota_error", True)
+        openamber.set_switch("reset_start_timeout_errors_switch", True)

@@ -877,6 +877,14 @@ switch:
       - switch.turn_off: mock_ota_progress
     turn_off_action: []
   - platform: template
+    id: mock_modbus_inside_offline
+    # Simulator only: the inside unit stops answering on Modbus (as the modbus controller's offline callback).
+    optimistic: true
+    turn_on_action:
+      - lambda: 'id(modbus_inside_is_online) = false;'
+    turn_off_action:
+      - lambda: 'id(modbus_inside_is_online) = true;'
+  - platform: template
     id: mock_ota_error
     optimistic: true
     turn_on_action:

@@ -194,6 +194,7 @@ def test_hardware_mocks_correspond_to_physical_modbus_or_subsystems():
         "mock_ota_begin",
         "mock_ota_progress",
         "mock_ota_error",
+        "mock_modbus_inside_offline",
     }
 
     mock_ids = set(mock_entities.keys())
