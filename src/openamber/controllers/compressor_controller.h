@@ -35,6 +35,7 @@ private:
   // would make it look freshly started or stopped again (min on/off time, soft start).
   uint64_t last_compressor_start_ms_ = 0;
   uint64_t last_compressor_stop_ms_ = 0;
+  uint64_t not_running_since_ms_ = 0;
   uint32_t last_compressor_mode_change_ms_ = 0;
   uint32_t start_wait_started_ms_ = 0;
   uint32_t last_discharge_limit_step_ms_ = 0;
@@ -317,6 +318,7 @@ public:
 
   void Stop()
   {
+    not_running_since_ms_ = 0;
     ClearStartWaitTimer();
     last_compressor_start_ms_ = 0;
     last_compressor_stop_ms_ = millis_64();
@@ -342,6 +344,27 @@ public:
     return (millis_64() - last_compressor_stop_ms_) > min_off_ms;
   }
 
+  /// @brief True when a started compressor that is still requested has reported 0 Hz for
+  /// COMPRESSOR_UNEXPECTED_STOP_S, outside a defrost or oil return cycle. Call it regularly while regulating.
+  bool HasStoppedUnexpectedly()
+  {
+    const float frequency = id(current_compressor_frequency).state;
+    const bool requested = last_compressor_start_ms_ != 0 && id(compressor_control_select).active_index().value_or(0) > 0;
+    // An unknown frequency (no Modbus data) is no proof that the compressor stopped.
+    if (!requested || std::isnan(frequency) || frequency > 0 ||
+        id(defrost_active_sensor).state || id(oil_return_cycle_active).state)
+    {
+      not_running_since_ms_ = 0;
+      return false;
+    }
+    const uint64_t now = millis_64();
+    if (not_running_since_ms_ == 0)
+    {
+      not_running_since_ms_ = now;
+    }
+    return (now - not_running_since_ms_) >= COMPRESSOR_UNEXPECTED_STOP_S * 1000ULL;
+  }
+
   bool HasPassedSoftStartDuration()
   {
     return (millis_64() - last_compressor_start_ms_) >= COMPRESSOR_SOFT_START_DURATION_S * 1000ULL;
@@ -349,6 +372,7 @@ public:
 
   void RecordStartTime()
   {
+    not_running_since_ms_ = 0;
     ClearStartWaitTimer();
     last_compressor_start_ms_ = millis_64();
   }
