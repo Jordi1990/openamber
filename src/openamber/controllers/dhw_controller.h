@@ -436,6 +436,18 @@ public:
         }
         else
         {
+          // Same as heating: wait for the minimum compressor off time, the outdoor unit would not start yet.
+          if (!compressor_controller_->HasPassedMinOffTime())
+          {
+            if (!HasDemand())
+            {
+              ESP_LOGI("amber", "No more DHW demand while waiting for the minimum compressor off time, stopping pump.");
+              pump_controller_->Stop();
+              StopDhwPump();
+              SetNextState(DHWState::WAIT_PUMP_STOP);
+            }
+            break;
+          }
           compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
           compressor_controller_->ArmStartWaitTimer();
           SetNextState(DHWState::WAIT_COMPRESSOR_RUNNING);

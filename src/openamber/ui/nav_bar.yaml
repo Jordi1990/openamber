@@ -36,10 +36,9 @@ obj:
         pad_top: 4
         pad_bottom: 4
         on_click:
-          - script.execute:
-              id: nav_select_tab
-              tab_index: 0
-          - script.execute: update_home_thermostat_mode_ui
+          - lambda: |-
+              id(nav_select_tab).execute(0);
+              id(update_home_thermostat_mode_ui).execute();
         widgets:
           - label:
               id: nav_home_icon

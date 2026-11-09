@@ -4,6 +4,7 @@ import subprocess
 import time
 import pytest
 from openamber_client import OpenAmberClient
+from helpers import set_outside_temperature
 
 
 @pytest.fixture(scope="session")
@@ -132,6 +133,7 @@ def clean_system(openamber):
     openamber.set_binary_sensor("sg_ready_block_mode_active_sensor", False)
     openamber.set_binary_sensor("defrost_active_sensor", False)
     openamber.set_number("mock_compressor_frequency_override", -1.0)
+    openamber.set_sensor("model_identification_1", 150.0)
     # Reset heating curves to their numbers.yaml defaults so curve edits in one test do not
     # silently change the setpoint (and with it the start/stop behaviour) of later tests.
     for anchor, z1, z2 in (("m10", 35.0, 30.0), ("0", 30.0, 28.0), ("p5", 28.0, 26.0),
@@ -198,6 +200,11 @@ def clean_system(openamber):
         openamber.advance_time(seconds=10, step_s=5)
         openamber.step(ms=50)
     openamber.step(ms=50)
+
+    # Restart the averaged Ta at 7 °C when an earlier test moved it (takes up to 60 s, see the helper).
+    average = openamber.get_entity("temperature_outside_ta_avg_1h")
+    if average is None or abs(float(average) - 7.0) >= 0.01:
+        set_outside_temperature(openamber, 7.0)
 
     assert openamber.get_entity("three_way_valve_dhw_switch") is False, "Valve should be in CV position in idle"
     return openamber

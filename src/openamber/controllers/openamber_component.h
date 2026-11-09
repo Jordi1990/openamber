@@ -18,6 +18,7 @@
  */
 
 #include "constants.h"
+#include "timing.h"
 #include "dhw_controller.h"
 #include "mixing_valve_actuator.h"
 #include "heat_cool_controller.h"
@@ -76,6 +77,18 @@ void OpenAmberComponent::update()
     id(error_inside_unit_failsafe).publish_state(true);
     StopControllers();
     ESP_LOGI("amber", "Inside unit pump relay switch unexpectedly turned off. Re-initializing controller.");
+    SetNextState(State::WAIT_MODBUS_CONNECTION);
+    return;
+  }
+
+  // The outdoor unit stopped a running compressor by itself (protection, power or communication loss). We do not
+  // know why, so stop everything, re-initialize and wait for the user to reset the error.
+  if ((state_ == State::HEAT_COOL || state_ == State::DHW_HEAT) && compressor_controller_->HasStoppedUnexpectedly())
+  {
+    id(error_compressor_unexpected_stop).publish_state(true);
+    ESP_LOGE("amber", "Compressor reports 0 Hz for %u s while it should run. Stopping and re-initializing controller.",
+             (unsigned) COMPRESSOR_UNEXPECTED_STOP_S);
+    StopControllers();
     SetNextState(State::WAIT_MODBUS_CONNECTION);
     return;
   }
@@ -269,13 +282,14 @@ void OpenAmberComponent::update()
     case State::WAIT_FOR_STATE_SWITCH:
     {
       uint32_t now = App.get_loop_component_start_time();
-      if (defer_state_change_until_ms_ > now && !maintenance_requested)
+      if (!HasElapsedMs(defer_state_change_started_ms_, defer_state_change_duration_ms_, now) && !maintenance_requested)
       {
-        ESP_LOGD("amber", "Waiting for state switch, transitioning to next state in %lu ms", defer_state_change_until_ms_ - now);
+        ESP_LOGD("amber", "Waiting for state switch, transitioning to next state in %lu ms",
+                 (unsigned long) RemainingMs(defer_state_change_started_ms_, defer_state_change_duration_ms_, now));
       }
       else
       {
-        defer_state_change_until_ms_ = 0;
+        defer_state_change_duration_ms_ = 0;
         SetNextState(deferred_machine_state_);
         deferred_machine_state_ = State::UNKNOWN;
       }
@@ -387,7 +401,8 @@ void OpenAmberComponent::SetNextState(State state)
 void OpenAmberComponent::LeaveStateAndSetNextStateAfterWaitTime(State new_state, uint32_t defer_ms)
 {
   deferred_machine_state_ = new_state;
-  defer_state_change_until_ms_ = App.get_loop_component_start_time() + defer_ms;
+  defer_state_change_started_ms_ = App.get_loop_component_start_time();
+  defer_state_change_duration_ms_ = defer_ms;
   SetNextState(State::WAIT_FOR_STATE_SWITCH);
 }
 
@@ -559,7 +574,7 @@ float OpenAmberComponent::get_mixing_valve_zone2_position() const
 
 void OpenAmberComponent::StopControllers()
 {
-  ESP_LOGE("amber", "Stopping regulation due to inside unit failsafe/reboot.");
+  ESP_LOGE("amber", "Stopping regulation (inside unit failsafe/reboot or unexpected compressor stop).");
   compressor_controller_->Stop();
   pump_controller_->Stop();
   heat_cool_controller_->StopAndSetIdleState();

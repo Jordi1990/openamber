@@ -22,10 +22,12 @@
           on_value:
             then:
               - lambda: |-
-                  auto val = lv_dropdown_get_selected(id(set_cool_mode_dd)->obj);
-                  if (val == 0) id(cool_mode_select).make_call().set_option("Intern setpoint").perform();
-                  else id(cool_mode_select).make_call().set_option("Extern setpoint").perform();
-              - script.execute: update_manual_setpoint_ui
+                  {
+                    auto val = lv_dropdown_get_selected(id(set_cool_mode_dd)->obj);
+                    if (val == 0) id(cool_mode_select).make_call().set_option("Intern setpoint").perform();
+                    else id(cool_mode_select).make_call().set_option("Extern setpoint").perform();
+                  }
+                  id(update_manual_setpoint_ui).execute();
 
 
 - obj:
@@ -57,11 +59,15 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - if:
-                      condition:
-                        lambda: 'return id(cool_mode_select).current_option() == "Intern setpoint";'
-                      then:
-                        - number.decrement: cooling_setpoint_number
+                  - lambda: |-
+                      if (id(cool_mode_select).current_option() == "Intern setpoint") {
+                        {
+                          auto call = id(cooling_setpoint_number).make_call();
+                          call.with_operation(number::NUMBER_OP_DECREMENT);
+                          call.with_cycle(true);
+                          call.perform();
+                        }
+                      }
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
             - label: { id: set_cool_setpoint_val, text: "7°C", text_color: 0x1F2933, text_font: font_text_24 }
@@ -76,11 +82,15 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - if:
-                      condition:
-                        lambda: 'return id(cool_mode_select).current_option() == "Intern setpoint";'
-                      then:
-                        - number.increment: cooling_setpoint_number
+                  - lambda: |-
+                      if (id(cool_mode_select).current_option() == "Intern setpoint") {
+                        {
+                          auto call = id(cooling_setpoint_number).make_call();
+                          call.with_operation(number::NUMBER_OP_INCREMENT);
+                          call.with_cycle(true);
+                          call.perform();
+                        }
+                      }
                 widgets:
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
@@ -114,16 +124,17 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - if:
-                      condition:
-                        lambda: 'return id(cool_mode_select).current_option() == "Extern setpoint";'
-                      then:
-                        - number.decrement: manual_setpoint
-                        - lvgl.label.update:
-                            id: set_cool_manual_sp_val
-                            text:
-                              format: "%.0f°C"
-                              args: ['id(manual_setpoint).state']
+                  - lambda: |-
+                      if (id(cool_mode_select).current_option() == "Extern setpoint") {
+                        {
+                          auto call = id(manual_setpoint).make_call();
+                          call.with_operation(number::NUMBER_OP_DECREMENT);
+                          call.with_cycle(true);
+                          call.perform();
+                        }
+                        lv_label_set_text(id(set_cool_manual_sp_val), str_sprintf("%.0f°C", id(manual_setpoint).state).c_str());
+                        lv_obj_send_event(id(set_cool_manual_sp_val), lvgl::lv_update_event, nullptr);
+                      }
                 widgets:
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
             - label: { id: set_cool_manual_sp_val, text: "30°C", text_color: 0x1F2933, text_font: font_text_24 }
@@ -138,16 +149,17 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - if:
-                      condition:
-                        lambda: 'return id(cool_mode_select).current_option() == "Extern setpoint";'
-                      then:
-                        - number.increment: manual_setpoint
-                        - lvgl.label.update:
-                            id: set_cool_manual_sp_val
-                            text:
-                              format: "%.0f°C"
-                              args: ['id(manual_setpoint).state']
+                  - lambda: |-
+                      if (id(cool_mode_select).current_option() == "Extern setpoint") {
+                        {
+                          auto call = id(manual_setpoint).make_call();
+                          call.with_operation(number::NUMBER_OP_INCREMENT);
+                          call.with_cycle(true);
+                          call.perform();
+                        }
+                        lv_label_set_text(id(set_cool_manual_sp_val), str_sprintf("%.0f°C", id(manual_setpoint).state).c_str());
+                        lv_obj_send_event(id(set_cool_manual_sp_val), lvgl::lv_update_event, nullptr);
+                      }
                 widgets:
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 

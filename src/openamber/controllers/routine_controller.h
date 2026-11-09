@@ -21,6 +21,7 @@
 
 #include "esphome.h"
 #include "constants.h"
+#include "timing.h"
 
 using namespace esphome;
 
@@ -33,7 +34,8 @@ protected:
   StateEnum idle_state_;
   StateEnum wait_for_state_switch_state_;
   StateEnum deferred_machine_state_;
-  uint32_t defer_state_change_until_ms_ = 0;
+  uint32_t defer_state_change_started_ms_ = 0;
+  uint32_t defer_state_change_duration_ms_ = 0;
   bool requested_to_stop_ = false;
 
   virtual const char* StateToString(StateEnum state) const = 0;
@@ -51,20 +53,21 @@ protected:
   void LeaveStateAndSetNextStateAfterWaitTime(StateEnum new_state, uint32_t defer_ms)
   {
     deferred_machine_state_ = new_state;
-    defer_state_change_until_ms_ = App.get_loop_component_start_time() + defer_ms;
+    defer_state_change_started_ms_ = App.get_loop_component_start_time();
+    defer_state_change_duration_ms_ = defer_ms;
     SetNextState(wait_for_state_switch_state_);
   }
 
   bool ProcessDeferredStateChange()
   {
     uint32_t now = App.get_loop_component_start_time();
-    int32_t remaining_ms = static_cast<int32_t>(defer_state_change_until_ms_ - now);
-    if (remaining_ms > 0)
+    if (!HasElapsedMs(defer_state_change_started_ms_, defer_state_change_duration_ms_, now))
     {
-      ESP_LOGD("amber", "%s waiting for state switch, transitioning in %ld ms", LogTag(), static_cast<long>(remaining_ms));
+      ESP_LOGD("amber", "%s waiting for state switch, transitioning in %lu ms", LogTag(),
+               (unsigned long) RemainingMs(defer_state_change_started_ms_, defer_state_change_duration_ms_, now));
       return false;
     }
-    defer_state_change_until_ms_ = 0;
+    defer_state_change_duration_ms_ = 0;
     SetNextState(deferred_machine_state_);
     return true;
   }

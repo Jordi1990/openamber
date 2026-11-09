@@ -80,20 +80,21 @@ obj:
         scrollbar_mode: "OFF"
         scrollable: false
         on_click:
-          - if:
-              condition:
-                lambda: 'return id(amber_ctrl).is_maintenance_state();'
-              then:
-                - if:
-                    condition:
-                      lambda: 'return id(amber_ctrl).is_deaeration_running();'
-                    then:
-                      - lambda: 'id(amber_ctrl).stop_deaeration_routine();'
-                    else:
-                      - lambda: 'id(amber_ctrl).start_deaeration_routine(false);'
-                - script.execute: update_service_mode_ui
-              else:
-                - script.execute: update_service_mode_ui
+          - lambda: |-
+              if (id(amber_ctrl).is_maintenance_state()) {
+                if (id(amber_ctrl).is_deaeration_running()) {
+                  {
+                    id(amber_ctrl).stop_deaeration_routine();
+                  }
+                } else {
+                  {
+                    id(amber_ctrl).start_deaeration_routine(false);
+                  }
+                }
+                id(update_service_mode_ui).execute();
+              } else {
+                id(update_service_mode_ui).execute();
+              }
         widgets:
           - label:
               id: service_deaeration_short_btn_lbl
@@ -115,20 +116,21 @@ obj:
         scrollbar_mode: "OFF"
         scrollable: false
         on_click:
-          - if:
-              condition:
-                lambda: 'return id(amber_ctrl).is_maintenance_state();'
-              then:
-                - if:
-                    condition:
-                      lambda: 'return id(amber_ctrl).is_deaeration_running();'
-                    then:
-                      - lambda: 'id(amber_ctrl).stop_deaeration_routine();'
-                    else:
-                      - lambda: 'id(amber_ctrl).start_deaeration_routine(true);'
-                - script.execute: update_service_mode_ui
-              else:
-                - script.execute: update_service_mode_ui
+          - lambda: |-
+              if (id(amber_ctrl).is_maintenance_state()) {
+                if (id(amber_ctrl).is_deaeration_running()) {
+                  {
+                    id(amber_ctrl).stop_deaeration_routine();
+                  }
+                } else {
+                  {
+                    id(amber_ctrl).start_deaeration_routine(true);
+                  }
+                }
+                id(update_service_mode_ui).execute();
+              } else {
+                id(update_service_mode_ui).execute();
+              }
         widgets:
           - label:
               id: service_deaeration_extended_btn_lbl

@@ -94,6 +94,7 @@ eebus:
         return power_table_amber_120[stand];
       case 150: // Amber 95
       case 145: // HP-S 95
+      case 160: // HP-S 95 (other outdoor unit variant)
       default:  // Onbekend / default Amber 95
         return power_table_amber_95[stand];
     }
