@@ -356,6 +356,26 @@ private:
   {
     return id(dhw_demand_active_sensor).state;
   }
+
+  /// @brief True when DHW should stop: no demand anymore, or a stop request (maintenance mode) while no oil
+  /// return cycle runs. A running oil return cycle is finished first.
+  bool ShouldStop()
+  {
+    if (!HasDemand())
+    {
+      return true;
+    }
+    if (!requested_to_stop_)
+    {
+      return false;
+    }
+    if (id(oil_return_cycle_active).state)
+    {
+      ESP_LOGI("amber", "DHW stop requested: waiting for the oil return cycle to finish before stopping.");
+      return false;
+    }
+    return true;
+  }
 public:
     DHWController(PumpController *pump_controller, CompressorController *compressor_controller)
         : BaseController(pump_controller, compressor_controller, DHWState::WAIT_FOR_STATE_SWITCH, DHWState::UNKNOWN, DHWState::IDLE) {
@@ -436,6 +456,14 @@ public:
         }
         else
         {
+          if (requested_to_stop_)
+          {
+            ESP_LOGI("amber", "DHW stop requested before the compressor started, stopping pump.");
+            pump_controller_->Stop();
+            StopDhwPump();
+            SetNextState(DHWState::WAIT_PUMP_STOP);
+            break;
+          }
           // Same as heating: wait for the minimum compressor off time, the outdoor unit would not start yet.
           if (!compressor_controller_->HasPassedMinOffTime())
           {
@@ -493,9 +521,9 @@ public:
 
         if (compressor_controller_->HasPassedMinOnTime())
         {
-          if(!HasDemand())
+          if(ShouldStop())
           {
-            ESP_LOGI("amber", "No more DHW demand, stopping compressor.");
+            ESP_LOGI("amber", "No more DHW demand or stop requested, stopping compressor.");
             compressor_controller_->Stop();
             SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
             break;
@@ -627,9 +655,9 @@ public:
           }
         }
         
-        if(!HasDemand())
+        if(ShouldStop())
         {
-          ESP_LOGI("amber", "No more DHW demand, stopping compressor and backup heater.");
+          ESP_LOGI("amber", "No more DHW demand or stop requested, stopping compressor and backup heater.");
           TurnOffBackupHeater();
           if(id(emergency_mode_enabled).state)
           {

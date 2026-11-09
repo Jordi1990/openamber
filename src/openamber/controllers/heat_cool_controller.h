@@ -580,6 +580,12 @@ public:
   {
     if(!HasCompressorDemand())
     {
+      // Maintenance mode stops on request; let a running oil return cycle finish first.
+      if (requested_to_stop_ && id(service_mode_enabled).state && id(oil_return_cycle_active).state)
+      {
+        ESP_LOGI("amber", "Maintenance mode requested: waiting for the oil return cycle to finish before stopping.");
+        return false;
+      }
       return true;
     }
 

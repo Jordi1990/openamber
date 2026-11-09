@@ -2810,7 +2810,7 @@
           } else {
             if (id(service_mode_enabled).state) {
               lv_obj_remove_flag(id(service_maintenance_lock_hint), LV_OBJ_FLAG_HIDDEN);
-              lv_label_set_text(id(service_maintenance_state), "Regeling aan het pauzeren...");
+              lv_label_set_text(id(service_maintenance_state), "Compressor en pompen worden gestopt...");
               lv_obj_send_event(id(service_maintenance_state), lvgl::lv_update_event, nullptr);
               lv_obj_set_style_text_color(id(service_maintenance_state), lv_color_hex(0xB45309), LV_PART_MAIN);
             } else {
