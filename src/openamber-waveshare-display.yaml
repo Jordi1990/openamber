@@ -35,6 +35,8 @@ esp32:
       execute_from_psram: true
 
 esphome:
+  includes:
+    - <esp_wifi.h>
   project:
     version: dev
   on_boot:

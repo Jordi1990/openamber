@@ -547,7 +547,7 @@ obj:
                             - label: { id: thermostat_algemeen_page_2_button_lbl, text: "\U000F0142", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
     - obj:
-        id: default_compressor_frequencies_modal
+        id: outdoor_unit_optimizations_modal
         width: 100%
         height: 100%
         hidden: true
@@ -562,7 +562,7 @@ obj:
 
         widgets:
           - obj:
-              id: default_compressor_frequencies_modal_card
+              id: outdoor_unit_optimizations_modal_card
               width: 580
               height: 260
               align: CENTER
@@ -580,16 +580,16 @@ obj:
 
               widgets:
                 - label:
-                    id: default_compressor_frequencies_modal_title
+                    id: outdoor_unit_optimizations_modal_title
                     text: "Herstart vereist"
                     text_color: 0x1F2933
                     text_font: font_text_24
                     align: TOP_LEFT
 
                 - label:
-                    id: default_compressor_frequencies_modal_text
+                    id: outdoor_unit_optimizations_modal_text
                     width: 100%
-                    text: "Om de standaard compressorfrequenties te activeren moet de complete warmtepomp inclusief buitenunit opnieuw worden opgestart door de stroom kort te onderbreken."
+                    text: "Om de standaard instellingen van de buitenunit te herstellen moet de complete warmtepomp inclusief buitenunit opnieuw worden opgestart door de stroom kort te onderbreken."
                     text_color: 0x1F2933
                     text_font: font_text_20
                     long_mode: WRAP
@@ -597,7 +597,7 @@ obj:
                     y: 48
 
                 - obj:
-                    id: default_compressor_frequencies_modal_ok_button
+                    id: outdoor_unit_optimizations_modal_ok_button
                     width: 200
                     height: 52
                     align: BOTTOM_RIGHT
@@ -611,10 +611,10 @@ obj:
                     scrollable: false
                     on_click:
                       - lvgl.widget.hide:
-                          id: default_compressor_frequencies_modal
+                          id: outdoor_unit_optimizations_modal
                     widgets:
                       - label:
-                          id: default_compressor_frequencies_modal_ok_label
+                          id: outdoor_unit_optimizations_modal_ok_label
                           text: "Begrepen"
                           text_color: 0xFFFFFF
                           text_font: font_text_24

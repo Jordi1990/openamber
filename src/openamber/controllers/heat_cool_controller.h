@@ -547,6 +547,18 @@ public:
     float current_temperature = GetControlTemperature();
     float target = GetPidController().target_temperature;
 
+    // Hysteresis: hold the compressor mode while the control temperature stays close to the setpoint.
+    // Inside the PID deadband the PID output still moves a little (kp_multiplier), which is enough to
+    // flip the rounded compressor mode back and forth between two adjacent modes.
+    const float hysteresis = id(compressor_hysteresis).state;
+    const float dt = current_temperature - target;
+    if (hysteresis > 0.0f && fabsf(dt) < hysteresis)
+    {
+      int clamped_mode = std::min((int)current_compressor_mode, max_allowed);
+      ESP_LOGI("amber", "ΔT=%.2f°C within compressor hysteresis %.1f°C, compressor mode remains at %d", dt, hysteresis, clamped_mode);
+      return clamped_mode;
+    }
+
     // Guard: never modulate up when temperature has already overshot the setpoint
     const float TEMP_MARGIN = 0.3f;
     bool overshoot = IsWorkingMode(WORKING_MODE_COOLING)
@@ -654,11 +666,21 @@ public:
           break;
         }
 
-        StartPumpP1IfNeeded();
+        // P1 runs continuously on heat/cool demand; frost protection alone only runs P1 together with the P0 interval cycles.
+        if (id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state)
+        {
+          StartPumpP1IfNeeded();
+        }
+        else
+        {
+          StopPumpP1IfNeeded();
+        }
+
         // Start pump on interval, without the pump running we cannot determine if there is actual compressor demand as Tc can change.
         if (pump_controller_->ShouldStartNextPumpCycle())
         {
           pump_controller_->Start();
+          StartPumpP1IfNeeded();
           SetNextState(HeatCoolState::WAIT_PUMP_RUNNING);
         }
         break;
