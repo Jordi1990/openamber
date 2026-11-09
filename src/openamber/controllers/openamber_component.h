@@ -18,6 +18,7 @@
  */
 
 #include "constants.h"
+#include "timing.h"
 #include "dhw_controller.h"
 #include "mixing_valve_actuator.h"
 #include "heat_cool_controller.h"
@@ -292,13 +293,14 @@ void OpenAmberComponent::update()
     case State::WAIT_FOR_STATE_SWITCH:
     {
       uint32_t now = App.get_loop_component_start_time();
-      if (defer_state_change_until_ms_ > now && !maintenance_requested)
+      if (!HasElapsedMs(defer_state_change_started_ms_, defer_state_change_duration_ms_, now) && !maintenance_requested)
       {
-        ESP_LOGD("amber", "Waiting for state switch, transitioning to next state in %lu ms", defer_state_change_until_ms_ - now);
+        ESP_LOGD("amber", "Waiting for state switch, transitioning to next state in %lu ms",
+                 (unsigned long) RemainingMs(defer_state_change_started_ms_, defer_state_change_duration_ms_, now));
       }
       else
       {
-        defer_state_change_until_ms_ = 0;
+        defer_state_change_duration_ms_ = 0;
         SetNextState(deferred_machine_state_);
         deferred_machine_state_ = State::UNKNOWN;
       }
@@ -439,7 +441,8 @@ void OpenAmberComponent::simulate_restart()
   ota_in_progress_ = false;
   modbus_disconnected_since_ms_ = 0;
   modbus_disconnected_error_occurred_ = false;
-  defer_state_change_until_ms_ = 0;
+  defer_state_change_started_ms_ = 0;
+  defer_state_change_duration_ms_ = 0;
   deferred_machine_state_ = State::UNKNOWN;
   setup();
 }
@@ -452,19 +455,18 @@ void OpenAmberComponent::WriteEEPROMConfiguration()
 {
   if (id(outside_unit_eeprom_version).state == EEPROM_VERSION_HPS)
   {
-    ESP_LOGI("amber", "Detected HPS unit based on EEPROM version, not writing EEPROM configuration.");
+    ESP_LOGI("amber", "Detected HPS unit based on EEPROM version, not applying outdoor unit optimizations.");
     return;
   }
 
-  if (id(default_compressor_frequencies_enabled).state)
+  if (!id(outdoor_unit_optimizations_enabled).state)
   {
-    ESP_LOGI("amber", "Default compressor frequencies setting enabled, not writing frequency tables.");
+    ESP_LOGI("amber", "Outdoor unit optimizations disabled, not writing any outdoor unit parameters.");
+    return;
   }
-  else
-  {
-    WriteHeatingFrequencyTable();
-    WriteCoolingFrequencyTable();
-  }
+
+  WriteHeatingFrequencyTable();
+  WriteCoolingFrequencyTable();
 
   // OpenAmber limits the compressor per outdoor temperature in Hz (CompressorController), including
   // outside the operating range. Turn off the unit's own level-based limit (RAM-only).
@@ -570,7 +572,8 @@ void OpenAmberComponent::SetNextState(State state)
 void OpenAmberComponent::LeaveStateAndSetNextStateAfterWaitTime(State new_state, uint32_t defer_ms)
 {
   deferred_machine_state_ = new_state;
-  defer_state_change_until_ms_ = App.get_loop_component_start_time() + defer_ms;
+  defer_state_change_started_ms_ = App.get_loop_component_start_time();
+  defer_state_change_duration_ms_ = defer_ms;
   SetNextState(State::WAIT_FOR_STATE_SWITCH);
 }
 

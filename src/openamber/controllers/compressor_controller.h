@@ -30,8 +30,11 @@ using namespace esphome;
 class CompressorController
 {
 private:
-  uint32_t last_compressor_start_ms_ = 0;
-  uint32_t last_compressor_stop_ms_ = 0;
+  // Start/stop times use 64-bit millis_64() timestamps, which never wrap. A compressor can run
+  // or stay off for longer than the ~49.7 days after which a 32-bit elapsed time wraps, which
+  // would make it look freshly started or stopped again (min on/off time, soft start).
+  uint64_t last_compressor_start_ms_ = 0;
+  uint64_t last_compressor_stop_ms_ = 0;
   uint32_t last_compressor_mode_change_ms_ = 0;
   uint32_t start_wait_started_ms_ = 0;
   uint32_t last_discharge_limit_step_ms_ = 0;
@@ -272,7 +275,7 @@ private:
 public:
   CompressorController() {}
 
-  uint32_t GetStartTime()
+  uint64_t GetStartTime()
   {
     return last_compressor_start_ms_;
   }
@@ -316,7 +319,7 @@ public:
   {
     ClearStartWaitTimer();
     last_compressor_start_ms_ = 0;
-    last_compressor_stop_ms_ = App.get_loop_component_start_time();
+    last_compressor_stop_ms_ = millis_64();
     auto compressor_set_call = id(compressor_control_select).make_call();
     compressor_set_call.select_first();
     compressor_set_call.perform();
@@ -335,19 +338,19 @@ public:
 
   bool HasPassedMinOnTime()
   {
-    const uint32_t min_on_ms = COMPRESSOR_MIN_ON_S * 1000UL;
-    return (App.get_loop_component_start_time() - last_compressor_start_ms_) > min_on_ms;
+    const uint64_t min_on_ms = COMPRESSOR_MIN_ON_S * 1000ULL;
+    return (millis_64() - last_compressor_start_ms_) > min_on_ms;
   }
 
   bool HasPassedMinOffTime()
   {
-    const uint32_t min_off_ms = COMPRESSOR_MIN_OFF_S * 1000UL;
-    return (App.get_loop_component_start_time() - last_compressor_stop_ms_) > min_off_ms;
+    const uint64_t min_off_ms = COMPRESSOR_MIN_OFF_S * 1000ULL;
+    return (millis_64() - last_compressor_stop_ms_) > min_off_ms;
   }
 
   bool HasPassedSoftStartDuration()
   {
-    return (App.get_loop_component_start_time() - last_compressor_start_ms_) >= COMPRESSOR_SOFT_START_DURATION_S * 1000UL;
+    return (millis_64() - last_compressor_start_ms_) >= COMPRESSOR_SOFT_START_DURATION_S * 1000ULL;
   }
 
   /// @brief Restarts the minimum off time without sending a stop command, e.g. after a restart of the ESP
@@ -362,7 +365,7 @@ public:
   void RecordStartTime()
   {
     ClearStartWaitTimer();
-    last_compressor_start_ms_ = App.get_loop_component_start_time();
+    last_compressor_start_ms_ = millis_64();
   }
 
   void ArmStartWaitTimer()

@@ -378,7 +378,8 @@ sensor:
   - platform: template
     id: model_identification_1
     name: "Model identificatie"
-    lambda: 'return 150.0f;'
+    # Keeps a value set by a test, otherwise reports an Amber 95.
+    lambda: 'return std::isnan(id(model_identification_1).state) ? 150.0f : id(model_identification_1).state;'
     update_interval: 5s
   - platform: template
     id: system_psram_free
