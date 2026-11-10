@@ -294,7 +294,7 @@ class Page {
     lv_line_set_points(line, points, 2);
   }
 
-  bool is_cooling_() { return id(working_mode_switch).active_index().value() == WORKING_MODE_COOLING; }
+  bool is_cooling_() { return id(working_mode_switch).active_index().value_or(WORKING_MODE_STANDBY) == WORKING_MODE_COOLING; }
 
   void update_values_() {
     lv_obj_t *chip = &id(graph_state_chip);
