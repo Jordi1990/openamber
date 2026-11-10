@@ -215,10 +215,16 @@ def test_dhw_schedule_matching_weekday_and_master_switch_interlock(clean_system)
         openamber.click("set_dhw_start_time_dec")
         openamber.step(ms=50)
 
-        # Ensure end time wraps to overnight so schedule window is guaranteed active
         for _ in range(16):
             openamber.click("set_dhw_end_time_inc")
             openamber.step(ms=50)
+
+        # Make the time window cover the whole day, so it contains the virtual clock whatever time it is. The
+        # window from the clicks above (10:00-01:00) leaves 01:00-10:00 uncovered, and the virtual clock can be
+        # anywhere after the earlier tests. Outside the window the detection below picks the wrong day.
+        openamber.set_time("dhw_start_time", 0, 0)
+        openamber.set_time("dhw_end_time", 23, 59)
+        openamber.step(ms=50)
 
         # 4. Find which weekday switch corresponds to today's virtual clock
         active_day = None
@@ -280,12 +286,10 @@ def test_dhw_schedule_matching_weekday_and_master_switch_interlock(clean_system)
             "DHW demand must be active 24/7 when schedule master switch is OFF"
         )
     finally:
-        # Cleanup: restore schedule switches and restore end time back to 17:00
-        openamber.set_switch("dhw_schedule_enabled_switch", True)
+        # Cleanup: restore schedule switches and the default 10:00-17:00 window
+        openamber.set_time("dhw_start_time", 10, 0)
+        openamber.set_time("dhw_end_time", 17, 0)
         openamber.step(ms=50)
-        for _ in range(16):
-            openamber.click("set_dhw_end_time_dec")
-            openamber.step(ms=30)
         for day in days:
             openamber.set_switch(f"dhw_schedule_{day}_enabled_switch", True)
         openamber.set_switch("dhw_schedule_enabled_switch", False)
