@@ -518,6 +518,79 @@ public:
     SetNextState(HeatCoolState::IDLE);
   }
 
+  /// @brief Takes over units that kept running while the ESP restarted, instead of stopping them.
+  /// Only called with the 3-way valve in the heat/cool position and pump P0 running.
+  void ResumeFromRunningUnits()
+  {
+    const bool compressor_running = compressor_controller_->IsRunning();
+    const bool compressor_commanded = compressor_controller_->IsCommanded();
+    requested_to_stop_ = false;
+    start_current_temperature_ = 0.0f;
+    pump_flow_missing_since_ms_ = 0;
+    pump_controller_->AdoptRunningPump();
+    const bool cooling = IsWorkingMode(WORKING_MODE_COOLING);
+
+    if (compressor_running && compressor_commanded)
+    {
+      SetPidController(cooling ? climate::CLIMATE_MODE_COOL : climate::CLIMATE_MODE_HEAT);
+      GetPidController().reset_integral_term();
+      ResetMixingValvesIntegralTerm();
+      if (cooling)
+      {
+        // Cooling runs with the enabled mixing valves fully open, normally set on PUMP_RUNNING entry which the resume
+        // skips. Reapply it (no write when a valve is already open) so a closed valve does not block the cooled water.
+        OpenMixingValves();
+      }
+      // The run time before the restart is unknown: keep the compressor on for at least the minimum on time.
+      compressor_controller_->RecordStartTime();
+      if (id(defrost_running_sensor).state)
+      {
+        // Actual defrost: P1 is off during a defrost, DEFROSTING starts it again when the defrost ends.
+        StopPumpP1IfNeeded();
+        SetNextState(HeatCoolState::DEFROSTING);
+      }
+      else
+      {
+        // No defrost or still in the pre-phase: COMPRESSOR_RUNNING keeps heating and handles the switch to
+        // DEFROSTING (and stops P1) once the actual defrost starts. P1 may have stayed off when a defrost ended
+        // during the restart, run it again on demand as IDLE does.
+        if (id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state)
+        {
+          StartPumpP1IfNeeded();
+        }
+        SetNextState(HeatCoolState::COMPRESSOR_RUNNING);
+      }
+      return;
+    }
+
+    if (compressor_commanded)
+    {
+      // Level set but compressor not (yet) running: it was starting. Cancel the start, the normal flow
+      // starts it again with the minimum off time and pump settle time.
+      ESP_LOGI("amber", "Resume: compressor was starting, cancelling the start.");
+      compressor_controller_->Stop();
+      SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
+      return;
+    }
+
+    compressor_controller_->RecordStopTime();
+    if (compressor_running)
+    {
+      // Level 0 but still running: the compressor was stopping.
+      SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
+      return;
+    }
+
+    // Only the pump was running: continue the pump cycle.
+    SetNextState(HeatCoolState::PUMP_RUNNING);
+  }
+
+  /// @brief Evaluates the safety checks without running the state machine (used while an OTA update holds it).
+  bool HasSafetyStopCondition()
+  {
+    return PerformSafetyChecks();
+  }
+
   void SetHeatPIDValue(float pid_value)
   {
     compressor_heat_pid_ = pid_value;
