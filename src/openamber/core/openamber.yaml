@@ -93,7 +93,24 @@ tiny_mqtt:
 
 ota:
   - platform: esphome
+    on_begin: &ota_on_begin
+      - lambda: 'id(amber_ctrl).on_ota_started();'
+    on_progress: &ota_on_progress
+      - lambda: 'id(amber_ctrl).on_ota_progress();'
+    on_error: &ota_on_failed
+      - lambda: 'id(amber_ctrl).on_ota_finished(false);'
+    on_abort: *ota_on_failed
   - platform: http_request
+    on_begin: *ota_on_begin
+    on_progress: *ota_on_progress
+    on_error: *ota_on_failed
+    on_abort: *ota_on_failed
+  # Declared explicitly (web_server adds it otherwise) to get the callbacks for uploads via the web interface.
+  - platform: web_server
+    on_begin: *ota_on_begin
+    on_progress: *ota_on_progress
+    on_error: *ota_on_failed
+    on_abort: *ota_on_failed
 
 http_request:
   buffer_size_tx: 1024

@@ -30,6 +30,13 @@ static const uint32_t INITIALIZATION_DELAY_S = 10;
 // Modbus connection
 static const uint32_t MODBUS_CONNECTION_TIMEOUT_S = 2 * 60;
 
+// Live update
+// The state machine is held while an OTA update is busy. Every progress report extends the hold; release it after
+// this time without progress (e.g. a web upload that disconnected without an abort/error event).
+static const uint32_t OTA_HOLD_TIMEOUT_S = 2 * 60;
+// After a restart, wait at most this long for the Modbus readbacks before deciding to take over the running units.
+static const uint32_t RESUME_READBACK_TIMEOUT_S = 30;
+
 // Three-way valve
 static const uint32_t THREE_WAY_VALVE_SWITCH_TIME_S = 1 * 60;
 static const uint32_t THREE_WAY_VALVE_PROTECTION_DELTA_TEMPERATURE_C = 5.0f;
@@ -37,12 +44,17 @@ static const uint32_t THREE_WAY_VALVE_PROTECTION_HIGH_TEMPERATURE_TIME_S = 2 * 6
 static const float THREE_WAY_VALVE_PROTECTION_TUO_TC_THRESHOLD_C = 5.0f;
 
 // Compressor timing
-static const uint32_t COMPRESSOR_MIN_OFF_S = 2 * 60;
+// The outdoor unit firmware blocks a compressor restart for 180 s after a stop. It probably counts from the
+// actual stop, which comes 20-30 s after the stop command, so this keeps some margin.
+static const uint32_t COMPRESSOR_MIN_OFF_S = 200;
 static const uint32_t COMPRESSOR_MIN_ON_S = 10 * 60;
 static const uint32_t COMPRESSOR_SOFT_START_DURATION_S = 3 * 60;
 static const uint32_t COMPRESSOR_START_TIMEOUT_S = 2 * 60;
 static const uint32_t COMPRESSOR_MIN_TIME_PUMP_ON = 2 * 60;
 static const uint32_t COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 5 * 60;
+// A started compressor that reports 0 Hz this long, outside a defrost or oil return cycle, has been stopped by the
+// outdoor unit itself (protection, power or communication loss).
+static const uint32_t COMPRESSOR_UNEXPECTED_STOP_S = 3 * 60;
 // The outdoor unit raises 2118 up to 300 s before the actual defrost when it decides itself (3274 = 1).
 // The actual defrost starts once the compressor runs at the defrost standby frequency (3279).
 static const uint32_t DEFROST_PREPHASE_MAX_S = 330;

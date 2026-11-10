@@ -861,6 +861,14 @@ binary_sensor:
     sorting_group_id: error_codes
 
 - platform: template
+  id: error_compressor_unexpected_stop
+  name: "Compressor onverwacht gestopt"
+  device_class: problem
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: error_codes
+
+- platform: template
   id: error_pump_stop_timeout
   name: "Pomp stop timeout"
   device_class: problem
@@ -932,6 +940,7 @@ binary_sensor:
            id(error_flag_f22).state ||
            id(error_pump_start_timeout).state ||
            id(error_compressor_start_timeout).state ||
+           id(error_compressor_unexpected_stop).state ||
            id(error_pump_stop_timeout).state ||
            id(error_modbus_connection_timeout).state ||
            id(error_three_way_valve_state_timeout).state ||

@@ -74,9 +74,23 @@ void OpenAmberComponent::update()
 {
   if ((state_ == State::HEAT_COOL || state_ == State::DHW_HEAT) && !id(pump_p0_relay_switch).state)
   {
+    ota_in_progress_ = false;
     id(error_inside_unit_failsafe).publish_state(true);
     StopControllers();
     ESP_LOGI("amber", "Inside unit pump relay switch unexpectedly turned off. Re-initializing controller.");
+    SetNextState(State::WAIT_MODBUS_CONNECTION);
+    return;
+  }
+
+  // The outdoor unit stopped a running compressor by itself (protection, power or communication loss). We do not
+  // know why, so stop everything, re-initialize and wait for the user to reset the error.
+  if ((state_ == State::HEAT_COOL || state_ == State::DHW_HEAT) && compressor_controller_->HasStoppedUnexpectedly())
+  {
+    ota_in_progress_ = false;
+    id(error_compressor_unexpected_stop).publish_state(true);
+    ESP_LOGE("amber", "Compressor reports 0 Hz for %u s while it should run. Stopping and re-initializing controller.",
+             (unsigned) COMPRESSOR_UNEXPECTED_STOP_S);
+    StopControllers();
     SetNextState(State::WAIT_MODBUS_CONNECTION);
     return;
   }
@@ -88,17 +102,16 @@ void OpenAmberComponent::update()
   if ((state_ == State::HEAT_COOL || state_ == State::DHW_HEAT) && id(emergency_mode_enabled).state &&
       id(compressor_control_select).active_index().value_or(0) > 0)
   {
+    ota_in_progress_ = false;
     ESP_LOGW("amber", "Emergency mode enabled while the compressor is requested. Stopping and re-initializing controller.");
     StopControllers();
     SetNextState(State::WAIT_MODBUS_CONNECTION);
     return;
   }
 
+  // Also during the OTA hold: a lost Modbus connection must still raise its error (error_active), which the
+  // safety check below turns into a stop.
   bool modbus_connected = id(modbus_inside_online).state && id(modbus_outside_online).state && id(outside_unit_eeprom_version).has_state();
-  ThreeWayValvePosition current_valve_position = GetThreeWayValvePosition();
-  ThreeWayValvePosition desired_valve_position = GetDesiredThreeWayValvePosition();
-  State desired_state = modbus_disconnected_error_occurred_ ? State::WAIT_MODBUS_CONNECTION : (desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL);
-  bool maintenance_requested = id(service_mode_enabled).state;
 
   if(!modbus_connected)
   {
@@ -108,6 +121,33 @@ void OpenAmberComponent::update()
   {
     modbus_disconnected_since_ms_ = 0;
   }
+
+  if (ota_in_progress_)
+  {
+    // Freeze the state machine while the new firmware is written: the units keep their current state and the
+    // controller takes them over again after the reboot (RESUME_CHECK). No new starts or stops just before a reboot.
+    // Every OTA progress report extends the hold, so it only times out when the update stopped reporting.
+    if (App.get_loop_component_start_time() - ota_last_activity_ms_ >= OTA_HOLD_TIMEOUT_S * 1000UL)
+    {
+      ESP_LOGW("amber", "No OTA progress for %lu s, resuming regulation.", (unsigned long) OTA_HOLD_TIMEOUT_S);
+      ota_in_progress_ = false;
+    }
+    else if (HasSafetyStopCondition())
+    {
+      // Safety stops are not held: release the hold, the regular state machine below performs the stop.
+      ESP_LOGW("amber", "Safety condition during OTA update, releasing the hold to stop the units.");
+      ota_in_progress_ = false;
+    }
+    else
+    {
+      return;
+    }
+  }
+
+  ThreeWayValvePosition current_valve_position = GetThreeWayValvePosition();
+  ThreeWayValvePosition desired_valve_position = GetDesiredThreeWayValvePosition();
+  State desired_state = modbus_disconnected_error_occurred_ ? State::WAIT_MODBUS_CONNECTION : (desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL);
+  bool maintenance_requested = id(service_mode_enabled).state;
 
   switch (state_)
   {
@@ -121,7 +161,45 @@ void OpenAmberComponent::update()
       if(modbus_connected)
       {
         modbus_disconnected_error_occurred_ = false;
-        ESP_LOGI("amber", "Modbus connection established, transitioning to initialization.");
+        // Pump P0 relay read as off (inside unit restarted, failsafe, maintenance): nothing to take over.
+        // has_state(): an unread switch is false by default, which must not stop running units.
+        if (id(pump_p0_relay_switch).has_state() && !id(pump_p0_relay_switch).state)
+        {
+          ESP_LOGI("amber", "Modbus connection established, transitioning to initialization.");
+          SetNextState(State::INITIALIZING);
+        }
+        else
+        {
+          ESP_LOGI("amber", "Modbus connection established, checking whether the units are still running.");
+          resume_check_started_ms_ = App.get_loop_component_start_time();
+          SetNextState(State::RESUME_CHECK);
+        }
+      }
+      break;
+    }
+
+    case State::RESUME_CHECK:
+    {
+      // After a restart of the ESP the units may still run on the commands from before the restart.
+      // The online flag of the inside unit is set by 1303; other ranges (e.g. valve feedback 1305, 1312) can
+      // arrive later. Wait for those readbacks: an unread entity looks like "off" and would stop running units.
+      if (!AreResumeReadbacksAvailable())
+      {
+        if (!HasElapsedMs(resume_check_started_ms_, RESUME_READBACK_TIMEOUT_S * 1000UL, App.get_loop_component_start_time()))
+        {
+          ESP_LOGD("amber", "Resume: waiting for the Modbus readbacks of the units.");
+          break;
+        }
+        ESP_LOGW("amber", "Resume: readbacks not available after %lu s, normal initialization.", (unsigned long) RESUME_READBACK_TIMEOUT_S);
+        SetNextState(State::INITIALIZING);
+        break;
+      }
+      if (CanResumeRunningUnits())
+      {
+        ResumeRunningUnits();
+      }
+      else
+      {
         SetNextState(State::INITIALIZING);
       }
       break;
@@ -151,22 +229,7 @@ void OpenAmberComponent::update()
       pump_controller_->Stop();
       // Stop() restarts the pump interval; after (re)initialization the pump must start right away on pump demand.
       pump_controller_->ResetInterval();
-      if(is_hp_s_model)
-      {
-        ESP_LOGI("amber", "Detected HPS unit based on EEPROM version, not applying outdoor unit optimizations.");
-      }
-      else if(!id(outdoor_unit_optimizations_enabled).state)
-      {
-        ESP_LOGI("amber", "Outdoor unit optimizations disabled, not writing any outdoor unit parameters.");
-      }
-      else
-      {
-        WriteHeatingFrequencyTable();
-        WriteCoolingFrequencyTable();
-        // OpenAmber limits the compressor per outdoor temperature in Hz (CompressorController), including
-        // outside the operating range. Turn off the unit's own level-based limit (RAM-only).
-        id(outdoor_unit_ambient_limit_control).make_call().set_value(0).perform();
-      }
+      WriteEEPROMConfiguration();
       ESP_LOGI("amber", "Initialized heat pump controller");
       LeaveStateAndSetNextStateAfterWaitTime(State::WAIT_INITIALIZATION, INITIALIZATION_DELAY_S * 1000UL);
       break;
@@ -390,7 +453,212 @@ uint32_t OpenAmberComponent::get_deaeration_duration_seconds(bool extended) cons
   return deaeration_routine_->GetTotalDurationS(extended);
 }
 
+void OpenAmberComponent::on_ota_started()
+{
+  if (!ota_in_progress_)
+  {
+    ESP_LOGI("amber", "OTA update started, holding the state machine. Main state: %s", StateToString(state_));
+  }
+  ota_in_progress_ = true;
+  ota_last_activity_ms_ = App.get_loop_component_start_time();
+}
+
+void OpenAmberComponent::on_ota_progress()
+{
+  // Each progress report extends the hold. It also restores a hold that another OTA source released by
+  // failing while this upload continues.
+  if (!ota_in_progress_)
+  {
+    ESP_LOGI("amber", "OTA update in progress, holding the state machine. Main state: %s", StateToString(state_));
+  }
+  ota_in_progress_ = true;
+  ota_last_activity_ms_ = App.get_loop_component_start_time();
+}
+
+void OpenAmberComponent::on_ota_finished(bool success)
+{
+  if (!ota_in_progress_)
+  {
+    return;
+  }
+  if (success)
+  {
+    // The device reboots right after this. Keep holding: the units keep running and are taken over after boot.
+    ESP_LOGI("amber", "OTA update written, the controller resumes the running units after the reboot.");
+    return;
+  }
+  ESP_LOGW("amber", "OTA update failed or aborted, resuming regulation.");
+  ota_in_progress_ = false;
+}
+
+#ifdef USE_HOST
+void OpenAmberComponent::simulate_restart()
+{
+  ESP_LOGI("amber", "Simulating a restart of the ESP (units keep their state).");
+  delete dhw_controller_;
+  delete heat_cool_controller_;
+  delete pump_controller_;
+  delete compressor_controller_;
+  pump_controller_ = new PumpController();
+  compressor_controller_ = new CompressorController();
+  dhw_controller_ = new DHWController(pump_controller_, compressor_controller_);
+  heat_cool_controller_ = new HeatCoolController(pump_controller_, compressor_controller_, mixing_valve_zone1_, mixing_valve_zone2_);
+  ota_in_progress_ = false;
+  modbus_disconnected_since_ms_ = 0;
+  modbus_disconnected_error_occurred_ = false;
+  defer_state_change_started_ms_ = 0;
+  defer_state_change_duration_ms_ = 0;
+  deferred_machine_state_ = State::UNKNOWN;
+  setup();
+}
+#endif
+
 // Privates
+
+/// @brief True when the controller that owns the current main state wants a safety stop (error, missing flow,
+/// Tuo-Tui difference). Used during the OTA hold, where the regular state machine does not run.
+bool OpenAmberComponent::HasSafetyStopCondition()
+{
+  switch (state_)
+  {
+    case State::HEAT_COOL:
+      return heat_cool_controller_->HasSafetyStopCondition();
+    case State::DHW_HEAT:
+      return dhw_controller_->HasSafetyStopCondition();
+    default:
+      return false;
+  }
+}
+
+/// @brief True when the readbacks that CanResumeRunningUnits() relies on have been read at least once.
+bool OpenAmberComponent::AreResumeReadbacksAvailable()
+{
+  return id(internal_pump_active).has_state() &&
+         id(current_compressor_frequency).has_state() &&
+         id(compressor_control_select).has_state() &&
+         id(working_mode_switch).has_state() &&
+         id(three_way_valve_dhw_switch).has_state() &&
+         id(three_way_valve_heat_cool_switch).has_state() &&
+         id(three_way_valve_active_sensor).has_state() &&
+         id(three_way_valve_dhw_active_sensor).has_state() &&
+         id(dhw_pump_relay_switch).has_state();
+}
+
+/// @brief Writes the unit configuration that lives in RAM of the units. Safe to write while the units run.
+void OpenAmberComponent::WriteEEPROMConfiguration()
+{
+  if (id(outside_unit_eeprom_version).state == EEPROM_VERSION_HPS)
+  {
+    ESP_LOGI("amber", "Detected HPS unit based on EEPROM version, not applying outdoor unit optimizations.");
+    return;
+  }
+
+  if (!id(outdoor_unit_optimizations_enabled).state)
+  {
+    ESP_LOGI("amber", "Outdoor unit optimizations disabled, not writing any outdoor unit parameters.");
+    return;
+  }
+
+  WriteHeatingFrequencyTable();
+  WriteCoolingFrequencyTable();
+
+  // OpenAmber limits the compressor per outdoor temperature in Hz (CompressorController), including
+  // outside the operating range. Turn off the unit's own level-based limit (RAM-only).
+  id(outdoor_unit_ambient_limit_control).make_call().set_value(0).perform();
+}
+
+/// @brief After a restart of the ESP (OTA update, crash, manual restart) the units can still run on the last
+/// commands. Checks from the Modbus readbacks whether that state can be taken over. Only reads, writes nothing.
+/// @return false when there is nothing to take over or the state is not consistent; INITIALIZING then runs as usual.
+bool OpenAmberComponent::CanResumeRunningUnits()
+{
+  if (id(service_mode_enabled).state)
+  {
+    ESP_LOGI("amber", "Resume: maintenance mode requested, normal initialization.");
+    return false;
+  }
+  if (id(error_active).state)
+  {
+    ESP_LOGI("amber", "Resume: an error is active, normal initialization.");
+    return false;
+  }
+
+  const int working_mode = id(working_mode_switch).active_index().value_or(WORKING_MODE_STANDBY);
+
+  ESP_LOGI("amber", "Resume: P0 relay=%d, pump=%d, compressor running=%d, level=%d, working mode=%d, defrost=%d, DHW pump=%d",
+           id(pump_p0_relay_switch).state, id(internal_pump_active).state, compressor_controller_->IsRunning(),
+           (int) id(compressor_control_select).active_index().value_or(0), working_mode, id(defrost_active_sensor).state,
+           id(dhw_pump_relay_switch).state);
+
+  if (!id(pump_p0_relay_switch).state)
+  {
+    ESP_LOGI("amber", "Resume: pump P0 relay is off (inside unit restarted or failsafe), normal initialization.");
+    return false;
+  }
+  if (!id(internal_pump_active).state)
+  {
+    // Nothing runs, or a compressor without flow: let INITIALIZING put everything in a known state.
+    ESP_LOGI("amber", "Resume: pump P0 not running, normal initialization.");
+    return false;
+  }
+  if (working_mode != WORKING_MODE_HEATING && working_mode != WORKING_MODE_COOLING)
+  {
+    ESP_LOGI("amber", "Resume: working mode %d is not heating or cooling, normal initialization.", working_mode);
+    return false;
+  }
+
+  const bool valve_dhw = id(three_way_valve_dhw_switch).state;
+  const bool valve_heat_cool = id(three_way_valve_heat_cool_switch).state;
+  if (valve_dhw == valve_heat_cool)
+  {
+    ESP_LOGW("amber", "Resume: 3-way valve outputs are inconsistent (DHW=%d, heat/cool=%d), normal initialization.", valve_dhw, valve_heat_cool);
+    return false;
+  }
+  const ThreeWayValvePosition position = valve_dhw ? ThreeWayValvePosition::DHW : ThreeWayValvePosition::HEATING_COOLING;
+  if (!IsThreeWayValveFeedbackConfirmed(position))
+  {
+    ESP_LOGW("amber", "Resume: 3-way valve feedback does not match the output, normal initialization.");
+    return false;
+  }
+  if (position == ThreeWayValvePosition::DHW && working_mode != WORKING_MODE_HEATING)
+  {
+    ESP_LOGW("amber", "Resume: DHW position with working mode %d, normal initialization.", working_mode);
+    return false;
+  }
+  return true;
+}
+
+/// @brief Takes over the running units instead of INITIALIZING (only after CanResumeRunningUnits()).
+/// Writes the non-stopping part of INITIALIZING (configuration in RAM of the units), then puts the
+/// controllers in the state that matches what the units are doing.
+void OpenAmberComponent::ResumeRunningUnits()
+{
+  WriteEEPROMConfiguration();
+  // The backup heater timing (prediction, settle time) is lost with the restart; the controllers switch it on again when needed.
+  id(backup_heater_relay).turn_off();
+  // backup_heater_relay only forwards a change to the stages; after a reboot it is already off, so switch the
+  // stages off directly in case they were left on.
+  id(backup_heater_stage_1).turn_off();
+  id(backup_heater_stage_2).turn_off();
+  id(external_backup_heating_relay).turn_off();
+
+  const ThreeWayValvePosition position = GetThreeWayValvePosition();
+  valve_target_position_ = position;
+
+  if (position == ThreeWayValvePosition::DHW)
+  {
+    dhw_controller_->ResumeFromRunningUnits();
+    ESP_LOGI("amber", "Resume: taking over running DHW cycle.");
+    SetNextState(State::DHW_HEAT);
+  }
+  else
+  {
+    heat_cool_controller_->ResumeFromRunningUnits();
+    ESP_LOGI("amber", "Resume: taking over running heat/cool cycle.");
+    SetNextState(State::HEAT_COOL);
+  }
+}
+
 void OpenAmberComponent::SetNextState(State state)
 {
   state_ = state;
@@ -427,6 +695,8 @@ const char* OpenAmberComponent::StateToString(State state)
       return "Heat/Cool";
     case State::MAINTENANCE:
       return "Maintenance";
+    case State::RESUME_CHECK:
+      return "Checking running units";
     default:
       return "Unknown";
   }
@@ -575,7 +845,7 @@ float OpenAmberComponent::get_mixing_valve_zone2_position() const
 
 void OpenAmberComponent::StopControllers()
 {
-  ESP_LOGE("amber", "Stopping regulation due to inside unit failsafe/reboot.");
+  ESP_LOGE("amber", "Stopping regulation (inside unit failsafe/reboot or unexpected compressor stop).");
   compressor_controller_->Stop();
   pump_controller_->Stop();
   heat_cool_controller_->StopAndSetIdleState();

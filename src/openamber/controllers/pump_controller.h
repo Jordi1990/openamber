@@ -207,6 +207,16 @@ public:
     pump_start_time_ms_ = millis_64();
   }
 
+  /// @brief Takes over a pump that is already running (after a restart of the ESP): starts a new run cycle
+  /// without sending a new speed, the next speed update sets the speed for the resumed state.
+  void AdoptRunningPump()
+  {
+    pump_start_time_ms_ = millis_64();
+    ClearStartWaitTimer();
+    ClearStopWaitTimer();
+    ResetHeatingPidState();
+  }
+
   bool IsRunning()
   {
     return id(internal_pump_active).state;

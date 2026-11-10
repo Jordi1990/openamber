@@ -13,6 +13,7 @@ esphome:
             id(outside_unit_eeprom_version).publish_state(114.0f);
             id(modbus_inside_is_online) = true;
             id(modbus_outside_is_online) = true;
+            id(defrost_active_sensor).publish_state(false);
     - priority: -100
       then:
         - lvgl.label.update:
