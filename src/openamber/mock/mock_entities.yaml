@@ -861,6 +861,44 @@ switch:
     turn_on_action: []
     turn_off_action: []
   - platform: template
+    id: mock_simulate_esp_restart
+    # Simulator only: drops all controller state as if the ESP restarted (OTA update), the units keep running.
+    optimistic: true
+    turn_on_action:
+      - lambda: 'id(amber_ctrl).simulate_restart();'
+      - switch.turn_off: mock_simulate_esp_restart
+    turn_off_action: []
+  # Simulator only: call the same controller hooks as the ota on_begin / on_progress / on_error callbacks.
+  - platform: template
+    id: mock_ota_begin
+    optimistic: true
+    turn_on_action:
+      - lambda: 'id(amber_ctrl).on_ota_started();'
+      - switch.turn_off: mock_ota_begin
+    turn_off_action: []
+  - platform: template
+    id: mock_ota_progress
+    optimistic: true
+    turn_on_action:
+      - lambda: 'id(amber_ctrl).on_ota_progress();'
+      - switch.turn_off: mock_ota_progress
+    turn_off_action: []
+  - platform: template
+    id: mock_modbus_inside_offline
+    # Simulator only: the inside unit stops answering on Modbus (as the modbus controller's offline callback).
+    optimistic: true
+    turn_on_action:
+      - lambda: 'id(modbus_inside_is_online) = false;'
+    turn_off_action:
+      - lambda: 'id(modbus_inside_is_online) = true;'
+  - platform: template
+    id: mock_ota_error
+    optimistic: true
+    turn_on_action:
+      - lambda: 'id(amber_ctrl).on_ota_finished(false);'
+      - switch.turn_off: mock_ota_error
+    turn_off_action: []
+  - platform: template
     id: mock_three_way_valve_feedback_missing
     # Simulator only: keeps the relay feedback (1305/1312) off, as if the inside unit ignores the valve command.
     optimistic: true
