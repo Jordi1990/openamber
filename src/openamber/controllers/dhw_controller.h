@@ -369,9 +369,9 @@ private:
     {
       return false;
     }
-    if (id(oil_return_cycle_active).state)
+    if (id(oil_return_cycle_active).state || id(defrost_active_sensor).state)
     {
-      ESP_LOGI("amber", "DHW stop requested: waiting for the oil return cycle to finish before stopping.");
+      ESP_LOGI("amber", "DHW stop requested: waiting for the oil return cycle or defrost to finish before stopping.");
       return false;
     }
     return true;

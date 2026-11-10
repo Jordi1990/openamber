@@ -29,6 +29,8 @@ def stop_and_wait_until_safe(openamber, max_s=600):
 def resume(openamber):
     openamber.set_switch(SWITCH, False)
     openamber.step(ms=50)
+    # The status follows within one controller update (5 s).
+    assert advance_until_state(openamber, STATUS, "Uit", max_s=10, step=1)
 
 
 def test_controlled_stop_during_heating_skips_minimum_on_time(clean_system):
@@ -53,7 +55,6 @@ def test_controlled_stop_during_heating_skips_minimum_on_time(clean_system):
     assert openamber.get_entity("state_machine_state_main") == "Standby"
 
     resume(openamber)
-    assert openamber.get_entity(STATUS) == "Uit"
     assert advance_until_state(openamber, "state_machine_state_heat_cool", "Compressor running", max_s=1800), (
         "Heating must start again after resuming"
     )
@@ -137,7 +138,7 @@ def test_controlled_stop_resumes_after_30_minutes(clean_system):
     openamber.advance_time(seconds=90, step_s=10)
     openamber.step(ms=50)
     assert openamber.get_entity(SWITCH) is False, "The switch must turn off after 30 minutes"
-    assert openamber.get_entity(STATUS) == "Uit"
+    assert advance_until_state(openamber, STATUS, "Uit", max_s=10, step=1)
     assert advance_until_state(openamber, "state_machine_state_main", "Heat/Cool", max_s=300, step=5)
 
 
