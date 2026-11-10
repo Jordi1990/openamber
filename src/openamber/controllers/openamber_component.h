@@ -582,6 +582,12 @@ bool OpenAmberComponent::CanResumeRunningUnits()
     ESP_LOGI("amber", "Resume: an error is active, normal initialization.");
     return false;
   }
+  if (id(emergency_mode_enabled).state)
+  {
+    // Emergency mode must not take over a running compressor; initialization starts it on the backup heater.
+    ESP_LOGI("amber", "Resume: emergency mode enabled, normal initialization.");
+    return false;
+  }
 
   const int working_mode = id(working_mode_switch).active_index().value_or(WORKING_MODE_STANDBY);
 

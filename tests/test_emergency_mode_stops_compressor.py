@@ -7,6 +7,8 @@ mode with only the backup heater. No error is raised.
 
 from helpers import advance_until_state, start_space_heating
 
+INIT_STATES = ("Initializing", "Waiting for state switch")
+
 
 def compressor_mode(openamber):
     return int(openamber.get_entity("compressor_control_select") or 0)
@@ -81,6 +83,38 @@ def test_emergency_mode_without_compressor_does_not_reinitialize(clean_system):
         openamber.step(ms=20)
         assert openamber.get_entity("state_machine_state_main") == "Heat/Cool"
         assert compressor_mode(openamber) == 0
+
+    openamber.set_switch("emergency_mode_enabled", False)
+    openamber.set_switch("heat_demand_switch", False)
+    openamber.advance_time(seconds=60, step_s=5)
+
+
+def test_restart_in_emergency_mode_does_not_resume_running_compressor(clean_system):
+    """After an ESP restart with emergency mode on, the running compressor is not taken over (RESUME_CHECK) but
+    the controller initializes and continues on the backup heater. Stale readbacks after the emergency stop take
+    the same path."""
+    openamber = clean_system
+    start_space_heating(openamber)
+    openamber.set_select("backup_heating_mode", "Intern verwarmingselement")
+    assert compressor_mode(openamber) > 0
+
+    # Emergency mode is switched on and the ESP restarts before the next controller update.
+    openamber.set_switch("emergency_mode_enabled", True)
+    assert openamber.set_switch("mock_simulate_esp_restart", True)
+    openamber.step(ms=50)
+
+    mains = []
+    for _ in range(60):
+        openamber.advance_time(seconds=1, step_s=1)
+        openamber.step(ms=20)
+        main = openamber.get_entity("state_machine_state_main")
+        if not mains or mains[-1] != main:
+            mains.append(main)
+    # Directly from the resume check into initialization, not first taken over as "Heat/Cool".
+    first_init = next((i for i, m in enumerate(mains) if m in INIT_STATES), None)
+    assert first_init is not None, f"Expected a normal initialization, got {mains}"
+    assert "Heat/Cool" not in mains[:first_init], f"The running compressor was taken over first: {mains}"
+    assert compressor_mode(openamber) == 0, "The compressor must be stopped in emergency mode"
 
     openamber.set_switch("emergency_mode_enabled", False)
     openamber.set_switch("heat_demand_switch", False)
