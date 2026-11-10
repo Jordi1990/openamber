@@ -178,3 +178,29 @@ def test_system_tab_button_and_status(openamber):
     assert openamber.get_label("service_controlled_stop_button_label") == "Stoppen"
     assert openamber.click("nav_home")
     openamber.step(ms=100)
+
+
+def test_switching_off_while_waiting_for_oil_return_cancels_the_stop(clean_system):
+    """Switching the controlled stop off while it still waits for an oil return cycle withdraws the stop request:
+    when the cycle ends the compressor keeps running instead of stopping anyway."""
+    openamber = clean_system
+    start_space_heating(openamber)
+    assert openamber.set_sensor("error_register_2119_raw", 8.0)
+    openamber.step(ms=50)
+
+    openamber.set_switch(SWITCH, True)
+    openamber.advance_time(seconds=30, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.get_entity(STATUS) == "Wacht op defrost/oliereturn"
+
+    resume(openamber)
+    assert openamber.set_sensor("error_register_2119_raw", 0.0)
+    # Also past the minimum on time, from which a still pending stop request would stop the compressor.
+    for _ in range(72):
+        openamber.advance_time(seconds=10, step_s=5)
+        openamber.step(ms=20)
+        assert compressor_mode(openamber) > 0, "The withdrawn stop must not stop the compressor after the oil return cycle"
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+
+    openamber.set_switch("heat_demand_switch", False)
+    openamber.advance_time(seconds=30, step_s=5)

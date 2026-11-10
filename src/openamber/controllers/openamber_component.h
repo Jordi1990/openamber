@@ -238,6 +238,10 @@ void OpenAmberComponent::update()
       {
         heat_cool_controller_->RequestToStop();
       }
+      else if (desired_valve_position != ThreeWayValvePosition::DHW && !maintenance_requested && !controlled_stop_requested)
+      {
+        heat_cool_controller_->CancelStopRequest();
+      }
 
       if(heat_cool_controller_->IsInIdleState())
       {
@@ -277,6 +281,10 @@ void OpenAmberComponent::update()
       if((maintenance_requested || controlled_stop_requested) && !dhw_controller_->IsRequestedToStop())
       {
         dhw_controller_->RequestToStop();
+      }
+      else if (!maintenance_requested && !controlled_stop_requested)
+      {
+        dhw_controller_->CancelStopRequest();
       }
 
       if(dhw_controller_->IsInIdleState())

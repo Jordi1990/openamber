@@ -153,6 +153,17 @@ public:
     return requested_to_stop_;
   }
 
+  /// @brief Withdraws a stop request whose reason is gone (controlled stop or maintenance mode switched off again),
+  /// so a stop that still waits for an oil return cycle or defrost does not happen anyway afterwards.
+  void CancelStopRequest()
+  {
+    if (requested_to_stop_)
+    {
+      requested_to_stop_ = false;
+      ESP_LOGI("amber", "%s controller stop request withdrawn. Current state: %s", LogTag(), StateToString(state_));
+    }
+  }
+
   /// @brief A stop requested by the user's controlled stop: it does not wait for the minimum compressor on time.
   bool IsControlledStopRequested()
   {
