@@ -79,6 +79,10 @@ logger:
   logs:
     modbus: ERROR
 
+modbus:
+ turnaround_time: 100ms
+ send_wait_time: 500ms
+
 api:
   reboot_timeout: 0s
 
