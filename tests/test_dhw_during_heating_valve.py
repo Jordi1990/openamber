@@ -74,3 +74,33 @@ def test_pump_p1_stops_when_dhw_starts_from_idle_heating(clean_system):
     openamber.advance_time(seconds=120, step_s=10)
     openamber.step(ms=50)
     assert openamber.get_entity("pump_p1_relay_switch") is False
+
+
+def test_switch_to_dhw_waits_for_oil_return_cycle(clean_system):
+    """When DHW asks for the valve while heating runs an oil return cycle, heating finishes the cycle first and only
+    then stops the compressor and switches to DHW (same as the stop on temperature overshoot)."""
+    openamber = clean_system
+    openamber.set_switch("dhw_enabled_switch", False)
+    openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
+    start_space_heating(openamber)
+    # Past the minimum compressor on time, so only the oil return cycle can hold the stop.
+    openamber.advance_time(seconds=620, step_s=20)
+    openamber.step(ms=50)
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+
+    assert openamber.set_sensor("error_register_2119_raw", 8.0)
+    openamber.set_switch("dhw_enabled_switch", True)
+    openamber.advance_time(seconds=60, step_s=5)
+    openamber.step(ms=50)
+    assert int(openamber.get_entity("compressor_control_select")) > 0, "Heating must finish the oil return cycle first"
+    assert openamber.get_entity("state_machine_state_main") == "Heat/Cool"
+
+    assert openamber.set_sensor("error_register_2119_raw", 0.0)
+    assert advance_until_state(openamber, "state_machine_state_main", "DHW", max_s=900), (
+        f"Never switched to DHW after the oil return cycle (main: {openamber.get_entity('state_machine_state_main')})"
+    )
+
+    openamber.set_sensor("dhw_temperature_tw_sensor", 55.0)
+    openamber.set_switch("dhw_enabled_switch", False)
+    openamber.set_switch("heat_demand_switch", False)
+    openamber.advance_time(seconds=120, step_s=10)

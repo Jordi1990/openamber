@@ -653,9 +653,9 @@ public:
   {
     if(!HasCompressorDemand())
     {
-      // Maintenance mode and a controlled stop stop on request; let a running oil return cycle or defrost finish first.
-      if (requested_to_stop_ && (id(service_mode_enabled).state || id(controlled_stop_enabled).state) &&
-          (id(oil_return_cycle_active).state || id(defrost_active_sensor).state))
+      // A stop request (switch to DHW, maintenance mode, controlled stop) lets a running oil return cycle or defrost
+      // finish first, like the normal stop on temperature overshoot does.
+      if (requested_to_stop_ && (id(oil_return_cycle_active).state || id(defrost_active_sensor).state))
       {
         ESP_LOGI("amber", "Stop requested: waiting for the oil return cycle or defrost to finish before stopping.");
         return false;
