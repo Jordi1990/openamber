@@ -95,6 +95,20 @@ void OpenAmberComponent::update()
     return;
   }
 
+  // Emergency mode is only checked when a controller would start the compressor. When it is enabled while the
+  // compressor is requested, stop everything and re-initialize: regulation then starts again in emergency mode
+  // (backup heater only). The request, not the frequency, is checked, so the run-down after the stop does not
+  // trigger this again.
+  if ((state_ == State::HEAT_COOL || state_ == State::DHW_HEAT) && id(emergency_mode_enabled).state &&
+      id(compressor_control_select).active_index().value_or(0) > 0)
+  {
+    ota_in_progress_ = false;
+    ESP_LOGW("amber", "Emergency mode enabled while the compressor is requested. Stopping and re-initializing controller.");
+    StopControllers();
+    SetNextState(State::WAIT_MODBUS_CONNECTION);
+    return;
+  }
+
   // Also during the OTA hold: a lost Modbus connection must still raise its error (error_active), which the
   // safety check below turns into a stop.
   bool modbus_connected = id(modbus_inside_online).state && id(modbus_outside_online).state && id(outside_unit_eeprom_version).has_state();
@@ -566,6 +580,12 @@ bool OpenAmberComponent::CanResumeRunningUnits()
   if (id(error_active).state)
   {
     ESP_LOGI("amber", "Resume: an error is active, normal initialization.");
+    return false;
+  }
+  if (id(emergency_mode_enabled).state)
+  {
+    // Emergency mode must not take over a running compressor; initialization starts it on the backup heater.
+    ESP_LOGI("amber", "Resume: emergency mode enabled, normal initialization.");
     return false;
   }
 
