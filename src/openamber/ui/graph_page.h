@@ -160,8 +160,11 @@ class Page {
     } else {
       ESP_LOGD("graph", "Redraw prepared in %u ms", elapsed);
     }
-    id(graph_redraw_time).publish_state(elapsed);
+    this->last_redraw_ms_ = elapsed;
   }
+
+  /// Duration of the last redraw in ms (also logged); the simulator tests read it through a mock sensor.
+  unsigned last_redraw_ms() const { return this->last_redraw_ms_; }
 
  private:
   lv_obj_t *make_line_(lv_obj_t *parent, uint32_t color, int width) {
@@ -593,6 +596,7 @@ class Page {
   History history_;
   int hours_{6};
   int cursor_age_{-1};
+  unsigned last_redraw_ms_{0};
   bool show_pipes_{false};
   bool created_{false};
   lv_obj_t *band_columns_[BAND_COLUMNS]{};

@@ -29,17 +29,6 @@ image:
 
 font: !include fonts.yaml
 
-sensor:
-  # Time the graph page needed for its last redraw. Redraws run in the main loop next to Modbus.
-  - platform: template
-    id: graph_redraw_time
-    name: "Grafiek tekentijd"
-    unit_of_measurement: ms
-    accuracy_decimals: 0
-    state_class: measurement
-    entity_category: diagnostic
-    icon: mdi:timer-outline
-
 lvgl:
   buffer_size: 100%
   bottom_layer:
