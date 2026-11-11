@@ -160,6 +160,11 @@ number:
   step: 1
   restore_value: true
   initial_value: 25
+  # Recalculate both heating curves at once, so the combined setpoint never mixes a new and an old zone value.
+  on_value: &heat_curve_changed
+    then:
+      - component.update: heat_curve_calculated_setpoint
+      - component.update: heat_curve_z2_calculated_setpoint
   entity_category: config
   web_server: 
       sorting_group_id: heating_settings
@@ -175,6 +180,7 @@ number:
   step: 1
   restore_value: true
   initial_value: 27
+  on_value: *heat_curve_changed
   entity_category: config
   web_server: 
       sorting_group_id: heating_settings
@@ -190,6 +196,7 @@ number:
   step: 1
   restore_value: true
   initial_value: 28
+  on_value: *heat_curve_changed
   entity_category: config
   web_server: 
       sorting_group_id: heating_settings
@@ -205,6 +212,7 @@ number:
   step: 1
   restore_value: true
   initial_value: 30
+  on_value: *heat_curve_changed
   entity_category: config
   web_server: 
       sorting_group_id: heating_settings
@@ -220,6 +228,7 @@ number:
   step: 1
   restore_value: true
   initial_value: 35
+  on_value: *heat_curve_changed
   entity_category: config
   web_server: 
       sorting_group_id: heating_settings
@@ -236,6 +245,7 @@ number:
   step: 1
   restore_value: true
   initial_value: 22
+  on_value: *heat_curve_changed
   entity_category: config
   web_server:
     sorting_group_id: heating_settings
@@ -251,6 +261,7 @@ number:
   step: 1
   restore_value: true
   initial_value: 24
+  on_value: *heat_curve_changed
   entity_category: config
   web_server:
     sorting_group_id: heating_settings
@@ -266,6 +277,7 @@ number:
   step: 1
   restore_value: true
   initial_value: 26
+  on_value: *heat_curve_changed
   entity_category: config
   web_server:
     sorting_group_id: heating_settings
@@ -281,6 +293,7 @@ number:
   step: 1
   restore_value: true
   initial_value: 28
+  on_value: *heat_curve_changed
   entity_category: config
   web_server:
     sorting_group_id: heating_settings
@@ -296,6 +309,7 @@ number:
   step: 1
   restore_value: true
   initial_value: 30
+  on_value: *heat_curve_changed
   entity_category: config
   web_server:
     sorting_group_id: heating_settings
@@ -457,7 +471,7 @@ number:
   name: "Backup element graadminuten"
   unit_of_measurement: "°C·min"
   min_value: 0
-  max_value: 100
+  max_value: 600
   initial_value: 40
   step: 5
   optimistic: true
