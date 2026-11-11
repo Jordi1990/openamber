@@ -442,6 +442,7 @@
   parameters:
     tab_index: int
   then:
+    - lambda: 'lv_obj_add_flag(id(page_graph), LV_OBJ_FLAG_HIDDEN);'
     - if:
         condition:
           lambda: 'return tab_index == 0;'
@@ -526,14 +527,27 @@
                                 id(update_service_top_tabs_ui).execute();
                                 id(update_service_diag_summary_ui).execute();
                           else:
-                            - lambda: |-
-                                lv_obj_add_flag(id(page_home), LV_OBJ_FLAG_HIDDEN);
-                                lv_obj_add_flag(id(page_thermostat), LV_OBJ_FLAG_HIDDEN);
-                                lv_obj_add_flag(id(page_service), LV_OBJ_FLAG_HIDDEN);
-                                lv_obj_remove_flag(id(page_system), LV_OBJ_FLAG_HIDDEN);
-                                lv_obj_add_flag(id(page_settings), LV_OBJ_FLAG_HIDDEN);
-                                id(update_system_diagnostics_ui).execute();
-                                id(update_firmware_ui).execute();
+                            - if:
+                                condition:
+                                  lambda: 'return tab_index == 5;'
+                                then:
+                                  - lambda: |-
+                                      lv_obj_add_flag(id(page_home), LV_OBJ_FLAG_HIDDEN);
+                                      lv_obj_add_flag(id(page_thermostat), LV_OBJ_FLAG_HIDDEN);
+                                      lv_obj_add_flag(id(page_service), LV_OBJ_FLAG_HIDDEN);
+                                      lv_obj_add_flag(id(page_system), LV_OBJ_FLAG_HIDDEN);
+                                      lv_obj_add_flag(id(page_settings), LV_OBJ_FLAG_HIDDEN);
+                                      lv_obj_remove_flag(id(page_graph), LV_OBJ_FLAG_HIDDEN);
+                                      openamber_graph::page().on_opened();
+                                else:
+                                  - lambda: |-
+                                      lv_obj_add_flag(id(page_home), LV_OBJ_FLAG_HIDDEN);
+                                      lv_obj_add_flag(id(page_thermostat), LV_OBJ_FLAG_HIDDEN);
+                                      lv_obj_add_flag(id(page_service), LV_OBJ_FLAG_HIDDEN);
+                                      lv_obj_remove_flag(id(page_system), LV_OBJ_FLAG_HIDDEN);
+                                      lv_obj_add_flag(id(page_settings), LV_OBJ_FLAG_HIDDEN);
+                                      id(update_system_diagnostics_ui).execute();
+                                      id(update_firmware_ui).execute();
 
     - lambda: |-
         lv_obj_set_style_bg_opa(id(nav_home), (tab_index == 0 ? 100 : 0), LV_PART_MAIN);
@@ -551,6 +565,9 @@
         lv_obj_set_style_bg_opa(id(nav_system), (tab_index == 4 ? 100 : 0), LV_PART_MAIN);
         lv_obj_set_style_text_color(id(nav_system_icon), (lv_color_hex(tab_index == 4 ? 0xFFFFFF : 0xD1D5DB)), LV_PART_MAIN);
         lv_obj_set_style_text_color(id(nav_system_label), (lv_color_hex(tab_index == 4 ? 0xFFFFFF : 0xD1D5DB)), LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(id(nav_graph), (tab_index == 5 ? 100 : 0), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(nav_graph_icon), (lv_color_hex(tab_index == 5 ? 0xFFFFFF : 0xD1D5DB)), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(nav_graph_label), (lv_color_hex(tab_index == 5 ? 0xFFFFFF : 0xD1D5DB)), LV_PART_MAIN);
 
 # Called by the fixed (longer) LVGL idle timeout: bring the display back to
 # the home screen so a forgotten settings/service page doesn't stay open.
@@ -2269,6 +2286,7 @@
         lv_obj_remove_flag(id(page_service), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(page_system), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(page_settings), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(page_graph), LV_OBJ_FLAG_HIDDEN);
         lv_obj_remove_flag(id(service_tabs_bar), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(service_maintenance_panel), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(service_sensors_panel), LV_OBJ_FLAG_HIDDEN);
@@ -2301,6 +2319,9 @@
         lv_obj_set_style_bg_opa(id(nav_system), static_cast<uint8_t>(0.0f), LV_PART_MAIN);
         lv_obj_set_style_text_color(id(nav_system_icon), lv_color_hex(0xD1D5DB), LV_PART_MAIN);
         lv_obj_set_style_text_color(id(nav_system_label), lv_color_hex(0xD1D5DB), LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(id(nav_graph), static_cast<uint8_t>(0.0f), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(nav_graph_icon), lv_color_hex(0xD1D5DB), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(nav_graph_label), lv_color_hex(0xD1D5DB), LV_PART_MAIN);
 
 - id: open_service_warnings_tab
   mode: restart
@@ -2311,6 +2332,7 @@
         lv_obj_remove_flag(id(page_service), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(page_system), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(page_settings), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(id(page_graph), LV_OBJ_FLAG_HIDDEN);
         lv_obj_remove_flag(id(service_tabs_bar), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(service_maintenance_panel), LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(id(service_sensors_panel), LV_OBJ_FLAG_HIDDEN);
@@ -2343,6 +2365,9 @@
         lv_obj_set_style_bg_opa(id(nav_system), static_cast<uint8_t>(0.0f), LV_PART_MAIN);
         lv_obj_set_style_text_color(id(nav_system_icon), lv_color_hex(0xD1D5DB), LV_PART_MAIN);
         lv_obj_set_style_text_color(id(nav_system_label), lv_color_hex(0xD1D5DB), LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(id(nav_graph), static_cast<uint8_t>(0.0f), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(nav_graph_icon), lv_color_hex(0xD1D5DB), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(nav_graph_label), lv_color_hex(0xD1D5DB), LV_PART_MAIN);
 
 - id: update_header_alert_icons
   mode: restart
