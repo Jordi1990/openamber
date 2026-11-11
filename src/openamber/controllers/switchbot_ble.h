@@ -19,6 +19,14 @@ static const char *SWITCHBOT_TAG = "switchbot_ble";
 // never drop the room temperature, while a dead or out-of-range sensor still
 // raises B01 within reasonable time.
 static const uint32_t SWITCHBOT_READING_TIMEOUT_MS = 600000;
+// Scanning is passive: Meter, Meter Plus and Outdoor Meter broadcast their
+// readings in the manufacturer data of every advertisement. Active scanning
+// makes every BLE device in range answer with a scan response, which costs the
+// sensors battery, so it only runs while it is needed: during discovery, for a
+// paired sensor whose model is not known yet (the model byte is only in the
+// scan response), and for a paired sensor that sent nothing for this long
+// (older Meter firmware only reports readings in the scan response).
+static const uint32_t SWITCHBOT_PASSIVE_GRACE_MS = 120000;
 
 struct SwitchbotReading
 {
@@ -125,6 +133,22 @@ static void switchbot_format_mac(const SwitchbotAddress &address, char *text)
 static bool switchbot_is_meter_model(uint8_t model)
 {
     return model == 0x54 || model == 0x74 || model == 0x69 || model == 0x49 || model == 0x77 || model == 0x57;
+}
+
+// The model of a paired sensor is stored together with its MAC (MAC << 8 |
+// model), so it survives a reboot and is never applied to another sensor.
+static uint64_t switchbot_model_key(const SwitchbotAddress &address, uint8_t model)
+{
+    uint64_t key = 0;
+    for (uint8_t byte : address.val)
+        key = (key << 8) | byte;
+    return (key << 8) | model;
+}
+
+static uint8_t switchbot_stored_model(uint64_t key, const SwitchbotAddress &address)
+{
+    uint8_t model = key & 0xFF;
+    return (key >> 8) == (switchbot_model_key(address, 0) >> 8) && switchbot_is_meter_model(model) ? model : 0;
 }
 
 // Product names as pySwitchbot / Home Assistant use them. The high bit of the
@@ -249,10 +273,11 @@ static void switchbot_remember_device(const SwitchbotAddress &address, uint8_t m
         auto &device = switchbot_devices[i];
         if ((device.model || device.reading.valid) && memcmp(device.address.val, address.val, 6) == 0)
             slot = i;
-        // Keep provisional readings, but always reclaim unidentified slots
-        // before identified sensors.
+        // Keep provisional readings and sensors heard in this search, but
+        // reclaim unidentified entries and identified sensors without a reading
+        // (kept from an earlier search) first.
         uint32_t age = device.reading.valid ? uint32_t(millis() - device.reading.received_ms) : UINT32_MAX;
-        if (!device.model && (empty < 0 || age > oldest))
+        if ((!device.model || !device.reading.valid) && (empty < 0 || age > oldest))
         {
             empty = i;
             oldest = age;
@@ -344,10 +369,18 @@ static void switchbot_end_discovery()
     switchbot_discovering = false;
 }
 
+// A new search only lists sensors heard during it, but keeps the models already
+// learned: the model byte is only in the scan response, which can take tens of
+// seconds to catch, while a reading arrives with every advertisement.
 static void switchbot_begin_discovery()
 {
     for (auto &device : switchbot_devices)
-        device = {};
+    {
+        if (device.model)
+            device.reading = {};
+        else
+            device = {};
+    }
     switchbot_discovery_started_ms = millis();
     switchbot_discovering = true;
 }
@@ -471,9 +504,37 @@ static uint32_t switchbot_now_nonzero()
     return millis() ? millis() : 1;
 }
 
+// True while a paired sensor needs scan responses: its model is unknown, or it
+// has sent nothing for SWITCHBOT_PASSIVE_GRACE_MS.
+static bool switchbot_slot_needs_active_scan(const SwitchbotSlot &slot)
+{
+    if (!slot.valid)
+        return false;
+    if (!switchbot_is_meter_model(slot.model) || slot.timed_out)
+        return true;
+    uint32_t since = slot.reading.received_ms ? slot.reading.received_ms : slot.tracking_since_ms;
+    return uint32_t(millis() - since) >= SWITCHBOT_PASSIVE_GRACE_MS;
+}
+
+// Switch the tracker between passive and active scanning, the way ESPHome's
+// bluetooth_proxy does: the scan restarts with the new mode once it stopped.
+static void switchbot_set_scan_active(bool active)
+{
+    auto *tracker = esphome::esp32_ble_tracker::global_esp32_ble_tracker;
+    if (tracker == nullptr || tracker->get_scan_active() == active)
+        return;
+    ESP_LOGD(SWITCHBOT_TAG, "Scanning %s", active ? "active" : "passive");
+    tracker->set_scan_active(active);
+    tracker->stop_scan();
+    tracker->set_scan_continuous(true);
+}
+
 // `enabled` is the Bluetooth switch, `source` the slot used as room temperature
-// source (-1: Tr), `macs` the three slot MACs. Runs every couple of seconds.
-static void switchbot_update(bool enabled, int source, const std::string *const macs[SWITCHBOT_SLOTS])
+// source (-1: Tr), `macs` the three slot MACs and `models` their stored models
+// (switchbot_model_key), updated once a model is learned. Runs every couple of
+// seconds.
+static void switchbot_update(bool enabled, int source, const std::string *const macs[SWITCHBOT_SLOTS],
+                             uint64_t *const models[SWITCHBOT_SLOTS])
 {
     if (!switchbot_boot_ready)
         return;
@@ -496,9 +557,11 @@ static void switchbot_update(bool enabled, int source, const std::string *const 
             slot = {};
             slot.mac = mac;
             slot.valid = switchbot_parse_mac(mac, slot.address);
-            // A sensor paired from the discovery list is already identified.
+            // The stored model, or the discovery list for a sensor paired from it.
+            if (slot.valid)
+                slot.model = switchbot_stored_model(*models[i], slot.address);
             for (const auto &device : switchbot_devices)
-                if (slot.valid && device.model && memcmp(device.address.val, slot.address.val, 6) == 0)
+                if (slot.valid && !slot.model && device.model && memcmp(device.address.val, slot.address.val, 6) == 0)
                     slot.model = device.model;
             slot.tracking_since_ms = switchbot_now_nonzero();
             if (!slot.valid && !mac.empty())
@@ -516,6 +579,16 @@ static void switchbot_update(bool enabled, int source, const std::string *const 
             uint32_t since = identified ? slot.reading.received_ms : slot.tracking_since_ms;
             slot.timed_out = uint32_t(millis() - since) >= SWITCHBOT_READING_TIMEOUT_MS;
         }
+        if (slot.valid && switchbot_is_meter_model(slot.model) &&
+            *models[i] != switchbot_model_key(slot.address, slot.model))
+            *models[i] = switchbot_model_key(slot.address, slot.model);
+    }
+    if (enabled)
+    {
+        bool active = switchbot_discovering;
+        for (const auto &slot : switchbot_slots)
+            active |= switchbot_slot_needs_active_scan(slot);
+        switchbot_set_scan_active(active);
     }
     switchbot_publish();
 }

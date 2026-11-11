@@ -53,7 +53,8 @@ static void switchbot_update_source()
     const std::string *macs[SWITCHBOT_SLOTS];
     for (unsigned i = 0; i < SWITCHBOT_SLOTS; i++)
         macs[i] = &switchbot_slot_text(i)->state;
-    switchbot_update(enabled, source, macs);
+    uint64_t *models[SWITCHBOT_SLOTS] = {&id(ble_device_model), &id(ble_device_model_2), &id(ble_device_model_3)};
+    switchbot_update(enabled, source, macs, models);
 }
 
 static bool switchbot_device_fresh(const SwitchbotDevice &device)
@@ -88,7 +89,14 @@ static void switchbot_unpair(unsigned slot)
         return;
     if (switchbot_selected_source_slot() == int(slot))
         switchbot_set_source(-1);
+    // Move the sensor to the found list with its model and last reading, so it can
+    // be paired again right away instead of waiting for a scan response.
+    const SwitchbotSlot &s = switchbot_slots[slot];
+    if (s.valid && switchbot_is_meter_model(s.model))
+        switchbot_remember_device(s.address, s.model, s.reading);
     switchbot_slot_text(slot)->make_call().set_value("").perform();
+    uint64_t *models[SWITCHBOT_SLOTS] = {&id(ble_device_model), &id(ble_device_model_2), &id(ble_device_model_3)};
+    *models[slot] = 0;
 }
 
 static void switchbot_set_label(lv_obj_t *label, const char *text)

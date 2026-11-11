@@ -25,9 +25,7 @@ esp32:
 
 esp32_ble_tracker:
   scan_parameters:
-    # Active scanning returns the scan response with the SwitchBot model byte
-    # (and the readings of older Meters), merged into one advertisement.
-    active: true
+    active: false
     continuous: true
   on_ble_advertise:
     - then:
@@ -203,6 +201,20 @@ text:
               - component.update: effective_room_humidity
 
 globals:
+  # Model of each paired sensor with its MAC (switchbot_model_key), so passive
+  # scanning still knows it is a thermometer after a reboot.
+  - id: ble_device_model
+    type: uint64_t
+    restore_value: true
+    initial_value: '0'
+  - id: ble_device_model_2
+    type: uint64_t
+    restore_value: true
+    initial_value: '0'
+  - id: ble_device_model_3
+    type: uint64_t
+    restore_value: true
+    initial_value: '0'
   - id: ble_temp_value
     type: float
     initial_value: 'NAN'
