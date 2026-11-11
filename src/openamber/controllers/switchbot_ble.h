@@ -27,6 +27,12 @@ static const uint32_t SWITCHBOT_READING_TIMEOUT_MS = 600000;
 // scan response), and for a paired sensor that sent nothing for this long
 // (older Meter firmware only reports readings in the scan response).
 static const uint32_t SWITCHBOT_PASSIVE_GRACE_MS = 120000;
+// A paired sensor that needs scan responses gets them in bursts: active for
+// SWITCHBOT_ACTIVE_BURST_MS once every SWITCHBOT_ACTIVE_PERIOD_MS, starting
+// right away. A working sensor answers within the first burst; a dead or
+// out-of-range one does not keep every other device in range answering.
+static const uint32_t SWITCHBOT_ACTIVE_BURST_MS = 30000;
+static const uint32_t SWITCHBOT_ACTIVE_PERIOD_MS = 600000;
 
 struct SwitchbotReading
 {
@@ -66,6 +72,7 @@ struct SwitchbotSlot
     uint8_t model = 0;          // model byte, 0 until its scan response is seen
     uint32_t tracking_since_ms = 0; // when tracking started (0: BLE off)
     bool timed_out = false;     // no reading for the full timeout; cleared by a fresh reading
+    uint32_t active_wanted_since_ms = 0; // when it started needing scan responses (0: it does not)
 };
 static SwitchbotSlot switchbot_slots[SWITCHBOT_SLOTS];
 // Slot used as room temperature source, -1 for the wired Tr sensor.
@@ -504,16 +511,25 @@ static uint32_t switchbot_now_nonzero()
     return millis() ? millis() : 1;
 }
 
-// True while a paired sensor needs scan responses: its model is unknown, or it
-// has sent nothing for SWITCHBOT_PASSIVE_GRACE_MS.
-static bool switchbot_slot_needs_active_scan(const SwitchbotSlot &slot)
+// True while a paired sensor needs scan responses (its model is unknown, or it
+// has sent nothing for SWITCHBOT_PASSIVE_GRACE_MS) and its burst is running.
+static bool switchbot_slot_needs_active_scan(SwitchbotSlot &slot)
 {
-    if (!slot.valid)
+    bool wanted = false;
+    if (slot.valid)
+    {
+        uint32_t since = slot.reading.received_ms ? slot.reading.received_ms : slot.tracking_since_ms;
+        wanted = !switchbot_is_meter_model(slot.model) || slot.timed_out ||
+                 uint32_t(millis() - since) >= SWITCHBOT_PASSIVE_GRACE_MS;
+    }
+    if (!wanted)
+    {
+        slot.active_wanted_since_ms = 0;
         return false;
-    if (!switchbot_is_meter_model(slot.model) || slot.timed_out)
-        return true;
-    uint32_t since = slot.reading.received_ms ? slot.reading.received_ms : slot.tracking_since_ms;
-    return uint32_t(millis() - since) >= SWITCHBOT_PASSIVE_GRACE_MS;
+    }
+    if (slot.active_wanted_since_ms == 0)
+        slot.active_wanted_since_ms = switchbot_now_nonzero();
+    return uint32_t(millis() - slot.active_wanted_since_ms) % SWITCHBOT_ACTIVE_PERIOD_MS < SWITCHBOT_ACTIVE_BURST_MS;
 }
 
 // Switch the tracker between passive and active scanning, the way ESPHome's
@@ -586,7 +602,8 @@ static void switchbot_update(bool enabled, int source, const std::string *const 
     if (enabled)
     {
         bool active = switchbot_discovering;
-        for (const auto &slot : switchbot_slots)
+        // No short-circuit: every slot keeps its own burst timing.
+        for (auto &slot : switchbot_slots)
             active |= switchbot_slot_needs_active_scan(slot);
         switchbot_set_scan_active(active);
     }
