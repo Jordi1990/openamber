@@ -361,20 +361,19 @@ private:
   /// return cycle runs. A running oil return cycle is finished first.
   bool ShouldStop()
   {
-    if (!HasDemand())
-    {
-      return true;
-    }
-    if (!requested_to_stop_)
-    {
-      return false;
-    }
-    if (id(oil_return_cycle_active).state)
+    // Checked before the demand: a stop request still lets the oil return cycle finish when the demand ends meanwhile.
+    if (requested_to_stop_ && id(oil_return_cycle_active).state)
     {
       ESP_LOGI("amber", "DHW stop requested: waiting for the oil return cycle to finish before stopping.");
       return false;
     }
-    return true;
+    return !HasDemand() || requested_to_stop_;
+  }
+
+  /// @brief The backup heater is not started when DHW is about to stop (no demand or a stop request).
+  bool CanStartBackupHeater()
+  {
+    return HasDemand() && !requested_to_stop_;
   }
 public:
     DHWController(PumpController *pump_controller, CompressorController *compressor_controller)
@@ -582,7 +581,7 @@ public:
           ESP_LOGI("amber", "Minimum compressor on time not reached, not checking for potential stop conditions yet.");
         }
 
-        if (id(sg_ready_max_boost_mode_active_sensor).state)
+        if (id(sg_ready_max_boost_mode_active_sensor).state && CanStartBackupHeater())
         {
           ESP_LOGI("amber", "Enabling backup heater (SG Ready max boost active)");
           TurnOnBackupHeater();
@@ -591,7 +590,7 @@ public:
           break;
         }
 
-        if(IsHeatingSlowerThanMinimumAverageRate())
+        if(IsHeatingSlowerThanMinimumAverageRate() && CanStartBackupHeater())
         {
           ESP_LOGI("amber", "Enabling backup heater");
           TurnOnBackupHeater();
@@ -717,8 +716,14 @@ public:
             StopDhwPump();
             SetNextState(DHWState::WAIT_PUMP_STOP);
           }
+          else if (!compressor_controller_->HasPassedMinOnTime())
+          {
+            // Backup heater is off; COMPRESSOR_RUNNING stops the compressor once the minimum on time has passed.
+            ESP_LOGI("amber", "Minimum compressor on time not reached, keeping compressor running until it has passed.");
+            LeaveStateAndSetNextStateAfterWaitTime(DHWState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
+          }
           else
-          {            
+          {
             compressor_controller_->Stop();
             SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
           }
