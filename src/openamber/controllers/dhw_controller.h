@@ -500,6 +500,15 @@ public:
       }
 
       case DHWState::PUMP_RUNNING:
+        // No demand anymore or a stop request (maintenance mode): stop the pump before the backup heater or compressor starts.
+        if (ShouldStop())
+        {
+          ESP_LOGI("amber", "No more DHW demand or stop requested before the compressor or backup heater started, stopping pump.");
+          pump_controller_->Stop();
+          StopDhwPump();
+          SetNextState(DHWState::WAIT_PUMP_STOP);
+          break;
+        }
         SetWorkingMode(WORKING_MODE_HEATING);
         if(id(emergency_mode_enabled).state)
         {
@@ -510,15 +519,6 @@ public:
         }
         else
         {
-          // No demand anymore or a stop request (maintenance mode): stop the pump before the compressor starts.
-          if (ShouldStop())
-          {
-            ESP_LOGI("amber", "No more DHW demand or stop requested before the compressor started, stopping pump.");
-            pump_controller_->Stop();
-            StopDhwPump();
-            SetNextState(DHWState::WAIT_PUMP_STOP);
-            break;
-          }
           // Same as heating: wait for the minimum compressor off time, the outdoor unit would not start yet.
           if (!compressor_controller_->HasPassedMinOffTime())
           {
