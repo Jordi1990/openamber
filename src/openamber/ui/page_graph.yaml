@@ -1,0 +1,143 @@
+obj:
+  id: page_graph
+  width: 100%
+  height: 76%
+  x: 0
+  y: 70
+  hidden: true
+  bg_opa: 0%
+  border_opa: 0%
+  pad_all: 0
+  scrollbar_mode: "OFF"
+  scrollable: false
+  widgets:
+    - obj:
+        id: graph_card
+        x: 24
+        y: 12
+        width: 976
+        height: 436
+        bg_color: 0xF5F8FC
+        bg_opa: 100%
+        radius: 18
+        pad_all: 0
+        border_width: 0
+        border_opa: 0%
+        shadow_width: 10
+        shadow_spread: 0
+        shadow_color: 0x000000
+        shadow_opa: 20%
+        scrollbar_mode: "OFF"
+        scrollable: false
+        widgets:
+          # Left column: values readable from a distance
+          - label: { id: graph_tc_caption, text: "Tc nu", x: 20, y: 18, text_font: font_text_20, text_color: 0x5B6878 }
+          - label: { id: graph_tc_value, text: "-", x: 20, y: 42, text_font: font_value_big, text_color: 0x1F2933 }
+          - label: { id: graph_sp_value, text: "", x: 20, y: 84, text_font: font_text_20, text_color: 0x5B6878 }
+          - label: { text: "Compressor", x: 20, y: 126, text_font: font_text_20, text_color: 0x5B6878 }
+          - label: { id: graph_hz_value, text: "-", x: 20, y: 150, text_font: font_value_big, text_color: 0x1F2933 }
+          - obj: { id: graph_state_chip, x: 20, y: 196, width: 14, height: 14, radius: 3, bg_opa: 100%, border_width: 0, border_opa: 0%, pad_all: 0, hidden: true, clickable: false }
+          - label: { id: graph_state_value, text: "", x: 20, y: 192, text_font: font_text_20, text_color: 0x5B6878 }
+
+          - obj:
+              id: graph_btn_pipes
+              x: 20
+              y: 248
+              width: 186
+              height: 48
+              radius: 10
+              bg_color: 0xE5E7EB
+              bg_opa: 100%
+              border_width: 0
+              border_opa: 0%
+              pad_all: 0
+              on_click:
+                - lambda: 'openamber_graph::page().toggle_pipes();'
+              widgets:
+                - label: { id: graph_btn_pipes_label, text: "Tuo en Tui", align: CENTER, text_font: font_text_20, text_color: 0x1F2933 }
+          - obj:
+              id: graph_btn_1h
+              x: 20
+              y: 308
+              width: 58
+              height: 48
+              radius: 10
+              bg_color: 0xE5E7EB
+              bg_opa: 100%
+              border_width: 0
+              border_opa: 0%
+              pad_all: 0
+              on_click:
+                - lambda: 'openamber_graph::page().set_hours(1);'
+              widgets:
+                - label: { id: graph_btn_1h_label, text: "1 u", align: CENTER, text_font: font_text_20, text_color: 0x1F2933 }
+          - obj:
+              id: graph_btn_6h
+              x: 84
+              y: 308
+              width: 58
+              height: 48
+              radius: 10
+              bg_color: 0xE5E7EB
+              bg_opa: 100%
+              border_width: 0
+              border_opa: 0%
+              pad_all: 0
+              on_click:
+                - lambda: 'openamber_graph::page().set_hours(6);'
+              widgets:
+                - label: { id: graph_btn_6h_label, text: "6 u", align: CENTER, text_font: font_text_20, text_color: 0x1F2933 }
+          - obj:
+              id: graph_btn_24h
+              x: 148
+              y: 308
+              width: 58
+              height: 48
+              radius: 10
+              bg_color: 0xE5E7EB
+              bg_opa: 100%
+              border_width: 0
+              border_opa: 0%
+              pad_all: 0
+              on_click:
+                - lambda: 'openamber_graph::page().set_hours(24);'
+              widgets:
+                - label: { id: graph_btn_24h_label, text: "24 u", align: CENTER, text_font: font_text_20, text_color: 0x1F2933 }
+          - label: { id: graph_tuo_value, text: "", x: 20, y: 368, hidden: true, text_font: font_text_20, text_color: 0xC8480C }
+          - label: { id: graph_tui_value, text: "", x: 112, y: 368, hidden: true, text_font: font_text_20, text_color: 0x0A8176 }
+
+          # Plot: tap selects a moment. Lines and tick labels are created in graph_page.h.
+          - label: { text: "Hz", x: 214, y: 332, text_font: font_text_20, text_color: 0x5B6878 }
+          - obj:
+              id: graph_plot
+              x: 252
+              y: 16
+              width: 708
+              height: 386
+              bg_opa: 0%
+              border_width: 0
+              border_opa: 0%
+              radius: 0
+              pad_all: 0
+              scrollbar_mode: "OFF"
+              scrollable: false
+              on_click:
+                - lambda: 'openamber_graph::page().on_plot_click();'
+              widgets:
+                - canvas:
+                    id: graph_lane
+                    x: 0
+                    y: 288
+                    width: 708
+                    height: 64
+                - label: { id: graph_empty_label, text: "De eerste meting verschijnt binnen een minuut", align: TOP_MID, y: 120, text_font: font_text_24, text_color: 0x5B6878 }
+
+          # Legend for the compressor lane
+          - obj: { x: 252, y: 411, width: 14, height: 14, radius: 3, bg_color: 0x2E8B57, bg_opa: 100%, border_width: 0, border_opa: 0%, pad_all: 0, clickable: false }
+          - label: { text: "Verwarmen", x: 272, y: 406, text_font: font_text_20, text_color: 0x5B6878 }
+          - obj: { x: 426, y: 411, width: 14, height: 14, radius: 3, bg_color: 0xE09F1F, bg_opa: 100%, border_width: 0, border_opa: 0%, pad_all: 0, clickable: false }
+          - label: { text: "Softstart", x: 446, y: 406, text_font: font_text_20, text_color: 0x5B6878 }
+          - obj: { x: 586, y: 411, width: 14, height: 14, radius: 3, bg_color: 0xB5306A, bg_opa: 100%, border_width: 0, border_opa: 0%, pad_all: 0, clickable: false }
+          - label: { text: "Tapwater", x: 606, y: 406, text_font: font_text_20, text_color: 0x5B6878 }
+          - obj: { x: 744, y: 411, width: 14, height: 14, radius: 3, bg_color: 0x2B8AD9, bg_opa: 100%, border_width: 0, border_opa: 0%, pad_all: 0, clickable: false }
+          - label: { text: "Ontdooien", x: 764, y: 406, text_font: font_text_20, text_color: 0x5B6878 }

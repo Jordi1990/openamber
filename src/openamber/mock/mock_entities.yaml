@@ -20,6 +20,14 @@ update:
     name: Firmware Update
 
 sensor:
+  # Simulator only: duration of the last graph page redraw, for the redraw time test.
+  - platform: template
+    id: graph_redraw_time
+    name: "Grafiek tekentijd"
+    unit_of_measurement: ms
+    accuracy_decimals: 0
+    update_interval: 1s
+    lambda: 'return openamber_graph::page().last_redraw_ms();'
   - platform: template
     id: voltage_outside_unit
     name: "Spanning buitenunit"

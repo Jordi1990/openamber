@@ -919,8 +919,8 @@ public:
           ESP_LOGI("amber", "Minimum compressor on time not reached, not checking for potential stop conditions yet.");
         }
 
-        // Backup heater logic only applies to heating mode
-        if (!IsWorkingMode(WORKING_MODE_COOLING))
+        // Backup heater logic only applies to heating mode, and not while a stop request waits (e.g. for oil return).
+        if (!IsWorkingMode(WORKING_MODE_COOLING) && !requested_to_stop_)
         {
           if (id(sg_ready_max_boost_mode_active_sensor).state)
           {
@@ -1061,7 +1061,7 @@ public:
         ResetMixingValvesIntegralTerm();
         StartPumpP1IfNeeded();
 
-        if (id(temperature_outside_ta_avg_1h).state <= id(defrost_backup_heater_boost_temperature_sensor).state)
+        if (id(temperature_outside_ta_avg_1h).state <= id(defrost_backup_heater_boost_temperature_sensor).state && !requested_to_stop_)
         {
           ESP_LOGI("amber", "Defrost ended, enabling backup heater as configured for outside temperature %.2f°C to boost temperature back to setpoint.", id(temperature_outside_ta_avg_1h).state);
           TurnOnBackupHeater();

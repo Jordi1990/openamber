@@ -3,6 +3,7 @@
 1. Turning dhw_enabled_switch on while the compressor heats switches the valve to DHW.
 2. Pump P1, left running while the heat/cool controller idles with heat demand, is stopped
    before the valve switches to DHW.
+3. A running oil return cycle is finished before heating stops for DHW.
 """
 
 from helpers import advance_until_state, start_space_heating

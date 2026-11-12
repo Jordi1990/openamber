@@ -189,6 +189,18 @@ class OpenAmberClient:
         self.step(ms=30)
         return res.get("status") == "ok"
 
+    def set_clock(self, epoch: Optional[int] = None) -> bool:
+        """Set the simulated wall clock (date and time); default the fixed start, Friday 2026-10-09 12:00 UTC.
+
+        Unlike reset_time this leaves millis() alone, so the controller timers are not affected.
+        """
+        cmd: Dict[str, Any] = {"cmd": "set_clock"}
+        if epoch is not None:
+            cmd["epoch"] = epoch
+        res = self.send_cmd(cmd)
+        self.step(ms=30)
+        return self._check_status(res, "set_clock")
+
     def get_time(self) -> Dict[str, Any]:
         """Query current virtual time and offset."""
         return self.send_cmd({"cmd": "get_time"})

@@ -8,10 +8,16 @@ namespace mock_time {
 
 class MockTime : public time::RealTimeClock {
  public:
+  /// Fixed start of the simulated wall clock: Friday 2026-10-09 12:00:00 UTC.
+  static constexpr time_t START_EPOCH = 1791547200;
+  /// The instance, so the test bridge can set the wall clock.
+  static inline MockTime *instance = nullptr;
+
   void setup() override {
+    instance = this;
     start_millis_ = millis_64();
     // Synchronize to a valid timestamp (e.g. 2026-10-09 12:00:00 UTC)
-    this->synchronize_epoch_(1791547200);
+    this->synchronize_epoch_(START_EPOCH);
     auto t = this->now();
     ESP_LOGI("mock_time", "MockTime setup: %04d-%02d-%02d %02d:%02d:%02d, day_of_week=%d, ts=%lld",
              t.year, t.month, t.day_of_month, t.hour, t.minute, t.second, t.day_of_week,
@@ -19,7 +25,13 @@ class MockTime : public time::RealTimeClock {
   }
 
   time_t timestamp_now() {
-    return 1791547200 + static_cast<time_t>((millis_64() - start_millis_) / 1000ULL);
+    return base_epoch_ + static_cast<time_t>((millis_64() - start_millis_) / 1000ULL);
+  }
+
+  /// Set the wall clock (date and time) without touching millis(), so controller timers keep running normally.
+  void set_clock(time_t epoch) {
+    base_epoch_ = epoch;
+    start_millis_ = millis_64();
   }
 
   ESPTime now() {
@@ -41,6 +53,7 @@ class MockTime : public time::RealTimeClock {
 
  protected:
   uint64_t start_millis_{0};
+  time_t base_epoch_{START_EPOCH};
 };
 
 }  // namespace mock_time

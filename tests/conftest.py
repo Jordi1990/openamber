@@ -209,5 +209,7 @@ def clean_system(openamber):
         set_outside_temperature(openamber, 7.0)
 
     assert openamber.get_entity("three_way_valve_dhw_switch") is False, "Valve should be in CV position in idle"
+    # Every test starts at the same wall clock time, independent of the virtual time earlier tests used.
+    openamber.set_clock()
     return openamber
 
