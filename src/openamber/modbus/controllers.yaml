@@ -1,6 +1,19 @@
 uart:
+  id: modbus_uart
   baud_rate: 19200
   parity: EVEN
+
+# The outdoor unit drops a whole frame on a parity error, and the end of a frame is the most
+# fragile part on RS485 adapters with automatic direction control. One extra byte after the CRC
+# keeps the CRC away from the end of the frame; the outdoor unit ignores trailing bytes (#322).
+modbus_frame_padding:
+  id: modbus_uart_padded
+  uart_id: modbus_uart
+  addresses: [0x02]
+  pad_byte: 0xFF
+
+modbus:
+  uart_id: modbus_uart_padded
 
 modbus_controller:
 - id: modbus_outside_unit

@@ -13,7 +13,7 @@ external_components:
   - source:
       type: local
       path: openamber
-    components: [openamber_component, native_build_flags, eebus, tiny_mqtt]
+    components: [openamber_component, native_build_flags, eebus, tiny_mqtt, modbus_frame_padding]
 
 debug:
 
