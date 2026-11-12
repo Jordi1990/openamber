@@ -510,6 +510,16 @@ public:
           break;
         }
         SetWorkingMode(WORKING_MODE_HEATING);
+        // ShouldStop() above defers a stop while an oil return cycle or defrost runs (for a running compressor).
+        // Neither the compressor nor the backup heater has started here, so a stop request stops the pump instead.
+        if (requested_to_stop_)
+        {
+          ESP_LOGI("amber", "DHW stop requested before the compressor or backup heater started, stopping pump.");
+          pump_controller_->Stop();
+          StopDhwPump();
+          SetNextState(DHWState::WAIT_PUMP_STOP);
+          break;
+        }
         if(id(emergency_mode_enabled).state)
         {
           ESP_LOGW("amber", "Emergency mode enabled, not starting compressor but switching on backup heater");
@@ -519,16 +529,6 @@ public:
         }
         else
         {
-          // ShouldStop() above defers a stop while an oil return cycle or defrost runs (for a running compressor). The
-          // compressor has not started here, so a stop request always stops the pump instead of starting it.
-          if (requested_to_stop_)
-          {
-            ESP_LOGI("amber", "DHW stop requested before the compressor started, stopping pump.");
-            pump_controller_->Stop();
-            StopDhwPump();
-            SetNextState(DHWState::WAIT_PUMP_STOP);
-            break;
-          }
           // Same as heating: wait for the minimum compressor off time, the outdoor unit would not start yet.
           if (!compressor_controller_->HasPassedMinOffTime())
           {

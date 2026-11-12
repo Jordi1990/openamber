@@ -204,3 +204,63 @@ def test_switching_off_while_waiting_for_oil_return_cancels_the_stop(clean_syste
 
     openamber.set_switch("heat_demand_switch", False)
     openamber.advance_time(seconds=30, step_s=5)
+
+
+def test_frost_protection_cancels_a_pending_controlled_stop(clean_system):
+    """Frost protection while a controlled stop still waits (oil return cycle) cancels it before stand-by."""
+    openamber = clean_system
+    start_space_heating(openamber)
+    assert openamber.set_sensor("error_register_2119_raw", 8.0)  # the stop waits for the oil return cycle
+    openamber.set_switch(SWITCH, True)
+    openamber.advance_time(seconds=30, step_s=5)
+    assert openamber.get_entity(STATUS) == "Wacht op defrost/oliereturn"
+
+    openamber.set_sensor("temperature_outside_ta", 2.0)
+    assert advance_until_state(openamber, SWITCH, False, max_s=600, step=10), "Frost protection must cancel the stop"
+    assert openamber.set_sensor("error_register_2119_raw", 0.0)
+    openamber.advance_time(seconds=120, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.get_entity("state_machine_state_main") == "Heat/Cool", "No stand-by after the stop was cancelled"
+    assert compressor_mode(openamber) > 0, "Regulation continues for frost protection"
+
+    openamber.set_sensor("temperature_outside_ta", 7.0)
+    openamber.set_switch("heat_demand_switch", False)
+    openamber.advance_time(seconds=400, step_s=20)
+
+
+def test_standby_waits_until_the_compressor_is_confirmed_off(clean_system):
+    """A safety stop sets the controller idle before the run-down: stand-by and 'safe' only follow at 0 Hz."""
+    openamber = clean_system
+    start_space_heating(openamber)
+    openamber.set_switch(SWITCH, True)
+    openamber.set_number("mock_compressor_frequency_override", 36.0)  # the readback keeps reporting 36 Hz
+    assert openamber.set_binary_sensor("error_pump_start_timeout", True)  # safety stop: controller idle right away
+    openamber.advance_time(seconds=30, step_s=5)
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Idle", "The safety stop sets the controller idle"
+    assert openamber.set_binary_sensor("error_pump_start_timeout", False)
+    openamber.advance_time(seconds=60, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.get_entity("state_machine_state_main") != "Standby", "No stand-by while the compressor reports 36 Hz"
+    assert openamber.get_entity(STATUS) != SAFE
+
+    openamber.set_number("mock_compressor_frequency_override", -1.0)
+    assert advance_until_state(openamber, STATUS, SAFE, max_s=600, step=5), "Stand-by follows once the compressor is off"
+    resume(openamber)
+    openamber.set_switch("heat_demand_switch", False)
+    openamber.advance_time(seconds=30, step_s=5)
+
+
+def test_maintenance_and_controlled_stop_wait_for_minimum_on_time(clean_system):
+    """With maintenance mode and the controlled stop both on, maintenance wins and waits for the minimum on time."""
+    openamber = clean_system
+    start_space_heating(openamber)
+    openamber.set_switch("service_mode_enabled", True)
+    openamber.set_switch(SWITCH, True)
+    openamber.advance_time(seconds=30, step_s=5)
+    openamber.step(ms=50)
+    assert compressor_mode(openamber) > 0, "A maintenance stop waits for the minimum on time"
+
+    openamber.set_switch(SWITCH, False)
+    openamber.set_switch("service_mode_enabled", False)
+    openamber.set_switch("heat_demand_switch", False)
+    openamber.advance_time(seconds=900, step_s=20)

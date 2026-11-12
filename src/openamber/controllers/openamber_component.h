@@ -150,6 +150,14 @@ void OpenAmberComponent::update()
   bool maintenance_requested = id(service_mode_enabled).state;
   // Maintenance mode wins over a controlled stop when both are on.
   bool controlled_stop_requested = id(controlled_stop_enabled).state && !maintenance_requested;
+  // Frost protection wins over a controlled stop that is still in progress (STANDBY handles it below).
+  if (controlled_stop_requested && state_ != State::STANDBY &&
+      (id(frost_protection_stage1_active).state || id(frost_protection_stage2_active).state))
+  {
+    ESP_LOGW("amber", "Frost protection active, cancelling the controlled stop.");
+    id(controlled_stop_enabled).turn_off();
+    controlled_stop_requested = false;
+  }
   UpdateControlledStopStatus();
 
   switch (state_)
@@ -271,7 +279,12 @@ void OpenAmberComponent::update()
         }
         else if(controlled_stop_requested)
         {
-          EnterStandby();
+          // Only switch to stand-by when the readbacks confirm the compressor and pump P0 stopped. A safety stop
+          // sets the controller idle right away, before the run-down.
+          if (AreUnitsStopped())
+          {
+            EnterStandby();
+          }
           break;
         }
         else if(desired_valve_position != current_valve_position)
@@ -313,7 +326,12 @@ void OpenAmberComponent::update()
         }
         else if(controlled_stop_requested)
         {
-          EnterStandby();
+          // Only switch to stand-by when the readbacks confirm the compressor and pump P0 stopped. A safety stop
+          // sets the controller idle right away, before the run-down.
+          if (AreUnitsStopped())
+          {
+            EnterStandby();
+          }
           break;
         }
         else if(desired_valve_position != current_valve_position)
@@ -894,6 +912,13 @@ float OpenAmberComponent::get_mixing_valve_zone1_position() const
 float OpenAmberComponent::get_mixing_valve_zone2_position() const
 {
   return mixing_valve_zone2_ ? mixing_valve_zone2_->GetValvePositionPercent() : 0.0f;
+}
+
+/// @brief True when the readbacks confirm the compressor runs at 0 Hz and pump P0 is off.
+bool OpenAmberComponent::AreUnitsStopped()
+{
+  const float frequency = id(current_compressor_frequency).state;
+  return !std::isnan(frequency) && frequency <= 0.0f && !id(internal_pump_active).state;
 }
 
 /// @brief Both controllers are idle after a controlled stop: switch the inside unit to stand-by with the pumps off.

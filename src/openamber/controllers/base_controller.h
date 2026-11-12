@@ -167,7 +167,8 @@ public:
   /// @brief A stop requested by the user's controlled stop: it does not wait for the minimum compressor on time.
   bool IsControlledStopRequested()
   {
-    return requested_to_stop_ && id(controlled_stop_enabled).state;
+    // Maintenance mode wins over a controlled stop when both are on; it waits for the minimum on time.
+    return requested_to_stop_ && id(controlled_stop_enabled).state && !id(service_mode_enabled).state;
   }
 
   bool IsInIdleState()

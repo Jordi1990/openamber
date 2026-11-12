@@ -76,6 +76,7 @@ private:
   uint32_t ota_last_activity_ms_ = 0;
   uint32_t resume_check_started_ms_ = 0;
   uint32_t standby_started_ms_ = 0;
+  bool AreUnitsStopped();
   void EnterStandby();
   void UpdateControlledStopStatus();
   void SetThreeWayValve(ThreeWayValvePosition position);
