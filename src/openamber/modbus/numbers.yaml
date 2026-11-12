@@ -76,6 +76,18 @@ number:
   value_type: S_WORD
   reuse_previous_range: true
   mode: box
+  # The outdoor unit regularly misses a frame whose last byte (CRC high) has bit 7 clear and an odd number of ones
+  # (#322). Write the value 1 higher or lower (0.01 °C) when its frame would end like that.
+  write_lambda: |-
+    auto missed_often = [](uint16_t value) {
+      const uint8_t frame[6] = {0x02, 0x06, 0x07, 0xD5, (uint8_t) (value >> 8), (uint8_t) (value & 0xFF)};
+      const uint8_t last = crc16(frame, sizeof(frame)) >> 8;
+      return (last & 0x80) == 0 && (__builtin_popcount(last) & 1) == 1;
+    };
+    uint16_t value = (uint16_t) x;
+    if (missed_often(value))
+      value = missed_often(value + 1) ? value - 1 : value + 1;
+    return value;
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
