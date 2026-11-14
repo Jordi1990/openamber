@@ -61,11 +61,11 @@
             lv_label_set_text(id(home_therm_setpoint_value), str_sprintf("%.1f°C", id(climate_controller).target_temperature_low).c_str());
             lv_obj_send_event(id(home_therm_setpoint_value), lvgl::lv_update_event, nullptr);
           }
-          if (isnan(id(room_temperature).state)) {
+          if (isnan(id(${room_temperature_source}).state)) {
             lv_label_set_text(id(home_therm_current_temp_value), "-.-°C");
             lv_obj_send_event(id(home_therm_current_temp_value), lvgl::lv_update_event, nullptr);
           } else {
-            lv_label_set_text(id(home_therm_current_temp_value), str_sprintf("%.1f°C", id(room_temperature).state).c_str());
+            lv_label_set_text(id(home_therm_current_temp_value), str_sprintf("%.1f°C", id(${room_temperature_source}).state).c_str());
             lv_obj_send_event(id(home_therm_current_temp_value), lvgl::lv_update_event, nullptr);
           }
           id(update_home_thermostat_mode_ui).execute();
@@ -263,6 +263,7 @@
           id(update_eebus_settings_ui).execute();
         }
         if (tab_index == 8) {
+          id(connectivity_select_tab).execute(0);
           id(wifi_scan_networks_if_empty).execute();
         }
         if (tab_index == 9) {
@@ -2658,6 +2659,7 @@
           {"TO06 - Binnenunit failsafe / herstart", "De binnenunit bevindt zich in failsafe of is herstart. Een of meer uitgangsregisters (1099-1113) wijken af van de verwachte status. De regeling is gestopt.", id(error_inside_unit_failsafe).state},
           {"TO07 - Compressor onverwacht gestopt", "De buitenunit stopte de compressor zelf terwijl OpenAmber hem liet draaien. De regeling is gestopt. Controleer beveiligingen, voeding en de Modbus-verbinding met de buitenunit en reset daarna de fout.", id(error_compressor_unexpected_stop).state},
           {"F13 - Storing sensor ruimtetemperatuur", "Storing sensor ruimtetemperatuur.", id(error_flag_f13).state},
+          {"B01 - Geen meting BLE-ruimtesensor", "De gekozen BLE-ruimtesensor heeft 10 minuten geen meting gestuurd. Controleer de batterij en het bereik van de sensor.", id(error_flag_b01).state},
           {"F14 - Storing sensor tapwatertemperatuur", "Storing sensor tapwatertemperatuur.", id(error_flag_f14).state},
           {"F15 - Storing sensor cv-aanvoertemperatuur", "Storing sensor cv-aanvoertemperatuur.", id(error_flag_f15).state},
           {"F16 - Storing sensor aanvoertemperatuur Tuo", "Storing sensor aanvoertemperatuur Tuo.", id(error_flag_f16).state},
@@ -3208,6 +3210,19 @@
         #ifdef USE_WIFI
         wifi::global_wifi_component->start_scanning();
         #endif
+
+# Connectiviteit sub-tabs. Only WiFi exists here; the BLE package extends this
+# script with its Bluetooth page (tab 1).
+- id: connectivity_select_tab
+  mode: restart
+  parameters:
+    tab_index: int
+  then:
+    - lambda: |-
+        if (tab_index == 0) lv_obj_clear_flag(id(panel_wifi_page_wifi), LV_OBJ_FLAG_HIDDEN);
+        else lv_obj_add_flag(id(panel_wifi_page_wifi), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_style_bg_color(id(conn_stab_wifi), lv_color_hex(tab_index == 0 ? 0x1F3B68 : 0xCBD5E1), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(conn_stab_wifi_lbl), lv_color_hex(tab_index == 0 ? 0xFFFFFF : 0x4B5563), LV_PART_MAIN);
 
 - id: wifi_scan_networks_if_empty
   then:

@@ -37,7 +37,7 @@
           text_font: font_text_20
           dropdown_list:
             text_font: font_text_20
-          on_value:
+          on_change:
             then:
               - lambda: |-
                   {
