@@ -3,7 +3,7 @@ Only tests real user inputs (temperatures, setpoints, user switches/selects).
 """
 
 import pytest
-from helpers import advance_until_state
+from helpers import advance_until_state, start_space_heating
 
 
 def test_dhw_demand_while_idle_heats_dhw(clean_system):
@@ -56,26 +56,35 @@ def test_dhw_demand_while_heating_switches_to_dhw(clean_system):
     """
     openamber = clean_system
 
-    # Start space heating demand
-    openamber.set_switch("heat_demand_switch", True)
-    openamber.set_sensor("heat_cool_temperature_tc", 28.0)
-    openamber.step(ms=100)
-
-    # Advance time to start space heating pump and compressor
-    openamber.advance_time(seconds=120, step_s=10)
-    openamber.step(ms=100)
+    # Start space heating and wait until the compressor really runs. With the default heating curve the
+    # setpoint (27.6°C at Ta 7°C) is below Tc, so only the pump would run and the valve would switch right away.
+    start_space_heating(openamber)
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0, "Space heating compressor should run"
+    assert openamber.get_entity("working_mode_switch") == "Verwarmen"
 
     # Now DHW demand occurs (Tw = 38°C < setpoint 50°C - delta 5°C)
     openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
     openamber.step(ms=100)
     assert openamber.get_entity("dhw_demand_active_sensor") is True, "DHW demand should be active when tank drops"
 
-    # Advance virtual time through space heating compressor min-on-time (600s) + valve switch (60s)
-    openamber.advance_time(seconds=720, step_s=20)
+    # start_space_heating returns after the soft start (180s). Half way through the minimum on time (600s) the
+    # compressor still heats the house and the valve has not moved.
+    openamber.advance_time(seconds=200, step_s=20)
     openamber.step(ms=100)
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0, "Heating must finish its minimum on time first"
+    assert openamber.get_entity("three_way_valve_dhw_switch") is False, "3-way valve must not switch while heating runs"
+    assert openamber.get_entity("state_machine_state_main") == "Heat/Cool"
+
+    # Rest of the minimum on time, the stop of compressor and pump, and the valve switch (60s)
+    assert advance_until_state(openamber, "state_machine_state_main", "DHW", max_s=600), (
+        f"Never switched to DHW (main: {openamber.get_entity('state_machine_state_main')}, "
+        f"heat/cool: {openamber.get_entity('state_machine_state_heat_cool')})"
+    )
 
     # 3-way valve must now be aligned to DHW circuit
     assert openamber.get_entity("three_way_valve_dhw_switch") is True, "3-way valve should switch to DHW after heating min-on-time"
+    assert openamber.get_entity("three_way_valve_heat_cool_switch") is False, "3-way valve CV output should be off in DHW"
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Idle", "Heating must be idle while DHW runs"
 
 
 def test_dhw_demand_stops_when_temperature_reached(clean_system):
