@@ -71,3 +71,31 @@ def test_up_step_guard(clean_system, lookahead_min, slope, expect_step_up):
 
 def test_up_step_guard_default_is_off(clean_system):
     assert float(clean_system.get_entity("compressor_up_step_lookahead_minutes")) == 0.0
+
+
+def test_up_step_guard_restarts_trend_when_control_source_changes(clean_system):
+    """Switching the control temperature from Tc to Tv1 during a run restarts the trend: a window that mixes the
+    rising Tc with a higher, flat Tv1 would show a false rise and keep holding the step up."""
+    openamber = clean_system
+    _start_compressor(openamber, 20)
+    tc = _ramp(openamber, TC_START, 0.6, 200)
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    start_mode = int(openamber.get_entity("compressor_control_select"))
+    tc = _ramp(openamber, tc, 0.6, 6 * 60)  # window full, guard holds the mode
+    assert int(openamber.get_entity("compressor_control_select")) == start_mode
+
+    openamber.set_sensor("heat_cool_temperature_tv1", SETPOINT - 1.5)  # flat, below the deadband
+    openamber.set_select("heat_cool_control_temperature_source_select", "CV-aanvoer zone 1 (Tv1)")
+    stepped_up = False
+    for _ in range(8):  # 4 min, shorter than the 4.5 min trend window
+        openamber.advance_time(seconds=30, step_s=5)
+        openamber.set_sensor("heat_cool_temperature_tv1", SETPOINT - 1.5)
+        if int(openamber.get_entity("compressor_control_select")) > start_mode:
+            stepped_up = True
+            break
+    assert stepped_up, "After the source change the guard must not hold the step up on a mixed trend"
+
+    openamber.set_select("heat_cool_control_temperature_source_select", "CV-aanvoer (Tc)")
+    openamber.set_number("compressor_up_step_lookahead_minutes", 0)
+    openamber.set_switch("heat_demand_switch", False)
+    openamber.advance_time(seconds=60, step_s=5)

@@ -50,24 +50,36 @@ private:
   float compressor_cool_pid_ = 0.0f;
   float start_current_temperature_ = 0.0f;
 
-  // Control temperature trend while the compressor runs, used by the up-step guard.
+  // Control temperature trend while the compressor runs, used by the up-step guard. 10 samples at least 30 s apart
+  // span at least 4.5 minutes; a longer window starts the guard later, after the PID may already have stepped up.
   static const uint8_t TREND_SAMPLES = 10;
   static const uint32_t TREND_SAMPLE_INTERVAL_MS = 30000;
   float trend_samples_[TREND_SAMPLES] = {0};
+  uint32_t trend_sample_ms_[TREND_SAMPLES] = {0};
   uint8_t trend_count_ = 0;
   uint8_t trend_next_ = 0;
   uint32_t trend_last_sample_ms_ = 0;
+  // Control temperature source of the samples (see GetControlTemperatureSource()), -1 when empty.
+  int trend_source_ = -1;
 
   void ResetTemperatureTrend()
   {
     trend_count_ = 0;
     trend_next_ = 0;
     trend_last_sample_ms_ = 0;
+    trend_source_ = -1;
   }
 
   void UpdateTemperatureTrend()
   {
     const uint32_t now = App.get_loop_component_start_time();
+    // A different source (Tc/Tv1 select, mixing valves switched on or off) would mix two sensors in one trend.
+    const int source = GetControlTemperatureSource();
+    if (trend_count_ > 0 && source != trend_source_)
+    {
+      ESP_LOGI("amber", "Control temperature source changed, restarting the temperature trend.");
+      ResetTemperatureTrend();
+    }
     if (trend_count_ > 0 && (now - trend_last_sample_ms_) < TREND_SAMPLE_INTERVAL_MS)
     {
       return;
@@ -77,8 +89,10 @@ private:
     {
       return;
     }
+    trend_source_ = source;
     trend_last_sample_ms_ = now;
     trend_samples_[trend_next_] = temperature;
+    trend_sample_ms_[trend_next_] = now;
     trend_next_ = (trend_next_ + 1) % TREND_SAMPLES;
     if (trend_count_ < TREND_SAMPLES)
     {
@@ -86,30 +100,40 @@ private:
     }
   }
 
-  // Least-squares slope over the sample window in °C per minute. False until the window is full.
+  // Least-squares slope over the sample window in °C per minute, using the actual sample times (a missing reading or
+  // a late update leaves a longer gap). False until the window is full.
   bool GetTemperatureTrend(float &slope_c_per_min)
   {
     if (trend_count_ < TREND_SAMPLES)
     {
       return false;
     }
-    const float n = TREND_SAMPLES;
-    const float x_mean = (n - 1.0f) / 2.0f;
+    // trend_next_ points at the oldest sample once the window is full.
+    const uint32_t oldest_ms = trend_sample_ms_[trend_next_];
+    float x_minutes[TREND_SAMPLES];
+    float x_mean = 0.0f;
     float y_mean = 0.0f;
     for (uint8_t i = 0; i < TREND_SAMPLES; i++)
     {
-      y_mean += trend_samples_[(trend_next_ + i) % TREND_SAMPLES];
+      const uint8_t slot = (trend_next_ + i) % TREND_SAMPLES;
+      x_minutes[i] = (trend_sample_ms_[slot] - oldest_ms) / 60000.0f;
+      x_mean += x_minutes[i];
+      y_mean += trend_samples_[slot];
     }
-    y_mean /= n;
+    x_mean /= TREND_SAMPLES;
+    y_mean /= TREND_SAMPLES;
     float num = 0.0f, den = 0.0f;
     for (uint8_t i = 0; i < TREND_SAMPLES; i++)
     {
-      const float dx = i - x_mean;
+      const float dx = x_minutes[i] - x_mean;
       num += dx * (trend_samples_[(trend_next_ + i) % TREND_SAMPLES] - y_mean);
       den += dx * dx;
     }
-    const float samples_per_minute = 60000.0f / TREND_SAMPLE_INTERVAL_MS;
-    slope_c_per_min = (num / den) * samples_per_minute;
+    if (den <= 0.0f)
+    {
+      return false;
+    }
+    slope_c_per_min = num / den;
     return true;
   }
   uint32_t pump_flow_missing_since_ms_ = 0;
@@ -275,23 +299,23 @@ private:
     return IsCoolingDemand() ? id(cool_compressor_mode) : id(heat_compressor_mode);
   }
 
-  float GetControlTemperature()
+  /// @brief 0 = Tc, 1 = Tv1.
+  int GetControlTemperatureSource()
   {
     // When mixing valve are enabled, always use Tc
     bool mixing_valves_enabled = id(mixing_valve_zone1_enabled).state || id(mixing_valve_zone2_enabled).state;
     if (mixing_valves_enabled)
     {
-      return id(heat_cool_temperature_tc).state;
+      return 0;
     }
 
     auto selected_source = id(heat_cool_control_temperature_source_select).active_index();
-    int source_index = (selected_source.has_value() && selected_source.value() == 1) ? 1 : 0;
-    if (source_index == 1)
-    {
-      return id(heat_cool_temperature_tv1).state;
-    }
+    return (selected_source.has_value() && selected_source.value() == 1) ? 1 : 0;
+  }
 
-    return id(heat_cool_temperature_tc).state;
+  float GetControlTemperature()
+  {
+    return GetControlTemperatureSource() == 1 ? id(heat_cool_temperature_tv1).state : id(heat_cool_temperature_tc).state;
   }
 
   int GetMaxAllowedCompressorMode()
