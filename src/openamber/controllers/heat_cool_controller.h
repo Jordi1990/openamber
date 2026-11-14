@@ -1008,6 +1008,17 @@ public:
       case HeatCoolState::BACKUP_HEATER_RUNNING:
       {
         ApplyMixingValvePositions();
+
+        // Emergency mode was switched off during a cycle on the backup heater alone (no compressor request).
+        // The compressor is only started from PUMP_RUNNING, so end the backup heater cycle and go back there.
+        if (!id(emergency_mode_enabled).state && !compressor_controller_->IsCommanded())
+        {
+          ESP_LOGI("amber", "Emergency mode disabled, stopping backup heater and returning to the pump cycle.");
+          TurnOffBackupHeater();
+          LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState::PUMP_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
+          break;
+        }
+
         float current_temperature = GetControlTemperature();
         float target_temperature = id(pid_heat_temperature_control).target_temperature;
 

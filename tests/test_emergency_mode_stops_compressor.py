@@ -5,6 +5,8 @@ compressor is requested, OpenAmber stops everything and re-initializes, so regul
 mode with only the backup heater. No error is raised.
 """
 
+import pytest
+
 from helpers import advance_until_state, start_space_heating
 
 INIT_STATES = ("Initializing", "Waiting for state switch")
@@ -124,8 +126,9 @@ def test_restart_in_emergency_mode_does_not_resume_running_compressor(clean_syst
 def test_disabling_emergency_mode_during_backup_heating_restarts_with_compressor(clean_system):
     """Emergency mode is switched off while heating regulates on the backup heater alone.
 
-    The backup heater stops and the controller re-initializes; heating then starts the compressor the normal way
-    (pump settle time, minimum off time, soft start) instead of carrying on in the backup heater state.
+    The compressor is only started from the pump cycle. The backup heater stops, the controller returns to
+    'Pump running' and starts the compressor the normal way (minimum off time, soft start), without
+    re-initializing. It used to stay on the backup heater alone until the supply reached the stop temperature.
     """
     openamber = clean_system
     openamber.set_select("heat_mode_select", "Extern setpoint")
@@ -138,47 +141,59 @@ def test_disabling_emergency_mode_during_backup_heating_restarts_with_compressor
     openamber.set_switch("emergency_mode_enabled", True)
     openamber.set_switch("heat_demand_switch", True)
     assert advance_until_state(openamber, "state_machine_state_heat_cool", "Backup heater running", max_s=1800, step=5)
-    assert int(openamber.get_entity("compressor_control_select") or 0) == 0
+    assert compressor_mode(openamber) == 0
 
     openamber.set_switch("emergency_mode_enabled", False)
     openamber.advance_time(seconds=10, step_s=5)
     openamber.step(ms=50)
     assert openamber.get_entity("backup_heater_relay") is False, "The backup heater stops with emergency mode"
-    assert int(openamber.get_entity("compressor_control_select") or 0) == 0
+    assert compressor_mode(openamber) == 0
+    assert openamber.get_entity("state_machine_state_main") == "Heat/Cool", "No re-initialization"
+    assert openamber.get_entity("internal_pump_active") is True, "The pump keeps running for the compressor start"
     assert openamber.get_entity("error_active") is False
 
-    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Compressor softstart", max_s=600, step=5), (
-        f"Heating did not restart on the compressor (main: {openamber.get_entity('state_machine_state_main')}, "
-        f"heat/cool: {openamber.get_entity('state_machine_state_heat_cool')})"
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Pump running", max_s=150, step=5)
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Compressor softstart", max_s=400, step=5), (
+        f"Heating did not restart on the compressor (heat/cool: {openamber.get_entity('state_machine_state_heat_cool')})"
     )
+    assert openamber.get_entity("state_machine_state_main") == "Heat/Cool"
     assert openamber.get_entity("backup_heater_relay") is False
     assert advance_until_state(openamber, "state_machine_state_heat_cool", "Compressor running", max_s=300, step=5)
 
 
-def test_disabling_emergency_mode_during_dhw_backup_heating_restarts_with_compressor(clean_system):
-    """Same for DHW. The backup heater state used to request the compressor at once when emergency mode went off:
-    without the minimum off time, without waiting for it to run and without a start time, so the minimum on time
-    and the unexpected stop detection did not apply to that run."""
+@pytest.mark.parametrize("seconds_in_backup_state", [60, 300], ids=["during_dhw_pump_settle_time", "backup_heater_running"])
+def test_disabling_emergency_mode_during_dhw_backup_heating_restarts_with_compressor(clean_system, seconds_in_backup_state):
+    """Same for DHW, 60 s (DHW pump settle time) and 300 s (backup heater state) after the backup heater started.
+
+    The backup heater state used to request the compressor at once when emergency mode went off: without the
+    minimum off time, without waiting for it to run and without a start time, so the minimum on time and the
+    unexpected stop detection did not apply to that run.
+    """
     openamber = clean_system
     openamber.set_number("dhw_backup_min_avg_rate", 0.0)
     openamber.set_switch("emergency_mode_enabled", True)
     openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
     assert advance_until_state(openamber, "state_machine_state_dhw", "Backup heater running", max_s=900, step=5)
-    openamber.advance_time(seconds=60, step_s=5)
-    assert int(openamber.get_entity("compressor_control_select") or 0) == 0
+    openamber.advance_time(seconds=seconds_in_backup_state, step_s=5)
+    openamber.step(ms=50)
+    assert compressor_mode(openamber) == 0
+    assert openamber.get_entity("backup_heater_relay") is True
 
     openamber.set_switch("emergency_mode_enabled", False)
-    openamber.advance_time(seconds=10, step_s=5)
-    openamber.step(ms=50)
-    assert openamber.get_entity("backup_heater_relay") is False
-    assert int(openamber.get_entity("compressor_control_select") or 0) == 0, (
-        "The compressor must not be requested straight from the backup heater state"
-    )
+    for _ in range(30):
+        openamber.advance_time(seconds=5, step_s=5)
+        openamber.step(ms=20)
+        if openamber.get_entity("backup_heater_relay") is False:
+            break
+        assert compressor_mode(openamber) == 0, "The compressor must not be requested straight from the backup heater state"
+    assert openamber.get_entity("backup_heater_relay") is False, "The backup heater stops with emergency mode"
+    assert compressor_mode(openamber) == 0
+    assert openamber.get_entity("state_machine_state_main") == "DHW", "No re-initialization"
     assert openamber.get_entity("error_active") is False
 
-    assert advance_until_state(openamber, "state_machine_state_dhw", "Wait compressor running", max_s=600, step=5), (
-        f"DHW did not restart on the compressor (main: {openamber.get_entity('state_machine_state_main')}, "
-        f"dhw: {openamber.get_entity('state_machine_state_dhw')})"
+    assert advance_until_state(openamber, "state_machine_state_dhw", "Wait compressor running", max_s=400, step=5), (
+        f"DHW did not restart on the compressor (dhw: {openamber.get_entity('state_machine_state_dhw')})"
     )
-    assert advance_until_state(openamber, "state_machine_state_dhw", "Compressor running", max_s=300, step=5)
     assert openamber.get_entity("backup_heater_relay") is False
+    assert advance_until_state(openamber, "state_machine_state_dhw", "Compressor running", max_s=300, step=5)
+    assert openamber.get_entity("state_machine_state_main") == "DHW"
