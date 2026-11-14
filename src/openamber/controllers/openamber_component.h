@@ -109,6 +109,23 @@ void OpenAmberComponent::update()
     return;
   }
 
+  // The other way around: emergency mode is switched off while a controller regulates on the backup heater
+  // alone. Those states assume a compressor that was started the normal way (pump settle time, minimum off time,
+  // soft start, start time), so stop and re-initialize; regulation then starts again with the compressor.
+  const bool emergency_mode_enabled_now = id(emergency_mode_enabled).state;
+  const bool emergency_mode_switched_off = emergency_mode_was_enabled_ && !emergency_mode_enabled_now;
+  emergency_mode_was_enabled_ = emergency_mode_enabled_now;
+  if ((state_ == State::HEAT_COOL || state_ == State::DHW_HEAT) && emergency_mode_switched_off &&
+      (id(backup_heater_relay).state || id(external_backup_heating_relay).state) &&
+      id(compressor_control_select).active_index().value_or(0) == 0)
+  {
+    ota_in_progress_ = false;
+    ESP_LOGW("amber", "Emergency mode disabled while regulating on the backup heater. Stopping and re-initializing controller.");
+    StopControllers();
+    SetNextState(State::WAIT_MODBUS_CONNECTION);
+    return;
+  }
+
   // Also during the OTA hold: a lost Modbus connection must still raise its error (error_active), which the
   // safety check below turns into a stop.
   bool modbus_connected = id(modbus_inside_online).state && id(modbus_outside_online).state && id(outside_unit_eeprom_version).has_state();
