@@ -79,6 +79,12 @@ def test_maintenance_mode_stops_dhw_while_demand_remains(clean_system):
     openamber.step(ms=50)
     assert int(openamber.get_entity("compressor_control_select")) == 0, "Maintenance mode must stop the DHW compressor"
     assert advance_until_state(openamber, "state_machine_state_main", "Maintenance", max_s=600)
+    # Same end state as maintenance mode entered from heating/cooling.
+    assert openamber.get_entity("working_mode_switch") == "Onderhoud"
+    assert openamber.get_entity("pump_p0_relay_switch") is False, "Pump P0 relay must be off in maintenance mode"
+    assert openamber.get_entity("internal_pump_active") is False
+    assert openamber.get_entity("dhw_pump_relay_switch") is False
+    assert openamber.get_entity("backup_heater_relay") is False
 
     openamber.set_switch("service_mode_enabled", False)
     openamber.set_sensor("dhw_temperature_tw_sensor", 55.0)
