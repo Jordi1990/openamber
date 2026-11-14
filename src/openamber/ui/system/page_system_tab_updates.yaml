@@ -34,15 +34,25 @@ obj:
         border_opa: 0%
         pad_all: 0
         on_click:
-          - globals.set:
-              id: service_confirm_action
-              value: '2'
           - lambda: |-
-              lv_label_set_text(id(service_confirm_title), "Update bevestigen");
+              // While the heat pump runs, offer to stop it in a controlled way first.
+              bool active = id(current_compressor_frequency).state > 0 ||
+                            id(compressor_control_select).active_index().value_or(0) > 0 ||
+                            id(internal_pump_active).state;
+              id(service_confirm_action) = active ? 4 : 2;
+              if (active) {
+                lv_obj_set_size(id(service_confirm_card), 620, 330);
+                lv_obj_set_width(id(service_confirm_cancel_button), 150);
+                lv_obj_set_width(id(service_confirm_button), 190);
+                lv_obj_remove_flag(id(service_confirm_stop_first_button), LV_OBJ_FLAG_HIDDEN);
+              }
+              lv_label_set_text(id(service_confirm_title), active ? "Warmtepomp actief" : "Update bevestigen");
               lv_obj_send_event(id(service_confirm_title), lvgl::lv_update_event, nullptr);
-              lv_label_set_text(id(service_confirm_text), "Wil je de firmware update nu starten?");
+              lv_label_set_text(id(service_confirm_text), active
+                  ? "De update kan veilig tijdens bedrijf. Je kunt ook eerst gecontroleerd stoppen; de update start dan vanzelf in standby."
+                  : "Wil je de firmware update nu starten?");
               lv_obj_send_event(id(service_confirm_text), lvgl::lv_update_event, nullptr);
-              lv_label_set_text(id(service_confirm_button_label), "Update starten");
+              lv_label_set_text(id(service_confirm_button_label), active ? "Nu updaten" : "Update starten");
               lv_obj_send_event(id(service_confirm_button_label), lvgl::lv_update_event, nullptr);
               lv_obj_set_style_bg_color(id(service_confirm_button), lv_color_hex(0x0072CE), LV_PART_MAIN);
               lv_obj_remove_flag(id(service_confirm_modal), LV_OBJ_FLAG_HIDDEN);
