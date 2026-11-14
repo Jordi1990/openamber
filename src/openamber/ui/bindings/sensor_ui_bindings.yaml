@@ -150,7 +150,7 @@
           id(update_water_mode_temperature_display).execute();
           id(update_service_diag_summary_ui).execute();
 
-- id: !extend room_temperature
+- id: !extend ${room_temperature_source}
   on_value:
     then:
       - lambda: |-

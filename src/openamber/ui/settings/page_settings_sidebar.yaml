@@ -192,7 +192,7 @@ obj:
                 id: settings_select_tab
                 tab_index: 8
           widgets:
-            - label: { id: stab_wifi_lbl, text: "WiFi", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
+            - label: { id: stab_wifi_lbl, text: "Connectiviteit", text_color: 0x4B5563, text_font: font_text_20, align: LEFT_MID }
 
       - obj:
           id: stab_advanced

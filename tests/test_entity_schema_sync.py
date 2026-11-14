@@ -226,6 +226,8 @@ def test_ui_bindings_reference_valid_entities():
         | set(mock_entities.keys())
         | set(display_entities.keys())
     )
+    with open(os.path.join(CORE_DIR, "core_package.yaml"), encoding="utf-8") as f:
+        substitutions = yaml.load(f, Loader=ESPHomeYamlLoader).get("substitutions", {})
 
     # Check all binding YAML files
     extended_ids = set()
@@ -239,6 +241,8 @@ def test_ui_bindings_reference_valid_entities():
                     parts = stripped.split("!extend")
                     if len(parts) > 1:
                         target_id = parts[1].strip().split()[0].strip("'\"")
+                        for key, value in substitutions.items():
+                            target_id = target_id.replace("${" + key + "}", str(value))
                         if target_id:
                             extended_ids.add((target_id, os.path.basename(binding_file)))
 
