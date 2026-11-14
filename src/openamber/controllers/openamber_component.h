@@ -309,6 +309,9 @@ void OpenAmberComponent::update()
         }
         else if(desired_valve_position != current_valve_position)
         {
+          // Stopping the DHW pump cycle restarted the pump interval. Heating/cooling must not wait for it after
+          // DHW: with demand the pump starts right away, as after initialization.
+          pump_controller_->ResetInterval();
           SwitchThreeWayValveAndWait(desired_valve_position, desired_state);
           break;
         }
