@@ -135,6 +135,21 @@ number:
       sorting_group_id: general_settings
 
 - platform: template
+  name: "Opschakelen: vooruitkijktijd"
+  id: compressor_up_step_lookahead_minutes
+  optimistic: true
+  min_value: 0
+  max_value: 60
+  step: 5
+  unit_of_measurement: "min"
+  initial_value: 0
+  restore_value: True
+  entity_category: config
+  icon: mdi:chart-timeline-variant
+  web_server:
+      sorting_group_id: general_settings
+
+- platform: template
   name: "Compressor hysterese"
   id: compressor_hysteresis
   optimistic: true

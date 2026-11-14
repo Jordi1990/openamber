@@ -49,6 +49,69 @@ private:
   float compressor_heat_pid_ = 0.0f;
   float compressor_cool_pid_ = 0.0f;
   float start_current_temperature_ = 0.0f;
+
+  // Control temperature trend while the compressor runs, used by the up-step guard.
+  static const uint8_t TREND_SAMPLES = 10;
+  static const uint32_t TREND_SAMPLE_INTERVAL_MS = 30000;
+  float trend_samples_[TREND_SAMPLES] = {0};
+  uint8_t trend_count_ = 0;
+  uint8_t trend_next_ = 0;
+  uint32_t trend_last_sample_ms_ = 0;
+
+  void ResetTemperatureTrend()
+  {
+    trend_count_ = 0;
+    trend_next_ = 0;
+    trend_last_sample_ms_ = 0;
+  }
+
+  void UpdateTemperatureTrend()
+  {
+    const uint32_t now = App.get_loop_component_start_time();
+    if (trend_count_ > 0 && (now - trend_last_sample_ms_) < TREND_SAMPLE_INTERVAL_MS)
+    {
+      return;
+    }
+    float temperature = GetControlTemperature();
+    if (std::isnan(temperature))
+    {
+      return;
+    }
+    trend_last_sample_ms_ = now;
+    trend_samples_[trend_next_] = temperature;
+    trend_next_ = (trend_next_ + 1) % TREND_SAMPLES;
+    if (trend_count_ < TREND_SAMPLES)
+    {
+      trend_count_++;
+    }
+  }
+
+  // Least-squares slope over the sample window in °C per minute. False until the window is full.
+  bool GetTemperatureTrend(float &slope_c_per_min)
+  {
+    if (trend_count_ < TREND_SAMPLES)
+    {
+      return false;
+    }
+    const float n = TREND_SAMPLES;
+    const float x_mean = (n - 1.0f) / 2.0f;
+    float y_mean = 0.0f;
+    for (uint8_t i = 0; i < TREND_SAMPLES; i++)
+    {
+      y_mean += trend_samples_[(trend_next_ + i) % TREND_SAMPLES];
+    }
+    y_mean /= n;
+    float num = 0.0f, den = 0.0f;
+    for (uint8_t i = 0; i < TREND_SAMPLES; i++)
+    {
+      const float dx = i - x_mean;
+      num += dx * (trend_samples_[(trend_next_ + i) % TREND_SAMPLES] - y_mean);
+      den += dx * dx;
+    }
+    const float samples_per_minute = 60000.0f / TREND_SAMPLE_INTERVAL_MS;
+    slope_c_per_min = (num / den) * samples_per_minute;
+    return true;
+  }
   uint32_t pump_flow_missing_since_ms_ = 0;
   MixingValveActuator* mixing_valve_zone1_ = nullptr;
   MixingValveActuator* mixing_valve_zone2_ = nullptr;
@@ -535,6 +598,7 @@ public:
       SetPidController(cooling ? climate::CLIMATE_MODE_COOL : climate::CLIMATE_MODE_HEAT);
       GetPidController().reset_integral_term();
       ResetMixingValvesIntegralTerm();
+      ResetTemperatureTrend();
       if (cooling)
       {
         // Cooling runs with the enabled mixing valves fully open, normally set on PUMP_RUNNING entry which the resume
@@ -641,6 +705,20 @@ public:
     {
       ESP_LOGW("amber", "Temperature has overshot target and PID controller wanted to move to a higher compressor mode.");
       return current_compressor_mode;
+    }
+
+    // Up-step guard: only step up when the current power will not bring the temperature to target in time.
+    const float lookahead_min = id(compressor_up_step_lookahead_minutes).state;
+    float slope_c_per_min;
+    if (lookahead_min > 0.0f && desired_compressor_mode > current_compressor_mode && GetTemperatureTrend(slope_c_per_min))
+    {
+      float predicted = current_temperature + slope_c_per_min * lookahead_min;
+      bool on_track = IsWorkingMode(WORKING_MODE_COOLING) ? (predicted <= target) : (predicted >= target);
+      if (on_track)
+      {
+        ESP_LOGI("amber", "Not stepping up: temperature %.2f°C trend %.3f°C/min reaches target %.2f°C within %.0f min.", current_temperature, slope_c_per_min, target, lookahead_min);
+        return std::min((int)current_compressor_mode, max_allowed);
+      }
     }
 
     int capped_mode_index = std::min(desired_compressor_mode, max_allowed);
@@ -842,6 +920,7 @@ public:
         {
           GetPidController().reset_integral_term();
           ResetMixingValvesIntegralTerm();
+          ResetTemperatureTrend();
           compressor_controller_->RecordStartTime();
           SetNextState(HeatCoolState::COMPRESSOR_SOFTSTART);
         }
@@ -862,6 +941,7 @@ public:
       case HeatCoolState::COMPRESSOR_SOFTSTART:
       {
         pump_controller_->ApplySpeedChangeIfNeeded(false);
+        UpdateTemperatureTrend();
         
         if(IsWorkingMode(WORKING_MODE_HEATING))
         {
@@ -904,6 +984,8 @@ public:
           SetNextState(HeatCoolState::DEFROSTING);
           break;
         }
+
+        UpdateTemperatureTrend();
 
         if (compressor_controller_->HasPassedMinOnTime() || IsControlledStopRequested())
         {
@@ -1059,6 +1141,7 @@ public:
         pump_controller_->ResetHeatingPidState();
         GetPidController().reset_integral_term();
         ResetMixingValvesIntegralTerm();
+        ResetTemperatureTrend();
         StartPumpP1IfNeeded();
 
         if (id(temperature_outside_ta_avg_1h).state <= id(defrost_backup_heater_boost_temperature_sensor).state && !requested_to_stop_)
