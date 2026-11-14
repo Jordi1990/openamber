@@ -163,6 +163,7 @@ def clean_system(openamber):
     openamber.set_select("heat_cool_control_temperature_source_select", "CV-aanvoer (Tc)")
     openamber.set_climate("pid_heat_temperature_control", target_temperature=30.0)
     openamber.set_number("compressor_stop_delta_heating", 2.0)
+    openamber.set_number("compressor_up_step_lookahead_minutes", 0.0)
     openamber.set_number("cooling_setpoint_number", 18.0)
     openamber.set_select("sg_ready_mode_select", "Normaal")
     openamber.set_select("dhw_compressor_mode", "Maximaal")
