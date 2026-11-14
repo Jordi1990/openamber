@@ -105,3 +105,36 @@ def test_switch_to_dhw_waits_for_oil_return_cycle(clean_system):
     openamber.set_switch("dhw_enabled_switch", False)
     openamber.set_switch("heat_demand_switch", False)
     openamber.advance_time(seconds=120, step_s=10)
+
+
+def test_withdrawn_dhw_request_does_not_stop_heating(clean_system):
+    """Tw dips below the DHW restart temperature and comes back before heating has stopped for it.
+
+    Heating must carry on. It used to stop the compressor after the minimum on time for a DHW run that no longer
+    happened, and then waited for the next pump interval before heating again.
+    """
+    openamber = clean_system
+    start_space_heating(openamber)
+    openamber.advance_time(seconds=60, step_s=5)
+
+    openamber.set_sensor("dhw_temperature_tw_sensor", 44.0)
+    openamber.advance_time(seconds=20, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.get_entity("dhw_demand_active_sensor") is True
+    openamber.set_sensor("dhw_temperature_tw_sensor", 46.0)
+    openamber.advance_time(seconds=10, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.get_entity("dhw_demand_active_sensor") is False
+
+    # Well past the minimum on time (600 s): heating still runs and the valve never moved.
+    for _ in range(90):
+        openamber.advance_time(seconds=10, step_s=10)
+        openamber.step(ms=20)
+        assert int(openamber.get_entity("compressor_control_select") or 0) > 0, "Heating must not stop for a withdrawn DHW request"
+        assert openamber.get_entity("three_way_valve_dhw_switch") is False
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+
+    # A DHW request that stays is still honoured.
+    openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
+    assert advance_until_state(openamber, "state_machine_state_main", "DHW", max_s=300)
+    _assert_valve_dhw(openamber)

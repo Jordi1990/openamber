@@ -247,9 +247,16 @@ void OpenAmberComponent::update()
     {
       dhw_controller_->CheckLegionellaCycle();
 
-      if((desired_valve_position == ThreeWayValvePosition::DHW || maintenance_requested || controlled_stop_requested) && !heat_cool_controller_->IsRequestedToStop())
+      const bool stop_wanted = desired_valve_position == ThreeWayValvePosition::DHW || maintenance_requested || controlled_stop_requested;
+      if(stop_wanted && !heat_cool_controller_->IsRequestedToStop())
       {
         heat_cool_controller_->RequestToStop();
+      }
+      else if(!stop_wanted && heat_cool_controller_->IsRequestedToStop())
+      {
+        // The reason for the stop is gone before the controller stopped (e.g. Tw rose back above the DHW restart
+        // temperature, or maintenance mode was switched off again): keep heating/cooling instead of stopping for nothing.
+        heat_cool_controller_->CancelStopRequest();
       }
 
       if(heat_cool_controller_->IsInIdleState())
@@ -287,9 +294,14 @@ void OpenAmberComponent::update()
     {
       dhw_controller_->CheckLegionellaCycle();
 
-      if((maintenance_requested || controlled_stop_requested) && !dhw_controller_->IsRequestedToStop())
+      const bool stop_wanted = maintenance_requested || controlled_stop_requested;
+      if(stop_wanted && !dhw_controller_->IsRequestedToStop())
       {
         dhw_controller_->RequestToStop();
+      }
+      else if(!stop_wanted && dhw_controller_->IsRequestedToStop())
+      {
+        dhw_controller_->CancelStopRequest();
       }
 
       if(dhw_controller_->IsInIdleState())

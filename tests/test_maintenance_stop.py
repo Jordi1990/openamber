@@ -106,3 +106,22 @@ def test_maintenance_mode_waits_for_oil_return_cycle_during_dhw(clean_system):
     openamber.set_switch("service_mode_enabled", False)
     openamber.set_sensor("dhw_temperature_tw_sensor", 55.0)
     openamber.advance_time(seconds=60, step_s=5)
+
+
+def test_maintenance_request_withdrawn_during_minimum_on_time_keeps_heating(clean_system):
+    """Maintenance mode switched on and off again while the compressor finishes its minimum on time: heating carries on."""
+    openamber = clean_system
+    start_space_heating(openamber)
+
+    openamber.set_switch("service_mode_enabled", True)
+    openamber.advance_time(seconds=30, step_s=5)
+    openamber.step(ms=50)
+    assert int(openamber.get_entity("compressor_control_select")) > 0, "Maintenance mode waits for the minimum on time"
+    openamber.set_switch("service_mode_enabled", False)
+
+    for _ in range(90):
+        openamber.advance_time(seconds=10, step_s=10)
+        openamber.step(ms=20)
+        assert int(openamber.get_entity("compressor_control_select")) > 0, "Heating must not stop for a withdrawn maintenance request"
+    assert openamber.get_entity("state_machine_state_main") == "Heat/Cool"
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"

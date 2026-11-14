@@ -148,6 +148,13 @@ public:
     ESP_LOGI("amber", "%s controller requested to stop. Current state: %s", LogTag(), StateToString(state_));
   }
 
+  /// @brief Withdraws a stop request whose reason is gone; the controller carries on from its current state.
+  void CancelStopRequest()
+  {
+    requested_to_stop_ = false;
+    ESP_LOGI("amber", "%s controller stop request cancelled. Current state: %s", LogTag(), StateToString(state_));
+  }
+
   bool IsRequestedToStop()
   {
     return requested_to_stop_;
