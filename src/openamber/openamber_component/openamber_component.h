@@ -42,6 +42,7 @@ enum State {
   DHW_HEAT,
   HEAT_COOL,
   MAINTENANCE,
+  STANDBY,
   WAIT_FOR_STATE_SWITCH,
   WAIT_THREE_WAY_VALVE,
   RESUME_CHECK,
@@ -74,6 +75,8 @@ private:
   bool ota_in_progress_ = false;
   uint32_t ota_last_activity_ms_ = 0;
   uint32_t resume_check_started_ms_ = 0;
+  uint32_t standby_started_ms_ = 0;
+  void EnterStandby();
   void SetThreeWayValve(ThreeWayValvePosition position);
   ThreeWayValvePosition GetThreeWayValvePosition();
   ThreeWayValvePosition GetDesiredThreeWayValvePosition();

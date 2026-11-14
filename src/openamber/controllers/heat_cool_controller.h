@@ -653,10 +653,11 @@ public:
   {
     if(!HasCompressorDemand())
     {
-      // A stop request (maintenance mode, switch to DHW) lets a running oil return cycle finish first.
-      if (requested_to_stop_ && id(oil_return_cycle_active).state)
+      // A stop request (switch to DHW, maintenance mode, controlled stop) lets a running oil return cycle or defrost
+      // finish first, like the normal stop on temperature overshoot does.
+      if (requested_to_stop_ && (id(oil_return_cycle_active).state || id(defrost_active_sensor).state))
       {
-        ESP_LOGI("amber", "Stop requested: waiting for the oil return cycle to finish before stopping.");
+        ESP_LOGI("amber", "Stop requested: waiting for the oil return cycle or defrost to finish before stopping.");
         return false;
       }
       return true;
@@ -867,6 +868,14 @@ public:
           ApplyMixingValvePositions();
         }
 
+        // A controlled stop does not wait for the soft start or the minimum on time.
+        if (IsControlledStopRequested() && ShouldStopCompressor())
+        {
+          ESP_LOGI("amber", "Controlled stop: stopping compressor during soft start.");
+          Stop();
+          break;
+        }
+
         if (compressor_controller_->HasPassedSoftStartDuration())
         {
           SetNextState(HeatCoolState::COMPRESSOR_RUNNING);
@@ -896,7 +905,7 @@ public:
           break;
         }
 
-        if (compressor_controller_->HasPassedMinOnTime())
+        if (compressor_controller_->HasPassedMinOnTime() || IsControlledStopRequested())
         {
           if(ShouldStopCompressor())
           {

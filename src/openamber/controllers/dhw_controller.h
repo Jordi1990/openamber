@@ -361,10 +361,11 @@ private:
   /// return cycle runs. A running oil return cycle is finished first.
   bool ShouldStop()
   {
-    // Checked before the demand: a stop request still lets the oil return cycle finish when the demand ends meanwhile.
-    if (requested_to_stop_ && id(oil_return_cycle_active).state)
+    // Checked before the demand: a stop request still lets the oil return cycle or a defrost finish when the demand
+    // ends meanwhile.
+    if (requested_to_stop_ && (id(oil_return_cycle_active).state || id(defrost_active_sensor).state))
     {
-      ESP_LOGI("amber", "DHW stop requested: waiting for the oil return cycle to finish before stopping.");
+      ESP_LOGI("amber", "DHW stop requested: waiting for the oil return cycle or defrost to finish before stopping.");
       return false;
     }
     return !HasDemand() || requested_to_stop_;
@@ -509,6 +510,16 @@ public:
           break;
         }
         SetWorkingMode(WORKING_MODE_HEATING);
+        // ShouldStop() above defers a stop while an oil return cycle or defrost runs (for a running compressor).
+        // Neither the compressor nor the backup heater has started here, so a stop request stops the pump instead.
+        if (requested_to_stop_)
+        {
+          ESP_LOGI("amber", "DHW stop requested before the compressor or backup heater started, stopping pump.");
+          pump_controller_->Stop();
+          StopDhwPump();
+          SetNextState(DHWState::WAIT_PUMP_STOP);
+          break;
+        }
         if(id(emergency_mode_enabled).state)
         {
           ESP_LOGW("amber", "Emergency mode enabled, not starting compressor but switching on backup heater");
@@ -566,7 +577,7 @@ public:
           break;
         }
 
-        if (compressor_controller_->HasPassedMinOnTime())
+        if (compressor_controller_->HasPassedMinOnTime() || IsControlledStopRequested())
         {
           if(ShouldStop())
           {

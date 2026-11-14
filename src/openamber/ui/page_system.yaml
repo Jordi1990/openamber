@@ -142,6 +142,11 @@ obj:
                                                     id: service_confirm_modal
                                             - if:
                                                     condition:
+                                                        lambda: 'return id(service_confirm_action) == 3;'
+                                                    then:
+                                                        - button.press: controlled_stop_button
+                                            - if:
+                                                    condition:
                                                         lambda: 'return id(service_confirm_action) == 1;'
                                                     then:
                                                         - button.press: restart_openamber

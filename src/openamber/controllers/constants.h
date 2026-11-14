@@ -43,6 +43,9 @@ static const uint32_t THREE_WAY_VALVE_PROTECTION_DELTA_TEMPERATURE_C = 5.0f;
 static const uint32_t THREE_WAY_VALVE_PROTECTION_HIGH_TEMPERATURE_TIME_S = 2 * 60;
 static const float THREE_WAY_VALVE_PROTECTION_TUO_TC_THRESHOLD_C = 5.0f;
 
+// Controlled stop: regulation resumes by itself after this time, so a forgotten stop cannot cool the house.
+static const uint32_t CONTROLLED_STOP_AUTO_RESUME_S = 30 * 60;
+
 // Compressor timing
 // The outdoor unit firmware blocks a compressor restart for 180 s after a stop. It probably counts from the
 // actual stop, which comes 20-30 s after the stop command, so this keeps some margin.

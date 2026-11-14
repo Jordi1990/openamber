@@ -117,6 +117,8 @@ def clean_system(openamber):
     openamber.set_switch("pump_p1_enabled", False)
     openamber.set_switch("pump_p1_relay_switch", False)
     openamber.set_switch("emergency_mode_enabled", False)
+    # A test that failed while stopped must not leave the next test in Standby.
+    openamber.press_button("controlled_stop_resume_button")
     openamber.set_switch("dhw_enabled_switch", True)
     openamber.set_switch("dhw_schedule_enabled_switch", False)
     openamber.set_switch("silent_mode_enabled_switch", False)

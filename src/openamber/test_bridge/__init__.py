@@ -110,6 +110,12 @@ async def to_code(config):
             sw_id = str(getattr(sw["id"], "id", sw["id"]))
             cg.add(var.register_switch(sw_id, cg.RawExpression(sw_id)))
 
+    # Register buttons
+    for b in CORE.config.get("button", []):
+        if isinstance(b, dict) and "id" in b and b["id"]:
+            b_id = str(getattr(b["id"], "id", b["id"]))
+            cg.add(var.register_button(b_id, cg.RawExpression(b_id)))
+
     # Register binary sensors
     for bs in CORE.config.get("binary_sensor", []):
         if isinstance(bs, dict) and "id" in bs and bs["id"]:

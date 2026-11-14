@@ -78,6 +78,7 @@ The tests are organized into modular, domain-specific test suites:
 | [`test_zone2_curve_and_mixing_valves.py`](test_zone2_curve_and_mixing_valves.py) | Zone 2 heating curve anchor interpolation, dual-zone highest setpoint arbitration, Tv1 & Tv2 mixing valve PID modulation, deadband anti-jitter stabilization, min/max clamping & idle closure, defrost position freezing & resumption, control temperature Tc enforcement, fully opening valves to max position in cooling mode, and position template sensors. |
 | [`test_unexpected_compressor_stop.py`](test_unexpected_compressor_stop.py) | A started compressor that reports 0 Hz for 180 s outside a defrost or oil return cycle raises TO07: everything stops (backup heater too) and the controller re-initializes; heating restarts only after the user resets the error. |
 | [`test_maintenance_stop.py`](test_maintenance_stop.py) | Maintenance mode stops the compressor during heating and during DHW (also while the tank still asks for heat), and lets a running oil return cycle (register 2119 bit 0x08) finish first. |
+| [`test_controlled_stop.py`](test_controlled_stop.py) | Controlled stop ("Gecontroleerd stoppen"): stops without waiting for the minimum on time during heating and DHW, finishes a defrost or oil return cycle first, then Standby; resumes with the resume button or after 30 minutes, not for frost protection; buttons on System > Beheer. |
 | [`test_emergency_mode_stops_compressor.py`](test_emergency_mode_stops_compressor.py) | Enabling emergency mode while the compressor is requested (heating or DHW) stops it and re-initializes; regulation continues on the backup heater, without an error and without a re-initialization loop; a restart in emergency mode initializes instead of taking over the running compressor. |
 | [`test_ui_navigation.py`](test_ui_navigation.py) | Header bar title and navbar navigation between Home, Settings, Service, and System pages. |
 | [`test_heatpump_model_name.py`](test_heatpump_model_name.py) | Heat pump model name from the model code in register 3257 (`model_identification_1`) in the text sensor and the header badge, including the HP-S 95 codes 145 and 160 and an unknown code. |
@@ -130,6 +131,7 @@ The `openamber` fixture in tests provides:
 - `openamber.set_number(number_id, value)`: Injects a float state to a number entity.
 - `openamber.set_switch(switch_id, value)`: Turns switch `True` (on) or `False` (off).
 - `openamber.set_binary_sensor(sensor_id, value)`: Publishes boolean state to a binary sensor.
+- `openamber.press_button(button_id)`: Presses a button entity.
 - `openamber.get_entity(entity_id)`: Returns the current state of an entity. Raises if the entity does not exist (a sensor without a value returns `None`).
 - `openamber.step(ms=100)`: Round-trips to the bridge so at least one ESPHome loop iteration runs. It does **not** advance time; anything on an interval (the 5s controller update, template sensors) needs `advance_time`.
 

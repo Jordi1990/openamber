@@ -7,6 +7,7 @@
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/number/number.h"
 #include "esphome/components/switch/switch.h"
+#include "esphome/components/button/button.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/select/select.h"
 #include "esphome/components/climate/climate.h"
@@ -53,6 +54,9 @@ class TestBridge : public Component {
   void register_switch(const std::string &id, switch_::Switch *sw) {
     this->switches_[id] = sw;
   }
+  void register_button(const std::string &id, button::Button *b) {
+    this->buttons_[id] = b;
+  }
   void register_binary_sensor(const std::string &id, binary_sensor::BinarySensor *bs) {
     this->binary_sensors_[id] = bs;
   }
@@ -89,6 +93,7 @@ class TestBridge : public Component {
   std::unordered_map<std::string, climate::Climate *> climates_;
   std::unordered_map<std::string, datetime::TimeEntity *> time_entities_;
   std::unordered_map<std::string, text_sensor::TextSensor *> text_sensors_;
+  std::unordered_map<std::string, button::Button *> buttons_;
 
   void process_line(const std::string &line);
   void send_response(const std::string &json_str);
