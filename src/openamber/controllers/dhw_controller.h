@@ -646,7 +646,9 @@ public:
         // Start a fresh averaging window; do not reuse the rate of a previous DHW cycle.
         id(dhw_backup_current_avg_rate_sensor).publish_state(NAN);
         heating_rate_below_min_since_ms_ = 0;
-        SetNextState(id(emergency_mode_enabled).state ? DHWState::BACKUP_HEATER_RUNNING : DHWState::COMPRESSOR_RUNNING);
+        // A cycle on the backup heater alone (emergency mode) has no compressor request. Decided on the request, not
+        // on the switch: when emergency mode was switched off meanwhile, BACKUP_HEATER_RUNNING ends that cycle.
+        SetNextState(compressor_controller_->IsCommanded() ? DHWState::COMPRESSOR_RUNNING : DHWState::BACKUP_HEATER_RUNNING);
         break;
 
       case DHWState::WAIT_COMPRESSOR_STOP:
@@ -696,6 +698,17 @@ public:
         break;
 
       case DHWState::BACKUP_HEATER_RUNNING:
+        // Emergency mode was switched off during a cycle on the backup heater alone (no compressor request).
+        // The compressor is only started from PUMP_RUNNING, so end the backup heater cycle and go back there.
+        if (!id(emergency_mode_enabled).state && !compressor_controller_->IsCommanded())
+        {
+          ESP_LOGI("amber", "Emergency mode disabled, stopping backup heater and returning to the pump cycle.");
+          TurnOffBackupHeater();
+          heating_rate_below_min_since_ms_ = 0;
+          LeaveStateAndSetNextStateAfterWaitTime(DHWState::PUMP_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
+          break;
+        }
+
         if(id(emergency_mode_enabled).state)
         {
           if(ShouldStartDhwPump())
