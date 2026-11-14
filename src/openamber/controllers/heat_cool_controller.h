@@ -919,8 +919,9 @@ public:
           ESP_LOGI("amber", "Minimum compressor on time not reached, not checking for potential stop conditions yet.");
         }
 
-        // Backup heater logic only applies to heating mode, and not while a stop request waits (e.g. for oil return).
-        if (!IsWorkingMode(WORKING_MODE_COOLING) && !requested_to_stop_)
+        // Backup heater logic only applies to heating mode, and not while the compressor only runs on to finish its
+        // minimum on time, an oil return cycle or a defrost (no demand anymore or a stop request).
+        if (!IsWorkingMode(WORKING_MODE_COOLING) && HasCompressorDemand())
         {
           if (id(sg_ready_max_boost_mode_active_sensor).state)
           {
@@ -938,7 +939,12 @@ public:
             break;
           }
         }
-        
+        else
+        {
+          // Not counting degree/minutes now: when the demand returns the time in between must not be added in one step.
+          InitializeBackupDegMinTracking();
+        }
+
         compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
         break;
       }
@@ -1038,10 +1044,25 @@ public:
 
         if(ShouldStopCompressor())
         {
-          ESP_LOGI("amber", "Stopping compressor and backup heater because there is no demand or a temperature overshoot.");
-          compressor_controller_->Stop();
           TurnOffBackupHeater();
-          SetNextState(id(emergency_mode_enabled).state ? HeatCoolState::PUMP_RUNNING : HeatCoolState::WAIT_COMPRESSOR_STOP);
+          if (id(emergency_mode_enabled).state)
+          {
+            ESP_LOGI("amber", "Stopping backup heater because there is no demand or a temperature overshoot.");
+            compressor_controller_->Stop();
+            SetNextState(HeatCoolState::PUMP_RUNNING);
+          }
+          else if (!compressor_controller_->HasPassedMinOnTime() && !IsControlledStopRequested())
+          {
+            // Backup heater is off; COMPRESSOR_RUNNING stops the compressor once the minimum on time has passed.
+            ESP_LOGI("amber", "Minimum compressor on time not reached, keeping compressor running until it has passed.");
+            LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
+          }
+          else
+          {
+            ESP_LOGI("amber", "Stopping compressor and backup heater because there is no demand or a temperature overshoot.");
+            compressor_controller_->Stop();
+            SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
+          }
           break;
         }
         break;
