@@ -24,7 +24,7 @@
           text_font: font_text_20
           dropdown_list:
             text_font: font_text_20
-          on_value:
+          on_change:
             then:
               - lambda: |-
                   const char* opts[] = {"Beperkt","Zeer laag","Laag","Gemiddeld","Verhoogd","Hoog","Maximaal"};

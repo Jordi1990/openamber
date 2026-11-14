@@ -299,7 +299,9 @@ void OpenAmberComponent::update()
           auto working_mode_call = id(working_mode_switch).make_call();
           working_mode_call.set_index(WORKING_MODE_MAINTENANCE);
           working_mode_call.perform();
-          SetNextState(State::MAINTENANCE);          
+          // Same as entering maintenance from heating/cooling.
+          id(pump_p0_relay_switch).turn_off();
+          SetNextState(State::MAINTENANCE);
           break;
         }
         else if(controlled_stop_requested)

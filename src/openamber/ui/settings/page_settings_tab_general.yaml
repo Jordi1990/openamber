@@ -224,7 +224,7 @@ obj:
                           text_font: font_text_20
                           dropdown_list:
                             text_font: font_text_20
-                          on_value:
+                          on_change:
                             then:
                               - lambda: |-
                                   bool mv_active = id(mixing_valve_zone1_enabled).state || id(mixing_valve_zone2_enabled).state;
@@ -308,7 +308,7 @@ obj:
                           text_font: font_text_20
                           dropdown_list:
                             text_font: font_text_20
-                          on_value:
+                          on_change:
                             then:
                               - lambda: |-
                                   auto val = lv_dropdown_get_selected(id(set_display_screen_timeout_dd)->obj);
@@ -1111,7 +1111,7 @@ obj:
                     text_font: font_text_20
                     dropdown_list:
                       text_font: font_text_20
-                    on_value:
+                    on_change:
                       then:
                         - if:
                             condition:

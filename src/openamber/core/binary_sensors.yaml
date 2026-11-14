@@ -702,6 +702,16 @@ binary_sensor:
     sorting_group_id: error_codes
 
 - platform: template
+  id: error_flag_b01
+  name: "Geen meting BLE-ruimtesensor (B01)"
+  device_class: problem
+  entity_category: diagnostic
+  # Set by the BLE package (ble/ble_package.yaml); always off without it.
+  lambda: return false;
+  web_server:
+    sorting_group_id: error_codes
+
+- platform: template
   id: error_flag_f14
   name: "Storing sensor tapwatertemperatuur (F14)"
   device_class: problem
@@ -931,6 +941,7 @@ binary_sensor:
            id(error_flag_e08).state ||
            id(error_flag_f10).state ||
            id(error_flag_f13).state ||
+           id(error_flag_b01).state ||
            id(error_flag_f14).state ||
            id(error_flag_f15).state ||
            id(error_flag_f16).state ||

@@ -83,7 +83,8 @@ The tests are organized into modular, domain-specific test suites:
 | [`test_ui_navigation.py`](test_ui_navigation.py) | Header bar title and navbar navigation between Home, Settings, Service, and System pages. |
 | [`test_heatpump_model_name.py`](test_heatpump_model_name.py) | Heat pump model name from the model code in register 3257 (`model_identification_1`) in the text sensor and the header badge, including the HP-S 95 codes 145 and 160 and an unknown code. |
 | [`test_graph_page.py`](test_graph_page.py) | History graph page: Grafiek navbar navigation, one sample per minute with the newest Tc shown, empty hint hidden once data exists, and the Tuo/Tui pipes toggle. |
-| [`helpers.py`](helpers.py) | Shared helpers: `advance_until_state()` advances virtual time until a state is reached instead of assuming a fixed timeline; `start_space_heating()` brings the heat/cool controller to `Compressor running`. |
+| [`test_flow_invariants.py`](test_flow_invariants.py) | Complete heating -> DHW -> heating and cooling -> DHW -> cooling flows under `FlowMonitor`, which checks the hardware rules after every 5 s: the 3-way valve only moves with compressor, pump P0 and backup heater off, the compressor only runs with flow and keeps its minimum on/off time, the backup heater only runs with flow, P1 and the DHW pump match the valve position. Also a DHW demand that ends during the compressor start, and a pump cycle that ends without a compressor start. |
+| [`helpers.py`](helpers.py) | Shared helpers: `advance_until_state()` advances virtual time until a state is reached instead of assuming a fixed timeline; `start_space_heating()` brings the heat/cool controller to `Compressor running`; `FlowMonitor` checks the hardware rules after every step of a flow; `now_s()`/`elapsed_s()` measure durations in simulator time (`offset_s()` leaves out the real time that passes while a test runs). |
 
 ---
 

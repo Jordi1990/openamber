@@ -1,0 +1,273 @@
+packages:
+  settings: !include settings.yaml
+
+# ESPHome's native BLE stack (Bluedroid). It stays off until the Bluetooth
+# switch (Settings -> Connectiviteit -> Bluetooth) is turned on;
+# switchbot_update() enables and disables it.
+esp32_ble:
+  enable_on_boot: false
+  # Scan only: no GATT connections. Keep Bluedroid's allocations in PSRAM.
+  max_connections: 1
+  use_psram: true
+
+esp32:
+  framework:
+    sdkconfig_options:
+      CONFIG_SPIRAM_ALLOW_BSS_SEG_EXTERNAL_MEMORY: y
+      # Scan-only controller footprint. With the default of six activities the
+      # controller init asserts (emi.c 164) on the S3.
+      CONFIG_BT_CTRL_BLE_MAX_ACT: "1"
+      CONFIG_BT_CTRL_SCAN_DUPL_CACHE_SIZE: "20"
+      # Linking the controller puts ~16 kB in IRAM (shared with the heap on the
+      # S3), even while BLE is off. Run it from flash; scanning may miss
+      # advertisements while flash is erased (OTA, NVS writes).
+      CONFIG_BT_CTRL_RUN_IN_FLASH_ONLY: y
+
+esp32_ble_tracker:
+  scan_parameters:
+    active: false
+    continuous: true
+  on_ble_advertise:
+    - then:
+        - lambda: switchbot_on_advertise(x.address(), x.get_manufacturer_datas(), x.get_service_datas());
+
+binary_sensor:
+  # F13 is the wired Tr sensor only: with a BLE source an unplugged Tr is fine.
+  - id: !extend error_flag_f13
+    lambda: |-
+      if (id(thermostat_mode_select).current_option() != "Intern") return false;
+      if (switchbot_source_is_ble()) return false;
+      if (!id(inside_unit_status_1225_raw).has_state()) return false;
+      const uint16_t raw = (uint16_t) id(inside_unit_status_1225_raw).state;
+      return (raw & 0x0001) != 0;
+
+  # B01: BLE is the room temperature source but no reading arrived for the
+  # fixed timeout (switchbot_ble.h). Clears itself once readings return.
+  - id: !extend error_flag_b01
+    lambda: |-
+      if (id(thermostat_mode_select).current_option() != "Intern") return false;
+      return switchbot_source_is_ble() && switchbot_reading_missing();
+
+esphome:
+  includes:
+    - openamber/controllers/switchbot_ble.h
+    - openamber/controllers/switchbot_ble_ui.h
+  on_boot:
+    # After esp32_ble (350) and the restored source select, before WiFi (250).
+    - priority: 300
+      then:
+        - lambda: |-
+            switchbot_early_start(id(ble_enabled_switch).state);
+    - priority: -100
+      then:
+        - delay: 10s
+        - lambda: |-
+            switchbot_boot_ready = true;
+            switchbot_update_source();
+            // The Bluetooth page may have been opened during the boot delay.
+            if (id(ble_enabled_switch).state && !lv_obj_has_flag(id(panel_wifi_page_bluetooth), LV_OBJ_FLAG_HIDDEN))
+              switchbot_begin_discovery();
+            switchbot_update_ui();
+
+interval:
+  - interval: 2s
+    then:
+      - lambda: |-
+          switchbot_update_source();
+          switchbot_update_ui();
+
+select:
+  # Tr is the wired sensor; "BLE n" uses paired slot n (ble_device_mac, _2, _3).
+  - platform: template
+    id: room_temperature_source_select
+    name: "Ruimtetemperatuur bron"
+    optimistic: true
+    options: [Tr, BLE 1, BLE 2, BLE 3]
+    initial_option: Tr
+    restore_value: true
+    entity_category: config
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: return switchbot_boot_ready;
+            then:
+              - lambda: |-
+                  switchbot_update_source();
+                  switchbot_update_ui();
+              - component.update: effective_room_temperature
+              - component.update: effective_room_humidity
+
+switch:
+  - platform: template
+    id: ble_enabled_switch
+    name: "Bluetooth"
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    entity_category: config
+    on_turn_on:
+      - if:
+          condition:
+            lambda: return switchbot_boot_ready;
+          then:
+            - lambda: |-
+                switchbot_update_source();
+                if (!lv_obj_has_flag(id(panel_wifi_page_bluetooth), LV_OBJ_FLAG_HIDDEN)) switchbot_begin_discovery();
+                switchbot_update_ui();
+    on_turn_off:
+      - if:
+          condition:
+            lambda: return switchbot_boot_ready;
+          then:
+            - lambda: |-
+                switchbot_update_source();
+                switchbot_update_ui();
+            - component.update: effective_room_temperature
+            - component.update: effective_room_humidity
+
+button:
+  - platform: template
+    id: ble_discovery_button
+    name: "BLE sensoren zoeken"
+    internal: true
+    on_press:
+      - lambda: |-
+          if (!switchbot_boot_ready || !id(ble_enabled_switch).state) return;
+          switchbot_begin_discovery();
+          switchbot_update_source();
+          switchbot_update_ui();
+
+text:
+  # Paired SwitchBot sensors, one MAC per slot.
+  - platform: template
+    id: ble_device_mac
+    name: "SwitchBot MAC Adres"
+    mode: text
+    optimistic: true
+    restore_value: true
+    initial_value: ""
+    entity_category: config
+    internal: true
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: return switchbot_boot_ready;
+            then:
+              - lambda: |-
+                  switchbot_update_source();
+                  switchbot_update_ui();
+              - component.update: effective_room_temperature
+              - component.update: effective_room_humidity
+  - platform: template
+    id: ble_device_mac_2
+    name: "SwitchBot MAC Adres 2"
+    mode: text
+    optimistic: true
+    restore_value: true
+    initial_value: ""
+    entity_category: config
+    internal: true
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: return switchbot_boot_ready;
+            then:
+              - lambda: |-
+                  switchbot_update_source();
+                  switchbot_update_ui();
+              - component.update: effective_room_temperature
+              - component.update: effective_room_humidity
+  - platform: template
+    id: ble_device_mac_3
+    name: "SwitchBot MAC Adres 3"
+    mode: text
+    optimistic: true
+    restore_value: true
+    initial_value: ""
+    entity_category: config
+    internal: true
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: return switchbot_boot_ready;
+            then:
+              - lambda: |-
+                  switchbot_update_source();
+                  switchbot_update_ui();
+              - component.update: effective_room_temperature
+              - component.update: effective_room_humidity
+
+globals:
+  # Model of each paired sensor with its MAC (switchbot_model_key), so passive
+  # scanning still knows it is a thermometer after a reboot.
+  - id: ble_device_model
+    type: uint64_t
+    restore_value: true
+    initial_value: '0'
+  - id: ble_device_model_2
+    type: uint64_t
+    restore_value: true
+    initial_value: '0'
+  - id: ble_device_model_3
+    type: uint64_t
+    restore_value: true
+    initial_value: '0'
+  - id: ble_temp_value
+    type: float
+    initial_value: 'NAN'
+  - id: ble_hum_value
+    type: float
+    initial_value: 'NAN'
+
+sensor:
+  - platform: template
+    name: "Effectieve ruimtetemperatuur"
+    id: effective_room_temperature
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: 10s
+    lambda: |-
+      if (switchbot_source_is_ble()) {
+        return switchbot_reading_fresh() ? id(ble_temp_value) : NAN;
+      }
+      return id(room_temperature).state;
+
+  - platform: template
+    name: "Effectieve luchtvochtigheid"
+    id: effective_room_humidity
+    unit_of_measurement: "%"
+    device_class: humidity
+    state_class: measurement
+    accuracy_decimals: 0
+    update_interval: 10s
+    lambda: |-
+      if (switchbot_source_is_ble()) {
+        return switchbot_reading_fresh() ? id(ble_hum_value) : NAN;
+      }
+      return NAN;
+
+  - platform: template
+    name: "Leeftijd BLE meting"
+    id: switchbot_reading_age
+    unit_of_measurement: s
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    update_interval: 10s
+    lambda: |-
+      const auto &r = switchbot_source_reading();
+      return r.valid ? uint32_t(millis() - r.received_ms) / 1000.0f : NAN;
+
+climate:
+  - id: !extend climate_controller
+    humidity_sensor: effective_room_humidity
+
+script:
+  # Connectiviteit sub-tabs: index 1 is the Bluetooth page added in settings.yaml.
+  - id: !extend connectivity_select_tab
+    then:
+      - lambda: switchbot_show_bluetooth_page(tab_index == 1);
