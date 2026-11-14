@@ -151,21 +151,12 @@ obj:
         light_color: 0xFFFFFF
         text: "https://github.com/Jordi1990/openamber/releases"
 
-    - label:
-        id: service_controlled_stop_status
-        width: 96%
-        text: "Gecontroleerd stoppen: uit"
-        text_color: 0x6B7280
-        text_font: font_text_20
-        long_mode: WRAP
-        align: BOTTOM_LEFT
-        y: -62
-
     - obj:
         id: service_controlled_stop_button
         width: 200
         height: 52
-        align: BOTTOM_MID
+        align: BOTTOM_LEFT
+        y: -64
         bg_color: 0xE5E7EB
         bg_opa: 100%
         radius: 14
@@ -173,28 +164,45 @@ obj:
         border_opa: 0%
         pad_all: 0
         on_click:
-          - if:
-              condition:
-                switch.is_on: controlled_stop_enabled
-              then:
-                - switch.turn_off: controlled_stop_enabled
-              else:
-                - globals.set:
-                    id: service_confirm_action
-                    value: '3'
-                - lambda: |-
-                    lv_label_set_text(id(service_confirm_title), "Gecontroleerd stoppen");
-                    lv_obj_send_event(id(service_confirm_title), lvgl::lv_update_event, nullptr);
-                    lv_label_set_text(id(service_confirm_text), "Compressor en pompen netjes stoppen?");
-                    lv_obj_send_event(id(service_confirm_text), lvgl::lv_update_event, nullptr);
-                    lv_label_set_text(id(service_confirm_button_label), "Stoppen");
-                    lv_obj_send_event(id(service_confirm_button_label), lvgl::lv_update_event, nullptr);
-                    lv_obj_set_style_bg_color(id(service_confirm_button), lv_color_hex(0x0072CE), LV_PART_MAIN);
-                    lv_obj_remove_flag(id(service_confirm_modal), LV_OBJ_FLAG_HIDDEN);
+          - globals.set:
+              id: service_confirm_action
+              value: '3'
+          - lambda: |-
+              lv_label_set_text(id(service_confirm_title), "Gecontroleerd stoppen");
+              lv_obj_send_event(id(service_confirm_title), lvgl::lv_update_event, nullptr);
+              lv_label_set_text(id(service_confirm_text), "Compressor en pompen netjes stoppen? Hervat vanzelf na 30 min.");
+              lv_obj_send_event(id(service_confirm_text), lvgl::lv_update_event, nullptr);
+              lv_label_set_text(id(service_confirm_button_label), "Stoppen");
+              lv_obj_send_event(id(service_confirm_button_label), lvgl::lv_update_event, nullptr);
+              lv_obj_set_style_bg_color(id(service_confirm_button), lv_color_hex(0x0072CE), LV_PART_MAIN);
+              lv_obj_remove_flag(id(service_confirm_modal), LV_OBJ_FLAG_HIDDEN);
         widgets:
           - label:
               id: service_controlled_stop_button_label
               text: "Stoppen"
+              text_color: 0x1F2933
+              text_font: font_mdi_24
+              align: CENTER
+
+    - obj:
+        id: service_controlled_stop_resume_button
+        width: 200
+        height: 52
+        align: BOTTOM_LEFT
+        x: 212
+        y: -64
+        bg_color: 0xE5E7EB
+        bg_opa: 100%
+        radius: 14
+        border_width: 0
+        border_opa: 0%
+        pad_all: 0
+        on_click:
+          - button.press: controlled_stop_resume_button
+        widgets:
+          - label:
+              id: service_controlled_stop_resume_button_label
+              text: "Hervatten"
               text_color: 0x1F2933
               text_font: font_mdi_24
               align: CENTER

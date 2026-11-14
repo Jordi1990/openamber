@@ -12,3 +12,23 @@ button:
     entity_category: diagnostic
     on_press:
       - script.execute: dump_eeprom_parameters
+  - platform: template
+    id: controlled_stop_button
+    name: "Gecontroleerd stoppen"
+    icon: mdi:power-sleep
+    web_server:
+      sorting_group_id: manual_control
+    on_press:
+      - globals.set:
+          id: controlled_stop_active
+          value: 'true'
+  - platform: template
+    id: controlled_stop_resume_button
+    name: "Hervatten na gecontroleerd stoppen"
+    icon: mdi:play
+    web_server:
+      sorting_group_id: manual_control
+    on_press:
+      - globals.set:
+          id: controlled_stop_active
+          value: 'false'

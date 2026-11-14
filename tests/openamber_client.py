@@ -131,6 +131,11 @@ class OpenAmberClient:
         res = self.send_cmd({"cmd": "set_switch", "id": switch_id, "value": bool(value)})
         return self._check_status(res, f"set_switch({switch_id}, {value})")
 
+    def press_button(self, button_id: str) -> bool:
+        """Press a button entity."""
+        res = self.send_cmd({"cmd": "press_button", "id": button_id})
+        return self._check_status(res, f"press_button({button_id})")
+
     def set_binary_sensor(self, sensor_id: str, value: bool) -> bool:
         """Publish state to a binary sensor."""
         res = self.send_cmd({"cmd": "set_binary_sensor", "id": sensor_id, "value": bool(value)})

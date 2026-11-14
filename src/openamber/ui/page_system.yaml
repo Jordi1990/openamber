@@ -144,7 +144,7 @@ obj:
                                                     condition:
                                                         lambda: 'return id(service_confirm_action) == 3;'
                                                     then:
-                                                        - switch.turn_on: controlled_stop_enabled
+                                                        - button.press: controlled_stop_button
                                             - if:
                                                     condition:
                                                         lambda: 'return id(service_confirm_action) == 1;'

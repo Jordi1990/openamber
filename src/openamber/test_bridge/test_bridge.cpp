@@ -414,6 +414,18 @@ void TestBridge::process_line(const std::string &line) {
       return true;
     }
 
+    if (cmd == "press_button") {
+      std::string id = root["id"] | "";
+      auto it = this->buttons_.find(id);
+      if (it != this->buttons_.end() && it->second != nullptr) {
+        it->second->press();
+        this->send_response("{\"status\":\"ok\"}");
+        return true;
+      }
+      this->send_response(build_error_json("Button not found: " + id));
+      return true;
+    }
+
     if (cmd == "set_binary_sensor") {
       std::string id = root["id"] | "";
       bool val = root["value"] | false;

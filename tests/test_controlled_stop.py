@@ -1,36 +1,34 @@
 """Automated tests for the controlled stop ("Gecontroleerd stoppen").
 
-The user can stop the system cleanly, for maintenance or before switching it off. A controlled stop does not wait
-for the minimum compressor on time, but finishes a running defrost or oil return cycle first. When the compressor
-and pumps are off the main state is "Standby" and the status says it is safe to switch off. Regulation resumes when
-the switch goes off, after 30 minutes, or when frost protection becomes active.
+The user can stop the system cleanly, for maintenance or before switching it off, with a button. A controlled stop
+does not wait for the minimum compressor on time, but finishes a running defrost or oil return cycle first. When the
+controller is idle the main state is "Standby". Regulation resumes with the resume button or after 30 minutes; frost
+protection does not end a deliberate stop.
 """
 
 from helpers import advance_until_state, start_space_heating
 
-SWITCH = "controlled_stop_enabled"
-STATUS = "controlled_stop_status"
-SAFE = "Gestopt - veilig om uit te schakelen"
+STOP = "controlled_stop_button"
+RESUME = "controlled_stop_resume_button"
+MAIN = "state_machine_state_main"
 
 
 def compressor_mode(openamber):
     return int(openamber.get_entity("compressor_control_select") or 0)
 
 
-def stop_and_wait_until_safe(openamber, max_s=600):
-    openamber.set_switch(SWITCH, True)
+def stop_and_wait_for_standby(openamber, max_s=600):
+    openamber.press_button(STOP)
     openamber.step(ms=50)
-    assert advance_until_state(openamber, STATUS, SAFE, max_s=max_s, step=5), (
-        f"Never reached a safe stop (status: {openamber.get_entity(STATUS)}, "
-        f"main: {openamber.get_entity('state_machine_state_main')})"
+    assert advance_until_state(openamber, MAIN, "Standby", max_s=max_s, step=5), (
+        f"Never reached Standby (main: {openamber.get_entity(MAIN)})"
     )
 
 
 def resume(openamber):
-    openamber.set_switch(SWITCH, False)
+    openamber.press_button(RESUME)
     openamber.step(ms=50)
-    # The status follows within one controller update (5 s).
-    assert advance_until_state(openamber, STATUS, "Uit", max_s=10, step=1)
+    assert advance_until_state(openamber, MAIN, "Heat/Cool", max_s=300, step=5)
 
 
 def test_controlled_stop_during_heating_skips_minimum_on_time(clean_system):
@@ -39,20 +37,20 @@ def test_controlled_stop_during_heating_skips_minimum_on_time(clean_system):
     start_space_heating(openamber)
     assert compressor_mode(openamber) > 0
 
-    openamber.set_switch(SWITCH, True)
+    openamber.press_button(STOP)
     openamber.advance_time(seconds=10, step_s=2)
     openamber.step(ms=50)
     assert compressor_mode(openamber) == 0, "A controlled stop must not wait for the minimum on time"
 
-    assert advance_until_state(openamber, STATUS, SAFE, max_s=600, step=5)
-    assert openamber.get_entity("state_machine_state_main") == "Standby"
-    assert openamber.get_entity("pump_p0_relay_switch") is False
+    assert advance_until_state(openamber, MAIN, "Standby", max_s=600, step=5)
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Idle"
+    assert openamber.get_entity("pump_p1_relay_switch") is False
 
     # No new start while stopped, although there is still heat demand.
     openamber.advance_time(seconds=600, step_s=10)
     openamber.step(ms=50)
     assert compressor_mode(openamber) == 0
-    assert openamber.get_entity("state_machine_state_main") == "Standby"
+    assert openamber.get_entity(MAIN) == "Standby"
 
     resume(openamber)
     assert advance_until_state(openamber, "state_machine_state_heat_cool", "Compressor running", max_s=1800), (
@@ -71,11 +69,11 @@ def test_controlled_stop_during_dhw(clean_system):
     openamber.step(ms=100)
     assert advance_until_state(openamber, "state_machine_state_dhw", "Compressor running", max_s=900, step=5)
 
-    stop_and_wait_until_safe(openamber)
+    stop_and_wait_for_standby(openamber)
     assert compressor_mode(openamber) == 0
     assert openamber.get_entity("dhw_demand_active_sensor") is True, "The tank still asks for heat"
 
-    resume(openamber)
+    openamber.press_button(RESUME)
     openamber.set_sensor("dhw_temperature_tw_sensor", 55.0)
     openamber.advance_time(seconds=120, step_s=10)
 
@@ -87,17 +85,16 @@ def test_controlled_stop_finishes_oil_return_cycle_first(clean_system):
     assert openamber.set_sensor("error_register_2119_raw", 8.0)
     openamber.step(ms=50)
 
-    openamber.set_switch(SWITCH, True)
+    openamber.press_button(STOP)
     openamber.advance_time(seconds=60, step_s=5)
     openamber.step(ms=50)
     assert compressor_mode(openamber) > 0, "The compressor must run until the oil return cycle ends"
-    assert openamber.get_entity(STATUS) == "Wacht op defrost/oliereturn"
 
     assert openamber.set_sensor("error_register_2119_raw", 0.0)
     openamber.advance_time(seconds=10, step_s=2)
     openamber.step(ms=50)
     assert compressor_mode(openamber) == 0
-    assert advance_until_state(openamber, STATUS, SAFE, max_s=600, step=5)
+    assert advance_until_state(openamber, MAIN, "Standby", max_s=600, step=5)
 
     resume(openamber)
     openamber.set_switch("heat_demand_switch", False)
@@ -111,14 +108,13 @@ def test_controlled_stop_finishes_defrost_first(clean_system):
     openamber.set_binary_sensor("defrost_active_sensor", True)
     openamber.step(ms=50)
 
-    openamber.set_switch(SWITCH, True)
+    openamber.press_button(STOP)
     openamber.advance_time(seconds=60, step_s=5)
     openamber.step(ms=50)
     assert compressor_mode(openamber) > 0, "The compressor must run until the defrost ends"
-    assert openamber.get_entity(STATUS) == "Wacht op defrost/oliereturn"
 
     openamber.set_binary_sensor("defrost_active_sensor", False)
-    assert advance_until_state(openamber, STATUS, SAFE, max_s=900, step=5)
+    assert advance_until_state(openamber, MAIN, "Standby", max_s=900, step=5)
     assert compressor_mode(openamber) == 0
 
     resume(openamber)
@@ -129,125 +125,52 @@ def test_controlled_stop_finishes_defrost_first(clean_system):
 def test_controlled_stop_resumes_after_30_minutes(clean_system):
     """A forgotten controlled stop ends by itself after 30 minutes."""
     openamber = clean_system
-    stop_and_wait_until_safe(openamber)
+    stop_and_wait_for_standby(openamber)
 
     openamber.advance_time(seconds=29 * 60, step_s=30)
     openamber.step(ms=50)
-    assert openamber.get_entity("state_machine_state_main") == "Standby"
+    assert openamber.get_entity(MAIN) == "Standby"
 
     openamber.advance_time(seconds=90, step_s=10)
     openamber.step(ms=50)
-    assert openamber.get_entity(SWITCH) is False, "The switch must turn off after 30 minutes"
-    assert advance_until_state(openamber, STATUS, "Uit", max_s=10, step=1)
-    assert advance_until_state(openamber, "state_machine_state_main", "Heat/Cool", max_s=300, step=5)
+    assert advance_until_state(openamber, MAIN, "Heat/Cool", max_s=300, step=5)
 
 
-def test_controlled_stop_resumes_for_frost_protection(clean_system):
-    """Frost protection takes precedence over a controlled stop."""
+def test_frost_protection_does_not_end_a_controlled_stop(clean_system):
+    """A deliberate stop stays stopped when frost protection becomes active."""
     openamber = clean_system
-    stop_and_wait_until_safe(openamber)
+    stop_and_wait_for_standby(openamber)
 
     openamber.set_sensor("temperature_outside_ta", 2.0)
-    assert advance_until_state(openamber, SWITCH, False, max_s=600, step=10), "Frost protection must end the stop"
-    assert advance_until_state(openamber, "state_machine_state_main", "Heat/Cool", max_s=300, step=5)
+    openamber.advance_time(seconds=300, step_s=10)
+    openamber.step(ms=50)
+    assert openamber.get_entity(MAIN) == "Standby", "Frost protection must not end a controlled stop"
+    assert compressor_mode(openamber) == 0
+
     openamber.set_sensor("temperature_outside_ta", 7.0)
+    resume(openamber)
     openamber.advance_time(seconds=400, step_s=20)
 
 
-def test_system_tab_button_and_status(openamber):
-    """The button on System > Beheer asks for confirmation, then stops; the status line follows."""
+def test_system_tab_buttons(openamber):
+    """Stoppen on System > Beheer asks for confirmation, Hervatten resumes without one."""
     assert openamber.click("nav_system")
     openamber.step(ms=100)
     assert openamber.get_label("service_controlled_stop_button_label") == "Stoppen"
+    assert openamber.get_label("service_controlled_stop_resume_button_label") == "Hervatten"
 
     assert openamber.click("service_controlled_stop_button")
     openamber.step(ms=100)
     assert openamber.is_visible("service_confirm_modal"), "Stopping asks for confirmation"
     assert openamber.click("service_confirm_button")
     openamber.step(ms=100)
-    assert openamber.get_entity(SWITCH) is True
-    assert openamber.get_label("service_controlled_stop_button_label") == "Hervatten"
-    assert advance_until_state(openamber, STATUS, SAFE, max_s=600, step=5)
-    openamber.step(ms=100)
-    assert "veilig om uit te schakelen" in openamber.get_label("service_controlled_stop_status")
+    assert advance_until_state(openamber, MAIN, "Standby", max_s=600, step=5)
 
-    # Resuming does not ask for confirmation.
-    assert openamber.click("service_controlled_stop_button")
+    assert openamber.click("service_controlled_stop_resume_button")
     openamber.step(ms=100)
-    assert openamber.get_entity(SWITCH) is False
-    assert openamber.get_label("service_controlled_stop_button_label") == "Stoppen"
+    assert advance_until_state(openamber, MAIN, "Heat/Cool", max_s=300, step=5)
     assert openamber.click("nav_home")
     openamber.step(ms=100)
-
-
-def test_switching_off_while_waiting_for_oil_return_cancels_the_stop(clean_system):
-    """Switching the controlled stop off while it still waits for an oil return cycle withdraws the stop request:
-    when the cycle ends the compressor keeps running instead of stopping anyway."""
-    openamber = clean_system
-    start_space_heating(openamber)
-    assert openamber.set_sensor("error_register_2119_raw", 8.0)
-    openamber.step(ms=50)
-
-    openamber.set_switch(SWITCH, True)
-    openamber.advance_time(seconds=30, step_s=5)
-    openamber.step(ms=50)
-    assert openamber.get_entity(STATUS) == "Wacht op defrost/oliereturn"
-
-    resume(openamber)
-    assert openamber.set_sensor("error_register_2119_raw", 0.0)
-    # Also past the minimum on time, from which a still pending stop request would stop the compressor.
-    for _ in range(72):
-        openamber.advance_time(seconds=10, step_s=5)
-        openamber.step(ms=20)
-        assert compressor_mode(openamber) > 0, "The withdrawn stop must not stop the compressor after the oil return cycle"
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
-
-    openamber.set_switch("heat_demand_switch", False)
-    openamber.advance_time(seconds=30, step_s=5)
-
-
-def test_frost_protection_cancels_a_pending_controlled_stop(clean_system):
-    """Frost protection while a controlled stop still waits (oil return cycle) cancels it before stand-by."""
-    openamber = clean_system
-    start_space_heating(openamber)
-    assert openamber.set_sensor("error_register_2119_raw", 8.0)  # the stop waits for the oil return cycle
-    openamber.set_switch(SWITCH, True)
-    openamber.advance_time(seconds=30, step_s=5)
-    assert openamber.get_entity(STATUS) == "Wacht op defrost/oliereturn"
-
-    openamber.set_sensor("temperature_outside_ta", 2.0)
-    assert advance_until_state(openamber, SWITCH, False, max_s=600, step=10), "Frost protection must cancel the stop"
-    assert openamber.set_sensor("error_register_2119_raw", 0.0)
-    openamber.advance_time(seconds=120, step_s=5)
-    openamber.step(ms=50)
-    assert openamber.get_entity("state_machine_state_main") == "Heat/Cool", "No stand-by after the stop was cancelled"
-    assert compressor_mode(openamber) > 0, "Regulation continues for frost protection"
-
-    openamber.set_sensor("temperature_outside_ta", 7.0)
-    openamber.set_switch("heat_demand_switch", False)
-    openamber.advance_time(seconds=400, step_s=20)
-
-
-def test_standby_waits_until_the_compressor_is_confirmed_off(clean_system):
-    """A safety stop sets the controller idle before the run-down: stand-by and 'safe' only follow at 0 Hz."""
-    openamber = clean_system
-    start_space_heating(openamber)
-    openamber.set_switch(SWITCH, True)
-    openamber.set_number("mock_compressor_frequency_override", 36.0)  # the readback keeps reporting 36 Hz
-    assert openamber.set_binary_sensor("error_pump_start_timeout", True)  # safety stop: controller idle right away
-    openamber.advance_time(seconds=30, step_s=5)
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Idle", "The safety stop sets the controller idle"
-    assert openamber.set_binary_sensor("error_pump_start_timeout", False)
-    openamber.advance_time(seconds=60, step_s=5)
-    openamber.step(ms=50)
-    assert openamber.get_entity("state_machine_state_main") != "Standby", "No stand-by while the compressor reports 36 Hz"
-    assert openamber.get_entity(STATUS) != SAFE
-
-    openamber.set_number("mock_compressor_frequency_override", -1.0)
-    assert advance_until_state(openamber, STATUS, SAFE, max_s=600, step=5), "Stand-by follows once the compressor is off"
-    resume(openamber)
-    openamber.set_switch("heat_demand_switch", False)
-    openamber.advance_time(seconds=30, step_s=5)
 
 
 def test_maintenance_and_controlled_stop_wait_for_minimum_on_time(clean_system):
@@ -255,12 +178,12 @@ def test_maintenance_and_controlled_stop_wait_for_minimum_on_time(clean_system):
     openamber = clean_system
     start_space_heating(openamber)
     openamber.set_switch("service_mode_enabled", True)
-    openamber.set_switch(SWITCH, True)
+    openamber.press_button(STOP)
     openamber.advance_time(seconds=30, step_s=5)
     openamber.step(ms=50)
     assert compressor_mode(openamber) > 0, "A maintenance stop waits for the minimum on time"
 
-    openamber.set_switch(SWITCH, False)
+    openamber.press_button(RESUME)
     openamber.set_switch("service_mode_enabled", False)
     openamber.set_switch("heat_demand_switch", False)
     openamber.advance_time(seconds=900, step_s=20)

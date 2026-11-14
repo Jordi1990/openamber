@@ -20,11 +20,6 @@ text_sensor:
   icon: "mdi:chip"
 
 - platform: template
-  id: controlled_stop_status
-  name: "Status gecontroleerd stoppen"
-  icon: mdi:power-sleep
-
-- platform: template
   id: defrost_phase_text
   name: "Defrost fase"
   entity_category: diagnostic

@@ -265,10 +265,3 @@
           id: set_outdoor_unit_optimizations_enabled_switch_ui
           state:
             checked: !lambda 'return x;'
-
-- id: !extend controlled_stop_enabled
-  on_state:
-    then:
-      - lambda: |-
-          lv_label_set_text(id(service_controlled_stop_button_label), x ? "Hervatten" : "Stoppen");
-          lv_obj_send_event(id(service_controlled_stop_button_label), lvgl::lv_update_event, nullptr);
