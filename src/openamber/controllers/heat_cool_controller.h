@@ -381,14 +381,10 @@ private:
              id(frost_protection_stage2_active).state;
   }
 
-  bool IsCompressorAllowedToStart()
+  /// @brief True when the control temperature asks for the compressor (start delta). The minimum off time is
+  /// checked separately: it only delays the start, it is no reason to end the pump cycle.
+  bool IsStartTemperatureReached()
   {
-      if (!compressor_controller_->HasPassedMinOffTime())
-      {
-        ESP_LOGI("amber", "Not starting compressor because minimum compressor time off is not reached.");
-        return false;
-      }
-
       // Start condition based on target temperature and start_compressor_delta
       float current_temperature = GetControlTemperature();
       if (IsCoolingDemand())
@@ -791,8 +787,9 @@ public:
       {
         pump_controller_->ApplySpeedChangeIfNeeded(false);
 
-        // Stop if there is no compressor demand or the compressor is not allowed to start and pump interval is finished.
-        if ((!HasCompressorDemand() || !IsCompressorAllowedToStart()) && pump_controller_->IsIntervalCycleFinished())
+        // Stop if there is no compressor demand or the temperature does not ask for the compressor and pump interval is finished.
+        const bool compressor_wanted = HasCompressorDemand() && IsStartTemperatureReached();
+        if (!compressor_wanted && pump_controller_->IsIntervalCycleFinished())
         {
           ESP_LOGI("amber", "Stopping pump (interval cycle finished)");
           // P1 keeps running between pump cycles while there is demand, idle stops it when the demand is gone.
@@ -801,13 +798,16 @@ public:
           break;
         }
 
-        if (!HasCompressorDemand())
+        if (!compressor_wanted)
         {
           break;
         }
 
-        if(!IsCompressorAllowedToStart())
+        // The compressor is wanted: keep the pump running while the minimum off time passes. Ending the pump
+        // cycle here would delay the start by a full pump interval.
+        if (!compressor_controller_->HasPassedMinOffTime())
         {
+          ESP_LOGI("amber", "Not starting compressor because minimum compressor time off is not reached.");
           break;
         }
 

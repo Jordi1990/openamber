@@ -2,6 +2,8 @@
 
 import pytest
 
+from helpers import start_space_heating
+
 
 def test_heat_demand_expect_to_heat_happy_flow(clean_system):
     """
@@ -608,3 +610,48 @@ def test_heat_demand_oil_return_blocks_compressor_stop(clean_system):
     # Cleanup
     openamber.set_binary_sensor("external_heat_demand_wired", False)
     openamber.step(ms=50)
+
+
+def test_compressor_restarts_within_pump_cycle_after_minimum_off_time(clean_system):
+    """
+    Restart Flow:
+    1. Heating runs past the minimum on time, the heat demand ends and the compressor stops.
+    2. The heat demand returns 30 s later. The pump still runs its cycle and the supply is cold, so the
+       compressor is wanted, but the minimum off time (200 s) has not passed when the pump cycle (120 s) ends.
+    3. The pump keeps running and the compressor starts once the minimum off time has passed.
+       Ending the pump cycle there delayed the start by a full pump interval (15 min).
+    """
+    openamber = clean_system
+
+    def compressor_mode():
+        return int(openamber.get_entity("compressor_control_select") or 0)
+
+    def simulator_s():
+        # millis() of the simulator: the virtual time offset plus the real time that passes during the test.
+        return openamber.get_time()["millis"] / 1000.0
+
+    def advance_until_compressor(running, max_s):
+        waited = 0
+        while (compressor_mode() > 0) != running and waited < max_s:
+            openamber.advance_time(seconds=5, step_s=5)
+            openamber.step(ms=20)
+            waited += 5
+        return (compressor_mode() > 0) == running
+
+    start_space_heating(openamber)
+    openamber.advance_time(seconds=620, step_s=20)
+    openamber.step(ms=50)
+
+    openamber.set_switch("heat_demand_switch", False)
+    assert advance_until_compressor(False, max_s=30), "Compressor should stop when the heat demand ends"
+    stopped_at = simulator_s()
+
+    openamber.advance_time(seconds=30, step_s=5)
+    openamber.set_switch("heat_demand_switch", True)
+
+    assert advance_until_compressor(True, max_s=400), (
+        f"Compressor did not restart within the pump cycle (state: {openamber.get_entity('state_machine_state_heat_cool')})"
+    )
+    restarted_after = simulator_s() - stopped_at
+    assert 200 <= restarted_after <= 225, f"Compressor restarted {restarted_after:.0f} s after the stop"
+    assert openamber.get_entity("internal_pump_active") is True
