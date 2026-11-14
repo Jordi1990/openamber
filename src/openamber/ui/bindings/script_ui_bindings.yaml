@@ -3333,3 +3333,30 @@
         lv_obj_set_style_text_color(id(nav_status_wifi_icon), lv_color_hex(0x9CA3AF), LV_PART_MAIN);
         lv_obj_add_flag(id(wifi_connected_section), LV_OBJ_FLAG_HIDDEN);
         lv_obj_remove_flag(id(wifi_disconnected_section), LV_OBJ_FLAG_HIDDEN);
+
+# Firmware update via the display: show the progress overlay and install. Used directly and after a controlled stop.
+- id: start_firmware_update
+  mode: single
+  then:
+    - globals.set:
+        id: service_update_install_in_progress
+        value: 'true'
+    - lvgl.widget.show:
+        id: service_update_progress_overlay
+    - update.perform:
+        id: firmware_update
+    - delay: 10min
+    - globals.set:
+        id: service_update_install_in_progress
+        value: 'false'
+    - lvgl.widget.hide:
+        id: service_update_progress_overlay
+
+# Restore the confirm dialog to its two-button layout.
+- id: service_confirm_reset_layout
+  then:
+    - lambda: |-
+        lv_obj_add_flag(id(service_confirm_stop_first_button), LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_size(id(service_confirm_card), 560, 260);
+        lv_obj_set_width(id(service_confirm_cancel_button), 200);
+        lv_obj_set_width(id(service_confirm_button), 200);

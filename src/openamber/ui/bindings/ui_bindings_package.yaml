@@ -3,6 +3,30 @@ esphome:
     - openamber/ui/graph_page.h
 
 interval:
+  # Firmware update after a controlled stop: start once in standby, or after 15 min anyway (safe thanks to the OTA hold).
+  - interval: 5s
+    then:
+      - lambda: |-
+          if (!id(update_after_stop_pending)) return;
+          static const uint32_t UPDATE_AFTER_STOP_TIMEOUT_MS = 15UL * 60UL * 1000UL;
+          bool standby = id(amber_ctrl).is_standby();
+          lv_label_set_text(id(service_update_wait_status), standby ? "Status: gestopt" : "Status: bezig met stoppen");
+          if (!id(controlled_stop_active)) {
+            ESP_LOGI("amber", "Firmware update after controlled stop cancelled: regulation resumed.");
+            id(update_after_stop_pending) = false;
+            lv_obj_add_flag(id(service_update_wait_overlay), LV_OBJ_FLAG_HIDDEN);
+            return;
+          }
+          bool timed_out = (millis() - id(update_after_stop_started_ms)) >= UPDATE_AFTER_STOP_TIMEOUT_MS;
+          if (!standby && !timed_out) return;
+          if (standby) {
+            ESP_LOGI("amber", "Controlled stop reached standby, starting firmware update.");
+          } else {
+            ESP_LOGW("amber", "Controlled stop not reached within 15 min, starting firmware update anyway.");
+          }
+          id(update_after_stop_pending) = false;
+          lv_obj_add_flag(id(service_update_wait_overlay), LV_OBJ_FLAG_HIDDEN);
+          id(start_firmware_update).execute();
   # Records one history sample per minute, also while the graph page is closed, so the history is there when it
   # opens. The page only redraws when it is visible; the sample itself is a few bytes in a ring buffer.
   - interval: 60s

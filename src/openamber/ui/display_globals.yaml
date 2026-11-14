@@ -26,6 +26,15 @@ globals:
     type: int
     restore_value: no
     initial_value: '0'
+  # Firmware update waits for a controlled stop first (chosen in the update dialog while the heat pump runs)
+  - id: update_after_stop_pending
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: update_after_stop_started_ms
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
   - id: header_alert_blink_phase
     type: bool
     restore_value: no

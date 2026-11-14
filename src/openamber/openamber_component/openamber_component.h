@@ -130,6 +130,7 @@ public:
   void on_ota_progress();
   void on_ota_finished(bool success);
   bool is_ota_in_progress() const { return ota_in_progress_; }
+  bool is_standby() const { return state_ == State::STANDBY; }
 #ifdef USE_HOST
   // Simulator only: drop all controller state as if the ESP restarted, while the units keep their state.
   void simulate_restart();
