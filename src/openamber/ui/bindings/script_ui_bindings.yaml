@@ -2608,6 +2608,12 @@
           } else {
             lv_obj_add_flag(id(service_update_progress_overlay), LV_OBJ_FLAG_HIDDEN);
           }
+          // The stop can also end by itself (30 min) or be changed from Home Assistant, so follow the actual state.
+          const char *stop_label = id(controlled_stop_active) ? "Hervat warmtepomp" : "Stop warmtepomp";
+          if (strcmp(lv_label_get_text(id(service_controlled_stop_button_label)), stop_label) != 0) {
+            lv_label_set_text(id(service_controlled_stop_button_label), stop_label);
+            lv_obj_send_event(id(service_controlled_stop_button_label), lvgl::lv_update_event, nullptr);
+          }
         }
 
 - id: update_service_errors_ui

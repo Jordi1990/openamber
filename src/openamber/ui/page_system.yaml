@@ -145,6 +145,9 @@ obj:
                                                         lambda: 'return id(service_confirm_action) == 3;'
                                                     then:
                                                         - button.press: controlled_stop_button
+                                                        - lambda: |-
+                                                            lv_label_set_text(id(service_controlled_stop_button_label), "Hervat warmtepomp");
+                                                            lv_obj_send_event(id(service_controlled_stop_button_label), lvgl::lv_update_event, nullptr);
                                             - if:
                                                     condition:
                                                         lambda: 'return id(service_confirm_action) == 1;'
