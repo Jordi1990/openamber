@@ -10,6 +10,7 @@
 // humidity stays NAN when the sensor does not send one.
 
 static const uint16_t BLE_BTHOME_SERVICE_UUID = 0xFCD2;
+static const uint16_t BLE_BTHOME_V1_SERVICE_UUID = 0x181C;
 // Environmental Sensing, used by the ATC1441 and pvvx custom formats.
 static const uint16_t BLE_ATC_SERVICE_UUID = 0x181A;
 
@@ -77,6 +78,41 @@ static bool ble_parse_bthome(const uint8_t *data, size_t size, float &temperatur
             else if (object == 0x2E)
                 humidity = value[0];
         }
+    }
+    return !std::isnan(temperature) && ble_reading_plausible(temperature, humidity);
+}
+
+// BTHome v1 ("HA BLE"), unencrypted, as older pvvx firmware sends it. Every
+// object is: one byte with the length of what follows in bits 0-4 and the
+// data type in bits 5-7 (0 unsigned, 1 signed), the object ID, then the
+// little-endian value. Temperature (0x02) and humidity (0x03) are x0.01.
+static bool ble_parse_bthome_v1(const uint8_t *data, size_t size, float &temperature, float &humidity)
+{
+    temperature = NAN;
+    humidity = NAN;
+    size_t pos = 0;
+    while (pos + 1 < size)
+    {
+        size_t length = data[pos] & 0x1F;
+        uint8_t type = data[pos] >> 5;
+        if (length < 1 || pos + 1 + length > size)
+            break;
+        uint8_t object = data[pos + 1];
+        size_t bytes = length - 1;
+        if (type <= 1 && bytes >= 1 && bytes <= 4)
+        {
+            uint32_t raw = 0;
+            for (size_t i = 0; i < bytes; i++)
+                raw |= uint32_t(data[pos + 2 + i]) << (8 * i);
+            int32_t value = int32_t(raw);
+            if (type == 1 && bytes < 4 && (raw & (1u << (8 * bytes - 1))))
+                value = int32_t(raw | (0xFFFFFFFFu << (8 * bytes)));
+            if (object == 0x02 && std::isnan(temperature))
+                temperature = value * 0.01f;
+            else if (object == 0x03 && std::isnan(humidity))
+                humidity = value * 0.01f;
+        }
+        pos += 1 + length;
     }
     return !std::isnan(temperature) && ble_reading_plausible(temperature, humidity);
 }

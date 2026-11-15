@@ -303,6 +303,9 @@ static uint8_t switchbot_parse_open_formats(const uint8_t *mac, const Datas &ser
         if (service.uuid == Uuid::from_uint16(BLE_BTHOME_SERVICE_UUID) &&
             ble_parse_bthome(service.data.data(), service.data.size(), temperature, humidity))
             model = SWITCHBOT_MODEL_BTHOME;
+        else if (service.uuid == Uuid::from_uint16(BLE_BTHOME_V1_SERVICE_UUID) &&
+                 ble_parse_bthome_v1(service.data.data(), service.data.size(), temperature, humidity))
+            model = SWITCHBOT_MODEL_BTHOME;
         else if (service.uuid == Uuid::from_uint16(BLE_ATC_SERVICE_UUID) &&
                  ble_parse_atc(service.data.data(), service.data.size(), mac, temperature, humidity))
             model = SWITCHBOT_MODEL_ATC;
