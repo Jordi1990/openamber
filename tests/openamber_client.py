@@ -77,7 +77,6 @@ class OpenAmberClient:
     def click(self, widget_id: str) -> bool:
         """Simulate clicking an LVGL widget."""
         res = self.send_cmd({"cmd": "click", "id": widget_id})
-        time.sleep(0.05)
         return self._check_status(res, f"click({widget_id})")
 
     def get_widget(self, widget_id: str) -> Dict[str, Any]:
@@ -93,7 +92,6 @@ class OpenAmberClient:
     def set_dropdown(self, widget_id: str, selected: int) -> bool:
         """Set selected index of a dropdown widget and trigger LV_EVENT_VALUE_CHANGED."""
         res = self.send_cmd({"cmd": "set_dropdown", "id": widget_id, "selected": int(selected)})
-        time.sleep(0.05)
         return self._check_status(res, f"set_dropdown({widget_id}, {selected})")
 
     def is_visible(self, widget_id: str) -> bool:
@@ -224,9 +222,13 @@ class OpenAmberClient:
         return res.get("state")
 
     def step(self, ms: int = 100) -> bool:
-        """Pause test runner and allow ESPHome event loop cycles to run."""
+        """Round-trip to the bridge so at least one ESPHome loop iteration runs.
+
+        The bridge answers from its own loop(), so every other component has had a loop() call
+        by the time the next command is handled; no sleep is needed. `ms` is ignored and only
+        kept for existing callers: no time passes, use advance_time for that.
+        """
         res = self.send_cmd({"cmd": "step", "ms": ms})
-        time.sleep(min(0.01, ms / 1000.0))
         return res.get("status") == "ok"
 
     def wait_for_condition(

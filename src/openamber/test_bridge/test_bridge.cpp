@@ -1,5 +1,6 @@
 #include "test_bridge.h"
 #include <cerrno>
+#include <cstdlib>
 
 #if defined(USE_EEBUS_MOCK)
 #include "esphome/components/eebus/eebus_mock.h"
@@ -46,6 +47,12 @@ void TestBridge::setup() {
   WSADATA wsa_data;
   WSAStartup(MAKEWORD(2, 2), &wsa_data);
 #endif
+
+  // The port can be overridden at start, so several checkouts can run their test suites at the same time.
+  if (const char *env_port = std::getenv("OPENAMBER_TEST_PORT")) {
+    int p = atoi(env_port);
+    if (p > 0 && p < 65536) this->port_ = p;
+  }
 
   this->server_fd_ = socket(AF_INET, SOCK_STREAM, 0);
   if (this->server_fd_ < 0) {
@@ -107,6 +114,7 @@ void TestBridge::close_client() {
 #endif
     this->client_fd_ = -1;
     this->rx_buffer_.clear();
+    this->high_freq_.stop();
     ESP_LOGD(TAG, "Client disconnected");
   }
 }
@@ -125,6 +133,9 @@ void TestBridge::loop() {
 #else
       fcntl(this->client_fd_, F_SETFL, O_NONBLOCK);
 #endif
+      // Run the main loop without the 16ms loop_interval gate while a test client is attached,
+      // so a request/response round trip does not have to wait for the next component phase.
+      this->high_freq_.start();
       ESP_LOGI(TAG, "Test client connected");
     }
   }
