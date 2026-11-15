@@ -168,8 +168,9 @@ def test_pump_p0_pid_defrost_override_and_limits(clean_system):
     openamber.set_binary_sensor("external_heat_demand_wired", True)
     openamber.step(ms=100)
 
-    # Advance time through pump interval in IDLE (900s) + pump start (10s)
-    openamber.advance_time(seconds=910, step_s=30)
+    # The pump starts after the pump interval, or right away when an earlier DHW run reset the interval. The
+    # checks below need the pump cycle before the compressor starts, so stop advancing as soon as it runs.
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Pump running", max_s=1000, step=5)
     openamber.step(ms=100)
     assert openamber.get_entity("internal_pump_active") is True
 
@@ -374,6 +375,9 @@ def test_pump_p1_stops_when_entering_maintenance_from_idle_heat_demand(clean_sys
     """Entering maintenance from idle with heat demand stops P1, which idle leaves running."""
     openamber = clean_system
     _start_idle_heat_demand_with_p1(openamber)
+    # After a DHW run the pump interval is reset and a pump cycle starts right away: let it finish first.
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Idle", max_s=300, step=5)
+    assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 must keep running in idle with heat demand"
 
     openamber.set_switch("service_mode_enabled", True)
     openamber.step(ms=50)
