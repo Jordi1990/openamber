@@ -50,6 +50,7 @@ binary_sensor:
 
 esphome:
   includes:
+    - openamber/controllers/ble_sensor_formats.h
     - openamber/controllers/switchbot_ble.h
     - openamber/controllers/switchbot_ble_ui.h
   on_boot:
@@ -138,7 +139,8 @@ button:
           switchbot_update_ui();
 
 text:
-  # Paired SwitchBot sensors, one MAC per slot.
+  # Paired sensors (SwitchBot, BTHome or ATC), one MAC per slot. The entity
+  # names stay as they are: renaming would drop the stored pairings.
   - platform: template
     id: ble_device_mac
     name: "SwitchBot MAC Adres"

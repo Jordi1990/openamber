@@ -99,6 +99,15 @@ static void switchbot_unpair(unsigned slot)
     *models[slot] = 0;
 }
 
+// "21.3 °C   |   45% luchtvochtigheid"; BTHome sensors may lack humidity.
+static void switchbot_format_reading(const SwitchbotReading &reading, char *text, size_t size)
+{
+    if (std::isnan(reading.humidity))
+        snprintf(text, size, "%.1f °C", reading.temperature);
+    else
+        snprintf(text, size, "%.1f °C   |   %.0f%% luchtvochtigheid", reading.temperature, reading.humidity);
+}
+
 static void switchbot_set_label(lv_obj_t *label, const char *text)
 {
     if (strcmp(lv_label_get_text(label), text) != 0)
@@ -186,7 +195,7 @@ static void switchbot_update_bluetooth_page()
     }
     char text[160];
     if (!enabled)
-        snprintf(text, sizeof(text), "Schakel Bluetooth in om SwitchBot-sensoren te koppelen.");
+        snprintf(text, sizeof(text), "Schakel Bluetooth in om sensoren te koppelen.");
     else if (switchbot_host_failed)
         snprintf(text, sizeof(text), "Bluetooth kon niet starten. Herstart het display om het opnieuw te proberen.");
     else if (switchbot_restart_required)
@@ -220,8 +229,9 @@ static void switchbot_update_bluetooth_page()
         uint32_t color = 0xD97706;
         if (switchbot_slot_fresh(i))
         {
-            snprintf(text, sizeof(text), "%s%s\n%.1f °C   |   %.0f%% luchtvochtigheid   |   %lus geleden", title, role,
-                     slot.reading.temperature, slot.reading.humidity,
+            char values[64];
+            switchbot_format_reading(slot.reading, values, sizeof(values));
+            snprintf(text, sizeof(text), "%s%s\n%s   |   %lus geleden", title, role, values,
                      (unsigned long)(uint32_t(millis() - slot.reading.received_ms) / 1000));
             icon = "\U000F05E0";
             color = 0x16A34A;
@@ -260,11 +270,11 @@ static void switchbot_update_bluetooth_page()
         if (!show)
             continue;
         count++;
-        char mac[18], title[64];
+        char mac[18], title[64], values[64];
         switchbot_format_mac(devices[i].address, mac);
         switchbot_format_title(devices[i].address, devices[i].model, title, sizeof(title));
-        snprintf(text, sizeof(text), "%s  %s\n%.1f °C   |   %.0f%% luchtvochtigheid", title, mac,
-                 devices[i].reading.temperature, devices[i].reading.humidity);
+        switchbot_format_reading(devices[i].reading, values, sizeof(values));
+        snprintf(text, sizeof(text), "%s  %s\n%s", title, mac, values);
         switchbot_set_label(found_labels[i], text);
         if (full != lv_obj_has_state(pair_buttons[i], LV_STATE_DISABLED))
         {

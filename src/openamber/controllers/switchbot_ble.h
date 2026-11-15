@@ -9,7 +9,10 @@
 #include "esp_heap_caps.h"
 #include "esp_bt.h"
 
-// SwitchBot thermometers via ESPHome's esp32_ble / esp32_ble_tracker.
+// BLE thermometers via ESPHome's esp32_ble / esp32_ble_tracker: SwitchBot
+// meters, BTHome v2 sensors and Xiaomi thermometers with ATC firmware (the
+// parsers of the last two are in ble_sensor_formats.h). The code started as
+// SwitchBot-only, hence the names.
 // ESPHome delivers advertisements in its main loop, so all state below is
 // only touched from the loop: no locks, tasks or atomics are needed.
 
@@ -19,8 +22,9 @@ static const char *SWITCHBOT_TAG = "switchbot_ble";
 // never drop the room temperature, while a dead or out-of-range sensor still
 // raises B01 within reasonable time.
 static const uint32_t SWITCHBOT_READING_TIMEOUT_MS = 600000;
-// Scanning is passive: Meter, Meter Plus and Outdoor Meter broadcast their
-// readings in the manufacturer data of every advertisement. Active scanning
+// Scanning is passive: BTHome and ATC sensors and the SwitchBot Meter, Meter
+// Plus and Outdoor Meter broadcast their readings in every advertisement.
+// The rest of this is about SwitchBot only. Active scanning
 // makes every BLE device in range answer with a scan response, which costs the
 // sensors battery, so it only runs while it is needed: during discovery, for a
 // paired sensor whose model is not known yet (the model byte is only in the
@@ -137,9 +141,23 @@ static void switchbot_format_mac(const SwitchbotAddress &address, char *text)
              address.val[3], address.val[4], address.val[5]);
 }
 
+// SwitchBot model bytes are 7 bits (the high bit is the encryption flag), so
+// the other formats get a model value above 0x7F.
+static const uint8_t SWITCHBOT_MODEL_BTHOME = 0x80;
+static const uint8_t SWITCHBOT_MODEL_ATC = 0x81;
+
+// BTHome and ATC sensors identify themselves and report in every
+// advertisement: they never need scan responses.
+static bool switchbot_is_passive_model(uint8_t model)
+{
+    return model == SWITCHBOT_MODEL_BTHOME || model == SWITCHBOT_MODEL_ATC;
+}
+
+// A supported thermometer of any format.
 static bool switchbot_is_meter_model(uint8_t model)
 {
-    return model == 0x54 || model == 0x74 || model == 0x69 || model == 0x49 || model == 0x77 || model == 0x57;
+    return model == 0x54 || model == 0x74 || model == 0x69 || model == 0x49 || model == 0x77 || model == 0x57 ||
+           switchbot_is_passive_model(model);
 }
 
 // The model of a paired sensor is stored together with its MAC (MAC << 8 |
@@ -158,43 +176,45 @@ static uint8_t switchbot_stored_model(uint64_t key, const SwitchbotAddress &addr
     return (key >> 8) == (switchbot_model_key(address, 0) >> 8) && switchbot_is_meter_model(model) ? model : 0;
 }
 
-// Product names as pySwitchbot / Home Assistant use them. The high bit of the
-// model byte is the encryption flag, so lower/upper case are the same product.
+// SwitchBot product names as pySwitchbot / Home Assistant use them. The high
+// bit of the model byte is the encryption flag, so lower/upper case are the
+// same product.
 static const char *switchbot_model_name(uint8_t model)
 {
     switch (model)
     {
     case 0x54: // 'T'
     case 0x74: // 't'
-        return "Meter";
+        return "SwitchBot Meter";
     case 0x69: // 'i'
     case 0x49: // 'I'
-        return "Meter Plus";
+        return "SwitchBot Meter Plus";
     case 0x77: // 'w'
     case 0x57: // 'W'
-        return "Indoor/Outdoor Thermo-Hygrometer";
+        return "SwitchBot Indoor/Outdoor Thermo-Hygrometer";
+    case SWITCHBOT_MODEL_BTHOME:
+        return "BTHome";
+    case SWITCHBOT_MODEL_ATC:
+        return "Xiaomi ATC";
     default:
-        return nullptr;
+        return "Sensor";
     }
 }
 
 // "SwitchBot Meter Plus (A1B2)": the model plus the last two MAC bytes, the way
-// Home Assistant names a discovered device. Falls back to "SwitchBot (A1B2)".
+// Home Assistant names a discovered device. Falls back to "Sensor (A1B2)".
 static void switchbot_format_title(const SwitchbotAddress &address, uint8_t model, char *text, size_t size)
 {
-    const char *name = switchbot_model_name(model);
-    snprintf(text, size, "SwitchBot%s%s (%02X%02X)", name ? " " : "", name ? name : "", address.val[4],
-             address.val[5]);
+    snprintf(text, size, "%s (%02X%02X)", switchbot_model_name(model), address.val[4], address.val[5]);
 }
 
-// Title for narrow widgets: the name part ("SwitchBot <model>") is cut to at most
+// Title for narrow widgets: the name part is cut to at most
 // max_name characters, preferably at a word boundary, and marked with "...",
 // while the short ID always stays visible: "SwitchBot Indoor/Outdoor... (A1B2)".
 static void switchbot_format_short_title(const SwitchbotAddress &address, uint8_t model, char *text, size_t size,
                                          size_t max_name)
 {
-    const char *model_name = switchbot_model_name(model);
-    std::string name = std::string("SwitchBot") + (model_name ? " " : "") + (model_name ? model_name : "");
+    std::string name = switchbot_model_name(model);
     if (name.size() > max_name)
     {
         size_t cut = max_name;
@@ -270,6 +290,33 @@ static bool switchbot_parse(const Datas &manufacturers, const Datas &services, S
     return false;
 }
 
+// BTHome v2 and ATC firmware: returns the model and fills `reading` when one
+// of the service datas holds a temperature, 0 otherwise. `mac` is MSB first.
+template <typename Datas>
+static uint8_t switchbot_parse_open_formats(const uint8_t *mac, const Datas &services, SwitchbotReading &reading)
+{
+    for (const auto &service : services)
+    {
+        using Uuid = typename std::decay<decltype(service.uuid)>::type;
+        float temperature = NAN, humidity = NAN;
+        uint8_t model = 0;
+        if (service.uuid == Uuid::from_uint16(BLE_BTHOME_SERVICE_UUID) &&
+            ble_parse_bthome(service.data.data(), service.data.size(), temperature, humidity))
+            model = SWITCHBOT_MODEL_BTHOME;
+        else if (service.uuid == Uuid::from_uint16(BLE_ATC_SERVICE_UUID) &&
+                 ble_parse_atc(service.data.data(), service.data.size(), mac, temperature, humidity))
+            model = SWITCHBOT_MODEL_ATC;
+        if (!model)
+            continue;
+        reading.temperature = temperature;
+        reading.humidity = humidity;
+        reading.received_ms = millis();
+        reading.valid = true;
+        return model;
+    }
+    return 0;
+}
+
 static void switchbot_remember_device(const SwitchbotAddress &address, uint8_t model,
                                       const SwitchbotReading &reading)
 {
@@ -322,6 +369,8 @@ static void switchbot_on_advertise(const uint8_t *mac, const Datas &manufacturer
     SwitchbotReading reading;
     switchbot_parse(manufacturers, services, reading);
     uint8_t model = switchbot_meter_model(services);
+    if (!model && !reading.valid)
+        model = switchbot_parse_open_formats(mac, services, reading);
     if (discover)
         switchbot_remember_device(address, model, reading);
     // The same MAC may be paired in more than one slot; all of them follow it.
@@ -342,6 +391,7 @@ static bool switchbot_slot_fresh(unsigned slot)
         return false;
     // Only an identified thermometer counts: manufacturer data of another
     // SwitchBot product at a paired MAC could otherwise decode as a reading.
+    // BTHome and ATC readings always come with their model.
     const SwitchbotReading &r = switchbot_slots[slot].reading;
     return switchbot_is_meter_model(switchbot_slots[slot].model) && r.valid &&
            uint32_t(millis() - r.received_ms) < SWITCHBOT_READING_TIMEOUT_MS;
@@ -516,7 +566,7 @@ static uint32_t switchbot_now_nonzero()
 static bool switchbot_slot_needs_active_scan(SwitchbotSlot &slot)
 {
     bool wanted = false;
-    if (slot.valid)
+    if (slot.valid && !switchbot_is_passive_model(slot.model))
     {
         uint32_t since = slot.reading.received_ms ? slot.reading.received_ms : slot.tracking_since_ms;
         wanted = !switchbot_is_meter_model(slot.model) || slot.timed_out ||
