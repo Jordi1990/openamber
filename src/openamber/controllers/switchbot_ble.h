@@ -317,6 +317,42 @@ static uint8_t switchbot_parse_open_formats(const uint8_t *mac, const Datas &ser
     return 0;
 }
 
+// During a search, log thermometer-like advertisements that no parser
+// accepted (once per device), so an unsupported firmware or format shows up
+// in the log with its payload:
+//   0xFCD2 BTHome v2 (encrypted or without temperature), 0x181A ATC/pvvx,
+//   0x181C / 0x181E BTHome v1 plain / encrypted, 0xFE95 Xiaomi MiBeacon.
+static const unsigned SWITCHBOT_UNKNOWN_LOG_LIMIT = 16;
+static SwitchbotAddress switchbot_unknown_logged[SWITCHBOT_UNKNOWN_LOG_LIMIT];
+static unsigned switchbot_unknown_logged_count = 0;
+
+template <typename Datas> static void switchbot_log_unknown(const SwitchbotAddress &address, const Datas &services)
+{
+    static const uint16_t candidates[] = {BLE_BTHOME_SERVICE_UUID, BLE_ATC_SERVICE_UUID, 0x181C, 0x181E, 0xFE95};
+    for (const auto &service : services)
+    {
+        using Uuid = typename std::decay<decltype(service.uuid)>::type;
+        uint16_t uuid = 0;
+        for (uint16_t candidate : candidates)
+            if (service.uuid == Uuid::from_uint16(candidate))
+                uuid = candidate;
+        if (!uuid)
+            continue;
+        for (unsigned i = 0; i < switchbot_unknown_logged_count; i++)
+            if (memcmp(switchbot_unknown_logged[i].val, address.val, 6) == 0)
+                return;
+        if (switchbot_unknown_logged_count >= SWITCHBOT_UNKNOWN_LOG_LIMIT)
+            return;
+        switchbot_unknown_logged[switchbot_unknown_logged_count++] = address;
+        char mac[18], hex[2 * 31 + 1] = "";
+        switchbot_format_mac(address, mac);
+        for (size_t i = 0; i < service.data.size() && i < 31; i++)
+            snprintf(hex + 2 * i, 3, "%02X", service.data[i]);
+        ESP_LOGI(SWITCHBOT_TAG, "Not supported: %s service 0x%04X data %s", mac, uuid, hex);
+        return;
+    }
+}
+
 static void switchbot_remember_device(const SwitchbotAddress &address, uint8_t model,
                                       const SwitchbotReading &reading)
 {
@@ -371,6 +407,8 @@ static void switchbot_on_advertise(const uint8_t *mac, const Datas &manufacturer
     uint8_t model = switchbot_meter_model(services);
     if (!model && !reading.valid)
         model = switchbot_parse_open_formats(mac, services, reading);
+    if (discover && !model && !reading.valid)
+        switchbot_log_unknown(address, services);
     if (discover)
         switchbot_remember_device(address, model, reading);
     // The same MAC may be paired in more than one slot; all of them follow it.
@@ -438,6 +476,7 @@ static void switchbot_begin_discovery()
         else
             device = {};
     }
+    switchbot_unknown_logged_count = 0;
     switchbot_discovery_started_ms = millis();
     switchbot_discovering = true;
 }
