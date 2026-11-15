@@ -468,7 +468,7 @@ script:
         condition:
           and:
             - switch.is_on: analytics_enabled_switch
-            - mqtt.connected:
+            - lambda: 'return id(analytics_mqtt).can_publish();'
         then:
           # Do not overwrite the shared batch timestamp while a periodic batch is being sent.
           - wait_until:
