@@ -345,6 +345,9 @@ def test_pump_p1_keeps_running_between_pump_cycles(clean_system):
 def test_pump_p1_stops_at_cycle_end_during_defrost(clean_system):
     """WAIT_PUMP_STOP holds while a defrost is active, P1 must not run during that wait."""
     openamber = clean_system
+    # The mocked compressor reports the defrost standby frequency during a defrost. Without a delay (the default,
+    # unless an earlier test set one) the flow safety check stops heating as soon as the pump is off.
+    openamber.set_number("flow_switch_safety_delay_minutes", 2.0)
     _start_idle_heat_demand_with_p1(openamber)
 
     assert advance_until_state(openamber, "state_machine_state_heat_cool", "Pump running", max_s=1200)
