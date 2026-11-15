@@ -1,3 +1,42 @@
+# Trigger a telemetry snapshot when a state machine changes state.
+# The state is compared with the previous value because a state can be republished without changing.
+text_sensor:
+- id: !extend state_machine_state_main
+  on_value:
+    then:
+      - lambda: |-
+          static std::string last_state;
+          if (x == last_state) return;
+          last_state = x;
+          id(schedule_send_state_snapshot).execute();
+
+- id: !extend state_machine_state_heat_cool
+  on_value:
+    then:
+      - lambda: |-
+          static std::string last_state;
+          if (x == last_state) return;
+          last_state = x;
+          id(schedule_send_state_snapshot).execute();
+
+- id: !extend state_machine_state_dhw
+  on_value:
+    then:
+      - lambda: |-
+          static std::string last_state;
+          if (x == last_state) return;
+          last_state = x;
+          id(schedule_send_state_snapshot).execute();
+
+- id: !extend state_machine_state_routine
+  on_value:
+    then:
+      - lambda: |-
+          static std::string last_state;
+          if (x == last_state) return;
+          last_state = x;
+          id(schedule_send_state_snapshot).execute();
+
 script:
 - id: fetch_analytics_device_id
   then:
@@ -355,6 +394,7 @@ script:
           root["vf"] = id(state_machine_state_dhw).state;
           root["vg"] = id(state_machine_state_heat_cool).state;
           root["vh"] = id(state_machine_state_main).state;
+          root["vu"] = id(state_machine_state_routine).state;
 
           root["vi"] = id(sensor_uptime).state;
 
@@ -411,6 +451,38 @@ script:
                 root["e2119"] = (uint16_t) id(error_register_2119_raw).state;
                 root["e2120"] = (uint16_t) id(error_register_2120_raw).state;
                 root["e2121"] = (uint16_t) id(error_register_2121_raw).state;
+
+# Sends a telemetry snapshot shortly after a state machine transition, so start/stop
+# moments are not only visible on the 5 minute interval. The short delay combines
+# transitions of multiple state machines in the same control loop into one snapshot.
+- id: schedule_send_state_snapshot
+  mode: restart
+  then:
+    - delay: 500ms
+    - script.execute: send_state_snapshot
+
+- id: send_state_snapshot
+  mode: restart
+  then:
+    - if:
+        condition:
+          and:
+            - switch.is_on: analytics_enabled_switch
+            - mqtt.connected:
+        then:
+          # Do not overwrite the shared batch timestamp while a periodic batch is being sent.
+          - wait_until:
+              condition:
+                not:
+                  script.is_running: send_analytics
+              timeout: 10s
+          - lambda: |-
+              id(analytics_batch_timestamp) = id(my_time).timestamp_now();
+          - script.execute: send_telemetry_1
+          - delay: 150ms
+          - script.execute: send_telemetry_2
+          - delay: 150ms
+          - script.execute: send_telemetry_3
 
 - id: send_analytics
   then:
