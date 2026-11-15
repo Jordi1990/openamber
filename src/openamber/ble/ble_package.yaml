@@ -50,12 +50,12 @@ binary_sensor:
 
 esphome:
   includes:
-    - openamber/controllers/ble_format_switchbot.h
-    - openamber/controllers/ble_format_bthome.h
-    - openamber/controllers/ble_format_atc.h
-    - openamber/controllers/ble_sensor_formats.h
-    - openamber/controllers/ble_sensor.h
-    - openamber/controllers/ble_sensor_ui.h
+    - openamber/ble/ble_format_switchbot.h
+    - openamber/ble/ble_format_bthome.h
+    - openamber/ble/ble_format_atc.h
+    - openamber/ble/ble_sensor_formats.h
+    - openamber/ble/ble_sensor.h
+    - openamber/ble/ble_sensor_ui.h
   on_boot:
     # After esp32_ble (350) and the restored source select, before WiFi (250).
     - priority: 300
