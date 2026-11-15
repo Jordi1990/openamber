@@ -32,6 +32,6 @@ obj:
         align: RIGHT_MID
         bg_color: 0xB91C1C
         on_click:
-          - lambda: switchbot_unpair(${index});
+          - lambda: ble_sensor_unpair(${index});
         widgets:
           - label: { text: "Ontkoppelen", text_font: font_text_20, text_color: 0xFFFFFF, align: CENTER }

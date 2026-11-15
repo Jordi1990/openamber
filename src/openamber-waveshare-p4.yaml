@@ -1,11 +1,14 @@
 substitutions:
   device_model: waveshare-p4-7-1024x600
+  room_temperature_source: effective_room_temperature
 
 packages:
  - !include openamber/core/openamber.yaml
  - !include openamber/ui/display_globals.yaml
  - !include openamber/ui/bindings/ui_bindings_package.yaml
  - !include openamber/ui/ui_package.yaml
+ # Bluetooth runs on the ESP32-C6 co-processor (esp32_hosted).
+ - !include openamber/ble/ble_package.yaml
  
 network:
   priority:
@@ -23,8 +26,6 @@ ethernet:
   cs_pin: 4
   interrupt_pin: 29
   reset_pin: 28
-
-esp32_ble_tracker:
 
 esp32:
   board: esp32-p4-evboard

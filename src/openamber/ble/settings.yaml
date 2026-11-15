@@ -39,12 +39,12 @@ lvgl:
                                                   # Lifted and kept compact so it clears the description line below the title.
                                                   y: -4
                                                   symbol: "\U000F0140"
-                                                  # Options are rebuilt from the paired sensors (switchbot_ble_ui.h).
+                                                  # Options are rebuilt from the paired sensors (ble_sensor_ui.h).
                                                   options: ["Tr (Bedraad)"]
                                                   text_font: font_text_20
                                                   dropdown_list: { text_font: font_text_20 }
                                                   on_change:
-                                                    - lambda: switchbot_source_dropdown_changed();
+                                                    - lambda: ble_sensor_source_dropdown_changed();
                       - obj:
                           id: !extend panel_wifi
                           widgets:
@@ -99,7 +99,7 @@ lvgl:
                                       scrollable: false
                                       widgets:
                                         - label: { text: "Bluetooth", text_font: font_text_24, text_color: 0x1F2933, align: TOP_LEFT }
-                                        - label: { text: "SwitchBot-temperatuursensoren via BLE", text_font: font_text_20, text_color: 0x6B7280, align: TOP_LEFT, y: 38 }
+                                        - label: { text: "SwitchBot-, BTHome- en Xiaomi ATC-sensoren via BLE", text_font: font_text_20, text_color: 0x6B7280, align: TOP_LEFT, y: 38 }
                                         - switch:
                                             id: ble_enabled_switch_ui
                                             align: TOP_RIGHT
@@ -117,7 +117,7 @@ lvgl:
                                   - label:
                                       id: ble_hint_label
                                       width: 100%
-                                      text: "Schakel Bluetooth in om SwitchBot-sensoren te koppelen."
+                                      text: "Schakel Bluetooth in om sensoren te koppelen."
                                       text_font: font_text_20
                                       text_color: 0x6B7280
                                       long_mode: WRAP
