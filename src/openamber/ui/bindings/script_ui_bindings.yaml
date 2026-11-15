@@ -1390,6 +1390,10 @@
             }
           }
         }
+        if (tab_index == 0) {
+          lvgl::LvglComponent::lv_obj_set_state_value(id(set_cooling_allowed_switch_ui), LV_STATE_CHECKED,
+                                                      id(cooling_allowed_switch).state);
+        }
         if (tab_index == 1) {
           id(update_manual_setpoint_ui).execute();
         }

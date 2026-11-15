@@ -221,7 +221,8 @@ binary_sensor:
   id: cool_demand_active_sensor
   device_class: running
   lambda: |-
-    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state || id(heat_demand_active_sensor).state) {
+    if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state || id(heat_demand_active_sensor).state ||
+        !id(cooling_allowed_switch).state) {
       return false;
     }
     if (id(thermostat_mode_select).current_option() == "Intern") {
