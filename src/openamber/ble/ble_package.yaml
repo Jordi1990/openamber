@@ -4,24 +4,14 @@ packages:
 # ESPHome's native BLE stack (Bluedroid). It stays off until the Bluetooth
 # switch (Settings -> Connectiviteit -> Bluetooth) is turned on;
 # ble_sensor_update() enables and disables it.
+# A device that includes this package also sets the substitution
+# room_temperature_source to effective_room_temperature. Options for its
+# Bluetooth controller are in the device file.
 esp32_ble:
   enable_on_boot: false
   # Scan only: no GATT connections. Keep Bluedroid's allocations in PSRAM.
   max_connections: 1
   use_psram: true
-
-esp32:
-  framework:
-    sdkconfig_options:
-      CONFIG_SPIRAM_ALLOW_BSS_SEG_EXTERNAL_MEMORY: y
-      # Scan-only controller footprint. With the default of six activities the
-      # controller init asserts (emi.c 164) on the S3.
-      CONFIG_BT_CTRL_BLE_MAX_ACT: "1"
-      CONFIG_BT_CTRL_SCAN_DUPL_CACHE_SIZE: "20"
-      # Linking the controller puts ~16 kB in IRAM (shared with the heap on the
-      # S3), even while BLE is off. Run it from flash; scanning may miss
-      # advertisements while flash is erased (OTA, NVS writes).
-      CONFIG_BT_CTRL_RUN_IN_FLASH_ONLY: y
 
 esp32_ble_tracker:
   scan_parameters:

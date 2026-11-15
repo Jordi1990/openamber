@@ -6,8 +6,13 @@
 #include <cstring>
 #include <string>
 #include <type_traits>
+#include "sdkconfig.h"
 #include "esp_heap_caps.h"
+// Set when the Bluetooth controller is on a co-processor (esp32_hosted, as on
+// the ESP32-P4): this chip then has no controller to start.
+#ifndef CONFIG_BT_CONTROLLER_DISABLED
 #include "esp_bt.h"
+#endif
 
 // BLE thermometers via ESPHome's esp32_ble / esp32_ble_tracker: pairing
 // slots, the search list, the BLE stack and the scan mode. Nothing here knows
@@ -348,6 +353,14 @@ static bool ble_sensor_restart_required = false;
 // stays failed until the next boot.
 static bool ble_sensor_host_failed = false;
 
+#ifdef CONFIG_BT_CONTROLLER_DISABLED
+// The co-processor runs the controller; ESPHome's esp32_ble brings it up over
+// esp32_hosted when it is enabled.
+static bool ble_sensor_controller_start()
+{
+    return true;
+}
+#else
 // The S3 controller allocates its exchange memory (0x7800 bytes with one BLE
 // activity) as one internal DMA-capable block, from its own task. If that
 // fails it asserts (emi.c 164) instead of returning an error, so only start it
@@ -387,6 +400,7 @@ static bool ble_sensor_controller_start()
     }
     return esp_bt_controller_get_status() == ESP_BT_CONTROLLER_STATUS_ENABLED;
 }
+#endif
 
 // Bluedroid is only brought up while the Bluetooth switch is on, so without
 // BLE the internal heap keeps the memory the stack would otherwise use.
@@ -440,7 +454,7 @@ static void ble_sensor_set_ble(bool enabled)
 }
 
 // Runs from on_boot between esp32_ble's setup and WiFi's, while the internal
-// heap still has a large free block.
+// heap still has a large free block for the controller.
 static void ble_sensor_early_start(bool enabled)
 {
     if (!enabled)

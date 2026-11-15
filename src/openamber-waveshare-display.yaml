@@ -36,6 +36,16 @@ esp32:
       CONFIG_MDNS_MEMORY_ALLOC_SPIRAM: y
       CONFIG_SPIRAM_RODATA: y
       CONFIG_ESP_TASK_WDT_TIMEOUT_S: "60"
+      # Bluetooth (ble_package.yaml).
+      CONFIG_SPIRAM_ALLOW_BSS_SEG_EXTERNAL_MEMORY: y
+      # Scan-only controller footprint. With the default of six activities the
+      # controller init asserts (emi.c 164) on the S3.
+      CONFIG_BT_CTRL_BLE_MAX_ACT: "1"
+      CONFIG_BT_CTRL_SCAN_DUPL_CACHE_SIZE: "20"
+      # Linking the controller puts ~16 kB in IRAM (shared with the heap on the
+      # S3), even while BLE is off. Run it from flash; scanning may miss
+      # advertisements while flash is erased (OTA, NVS writes).
+      CONFIG_BT_CTRL_RUN_IN_FLASH_ONLY: y
     advanced:
       loop_task_stack_size: 10240
       execute_from_psram: true
