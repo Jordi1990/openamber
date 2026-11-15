@@ -153,3 +153,41 @@ def test_cooling_allowed_ui_switch(clean_system):
     assert openamber.set_switch("cooling_allowed_switch", False)
     openamber.step(ms=50)
     assert openamber.get_widget("set_cooling_allowed_switch_ui").get("checked") is False
+
+
+COOLING_CONTROLS = (
+    "set_cool_power_dd", "set_comp_start_cool_dec", "set_comp_start_cool_inc",
+    "set_comp_stop_cool_dec", "set_comp_stop_cool_inc",
+    "set_cool_mode_dd", "set_cool_setpoint_dec", "set_cool_setpoint_inc",
+    "set_cool_manual_sp_dec", "set_cool_manual_sp_inc",
+)
+
+
+def test_cooling_settings_disabled_when_not_allowed(clean_system):
+    """While cooling is not allowed, the other cooling settings (Algemeen and Setpoint tab) are greyed out and
+    their controls disabled; the "Koelen toegestaan" toggle itself stays usable."""
+    openamber = clean_system
+    assert openamber.click("cooling_stab_algemeen")
+    openamber.step(ms=50)
+    for widget in COOLING_CONTROLS:
+        assert not openamber.is_disabled(widget), f"{widget} must be enabled while cooling is allowed"
+
+    assert openamber.click("set_cooling_allowed_switch_ui")
+    openamber.step(ms=50)
+    assert openamber.get_entity("cooling_allowed_switch") is False
+    for widget in COOLING_CONTROLS:
+        assert openamber.is_disabled(widget), f"{widget} must be disabled while cooling is not allowed"
+    assert not openamber.is_disabled("set_cooling_allowed_switch_ui")
+
+    # Opening the Setpoint tab keeps its controls disabled.
+    assert openamber.click("cooling_stab_setpoint")
+    openamber.step(ms=50)
+    assert openamber.is_disabled("set_cool_setpoint_inc")
+
+    # A change from elsewhere enables them again.
+    assert openamber.set_switch("cooling_allowed_switch", True)
+    openamber.step(ms=50)
+    for widget in COOLING_CONTROLS:
+        assert not openamber.is_disabled(widget), f"{widget} must be enabled again once cooling is allowed"
+    assert openamber.click("cooling_stab_algemeen")
+    openamber.step(ms=50)

@@ -36,8 +36,7 @@
 - id: !extend cooling_allowed_switch
   on_state:
     then:
-      - lambda: |-
-          lvgl::LvglComponent::lv_obj_set_state_value(id(set_cooling_allowed_switch_ui), LV_STATE_CHECKED, (x));
+      - script.execute: update_cooling_allowed_ui
 
 # ── Settings page: Emergency mode toggle ──
 - id: !extend emergency_mode_enabled
