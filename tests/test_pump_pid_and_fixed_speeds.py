@@ -168,8 +168,9 @@ def test_pump_p0_pid_defrost_override_and_limits(clean_system):
     openamber.set_binary_sensor("external_heat_demand_wired", True)
     openamber.step(ms=100)
 
-    # Advance time through pump interval in IDLE (900s) + pump start (10s)
-    openamber.advance_time(seconds=910, step_s=30)
+    # The pump starts after the pump interval, or right away when an earlier DHW run reset the interval. The
+    # checks below need the pump cycle before the compressor starts, so stop advancing as soon as it runs.
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Pump running", max_s=1000, step=5)
     openamber.step(ms=100)
     assert openamber.get_entity("internal_pump_active") is True
 
@@ -344,6 +345,9 @@ def test_pump_p1_keeps_running_between_pump_cycles(clean_system):
 def test_pump_p1_stops_at_cycle_end_during_defrost(clean_system):
     """WAIT_PUMP_STOP holds while a defrost is active, P1 must not run during that wait."""
     openamber = clean_system
+    # The mocked compressor reports the defrost standby frequency during a defrost. Without a delay (the default,
+    # unless an earlier test set one) the flow safety check stops heating as soon as the pump is off.
+    openamber.set_number("flow_switch_safety_delay_minutes", 2.0)
     _start_idle_heat_demand_with_p1(openamber)
 
     assert advance_until_state(openamber, "state_machine_state_heat_cool", "Pump running", max_s=1200)
@@ -374,6 +378,9 @@ def test_pump_p1_stops_when_entering_maintenance_from_idle_heat_demand(clean_sys
     """Entering maintenance from idle with heat demand stops P1, which idle leaves running."""
     openamber = clean_system
     _start_idle_heat_demand_with_p1(openamber)
+    # After a DHW run the pump interval is reset and a pump cycle starts right away: let it finish first.
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Idle", max_s=300, step=5)
+    assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 must keep running in idle with heat demand"
 
     openamber.set_switch("service_mode_enabled", True)
     openamber.step(ms=50)

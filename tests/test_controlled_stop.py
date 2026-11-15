@@ -153,11 +153,11 @@ def test_frost_protection_does_not_end_a_controlled_stop(clean_system):
 
 
 def test_system_tab_buttons(openamber):
-    """Stoppen on System > Beheer asks for confirmation, Hervatten resumes without one."""
+    """One button on System > Beheer: stopping asks for confirmation, resuming does not."""
+    label = "service_controlled_stop_button_label"
     assert openamber.click("nav_system")
     openamber.step(ms=100)
-    assert openamber.get_label("service_controlled_stop_button_label") == "Stoppen"
-    assert openamber.get_label("service_controlled_stop_resume_button_label") == "Hervatten"
+    assert openamber.get_label(label) == "Stop warmtepomp"
 
     assert openamber.click("service_controlled_stop_button")
     openamber.step(ms=100)
@@ -165,10 +165,13 @@ def test_system_tab_buttons(openamber):
     assert openamber.click("service_confirm_button")
     openamber.step(ms=100)
     assert advance_until_state(openamber, MAIN, "Standby", max_s=600, step=5)
+    assert openamber.get_label(label) == "Hervat warmtepomp"
 
-    assert openamber.click("service_controlled_stop_resume_button")
+    assert openamber.click("service_controlled_stop_button")
     openamber.step(ms=100)
+    assert openamber.is_hidden("service_confirm_modal"), "Resuming does not ask for confirmation"
     assert advance_until_state(openamber, MAIN, "Heat/Cool", max_s=300, step=5)
+    assert openamber.get_label(label) == "Stop warmtepomp"
     assert openamber.click("nav_home")
     openamber.step(ms=100)
 
