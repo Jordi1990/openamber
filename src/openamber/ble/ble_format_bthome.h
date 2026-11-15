@@ -77,7 +77,8 @@ static bool bthome_parse_v2(const uint8_t *data, size_t size, float &temperature
 
 // v1: every object is one byte with the length of what follows in bits 0-4
 // and the data type in bits 5-7 (0 unsigned, 1 signed), the object ID, then
-// the little-endian value. Temperature (0x02) and humidity (0x03) are x0.01.
+// the little-endian value. Temperature (0x02) and humidity (0x03) are x0.01;
+// humidity 0x2E is in whole percent.
 static bool bthome_parse_v1(const uint8_t *data, size_t size, float &temperature, float &humidity)
 {
     temperature = NAN;
@@ -103,6 +104,8 @@ static bool bthome_parse_v1(const uint8_t *data, size_t size, float &temperature
                 temperature = value * 0.01f;
             else if (object == 0x03 && std::isnan(humidity))
                 humidity = value * 0.01f;
+            else if (object == 0x2E && std::isnan(humidity))
+                humidity = value;
         }
         pos += 1 + length;
     }
