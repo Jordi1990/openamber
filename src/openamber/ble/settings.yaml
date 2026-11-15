@@ -39,12 +39,12 @@ lvgl:
                                                   # Lifted and kept compact so it clears the description line below the title.
                                                   y: -4
                                                   symbol: "\U000F0140"
-                                                  # Options are rebuilt from the paired sensors (switchbot_ble_ui.h).
+                                                  # Options are rebuilt from the paired sensors (ble_sensor_ui.h).
                                                   options: ["Tr (Bedraad)"]
                                                   text_font: font_text_20
                                                   dropdown_list: { text_font: font_text_20 }
                                                   on_change:
-                                                    - lambda: switchbot_source_dropdown_changed();
+                                                    - lambda: ble_sensor_source_dropdown_changed();
                       - obj:
                           id: !extend panel_wifi
                           widgets:

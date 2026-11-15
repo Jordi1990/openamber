@@ -26,6 +26,6 @@ obj:
         align: RIGHT_MID
         bg_color: 0x1F3B68
         on_click:
-          - lambda: switchbot_pair(${index});
+          - lambda: ble_sensor_pair(${index});
         widgets:
           - label: { text: "Koppelen", text_font: font_text_20, text_color: 0xFFFFFF, align: CENTER }
