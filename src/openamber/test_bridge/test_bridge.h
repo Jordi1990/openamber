@@ -3,6 +3,7 @@
 #include "esphome/core/component.h"
 #include "esphome/core/application.h"
 #include "esphome/core/log.h"
+#include "esphome/core/helpers.h"
 #include "esphome/components/json/json_util.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/number/number.h"
@@ -83,6 +84,7 @@ class TestBridge : public Component {
   int server_fd_{-1};
   int client_fd_{-1};
   std::string rx_buffer_;
+  HighFrequencyLoopRequester high_freq_;
   std::unordered_map<std::string, lv_obj_t **> widgets_;
   std::unordered_map<std::string, std::function<lv_obj_t*()>> obj_getters_;
   std::unordered_map<std::string, sensor::Sensor *> sensors_;

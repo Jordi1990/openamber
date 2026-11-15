@@ -32,7 +32,7 @@ This test suite provides end-to-end automated testing for OpenAmber, combining r
 ```
 
 1. **`test_bridge` (ESPHome Component in `src/openamber/test_bridge/`)**:
-   - A non-blocking TCP server running on port 8888 inside the ESPHome host application.
+   - A non-blocking TCP server running on port 8888 (override with `OPENAMBER_TEST_PORT`) inside the ESPHome host application.
    - Automatically registers all ~1,400 declared LVGL widgets (`lv_obj_t*`) alongside all ESPHome entities (`sensor`, `number`, `switch`, `binary_sensor`, `select`, `climate`).
    - Dispatches real LVGL events (e.g. `LV_EVENT_CLICKED`) via `lv_obj_send_event(obj, ...)`.
    - Returns widget metadata (`visible`, `hidden`, `text`, `checked`, `disabled`).
@@ -107,6 +107,16 @@ pytest -v tests/test_virtual_time_settle.py
 pytest -v tests/test_pid_control.py
 ```
 
+### Running Several Checkouts at the Same Time
+The bridge listens on port 8888 by default. Two simulators cannot share a port: the second one fails to bind and its tests silently talk to the first simulator. Give each checkout its own port:
+```powershell
+$env:OPENAMBER_TEST_PORT = "8899"; python run_tests.py
+```
+Each run keeps its ESPHome preferences in its own temporary directory (`ESPHOME_PREFDIR`), so runs do not see each other's saved settings.
+
+### Speed
+Almost all wall-clock time of a test is bridge round trips, not simulation. While a test client is connected the bridge keeps the ESPHome main loop in high-frequency mode, so a command is answered in well under a millisecond instead of waiting for the next 16ms loop interval. Keep it that way: do not add `time.sleep` to tests or the client; if something needs time to pass, advance virtual time.
+
 ---
 
 ## Test Client API
@@ -134,7 +144,7 @@ The `openamber` fixture in tests provides:
 - `openamber.set_binary_sensor(sensor_id, value)`: Publishes boolean state to a binary sensor.
 - `openamber.press_button(button_id)`: Presses a button entity.
 - `openamber.get_entity(entity_id)`: Returns the current state of an entity. Raises if the entity does not exist (a sensor without a value returns `None`).
-- `openamber.step(ms=100)`: Round-trips to the bridge so at least one ESPHome loop iteration runs. It does **not** advance time; anything on an interval (the 5s controller update, template sensors) needs `advance_time`.
+- `openamber.step(ms=100)`: Round-trips to the bridge so at least one ESPHome loop iteration runs. It does **not** advance time and does not sleep (`ms` is ignored); anything on an interval (the 5s controller update, template sensors) or behind a `delay:` needs `advance_time`.
 
 ### Pitfalls
 - Entities with their own lambda (e.g. `error_active`, `heat_cool_control_temperature`, `oil_return_cycle_active_settled`, `sg_ready_*_active_sensor`) recompute on their next update and overwrite injected values. Inject the underlying input instead.

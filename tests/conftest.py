@@ -1,10 +1,16 @@
 import os
 import shlex
+import shutil
 import subprocess
+import tempfile
 import time
 import pytest
 from openamber_client import OpenAmberClient
 from helpers import set_outside_temperature
+
+# The simulator's test bridge port. Set OPENAMBER_TEST_PORT to run the suites of several checkouts at
+# the same time: with the same port they would all talk to whichever simulator got the port first.
+TEST_PORT = int(os.environ.get("OPENAMBER_TEST_PORT", "8888"))
 
 
 @pytest.fixture(scope="session")
@@ -34,31 +40,29 @@ def openamber_proc():
             else:
                 wsl_bin = bin_path.replace("\\", "/")
 
+        prefs_dir = f"/tmp/openamber-test-prefs-{TEST_PORT}"
         subprocess.run(["wsl", "-u", "root", "-d", "Debian", "pkill", "-9", "-f", wsl_bin], capture_output=True)
-        subprocess.run(["wsl", "-d", "Debian", "bash", "-c", "rm -f ~/.esphome/prefs/openamber-test.prefs"], capture_output=True)
+        subprocess.run(["wsl", "-d", "Debian", "rm", "-rf", prefs_dir], capture_output=True)
         time.sleep(0.5)
         cmd = [
             "wsl", "-d", "Debian", "bash", "-c",
-            f"SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy ESPHOME_PCH_ENABLE=0 {shlex.quote(wsl_bin)}"
+            f"SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy ESPHOME_PCH_ENABLE=0 "
+            f"ESPHOME_PREFDIR={prefs_dir} OPENAMBER_TEST_PORT={TEST_PORT} {shlex.quote(wsl_bin)}"
         ]
         started_proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     else:
         # Native Linux / CI
+        prefs_dir = tempfile.mkdtemp(prefix="openamber-test-prefs-")
         subprocess.run(["pkill", "-9", "-f", bin_path], capture_output=True)
-        pref_file = os.path.expanduser("~/.esphome/prefs/openamber-test.prefs")
-        if os.path.exists(pref_file):
-            try:
-                os.remove(pref_file)
-            except OSError:
-                pass
         time.sleep(0.3)
         env = os.environ.copy()
         env["SDL_VIDEODRIVER"] = "dummy"
         env["SDL_AUDIODRIVER"] = "dummy"
         env["ESPHOME_PCH_ENABLE"] = "0"
+        env["ESPHOME_PREFDIR"] = prefs_dir
+        env["OPENAMBER_TEST_PORT"] = str(TEST_PORT)
         started_proc = subprocess.Popen([bin_path], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    time.sleep(2.0)
     yield started_proc
 
     if started_proc:
@@ -75,22 +79,17 @@ def openamber_proc():
             if os.name == "nt":
                 if wsl_bin:
                     subprocess.run(["wsl", "-u", "root", "-d", "Debian", "pkill", "-9", "-f", wsl_bin], capture_output=True)
-                subprocess.run(["wsl", "-d", "Debian", "bash", "-c", "rm -f ~/.esphome/prefs/openamber-test.prefs"], capture_output=True)
+                subprocess.run(["wsl", "-d", "Debian", "rm", "-rf", prefs_dir], capture_output=True)
             else:
                 subprocess.run(["pkill", "-9", "-f", bin_path], capture_output=True)
-                pref_file = os.path.expanduser("~/.esphome/prefs/openamber-test.prefs")
-                if os.path.exists(pref_file):
-                    try:
-                        os.remove(pref_file)
-                    except OSError:
-                        pass
+                shutil.rmtree(prefs_dir, ignore_errors=True)
 
 
 @pytest.fixture(scope="session")
 def openamber(openamber_proc):
     """Provide a connected OpenAmberClient fixture for test suites."""
-    client = OpenAmberClient(host="127.0.0.1", port=8888, timeout=5.0)
-    client.connect(retries=30, delay=0.5)
+    client = OpenAmberClient(host="127.0.0.1", port=TEST_PORT, timeout=5.0)
+    client.connect(retries=150, delay=0.1)
     ready = False
     for _ in range(30):
         try:
