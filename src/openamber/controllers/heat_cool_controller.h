@@ -306,6 +306,19 @@ private:
       return false; 
   }
 
+  // "Backup element blokkeren": above the set outside temperature (1 h average) the degree/minutes do not switch
+  // the backup heater on during space heating. Without a valid average the heater is not blocked.
+  bool IsBackupHeaterBlockedByOutsideTemperature()
+  {
+    if (!id(backup_heater_outside_block_enabled).state)
+    {
+      return false;
+    }
+    const float outside_temperature = id(temperature_outside_ta_avg_1h).state;
+    return !std::isnan(outside_temperature) &&
+           outside_temperature > id(backup_heater_outside_block_temperature).state;
+  }
+
   void CalculateAccumulatedDegreeMinutes()
   {
     uint32_t now = App.get_loop_component_start_time();
@@ -931,12 +944,27 @@ public:
             break;
           }
 
-          CalculateAccumulatedDegreeMinutes();
-          if(IsAccumulatedDegreeMinutesReached())
+          if (IsBackupHeaterBlockedByOutsideTemperature())
           {
-            TurnOnBackupHeater();
-            SetNextState(HeatCoolState::WAIT_BACKUP_HEATER_RUNNING);
-            break;
+            // The compressor has to catch up on its own. Not counting degree/minutes meanwhile, so the heater does
+            // not start at once when the outside temperature drops below the threshold.
+            ESP_LOGD("amber", "Backup heater blocked: average outside temperature %.1f°C is above %.0f°C.",
+                     id(temperature_outside_ta_avg_1h).state, id(backup_heater_outside_block_temperature).state);
+            if (accumulated_backup_degmin_ != 0.0f)
+            {
+              ResetAccumulatedDegMin();
+            }
+            InitializeBackupDegMinTracking();
+          }
+          else
+          {
+            CalculateAccumulatedDegreeMinutes();
+            if(IsAccumulatedDegreeMinutesReached())
+            {
+              TurnOnBackupHeater();
+              SetNextState(HeatCoolState::WAIT_BACKUP_HEATER_RUNNING);
+              break;
+            }
           }
         }
         else

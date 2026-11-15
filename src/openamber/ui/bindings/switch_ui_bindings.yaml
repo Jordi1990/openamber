@@ -38,6 +38,13 @@
     then:
       - script.execute: update_emergency_mode_ui
 
+# ── Settings page: Bijverwarmen > Verwarmen, block above the outside temperature ──
+- id: !extend backup_heater_outside_block_enabled
+  on_state:
+    then:
+      - lambda: |-
+          lvgl::LvglComponent::lv_obj_set_state_value(id(set_backup_block_switch_ui), LV_STATE_CHECKED, (x));
+
 # ── Service: Maintenance mode toggle ──
 - id: !extend service_mode_enabled
   on_state:
