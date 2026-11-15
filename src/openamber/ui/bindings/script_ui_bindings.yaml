@@ -3355,7 +3355,7 @@
         lv_obj_add_flag(id(wifi_connected_section), LV_OBJ_FLAG_HIDDEN);
         lv_obj_remove_flag(id(wifi_disconnected_section), LV_OBJ_FLAG_HIDDEN);
 
-# Firmware update via the display: show the progress overlay and install. Used directly and after a controlled stop.
+# Firmware update via the display: show the progress overlay and install.
 - id: start_firmware_update
   mode: single
   then:
