@@ -113,6 +113,7 @@ def clean_system(openamber):
     openamber.set_switch("outdoor_unit_optimizations_enabled", True)
     openamber.set_switch("heat_demand_zone_2_switch", False)
     openamber.set_switch("cool_demand_switch", False)
+    openamber.set_switch("cooling_allowed_switch", True)
     openamber.set_switch("pump_p1_enabled", False)
     openamber.set_switch("pump_p1_relay_switch", False)
     openamber.set_switch("emergency_mode_enabled", False)

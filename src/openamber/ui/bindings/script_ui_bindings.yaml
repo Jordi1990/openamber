@@ -879,6 +879,32 @@
           lv_obj_add_flag(id(set_analytics_id_row), LV_OBJ_FLAG_HIDDEN);
         }
 
+- id: update_cooling_allowed_ui
+  mode: restart
+  then:
+    - lambda: |-
+        const bool allowed = id(cooling_allowed_switch).state;
+        lvgl::LvglComponent::lv_obj_set_state_value(id(set_cooling_allowed_switch_ui), LV_STATE_CHECKED, allowed);
+        // Cooling not allowed: grey out the other cooling settings and disable their controls. Opacity on the
+        // rows leaves the colours that update_manual_setpoint_ui sets for the cooling mode untouched.
+        lv_obj_t *rows[] = {
+          id(set_cool_power_row), id(set_comp_start_cool_row), id(set_comp_stop_cool_row),
+          id(set_cool_mode_row), id(set_cool_setpoint_row), id(set_cool_manual_sp_row),
+        };
+        for (lv_obj_t *row : rows) {
+          lv_obj_set_style_opa(row, allowed ? LV_OPA_COVER : LV_OPA_40, LV_PART_MAIN);
+        }
+        lv_obj_t *controls[] = {
+          id(set_cool_power_dd)->obj, id(set_cool_mode_dd)->obj,
+          id(set_comp_start_cool_dec), id(set_comp_start_cool_inc),
+          id(set_comp_stop_cool_dec), id(set_comp_stop_cool_inc),
+          id(set_cool_setpoint_dec), id(set_cool_setpoint_inc),
+          id(set_cool_manual_sp_dec), id(set_cool_manual_sp_inc),
+        };
+        for (lv_obj_t *control : controls) {
+          lvgl::LvglComponent::lv_obj_set_state_value(control, LV_STATE_DISABLED, !allowed);
+        }
+
 - id: update_mixing_valves_ui
   mode: restart
   then:
@@ -1390,6 +1416,7 @@
             }
           }
         }
+        id(update_cooling_allowed_ui).execute();
         if (tab_index == 1) {
           id(update_manual_setpoint_ui).execute();
         }

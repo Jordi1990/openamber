@@ -32,6 +32,12 @@
     then:
       - script.execute: update_advanced_settings_ui
 
+# ── Settings page: Koelen toegestaan toggle ──
+- id: !extend cooling_allowed_switch
+  on_state:
+    then:
+      - script.execute: update_cooling_allowed_ui
+
 # ── Settings page: Emergency mode toggle ──
 - id: !extend emergency_mode_enabled
   on_state:
