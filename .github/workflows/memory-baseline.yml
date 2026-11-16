@@ -1,0 +1,30 @@
+name: Memory baseline
+
+# Builds the firmware on every push to a target branch so PRs have a memory
+# report to compare against (see memory-comment.yml).
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - src/**
+      - tools/memory_report.py
+      - .github/workflows/build-firmware.yml
+      - .github/workflows/memory-baseline.yml
+  workflow_dispatch:
+
+concurrency:
+  group: memory-baseline-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  baseline:
+    name: Build baseline
+    uses: ./.github/workflows/build-firmware.yml
+    with:
+      files: |
+        src/openamber-leejow.yaml
+        src/openamber-waveshare-display.yaml
+        src/openamber-waveshare-p4.yaml
+      combined-name: openamber-baseline
+      memory-report: true
