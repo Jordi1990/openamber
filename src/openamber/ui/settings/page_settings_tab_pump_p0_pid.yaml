@@ -37,7 +37,7 @@ widgets:
                   page: panel_pump_page_p0_pid_limieten
             widgets:
               - label: { text: "\U000F058F", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: pump_stab_p0_pid_limieten_lbl, text: "Limieten & Doelwaarde", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { id: pump_stab_p0_pid_limieten_lbl, text: "Regeling", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
               - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
 
         - obj:
@@ -60,5 +60,5 @@ widgets:
                   page: panel_pump_page_p0_pid_params
             widgets:
               - label: { text: "\U000F08D4", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: pump_stab_p0_pid_params_lbl, text: "PID Regelparameters", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { id: pump_stab_p0_pid_params_lbl, text: "PID-parameters", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
               - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }

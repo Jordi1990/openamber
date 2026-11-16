@@ -1,7 +1,7 @@
 # Menu Page: Pomp P0 PID Limieten & Doelwaarde
 # ------------------------------------------------------------
 id: panel_pump_page_p0_pid_limieten
-title: "P0 Limieten & Doel"
+title: "Regeling"
 widgets:
   - obj:
       id: pump_p0_pid_page_1_row_enable

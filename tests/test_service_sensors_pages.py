@@ -1,4 +1,4 @@
-"""Automated tests for the Service Sensoren & Status menu pages, Demand & External signal rows,
+"""Automated tests for the Service Diagnose menu pages, demand and external signal rows,
 DHW dropdown UI bindings, and Thermostat off-delay UI behavior.
 """
 
@@ -8,9 +8,9 @@ import pytest
 def test_service_sensors_navigation(clean_system):
     """
     Verify:
-    1. Navigation from navbar -> Service page -> Sensoren & Status.
+    1. Navigation from navbar -> Service page -> Diagnose.
     2. Each of the five sensor cards opens its own menu page with its table.
-    3. The menu back button returns to the Sensoren & Status page.
+    3. The menu back button returns to the Diagnose page.
     """
     openamber = clean_system
 
@@ -19,7 +19,7 @@ def test_service_sensors_navigation(clean_system):
     openamber.step(ms=100)
     assert openamber.is_visible("page_service"), "page_service should be visible"
 
-    # 2. Open Sensoren & Status from the service overview
+    # 2. Open Diagnose from the service overview
     assert openamber.click("service_tab_sensors"), "Clicking service_tab_sensors must succeed"
     openamber.step(ms=100)
     assert openamber.is_visible("service_sensors_panel"), "service_sensors_panel should be visible"
@@ -38,16 +38,16 @@ def test_service_sensors_navigation(clean_system):
         assert openamber.is_visible(table), f"{table} should be visible on {page}"
         assert openamber.is_hidden("service_sensors_panel"), "The overview cards should be hidden on a sensor page"
 
-        # 3. Back to the Sensoren & Status page
+        # 3. Back to the Diagnose page
         assert openamber.click("service_menu_back_btn"), "Clicking the menu back button must succeed"
         openamber.step(ms=100)
-        assert openamber.is_visible("service_sensors_panel"), "Back must return to the Sensoren & Status page"
+        assert openamber.is_visible("service_sensors_panel"), "Back must return to the Diagnose page"
         assert openamber.is_hidden(page), f"{page} should be hidden after going back"
 
 
 def test_service_sensors_demand_and_external_signals_page_5(clean_system):
     """
-    Verify the 'Vraag & Ingangen' page shows both effective demand and raw external signals separately:
+    Verify the 'Warmte- en koudevraag' page shows both effective demand and raw external signals separately:
     1. Software/internal Zone 1 heat demand sets 'Warmtevraag Zone 1' to 'AAN' while
        'Warmtevraag Zone 1 (Extern signaal)' remains 'UIT'.
     2. Wired Zone 2 input when mixing valves are disabled sets 'Warmtevraag Zone 2 (Extern signaal)'
@@ -57,7 +57,7 @@ def test_service_sensors_demand_and_external_signals_page_5(clean_system):
     """
     openamber = clean_system
 
-    # Navigate to Service -> Sensoren & Status -> Vraag & Ingangen
+    # Navigate to Service -> Diagnose -> Warmte- en koudevraag
     assert openamber.click("nav_service")
     openamber.step(ms=100)
     assert openamber.click("service_tab_sensors")
@@ -177,7 +177,7 @@ def test_thermostat_off_delay_renamed_and_buttons_disabled_in_internal_mode(clea
     """
     openamber = clean_system
 
-    # Navigate to Settings -> Thermostaat -> Extern & draadloos
+    # Navigate to Settings -> Thermostaat -> Externe thermostaat
     assert openamber.click("nav_settings")
     openamber.step(ms=100)
     assert openamber.click("stab_thermostat")

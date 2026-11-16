@@ -37,7 +37,7 @@ widgets:
                   page: panel_bijverwarmen_page_algemeen
             widgets:
               - label: { text: "\U000F058F", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: bijverwarmen_stab_algemeen_lbl, text: "Algemene Vrijgave", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { id: bijverwarmen_stab_algemeen_lbl, text: "Algemeen", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
               - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
 
         - obj:
@@ -60,7 +60,7 @@ widgets:
                   page: panel_bijverwarmen_page_verwarmen
             widgets:
               - label: { text: "\U000F0493", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: bijverwarmen_stab_verwarmen_lbl, text: "Verwarmen Parameters", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { id: bijverwarmen_stab_verwarmen_lbl, text: "Verwarmen", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
               - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
 
         - obj:
@@ -83,5 +83,5 @@ widgets:
                   page: panel_bijverwarmen_page_tapwater
             widgets:
               - label: { text: "\U000F05A8", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: bijverwarmen_stab_tapwater_lbl, text: "Tapwater Parameters", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { id: bijverwarmen_stab_tapwater_lbl, text: "Tapwater", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
               - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }

@@ -37,7 +37,7 @@ widgets:
                   page: panel_dhw_page_algemeen
             widgets:
               - label: { text: "\U000F05A8", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: dhw_stab_algemeen_lbl, text: "Basis & Setpoint", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { id: dhw_stab_algemeen_lbl, text: "Algemeen", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
               - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
 
         - obj:
@@ -60,7 +60,7 @@ widgets:
                   page: panel_dhw_page_schema
             widgets:
               - label: { text: "\U000F00F0", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: dhw_stab_schema_lbl, text: "Klokprogramma & Schema", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { id: dhw_stab_schema_lbl, text: "Schema", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
               - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
 
         - obj:
@@ -83,7 +83,7 @@ widgets:
                   page: panel_dhw_page_legionella
             widgets:
               - label: { text: "\U000F04B3", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: dhw_stab_legionella_lbl, text: "Anti-Legionella Regeling", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { id: dhw_stab_legionella_lbl, text: "Legionella", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
               - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
 
         - obj:
@@ -106,5 +106,5 @@ widgets:
                   page: panel_dhw_page_winter
             widgets:
               - label: { text: "\U000F071A", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: dhw_stab_winter_lbl, text: "Winter Parameters", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { id: dhw_stab_winter_lbl, text: "Winter", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
               - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }

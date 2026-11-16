@@ -1,7 +1,7 @@
 # Menu Page: Sensor kalibratie - Ruimte & Tapwater
 # ------------------------------------------------------------
 id: panel_general_sensor_kalibratie_ruimte
-title: "Ruimte & Tapwater"
+title: "Ruimte en tapwater"
 widgets:
   - obj:
       width: 100%

@@ -1,7 +1,7 @@
-# Menu Page: Sensoren & Status - Druk & Temperatuur
+# Menu Page: Diagnose - Druk en temperatuur
 # ------------------------------------------------------------
 id: service_sensors_temp_page
-title: "Druk & Temperatuur"
+title: "Druk en temperatuur"
 widgets:
   - obj:
       width: 100%
@@ -19,7 +19,7 @@ widgets:
       scrollbar_mode: "OFF"
       scrollable: false
       widgets:
-        - label: { text: "Druk & Temperatuur", text_color: 0x0F172A, text_font: font_text_24, align: TOP_LEFT }
+        - label: { text: "Druk en temperatuur", text_color: 0x0F172A, text_font: font_text_24, align: TOP_LEFT }
         - table:
             id: service_diag_temp_table
             width: 100%

@@ -1,7 +1,7 @@
-# Menu Page: Service - Sensoren & Status (Categorie keuzemenu)
+# Menu Page: Service - Diagnose (Categorie keuzemenu)
 # ------------------------------------------------------------
 id: service_sensors_page
-title: "Sensoren & Status"
+title: "Diagnose"
 widgets:
   - obj:
       id: service_sensors_panel
@@ -63,7 +63,7 @@ widgets:
               - script.execute: update_service_diag_summary_ui
             widgets:
               - label: { text: "\U000F050F", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: service_sensors_stab_temp_lbl, text: "Druk & Temperatuur", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { id: service_sensors_stab_temp_lbl, text: "Druk en temperatuur", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
               - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
 
         - obj:
@@ -135,5 +135,5 @@ widgets:
               - script.execute: update_service_diag_summary_ui
             widgets:
               - label: { text: "\U000F0EBB", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: service_sensors_stab_demand_lbl, text: "Vraag & Ingangen", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { id: service_sensors_stab_demand_lbl, text: "Warmte- en koudevraag", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
               - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }

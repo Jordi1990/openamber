@@ -37,7 +37,7 @@ widgets:
                   page: panel_heating_page_algemeen
             widgets:
               - label: { text: "\U000F058F", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: heating_stab_algemeen_lbl, text: "Algemeen & Modus", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { id: heating_stab_algemeen_lbl, text: "Algemeen", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
               - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
 
         - obj:
@@ -108,7 +108,7 @@ widgets:
                   page: panel_heating_page_start_stop
             widgets:
               - label: { text: "\U000F04D6", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: heating_stab_start_stop_lbl, text: "Start / Stop Parameters", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { id: heating_stab_start_stop_lbl, text: "Start/stop", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
               - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
 
         - obj:

@@ -1,7 +1,7 @@
-# Menu Page: Sensoren & Status - Vraag & Ingangen
+# Menu Page: Diagnose - Warmte- en koudevraag
 # ------------------------------------------------------------
 id: service_sensors_demand_page
-title: "Vraag & Ingangen"
+title: "Warmte- en koudevraag"
 widgets:
   - obj:
       width: 100%
@@ -19,7 +19,7 @@ widgets:
       scrollbar_mode: "OFF"
       scrollable: false
       widgets:
-        - label: { text: "Vraag & Ingangen", text_color: 0x0F172A, text_font: font_text_24, align: TOP_LEFT }
+        - label: { text: "Warmte- en koudevraag", text_color: 0x0F172A, text_font: font_text_24, align: TOP_LEFT }
         - table:
             id: service_diag_demand_table
             width: 100%

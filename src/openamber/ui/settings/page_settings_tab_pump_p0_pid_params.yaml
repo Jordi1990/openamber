@@ -1,7 +1,7 @@
 # Menu Page: Pomp P0 PID Regelparameters
 # ------------------------------------------------------------
 id: panel_pump_page_p0_pid_params
-title: "P0 PID Parameters"
+title: "PID-parameters"
 widgets:
   - obj:
       id: set_pump_pid_defrost_pwm_row

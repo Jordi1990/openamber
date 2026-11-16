@@ -59,7 +59,7 @@ def test_general_system_and_silent_mode_pages(openamber):
 
 
 def test_sensor_calibration_pager_workflow(openamber):
-    """Verify navigating to sensor calibration subpages (Ruimte & Tapwater, CV-Systeem)."""
+    """Verify navigating to sensor calibration subpages (Ruimte en tapwater, CV-systeem)."""
     assert openamber.click("nav_settings"), "Clicking nav_settings must succeed"
     openamber.step(ms=100)
     assert openamber.is_visible("page_settings"), "page_settings must be visible"
@@ -71,7 +71,7 @@ def test_sensor_calibration_pager_workflow(openamber):
     openamber.step(ms=100)
     assert openamber.is_visible("panel_general_page_sensor_kalibratie"), "panel_general_page_sensor_kalibratie must be visible"
 
-    # 1. Ruimte & Tapwater subcategory (<= 4 settings: Tr, Tw)
+    # 1. Ruimte en tapwater subcategory (<= 4 settings: Tr, Tw)
     assert openamber.click("sensor_kalibratie_tab_ruimte"), "Clicking sensor_kalibratie_tab_ruimte must succeed"
     openamber.step(ms=100)
     assert openamber.is_visible("panel_general_sensor_kalibratie_ruimte"), "Ruimte subpage must be visible"

@@ -1,7 +1,7 @@
 # Menu Page: Sensor kalibratie - CV-Systeem
 # ------------------------------------------------------------
 id: panel_general_sensor_kalibratie_cv
-title: "CV-Systeem"
+title: "CV-systeem"
 widgets:
   - obj:
       width: 100%
