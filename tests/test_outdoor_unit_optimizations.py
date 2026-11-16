@@ -20,20 +20,14 @@ Covers:
 
 import pytest
 
+from helpers import enter_maintenance, leave_maintenance
+
 
 def _reinitialize(openamber):
-    """Re-run initialization via a maintenance mode cycle."""
-    assert openamber.set_switch("service_mode_enabled", True) is True
-    openamber.advance_time(seconds=10, step_s=1)
-    openamber.step(ms=50)
-    assert openamber.get_entity("state_machine_state_main") == "Maintenance"
-
-    # Exit maintenance mode -> triggers WAIT_MODBUS_CONNECTION -> INITIALIZING
-    assert openamber.set_switch("service_mode_enabled", False) is True
-    openamber.advance_time(seconds=25, step_s=5)
-    openamber.advance_time(seconds=75, step_s=5)
-    openamber.step(ms=50)
-    assert openamber.get_entity("state_machine_state_main") == "Heat/Cool"
+    """Re-run initialization via a maintenance mode cycle (stop, maintenance on/off, resume)."""
+    enter_maintenance(openamber)
+    # Exit maintenance mode -> WAIT_MODBUS_CONNECTION -> INITIALIZING -> Standby; resuming initializes again.
+    leave_maintenance(openamber)
 
 
 def test_outdoor_unit_optimizations_entity_default_and_toggle(clean_system):

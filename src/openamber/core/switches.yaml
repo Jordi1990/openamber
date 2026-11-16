@@ -181,11 +181,33 @@ switch:
 - platform: template
   id: service_mode_enabled
   name: "Onderhoudsmodus"
-  optimistic: True
   entity_category: config
   disabled_by_default: true
+  restore_mode: ALWAYS_OFF
   web_server:
     sorting_group_id: manual_control
+  # Only allowed while the heat pump is stopped ("Gecontroleerd stoppen" and in standby).
+  turn_on_action:
+    - if:
+        condition:
+          lambda: 'return id(service_mode_enabled).state || id(amber_ctrl).is_standby();'
+        then:
+          - switch.template.publish:
+              id: service_mode_enabled
+              state: ON
+        else:
+          - logger.log:
+              level: WARN
+              tag: amber
+              format: "Maintenance mode refused: it can only be turned on while the heat pump is stopped (Standby)."
+          # Publish the unchanged state so Home Assistant and the display switch back.
+          - switch.template.publish:
+              id: service_mode_enabled
+              state: OFF
+  turn_off_action:
+    - switch.template.publish:
+        id: service_mode_enabled
+        state: OFF
 
 - platform: template
   id: deaeration_short_switch

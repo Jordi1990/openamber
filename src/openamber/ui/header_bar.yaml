@@ -184,7 +184,8 @@ obj:
               text_color: 0xFFFFFF
               text_font: font_mdi_24
           - label:
-              text: "Onderhoudsmodus actief"
+              id: header_maintenance_badge_label
+              text: "Warmtepomp gestopt"
               text_color: 0xFFFFFF
               text_font: font_text_20
 

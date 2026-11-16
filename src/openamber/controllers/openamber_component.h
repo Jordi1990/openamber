@@ -148,7 +148,8 @@ void OpenAmberComponent::update()
   ThreeWayValvePosition desired_valve_position = GetDesiredThreeWayValvePosition();
   State desired_state = modbus_disconnected_error_occurred_ ? State::WAIT_MODBUS_CONNECTION : (desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL);
   bool maintenance_requested = id(service_mode_enabled).state;
-  // Maintenance mode wins over a controlled stop when both are on.
+  // Maintenance mode is only turned on from a controlled stop and wins while both are on; the stop stays active
+  // so the heat pump returns to standby once maintenance mode is turned off.
   bool controlled_stop_requested = id(controlled_stop_active) && !maintenance_requested;
 
   switch (state_)
@@ -325,6 +326,20 @@ void OpenAmberComponent::update()
 
     case State::STANDBY:
     {
+      // Maintenance mode can only be turned on while stopped. The compressor and pumps are already off, so enter
+      // maintenance right away (same end state as from heating/cooling or DHW), without a full re-initialization.
+      // The controlled stop stays active: after maintenance mode the heat pump returns to standby, not to regulation.
+      if (maintenance_requested)
+      {
+        ESP_LOGI("amber", "Maintenance mode requested while stopped, entering maintenance.");
+        auto working_mode_call = id(working_mode_switch).make_call();
+        working_mode_call.set_index(WORKING_MODE_MAINTENANCE);
+        working_mode_call.perform();
+        id(pump_p0_relay_switch).turn_off();
+        heat_cool_controller_->StopPumpP1IfNeeded();
+        SetNextState(State::MAINTENANCE);
+        break;
+      }
       // A deliberate stop: no frost protection while stopped. A forgotten stop resumes by itself after 30 minutes.
       const bool timed_out = App.get_loop_component_start_time() - standby_started_ms_ >= CONTROLLED_STOP_AUTO_RESUME_S * 1000UL;
       if (!controlled_stop_requested || timed_out)
@@ -338,7 +353,6 @@ void OpenAmberComponent::update()
           ESP_LOGI("amber", "Controlled stop ends, resuming regulation.");
         }
         id(controlled_stop_active) = false;
-        // Maintenance mode requested while stopped: re-initialize, it takes over from there.
         SetNextState(State::WAIT_MODBUS_CONNECTION);
       }
       break;
@@ -352,6 +366,7 @@ void OpenAmberComponent::update()
         {
           deaeration_routine_->Stop();
         }
+        // The controlled stop is still active, so after re-initialization the heat pump goes back to standby.
         SetNextState(State::WAIT_MODBUS_CONNECTION);
         break;
       }

@@ -1,25 +1,29 @@
 """Automated tests for maintenance mode transitions and manual control.
 
 Covers:
-1. Enabling service_mode_enabled transitions the system into maintenance mode:
+1. Maintenance mode can only be turned on while the heat pump is stopped (controlled stop, Standby):
    - state_machine_state_main becomes "Maintenance".
    - working_mode_switch becomes "Onderhoud".
 2. Exiting maintenance mode:
    - service_mode_enabled set to False.
-   - System transitions back through initialization to normal operation.
-3. UI switch set_service_mode_switch_ui toggles service_mode_enabled.
+   - The controlled stop is still active: the system re-initializes and returns to Standby.
+   - Resuming is blocked while maintenance mode is on.
+3. UI switch set_service_mode_switch_ui toggles service_mode_enabled, and is disabled while running.
+4. Header badge shows that the heat pump is stopped.
 """
 
-import pytest
+from helpers import advance_until_state, enter_maintenance, leave_maintenance, start_space_heating, stop_heat_pump
+
+MAIN = "state_machine_state_main"
 
 
 def test_maintenance_mode_transition(clean_system):
     """
     Verify entering and exiting maintenance mode:
     - Initially state_machine_state_main is Heat/Cool.
-    - Enabling service_mode_enabled transitions state_machine_state_main to "Maintenance"
+    - After a controlled stop, enabling service_mode_enabled transitions state_machine_state_main to "Maintenance"
       and working_mode_switch to "Onderhoud".
-    - Disabling service_mode_enabled transitions the system back to normal operation.
+    - Disabling service_mode_enabled returns to Standby; resuming returns to normal operation.
     """
     openamber = clean_system
 
@@ -27,44 +31,61 @@ def test_maintenance_mode_transition(clean_system):
     openamber.advance_time(seconds=20, step_s=5)
     openamber.step(ms=50)
 
-    assert openamber.get_entity("state_machine_state_main") == "Heat/Cool", (
-        f"Initial main state should be Heat/Cool, got {openamber.get_entity('state_machine_state_main')}"
+    assert openamber.get_entity(MAIN) == "Heat/Cool", (
+        f"Initial main state should be Heat/Cool, got {openamber.get_entity(MAIN)}"
     )
 
-    # Enable maintenance mode
-    assert openamber.set_switch("service_mode_enabled", True) is True
-    openamber.step(ms=50)
-    assert openamber.get_entity("service_mode_enabled") is True, "service_mode_enabled should be True"
-
-    # Advance time for openamber_component (update interval 5s)
-    openamber.advance_time(seconds=10, step_s=1)
-    openamber.step(ms=50)
-
-    assert openamber.get_entity("state_machine_state_main") == "Maintenance", (
-        f"Main state should be Maintenance, got {openamber.get_entity('state_machine_state_main')}"
-    )
+    enter_maintenance(openamber)
     assert openamber.get_entity("working_mode_switch") == "Onderhoud", (
         f"working_mode_switch should be Onderhoud, got {openamber.get_entity('working_mode_switch')}"
     )
 
-    # Disable maintenance mode
-    assert openamber.set_switch("service_mode_enabled", False) is True
-    openamber.step(ms=50)
-    assert openamber.get_entity("service_mode_enabled") is False, "service_mode_enabled should be False"
+    leave_maintenance(openamber)
 
-    # Advance time for transition back through initialization delay (10s) and valve switch (60s)
-    openamber.advance_time(seconds=25, step_s=5)
-    openamber.advance_time(seconds=75, step_s=5)
+
+def test_maintenance_mode_rejected_while_running(clean_system):
+    """Maintenance mode cannot be turned on while the heat pump is in operation."""
+    openamber = clean_system
+    start_space_heating(openamber)
+    assert int(openamber.get_entity("compressor_control_select")) > 0
+
+    openamber.set_switch("service_mode_enabled", True)
+    openamber.step(ms=50)
+    assert openamber.get_entity("service_mode_enabled") is False, "Maintenance mode must be refused while running"
+    openamber.advance_time(seconds=30, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.get_entity(MAIN) == "Heat/Cool"
+    assert int(openamber.get_entity("compressor_control_select")) > 0, "A refused request must not stop the compressor"
+
+    openamber.set_switch("heat_demand_switch", False)
+    openamber.advance_time(seconds=900, step_s=20)
     openamber.step(ms=50)
 
-    assert openamber.get_entity("state_machine_state_main") == "Heat/Cool", (
-        f"Main state should return to Heat/Cool, got {openamber.get_entity('state_machine_state_main')}"
-    )
+
+def test_resume_blocked_while_maintenance_mode_on(clean_system):
+    """Resuming after a controlled stop is only possible once maintenance mode is off; no auto-resume either."""
+    openamber = clean_system
+    openamber.advance_time(seconds=20, step_s=5)
+    enter_maintenance(openamber)
+
+    openamber.press_button("controlled_stop_resume_button")
+    openamber.advance_time(seconds=30, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.get_entity(MAIN) == "Maintenance", "Resume must be refused while maintenance mode is on"
+
+    # The 30 minute auto-resume of the controlled stop does not end maintenance mode.
+    openamber.advance_time(seconds=2000, step_s=50)
+    openamber.step(ms=50)
+    assert openamber.get_entity(MAIN) == "Maintenance"
+    assert openamber.get_entity("service_mode_enabled") is True
+
+    leave_maintenance(openamber)
 
 
 def test_maintenance_mode_ui_switch_toggle(clean_system):
     """
-    Verify toggling maintenance mode via the UI switch set_service_mode_switch_ui.
+    Verify toggling maintenance mode via the UI switch set_service_mode_switch_ui: disabled while running,
+    enabled once stopped.
     """
     openamber = clean_system
 
@@ -80,6 +101,12 @@ def test_maintenance_mode_ui_switch_toggle(clean_system):
 
     assert openamber.is_visible("set_service_mode_switch_ui"), "set_service_mode_switch_ui should be visible"
     assert openamber.get_entity("service_mode_enabled") is False, "service_mode_enabled should initially be False"
+    assert openamber.is_disabled("set_service_mode_switch_ui"), "The switch is disabled while the heat pump runs"
+    assert openamber.get_label("service_maintenance_lock_hint") == "Stop eerst de warmtepomp via Systeem > Beheer."
+
+    stop_heat_pump(openamber)
+    openamber.step(ms=100)
+    assert not openamber.is_disabled("set_service_mode_switch_ui"), "The switch is enabled once stopped"
 
     # Click switch to turn ON maintenance mode
     assert openamber.click("set_service_mode_switch_ui"), "Clicking set_service_mode_switch_ui must succeed"
@@ -88,12 +115,8 @@ def test_maintenance_mode_ui_switch_toggle(clean_system):
     assert openamber.get_entity("service_mode_enabled") is True, (
         "service_mode_enabled should be True after clicking switch"
     )
-
-    # Advance time to allow state machine transition
-    openamber.advance_time(seconds=10, step_s=1)
-    openamber.step(ms=50)
-    assert openamber.get_entity("state_machine_state_main") == "Maintenance", (
-        f"Main state should be Maintenance, got {openamber.get_entity('state_machine_state_main')}"
+    assert advance_until_state(openamber, MAIN, "Maintenance", max_s=300, step=2), (
+        f"Main state should be Maintenance, got {openamber.get_entity(MAIN)}"
     )
 
     # Click switch again to turn OFF maintenance mode
@@ -103,6 +126,34 @@ def test_maintenance_mode_ui_switch_toggle(clean_system):
     assert openamber.get_entity("service_mode_enabled") is False, (
         "service_mode_enabled should be False after toggling off"
     )
+    assert advance_until_state(openamber, MAIN, "Standby", max_s=300, step=5)
+    assert openamber.click("nav_home")
+    openamber.step(ms=100)
+
+
+def test_header_badge_shows_heat_pump_stopped(clean_system):
+    """The header badge shows that the heat pump is stopped, also in maintenance mode."""
+    openamber = clean_system
+    openamber.advance_time(seconds=20, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.is_hidden("header_maintenance_badge")
+
+    stop_heat_pump(openamber)
+    openamber.advance_time(seconds=6, step_s=2)
+    openamber.step(ms=50)
+    assert openamber.is_visible("header_maintenance_badge")
+    assert openamber.get_label("header_maintenance_badge_label") == "Warmtepomp gestopt"
+
+    assert openamber.set_switch("service_mode_enabled", True) is True
+    assert advance_until_state(openamber, MAIN, "Maintenance", max_s=300, step=2)
+    openamber.step(ms=50)
+    assert openamber.is_visible("header_maintenance_badge")
+    assert openamber.get_label("header_maintenance_badge_label") == "Warmtepomp gestopt"
+
+    leave_maintenance(openamber)
+    openamber.advance_time(seconds=6, step_s=2)
+    openamber.step(ms=50)
+    assert openamber.is_hidden("header_maintenance_badge")
 
 
 def test_maintenance_proxy_interlocks_prevent_hardware_actuation_when_disabled(clean_system):
@@ -146,11 +197,8 @@ def test_maintenance_proxy_interlocks_prevent_hardware_actuation_when_disabled(c
         "Crankcase heater relay must NOT turn ON when maintenance mode is disabled"
     )
 
-    # 2. Enter maintenance mode
-    assert openamber.set_switch("service_mode_enabled", True) is True
-    openamber.advance_time(seconds=10, step_s=1)
-    openamber.step(ms=50)
-    assert openamber.get_entity("state_machine_state_main") == "Maintenance"
+    # 2. Enter maintenance mode (stop first)
+    enter_maintenance(openamber)
 
     # In maintenance mode, pump P0 is explicitly stopped
     assert openamber.get_entity("pump_p0_relay_switch") is False
@@ -184,9 +232,5 @@ def test_maintenance_proxy_interlocks_prevent_hardware_actuation_when_disabled(c
     assert openamber.get_entity("three_way_valve_dhw_switch") is False
     assert openamber.get_entity("bottom_plate_heater_manual_switch") is False
 
-    # 4. Exit maintenance mode
-    openamber.set_switch("service_mode_enabled", False)
-    openamber.advance_time(seconds=25, step_s=5)
-    openamber.advance_time(seconds=75, step_s=5)
-    openamber.step(ms=50)
-    assert openamber.get_entity("state_machine_state_main") == "Heat/Cool"
+    # 4. Exit maintenance mode: back to Standby, then resume
+    leave_maintenance(openamber)

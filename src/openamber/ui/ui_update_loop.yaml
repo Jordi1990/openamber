@@ -12,6 +12,8 @@
   # ── Firmware update status ──
   - lambda: |-
       id(update_firmware_ui).execute();
+      // ── Header: heat pump stopped badge (the controlled stop has no state event and can end by itself) ──
+      id(update_header_mode_badge).execute();
       // ── Service update progress overlay ──
       if (id(service_update_install_in_progress)) {
         lv_obj_remove_flag(id(service_update_progress_overlay), LV_OBJ_FLAG_HIDDEN);

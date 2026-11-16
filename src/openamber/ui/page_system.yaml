@@ -181,6 +181,8 @@ obj:
                                                         - lambda: |-
                                                             lv_label_set_text(id(service_controlled_stop_button_label), "Hervat warmtepomp");
                                                             lv_obj_send_event(id(service_controlled_stop_button_label), lvgl::lv_update_event, nullptr);
+                                                            id(update_header_mode_badge).execute();
+                                                            id(update_controlled_stop_button_ui).execute();
                                             - if:
                                                     condition:
                                                         lambda: 'return id(service_confirm_action) == 1;'

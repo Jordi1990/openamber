@@ -41,6 +41,42 @@ def advance_until_state(openamber, entity, wanted, max_s, step=10):
         waited += cur_step
 
 
+
+def stop_heat_pump(openamber, max_s=900):
+    """Controlled stop ("Gecontroleerd stoppen") and wait until the main state is Standby."""
+    openamber.press_button("controlled_stop_button")
+    openamber.step(ms=50)
+    assert advance_until_state(openamber, "state_machine_state_main", "Standby", max_s=max_s, step=5), (
+        f"Never reached Standby (main: {openamber.get_entity('state_machine_state_main')})"
+    )
+
+
+def enter_maintenance(openamber, max_s=900):
+    """Maintenance mode can only be turned on while the heat pump is stopped: stop first, then turn it on."""
+    stop_heat_pump(openamber, max_s=max_s)
+    assert openamber.set_switch("service_mode_enabled", True) is True
+    openamber.step(ms=50)
+    assert openamber.get_entity("service_mode_enabled") is True
+    assert advance_until_state(openamber, "state_machine_state_main", "Maintenance", max_s=300, step=2), (
+        f"Never reached Maintenance (main: {openamber.get_entity('state_machine_state_main')})"
+    )
+
+
+def leave_maintenance(openamber, resume=True):
+    """Turn maintenance mode off. The controlled stop is still active, so the heat pump returns to Standby;
+    with resume=True regulation is resumed after that."""
+    assert openamber.set_switch("service_mode_enabled", False) is True
+    openamber.step(ms=50)
+    assert advance_until_state(openamber, "state_machine_state_main", "Standby", max_s=300, step=5), (
+        f"Never returned to Standby (main: {openamber.get_entity('state_machine_state_main')})"
+    )
+    if resume:
+        openamber.press_button("controlled_stop_resume_button")
+        openamber.step(ms=50)
+        assert advance_until_state(openamber, "state_machine_state_main", "Heat/Cool", max_s=300, step=5), (
+            f"Never resumed (main: {openamber.get_entity('state_machine_state_main')})"
+        )
+
 def set_outside_temperature(openamber, ta):
     """Set Ta and restart the averaged Ta used by the heating curves at the same value.
 
