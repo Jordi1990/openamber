@@ -190,7 +190,8 @@ switch:
   turn_on_action:
     - if:
         condition:
-          lambda: 'return id(service_mode_enabled).state || id(amber_ctrl).is_standby();'
+          # Both: right after a resume the controller is still in Standby for one loop, with the stop already cleared.
+          lambda: 'return id(service_mode_enabled).state || (id(controlled_stop_active) && id(amber_ctrl).is_standby());'
         then:
           - switch.template.publish:
               id: service_mode_enabled

@@ -2885,7 +2885,7 @@
           }
           lv_obj_remove_flag(id(service_maintenance_layout), LV_OBJ_FLAG_HIDDEN);
           // Maintenance mode can only be turned on while the heat pump is stopped (Systeem > Beheer > Stop warmtepomp).
-          const bool stopped = id(amber_ctrl).is_standby();
+          const bool stopped = id(controlled_stop_active) && id(amber_ctrl).is_standby();
           const char *hint = id(service_mode_enabled).state
               ? "Onderhoudsmodus wordt voorbereid."
               : (stopped

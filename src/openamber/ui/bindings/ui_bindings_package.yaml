@@ -17,3 +17,4 @@ switch: !include switch_ui_bindings.yaml
 text_sensor: !include text_sensor_ui_bindings.yaml
 datetime: !include datetime_ui_bindings.yaml
 script: !include script_ui_bindings.yaml
+button: !include button_ui_bindings.yaml
