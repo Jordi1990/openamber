@@ -1,11 +1,14 @@
 substitutions:
   device_model: waveshare-5-1024x600
+  room_temperature_source: effective_room_temperature
 
 packages:
  - !include openamber/core/openamber.yaml
  - !include openamber/ui/display_globals.yaml
  - !include openamber/ui/bindings/ui_bindings_package.yaml
  - !include openamber/ui/ui_package.yaml
+ - !include openamber/ble/ble_package.yaml
+ - !include openamber/thermostat_link/thermostat_link.yaml
  
 wifi:
   use_psram: true
@@ -23,17 +26,35 @@ esp32:
       CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL: "0"
       CONFIG_SPIRAM_MALLOC_RESERVE_INTERNAL: "65536"
       CONFIG_SPIRAM_TRY_ALLOCATE_WIFI_LWIP: y
+      # Static WiFi buffers are internal DMA RAM (~1.6 kB each); the PSRAM
+      # defaults of 16 RX + 16 TX use ~51 kB. Dynamic RX buffers go to PSRAM.
+      # RX_BA_WIN (16) must stay <= 2 x STATIC_RX_BUFFER_NUM.
+      CONFIG_ESP_WIFI_STATIC_RX_BUFFER_NUM: "8"
+      CONFIG_ESP_WIFI_STATIC_TX_BUFFER_NUM: "8"
       CONFIG_MBEDTLS_EXTERNAL_MEM_ALLOC: y
       CONFIG_MDNS_TASK_CREATE_FROM_SPIRAM: y
       CONFIG_MDNS_MEMORY_ALLOC_SPIRAM: y
-      CONFIG_NVS_ALLOCATE_CACHE_IN_SPIRAM: y
       CONFIG_SPIRAM_RODATA: y
       CONFIG_ESP_TASK_WDT_TIMEOUT_S: "60"
+      # Bluetooth (ble_package.yaml).
+      CONFIG_SPIRAM_ALLOW_BSS_SEG_EXTERNAL_MEMORY: y
+      # Scan-only controller footprint. With the default of six activities the
+      # controller init asserts (emi.c 164) on the S3.
+      CONFIG_BT_CTRL_BLE_MAX_ACT: "1"
+      CONFIG_BT_CTRL_SCAN_DUPL_CACHE_SIZE: "20"
+      # Linking the controller puts ~16 kB in IRAM (shared with the heap on the
+      # S3), even while BLE is off. Run it from flash; scanning may miss
+      # advertisements while flash is erased (OTA, NVS writes).
+      CONFIG_BT_CTRL_RUN_IN_FLASH_ONLY: y
     advanced:
       loop_task_stack_size: 10240
       execute_from_psram: true
+      nvs_cache_in_psram: true
+      flash_chip: generic
 
 esphome:
+  includes:
+    - <esp_wifi.h>
   project:
     version: dev
   on_boot:
@@ -63,6 +84,7 @@ uart:
 psram:
   mode: octal
   speed: 80MHz
+  ignore_not_found: false
 
 ch422g:
   - id: ch422g_hub
@@ -160,6 +182,13 @@ sensor:
         - delta: 1
 
 lvgl:
+  # Workaround: ESPHome creates the LVGL display at 240x240 and sets the real size in LvglComponent::setup(),
+  # after all widgets exist. That size change re-initializes the default theme and restyles every widget, which
+  # with the full UI takes longer than the task watchdog (boot loop, black screen). Screen properties are applied
+  # before the first widget is created, so setting the final size here makes the later call a no-op.
+  outline_width: !lambda |-
+    lv_display_set_resolution(lv_display_get_default(), id(my_display).get_native_width(), id(my_display).get_native_height());
+    return 0;
   on_idle:
     - timeout: !lambda 'return id(display_screen_timeout_ms);'
       then:

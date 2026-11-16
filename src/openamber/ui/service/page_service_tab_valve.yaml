@@ -33,17 +33,16 @@ obj:
         scrollbar_mode: "OFF"
         scrollable: false
         on_click:
-          - if:
-              condition:
-                lambda: 'return id(state_machine_state_main).state == "Maintenance";'
-              then:
-                - lvgl.widget.update: { id: service_valve_btn_heat_cool, bg_color: 0x1F3B68 }
-                - lvgl.widget.update: { id: service_valve_btn_heat_cool_lbl, text_color: 0xFFFFFF }
-                - lvgl.widget.update: { id: service_valve_btn_dhw, bg_color: 0xE8ECF1 }
-                - lvgl.widget.update: { id: service_valve_btn_dhw_lbl, text_color: 0x4B5563 }
-                - switch.turn_on: three_way_valve_heat_cool_switch
-                - switch.turn_off: three_way_valve_dhw_switch
-                - script.execute: update_service_valve_ui
+          - lambda: |-
+              if (id(state_machine_state_main).state == "Maintenance") {
+                lv_obj_set_style_bg_color(id(service_valve_btn_heat_cool), lv_color_hex(0x1F3B68), LV_PART_MAIN);
+                lv_obj_set_style_text_color(id(service_valve_btn_heat_cool_lbl), lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+                lv_obj_set_style_bg_color(id(service_valve_btn_dhw), lv_color_hex(0xE8ECF1), LV_PART_MAIN);
+                lv_obj_set_style_text_color(id(service_valve_btn_dhw_lbl), lv_color_hex(0x4B5563), LV_PART_MAIN);
+                id(three_way_valve_heat_cool_switch).turn_on();
+                id(three_way_valve_dhw_switch).turn_off();
+                id(update_service_valve_ui).execute();
+              }
         widgets:
           - label:
               id: service_valve_btn_heat_cool_lbl
@@ -64,17 +63,16 @@ obj:
         scrollbar_mode: "OFF"
         scrollable: false
         on_click:
-          - if:
-              condition:
-                lambda: 'return id(state_machine_state_main).state == "Maintenance";'
-              then:
-                - lvgl.widget.update: { id: service_valve_btn_dhw, bg_color: 0x1F3B68 }
-                - lvgl.widget.update: { id: service_valve_btn_dhw_lbl, text_color: 0xFFFFFF }
-                - lvgl.widget.update: { id: service_valve_btn_heat_cool, bg_color: 0xE8ECF1 }
-                - lvgl.widget.update: { id: service_valve_btn_heat_cool_lbl, text_color: 0x4B5563 }
-                - switch.turn_on: three_way_valve_dhw_switch
-                - switch.turn_off: three_way_valve_heat_cool_switch
-                - script.execute: update_service_valve_ui
+          - lambda: |-
+              if (id(state_machine_state_main).state == "Maintenance") {
+                lv_obj_set_style_bg_color(id(service_valve_btn_dhw), lv_color_hex(0x1F3B68), LV_PART_MAIN);
+                lv_obj_set_style_text_color(id(service_valve_btn_dhw_lbl), lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+                lv_obj_set_style_bg_color(id(service_valve_btn_heat_cool), lv_color_hex(0xE8ECF1), LV_PART_MAIN);
+                lv_obj_set_style_text_color(id(service_valve_btn_heat_cool_lbl), lv_color_hex(0x4B5563), LV_PART_MAIN);
+                id(three_way_valve_dhw_switch).turn_on();
+                id(three_way_valve_heat_cool_switch).turn_off();
+                id(update_service_valve_ui).execute();
+              }
         widgets:
           - label:
               id: service_valve_btn_dhw_lbl

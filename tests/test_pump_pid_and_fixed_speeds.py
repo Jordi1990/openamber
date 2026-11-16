@@ -11,6 +11,23 @@ Covers:
 
 import pytest
 
+from helpers import advance_until_state, enter_maintenance, leave_maintenance
+
+
+def _start_idle_heat_demand_with_p1(openamber):
+    """Heat demand without a reason to start the compressor, so P0 only runs interval cycles."""
+    openamber.set_switch("pump_p1_enabled", True)
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 35.0)
+    openamber.set_climate("pid_heat_temperature_control", target_temperature=35.0)
+    openamber.set_sensor("heat_cool_temperature_tc", 35.0)
+    openamber.set_sensor("outlet_temperature_tuo", 35.0)
+    openamber.set_sensor("inlet_temperature_tui", 33.0)
+    openamber.set_switch("heat_demand_switch", True)
+    openamber.advance_time(seconds=10, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 should run while heat demand is active"
+
 
 def test_fixed_pump_speed_heating(clean_system):
     """
@@ -151,8 +168,9 @@ def test_pump_p0_pid_defrost_override_and_limits(clean_system):
     openamber.set_binary_sensor("external_heat_demand_wired", True)
     openamber.step(ms=100)
 
-    # Advance time through pump interval in IDLE (900s) + pump start (10s)
-    openamber.advance_time(seconds=910, step_s=30)
+    # The pump starts after the pump interval, or right away when an earlier DHW run reset the interval. The
+    # checks below need the pump cycle before the compressor starts, so stop advancing as soon as it runs.
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Pump running", max_s=1000, step=5)
     openamber.step(ms=100)
     assert openamber.get_entity("internal_pump_active") is True
 
@@ -309,5 +327,65 @@ def test_secondary_pump_p1_starts_when_enabled(clean_system):
     )
     openamber.set_switch("pump_p1_enabled", False)
     openamber.step(ms=50)
+
+
+def test_pump_p1_keeps_running_between_pump_cycles(clean_system):
+    """P1 stays on when a P0 interval cycle ends while heat demand is still active."""
+    openamber = clean_system
+    _start_idle_heat_demand_with_p1(openamber)
+
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Wait pump stop", max_s=3000)
+    assert openamber.get_entity("heat_demand_active_sensor") is True
+    assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 must keep running when the P0 cycle ends"
+
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Idle", max_s=300)
+    assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 must keep running in idle with heat demand"
+
+
+def test_pump_p1_stops_at_cycle_end_during_defrost(clean_system):
+    """WAIT_PUMP_STOP holds while a defrost is active, P1 must not run during that wait."""
+    openamber = clean_system
+    # The mocked compressor reports the defrost standby frequency during a defrost. Without a delay (the default,
+    # unless an earlier test set one) the flow safety check stops heating as soon as the pump is off.
+    openamber.set_number("flow_switch_safety_delay_minutes", 2.0)
+    _start_idle_heat_demand_with_p1(openamber)
+
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Pump running", max_s=1200)
+    openamber.set_binary_sensor("defrost_active_sensor", True)
+    openamber.step(ms=50)
+
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Wait pump stop", max_s=1800)
+    openamber.advance_time(seconds=10, step_s=1)
+    openamber.step(ms=50)
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Wait pump stop"
+    assert openamber.get_entity("pump_p1_relay_switch") is False, "P1 must stop when the cycle ends during defrost"
+
+
+def test_pump_p1_stops_when_dhw_requested_during_pump_cycle(clean_system):
+    """A DHW request during a P0 cycle stops P1 when the valve switches and leaves it off during DHW."""
+    openamber = clean_system
+    _start_idle_heat_demand_with_p1(openamber)
+
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Pump running", max_s=1200)
+    openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
+    openamber.step(ms=50)
+
+    assert advance_until_state(openamber, "state_machine_state_main", "DHW", max_s=2400)
+    assert openamber.get_entity("pump_p1_relay_switch") is False, "P1 must not run while the valve is on DHW"
+
+
+def test_pump_p1_stops_when_entering_maintenance_from_idle_heat_demand(clean_system):
+    """Stopping (and then entering maintenance) from idle with heat demand stops P1, which idle leaves running."""
+    openamber = clean_system
+    _start_idle_heat_demand_with_p1(openamber)
+    # After a DHW run the pump interval is reset and a pump cycle starts right away: let it finish first.
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Idle", max_s=300, step=5)
+    assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 must keep running in idle with heat demand"
+
+    enter_maintenance(openamber, max_s=120)
+    openamber.step(ms=50)
+    assert openamber.get_entity("pump_p1_relay_switch") is False, "P1 must not keep running in maintenance"
+
+    leave_maintenance(openamber)
 
 

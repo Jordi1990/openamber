@@ -22,13 +22,12 @@
           knob:
             bg_color: 0xFFFFFF
           on_click:
-            - if:
-                condition:
-                  switch.is_on: eebus_enabled_switch
-                then:
-                  - switch.turn_off: eebus_enabled_switch
-                else:
-                  - switch.turn_on: eebus_enabled_switch
+            - lambda: |-
+                if (id(eebus_enabled_switch).state) {
+                  id(eebus_enabled_switch).turn_off();
+                } else {
+                  id(eebus_enabled_switch).turn_on();
+                }
 
 # ── Pagina 1: Verbinding met EMS ──
 - obj:

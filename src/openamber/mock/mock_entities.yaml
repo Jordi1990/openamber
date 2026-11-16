@@ -20,6 +20,14 @@ update:
     name: Firmware Update
 
 sensor:
+  # Simulator only: duration of the last graph page redraw, for the redraw time test.
+  - platform: template
+    id: graph_redraw_time
+    name: "Grafiek tekentijd"
+    unit_of_measurement: ms
+    accuracy_decimals: 0
+    update_interval: 1s
+    lambda: 'return openamber_graph::page().last_redraw_ms();'
   - platform: template
     id: voltage_outside_unit
     name: "Spanning buitenunit"
@@ -378,7 +386,8 @@ sensor:
   - platform: template
     id: model_identification_1
     name: "Model identificatie"
-    lambda: 'return 150.0f;'
+    # Keeps a value set by a test, otherwise reports an Amber 95.
+    lambda: 'return std::isnan(id(model_identification_1).state) ? 150.0f : id(model_identification_1).state;'
     update_interval: 5s
   - platform: template
     id: system_psram_free
@@ -683,6 +692,14 @@ number:
     step: 1.0
     initial_value: 10.0
   - platform: template
+    id: outdoor_unit_ambient_limit_control
+    name: "Ta-begrenzing door buitenunit (3281)"
+    optimistic: true
+    min_value: 0
+    max_value: 1
+    step: 1
+    initial_value: 1
+  - platform: template
     id: outdoor_unit_fan_param_3301
     optimistic: true
     min_value: 300
@@ -791,6 +808,13 @@ number:
     initial_value: 1000.0
 switch:
   - platform: template
+    id: mock_reset_outside_temperature_average
+    # Simulator only: restarts the averaged Ta, so the next Ta value becomes the new average.
+    optimistic: true
+    turn_on_action:
+      - sensor.exponential_moving_average.reset: temperature_outside_ta_avg_1h
+      - switch.turn_off: mock_reset_outside_temperature_average
+  - platform: template
     id: pump_p0_relay_switch
     name: "Pomp P0 relais"
     optimistic: true
@@ -843,6 +867,44 @@ switch:
     name: "Bodemplaatverwarming"
     optimistic: true
     turn_on_action: []
+    turn_off_action: []
+  - platform: template
+    id: mock_simulate_esp_restart
+    # Simulator only: drops all controller state as if the ESP restarted (OTA update), the units keep running.
+    optimistic: true
+    turn_on_action:
+      - lambda: 'id(amber_ctrl).simulate_restart();'
+      - switch.turn_off: mock_simulate_esp_restart
+    turn_off_action: []
+  # Simulator only: call the same controller hooks as the ota on_begin / on_progress / on_error callbacks.
+  - platform: template
+    id: mock_ota_begin
+    optimistic: true
+    turn_on_action:
+      - lambda: 'id(amber_ctrl).on_ota_started();'
+      - switch.turn_off: mock_ota_begin
+    turn_off_action: []
+  - platform: template
+    id: mock_ota_progress
+    optimistic: true
+    turn_on_action:
+      - lambda: 'id(amber_ctrl).on_ota_progress();'
+      - switch.turn_off: mock_ota_progress
+    turn_off_action: []
+  - platform: template
+    id: mock_modbus_inside_offline
+    # Simulator only: the inside unit stops answering on Modbus (as the modbus controller's offline callback).
+    optimistic: true
+    turn_on_action:
+      - lambda: 'id(modbus_inside_is_online) = false;'
+    turn_off_action:
+      - lambda: 'id(modbus_inside_is_online) = true;'
+  - platform: template
+    id: mock_ota_error
+    optimistic: true
+    turn_on_action:
+      - lambda: 'id(amber_ctrl).on_ota_finished(false);'
+      - switch.turn_off: mock_ota_error
     turn_off_action: []
   - platform: template
     id: mock_three_way_valve_feedback_missing

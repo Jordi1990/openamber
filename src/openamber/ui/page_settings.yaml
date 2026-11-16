@@ -491,9 +491,63 @@ obj:
                             - label: { id: eebus_page_2_button_lbl, text: "\U000F0142", text_color: 0x4B5563, text_font: font_mdi_24, align: CENTER }
                 - !include settings/page_settings_tab_wifi.yaml
                 - !include settings/page_settings_tab_thermostat.yaml
+                - obj:
+                    id: thermostat_algemeen_pager
+                    hidden: true
+                    width: 100%
+                    height: 44
+                    align: BOTTOM_MID
+                    y: -4
+                    bg_opa: 0%
+                    border_opa: 0%
+                    pad_all: 0
+                    layout:
+                      type: FLEX
+                      flex_flow: ROW
+                      flex_align_main: CENTER
+                      flex_align_cross: CENTER
+                      pad_column: 8
+                    widgets:
+                      - obj:
+                          id: thermostat_algemeen_page_1_button
+                          width: 40
+                          height: 36
+                          bg_color: 0xCBD5E1
+                          bg_opa: 100%
+                          radius: 8
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - script.execute:
+                                id: thermostat_algemeen_select_page
+                                page: 1
+                          widgets:
+                            - label: { id: thermostat_algemeen_page_1_button_lbl, text: "\U000F0141", text_color: 0x4B5563, text_font: font_mdi_24, align: CENTER }
+                      - label:
+                          id: thermostat_algemeen_page_indicator
+                          text: "Pagina 1 / 2"
+                          text_color: 0x4B5563
+                          text_font: font_text_20
+                      - obj:
+                          id: thermostat_algemeen_page_2_button
+                          width: 40
+                          height: 36
+                          bg_color: 0x1F3B68
+                          bg_opa: 100%
+                          radius: 8
+                          border_opa: 0%
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          on_click:
+                            - script.execute:
+                                id: thermostat_algemeen_select_page
+                                page: 2
+                          widgets:
+                            - label: { id: thermostat_algemeen_page_2_button_lbl, text: "\U000F0142", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
     - obj:
-        id: default_compressor_frequencies_modal
+        id: outdoor_unit_optimizations_modal
         width: 100%
         height: 100%
         hidden: true
@@ -508,7 +562,7 @@ obj:
 
         widgets:
           - obj:
-              id: default_compressor_frequencies_modal_card
+              id: outdoor_unit_optimizations_modal_card
               width: 580
               height: 260
               align: CENTER
@@ -526,16 +580,16 @@ obj:
 
               widgets:
                 - label:
-                    id: default_compressor_frequencies_modal_title
+                    id: outdoor_unit_optimizations_modal_title
                     text: "Herstart vereist"
                     text_color: 0x1F2933
                     text_font: font_text_24
                     align: TOP_LEFT
 
                 - label:
-                    id: default_compressor_frequencies_modal_text
+                    id: outdoor_unit_optimizations_modal_text
                     width: 100%
-                    text: "Om de standaard compressorfrequenties te activeren moet de complete warmtepomp inclusief buitenunit opnieuw worden opgestart door de stroom kort te onderbreken."
+                    text: "Om de standaard instellingen van de buitenunit te herstellen moet de complete warmtepomp inclusief buitenunit opnieuw worden opgestart door de stroom kort te onderbreken."
                     text_color: 0x1F2933
                     text_font: font_text_20
                     long_mode: WRAP
@@ -543,7 +597,7 @@ obj:
                     y: 48
 
                 - obj:
-                    id: default_compressor_frequencies_modal_ok_button
+                    id: outdoor_unit_optimizations_modal_ok_button
                     width: 200
                     height: 52
                     align: BOTTOM_RIGHT
@@ -557,10 +611,10 @@ obj:
                     scrollable: false
                     on_click:
                       - lvgl.widget.hide:
-                          id: default_compressor_frequencies_modal
+                          id: outdoor_unit_optimizations_modal
                     widgets:
                       - label:
-                          id: default_compressor_frequencies_modal_ok_label
+                          id: outdoor_unit_optimizations_modal_ok_label
                           text: "Begrepen"
                           text_color: 0xFFFFFF
                           text_font: font_text_24

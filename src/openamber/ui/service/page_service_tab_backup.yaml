@@ -28,13 +28,12 @@ obj:
         knob:
           bg_color: 0xFFFFFF
         on_click:
-          - if:
-              condition:
-                lambda: 'return id(state_machine_state_main).state == "Maintenance";'
-              then:
-                - switch.toggle: backup_heater_relay
-              else:
-                - script.execute: update_service_mode_ui
+          - lambda: |-
+              if (id(state_machine_state_main).state == "Maintenance") {
+                id(backup_heater_relay).toggle();
+              } else {
+                id(update_service_mode_ui).execute();
+              }
     - label:
         text: "CV hybride backup relais"
         text_color: 0x1F2933
@@ -58,11 +57,10 @@ obj:
         knob:
           bg_color: 0xFFFFFF
         on_click:
-          - if:
-              condition:
-                lambda: 'return id(state_machine_state_main).state == "Maintenance";'
-              then:
-                - switch.toggle: external_backup_heating_relay
-              else:
-                - script.execute: update_service_mode_ui
+          - lambda: |-
+              if (id(state_machine_state_main).state == "Maintenance") {
+                id(external_backup_heating_relay).toggle();
+              } else {
+                id(update_service_mode_ui).execute();
+              }
 

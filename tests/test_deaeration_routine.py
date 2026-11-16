@@ -14,6 +14,8 @@ Covers:
 
 import pytest
 
+from helpers import enter_maintenance
+
 
 def test_deaeration_cannot_start_outside_maintenance_mode(clean_system):
     """
@@ -57,11 +59,8 @@ def test_deaeration_short_routine_start_and_stop(clean_system):
     openamber.advance_time(seconds=20, step_s=5)
     openamber.step(ms=50)
 
-    # Enter maintenance mode
-    assert openamber.set_switch("service_mode_enabled", True) is True
-    openamber.advance_time(seconds=10, step_s=1)
-    openamber.step(ms=50)
-    assert openamber.get_entity("state_machine_state_main") == "Maintenance"
+    # Enter maintenance mode (only possible after a controlled stop)
+    enter_maintenance(openamber)
 
     # Initially routine state is Inactief / unstarted
     assert openamber.get_entity("state_machine_state_routine") in ("", "Inactief")
@@ -102,11 +101,8 @@ def test_deaeration_extended_routine_start_and_stop(clean_system):
     openamber.advance_time(seconds=20, step_s=5)
     openamber.step(ms=50)
 
-    # Enter maintenance mode
-    assert openamber.set_switch("service_mode_enabled", True) is True
-    openamber.advance_time(seconds=10, step_s=1)
-    openamber.step(ms=50)
-    assert openamber.get_entity("state_machine_state_main") == "Maintenance"
+    # Enter maintenance mode (only possible after a controlled stop)
+    enter_maintenance(openamber)
 
     # Start extended deaeration routine
     assert openamber.set_switch("deaeration_extended_switch", True) is True
@@ -139,11 +135,8 @@ def test_exiting_maintenance_mode_aborts_active_deaeration(clean_system):
     openamber.advance_time(seconds=20, step_s=5)
     openamber.step(ms=50)
 
-    # Enter maintenance mode
-    assert openamber.set_switch("service_mode_enabled", True) is True
-    openamber.advance_time(seconds=10, step_s=1)
-    openamber.step(ms=50)
-    assert openamber.get_entity("state_machine_state_main") == "Maintenance"
+    # Enter maintenance mode (only possible after a controlled stop)
+    enter_maintenance(openamber)
 
     # Start short deaeration routine
     assert openamber.set_switch("deaeration_short_switch", True) is True

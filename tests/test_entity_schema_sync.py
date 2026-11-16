@@ -189,7 +189,14 @@ def test_hardware_mocks_correspond_to_physical_modbus_or_subsystems():
         "eebus_ski",
         "eebus_status_sensor",
         "mock_compressor_frequency_override",
+        "graph_redraw_time",
         "mock_three_way_valve_feedback_missing",
+        "mock_simulate_esp_restart",
+        "mock_ota_begin",
+        "mock_ota_progress",
+        "mock_ota_error",
+        "mock_modbus_inside_offline",
+        "mock_reset_outside_temperature_average",
     }
 
     mock_ids = set(mock_entities.keys())
@@ -219,6 +226,8 @@ def test_ui_bindings_reference_valid_entities():
         | set(mock_entities.keys())
         | set(display_entities.keys())
     )
+    with open(os.path.join(CORE_DIR, "core_package.yaml"), encoding="utf-8") as f:
+        substitutions = yaml.load(f, Loader=ESPHomeYamlLoader).get("substitutions", {})
 
     # Check all binding YAML files
     extended_ids = set()
@@ -232,6 +241,8 @@ def test_ui_bindings_reference_valid_entities():
                     parts = stripped.split("!extend")
                     if len(parts) > 1:
                         target_id = parts[1].strip().split()[0].strip("'\"")
+                        for key, value in substitutions.items():
+                            target_id = target_id.replace("${" + key + "}", str(value))
                         if target_id:
                             extended_ids.add((target_id, os.path.basename(binding_file)))
 

@@ -37,12 +37,13 @@ obj:
         pad_top: 2
         pad_bottom: 2
         on_click:
-          - lvgl.widget.show: { id: service_updates_panel }
-          - lvgl.widget.hide: { id: system_diagnostics_panel }
-          - lvgl.widget.update: { id: system_tab_management, bg_color: 0x1F3B68 }
-          - lvgl.widget.update: { id: system_tab_management_lbl, text_color: 0xFFFFFF }
-          - lvgl.widget.update: { id: system_tab_diagnostics, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: system_tab_diagnostics_lbl, text_color: 0x4B5563 }
+          - lambda: |-
+              lv_obj_remove_flag(id(service_updates_panel), LV_OBJ_FLAG_HIDDEN);
+              lv_obj_add_flag(id(system_diagnostics_panel), LV_OBJ_FLAG_HIDDEN);
+              lv_obj_set_style_bg_color(id(system_tab_management), lv_color_hex(0x1F3B68), LV_PART_MAIN);
+              lv_obj_set_style_text_color(id(system_tab_management_lbl), lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+              lv_obj_set_style_bg_color(id(system_tab_diagnostics), lv_color_hex(0xE8ECF1), LV_PART_MAIN);
+              lv_obj_set_style_text_color(id(system_tab_diagnostics_lbl), lv_color_hex(0x4B5563), LV_PART_MAIN);
         widgets:
           - label:
               id: system_tab_management_lbl
@@ -64,13 +65,14 @@ obj:
         pad_top: 2
         pad_bottom: 2
         on_click:
-          - lvgl.widget.hide: { id: service_updates_panel }
-          - lvgl.widget.show: { id: system_diagnostics_panel }
-          - script.execute: update_system_diagnostics_ui
-          - lvgl.widget.update: { id: system_tab_management, bg_color: 0xE8ECF1 }
-          - lvgl.widget.update: { id: system_tab_management_lbl, text_color: 0x4B5563 }
-          - lvgl.widget.update: { id: system_tab_diagnostics, bg_color: 0x1F3B68 }
-          - lvgl.widget.update: { id: system_tab_diagnostics_lbl, text_color: 0xFFFFFF }
+          - lambda: |-
+              lv_obj_add_flag(id(service_updates_panel), LV_OBJ_FLAG_HIDDEN);
+              lv_obj_remove_flag(id(system_diagnostics_panel), LV_OBJ_FLAG_HIDDEN);
+              id(update_system_diagnostics_ui).execute();
+              lv_obj_set_style_bg_color(id(system_tab_management), lv_color_hex(0xE8ECF1), LV_PART_MAIN);
+              lv_obj_set_style_text_color(id(system_tab_management_lbl), lv_color_hex(0x4B5563), LV_PART_MAIN);
+              lv_obj_set_style_bg_color(id(system_tab_diagnostics), lv_color_hex(0x1F3B68), LV_PART_MAIN);
+              lv_obj_set_style_text_color(id(system_tab_diagnostics_lbl), lv_color_hex(0xFFFFFF), LV_PART_MAIN);
         widgets:
           - label:
               id: system_tab_diagnostics_lbl

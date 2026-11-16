@@ -41,5 +41,6 @@ lvgl:
     - !include page_service.yaml
     - !include page_system.yaml
     - !include page_settings.yaml
+    - !include page_graph.yaml
     - !include nav_bar.yaml
     - !include idle_screen_overlay.yaml

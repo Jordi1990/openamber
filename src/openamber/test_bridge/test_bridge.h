@@ -3,10 +3,12 @@
 #include "esphome/core/component.h"
 #include "esphome/core/application.h"
 #include "esphome/core/log.h"
+#include "esphome/core/helpers.h"
 #include "esphome/components/json/json_util.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/number/number.h"
 #include "esphome/components/switch/switch.h"
+#include "esphome/components/button/button.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/select/select.h"
 #include "esphome/components/climate/climate.h"
@@ -53,6 +55,9 @@ class TestBridge : public Component {
   void register_switch(const std::string &id, switch_::Switch *sw) {
     this->switches_[id] = sw;
   }
+  void register_button(const std::string &id, button::Button *b) {
+    this->buttons_[id] = b;
+  }
   void register_binary_sensor(const std::string &id, binary_sensor::BinarySensor *bs) {
     this->binary_sensors_[id] = bs;
   }
@@ -79,6 +84,7 @@ class TestBridge : public Component {
   int server_fd_{-1};
   int client_fd_{-1};
   std::string rx_buffer_;
+  HighFrequencyLoopRequester high_freq_;
   std::unordered_map<std::string, lv_obj_t **> widgets_;
   std::unordered_map<std::string, std::function<lv_obj_t*()>> obj_getters_;
   std::unordered_map<std::string, sensor::Sensor *> sensors_;
@@ -89,6 +95,7 @@ class TestBridge : public Component {
   std::unordered_map<std::string, climate::Climate *> climates_;
   std::unordered_map<std::string, datetime::TimeEntity *> time_entities_;
   std::unordered_map<std::string, text_sensor::TextSensor *> text_sensors_;
+  std::unordered_map<std::string, button::Button *> buttons_;
 
   void process_line(const std::string &line);
   void send_response(const std::string &json_str);

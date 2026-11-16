@@ -10,24 +10,16 @@
 # ══════════════════════════════════════════════════════════════
 
   # ── Firmware update status ──
-  - script.execute: update_firmware_ui
-
-  # ── Service update progress overlay ──
-  - if:
-      condition:
-        lambda: |-
-          return id(service_update_install_in_progress);
-      then:
-        - lvgl.widget.show:
-            id: service_update_progress_overlay
-      else:
-        - lvgl.widget.hide:
-            id: service_update_progress_overlay
-
-  # ── Service: Deaeration progress live timer update ──
-  - if:
-      condition:
-        lambda: 'return id(amber_ctrl).is_deaeration_running() && !lv_obj_has_flag(id(service_maintenance_panel), LV_OBJ_FLAG_HIDDEN);'
-      then:
-        - script.execute: update_service_deaeration_ui
+  - lambda: |-
+      id(update_firmware_ui).execute();
+      // ── Service update progress overlay ──
+      if (id(service_update_install_in_progress)) {
+        lv_obj_remove_flag(id(service_update_progress_overlay), LV_OBJ_FLAG_HIDDEN);
+      } else {
+        lv_obj_add_flag(id(service_update_progress_overlay), LV_OBJ_FLAG_HIDDEN);
+      }
+      // ── Service: Deaeration progress live timer update ──
+      if (id(amber_ctrl).is_deaeration_running() && !lv_obj_has_flag(id(service_maintenance_panel), LV_OBJ_FLAG_HIDDEN)) {
+        id(update_service_deaeration_ui).execute();
+      }
 

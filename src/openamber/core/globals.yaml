@@ -1,4 +1,10 @@
 globals:
+  # Controlled stop requested with the "Gecontroleerd stoppen" button. Not restored: after a restart regulation
+  # must never stay stopped by accident.
+  - id: controlled_stop_active
+    type: bool
+    restore_value: no
+    initial_value: 'false'
   - id: analytics_topic
     type: std::string
     restore_value: no

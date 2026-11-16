@@ -12,3 +12,42 @@ button:
     entity_category: diagnostic
     on_press:
       - script.execute: dump_eeprom_parameters
+  - platform: template
+    id: controlled_stop_button
+    name: "Gecontroleerd stoppen"
+    icon: mdi:power-sleep
+    web_server:
+      sorting_group_id: manual_control
+    on_press:
+      - globals.set:
+          id: controlled_stop_active
+          value: 'true'
+  - platform: template
+    id: controlled_stop_resume_button
+    name: "Hervatten na gecontroleerd stoppen"
+    icon: mdi:play
+    web_server:
+      sorting_group_id: manual_control
+    on_press:
+      # Only once the heat pump is fully stopped (Standby), and not while maintenance mode is on: turn that off first.
+      - if:
+          condition:
+            switch.is_on: service_mode_enabled
+          then:
+            - logger.log:
+                level: WARN
+                tag: amber
+                format: "Resume refused: turn off maintenance mode first."
+          else:
+            - if:
+                condition:
+                  lambda: 'return id(controlled_stop_active) && !id(amber_ctrl).is_standby();'
+                then:
+                  - logger.log:
+                      level: WARN
+                      tag: amber
+                      format: "Resume refused: the heat pump is still stopping."
+                else:
+                  - globals.set:
+                      id: controlled_stop_active
+                      value: 'false'

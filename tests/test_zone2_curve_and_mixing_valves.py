@@ -11,6 +11,8 @@ Covers settings:
 
 import pytest
 
+from helpers import set_outside_temperature
+
 
 def test_zone2_heating_curve_anchors_and_interpolation(clean_system):
     """
@@ -46,7 +48,7 @@ def test_zone2_heating_curve_anchors_and_interpolation(clean_system):
     ]
 
     for ta, expected_sp in test_points:
-        openamber.set_sensor("temperature_outside_ta", ta)
+        set_outside_temperature(openamber, ta)
         openamber.advance_time(seconds=6, step_s=1)
         openamber.step(ms=100)
 
@@ -796,7 +798,8 @@ def test_flow_both_zones_demand_heat_lowest_temp_mixes_highest_temp_opens(clean_
     openamber.set_number("heat_curve_z2_p5", 38.0)
     openamber.set_number("heat_curve_z2_p10", 38.0)
     openamber.set_number("heat_curve_z2_p15", 38.0)
-    openamber.advance_time(seconds=6, step_s=1)
+    # Curve recalculation (every 5 s) plus the next valve update (every 5 s).
+    openamber.advance_time(seconds=11, step_s=1)
     openamber.step(ms=100)
 
     # Tc setpoint must be highest of both (38°C)
@@ -834,7 +837,8 @@ def test_flow_both_zones_demand_heat_lowest_temp_mixes_highest_temp_opens(clean_
     openamber.set_number("heat_curve_z2_p5", 32.0)
     openamber.set_number("heat_curve_z2_p10", 32.0)
     openamber.set_number("heat_curve_z2_p15", 32.0)
-    openamber.advance_time(seconds=6, step_s=1)
+    # Curve recalculation (every 5 s) plus the next valve update (every 5 s).
+    openamber.advance_time(seconds=11, step_s=1)
     openamber.step(ms=100)
 
     # When both are equal, both can open completely

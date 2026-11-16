@@ -356,6 +356,26 @@ private:
   {
     return id(dhw_demand_active_sensor).state;
   }
+
+  /// @brief True when DHW should stop: no demand anymore, or a stop request (maintenance mode) while no oil
+  /// return cycle runs. A running oil return cycle is finished first.
+  bool ShouldStop()
+  {
+    // Checked before the demand: a stop request still lets the oil return cycle or a defrost finish when the demand
+    // ends meanwhile.
+    if (requested_to_stop_ && (id(oil_return_cycle_active).state || id(defrost_active_sensor).state))
+    {
+      ESP_LOGI("amber", "DHW stop requested: waiting for the oil return cycle or defrost to finish before stopping.");
+      return false;
+    }
+    return !HasDemand() || requested_to_stop_;
+  }
+
+  /// @brief The backup heater is not started when DHW is about to stop (no demand or a stop request).
+  bool CanStartBackupHeater()
+  {
+    return HasDemand() && !requested_to_stop_;
+  }
 public:
     DHWController(PumpController *pump_controller, CompressorController *compressor_controller)
         : BaseController(pump_controller, compressor_controller, DHWState::WAIT_FOR_STATE_SWITCH, DHWState::UNKNOWN, DHWState::IDLE) {
@@ -372,6 +392,60 @@ public:
     // Safety stop: leave heating/cooling at once, also during a defrost.
     SetWorkingMode(WORKING_MODE_STANDBY);
     SetNextState(DHWState::IDLE);
+  }
+
+  /// @brief Takes over units that kept running while the ESP restarted, instead of stopping them.
+  /// Only called with the 3-way valve in the DHW position and pump P0 running.
+  void ResumeFromRunningUnits()
+  {
+    const bool compressor_running = compressor_controller_->IsRunning();
+    const bool compressor_commanded = compressor_controller_->IsCommanded();
+    requested_to_stop_ = false;
+    pump_flow_missing_since_ms_ = 0;
+    rate_window_active_ = false;
+    heating_rate_below_min_since_ms_ = 0;
+    pump_controller_->AdoptRunningPump();
+    id(dhw_active).publish_state(true);
+
+    if (compressor_running && compressor_commanded)
+    {
+      // The run time before the restart is unknown: keep the compressor on for at least the minimum on time.
+      compressor_controller_->RecordStartTime();
+      // Pre-phase: keep heating in COMPRESSOR_RUNNING, which switches to DEFROSTING once the actual defrost starts.
+      if (id(defrost_running_sensor).state)
+      {
+        // DEFROSTING continues with the DHW pump settle time and heating rate window when the DHW pump runs.
+        SetNextState(DHWState::DEFROSTING);
+      }
+      else if (id(dhw_pump_relay_switch).state)
+      {
+        // Restart the settle time and the heating rate window of the DHW pump.
+        SetNextState(DHWState::WAIT_DHW_PUMP_RUNNING);
+      }
+      else
+      {
+        SetNextState(DHWState::COMPRESSOR_RUNNING);
+      }
+      return;
+    }
+
+    if (compressor_commanded)
+    {
+      ESP_LOGI("amber", "Resume: compressor was starting, cancelling the start.");
+      compressor_controller_->Stop();
+    }
+    else
+    {
+      compressor_controller_->RecordStopTime();
+    }
+    // Compressor starting, stopping or off: finish the stop. With DHW demand the cycle starts again from idle.
+    SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
+  }
+
+  /// @brief Evaluates the safety checks without running the state machine (used while an OTA update holds it).
+  bool HasSafetyStopCondition()
+  {
+    return PerformSafetyChecks();
   }
 
   void UpdateStateMachine()
@@ -426,7 +500,26 @@ public:
       }
 
       case DHWState::PUMP_RUNNING:
+        // No demand anymore or a stop request (maintenance mode): stop the pump before the backup heater or compressor starts.
+        if (ShouldStop())
+        {
+          ESP_LOGI("amber", "No more DHW demand or stop requested before the compressor or backup heater started, stopping pump.");
+          pump_controller_->Stop();
+          StopDhwPump();
+          SetNextState(DHWState::WAIT_PUMP_STOP);
+          break;
+        }
         SetWorkingMode(WORKING_MODE_HEATING);
+        // ShouldStop() above defers a stop while an oil return cycle or defrost runs (for a running compressor).
+        // Neither the compressor nor the backup heater has started here, so a stop request stops the pump instead.
+        if (requested_to_stop_)
+        {
+          ESP_LOGI("amber", "DHW stop requested before the compressor or backup heater started, stopping pump.");
+          pump_controller_->Stop();
+          StopDhwPump();
+          SetNextState(DHWState::WAIT_PUMP_STOP);
+          break;
+        }
         if(id(emergency_mode_enabled).state)
         {
           ESP_LOGW("amber", "Emergency mode enabled, not starting compressor but switching on backup heater");
@@ -436,6 +529,11 @@ public:
         }
         else
         {
+          // Same as heating: wait for the minimum compressor off time, the outdoor unit would not start yet.
+          if (!compressor_controller_->HasPassedMinOffTime())
+          {
+            break;
+          }
           compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
           compressor_controller_->ArmStartWaitTimer();
           SetNextState(DHWState::WAIT_COMPRESSOR_RUNNING);
@@ -479,11 +577,11 @@ public:
           break;
         }
 
-        if (compressor_controller_->HasPassedMinOnTime())
+        if (compressor_controller_->HasPassedMinOnTime() || IsControlledStopRequested())
         {
-          if(!HasDemand())
+          if(ShouldStop())
           {
-            ESP_LOGI("amber", "No more DHW demand, stopping compressor.");
+            ESP_LOGI("amber", "No more DHW demand or stop requested, stopping compressor.");
             compressor_controller_->Stop();
             SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
             break;
@@ -494,7 +592,7 @@ public:
           ESP_LOGI("amber", "Minimum compressor on time not reached, not checking for potential stop conditions yet.");
         }
 
-        if (id(sg_ready_max_boost_mode_active_sensor).state)
+        if (id(sg_ready_max_boost_mode_active_sensor).state && CanStartBackupHeater())
         {
           ESP_LOGI("amber", "Enabling backup heater (SG Ready max boost active)");
           TurnOnBackupHeater();
@@ -503,7 +601,7 @@ public:
           break;
         }
 
-        if(IsHeatingSlowerThanMinimumAverageRate())
+        if(IsHeatingSlowerThanMinimumAverageRate() && CanStartBackupHeater())
         {
           ESP_LOGI("amber", "Enabling backup heater");
           TurnOnBackupHeater();
@@ -519,7 +617,11 @@ public:
         if (!id(defrost_active_sensor).state)
         {
           pump_controller_->ResetHeatingPidState();
-          LeaveStateAndSetNextStateAfterWaitTime(DHWState::COMPRESSOR_RUNNING, COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
+          // DHW pump on without a heating rate window (defrost taken over after a restart of the ESP): start the
+          // settle time and rate window first, otherwise slow heating never enables the backup heater this cycle.
+          const bool needs_rate_window = id(dhw_pump_relay_switch).state && !rate_window_active_;
+          LeaveStateAndSetNextStateAfterWaitTime(needs_rate_window ? DHWState::WAIT_DHW_PUMP_RUNNING : DHWState::COMPRESSOR_RUNNING,
+                                                 COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S * 1000UL);
         }
         else 
         {
@@ -544,7 +646,9 @@ public:
         // Start a fresh averaging window; do not reuse the rate of a previous DHW cycle.
         id(dhw_backup_current_avg_rate_sensor).publish_state(NAN);
         heating_rate_below_min_since_ms_ = 0;
-        SetNextState(id(emergency_mode_enabled).state ? DHWState::BACKUP_HEATER_RUNNING : DHWState::COMPRESSOR_RUNNING);
+        // A cycle on the backup heater alone (emergency mode) has no compressor request. Decided on the request, not
+        // on the switch: when emergency mode was switched off meanwhile, BACKUP_HEATER_RUNNING ends that cycle.
+        SetNextState(compressor_controller_->IsCommanded() ? DHWState::COMPRESSOR_RUNNING : DHWState::BACKUP_HEATER_RUNNING);
         break;
 
       case DHWState::WAIT_COMPRESSOR_STOP:
@@ -594,6 +698,17 @@ public:
         break;
 
       case DHWState::BACKUP_HEATER_RUNNING:
+        // Emergency mode was switched off during a cycle on the backup heater alone (no compressor request).
+        // The compressor is only started from PUMP_RUNNING, so end the backup heater cycle and go back there.
+        if (!id(emergency_mode_enabled).state && !compressor_controller_->IsCommanded())
+        {
+          ESP_LOGI("amber", "Emergency mode disabled, stopping backup heater and returning to the pump cycle.");
+          TurnOffBackupHeater();
+          heating_rate_below_min_since_ms_ = 0;
+          LeaveStateAndSetNextStateAfterWaitTime(DHWState::PUMP_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
+          break;
+        }
+
         if(id(emergency_mode_enabled).state)
         {
           if(ShouldStartDhwPump())
@@ -615,9 +730,9 @@ public:
           }
         }
         
-        if(!HasDemand())
+        if(ShouldStop())
         {
-          ESP_LOGI("amber", "No more DHW demand, stopping compressor and backup heater.");
+          ESP_LOGI("amber", "No more DHW demand or stop requested, stopping compressor and backup heater.");
           TurnOffBackupHeater();
           if(id(emergency_mode_enabled).state)
           {
@@ -625,8 +740,14 @@ public:
             StopDhwPump();
             SetNextState(DHWState::WAIT_PUMP_STOP);
           }
+          else if (!compressor_controller_->HasPassedMinOnTime())
+          {
+            // Backup heater is off; COMPRESSOR_RUNNING stops the compressor once the minimum on time has passed.
+            ESP_LOGI("amber", "Minimum compressor on time not reached, keeping compressor running until it has passed.");
+            LeaveStateAndSetNextStateAfterWaitTime(DHWState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
+          }
           else
-          {            
+          {
             compressor_controller_->Stop();
             SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
           }

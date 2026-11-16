@@ -77,7 +77,6 @@ class OpenAmberClient:
     def click(self, widget_id: str) -> bool:
         """Simulate clicking an LVGL widget."""
         res = self.send_cmd({"cmd": "click", "id": widget_id})
-        time.sleep(0.05)
         return self._check_status(res, f"click({widget_id})")
 
     def get_widget(self, widget_id: str) -> Dict[str, Any]:
@@ -93,7 +92,6 @@ class OpenAmberClient:
     def set_dropdown(self, widget_id: str, selected: int) -> bool:
         """Set selected index of a dropdown widget and trigger LV_EVENT_VALUE_CHANGED."""
         res = self.send_cmd({"cmd": "set_dropdown", "id": widget_id, "selected": int(selected)})
-        time.sleep(0.05)
         return self._check_status(res, f"set_dropdown({widget_id}, {selected})")
 
     def is_visible(self, widget_id: str) -> bool:
@@ -130,6 +128,11 @@ class OpenAmberClient:
         """Turn switch on (True) or off (False)."""
         res = self.send_cmd({"cmd": "set_switch", "id": switch_id, "value": bool(value)})
         return self._check_status(res, f"set_switch({switch_id}, {value})")
+
+    def press_button(self, button_id: str) -> bool:
+        """Press a button entity."""
+        res = self.send_cmd({"cmd": "press_button", "id": button_id})
+        return self._check_status(res, f"press_button({button_id})")
 
     def set_binary_sensor(self, sensor_id: str, value: bool) -> bool:
         """Publish state to a binary sensor."""
@@ -189,6 +192,18 @@ class OpenAmberClient:
         self.step(ms=30)
         return res.get("status") == "ok"
 
+    def set_clock(self, epoch: Optional[int] = None) -> bool:
+        """Set the simulated wall clock (date and time); default the fixed start, Friday 2026-10-09 12:00 UTC.
+
+        Unlike reset_time this leaves millis() alone, so the controller timers are not affected.
+        """
+        cmd: Dict[str, Any] = {"cmd": "set_clock"}
+        if epoch is not None:
+            cmd["epoch"] = epoch
+        res = self.send_cmd(cmd)
+        self.step(ms=30)
+        return self._check_status(res, "set_clock")
+
     def get_time(self) -> Dict[str, Any]:
         """Query current virtual time and offset."""
         return self.send_cmd({"cmd": "get_time"})
@@ -207,9 +222,13 @@ class OpenAmberClient:
         return res.get("state")
 
     def step(self, ms: int = 100) -> bool:
-        """Pause test runner and allow ESPHome event loop cycles to run."""
+        """Round-trip to the bridge so at least one ESPHome loop iteration runs.
+
+        The bridge answers from its own loop(), so every other component has had a loop() call
+        by the time the next command is handled; no sleep is needed. `ms` is ignored and only
+        kept for existing callers: no time passes, use advance_time for that.
+        """
         res = self.send_cmd({"cmd": "step", "ms": ms})
-        time.sleep(min(0.01, ms / 1000.0))
         return res.get("status") == "ok"
 
     def wait_for_condition(

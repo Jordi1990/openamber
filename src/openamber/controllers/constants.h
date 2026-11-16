@@ -30,19 +30,34 @@ static const uint32_t INITIALIZATION_DELAY_S = 10;
 // Modbus connection
 static const uint32_t MODBUS_CONNECTION_TIMEOUT_S = 2 * 60;
 
+// Live update
+// The state machine is held while an OTA update is busy. Every progress report extends the hold; release it after
+// this time without progress (e.g. a web upload that disconnected without an abort/error event).
+static const uint32_t OTA_HOLD_TIMEOUT_S = 2 * 60;
+// After a restart, wait at most this long for the Modbus readbacks before deciding to take over the running units.
+static const uint32_t RESUME_READBACK_TIMEOUT_S = 30;
+
 // Three-way valve
 static const uint32_t THREE_WAY_VALVE_SWITCH_TIME_S = 1 * 60;
 static const uint32_t THREE_WAY_VALVE_PROTECTION_DELTA_TEMPERATURE_C = 5.0f;
 static const uint32_t THREE_WAY_VALVE_PROTECTION_HIGH_TEMPERATURE_TIME_S = 2 * 60;
 static const float THREE_WAY_VALVE_PROTECTION_TUO_TC_THRESHOLD_C = 5.0f;
 
+// Controlled stop: regulation resumes by itself after this time, so a forgotten stop cannot cool the house.
+static const uint32_t CONTROLLED_STOP_AUTO_RESUME_S = 30 * 60;
+
 // Compressor timing
-static const uint32_t COMPRESSOR_MIN_OFF_S = 2 * 60;
+// The outdoor unit firmware blocks a compressor restart for 180 s after a stop. It probably counts from the
+// actual stop, which comes 20-30 s after the stop command, so this keeps some margin.
+static const uint32_t COMPRESSOR_MIN_OFF_S = 200;
 static const uint32_t COMPRESSOR_MIN_ON_S = 10 * 60;
 static const uint32_t COMPRESSOR_SOFT_START_DURATION_S = 3 * 60;
 static const uint32_t COMPRESSOR_START_TIMEOUT_S = 2 * 60;
 static const uint32_t COMPRESSOR_MIN_TIME_PUMP_ON = 2 * 60;
 static const uint32_t COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 5 * 60;
+// A started compressor that reports 0 Hz this long, outside a defrost or oil return cycle, has been stopped by the
+// outdoor unit itself (protection, power or communication loss).
+static const uint32_t COMPRESSOR_UNEXPECTED_STOP_S = 3 * 60;
 // The outdoor unit raises 2118 up to 300 s before the actual defrost when it decides itself (3274 = 1).
 // The actual defrost starts once the compressor runs at the defrost standby frequency (3279).
 static const uint32_t DEFROST_PREPHASE_MAX_S = 330;
@@ -51,6 +66,26 @@ static const float DEFROST_STANDBY_FREQUENCY_MARGIN_HZ = 5.0f;
 static const uint32_t DEFROST_RECOVERY_PHASE_S = 30;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_DOWN_S = 10;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_UP_S = 5 * 60;
+
+// Ambient temperature limit (outdoor unit firmware v1.18, same as v1.10, registers 3282-3298). OpenAmber
+// writes 3281 = 0 at start, which turns the unit's own level-based limit off, and applies the limit itself.
+// A band is entered 1 K above and left 1 K below its boundary. Band 0 is below the first boundary, band N
+// is at or above the last one.
+static const float OUTDOOR_UNIT_HEATING_BAND_BOUNDS_C[] = {-25.0f, 12.0f, 20.0f, 24.0f, 28.0f, 46.0f};
+static const float OUTDOOR_UNIT_COOLING_BAND_BOUNDS_C[] = {0.0f, 12.0f, 18.0f, 24.0f, 30.0f, 41.0f, 45.0f, 51.0f, 65.0f};
+// Maximum frequency per band, so the limit does not move when OpenAmber's frequency table changes. The
+// values are the stock v1.18 level limits (heating 0/10/8/5/3/2/0, cooling 0/2/3/6/10/10/7/4/1/0) looked up
+// in the stock v1.18 frequency table (Amber parameter set, heating 30-90 Hz, cooling 30-79 Hz).
+// 0 Hz is outside the operating range (P11 in the stock unit): OpenAmber caps to level 1 there, never to 0.
+static const float OUTDOOR_UNIT_HEATING_BAND_MAX_HZ[] = {0.0f, 90.0f, 74.0f, 55.0f, 43.0f, 36.0f, 0.0f};
+static const float OUTDOOR_UNIT_COOLING_BAND_MAX_HZ[] = {0.0f, 36.0f, 42.0f, 56.0f, 79.0f, 79.0f, 61.0f, 47.0f, 30.0f, 0.0f};
+static const float OUTDOOR_UNIT_BAND_HYSTERESIS_C = 1.0f;
+// Heating below the low ambient limit (-25 °C, 3498 - 3499 - 30) only restarts 3500 (4 K) higher on top of
+// the normal hysteresis, around -20 °C.
+static const float OUTDOOR_UNIT_HEATING_LOW_LIMIT_RESTART_C = 4.0f;
+// OpenAmber moves to a band with a lower (non-zero) limit this much later in Ta than the stock unit.
+// Moving to a band with a higher limit, and to a band outside the operating range, happen at the stock Ta.
+static const float AMBIENT_LIMIT_TA_OFFSET_C = 1.0f;
 
 // Discharge side limiter: stay below the outdoor unit's own Pd/Td protection instead of running
 // into it. The limits are margins below the unit's "no further frequency increase" thresholds,

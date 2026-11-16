@@ -1,10 +1,16 @@
 #include "test_bridge.h"
 #include <cerrno>
+#include <cstdlib>
 
 #if defined(USE_EEBUS_MOCK)
 #include "esphome/components/eebus/eebus_mock.h"
 #elif defined(USE_EEBUS)
 #include "esphome/components/eebus/eebus_component.h"
+#endif
+
+#if __has_include("esphome/components/mock_time/mock_time.h")
+#include "esphome/components/mock_time/mock_time.h"
+#define TEST_BRIDGE_HAS_MOCK_TIME
 #endif
 
 #ifndef _WIN32
@@ -41,6 +47,12 @@ void TestBridge::setup() {
   WSADATA wsa_data;
   WSAStartup(MAKEWORD(2, 2), &wsa_data);
 #endif
+
+  // The port can be overridden at start, so several checkouts can run their test suites at the same time.
+  if (const char *env_port = std::getenv("OPENAMBER_TEST_PORT")) {
+    int p = atoi(env_port);
+    if (p > 0 && p < 65536) this->port_ = p;
+  }
 
   this->server_fd_ = socket(AF_INET, SOCK_STREAM, 0);
   if (this->server_fd_ < 0) {
@@ -102,6 +114,7 @@ void TestBridge::close_client() {
 #endif
     this->client_fd_ = -1;
     this->rx_buffer_.clear();
+    this->high_freq_.stop();
     ESP_LOGD(TAG, "Client disconnected");
   }
 }
@@ -120,6 +133,9 @@ void TestBridge::loop() {
 #else
       fcntl(this->client_fd_, F_SETFL, O_NONBLOCK);
 #endif
+      // Run the main loop without the 16ms loop_interval gate while a test client is attached,
+      // so a request/response round trip does not have to wait for the next component phase.
+      this->high_freq_.start();
       ESP_LOGI(TAG, "Test client connected");
     }
   }
@@ -406,6 +422,18 @@ void TestBridge::process_line(const std::string &line) {
         }
       }
       this->send_response(build_error_json("Switch not found: " + id));
+      return true;
+    }
+
+    if (cmd == "press_button") {
+      std::string id = root["id"] | "";
+      auto it = this->buttons_.find(id);
+      if (it != this->buttons_.end() && it->second != nullptr) {
+        it->second->press();
+        this->send_response("{\"status\":\"ok\"}");
+        return true;
+      }
+      this->send_response(build_error_json("Button not found: " + id));
       return true;
     }
 
@@ -712,11 +740,34 @@ void TestBridge::process_line(const std::string &line) {
       return true;
     }
 
+    if (cmd == "set_clock") {
+#ifdef TEST_BRIDGE_HAS_MOCK_TIME
+      if (mock_time::MockTime::instance == nullptr) {
+        this->send_response(build_error_json("Mock time not available"));
+        return true;
+      }
+      int64_t epoch = root["epoch"] | static_cast<int64_t>(mock_time::MockTime::START_EPOCH);
+      mock_time::MockTime::instance->set_clock(static_cast<time_t>(epoch));
+      std::string resp = json::build_json([&](JsonObject out) {
+        out["status"] = "ok";
+        out["epoch"] = static_cast<int64_t>(mock_time::MockTime::instance->timestamp_now());
+      });
+      this->send_response(resp);
+#else
+      this->send_response(build_error_json("Mock time not available"));
+#endif
+      return true;
+    }
+
     if (cmd == "get_time") {
       std::string resp = json::build_json([&](JsonObject out) {
         out["status"] = "ok";
         out["offset_ms"] = s_virtual_time_offset_ms;
         out["millis"] = millis();
+#ifdef TEST_BRIDGE_HAS_MOCK_TIME
+        if (mock_time::MockTime::instance != nullptr)
+          out["epoch"] = static_cast<int64_t>(mock_time::MockTime::instance->timestamp_now());
+#endif
       });
       this->send_response(resp);
       return true;

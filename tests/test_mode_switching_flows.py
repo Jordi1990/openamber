@@ -17,7 +17,8 @@ def test_switch_heat_to_dhw_and_return_to_heat(clean_system):
     7. DHW tank reaches setpoint (Tw = 52°C >= 50°C), DHW demand clears.
     8. DHW compressor finishes min-on-time (600s), stops compressor and DHW pump.
     9. 3-way valve switches back to CV (three_way_valve_dhw_switch = False) and waits 60s switch time.
-    10. System returns to Heat/Cool mode (state_machine_state_main == "Heat/Cool") and resumes space heating.
+    10. System returns to Heat/Cool mode (state_machine_state_main == "Heat/Cool") and resumes space heating right away
+        (pump at once, compressor after the minimum off time), without waiting for the pump interval.
     """
     openamber = clean_system
     # Explicit heating target (Tc=28°C must be below target - start delta). These tests used to rely on
@@ -74,12 +75,16 @@ def test_switch_heat_to_dhw_and_return_to_heat(clean_system):
     assert openamber.get_entity("three_way_valve_dhw_switch") is False
     assert openamber.get_entity("state_machine_state_main") == "Heat/Cool"
 
-    # Step 6: Advance through next pump interval (900s) + pump settle (120s) to resume space heating
-    openamber.advance_time(seconds=900, step_s=30)
-    openamber.advance_time(seconds=140, step_s=10)
+    # Step 6: Heating resumes right away: it starts its pump as soon as the valve is back on CV and requests the
+    # compressor once the minimum off time (200s) has passed. It used to wait for the pump interval (900s) first.
+    openamber.advance_time(seconds=20, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.get_entity("internal_pump_active") is True, "Heating must start its pump right after the DHW run"
+
+    openamber.advance_time(seconds=280, step_s=10)
     openamber.step(ms=50)
 
-    assert int(openamber.get_entity("compressor_control_select") or 0) > 0
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0, "Heating must resume within 5 minutes after DHW"
     assert openamber.get_entity("working_mode_switch") == "Verwarmen"
 
 
@@ -155,9 +160,8 @@ def test_switch_cool_to_dhw_and_return_to_cool(clean_system):
     assert openamber.get_entity("three_way_valve_dhw_switch") is False
     assert openamber.get_entity("state_machine_state_main") == "Heat/Cool"
 
-    # Step 6: Advance through next pump interval (900s) + pump settle (120s) to resume space cooling
-    openamber.advance_time(seconds=900, step_s=30)
-    openamber.advance_time(seconds=140, step_s=10)
+    # Step 6: Cooling resumes right away, without waiting for the pump interval (900s) first.
+    openamber.advance_time(seconds=300, step_s=10)
     openamber.step(ms=50)
 
     assert openamber.get_entity("cool_demand_active_sensor") is True

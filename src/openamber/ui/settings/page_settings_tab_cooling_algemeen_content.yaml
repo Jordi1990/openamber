@@ -1,4 +1,32 @@
 - obj:
+    id: set_cooling_allowed_row
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Koelen toegestaan", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Bij uit wordt elke koudevraag genegeerd", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - switch:
+          id: set_cooling_allowed_switch_ui
+          align: TOP_RIGHT
+          bg_color: 0x9CA3AF
+          indicator:
+            bg_color: 0x16A34A
+          knob:
+            bg_color: 0xFFFFFF
+          on_click:
+            - lambda: |-
+                if (id(cooling_allowed_switch).state) {
+                  id(cooling_allowed_switch).turn_off();
+                } else {
+                  id(cooling_allowed_switch).turn_on();
+                }
+
+
+- obj:
+    id: set_cool_power_row
     width: 100%
     height: SIZE_CONTENT
     bg_opa: 0%
@@ -24,7 +52,7 @@
           text_font: font_text_20
           dropdown_list:
             text_font: font_text_20
-          on_value:
+          on_change:
             then:
               - lambda: |-
                   const char* opts[] = {"Beperkt","Zeer laag","Laag","Gemiddeld","Verhoogd","Hoog","Maximaal"};
@@ -33,6 +61,7 @@
 
 
 - obj:
+    id: set_comp_start_cool_row
     width: 100%
     height: SIZE_CONTENT
     bg_opa: 0%
@@ -51,6 +80,7 @@
           layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
           widgets:
             - obj:
+                id: set_comp_start_cool_dec
                 width: 40
                 height: 40
                 bg_color: 0x1F3B68
@@ -65,6 +95,7 @@
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
             - label: { id: set_comp_start_cool_val, text: "3.0°C", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
+                id: set_comp_start_cool_inc
                 width: 40
                 height: 40
                 bg_color: 0x1F3B68
@@ -80,6 +111,7 @@
 
 
 - obj:
+    id: set_comp_stop_cool_row
     width: 100%
     height: SIZE_CONTENT
     bg_opa: 0%
@@ -98,6 +130,7 @@
           layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
           widgets:
             - obj:
+                id: set_comp_stop_cool_dec
                 width: 40
                 height: 40
                 bg_color: 0x1F3B68
@@ -112,6 +145,7 @@
                   - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
             - label: { id: set_comp_stop_cool_val, text: "5.0°C", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
+                id: set_comp_stop_cool_inc
                 width: 40
                 height: 40
                 bg_color: 0x1F3B68

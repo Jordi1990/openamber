@@ -1,0 +1,17 @@
+# ══════════════════════════════════════════════════════════════
+# Button → LVGL UI bindings (event-driven via !extend)
+# The controlled stop is a global without a state event: follow the stop and resume buttons, also when they are
+# pressed from Home Assistant. Leaving Standby (resume, auto-resume) changes the main state, which updates the UI too.
+# ══════════════════════════════════════════════════════════════
+
+- id: !extend controlled_stop_button
+  on_press:
+    - lambda: |-
+        id(update_header_mode_badge).execute();
+        id(update_controlled_stop_button_ui).execute();
+
+- id: !extend controlled_stop_resume_button
+  on_press:
+    - lambda: |-
+        id(update_header_mode_badge).execute();
+        id(update_controlled_stop_button_ui).execute();

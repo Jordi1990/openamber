@@ -59,9 +59,8 @@ script:
 
 - id: send_device_info
   then:
-    - mqtt.publish_json:
+    - tiny_mqtt.publish_json:
         topic: !lambda 'return id(analytics_topic);'
-        qos: 0
         retain: true
         payload: |-
           root["ts"] = id(analytics_batch_timestamp);
@@ -82,9 +81,8 @@ script:
 
 - id: send_config_1
   then:
-    - mqtt.publish_json:
+    - tiny_mqtt.publish_json:
         topic: !lambda 'return id(analytics_topic);'
-        qos: 0
         retain: true
         payload: |-
           root["ts"] = id(analytics_batch_timestamp);
@@ -97,12 +95,12 @@ script:
 
           root["ca"] = id(compressor_start_delta_heating).state;
           root["cb"] = id(compressor_stop_delta_heating).state;
+          root["cc"] = id(compressor_hysteresis).state;
 
 - id: send_config_2
   then:
-    - mqtt.publish_json:
+    - tiny_mqtt.publish_json:
         topic: !lambda 'return id(analytics_topic);'
-        qos: 0
         retain: true
         payload: |-
           root["ts"] = id(analytics_batch_timestamp);
@@ -126,9 +124,8 @@ script:
 
 - id: send_config_3
   then:
-    - mqtt.publish_json:
+    - tiny_mqtt.publish_json:
         topic: !lambda 'return id(analytics_topic);'
-        qos: 0
         retain: true
         payload: |-
           root["ts"] = id(analytics_batch_timestamp);
@@ -158,9 +155,8 @@ script:
 
 - id: send_config_4
   then:
-    - mqtt.publish_json:
+    - tiny_mqtt.publish_json:
         topic: !lambda 'return id(analytics_topic);'
-        qos: 0
         retain: true
         payload: |-
           root["ts"] = id(analytics_batch_timestamp);
@@ -192,9 +188,8 @@ script:
 
 - id: send_config_5
   then:
-    - mqtt.publish_json:
+    - tiny_mqtt.publish_json:
         topic: !lambda 'return id(analytics_topic);'
-        qos: 0
         retain: true
         payload: |-
           root["ts"] = id(analytics_batch_timestamp);
@@ -227,9 +222,8 @@ script:
 
 - id: send_config_6
   then:
-    - mqtt.publish_json:
+    - tiny_mqtt.publish_json:
         topic: !lambda 'return id(analytics_topic);'
-        qos: 0
         retain: true
         payload: |-
           root["ts"] = id(analytics_batch_timestamp);
@@ -258,14 +252,13 @@ script:
             root["oj"] = buf;
           }
 
-          root["ok"] = id(default_compressor_frequencies_enabled).state;
+          root["ok"] = !id(outdoor_unit_optimizations_enabled).state;
           root["ol"] = id(eebus_enabled_switch).state;
 
 - id: send_modes
   then:
-    - mqtt.publish_json:
+    - tiny_mqtt.publish_json:
         topic: !lambda 'return id(analytics_topic);'
-        qos: 0
         retain: true
         payload: |-
           root["ts"] = id(analytics_batch_timestamp);
@@ -343,9 +336,8 @@ script:
 
 - id: send_telemetry_1
   then:
-    - mqtt.publish_json:
+    - tiny_mqtt.publish_json:
         topic: !lambda 'return id(analytics_topic);'
-        qos: 0
         retain: true
         payload: |-
           root["ts"] = id(analytics_batch_timestamp);
@@ -365,9 +357,8 @@ script:
 
 - id: send_telemetry_2
   then:
-    - mqtt.publish_json:
+    - tiny_mqtt.publish_json:
         topic: !lambda 'return id(analytics_topic);'
-        qos: 0
         retain: true
         payload: |-
           root["ts"] = id(analytics_batch_timestamp);
@@ -388,9 +379,8 @@ script:
 
 - id: send_telemetry_3
   then:
-    - mqtt.publish_json:
+    - tiny_mqtt.publish_json:
         topic: !lambda 'return id(analytics_topic);'
-        qos: 0
         retain: true
         payload: |-
           root["ts"] = id(analytics_batch_timestamp);
@@ -430,9 +420,8 @@ script:
 
 - id: send_telemetry_4
   then:
-    - mqtt.publish_json:
+    - tiny_mqtt.publish_json:
         topic: !lambda 'return id(analytics_topic);'
-        qos: 0
         retain: true
         payload: |-
           root["ts"] = id(analytics_batch_timestamp);
@@ -454,9 +443,8 @@ script:
         condition:
           - switch.is_on: analytics_enabled_switch
         then:
-          - mqtt.publish_json:
+          - tiny_mqtt.publish_json:
               topic: !lambda 'return id(analytics_topic);'
-              qos: 0
               retain: true
               payload: |-
                 root["ts"] = id(my_time).timestamp_now();
@@ -480,7 +468,7 @@ script:
         condition:
           and:
             - switch.is_on: analytics_enabled_switch
-            - mqtt.connected:
+            - lambda: 'return id(analytics_mqtt).can_publish();'
         then:
           # Do not overwrite the shared batch timestamp while a periodic batch is being sent.
           - wait_until:
@@ -542,7 +530,7 @@ script:
         then:
           - if:
               condition:
-                lambda: 'return id(mqtt_client).is_connected();'
+                lambda: 'return id(analytics_mqtt).can_publish();'
               then:
                 - lambda: |-
                     static bool in_progress = false;
@@ -610,13 +598,13 @@ script:
                           payload += "]}";
 
                           const std::string topic = id(analytics_topic) + "/eeprom_dump/chunk/" + std::to_string(chunk_index);
-                          if (!id(mqtt_client).publish(topic, payload, 0, false)) {
+                          if (!id(analytics_mqtt).publish(topic, payload, false)) {
                             ESP_LOGE("amber", "EEPROM dump chunk %u kon niet naar MQTT worden gepubliceerd", chunk_index);
                             complete_chunk(true);
                             return;
                           }
 
-                          ESP_LOGI("amber", "EEPROM dump chunk %u gepubliceerd (%u-%u)", chunk_index, start_address + 1,
+                          ESP_LOGI("amber", "EEPROM dump chunk %u klaargezet voor MQTT (%u-%u)", chunk_index, start_address + 1,
                                    start_address + register_count);
                           complete_chunk(false);
                         });
@@ -630,7 +618,7 @@ script:
                     queue_chunk(3499, 12, 4);
                 - logger.log: "EEPROM dump gestart (3000 t/m 3511)"
               else:
-                - logger.log: "EEPROM dump geannuleerd: MQTT niet verbonden"
+                - logger.log: "EEPROM dump geannuleerd: netwerk niet verbonden"
                 - script.execute: dump_eeprom_parameters_ui_enable
         else:
           - logger.log: "EEPROM dump geannuleerd: buitenunit Modbus offline"

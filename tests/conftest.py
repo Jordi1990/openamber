@@ -1,9 +1,16 @@
 import os
 import shlex
+import shutil
 import subprocess
+import tempfile
 import time
 import pytest
 from openamber_client import OpenAmberClient
+from helpers import advance_until_state, set_outside_temperature
+
+# The simulator's test bridge port. Set OPENAMBER_TEST_PORT to run the suites of several checkouts at
+# the same time: with the same port they would all talk to whichever simulator got the port first.
+TEST_PORT = int(os.environ.get("OPENAMBER_TEST_PORT", "8888"))
 
 
 @pytest.fixture(scope="session")
@@ -33,31 +40,29 @@ def openamber_proc():
             else:
                 wsl_bin = bin_path.replace("\\", "/")
 
+        prefs_dir = f"/tmp/openamber-test-prefs-{TEST_PORT}"
         subprocess.run(["wsl", "-u", "root", "-d", "Debian", "pkill", "-9", "-f", wsl_bin], capture_output=True)
-        subprocess.run(["wsl", "-d", "Debian", "bash", "-c", "rm -f ~/.esphome/prefs/openamber-test.prefs"], capture_output=True)
+        subprocess.run(["wsl", "-d", "Debian", "rm", "-rf", prefs_dir], capture_output=True)
         time.sleep(0.5)
         cmd = [
             "wsl", "-d", "Debian", "bash", "-c",
-            f"SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy ESPHOME_PCH_ENABLE=0 {shlex.quote(wsl_bin)}"
+            f"SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy ESPHOME_PCH_ENABLE=0 "
+            f"ESPHOME_PREFDIR={prefs_dir} OPENAMBER_TEST_PORT={TEST_PORT} {shlex.quote(wsl_bin)}"
         ]
         started_proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     else:
         # Native Linux / CI
+        prefs_dir = tempfile.mkdtemp(prefix="openamber-test-prefs-")
         subprocess.run(["pkill", "-9", "-f", bin_path], capture_output=True)
-        pref_file = os.path.expanduser("~/.esphome/prefs/openamber-test.prefs")
-        if os.path.exists(pref_file):
-            try:
-                os.remove(pref_file)
-            except OSError:
-                pass
         time.sleep(0.3)
         env = os.environ.copy()
         env["SDL_VIDEODRIVER"] = "dummy"
         env["SDL_AUDIODRIVER"] = "dummy"
         env["ESPHOME_PCH_ENABLE"] = "0"
+        env["ESPHOME_PREFDIR"] = prefs_dir
+        env["OPENAMBER_TEST_PORT"] = str(TEST_PORT)
         started_proc = subprocess.Popen([bin_path], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    time.sleep(2.0)
     yield started_proc
 
     if started_proc:
@@ -74,22 +79,17 @@ def openamber_proc():
             if os.name == "nt":
                 if wsl_bin:
                     subprocess.run(["wsl", "-u", "root", "-d", "Debian", "pkill", "-9", "-f", wsl_bin], capture_output=True)
-                subprocess.run(["wsl", "-d", "Debian", "bash", "-c", "rm -f ~/.esphome/prefs/openamber-test.prefs"], capture_output=True)
+                subprocess.run(["wsl", "-d", "Debian", "rm", "-rf", prefs_dir], capture_output=True)
             else:
                 subprocess.run(["pkill", "-9", "-f", bin_path], capture_output=True)
-                pref_file = os.path.expanduser("~/.esphome/prefs/openamber-test.prefs")
-                if os.path.exists(pref_file):
-                    try:
-                        os.remove(pref_file)
-                    except OSError:
-                        pass
+                shutil.rmtree(prefs_dir, ignore_errors=True)
 
 
 @pytest.fixture(scope="session")
 def openamber(openamber_proc):
     """Provide a connected OpenAmberClient fixture for test suites."""
-    client = OpenAmberClient(host="127.0.0.1", port=8888, timeout=5.0)
-    client.connect(retries=30, delay=0.5)
+    client = OpenAmberClient(host="127.0.0.1", port=TEST_PORT, timeout=5.0)
+    client.connect(retries=150, delay=0.1)
     ready = False
     for _ in range(30):
         try:
@@ -110,10 +110,17 @@ def clean_system(openamber):
     """Reset system to clean idle state with fully completed initialization."""
     openamber.set_switch("mock_three_way_valve_feedback_missing", False)
     openamber.set_switch("heat_demand_switch", False)
-    openamber.set_switch("default_compressor_frequencies_enabled", False)
+    openamber.set_switch("outdoor_unit_optimizations_enabled", True)
     openamber.set_switch("heat_demand_zone_2_switch", False)
     openamber.set_switch("cool_demand_switch", False)
+    openamber.set_switch("cooling_allowed_switch", True)
+    openamber.set_switch("pump_p1_enabled", False)
+    openamber.set_switch("pump_p1_relay_switch", False)
     openamber.set_switch("emergency_mode_enabled", False)
+    # A test that failed in maintenance mode must not leave the next tests in Maintenance.
+    openamber.set_switch("service_mode_enabled", False)
+    # A test that failed while stopped must not leave the next test in Standby.
+    openamber.press_button("controlled_stop_resume_button")
     openamber.set_switch("dhw_enabled_switch", True)
     openamber.set_switch("dhw_schedule_enabled_switch", False)
     openamber.set_switch("silent_mode_enabled_switch", False)
@@ -130,6 +137,7 @@ def clean_system(openamber):
     openamber.set_binary_sensor("sg_ready_block_mode_active_sensor", False)
     openamber.set_binary_sensor("defrost_active_sensor", False)
     openamber.set_number("mock_compressor_frequency_override", -1.0)
+    openamber.set_sensor("model_identification_1", 150.0)
     # Reset heating curves to their numbers.yaml defaults so curve edits in one test do not
     # silently change the setpoint (and with it the start/stop behaviour) of later tests.
     for anchor, z1, z2 in (("m10", 35.0, 30.0), ("0", 30.0, 28.0), ("p5", 28.0, 26.0),
@@ -139,6 +147,12 @@ def clean_system(openamber):
     # Mocked Modbus registers now keep injected values, so clear them explicitly
     for reg in ("error_register_2119_raw", "error_register_2120_raw", "error_register_2121_raw", "inside_unit_status_1225_raw"):
         openamber.set_sensor(reg, 0.0)
+    # A test that failed while the heat pump was still stopping: resuming is refused until it is in Standby,
+    # so let the stop complete (the oil return register is cleared above) and resume then.
+    openamber.step(ms=50)
+    if openamber.get_label("header_maintenance_badge_label") == "Warmtepomp wordt gestopt..." and openamber.is_visible("header_maintenance_badge"):
+        advance_until_state(openamber, "state_machine_state_main", "Standby", max_s=900, step=10)
+        openamber.press_button("controlled_stop_resume_button")
     openamber.set_switch("pump_p0_relay_switch", True)
     openamber.set_number("backup_heater_degmin_threshold", 50.0)
     openamber.set_number("dhw_setpoint_temperature", 50.0)
@@ -197,6 +211,13 @@ def clean_system(openamber):
         openamber.step(ms=50)
     openamber.step(ms=50)
 
+    # Restart the averaged Ta at 7 °C when an earlier test moved it (takes up to 60 s, see the helper).
+    average = openamber.get_entity("temperature_outside_ta_avg_1h")
+    if average is None or abs(float(average) - 7.0) >= 0.01:
+        set_outside_temperature(openamber, 7.0)
+
     assert openamber.get_entity("three_way_valve_dhw_switch") is False, "Valve should be in CV position in idle"
+    # Every test starts at the same wall clock time, independent of the virtual time earlier tests used.
+    openamber.set_clock()
     return openamber
 

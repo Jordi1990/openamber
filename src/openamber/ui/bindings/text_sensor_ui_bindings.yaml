@@ -8,23 +8,26 @@
 - id: !extend state_machine_state_main
   on_value:
     then:
-      - script.execute: update_water_mode_temperature_display
-      - script.execute: update_water_mode_efficiency_display
-      - script.execute: update_service_mode_ui
-      - script.execute: update_service_diag_summary_ui
-      - script.execute: update_system_diagnostics_ui
+      - lambda: |-
+          id(update_water_mode_temperature_display).execute();
+          id(update_water_mode_efficiency_display).execute();
+          id(update_service_mode_ui).execute();
+          id(update_service_diag_summary_ui).execute();
+          id(update_system_diagnostics_ui).execute();
 
 - id: !extend state_machine_state_heat_cool
   on_value:
     then:
-      - script.execute: update_service_diag_summary_ui
-      - script.execute: update_system_diagnostics_ui
+      - lambda: |-
+          id(update_service_diag_summary_ui).execute();
+          id(update_system_diagnostics_ui).execute();
 
 - id: !extend state_machine_state_dhw
   on_value:
     then:
-      - script.execute: update_service_diag_summary_ui
-      - script.execute: update_system_diagnostics_ui
+      - lambda: |-
+          id(update_service_diag_summary_ui).execute();
+          id(update_system_diagnostics_ui).execute();
 
 - id: !extend state_machine_state_routine
   on_value:
@@ -35,38 +38,36 @@
 - id: !extend analytics_device_id
   on_value:
     then:
-      - if:
-          condition:
-            lambda: 'return !x.empty();'
-          then:
-            - lvgl.label.update:
-                id: set_analytics_id_value
-                text:
-                  format: "%s"
-                  args: ['x.c_str()']
-          else:
-            - lvgl.label.update:
-                id: set_analytics_id_value
-                text: "Onbekend"
+      - lambda: |-
+          if (!x.empty()) {
+            lv_label_set_text(id(set_analytics_id_value), str_sprintf("%s", x.c_str()).c_str());
+            lv_obj_send_event(id(set_analytics_id_value), lvgl::lv_update_event, nullptr);
+          } else {
+            lv_label_set_text(id(set_analytics_id_value), "Onbekend");
+            lv_obj_send_event(id(set_analytics_id_value), lvgl::lv_update_event, nullptr);
+          }
 
 # ── Settings page: WiFi info ──
 - id: !extend wifi_mac_ui
   on_value:
     then:
-      - script.execute: update_wifi_connected_summary_ui
-      - script.execute: update_system_diagnostics_ui
+      - lambda: |-
+          id(update_wifi_connected_summary_ui).execute();
+          id(update_system_diagnostics_ui).execute();
 
 - id: !extend wifi_ssid_ui
   on_value:
     then:
-      - script.execute: update_wifi_connected_summary_ui
-      - script.execute: update_system_diagnostics_ui
+      - lambda: |-
+          id(update_wifi_connected_summary_ui).execute();
+          id(update_system_diagnostics_ui).execute();
 
 - id: !extend wifi_ip_ui
   on_value:
     then:
-      - script.execute: update_wifi_connected_summary_ui
-      - script.execute: update_system_diagnostics_ui
+      - lambda: |-
+          id(update_wifi_connected_summary_ui).execute();
+          id(update_system_diagnostics_ui).execute();
 
 - id: !extend wifi_scan_results_ui
   on_value:
@@ -83,8 +84,10 @@
             size_t end = result.find('\n', pos);
             if (end == std::string::npos) end = result.size();
             std::string line = result.substr(pos, end - pos);
-            size_t paren = line.rfind(" (");
-            std::string ssid = (paren != std::string::npos) ? line.substr(0, paren) : line;
+            // Each line is "SSID: -XXdB"; strip the signal strength suffix.
+            size_t sep = line.rfind(": ");
+            bool has_rssi = sep != std::string::npos && line.size() >= sep + 4 && line.compare(line.size() - 2, 2, "dB") == 0;
+            std::string ssid = has_rssi ? line.substr(0, sep) : line;
             if (!ssid.empty()) {
               std::string needle;
               needle.reserve(ssid.size() + 2);
@@ -109,4 +112,11 @@
           if (current_options != nullptr && options == current_options) {
             return;
           }
+          // New options reset the selection to the first entry; keep the network the user picked.
+          char selected[64];
+          lv_dropdown_get_selected_str(id(wifi_network_dd)->obj, selected, sizeof(selected));
           lv_dropdown_set_options(id(wifi_network_dd)->obj, options.c_str());
+          int32_t index = lv_dropdown_get_option_index(id(wifi_network_dd)->obj, selected);
+          if (index >= 0) {
+            lv_dropdown_set_selected(id(wifi_network_dd)->obj, index);
+          }

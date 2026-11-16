@@ -45,20 +45,19 @@ obj:
               knob:
                 bg_color: 0xFFFFFF
               on_click:
-                - if:
-                    condition:
-                      switch.is_on: service_mode_enabled
-                    then:
-                      - switch.turn_off: service_mode_enabled
-                      - script.execute: update_service_mode_ui
-                    else:
-                      - switch.turn_on: service_mode_enabled
-                      - script.execute: update_service_mode_ui
+                - lambda: |-
+                    if (id(service_mode_enabled).state) {
+                      id(service_mode_enabled).turn_off();
+                      id(update_service_mode_ui).execute();
+                    } else {
+                      id(service_mode_enabled).turn_on();
+                      id(update_service_mode_ui).execute();
+                    }
 
     - label:
         id: service_maintenance_lock_hint
         width: 100%
-        text: "Handmatige bediening blijft vergrendeld tot onderhoudsmodus actief is."
+        text: "Stop eerst de warmtepomp via Systeem > Beheer."
         text_color: 0x9CA3AF
         text_font: font_text_20
         long_mode: WRAP

@@ -16,13 +16,12 @@
           knob:
             bg_color: 0xFFFFFF
           on_click:
-            - if:
-                condition:
-                  switch.is_on: legio_enabled_switch
-                then:
-                  - switch.turn_off: legio_enabled_switch
-                else:
-                  - switch.turn_on: legio_enabled_switch
+            - lambda: |-
+                if (id(legio_enabled_switch).state) {
+                  id(legio_enabled_switch).turn_off();
+                } else {
+                  id(legio_enabled_switch).turn_on();
+                }
 
 - obj:
     width: 100%
@@ -53,11 +52,15 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - if:
-                      condition:
-                        switch.is_on: legio_enabled_switch
-                      then:
-                        - number.decrement: legio_repeat_days_number
+                  - lambda: |-
+                      if (id(legio_enabled_switch).state) {
+                        {
+                          auto call = id(legio_repeat_days_number).make_call();
+                          call.with_operation(number::NUMBER_OP_DECREMENT);
+                          call.with_cycle(true);
+                          call.perform();
+                        }
+                      }
                 widgets:
                   - label: { id: set_legio_days_dec_lbl, text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
             - label: { id: set_legio_days_val, text: "7 d", text_color: 0x1F2933, text_font: font_text_24 }
@@ -72,11 +75,15 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - if:
-                      condition:
-                        switch.is_on: legio_enabled_switch
-                      then:
-                        - number.increment: legio_repeat_days_number
+                  - lambda: |-
+                      if (id(legio_enabled_switch).state) {
+                        {
+                          auto call = id(legio_repeat_days_number).make_call();
+                          call.with_operation(number::NUMBER_OP_INCREMENT);
+                          call.with_cycle(true);
+                          call.perform();
+                        }
+                      }
                 widgets:
                   - label: { id: set_legio_days_inc_lbl, text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
 
@@ -109,11 +116,15 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - if:
-                      condition:
-                        switch.is_on: legio_enabled_switch
-                      then:
-                        - number.decrement: legio_target_temperature_number
+                  - lambda: |-
+                      if (id(legio_enabled_switch).state) {
+                        {
+                          auto call = id(legio_target_temperature_number).make_call();
+                          call.with_operation(number::NUMBER_OP_DECREMENT);
+                          call.with_cycle(true);
+                          call.perform();
+                        }
+                      }
                 widgets:
                   - label: { id: set_legio_temp_dec_lbl, text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
             - label: { id: set_legio_temp_val, text: "60°C", text_color: 0x1F2933, text_font: font_text_24 }
@@ -128,10 +139,14 @@
                 scrollbar_mode: "OFF"
                 scrollable: false
                 on_click:
-                  - if:
-                      condition:
-                        switch.is_on: legio_enabled_switch
-                      then:
-                        - number.increment: legio_target_temperature_number
+                  - lambda: |-
+                      if (id(legio_enabled_switch).state) {
+                        {
+                          auto call = id(legio_target_temperature_number).make_call();
+                          call.with_operation(number::NUMBER_OP_INCREMENT);
+                          call.with_cycle(true);
+                          call.perform();
+                        }
+                      }
                 widgets:
                   - label: { id: set_legio_temp_inc_lbl, text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }

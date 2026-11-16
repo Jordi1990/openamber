@@ -36,6 +36,17 @@ switch:
   entity_category: config
   web_server:
     sorting_group_id: heating_settings
+
+# Koelen toegestaan: when off, cooling demand from every source (wired input, "Externe koudevraag",
+# internal thermostat) is ignored. Defaults to on so existing installs keep cooling as before.
+- platform: template
+  id: cooling_allowed_switch
+  name: "Koelen toegestaan"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_ON
+  entity_category: config
+  web_server:
+    sorting_group_id: cooling_settings
 - platform: template
   id: legio_enabled_switch
   name: "Legionellapreventie"
@@ -146,10 +157,10 @@ switch:
     sorting_group_id: general_settings
 
 - platform: template
-  id: default_compressor_frequencies_enabled
-  name: "Gebruik standaard compressorfrequenties"
+  id: outdoor_unit_optimizations_enabled
+  name: "Buitenunit optimalisaties"
   optimistic: True
-  restore_mode: RESTORE_DEFAULT_OFF
+  restore_mode: RESTORE_DEFAULT_ON
   entity_category: config
   web_server:
     sorting_group_id: general_settings
@@ -170,11 +181,34 @@ switch:
 - platform: template
   id: service_mode_enabled
   name: "Onderhoudsmodus"
-  optimistic: True
   entity_category: config
   disabled_by_default: true
+  restore_mode: ALWAYS_OFF
   web_server:
     sorting_group_id: manual_control
+  # Only allowed while the heat pump is stopped ("Gecontroleerd stoppen" and in standby).
+  turn_on_action:
+    - if:
+        condition:
+          # Both: right after a resume the controller is still in Standby for one loop, with the stop already cleared.
+          lambda: 'return id(service_mode_enabled).state || (id(controlled_stop_active) && id(amber_ctrl).is_standby());'
+        then:
+          - switch.template.publish:
+              id: service_mode_enabled
+              state: ON
+        else:
+          - logger.log:
+              level: WARN
+              tag: amber
+              format: "Maintenance mode refused: it can only be turned on while the heat pump is stopped (Standby)."
+          # Publish the unchanged state so Home Assistant and the display switch back.
+          - switch.template.publish:
+              id: service_mode_enabled
+              state: OFF
+  turn_off_action:
+    - switch.template.publish:
+        id: service_mode_enabled
+        state: OFF
 
 - platform: template
   id: deaeration_short_switch
@@ -250,6 +284,7 @@ switch:
     - lambda: |-
         id(error_pump_start_timeout).publish_state(false);
         id(error_compressor_start_timeout).publish_state(false);
+        id(error_compressor_unexpected_stop).publish_state(false);
         id(error_pump_stop_timeout).publish_state(false);
         id(error_modbus_connection_timeout).publish_state(false);
         id(error_three_way_valve_state_timeout).publish_state(false);

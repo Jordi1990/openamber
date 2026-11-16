@@ -30,13 +30,12 @@ obj:
         knob:
           bg_color: 0xFFFFFF
         on_click:
-          - if:
-              condition:
-                lambda: 'return id(state_machine_state_main).state == "Maintenance";'
-              then:
-                - switch.toggle: pump_p0_relay_switch
-              else:
-                - script.execute: update_service_mode_ui
+          - lambda: |-
+              if (id(state_machine_state_main).state == "Maintenance") {
+                id(pump_p0_relay_switch).toggle();
+              } else {
+                id(update_service_mode_ui).execute();
+              }
     - label:
         text: "P0 PWM"
         text_color: 0x1F2933
@@ -75,18 +74,18 @@ obj:
                 lv_label_set_text_fmt(id(service_p0_pwm_slider_value), "%ld %%", (long) duty);
         on_release:
           then:
-            - if:
-                condition:
-                  lambda: 'return id(state_machine_state_main).state == "Maintenance";'
-                then:
-                  - lambda: |-
-                      const auto duty = lv_slider_get_value(id(service_p0_pwm_slider));
-                      const float control_speed = ((duty * 10) * -1) + 1000;
-                      auto pump_call = id(pump_control_pwm_number).make_call();
-                      pump_call.set_value(control_speed);
-                      pump_call.perform();
-                else:
-                  - script.execute: update_service_mode_ui
+            - lambda: |-
+                if (id(state_machine_state_main).state == "Maintenance") {
+                  {
+                    const auto duty = lv_slider_get_value(id(service_p0_pwm_slider));
+                    const float control_speed = ((duty * 10) * -1) + 1000;
+                    auto pump_call = id(pump_control_pwm_number).make_call();
+                    pump_call.set_value(control_speed);
+                    pump_call.perform();
+                  }
+                } else {
+                  id(update_service_mode_ui).execute();
+                }
     - label:
         text: "P1 pomp relais"
         text_color: 0x1F2933
@@ -110,13 +109,12 @@ obj:
         knob:
           bg_color: 0xFFFFFF
         on_click:
-          - if:
-              condition:
-                lambda: 'return id(state_machine_state_main).state == "Maintenance";'
-              then:
-                - switch.toggle: pump_p1_relay_switch
-              else:
-                - script.execute: update_service_mode_ui
+          - lambda: |-
+              if (id(state_machine_state_main).state == "Maintenance") {
+                id(pump_p1_relay_switch).toggle();
+              } else {
+                id(update_service_mode_ui).execute();
+              }
     - label:
         text: "P2 pomp relais"
         text_color: 0x1F2933
@@ -140,13 +138,12 @@ obj:
         knob:
           bg_color: 0xFFFFFF
         on_click:
-          - if:
-              condition:
-                lambda: 'return id(state_machine_state_main).state == "Maintenance";'
-              then:
-                - switch.toggle: pump_p2_relay_switch
-              else:
-                - script.execute: update_service_mode_ui
+          - lambda: |-
+              if (id(state_machine_state_main).state == "Maintenance") {
+                id(pump_p2_relay_switch).toggle();
+              } else {
+                id(update_service_mode_ui).execute();
+              }
     - label:
         text: "SWW pomp relais"
         text_color: 0x1F2933
@@ -170,11 +167,10 @@ obj:
         knob:
           bg_color: 0xFFFFFF
         on_click:
-          - if:
-              condition:
-                lambda: 'return id(state_machine_state_main).state == "Maintenance";'
-              then:
-                - switch.toggle: dhw_pump_relay_switch
-              else:
-                - script.execute: update_service_mode_ui
+          - lambda: |-
+              if (id(state_machine_state_main).state == "Maintenance") {
+                id(dhw_pump_relay_switch).toggle();
+              } else {
+                id(update_service_mode_ui).execute();
+              }
 

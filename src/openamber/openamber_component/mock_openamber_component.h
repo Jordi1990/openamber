@@ -31,6 +31,7 @@ class OpenAmberComponent : public PollingComponent {
   void reset_pump_interval() {}
 
   bool is_maintenance_state() const { return false; }
+  bool is_standby() const { return false; }
   void start_deaeration_routine(bool extended) {}
   void stop_deaeration_routine() {}
   bool is_deaeration_running() const { return false; }

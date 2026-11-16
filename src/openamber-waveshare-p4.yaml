@@ -1,11 +1,14 @@
 substitutions:
   device_model: waveshare-p4-7-1024x600
+  room_temperature_source: effective_room_temperature
 
 packages:
  - !include openamber/core/openamber.yaml
  - !include openamber/ui/display_globals.yaml
  - !include openamber/ui/bindings/ui_bindings_package.yaml
  - !include openamber/ui/ui_package.yaml
+ # Bluetooth runs on the ESP32-C6 co-processor (esp32_hosted).
+ - !include openamber/ble/ble_package.yaml
  
 network:
   priority:
@@ -23,8 +26,6 @@ ethernet:
   cs_pin: 4
   interrupt_pin: 29
   reset_pin: 28
-
-esp32_ble_tracker:
 
 esp32:
   board: esp32-p4-evboard
@@ -44,6 +45,8 @@ esp32:
       enable_idf_experimental_features: true
 
 esphome:
+  includes:
+    - <esp_wifi.h>
   project:
     version: dev
   on_boot:
@@ -181,6 +184,14 @@ sensor:
 lvgl:
   rotation: 180
   byte_order: little_endian
+  # Workaround: ESPHome creates the LVGL display at 240x240 and sets the real size in LvglComponent::setup(),
+  # after all widgets exist. That size change re-initializes the default theme and restyles every widget, which
+  # with the full UI takes longer than the task watchdog (boot loop, black screen). Screen properties are applied
+  # before the first widget is created, so setting the final size here makes the later call a no-op.
+  # A 180 degree rotation keeps width and height, so the native size matches what setup() sets.
+  outline_width: !lambda |-
+    lv_display_set_resolution(lv_display_get_default(), id(my_display).get_native_width(), id(my_display).get_native_height());
+    return 0;
   on_idle:
     - timeout: !lambda 'return id(display_screen_timeout_ms);'
       then:

@@ -1,5 +1,9 @@
 import pytest
 
+from helpers import advance_until_state
+
+MIN_ON_S = 600
+
 
 def test_backup_heater_ui_bindings_and_turn_off_flow(clean_system):
     """
@@ -104,3 +108,98 @@ def test_backup_heater_ui_bindings_and_turn_off_flow(clean_system):
     assert openamber.set_binary_sensor("external_heat_demand_wired", False)
     assert openamber.set_switch("emergency_mode_enabled", False)
     openamber.step(ms=100)
+
+
+def _compressor_mode(openamber):
+    return int(openamber.get_entity("compressor_control_select") or 0)
+
+
+def _simulator_s(openamber):
+    # millis() of the simulator: the virtual time offset plus the real time that passes during the test.
+    return openamber.get_time()["millis"] / 1000.0
+
+
+def _start_heating_with_sg_max_boost_backup(openamber):
+    """Heating that switches on the backup heater right after the soft start (SG Ready max boost), so the
+    compressor has run for about 3 minutes, well inside its minimum on time (600 s).
+
+    Returns the simulator time at which the compressor was seen running.
+    """
+    openamber.set_select("thermostat_mode_select", "Extern")
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 35.0)
+    openamber.set_climate("pid_heat_temperature_control", target_temperature=35.0)
+    openamber.set_number("compressor_start_delta_heating", 2.0)
+    openamber.set_number("backup_heater_degmin_threshold", 9999.0)
+    openamber.set_sensor("heat_cool_temperature_tc", 28.0)
+    openamber.set_sensor("outlet_temperature_tuo", 28.0)
+    openamber.set_sensor("inlet_temperature_tui", 26.0)
+    openamber.set_switch("heat_demand_switch", True)
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Compressor softstart", max_s=1800, step=5)
+    started_at = _simulator_s(openamber)
+
+    openamber.set_select("sg_ready_mode_select", "Max boost")
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Backup heater running", max_s=400, step=5)
+    assert openamber.get_entity("backup_heater_relay") is True
+    assert _compressor_mode(openamber) > 0
+    return started_at
+
+
+def _run_until_compressor_stops(openamber, max_s=700):
+    """Advance until the compressor request is off; the backup heater must stay off all the time."""
+    waited = 0
+    while _compressor_mode(openamber) > 0 and waited < max_s:
+        openamber.advance_time(seconds=5, step_s=5)
+        openamber.step(ms=20)
+        waited += 5
+        assert openamber.get_entity("backup_heater_relay") is False, (
+            "The backup heater must stay off while the compressor only finishes its minimum on time"
+        )
+    assert _compressor_mode(openamber) == 0, "The compressor stops once the minimum on time has passed"
+
+
+def test_backup_heater_state_keeps_minimum_on_time_when_heat_demand_ends(clean_system):
+    """
+    Heat demand ends while the backup heater helps the compressor, 3 minutes after the compressor start:
+    1. The backup heater goes off at once.
+    2. The compressor finishes its minimum on time (it used to stop at once).
+    3. The backup heater stays off meanwhile, also with SG Ready max boost still active.
+    """
+    openamber = clean_system
+    try:
+        started_at = _start_heating_with_sg_max_boost_backup(openamber)
+
+        openamber.set_switch("heat_demand_switch", False)
+        openamber.advance_time(seconds=10, step_s=5)
+        openamber.step(ms=50)
+        assert openamber.get_entity("backup_heater_relay") is False, "No backup heater without heat demand"
+        assert _compressor_mode(openamber) > 0, "The compressor must finish its minimum on time"
+
+        _run_until_compressor_stops(openamber)
+        ran = _simulator_s(openamber) - started_at
+        assert ran >= MIN_ON_S, f"Compressor stopped after {ran:.0f} s"
+        assert advance_until_state(openamber, "state_machine_state_heat_cool", "Idle", max_s=300)
+    finally:
+        openamber.set_select("sg_ready_mode_select", "Normaal")
+
+
+def test_dhw_request_during_backup_heater_state_keeps_minimum_on_time(clean_system):
+    """A DHW request while the backup heater helps the compressor: backup heater off, minimum on time kept, then DHW."""
+    openamber = clean_system
+    try:
+        started_at = _start_heating_with_sg_max_boost_backup(openamber)
+
+        openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
+        openamber.advance_time(seconds=10, step_s=5)
+        openamber.step(ms=50)
+        assert openamber.get_entity("backup_heater_relay") is False
+        assert _compressor_mode(openamber) > 0, "The compressor must finish its minimum on time"
+        assert openamber.get_entity("state_machine_state_main") == "Heat/Cool"
+
+        _run_until_compressor_stops(openamber)
+        ran = _simulator_s(openamber) - started_at
+        assert ran >= MIN_ON_S, f"Compressor stopped after {ran:.0f} s"
+        assert advance_until_state(openamber, "state_machine_state_main", "DHW", max_s=300)
+        assert openamber.get_entity("three_way_valve_dhw_switch") is True
+    finally:
+        openamber.set_select("sg_ready_mode_select", "Normaal")

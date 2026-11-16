@@ -32,7 +32,7 @@ This test suite provides end-to-end automated testing for OpenAmber, combining r
 ```
 
 1. **`test_bridge` (ESPHome Component in `src/openamber/test_bridge/`)**:
-   - A non-blocking TCP server running on port 8888 inside the ESPHome host application.
+   - A non-blocking TCP server running on port 8888 (override with `OPENAMBER_TEST_PORT`) inside the ESPHome host application.
    - Automatically registers all ~1,400 declared LVGL widgets (`lv_obj_t*`) alongside all ESPHome entities (`sensor`, `number`, `switch`, `binary_sensor`, `select`, `climate`).
    - Dispatches real LVGL events (e.g. `LV_EVENT_CLICKED`) via `lv_obj_send_event(obj, ...)`.
    - Returns widget metadata (`visible`, `hidden`, `text`, `checked`, `disabled`).
@@ -56,21 +56,37 @@ The tests are organized into modular, domain-specific test suites:
 | :--- | :--- |
 | [`test_external_thermostat.py`](test_external_thermostat.py) | External thermostat happy flow (wired contact `external_heat_demand_wired` $\rightarrow$ `heat_demand_active_sensor` $\rightarrow$ UI flame icon), manual heat switch flow, and `Intern` vs `Extern` mode switching. |
 | [`test_heat_demand_flow.py`](test_heat_demand_flow.py) | Heat demand expectation to heat, SG Ready block mode suppression, system fault (`error_active`) suppression, stop delta cutoffs, and post-compressor pump cycle timing. |
-| [`test_frost_protection_flow.py`](test_frost_protection_flow.py) | Frost protection stage 1 & 2 detection, instant pump interval reset (`reset_pump_interval`), and immediate pump start in IDLE without waiting for interval. |
+| [`test_frost_protection_flow.py`](test_frost_protection_flow.py) | Frost protection stage 1 & 2 detection, instant pump interval reset (`reset_pump_interval`), immediate pump start in IDLE without waiting for interval, and secondary pump P1 only running together with the P0 interval cycles (not continuously) on frost protection alone. |
 | [`test_defrost_flow.py`](test_defrost_flow.py) | Defrost cycle entry & exit, secondary pump P1 stop/start, pump P0 defrost PWM speed (`pump_p0_pid_defrost_pwm`), post-defrost settle period (`COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 300s`), compressor recovery boost mode (+3 steps), low ambient backup heater boost ($T_a \le -3^\circ\text{C}$), and DHW defrost flow. |
+| [`test_outside_temperature_average.py`](test_outside_temperature_average.py) | Averaged outside temperature for the heating curves (exponential_moving_average sensor): 60 minute time constant, hold during and 5 minutes after a defrost with the gap counted at the Ta before it, and at most one published value per minute. |
 | [`test_compressor_limits_flow.py`](test_compressor_limits_flow.py) | Compressor mode limiting settings across DHW base modes (`dhw_compressor_mode`: Beperkt..Maximaal $\rightarrow$ modes 4..10), DHW winter modes (`dhw_compressor_mode_max`: Gemiddeld..Maximaal $\rightarrow$ modes 7..10 when $T_a \le$ threshold), dynamic ambient temperature threshold crossings and adjustments, Space Heating compressor mode limits (`heat_compressor_mode`: 4..10) & soft-start capping, and Space Cooling compressor mode limits (`cool_compressor_mode`: 1..7). |
+| [`test_compressor_demand_guard.py`](test_compressor_demand_guard.py) | Regression: compressor never starts from `PUMP_RUNNING` without compressor demand (frost protection stage 1 pump-only demand with a pump cycle longer than the pump settle time). |
+| [`test_pump_interval_after_restart.py`](test_pump_interval_after_restart.py) | Regression: after (re)initialization (boot path via service mode exit) the pump starts directly on heat demand instead of waiting for the full pump interval. |
+| [`test_live_update_resume.py`](test_live_update_resume.py) | Live update: after a simulated ESP restart (`mock_simulate_esp_restart`) running heating/DHW is taken over without stopping compressor/pump, a starting compressor is cancelled, minimum on time restarts, defrost pre-phase vs actual defrost (P1), P1 restored and cooling mixing valves opened on takeover, backup heater stages switched off, DHW heating rate window and minimum off time after a takeover, inside unit failsafe / idle units fall back to the normal initialization, and the OTA hold (`mock_ota_begin` / `mock_ota_progress` / `mock_ota_error`): held regulation, release on error or without progress, and safety stops during the hold. |
 | [`test_virtual_time_settle.py`](test_virtual_time_settle.py) | Virtual time engine (`advance_time`, `reset_time`), timer expiration, and backup heater 5-minute prediction settle time (`BACKUP_HEATER_PREDICTION_SETTLE_TIME_S = 300s`). |
+| [`test_virtual_clock_reset.py`](test_virtual_clock_reset.py) | Every test starts at the same simulated wall clock time (Friday 2026-10-09 12:00 UTC, set by `clean_system` via `set_clock`); setting the clock leaves `millis()` and the controller timers alone. |
 | [`test_pump_timer_rollover.py`](test_pump_timer_rollover.py) | 32-bit millisecond counter rollover (~49.7 days): pump run and interval timers, heating-to-DHW handover, overdue intervals after long idle periods, frost-protection interval reset, compressor min on/off timers over very long runs, and deferred state switches whose deadline spans the wrap. |
-| [`test_pid_control.py`](test_pid_control.py) | PID climate controller setpoint queries, error handling, virtual time integration ($K_i \cdot \int e dt$), and deadband stabilization. |
+| [`test_pid_control.py`](test_pid_control.py) | PID climate controller setpoint queries, error handling, virtual time integration ($K_i \cdot \int e dt$), deadband stabilization, and compressor hysteresis holding the compressor mode near the setpoint. |
 | [`test_mode_switching_flows.py`](test_mode_switching_flows.py) | Mode transitions between DHW, HEAT, and COOL modes: HEAT $\rightarrow$ DHW $\rightarrow$ HEAT, COOL $\rightarrow$ DHW $\rightarrow$ COOL, HEAT $\rightarrow$ COOL, COOL $\rightarrow$ HEAT, IDLE $\rightarrow$ DHW $\rightarrow$ IDLE, and simultaneous demand priority conflict resolution. |
 | [`test_dhw_flows.py`](test_dhw_flows.py) | Domestic Hot Water demand, 3-way valve control (`three_way_valve_dhw_switch`), target temperature shutoff, backup heater failure escalation, direct vs $\Delta T$ pump start modes, and compressor limit modes. |
+| [`test_dhw_during_heating_valve.py`](test_dhw_during_heating_valve.py) | DHW requested during space heating: enabling `dhw_enabled_switch` mid heating run, pump P1 stopped before the 3-way valve switches to DHW, and a running oil return cycle finished before the switch. |
+| [`test_dhw_compressor_min_off.py`](test_dhw_compressor_min_off.py) | After heating stopped the compressor, DHW starts its pump but requests the compressor only after the minimum off time (200 s); it stops the pump when the demand ends while waiting, and does not wait in emergency mode. |
 | [`test_dhw_flow.py`](test_dhw_flow.py) | Domestic Hot Water demand, navbar tapwater icon (`nav_status_dhw_icon`), and circulation pump spinner animation (`dhw_circulation_spinner`, `dhw_pump_state_label`). |
 | [`test_cooling_flow.py`](test_cooling_flow.py) | External cooling demand, navbar snowflake icon (`nav_status_cool_icon`), and heating-over-cooling priority conflict resolution. |
+| [`test_cooling_allowed_switch.py`](test_cooling_allowed_switch.py) | "Koelen toegestaan" (`cooling_allowed_switch`, default on): while off, cooling demand from the wired input, "Externe koudevraag" and the internal thermostat is ignored; a running cooling cycle stops through the normal stop path (minimum on time); heating is not affected; the toggle under Instellingen > Koelen > Algemeen, and the other cooling settings (Algemeen and Setpoint tab) greyed out and disabled while cooling is not allowed. |
 | [`test_backup_heater_flow.py`](test_backup_heater_flow.py) | Backup heater relay activation, UI badge updates (`tile_backup_state`), temperature reaching setpoint + shutoff delta, and shutdown propagation. |
 | [`test_settings_workflow.py`](test_settings_workflow.py) | Settings sidebar tabs (Algemeen, Verwarmen, Tapwater, Bijverwarmen), sensor calibration pager navigation (`1 / 2` $\leftrightarrow$ `2 / 2`), Stooklijn Zone 2 subtab, and Mengventielen settings pager. |
 | [`test_zone2_curve_and_mixing_valves.py`](test_zone2_curve_and_mixing_valves.py) | Zone 2 heating curve anchor interpolation, dual-zone highest setpoint arbitration, Tv1 & Tv2 mixing valve PID modulation, deadband anti-jitter stabilization, min/max clamping & idle closure, defrost position freezing & resumption, control temperature Tc enforcement, fully opening valves to max position in cooling mode, and position template sensors. |
+| [`test_unexpected_compressor_stop.py`](test_unexpected_compressor_stop.py) | A started compressor that reports 0 Hz for 180 s outside a defrost or oil return cycle raises TO07: everything stops (backup heater too) and the controller re-initializes; heating restarts only after the user resets the error. |
+| [`test_maintenance_stop.py`](test_maintenance_stop.py) | Maintenance mode is only allowed after a controlled stop: refused while DHW runs; after stopping DHW (also while the tank still asks for heat) maintenance mode turns everything off, and turning it off returns to Standby instead of restarting DHW. |
+| [`test_controlled_stop.py`](test_controlled_stop.py) | Controlled stop ("Gecontroleerd stoppen"): stops without waiting for the minimum on time during heating and DHW, finishes a defrost or oil return cycle first, then Standby; resumes with the resume button or after 30 minutes, not for frost protection; buttons on System > Beheer. Maintenance mode only once in Standby; resuming is blocked while it is on. |
+| [`test_update_dialog_controlled_stop.py`](test_update_dialog_controlled_stop.py) | Firmware update from the display: outside standby (also with compressor and pump idle) the dialog offers "Nu updaten" or "Eerst stoppen"; stopping first only starts the controlled stop and the update is started by hand once in Standby; in Standby the dialog is the plain confirmation. |
+| [`test_emergency_mode_stops_compressor.py`](test_emergency_mode_stops_compressor.py) | Enabling emergency mode while the compressor is requested (heating or DHW) stops it and re-initializes; regulation continues on the backup heater, without an error and without a re-initialization loop; a restart in emergency mode initializes instead of taking over the running compressor. |
 | [`test_ui_navigation.py`](test_ui_navigation.py) | Header bar title and navbar navigation between Home, Settings, Service, and System pages. |
-| [`helpers.py`](helpers.py) | Shared helpers: `advance_until_state()` advances virtual time until a state is reached instead of assuming a fixed timeline; `start_space_heating()` brings the heat/cool controller to `Compressor running`. |
+| [`test_heatpump_model_name.py`](test_heatpump_model_name.py) | Heat pump model name from the model code in register 3257 (`model_identification_1`) in the text sensor and the header badge, including the HP-S 95 codes 145 and 160 and an unknown code. |
+| [`test_graph_page.py`](test_graph_page.py) | History graph page: Grafiek navbar navigation, one sample per minute with the newest Tc shown, empty hint hidden once data exists, and the Tuo/Tui pipes toggle. |
+| [`test_flow_invariants.py`](test_flow_invariants.py) | Complete heating -> DHW -> heating and cooling -> DHW -> cooling flows under `FlowMonitor`, which checks the hardware rules after every 5 s: the 3-way valve only moves with compressor, pump P0 and backup heater off, the compressor only runs with flow and keeps its minimum on/off time, the backup heater only runs with flow, P1 and the DHW pump match the valve position. Also a DHW demand that ends during the compressor start, and a pump cycle that ends without a compressor start. |
+| [`helpers.py`](helpers.py) | Shared helpers: `advance_until_state()` advances virtual time until a state is reached instead of assuming a fixed timeline; `start_space_heating()` brings the heat/cool controller to `Compressor running`; `FlowMonitor` checks the hardware rules after every step of a flow; `now_s()`/`elapsed_s()` measure durations in simulator time (`offset_s()` leaves out the real time that passes while a test runs). |
 
 ---
 
@@ -92,6 +108,16 @@ pytest -v tests/test_external_thermostat.py
 pytest -v tests/test_virtual_time_settle.py
 pytest -v tests/test_pid_control.py
 ```
+
+### Running Several Checkouts at the Same Time
+The bridge listens on port 8888 by default. Two simulators cannot share a port: the second one fails to bind and its tests silently talk to the first simulator. Give each checkout its own port:
+```powershell
+$env:OPENAMBER_TEST_PORT = "8899"; python run_tests.py
+```
+Each run keeps its ESPHome preferences in its own temporary directory (`ESPHOME_PREFDIR`), so runs do not see each other's saved settings.
+
+### Speed
+Almost all wall-clock time of a test is bridge round trips, not simulation. While a test client is connected the bridge keeps the ESPHome main loop in high-frequency mode, so a command is answered in well under a millisecond instead of waiting for the next 16ms loop interval. Keep it that way: do not add `time.sleep` to tests or the client; if something needs time to pass, advance virtual time.
 
 ---
 
@@ -118,8 +144,9 @@ The `openamber` fixture in tests provides:
 - `openamber.set_number(number_id, value)`: Injects a float state to a number entity.
 - `openamber.set_switch(switch_id, value)`: Turns switch `True` (on) or `False` (off).
 - `openamber.set_binary_sensor(sensor_id, value)`: Publishes boolean state to a binary sensor.
+- `openamber.press_button(button_id)`: Presses a button entity.
 - `openamber.get_entity(entity_id)`: Returns the current state of an entity. Raises if the entity does not exist (a sensor without a value returns `None`).
-- `openamber.step(ms=100)`: Round-trips to the bridge so at least one ESPHome loop iteration runs. It does **not** advance time; anything on an interval (the 5s controller update, template sensors) needs `advance_time`.
+- `openamber.step(ms=100)`: Round-trips to the bridge so at least one ESPHome loop iteration runs. It does **not** advance time and does not sleep (`ms` is ignored); anything on an interval (the 5s controller update, template sensors) or behind a `delay:` needs `advance_time`.
 
 ### Pitfalls
 - Entities with their own lambda (e.g. `error_active`, `heat_cool_control_temperature`, `oil_return_cycle_active_settled`, `sg_ready_*_active_sensor`) recompute on their next update and overwrite injected values. Inject the underlying input instead.
