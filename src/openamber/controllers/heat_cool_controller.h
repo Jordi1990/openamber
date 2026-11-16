@@ -21,6 +21,7 @@
 
 #include "base_controller.h"
 #include "mixing_valve_actuator.h"
+#include "three_way_valve_check.h"
 
 enum class HeatCoolState
 {
@@ -50,6 +51,7 @@ private:
   float compressor_cool_pid_ = 0.0f;
   float start_current_temperature_ = 0.0f;
   uint32_t pump_flow_missing_since_ms_ = 0;
+  ThreeWayValveCheck valve_position_check_;
   MixingValveActuator* mixing_valve_zone1_ = nullptr;
   MixingValveActuator* mixing_valve_zone2_ = nullptr;
 
@@ -477,6 +479,21 @@ private:
     if (fabsf(id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state) > 8.0f && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) && state_ != HeatCoolState::IDLE)
     {
       ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stopping compressor to avoid damage.");
+      return true;
+    }
+
+    // Check from temperatures that the heating water goes through the CV circuit. Outlet water far above Tc comes from
+    // the DHW side (the valve did not switch back, the tank is heated instead of the house); far below Tc means the CV
+    // water does not pass the heat pump either. Same check as for DHW, with Tc as the circuit temperature.
+    const bool valve_check_active = compressor_controller_->IsRunning() && IsWorkingMode(WORKING_MODE_HEATING) &&
+                                    state_ == HeatCoolState::COMPRESSOR_RUNNING && !id(defrost_active_sensor).state;
+    if (valve_position_check_.Update(valve_check_active, id(outlet_temperature_tuo).state,
+                                     id(heat_cool_temperature_tc).state, true, true,
+                                     App.get_loop_component_start_time()))
+    {
+      ESP_LOGE("amber", "Safety check: outlet water deviates from the CV circuit (Tuo %.2f°C, Tc %.2f°C), 3-way valve not in the heating position, stopping system.",
+               id(outlet_temperature_tuo).state, id(heat_cool_temperature_tc).state);
+      id(error_three_way_valve_state_timeout).publish_state(true);
       return true;
     }
 

@@ -42,6 +42,11 @@ static const uint32_t THREE_WAY_VALVE_SWITCH_TIME_S = 1 * 60;
 static const uint32_t THREE_WAY_VALVE_PROTECTION_DELTA_TEMPERATURE_C = 5.0f;
 static const uint32_t THREE_WAY_VALVE_PROTECTION_HIGH_TEMPERATURE_TIME_S = 2 * 60;
 static const float THREE_WAY_VALVE_PROTECTION_TUO_TC_THRESHOLD_C = 5.0f;
+// Valve position check from temperatures (ThreeWayValveCheck): after this run time the outlet water (Tuo minus the
+// offset) must stay within the deviation of the circuit the valve should serve, else the valve is stuck.
+static const uint32_t THREE_WAY_VALVE_CHECK_RUN_TIME_S = 5 * 60;
+static const float THREE_WAY_VALVE_CHECK_TUO_OFFSET_C = 5.0f;
+static const float THREE_WAY_VALVE_CHECK_DEVIATION_C = 12.0f;
 
 // Controlled stop: regulation resumes by itself after this time, so a forgotten stop cannot cool the house.
 static const uint32_t CONTROLLED_STOP_AUTO_RESUME_S = 30 * 60;

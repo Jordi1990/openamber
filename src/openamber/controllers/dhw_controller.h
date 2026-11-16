@@ -21,6 +21,7 @@
 
 #include <cmath>
 #include "base_controller.h"
+#include "three_way_valve_check.h"
 
 enum class DHWState
 {
@@ -51,6 +52,7 @@ private:
   uint32_t dhw_pump_settled_time_ = 0;
   uint32_t pump_flow_missing_since_ms_ = 0;
   uint32_t valve_safety_condition_since_ms_ = 0;
+  ThreeWayValveCheck valve_position_check_;
 
   const char* StateToString(DHWState state) const override
   {
@@ -344,9 +346,24 @@ private:
         valve_safety_condition_since_ms_ = 0;
       }
     }
-    else 
+    else
     {
       valve_safety_condition_since_ms_ = 0;
+    }
+
+    // The other side of the same check: with the DHW pump running, water that stays far below the tank comes from the
+    // CV circuit, so the valve did not switch to DHW (the CV circuit then does not have to get hot for the check above).
+    const bool valve_check_active = compressor_controller_->IsRunning() && id(dhw_pump_relay_switch).state &&
+                                    state_ != DHWState::IDLE && state_ != DHWState::DEFROSTING &&
+                                    !id(defrost_active_sensor).state;
+    if (valve_position_check_.Update(valve_check_active, id(outlet_temperature_tuo).state,
+                                     id(dhw_temperature_tw_sensor).state, false, true,
+                                     App.get_loop_component_start_time()))
+    {
+      ESP_LOGE("amber", "Safety check: outlet water stays far below the DHW tank (Tuo %.2f°C, Tw %.2f°C), 3-way valve not in the DHW position, stopping system.",
+               id(outlet_temperature_tuo).state, id(dhw_temperature_tw_sensor).state);
+      id(error_three_way_valve_state_timeout).publish_state(true);
+      return true;
     }
 
     return false;
