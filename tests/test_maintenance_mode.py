@@ -96,6 +96,14 @@ def test_maintenance_mode_ui_switch_toggle(clean_system):
     # Navigate to Service -> Maintenance tab (tab index 0)
     assert openamber.click("nav_service"), "Clicking nav_service must succeed"
     openamber.step(ms=100)
+
+    # When maintenance mode is OFF, dependent service categories must be disabled/greyed out
+    assert openamber.get_widget("service_tab_compressor").get("disabled") is True, "Compressor card should be disabled when maintenance mode is OFF"
+    assert openamber.get_widget("service_tab_deaeration").get("disabled") is True, "Deaeration card should be disabled when maintenance mode is OFF"
+    assert openamber.get_widget("service_tab_pumps").get("disabled") is True, "Pumps card should be disabled when maintenance mode is OFF"
+    assert openamber.get_widget("service_tab_valve").get("disabled") is True, "Valve card should be disabled when maintenance mode is OFF"
+    assert openamber.get_widget("service_tab_backup").get("disabled") is True, "Backup card should be disabled when maintenance mode is OFF"
+
     assert openamber.click("service_tab_maintenance"), "Clicking service_tab_maintenance must succeed"
     openamber.step(ms=100)
 
@@ -118,6 +126,10 @@ def test_maintenance_mode_ui_switch_toggle(clean_system):
     assert advance_until_state(openamber, MAIN, "Maintenance", max_s=300, step=2), (
         f"Main state should be Maintenance, got {openamber.get_entity(MAIN)}"
     )
+
+    # In maintenance mode, dependent cards must be enabled
+    assert openamber.get_widget("service_tab_compressor").get("disabled") is False, "Compressor card should be enabled in maintenance mode"
+    assert openamber.get_widget("service_tab_deaeration").get("disabled") is False, "Deaeration card should be enabled in maintenance mode"
 
     # Click switch again to turn OFF maintenance mode
     assert openamber.click("set_service_mode_switch_ui"), "Clicking set_service_mode_switch_ui again must succeed"
@@ -154,6 +166,10 @@ def test_header_badge_shows_heat_pump_stopped(clean_system):
     openamber.advance_time(seconds=6, step_s=2)
     openamber.step(ms=50)
     assert openamber.is_hidden("header_maintenance_badge")
+
+    # Dependent cards must be disabled again
+    assert openamber.get_widget("service_tab_compressor").get("disabled") is True, "Compressor card should be disabled after exiting maintenance mode"
+    assert openamber.get_widget("service_tab_deaeration").get("disabled") is True, "Deaeration card should be disabled after exiting maintenance mode"
 
 
 def test_maintenance_proxy_interlocks_prevent_hardware_actuation_when_disabled(clean_system):

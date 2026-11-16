@@ -1,0 +1,5 @@
+# Menu Page: Bijverwarmen Verwarmen
+# ------------------------------------------------------------
+id: panel_bijverwarmen_page_verwarmen
+title: "Verwarmen"
+widgets: !include page_settings_tab_bijverwarmen_verwarmen_content.yaml

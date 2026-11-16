@@ -1,0 +1,5 @@
+# Menu Page: Tapwater Schema
+# ------------------------------------------------------------
+id: panel_dhw_page_schema
+title: "Schema"
+widgets: !include page_settings_tab_dhw_schema_content.yaml

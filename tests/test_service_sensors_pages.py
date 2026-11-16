@@ -1,18 +1,16 @@
-"""Automated tests for Service Sensors pagination, Demand & External signal rows,
+"""Automated tests for the Service Sensoren & Status menu pages, Demand & External signal rows,
 DHW dropdown UI bindings, and Thermostat off-delay UI behavior.
 """
 
 import pytest
 
 
-def test_service_sensors_navigation_and_pagination(clean_system):
+def test_service_sensors_navigation(clean_system):
     """
     Verify:
-    1. Navigation from navbar -> Service page -> Sensoren tab.
-    2. Sensors panel is visible with Page 1 displayed initially.
-    3. Pager indicator shows 'Pagina 1 / 5'.
-    4. Navigating forward through pages 2, 3, 4, 5 via next button updates visibility and indicator.
-    5. Navigating backward through prev button updates visibility and indicator back to Page 1.
+    1. Navigation from navbar -> Service page -> Sensoren & Status.
+    2. Each of the five sensor cards opens its own menu page with its table.
+    3. The menu back button returns to the Sensoren & Status page.
     """
     openamber = clean_system
 
@@ -21,90 +19,35 @@ def test_service_sensors_navigation_and_pagination(clean_system):
     openamber.step(ms=100)
     assert openamber.is_visible("page_service"), "page_service should be visible"
 
-    # 2. Click Sensoren tab in the sidebar
+    # 2. Open Sensoren & Status from the service overview
     assert openamber.click("service_tab_sensors"), "Clicking service_tab_sensors must succeed"
     openamber.step(ms=100)
     assert openamber.is_visible("service_sensors_panel"), "service_sensors_panel should be visible"
 
-    # 3. Verify Page 1 is visible, Pages 2-5 are hidden, and indicator is Pagina 1 / 5
-    assert openamber.is_visible("service_sensors_page_1"), "service_sensors_page_1 should be visible initially"
-    assert openamber.is_hidden("service_sensors_page_2"), "service_sensors_page_2 should be hidden initially"
-    assert openamber.is_hidden("service_sensors_page_3"), "service_sensors_page_3 should be hidden initially"
-    assert openamber.is_hidden("service_sensors_page_4"), "service_sensors_page_4 should be hidden initially"
-    assert openamber.is_hidden("service_sensors_page_5"), "service_sensors_page_5 should be hidden initially"
-    indicator = openamber.get_widget("service_sensors_page_indicator")
-    assert indicator.get("text") == "Pagina 1 / 5", (
-        f"Expected pager indicator 'Pagina 1 / 5', got: {indicator.get('text')}"
-    )
+    pages = [
+        ("service_sensors_stab_status", "service_sensors_status_page", "service_diag_status_table"),
+        ("service_sensors_stab_temp", "service_sensors_temp_page", "service_diag_temp_table"),
+        ("service_sensors_stab_control", "service_sensors_control_page", "service_diag_control_table"),
+        ("service_sensors_stab_system", "service_sensors_system_page", "service_diag_system_table"),
+        ("service_sensors_stab_demand", "service_sensors_demand_page", "service_diag_demand_table"),
+    ]
+    for card, page, table in pages:
+        assert openamber.click(card), f"Clicking {card} must succeed"
+        openamber.step(ms=100)
+        assert openamber.is_visible(page), f"{page} should be visible after clicking {card}"
+        assert openamber.is_visible(table), f"{table} should be visible on {page}"
+        assert openamber.is_hidden("service_sensors_panel"), "The overview cards should be hidden on a sensor page"
 
-    # 4. Click Next -> Page 2 (Druk & Temperatuur)
-    assert openamber.click("service_sensors_page_next_button"), "Clicking next button must succeed"
-    openamber.step(ms=100)
-    assert openamber.is_hidden("service_sensors_page_1")
-    assert openamber.is_visible("service_sensors_page_2")
-    assert openamber.is_hidden("service_sensors_page_3")
-    assert openamber.is_hidden("service_sensors_page_4")
-    assert openamber.is_hidden("service_sensors_page_5")
-    assert openamber.get_widget("service_sensors_page_indicator").get("text") == "Pagina 2 / 5"
-
-    # 5. Click Next -> Page 3 (Aansturing)
-    assert openamber.click("service_sensors_page_next_button"), "Clicking next button must succeed"
-    openamber.step(ms=100)
-    assert openamber.is_hidden("service_sensors_page_1")
-    assert openamber.is_hidden("service_sensors_page_2")
-    assert openamber.is_visible("service_sensors_page_3")
-    assert openamber.is_hidden("service_sensors_page_4")
-    assert openamber.is_hidden("service_sensors_page_5")
-    assert openamber.get_widget("service_sensors_page_indicator").get("text") == "Pagina 3 / 5"
-
-    # 6. Click Next -> Page 4 (Systeem)
-    assert openamber.click("service_sensors_page_next_button"), "Clicking next button must succeed"
-    openamber.step(ms=100)
-    assert openamber.is_hidden("service_sensors_page_1")
-    assert openamber.is_hidden("service_sensors_page_2")
-    assert openamber.is_hidden("service_sensors_page_3")
-    assert openamber.is_visible("service_sensors_page_4")
-    assert openamber.is_hidden("service_sensors_page_5")
-    assert openamber.get_widget("service_sensors_page_indicator").get("text") == "Pagina 4 / 5"
-
-    # 7. Click Next -> Page 5 (Vraag & Ingangen)
-    assert openamber.click("service_sensors_page_next_button"), "Clicking next button must succeed"
-    openamber.step(ms=100)
-    assert openamber.is_hidden("service_sensors_page_1")
-    assert openamber.is_hidden("service_sensors_page_2")
-    assert openamber.is_hidden("service_sensors_page_3")
-    assert openamber.is_hidden("service_sensors_page_4")
-    assert openamber.is_visible("service_sensors_page_5")
-    assert openamber.get_widget("service_sensors_page_indicator").get("text") == "Pagina 5 / 5"
-
-    # 8. Click Prev -> Page 4
-    assert openamber.click("service_sensors_page_prev_button"), "Clicking prev button must succeed"
-    openamber.step(ms=100)
-    assert openamber.is_visible("service_sensors_page_4")
-    assert openamber.get_widget("service_sensors_page_indicator").get("text") == "Pagina 4 / 5"
-
-    # 9. Click Prev -> Page 3
-    assert openamber.click("service_sensors_page_prev_button"), "Clicking prev button must succeed"
-    openamber.step(ms=100)
-    assert openamber.is_visible("service_sensors_page_3")
-    assert openamber.get_widget("service_sensors_page_indicator").get("text") == "Pagina 3 / 5"
-
-    # 10. Click Prev -> Page 2
-    assert openamber.click("service_sensors_page_prev_button")
-    openamber.step(ms=100)
-    assert openamber.is_visible("service_sensors_page_2")
-    assert openamber.get_widget("service_sensors_page_indicator").get("text") == "Pagina 2 / 5"
-
-    # 11. Click Prev -> Page 1
-    assert openamber.click("service_sensors_page_prev_button")
-    openamber.step(ms=100)
-    assert openamber.is_visible("service_sensors_page_1")
-    assert openamber.get_widget("service_sensors_page_indicator").get("text") == "Pagina 1 / 5"
+        # 3. Back to the Sensoren & Status page
+        assert openamber.click("service_menu_back_btn"), "Clicking the menu back button must succeed"
+        openamber.step(ms=100)
+        assert openamber.is_visible("service_sensors_panel"), "Back must return to the Sensoren & Status page"
+        assert openamber.is_hidden(page), f"{page} should be hidden after going back"
 
 
 def test_service_sensors_demand_and_external_signals_page_5(clean_system):
     """
-    Verify Page 5 ('Vraag & Ingangen') shows both effective demand and raw external signals separately:
+    Verify the 'Vraag & Ingangen' page shows both effective demand and raw external signals separately:
     1. Software/internal Zone 1 heat demand sets 'Warmtevraag Zone 1' to 'AAN' while
        'Warmtevraag Zone 1 (Extern signaal)' remains 'UIT'.
     2. Wired Zone 2 input when mixing valves are disabled sets 'Warmtevraag Zone 2 (Extern signaal)'
@@ -114,15 +57,14 @@ def test_service_sensors_demand_and_external_signals_page_5(clean_system):
     """
     openamber = clean_system
 
-    # Navigate to Service -> Sensoren -> Page 5
+    # Navigate to Service -> Sensoren & Status -> Vraag & Ingangen
     assert openamber.click("nav_service")
     openamber.step(ms=100)
     assert openamber.click("service_tab_sensors")
     openamber.step(ms=100)
-    for _ in range(4):
-        assert openamber.click("service_sensors_page_next_button")
-        openamber.step(ms=50)
-    assert openamber.is_visible("service_sensors_page_5")
+    assert openamber.click("service_sensors_stab_demand")
+    openamber.step(ms=100)
+    assert openamber.is_visible("service_sensors_demand_page")
 
     tbl = openamber.get_widget("service_diag_demand_table")
     assert tbl.get("rows") == [
@@ -235,11 +177,14 @@ def test_thermostat_off_delay_renamed_and_buttons_disabled_in_internal_mode(clea
     """
     openamber = clean_system
 
-    # Navigate to Settings -> Thermostaat tab
+    # Navigate to Settings -> Thermostaat -> Extern & draadloos
     assert openamber.click("nav_settings")
     openamber.step(ms=100)
     assert openamber.click("stab_thermostat")
     openamber.step(ms=100)
+    assert openamber.click("thermostat_stab_extern")
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_thermostat_page_extern")
 
     row_widget = openamber.get_widget("thermostat_row_off_delay")
     assert row_widget.get("text") == "Uitschakelvertraging (Extern signaal)"

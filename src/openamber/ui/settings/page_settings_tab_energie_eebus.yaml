@@ -1,0 +1,5 @@
+# Menu Page: Energiebeheer - EEBUS koppeling
+# ------------------------------------------------------------
+id: panel_energie_page_eebus
+title: "EEBUS"
+widgets: !include page_settings_tab_energie_eebus_content.yaml

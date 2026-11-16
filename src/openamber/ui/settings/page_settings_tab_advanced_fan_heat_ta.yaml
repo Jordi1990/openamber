@@ -1,0 +1,5 @@
+# Menu Page: Ventilator - Verwarmen buitentemperatuur
+# ------------------------------------------------------------
+id: panel_advanced_page_fan_heat_ta
+title: "Verwarmen: buitentemp."
+widgets: !include page_settings_tab_advanced_fan_heat_ta_content.yaml

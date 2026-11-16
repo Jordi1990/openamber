@@ -1,0 +1,5 @@
+# Menu Page: Geavanceerd - Defrost Starttemperaturen
+# ------------------------------------------------------------
+id: panel_advanced_page_defrost_temps
+title: "Defrost starttemperaturen"
+widgets: !include page_settings_tab_advanced_defrost_temps_content.yaml

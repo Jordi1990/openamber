@@ -1,0 +1,5 @@
+# Menu Page: Pompsnelheid
+# ------------------------------------------------------------
+id: panel_pump_page_pompsnelheid
+title: "Pompsnelheid"
+widgets: !include page_settings_tab_pump_pompsnelheid_content.yaml

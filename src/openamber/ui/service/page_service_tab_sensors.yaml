@@ -1,372 +1,139 @@
-obj:
-  id: service_sensors_panel
-  width: 100%
-  height: 100%
-  align: TOP_LEFT
-  y: 0
-  hidden: true
-  bg_opa: 0%
-  border_opa: 0%
-  pad_all: 0
-  scrollbar_mode: "OFF"
-  scrollable: false
-  widgets:
-    # ── Pagina 1: Status ──
-    - obj:
-        id: service_sensors_page_1
-        width: 100%
-        height: 366
-        align: TOP_LEFT
-        y: 0
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 0
-        scrollbar_mode: "OFF"
-        scrollable: false
-        widgets:
-          - obj:
-              width: 100%
-              height: 366
-              bg_color: 0xFFFFFF
-              bg_opa: 100%
-              radius: 14
-              border_width: 1
-              border_color: 0xE2E8F0
-              border_opa: 100%
-              pad_left: 20
-              pad_right: 20
-              pad_top: 14
-              pad_bottom: 8
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - label: { text: "Status", text_color: 0x0F172A, text_font: font_text_24, align: TOP_LEFT }
-                - table:
-                    id: service_diag_status_table
-                    width: 100%
-                    y: 36
-                    bg_opa: 0%
-                    border_width: 0
-                    scrollbar_mode: "OFF"
-                    scrollable: false
-                    items:
-                      text_font: font_text_20
-                      text_color: 0x1E293B
-                      border_width: 1
-                      border_color: 0xF1F5F9
-                      border_side: BOTTOM
-                      bg_opa: 0%
-                      pad_top: 6
-                      pad_bottom: 6
-                      pad_left: 4
-                      pad_right: 4
-                    columns:
-                      - width: 60%
-                      - width: 40%
-                    rows:
-                      - ["Hoofdstatus", "-"]
-                      - ["CV / Koelen", "-"]
-                      - ["Tapwater", "-"]
-                      - ["Gewenst CV setpoint", "-"]
-                      - ["Gewenst tapwater setpoint", "-"]
-                      - ["Thermisch vermogen", "-"]
-                      - ["Onderhoudsmodus", "-"]
+# Menu Page: Service - Sensoren & Status (Categorie keuzemenu)
+# ------------------------------------------------------------
+id: service_sensors_page
+title: "Sensoren & Status"
+widgets:
+  - obj:
+      id: service_sensors_panel
+      width: 100%
+      height: SIZE_CONTENT
+      bg_opa: 0%
+      border_opa: 0%
+      pad_all: 0
+      layout:
+        type: FLEX
+        flex_flow: ROW_WRAP
+        flex_align_main: START
+        flex_align_cross: START
+        pad_row: 10
+        pad_column: 10
+      widgets:
+        - obj:
+            id: service_sensors_stab_status
+            width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
+            height: 54
+            bg_color: 0xFFFFFF
+            bg_opa: 100%
+            radius: 12
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
+            on_click:
+              - lvgl.menu.set_page:
+                  id: service_menu
+                  page: service_sensors_status_page
+              - script.execute: update_service_diag_summary_ui
+            widgets:
+              - label: { text: "\U000F05E0", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: service_sensors_stab_status_lbl, text: "Status", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
 
-    # ── Pagina 2: Druk & Temperatuur ──
-    - obj:
-        id: service_sensors_page_2
-        width: 100%
-        height: 366
-        align: TOP_LEFT
-        y: 0
-        hidden: true
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 0
-        scrollbar_mode: "OFF"
-        scrollable: false
-        widgets:
-          - obj:
-              width: 100%
-              height: 366
-              bg_color: 0xFFFFFF
-              bg_opa: 100%
-              radius: 14
-              border_width: 1
-              border_color: 0xE2E8F0
-              border_opa: 100%
-              pad_left: 20
-              pad_right: 20
-              pad_top: 14
-              pad_bottom: 8
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - label: { text: "Druk & Temperatuur", text_color: 0x0F172A, text_font: font_text_24, align: TOP_LEFT }
-                - table:
-                    id: service_diag_temp_table
-                    width: 100%
-                    y: 36
-                    bg_opa: 0%
-                    border_width: 0
-                    scrollbar_mode: "OFF"
-                    scrollable: false
-                    items:
-                      text_font: font_text_20
-                      text_color: 0x1E293B
-                      border_width: 1
-                      border_color: 0xF1F5F9
-                      border_side: BOTTOM
-                      bg_opa: 0%
-                      pad_top: 5
-                      pad_bottom: 5
-                      pad_left: 4
-                      pad_right: 4
-                    columns:
-                      - width: 60%
-                      - width: 40%
-                    rows:
-                      - ["Buitentemperatuur (Ta)", "-"]
-                      - ["CV-aanvoertemperatuur (Tuo)", "-"]
-                      - ["CV-retourtemperatuur (Tui)", "-"]
-                      - ["Regeltemperatuur (Tc)", "-"]
-                      - ["Tapwatertemperatuur (Tw)", "-"]
-                      - ["Delta-T (Tuo - Tui)", "-"]
-                      - ["Zuiggasdruk (Ps)", "-"]
-                      - ["Persgasdruk (Pd)", "-"]
+        - obj:
+            id: service_sensors_stab_temp
+            width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
+            height: 54
+            bg_color: 0xFFFFFF
+            bg_opa: 100%
+            radius: 12
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
+            on_click:
+              - lvgl.menu.set_page:
+                  id: service_menu
+                  page: service_sensors_temp_page
+              - script.execute: update_service_diag_summary_ui
+            widgets:
+              - label: { text: "\U000F050F", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: service_sensors_stab_temp_lbl, text: "Druk & Temperatuur", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
 
-    # ── Pagina 3: Aansturing ──
-    - obj:
-        id: service_sensors_page_3
-        width: 100%
-        height: 366
-        align: TOP_LEFT
-        y: 0
-        hidden: true
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 0
-        scrollbar_mode: "OFF"
-        scrollable: false
-        widgets:
-          - obj:
-              width: 100%
-              height: 366
-              bg_color: 0xFFFFFF
-              bg_opa: 100%
-              radius: 14
-              border_width: 1
-              border_color: 0xE2E8F0
-              border_opa: 100%
-              pad_left: 20
-              pad_right: 20
-              pad_top: 14
-              pad_bottom: 8
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - label: { text: "Aansturing", text_color: 0x0F172A, text_font: font_text_24, align: TOP_LEFT }
-                - table:
-                    id: service_diag_control_table
-                    width: 100%
-                    y: 36
-                    bg_opa: 0%
-                    border_width: 0
-                    scrollbar_mode: "OFF"
-                    scrollable: false
-                    items:
-                      text_font: font_text_20
-                      text_color: 0x1E293B
-                      border_width: 1
-                      border_color: 0xF1F5F9
-                      border_side: BOTTOM
-                      bg_opa: 0%
-                      pad_top: 6
-                      pad_bottom: 6
-                      pad_left: 4
-                      pad_right: 4
-                    columns:
-                      - width: 60%
-                      - width: 40%
-                    rows:
-                      - ["Compressorfrequentie", "- Hz"]
-                      - ["Compressorniveau OpenAmber", "-"]
-                      - ["Doelfrequentie buitenunit", "- Hz"]
-                      - ["Circulatiepomp (P0)", "- %"]
-                      - ["Ventilator (Fan)", "- rpm"]
-                      - ["Expansieklep", "- %"]
-                      - ["Mengventiel Zone 1", "- %"]
-                      - ["Mengventiel Zone 2", "- %"]
-                      - ["Driewegklep positie", "-"]
+        - obj:
+            id: service_sensors_stab_control
+            width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
+            height: 54
+            bg_color: 0xFFFFFF
+            bg_opa: 100%
+            radius: 12
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
+            on_click:
+              - lvgl.menu.set_page:
+                  id: service_menu
+                  page: service_sensors_control_page
+              - script.execute: update_service_diag_summary_ui
+            widgets:
+              - label: { text: "\U000F0493", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: service_sensors_stab_control_lbl, text: "Aansturing", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
 
-    # ── Pagina 4: Systeem ──
-    - obj:
-        id: service_sensors_page_4
-        width: 100%
-        height: 366
-        align: TOP_LEFT
-        y: 0
-        hidden: true
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 0
-        scrollbar_mode: "OFF"
-        scrollable: false
-        widgets:
-          - obj:
-              width: 100%
-              height: 366
-              bg_color: 0xFFFFFF
-              bg_opa: 100%
-              radius: 14
-              border_width: 1
-              border_color: 0xE2E8F0
-              border_opa: 100%
-              pad_left: 20
-              pad_right: 20
-              pad_top: 14
-              pad_bottom: 8
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - label: { text: "Systeem", text_color: 0x0F172A, text_font: font_text_24, align: TOP_LEFT }
-                - table:
-                    id: service_diag_system_table
-                    width: 100%
-                    y: 36
-                    bg_opa: 0%
-                    border_width: 0
-                    scrollbar_mode: "OFF"
-                    scrollable: false
-                    items:
-                      text_font: font_text_20
-                      text_color: 0x1E293B
-                      border_width: 1
-                      border_color: 0xF1F5F9
-                      border_side: BOTTOM
-                      bg_opa: 0%
-                      pad_top: 5
-                      pad_bottom: 5
-                      pad_left: 4
-                      pad_right: 4
-                    columns:
-                      - width: 60%
-                      - width: 40%
-                    rows:
-                      - ["Ontdooiing (Defrost)", "-"]
-                      - ["Bodemplaatverwarming", "-"]
-                      - ["Modbus binnenunit", "-"]
-                      - ["Modbus buitenunit", "-"]
-                      - ["SG Ready contacten (A / B)", "-"]
+        - obj:
+            id: service_sensors_stab_system
+            width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
+            height: 54
+            bg_color: 0xFFFFFF
+            bg_opa: 100%
+            radius: 12
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
+            on_click:
+              - lvgl.menu.set_page:
+                  id: service_menu
+                  page: service_sensors_system_page
+              - script.execute: update_service_diag_summary_ui
+            widgets:
+              - label: { text: "\U000F04A0", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: service_sensors_stab_system_lbl, text: "Systeem", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
 
-    # ── Pagina 5: Vraag & Ingangen ──
-    - obj:
-        id: service_sensors_page_5
-        width: 100%
-        height: 366
-        align: TOP_LEFT
-        y: 0
-        hidden: true
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 0
-        scrollbar_mode: "OFF"
-        scrollable: false
-        widgets:
-          - obj:
-              width: 100%
-              height: 366
-              bg_color: 0xFFFFFF
-              bg_opa: 100%
-              radius: 14
-              border_width: 1
-              border_color: 0xE2E8F0
-              border_opa: 100%
-              pad_left: 20
-              pad_right: 20
-              pad_top: 14
-              pad_bottom: 8
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - label: { text: "Vraag & Ingangen", text_color: 0x0F172A, text_font: font_text_24, align: TOP_LEFT }
-                - table:
-                    id: service_diag_demand_table
-                    width: 100%
-                    y: 36
-                    bg_opa: 0%
-                    border_width: 0
-                    scrollbar_mode: "OFF"
-                    scrollable: false
-                    items:
-                      text_font: font_text_20
-                      text_color: 0x1E293B
-                      border_width: 1
-                      border_color: 0xF1F5F9
-                      border_side: BOTTOM
-                      bg_opa: 0%
-                      pad_top: 6
-                      pad_bottom: 6
-                      pad_left: 4
-                      pad_right: 4
-                    columns:
-                      - width: 60%
-                      - width: 40%
-                    rows:
-                      - ["Warmtevraag Zone 1", "-"]
-                      - ["Warmtevraag Zone 2", "-"]
-                      - ["Koudevraag", "-"]
-                      - ["Warmtevraag Zone 1 (Extern signaal)", "-"]
-                      - ["Warmtevraag Zone 2 (Extern signaal)", "-"]
-                      - ["Koudevraag (Extern signaal)", "-"]
-
-    # ── Paginator balk onderaan ──
-    - obj:
-        id: service_sensors_pager
-        width: 100%
-        height: 44
-        align: BOTTOM_MID
-        y: -4
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 0
-        layout:
-          type: FLEX
-          flex_flow: ROW
-          flex_align_main: CENTER
-          flex_align_cross: CENTER
-          pad_column: 8
-        widgets:
-          - obj:
-              id: service_sensors_page_prev_button
-              width: 40
-              height: 36
-              bg_color: 0xCBD5E1
-              bg_opa: 100%
-              radius: 8
-              border_opa: 0%
-              scrollbar_mode: "OFF"
-              scrollable: false
-              on_click:
-                - script.execute: service_sensors_prev_page
-              widgets:
-                - label: { id: service_sensors_page_prev_button_lbl, text: "\U000F0141", text_color: 0x4B5563, text_font: font_mdi_24, align: CENTER }
-          - label:
-              id: service_sensors_page_indicator
-              text: "Pagina 1 / 5"
-              text_color: 0x4B5563
-              text_font: font_text_20
-          - obj:
-              id: service_sensors_page_next_button
-              width: 40
-              height: 36
-              bg_color: 0x1F3B68
-              bg_opa: 100%
-              radius: 8
-              border_opa: 0%
-              scrollbar_mode: "OFF"
-              scrollable: false
-              on_click:
-                - script.execute: service_sensors_next_page
-              widgets:
-                - label: { id: service_sensors_page_next_button_lbl, text: "\U000F0142", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+        - obj:
+            id: service_sensors_stab_demand
+            width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
+            height: 54
+            bg_color: 0xFFFFFF
+            bg_opa: 100%
+            radius: 12
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
+            on_click:
+              - lvgl.menu.set_page:
+                  id: service_menu
+                  page: service_sensors_demand_page
+              - script.execute: update_service_diag_summary_ui
+            widgets:
+              - label: { text: "\U000F0EBB", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: service_sensors_stab_demand_lbl, text: "Vraag & Ingangen", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }

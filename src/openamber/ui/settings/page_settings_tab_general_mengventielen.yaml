@@ -1,0 +1,64 @@
+# Menu Page: Mengventielen (Keuzemenu Zone 1 / Zone 2)
+# ------------------------------------------------------------
+id: panel_general_page_mengventielen
+title: "Mengventielen"
+widgets:
+  - obj:
+      width: 100%
+      height: SIZE_CONTENT
+      bg_opa: 0%
+      border_opa: 0%
+      pad_all: 0
+      layout:
+        type: FLEX
+        flex_flow: ROW_WRAP
+        flex_align_main: START
+        flex_align_cross: START
+        pad_row: 10
+        pad_column: 10
+      widgets:
+        - obj:
+            id: mengventielen_tab_z1
+            width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
+            height: 54
+            bg_color: 0xFFFFFF
+            bg_opa: 100%
+            radius: 12
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_general_mv_zone1
+            widgets:
+              - label: { text: "\U000F0493", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: mengventielen_tab_z1_lbl, text: "Mengventiel Zone 1", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
+
+        - obj:
+            id: mengventielen_tab_z2
+            width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
+            height: 54
+            bg_color: 0xFFFFFF
+            bg_opa: 100%
+            radius: 12
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_general_mv_zone2
+            widgets:
+              - label: { text: "\U000F0493", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: mengventielen_tab_z2_lbl, text: "Mengventiel Zone 2", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }

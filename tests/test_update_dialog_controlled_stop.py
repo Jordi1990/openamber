@@ -12,6 +12,9 @@ MAIN = "state_machine_state_main"
 
 
 def open_update_dialog(openamber):
+    # The dialog lives on the Systeem page; visibility checks include the parent widgets.
+    assert openamber.click("nav_system")
+    openamber.step(ms=100)
     assert openamber.click("service_update_button")
     openamber.step(ms=100)
     assert openamber.is_visible("service_confirm_modal")

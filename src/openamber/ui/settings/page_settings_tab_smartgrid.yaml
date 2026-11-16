@@ -1,117 +1,89 @@
-# Panel: Energiebeheer (was SmartGrid)
-# Sub-tabs: SG-Ready | EEBUS
+# Menu Page: Energiebeheer (Categorie keuzemenu)
 # ------------------------------------------------------------
-obj:
-  id: panel_smartgrid
-  width: 100%
-  height: 100%
-  hidden: true
-  bg_opa: 0%
-  border_opa: 0%
-  pad_left: 0
-  pad_right: 0
-  pad_top: 4
-  pad_bottom: 4
-  scrollbar_mode: "OFF"
-  scrollable: false
-  layout:
-    type: FLEX
-    flex_flow: COLUMN
-    flex_align_main: START
-    flex_align_cross: CENTER
-    pad_row: 4
+id: panel_smartgrid
+title: "Energiebeheer"
+widgets:
+  - obj:
+      width: 100%
+      height: SIZE_CONTENT
+      bg_opa: 0%
+      border_opa: 0%
+      pad_all: 0
+      layout:
+        type: FLEX
+        flex_flow: ROW_WRAP
+        flex_align_main: START
+        flex_align_cross: START
+        pad_row: 10
+        pad_column: 10
+      widgets:
+        - obj:
+            id: energie_stab_sgready
+            width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
+            height: 54
+            bg_color: 0xFFFFFF
+            bg_opa: 100%
+            radius: 12
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_energie_page_sgready
+            widgets:
+              - label: { text: "󰺻", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: energie_stab_sgready_lbl, text: "SG-Ready", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
 
-  widgets:
-    - obj:
-        id: panel_energie_tab_bar
-        width: 100%
-        height: 40
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 0
-        scrollbar_mode: "OFF"
-        scrollable: false
-        layout:
-          type: FLEX
-          flex_flow: ROW
-          flex_align_main: START
-          flex_align_cross: CENTER
-          pad_column: 6
-        widgets:
-          - obj:
-              id: energie_stab_sgready
-              width: SIZE_CONTENT
-              height: 34
-              bg_color: 0x1F3B68
-              bg_opa: 100%
-              radius: 8
-              border_opa: 0%
-              pad_left: 12
-              pad_right: 12
-              pad_top: 4
-              pad_bottom: 4
-              scrollbar_mode: "OFF"
-              scrollable: false
-              on_click:
-                - script.execute:
-                    id: energie_select_tab
-                    tab_index: 0
-              widgets:
-                - label: { id: energie_stab_sgready_lbl, text: "SG-Ready", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
+        - obj:
+            id: energie_stab_eebus
+            width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
+            height: 54
+            bg_color: 0xFFFFFF
+            bg_opa: 100%
+            radius: 12
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_energie_page_eebus
+              - script.execute: update_eebus_settings_ui
+            widgets:
+              - label: { text: "󰌷", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: energie_stab_eebus_lbl, text: "EEBUS", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
 
-          - obj:
-              id: energie_stab_eebus
-              width: SIZE_CONTENT
-              height: 34
-              bg_color: 0xCBD5E1
-              bg_opa: 100%
-              radius: 8
-              border_opa: 0%
-              pad_left: 12
-              pad_right: 12
-              pad_top: 4
-              pad_bottom: 4
-              scrollbar_mode: "OFF"
-              scrollable: false
-              on_click:
-                - script.execute:
-                    id: energie_select_tab
-                    tab_index: 1
-              widgets:
-                - label: { id: energie_stab_eebus_lbl, text: "EEBUS", text_color: 0x4B5563, text_font: font_text_20, align: CENTER }
-
-    - obj:
-        id: panel_energie_page_sgready
-        width: 100%
-        height: SIZE_CONTENT
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 0
-        scrollbar_mode: "OFF"
-        scrollable: false
-        layout:
-          type: FLEX
-          flex_flow: COLUMN
-          flex_align_main: START
-          flex_align_cross: CENTER
-          pad_row: 6
-        widgets: !include page_settings_tab_energie_sgready_content.yaml
-
-    - obj:
-        id: panel_energie_page_eebus
-        hidden: true
-        width: 100%
-        height: 0
-        flex_grow: 1
-        bg_opa: 0%
-        border_opa: 0%
-        pad_all: 0
-        scrollbar_mode: "OFF"
-        scrollable: false
-        layout:
-          type: FLEX
-          flex_flow: COLUMN
-          flex_align_main: START
-          flex_align_cross: CENTER
-          pad_row: 6
-        widgets: !include page_settings_tab_energie_eebus_content.yaml
+        - obj:
+            id: energie_stab_eebus_status
+            width: 49%
+            scrollbar_mode: "OFF"
+            scrollable: false
+            height: 54
+            bg_color: 0xFFFFFF
+            bg_opa: 100%
+            radius: 12
+            border_width: 1
+            border_color: 0xE2E8F0
+            border_opa: 100%
+            pad_left: 16
+            pad_right: 16
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_energie_page_eebus_status
+              - script.execute: update_eebus_settings_ui
+            widgets:
+              - label: { text: "󰣔", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
+              - label: { id: energie_stab_eebus_status_lbl, text: "EEBUS status", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
+              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }

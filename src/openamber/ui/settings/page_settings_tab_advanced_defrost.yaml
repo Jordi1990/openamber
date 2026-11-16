@@ -1,0 +1,5 @@
+# Menu Page: Geavanceerd - Defrost
+# ------------------------------------------------------------
+id: panel_advanced_page_defrost
+title: "Ontdooicyclus (Defrost)"
+widgets: !include page_settings_tab_advanced_defrost_content.yaml

@@ -1,0 +1,5 @@
+# Menu Page: Basis & Setpoints (Thermostaat)
+# ------------------------------------------------------------
+id: panel_thermostat_page_setpoint
+title: "Basis & Setpoints"
+widgets: !include page_settings_tab_thermostat_setpoint_content.yaml

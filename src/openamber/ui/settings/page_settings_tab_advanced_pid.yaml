@@ -1,0 +1,5 @@
+# Menu Page: Geavanceerd - PID
+# ------------------------------------------------------------
+id: panel_advanced_page_pid
+title: "PID Instellingen"
+widgets: !include page_settings_tab_heating_pid_content.yaml

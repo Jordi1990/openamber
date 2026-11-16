@@ -1,0 +1,5 @@
+# Menu Page: Koelen Setpoint
+# ------------------------------------------------------------
+id: panel_cooling_page_setpoint
+title: "Setpoint"
+widgets: !include page_settings_tab_cooling_setpoint_content.yaml

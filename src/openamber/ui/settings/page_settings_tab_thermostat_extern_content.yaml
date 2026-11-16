@@ -1,0 +1,122 @@
+# Thermostaat extern signaal & draadloze thermostaat content
+# ------------------------------------------------------------
+- obj:
+    id: thermostat_row_off_delay
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Uitschakelvertraging (Extern signaal)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Vertraging voor stoppen bij wegvallen warmte- of koudevraag", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                id: set_therm_off_delay_dec_btn
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - if:
+                      condition:
+                        lambda: |-
+                          auto idx = id(thermostat_mode_select).active_index();
+                          return idx.has_value() && idx.value() != 0;
+                      then:
+                        - number.decrement: thermostat_off_delay
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_therm_off_delay_val, text: "0 min", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                id: set_therm_off_delay_inc_btn
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - if:
+                      condition:
+                        lambda: |-
+                          auto idx = id(thermostat_mode_select).active_index();
+                          return idx.has_value() && idx.value() != 0;
+                      then:
+                        - number.increment: thermostat_off_delay
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    id: thermostat_row_link_enabled
+    hidden: true
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Draadloze thermostaat", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Koppeling met externe thermostaat; zet thermostaat bron op intern.", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - switch:
+          id: set_therm_link_switch_ui
+          align: TOP_RIGHT
+          bg_color: 0x9CA3AF
+          indicator:
+            bg_color: 0x16A34A
+          knob:
+            bg_color: 0xFFFFFF
+          on_click:
+            - script.execute: thermostat_link_toggle_ui
+
+- obj:
+    id: thermostat_row_link_code
+    hidden: true
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Koppelcode draadloze thermostaat", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Voer deze code in op de draadloze thermostaat", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - label: { id: set_therm_link_code_val, text: "------", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                id: set_therm_link_new_btn
+                width: SIZE_CONTENT
+                height: 40
+                pad_left: 12
+                pad_right: 12
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - script.execute: thermostat_link_new_code_confirm
+                widgets:
+                  - label: { id: set_therm_link_new_btn_lbl, text: "Nieuw", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
