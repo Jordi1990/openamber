@@ -8,104 +8,79 @@ widgets:
       height: SIZE_CONTENT
       bg_opa: 0%
       border_opa: 0%
-      pad_all: 0
+      pad_left: 12
+      pad_right: 12
+      pad_top: 4
+      pad_bottom: 16
       layout:
         type: FLEX
         flex_flow: ROW_WRAP
         flex_align_main: START
         flex_align_cross: START
-        pad_row: 10
-        pad_column: 10
+        pad_row: 8
+        pad_column: 8
       widgets:
         - obj:
             id: thermostat_stab_setpoints
-            width: 49%
-            scrollbar_mode: "OFF"
+            styles: menu_tile_style
             scrollable: false
-            height: 54
-            bg_color: 0xFFFFFF
-            bg_opa: 100%
-            radius: 12
-            border_width: 1
-            border_color: 0xE2E8F0
-            border_opa: 100%
-            pad_left: 16
-            pad_right: 16
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
             on_click:
               - lvgl.menu.set_page:
                   id: settings_menu
                   page: panel_thermostat_page_setpoint
             widgets:
-              - label: { text: "\U000F050F", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: thermostat_stab_setpoints_lbl, text: "Algemeen", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
-              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
+              - label: { text: "\U000F08BB", styles: menu_tile_icon_style }
+              - label: { id: thermostat_stab_setpoints_lbl, text: "Algemeen", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: thermostat_stab_verwarmen
-            width: 49%
-            scrollbar_mode: "OFF"
+            styles: menu_tile_style
             scrollable: false
-            height: 54
-            bg_color: 0xFFFFFF
-            bg_opa: 100%
-            radius: 12
-            border_width: 1
-            border_color: 0xE2E8F0
-            border_opa: 100%
-            pad_left: 16
-            pad_right: 16
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
             on_click:
               - lvgl.menu.set_page:
                   id: settings_menu
                   page: panel_thermostat_page_verwarmen
             widgets:
-              - label: { text: "\U000F0238", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: thermostat_stab_verwarmen_lbl, text: "Verwarmen", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
-              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
+              - label: { text: "\U000F0238", styles: menu_tile_icon_style }
+              - label: { id: thermostat_stab_verwarmen_lbl, text: "Verwarmen", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: thermostat_stab_koelen
-            width: 49%
-            scrollbar_mode: "OFF"
+            styles: menu_tile_style
             scrollable: false
-            height: 54
-            bg_color: 0xFFFFFF
-            bg_opa: 100%
-            radius: 12
-            border_width: 1
-            border_color: 0xE2E8F0
-            border_opa: 100%
-            pad_left: 16
-            pad_right: 16
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
             on_click:
               - lvgl.menu.set_page:
                   id: settings_menu
                   page: panel_thermostat_page_koelen
             widgets:
-              - label: { text: "\U000F0717", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: thermostat_stab_koelen_lbl, text: "Koelen", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
-              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
+              - label: { text: "\U000F0717", styles: menu_tile_icon_style }
+              - label: { id: thermostat_stab_koelen_lbl, text: "Koelen", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: thermostat_stab_extern
-            width: 49%
-            scrollbar_mode: "OFF"
+            styles: menu_tile_style
             scrollable: false
-            height: 54
-            bg_color: 0xFFFFFF
-            bg_opa: 100%
-            radius: 12
-            border_width: 1
-            border_color: 0xE2E8F0
-            border_opa: 100%
-            pad_left: 16
-            pad_right: 16
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
             on_click:
               - lvgl.menu.set_page:
                   id: settings_menu
                   page: panel_thermostat_page_extern
               - script.execute: update_thermostat_settings_ui
             widgets:
-              - label: { text: "󰌷", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: thermostat_stab_extern_lbl, text: "Externe thermostaat", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
-              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
+              - label: { text: "\U000F0337", styles: menu_tile_icon_style }
+              - label: { id: thermostat_stab_extern_lbl, text: "Externe thermostaat", long_mode: WRAP, styles: menu_tile_label_style }

@@ -9,131 +9,99 @@ widgets:
       height: SIZE_CONTENT
       bg_opa: 0%
       border_opa: 0%
-      pad_all: 0
+      pad_left: 12
+      pad_right: 12
+      pad_top: 4
+      pad_bottom: 16
       layout:
         type: FLEX
         flex_flow: ROW_WRAP
         flex_align_main: START
         flex_align_cross: START
-        pad_row: 10
-        pad_column: 10
+        pad_row: 8
+        pad_column: 8
       widgets:
         - obj:
             id: service_sensors_stab_status
-            width: 49%
-            scrollbar_mode: "OFF"
+            styles: menu_tile_style
             scrollable: false
-            height: 54
-            bg_color: 0xFFFFFF
-            bg_opa: 100%
-            radius: 12
-            border_width: 1
-            border_color: 0xE2E8F0
-            border_opa: 100%
-            pad_left: 16
-            pad_right: 16
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
             on_click:
               - lvgl.menu.set_page:
                   id: service_menu
                   page: service_sensors_status_page
               - script.execute: update_service_diag_summary_ui
             widgets:
-              - label: { text: "\U000F05E0", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: service_sensors_stab_status_lbl, text: "Status", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
-              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
+              - label: { text: "\U000F05E0", styles: menu_tile_icon_style }
+              - label: { id: service_sensors_stab_status_lbl, text: "Status", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: service_sensors_stab_temp
-            width: 49%
-            scrollbar_mode: "OFF"
+            styles: menu_tile_style
             scrollable: false
-            height: 54
-            bg_color: 0xFFFFFF
-            bg_opa: 100%
-            radius: 12
-            border_width: 1
-            border_color: 0xE2E8F0
-            border_opa: 100%
-            pad_left: 16
-            pad_right: 16
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
             on_click:
               - lvgl.menu.set_page:
                   id: service_menu
                   page: service_sensors_temp_page
               - script.execute: update_service_diag_summary_ui
             widgets:
-              - label: { text: "\U000F050F", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: service_sensors_stab_temp_lbl, text: "Druk en temperatuur", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
-              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
+              - label: { text: "\U000F029A", styles: menu_tile_icon_style }
+              - label: { id: service_sensors_stab_temp_lbl, text: "Druk en temperatuur", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: service_sensors_stab_control
-            width: 49%
-            scrollbar_mode: "OFF"
+            styles: menu_tile_style
             scrollable: false
-            height: 54
-            bg_color: 0xFFFFFF
-            bg_opa: 100%
-            radius: 12
-            border_width: 1
-            border_color: 0xE2E8F0
-            border_opa: 100%
-            pad_left: 16
-            pad_right: 16
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
             on_click:
               - lvgl.menu.set_page:
                   id: service_menu
                   page: service_sensors_control_page
               - script.execute: update_service_diag_summary_ui
             widgets:
-              - label: { text: "\U000F0493", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: service_sensors_stab_control_lbl, text: "Aansturing", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
-              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
+              - label: { text: "\U000F062E", styles: menu_tile_icon_style }
+              - label: { id: service_sensors_stab_control_lbl, text: "Aansturing", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: service_sensors_stab_system
-            width: 49%
-            scrollbar_mode: "OFF"
+            styles: menu_tile_style
             scrollable: false
-            height: 54
-            bg_color: 0xFFFFFF
-            bg_opa: 100%
-            radius: 12
-            border_width: 1
-            border_color: 0xE2E8F0
-            border_opa: 100%
-            pad_left: 16
-            pad_right: 16
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
             on_click:
               - lvgl.menu.set_page:
                   id: service_menu
                   page: service_sensors_system_page
               - script.execute: update_service_diag_summary_ui
             widgets:
-              - label: { text: "\U000F04A0", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: service_sensors_stab_system_lbl, text: "Systeem", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
-              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
+              - label: { text: "\U000F08D6", styles: menu_tile_icon_style }
+              - label: { id: service_sensors_stab_system_lbl, text: "Systeem", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: service_sensors_stab_demand
-            width: 49%
-            scrollbar_mode: "OFF"
+            styles: menu_tile_style
             scrollable: false
-            height: 54
-            bg_color: 0xFFFFFF
-            bg_opa: 100%
-            radius: 12
-            border_width: 1
-            border_color: 0xE2E8F0
-            border_opa: 100%
-            pad_left: 16
-            pad_right: 16
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
             on_click:
               - lvgl.menu.set_page:
                   id: service_menu
                   page: service_sensors_demand_page
               - script.execute: update_service_diag_summary_ui
             widgets:
-              - label: { text: "\U000F0EBB", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: service_sensors_stab_demand_lbl, text: "Warmte- en koudevraag", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
-              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
+              - label: { text: "\U000F0393", styles: menu_tile_icon_style }
+              - label: { id: service_sensors_stab_demand_lbl, text: "Warmte- en koudevraag", long_mode: WRAP, styles: menu_tile_label_style }

@@ -39,6 +39,8 @@ obj:
           pad_bottom: 8
           text_font: font_text_24
           text_color: 0x1F2933
+        on_value:
+          - script.execute: setup_menu_header_ui
         pages:
           - !include service/page_service_overview.yaml
           - !include service/page_service_tab_maintenance.yaml

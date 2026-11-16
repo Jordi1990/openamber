@@ -10,7 +10,7 @@
   id: font_mdi_24
   size: 24
   bpp: 4
-  extras: 
+  extras:
     - file: "openamber/ui/fonts/materialdesignicons-webfont.ttf"
       glyphs:
         - "\U000F0238"  # mdi-flame
@@ -74,6 +74,26 @@
         - "\U000F0599"  # mdi-weather-windy (ontluchten)
         - "\U000F0581"  # mdi-volume-off (stille modus)
         - "\U000F00AF"  # mdi-bluetooth (connectiviteit)
+        - "\U000F012A"  # mdi-chart-line (menu tile)
+        - "\U000F029A"  # mdi-gauge (menu tile)
+        - "\U000F02FD"  # mdi-information-outline (menu tile)
+        - "\U000F0393"  # mdi-thermostat (menu tile)
+        - "\U000F040E"  # mdi-play-pause (menu tile)
+        - "\U000F04C5"  # mdi-speedometer (menu tile)
+        - "\U000F04D9"  # mdi-stethoscope (menu tile)
+        - "\U000F0521"  # mdi-toggle-switch (menu tile)
+        - "\U000F059D"  # mdi-weather-windy (menu tile)
+        - "\U000F062E"  # mdi-tune (menu tile)
+        - "\U000F08D6"  # mdi-cogs (menu tile)
+        - "\U000F0ED5"  # mdi-bacteria (menu tile)
+        - "\U000F0F92"  # mdi-water-boiler (menu tile)
+        - "\U000F0FA7"  # mdi-chart-bell-curve-cumulative (menu tile)
+        - "\U000F1066"  # mdi-valve (menu tile)
+        - "\U000F140B"  # mdi-lightning-bolt (menu tile)
+        - "\U000F1542"  # mdi-tune-variant (menu tile)
+        - "\U000F1A43"  # mdi-heat-pump (menu tile)
+        - "\U000F1A71"  # mdi-snowflake-thermometer (menu tile)
+        - "\U000F1B91"  # mdi-wrench-cog (menu tile)
 
 - file: "openamber/ui/fonts/Inter_28pt-SemiBold.ttf"
   #weight: 500
@@ -96,6 +116,7 @@
         - "\U000F0140"  # mdi-chevron-down (dropdown arrow)
         - "\U000F0208"  # mdi-eye
         - "\U000F0209"  # mdi-eye-off
+        - "\U000F0142"  # mdi-chevron-right (menu breadcrumb)
 - file: "openamber/ui/fonts/Inter_28pt-SemiBold.ttf"
   #weight: 500
   id: font_value_big

@@ -8,149 +8,110 @@ widgets:
       height: SIZE_CONTENT
       bg_opa: 0%
       border_opa: 0%
-      pad_all: 0
+      pad_left: 12
+      pad_right: 12
+      pad_top: 4
+      pad_bottom: 16
       layout:
         type: FLEX
         flex_flow: ROW_WRAP
         flex_align_main: START
         flex_align_cross: START
-        pad_row: 10
-        pad_column: 10
+        pad_row: 8
+        pad_column: 8
       widgets:
         - obj:
             id: advanced_stab_pid
-            width: 49%
-            scrollbar_mode: "OFF"
+            styles: menu_tile_style
             scrollable: false
-            height: 54
-            bg_color: 0xFFFFFF
-            bg_opa: 100%
-            radius: 12
-            border_width: 1
-            border_color: 0xE2E8F0
-            border_opa: 100%
-            pad_left: 16
-            pad_right: 16
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
             on_click:
               - lvgl.menu.set_page:
                   id: settings_menu
                   page: panel_advanced_page_pid
             widgets:
-              - label: { text: "\U000F08D4", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: advanced_stab_pid_lbl, text: "PID-regeling", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
-              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
+              - label: { text: "\U000F012A", styles: menu_tile_icon_style }
+              - label: { id: advanced_stab_pid_lbl, text: "PID-regeling", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: advanced_stab_bodemplaat
-            width: 49%
-            scrollbar_mode: "OFF"
+            styles: menu_tile_style
             scrollable: false
-            height: 54
-            bg_color: 0xFFFFFF
-            bg_opa: 100%
-            radius: 12
-            border_width: 1
-            border_color: 0xE2E8F0
-            border_opa: 100%
-            pad_left: 16
-            pad_right: 16
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
             on_click:
               - lvgl.menu.set_page:
                   id: settings_menu
                   page: panel_advanced_page_bodemplaat
             widgets:
-              - label: { text: "\U000F0238", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: advanced_stab_bodemplaat_lbl, text: "Bodemplaatverwarming", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
-              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
+              - label: { text: "\U000F0438", styles: menu_tile_icon_style }
+              - label: { id: advanced_stab_bodemplaat_lbl, text: "Bodemplaat-\nverwarming", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: advanced_stab_defrost
-            width: 49%
-            scrollbar_mode: "OFF"
+            styles: menu_tile_style
             scrollable: false
-            height: 54
-            bg_color: 0xFFFFFF
-            bg_opa: 100%
-            radius: 12
-            border_width: 1
-            border_color: 0xE2E8F0
-            border_opa: 100%
-            pad_left: 16
-            pad_right: 16
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
             on_click:
               - lvgl.menu.set_page:
                   id: settings_menu
                   page: panel_advanced_page_defrost
             widgets:
-              - label: { text: "\U000F071A", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: advanced_stab_defrost_lbl, text: "Defrost", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
-              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
+              - label: { text: "\U000F12CB", styles: menu_tile_icon_style }
+              - label: { id: advanced_stab_defrost_lbl, text: "Defrost", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: advanced_stab_defrost_temps
-            width: 49%
-            scrollbar_mode: "OFF"
+            styles: menu_tile_style
             scrollable: false
-            height: 54
-            bg_color: 0xFFFFFF
-            bg_opa: 100%
-            radius: 12
-            border_width: 1
-            border_color: 0xE2E8F0
-            border_opa: 100%
-            pad_left: 16
-            pad_right: 16
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
             on_click:
               - lvgl.menu.set_page:
                   id: settings_menu
                   page: panel_advanced_page_defrost_temps
             widgets:
-              - label: { text: "\U000F050F", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: advanced_stab_defrost_temps_lbl, text: "Defrost starttemperaturen", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
-              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
+              - label: { text: "\U000F1A71", styles: menu_tile_icon_style }
+              - label: { id: advanced_stab_defrost_temps_lbl, text: "Defrost start-\ntemperaturen", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: advanced_stab_compressor
-            width: 49%
-            scrollbar_mode: "OFF"
+            styles: menu_tile_style
             scrollable: false
-            height: 54
-            bg_color: 0xFFFFFF
-            bg_opa: 100%
-            radius: 12
-            border_width: 1
-            border_color: 0xE2E8F0
-            border_opa: 100%
-            pad_left: 16
-            pad_right: 16
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
             on_click:
               - lvgl.menu.set_page:
                   id: settings_menu
                   page: panel_advanced_page_compressor
             widgets:
-              - label: { text: "󰔂", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: advanced_stab_compressor_lbl, text: "Compressor", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
-              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
+              - label: { text: "\U000F04C5", styles: menu_tile_icon_style }
+              - label: { id: advanced_stab_compressor_lbl, text: "Compressor", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: advanced_stab_fan
-            width: 49%
-            scrollbar_mode: "OFF"
+            styles: menu_tile_style
             scrollable: false
-            height: 54
-            bg_color: 0xFFFFFF
-            bg_opa: 100%
-            radius: 12
-            border_width: 1
-            border_color: 0xE2E8F0
-            border_opa: 100%
-            pad_left: 16
-            pad_right: 16
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
             on_click:
               - lvgl.menu.set_page:
                   id: settings_menu
                   page: panel_advanced_page_fan
             widgets:
-              - label: { text: "󰈐", text_color: 0x1F3B68, text_font: font_mdi_24, align: LEFT_MID }
-              - label: { id: advanced_stab_fan_lbl, text: "Ventilator", text_color: 0x1F2933, text_font: font_text_20, align: LEFT_MID, x: 40 }
-              - label: { text: "\U000F0142", text_color: 0x9CA3AF, text_font: font_mdi_24, align: RIGHT_MID }
+              - label: { text: "\U000F0210", styles: menu_tile_icon_style }
+              - label: { id: advanced_stab_fan_lbl, text: "Ventilator", long_mode: WRAP, styles: menu_tile_label_style }
