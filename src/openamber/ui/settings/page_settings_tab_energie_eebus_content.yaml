@@ -3,11 +3,7 @@
 # ------------------------------------------------------------
 - obj:
     id: eebus_page_1_row_enable
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "EEBUS inschakelen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { text: "Activeer EEBUS communicatie met EMS", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -29,11 +25,7 @@
 
 - obj:
     id: eebus_page_1_row_connection
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "Verbinding met EMS", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { id: eebus_connection_sub_lbl, text: "Status van de EEBUS verbinding", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 36 }
@@ -69,11 +61,8 @@
 
 - obj:
     id: eebus_page_1_row_ski
-    width: 100%
+    styles: setting_row_style
     height: 125
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
     widgets:
       - label: { text: "SKI", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { text: "Subject Key Identifier voor pairing", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 34 }

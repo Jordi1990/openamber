@@ -2,11 +2,7 @@
 # ------------------------------------------------------------
 - obj:
     id: set_silent_mode_enabled_row
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "Stille modus inschakelen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { text: "Limiteer het maximale compressorvermogen binnen het tijdsvenster", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -28,11 +24,7 @@
 
 - obj:
     id: set_silent_mode_start_time_row
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { id: set_silent_mode_start_time_lbl, text: "Starttijd", text_color: 0x9CA3AF, text_font: font_text_24, align: TOP_LEFT }
       - label: { id: set_silent_mode_start_time_sub, text: "Tijdstip waarop de stille modus start", text_color: 0x9CA3AF, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -47,13 +39,9 @@
           widgets:
             - obj:
                 id: set_silent_mode_start_time_dec
-                width: 40
-                height: 40
-                bg_color: 0xE5E7EB
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - if:
@@ -74,17 +62,13 @@
                               format: "%02d:%02d"
                               args: ['id(silent_mode_start_time).hour', 'id(silent_mode_start_time).minute']
                 widgets:
-                  - label: { id: set_silent_mode_start_time_dec_lbl, text: "\U000F0374", text_color: 0x9CA3AF, text_font: font_mdi_24, align: CENTER }
+                  - label: { id: set_silent_mode_start_time_dec_lbl, text: "\U000F0374", styles: setting_step_icon_style }
             - label: { id: set_silent_mode_start_time_val, text: "23:00", text_color: 0x9CA3AF, text_font: font_text_24 }
             - obj:
                 id: set_silent_mode_start_time_inc
-                width: 40
-                height: 40
-                bg_color: 0xE5E7EB
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - if:
@@ -105,15 +89,11 @@
                               format: "%02d:%02d"
                               args: ['id(silent_mode_start_time).hour', 'id(silent_mode_start_time).minute']
                 widgets:
-                  - label: { id: set_silent_mode_start_time_inc_lbl, text: "\U000F0415", text_color: 0x9CA3AF, text_font: font_mdi_24, align: CENTER }
+                  - label: { id: set_silent_mode_start_time_inc_lbl, text: "\U000F0415", styles: setting_step_icon_style }
 
 - obj:
     id: set_silent_mode_end_time_row
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { id: set_silent_mode_end_time_lbl, text: "Eindtijd", text_color: 0x9CA3AF, text_font: font_text_24, align: TOP_LEFT }
       - label: { id: set_silent_mode_end_time_sub, text: "Tijdstip waarop de stille modus stopt", text_color: 0x9CA3AF, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -128,13 +108,9 @@
           widgets:
             - obj:
                 id: set_silent_mode_end_time_dec
-                width: 40
-                height: 40
-                bg_color: 0xE5E7EB
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - if:
@@ -155,17 +131,13 @@
                               format: "%02d:%02d"
                               args: ['id(silent_mode_end_time).hour', 'id(silent_mode_end_time).minute']
                 widgets:
-                  - label: { id: set_silent_mode_end_time_dec_lbl, text: "\U000F0374", text_color: 0x9CA3AF, text_font: font_mdi_24, align: CENTER }
+                  - label: { id: set_silent_mode_end_time_dec_lbl, text: "\U000F0374", styles: setting_step_icon_style }
             - label: { id: set_silent_mode_end_time_val, text: "07:00", text_color: 0x9CA3AF, text_font: font_text_24 }
             - obj:
                 id: set_silent_mode_end_time_inc
-                width: 40
-                height: 40
-                bg_color: 0xE5E7EB
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - if:
@@ -186,15 +158,11 @@
                               format: "%02d:%02d"
                               args: ['id(silent_mode_end_time).hour', 'id(silent_mode_end_time).minute']
                 widgets:
-                  - label: { id: set_silent_mode_end_time_inc_lbl, text: "\U000F0415", text_color: 0x9CA3AF, text_font: font_mdi_24, align: CENTER }
+                  - label: { id: set_silent_mode_end_time_inc_lbl, text: "\U000F0415", styles: setting_step_icon_style }
 
 - obj:
     id: set_silent_mode_power_row
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { id: set_silent_mode_power_lbl, text: "Stille modus vermogen", text_color: 0x9CA3AF, text_font: font_text_24, align: TOP_LEFT }
       - label: { id: set_silent_mode_power_sub, text: "Max compressorvermogen tijdens stille modus", text_color: 0x9CA3AF, text_font: font_text_20, align: TOP_LEFT, y: 38 }

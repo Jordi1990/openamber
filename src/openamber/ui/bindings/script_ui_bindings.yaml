@@ -448,19 +448,19 @@
     - lvgl.widget.update:
         id: set_silent_mode_start_time_dec
         bg_color: !lambda |-
-          return id(silent_mode_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0xE6F1FB) : lv_color_hex(0xE5E7EB);
     - lvgl.label.update:
         id: set_silent_mode_start_time_dec_lbl
         text_color: !lambda |-
-          return id(silent_mode_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF);
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0x185FA5) : lv_color_hex(0x9CA3AF);
     - lvgl.widget.update:
         id: set_silent_mode_start_time_inc
         bg_color: !lambda |-
-          return id(silent_mode_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0xE6F1FB) : lv_color_hex(0xE5E7EB);
     - lvgl.label.update:
         id: set_silent_mode_start_time_inc_lbl
         text_color: !lambda |-
-          return id(silent_mode_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF);
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0x185FA5) : lv_color_hex(0x9CA3AF);
 
     - lvgl.label.update:
         id: set_silent_mode_end_time_lbl
@@ -477,19 +477,19 @@
     - lvgl.widget.update:
         id: set_silent_mode_end_time_dec
         bg_color: !lambda |-
-          return id(silent_mode_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0xE6F1FB) : lv_color_hex(0xE5E7EB);
     - lvgl.label.update:
         id: set_silent_mode_end_time_dec_lbl
         text_color: !lambda |-
-          return id(silent_mode_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF);
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0x185FA5) : lv_color_hex(0x9CA3AF);
     - lvgl.widget.update:
         id: set_silent_mode_end_time_inc
         bg_color: !lambda |-
-          return id(silent_mode_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB);
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0xE6F1FB) : lv_color_hex(0xE5E7EB);
     - lvgl.label.update:
         id: set_silent_mode_end_time_inc_lbl
         text_color: !lambda |-
-          return id(silent_mode_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF);
+          return id(silent_mode_enabled_switch).state ? lv_color_hex(0x185FA5) : lv_color_hex(0x9CA3AF);
 
     - lvgl.label.update:
         id: set_silent_mode_power_lbl
@@ -1604,24 +1604,24 @@
         lv_obj_set_style_text_color(id(set_manual_sp_lbl), (id(heat_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
         lv_obj_set_style_text_color(id(set_manual_sp_sub), (id(heat_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x6B7280) : lv_color_hex(0xBFC5CC)), LV_PART_MAIN);
         lv_obj_set_style_text_color(id(set_manual_sp_val), (id(heat_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
-        lv_obj_set_style_bg_color(id(set_manual_sp_dec), (id(heat_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
-        lv_obj_set_style_text_color(id(set_manual_sp_dec_lbl), (id(heat_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
-        lv_obj_set_style_bg_color(id(set_manual_sp_inc), (id(heat_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
-        lv_obj_set_style_text_color(id(set_manual_sp_inc_lbl), (id(heat_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(id(set_manual_sp_dec), (id(heat_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0xE6F1FB) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(set_manual_sp_dec_lbl), (id(heat_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x185FA5) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(id(set_manual_sp_inc), (id(heat_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0xE6F1FB) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(set_manual_sp_inc_lbl), (id(heat_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x185FA5) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
         lv_label_set_text(id(set_cool_manual_sp_val), str_sprintf("%.0f°C", id(manual_setpoint).state).c_str());
         lv_obj_send_event(id(set_cool_manual_sp_val), lvgl::lv_update_event, nullptr);
         lv_obj_set_style_text_color(id(set_cool_manual_sp_lbl), (id(cool_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
         lv_obj_set_style_text_color(id(set_cool_manual_sp_sub), (id(cool_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x6B7280) : lv_color_hex(0xBFC5CC)), LV_PART_MAIN);
         lv_obj_set_style_text_color(id(set_cool_manual_sp_val), (id(cool_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
-        lv_obj_set_style_bg_color(id(set_cool_manual_sp_dec), (id(cool_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
-        lv_obj_set_style_bg_color(id(set_cool_manual_sp_inc), (id(cool_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(id(set_cool_manual_sp_dec), (id(cool_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0xE6F1FB) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(id(set_cool_manual_sp_inc), (id(cool_mode_select).current_option() == "Extern setpoint" ? lv_color_hex(0xE6F1FB) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
         lv_label_set_text(id(set_cool_setpoint_val), str_sprintf("%.0f°C", id(cooling_setpoint_number).state).c_str());
         lv_obj_send_event(id(set_cool_setpoint_val), lvgl::lv_update_event, nullptr);
         lv_obj_set_style_text_color(id(set_cool_setpoint_lbl), (id(cool_mode_select).current_option() == "Intern setpoint" ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
         lv_obj_set_style_text_color(id(set_cool_setpoint_sub), (id(cool_mode_select).current_option() == "Intern setpoint" ? lv_color_hex(0x6B7280) : lv_color_hex(0xBFC5CC)), LV_PART_MAIN);
         lv_obj_set_style_text_color(id(set_cool_setpoint_val), (id(cool_mode_select).current_option() == "Intern setpoint" ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
-        lv_obj_set_style_bg_color(id(set_cool_setpoint_dec), (id(cool_mode_select).current_option() == "Intern setpoint" ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
-        lv_obj_set_style_bg_color(id(set_cool_setpoint_inc), (id(cool_mode_select).current_option() == "Intern setpoint" ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(id(set_cool_setpoint_dec), (id(cool_mode_select).current_option() == "Intern setpoint" ? lv_color_hex(0xE6F1FB) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(id(set_cool_setpoint_inc), (id(cool_mode_select).current_option() == "Intern setpoint" ? lv_color_hex(0xE6F1FB) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
 
 - id: update_heat_curve_chart
   mode: restart
@@ -1738,17 +1738,17 @@
         lv_obj_set_style_text_color(id(set_legio_days_lbl), (id(legio_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
         lv_obj_set_style_text_color(id(set_legio_days_sub), (id(legio_enabled_switch).state ? lv_color_hex(0x6B7280) : lv_color_hex(0xBFC5CC)), LV_PART_MAIN);
         lv_obj_set_style_text_color(id(set_legio_days_val), (id(legio_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
-        lv_obj_set_style_bg_color(id(set_legio_days_dec), (id(legio_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
-        lv_obj_set_style_text_color(id(set_legio_days_dec_lbl), (id(legio_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
-        lv_obj_set_style_bg_color(id(set_legio_days_inc), (id(legio_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
-        lv_obj_set_style_text_color(id(set_legio_days_inc_lbl), (id(legio_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(id(set_legio_days_dec), (id(legio_enabled_switch).state ? lv_color_hex(0xE6F1FB) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(set_legio_days_dec_lbl), (id(legio_enabled_switch).state ? lv_color_hex(0x185FA5) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(id(set_legio_days_inc), (id(legio_enabled_switch).state ? lv_color_hex(0xE6F1FB) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(set_legio_days_inc_lbl), (id(legio_enabled_switch).state ? lv_color_hex(0x185FA5) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
         lv_obj_set_style_text_color(id(set_legio_temp_lbl), (id(legio_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
         lv_obj_set_style_text_color(id(set_legio_temp_sub), (id(legio_enabled_switch).state ? lv_color_hex(0x6B7280) : lv_color_hex(0xBFC5CC)), LV_PART_MAIN);
         lv_obj_set_style_text_color(id(set_legio_temp_val), (id(legio_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
-        lv_obj_set_style_bg_color(id(set_legio_temp_dec), (id(legio_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
-        lv_obj_set_style_text_color(id(set_legio_temp_dec_lbl), (id(legio_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
-        lv_obj_set_style_bg_color(id(set_legio_temp_inc), (id(legio_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
-        lv_obj_set_style_text_color(id(set_legio_temp_inc_lbl), (id(legio_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(id(set_legio_temp_dec), (id(legio_enabled_switch).state ? lv_color_hex(0xE6F1FB) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(set_legio_temp_dec_lbl), (id(legio_enabled_switch).state ? lv_color_hex(0x185FA5) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(id(set_legio_temp_inc), (id(legio_enabled_switch).state ? lv_color_hex(0xE6F1FB) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(set_legio_temp_inc_lbl), (id(legio_enabled_switch).state ? lv_color_hex(0x185FA5) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
 
 - id: update_dhw_schedule_ui
   mode: restart
@@ -1839,16 +1839,16 @@
         // Grey out start/end time controls when schedule is off
         lv_obj_set_style_text_color(id(set_dhw_start_time_lbl), (id(dhw_schedule_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
         lv_obj_set_style_text_color(id(set_dhw_start_time_val), (id(dhw_schedule_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
-        lv_obj_set_style_bg_color(id(set_dhw_start_time_dec), (id(dhw_schedule_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
-        lv_obj_set_style_text_color(id(set_dhw_start_time_dec_lbl), (id(dhw_schedule_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
-        lv_obj_set_style_bg_color(id(set_dhw_start_time_inc), (id(dhw_schedule_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
-        lv_obj_set_style_text_color(id(set_dhw_start_time_inc_lbl), (id(dhw_schedule_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(id(set_dhw_start_time_dec), (id(dhw_schedule_enabled_switch).state ? lv_color_hex(0xE6F1FB) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(set_dhw_start_time_dec_lbl), (id(dhw_schedule_enabled_switch).state ? lv_color_hex(0x185FA5) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(id(set_dhw_start_time_inc), (id(dhw_schedule_enabled_switch).state ? lv_color_hex(0xE6F1FB) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(set_dhw_start_time_inc_lbl), (id(dhw_schedule_enabled_switch).state ? lv_color_hex(0x185FA5) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
         lv_obj_set_style_text_color(id(set_dhw_end_time_lbl), (id(dhw_schedule_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
         lv_obj_set_style_text_color(id(set_dhw_end_time_val), (id(dhw_schedule_enabled_switch).state ? lv_color_hex(0x1F2933) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
-        lv_obj_set_style_bg_color(id(set_dhw_end_time_dec), (id(dhw_schedule_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
-        lv_obj_set_style_text_color(id(set_dhw_end_time_dec_lbl), (id(dhw_schedule_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
-        lv_obj_set_style_bg_color(id(set_dhw_end_time_inc), (id(dhw_schedule_enabled_switch).state ? lv_color_hex(0x1F3B68) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
-        lv_obj_set_style_text_color(id(set_dhw_end_time_inc_lbl), (id(dhw_schedule_enabled_switch).state ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(id(set_dhw_end_time_dec), (id(dhw_schedule_enabled_switch).state ? lv_color_hex(0xE6F1FB) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(set_dhw_end_time_dec_lbl), (id(dhw_schedule_enabled_switch).state ? lv_color_hex(0x185FA5) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(id(set_dhw_end_time_inc), (id(dhw_schedule_enabled_switch).state ? lv_color_hex(0xE6F1FB) : lv_color_hex(0xE5E7EB)), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(set_dhw_end_time_inc_lbl), (id(dhw_schedule_enabled_switch).state ? lv_color_hex(0x185FA5) : lv_color_hex(0x9CA3AF)), LV_PART_MAIN);
 
 - id: wifi_scan_networks
   then:

@@ -1,10 +1,6 @@
 - obj:
     id: set_cooling_allowed_row
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "Koelen toegestaan", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { text: "Bij uit wordt elke koudevraag genegeerd", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -27,11 +23,7 @@
 
 - obj:
     id: set_cool_power_row
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "Koelen vermogen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { text: "Max compressorvermogen bij koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -62,11 +54,7 @@
 
 - obj:
     id: set_comp_start_cool_row
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "Start delta (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { text: "Verschil met setpoint om compressor te starten tijdens koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -81,42 +69,30 @@
           widgets:
             - obj:
                 id: set_comp_start_cool_dec
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - number.decrement: compressor_start_delta_cooling
                 widgets:
-                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { text: "\U000F0374", styles: setting_step_icon_style }
             - label: { id: set_comp_start_cool_val, text: "3.0°C", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 id: set_comp_start_cool_inc
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - number.increment: compressor_start_delta_cooling
                 widgets:
-                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
 
 - obj:
     id: set_comp_stop_cool_row
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "Stop delta (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { text: "Verschil met setpoint om compressor te stoppen tijdens koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -131,30 +107,22 @@
           widgets:
             - obj:
                 id: set_comp_stop_cool_dec
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - number.decrement: compressor_stop_delta_cooling
                 widgets:
-                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { text: "\U000F0374", styles: setting_step_icon_style }
             - label: { id: set_comp_stop_cool_val, text: "5.0°C", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 id: set_comp_stop_cool_inc
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - number.increment: compressor_stop_delta_cooling
                 widgets:
-                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { text: "\U000F0415", styles: setting_step_icon_style }

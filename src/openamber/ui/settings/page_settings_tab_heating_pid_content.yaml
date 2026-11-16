@@ -10,16 +10,12 @@
       flex_flow: COLUMN
       flex_align_main: START
       flex_align_cross: CENTER
-      pad_row: 6
+      pad_row: 10
     widgets:
       # ── Pagina 1: Verwarmen PID ──
       - obj:
           id: set_heat_pid_kp_row
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
+          styles: setting_row_style
           widgets:
             - label: { text: "Verwarmen PID P (Kp)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Hoger: sneller reageren, lager: rustiger maar trager", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -33,40 +29,28 @@
                 layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                 widgets:
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: pid_heat_kp
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - label: { id: set_heat_pid_kp_val, text: "0.60", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: pid_heat_kp
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
       - obj:
           id: set_heat_pid_ki_row
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
+          styles: setting_row_style
           widgets:
             - label: { text: "Verwarmen PID I (Ki)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Hoger: corrigeert afwijking sneller, lager: minder agressief", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -80,40 +64,28 @@
                 layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                 widgets:
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: pid_heat_ki
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - label: { id: set_heat_pid_ki_val, text: "0.0020", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: pid_heat_ki
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
       - obj:
           id: set_heat_pid_kd_row
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
+          styles: setting_row_style
           widgets:
             - label: { text: "Verwarmen PID D (Kd)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Hoger: dempt schommelingen, lager: directer maar onrustiger", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -127,41 +99,29 @@
                 layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                 widgets:
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: pid_heat_kd
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - label: { id: set_heat_pid_kd_val, text: "0.70", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: pid_heat_kd
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
       # ── Pagina 2: Koelen PID ──
       - obj:
           id: set_cool_pid_kp_row
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
+          styles: setting_row_style
           widgets:
             - label: { text: "Koelen PID P (Kp)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Hoger: sneller reageren, lager: rustiger maar trager", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -175,40 +135,28 @@
                 layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                 widgets:
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: pid_cool_kp
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - label: { id: set_cool_pid_kp_val, text: "0.60", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: pid_cool_kp
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
       - obj:
           id: set_cool_pid_ki_row
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
+          styles: setting_row_style
           widgets:
             - label: { text: "Koelen PID I (Ki)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Hoger: corrigeert afwijking sneller, lager: minder agressief", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -222,40 +170,28 @@
                 layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                 widgets:
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: pid_cool_ki
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - label: { id: set_cool_pid_ki_val, text: "0.0020", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: pid_cool_ki
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
       - obj:
           id: set_cool_pid_kd_row
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
+          styles: setting_row_style
           widgets:
             - label: { text: "Koelen PID D (Kd)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Hoger: dempt schommelingen, lager: directer maar onrustiger", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -269,41 +205,29 @@
                 layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                 widgets:
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: pid_cool_kd
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - label: { id: set_cool_pid_kd_val, text: "0.70", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: pid_cool_kd
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
       # ── Pagina 3: PID deadbands voor beide ──
       - obj:
           id: set_heat_pid_deadband_row
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
+          styles: setting_row_style
           widgets:
             - label: { text: "Verwarmen PID deadband (+/-)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Zone rond setpoint waarin PID-output minder wijzigt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -317,40 +241,28 @@
                 layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                 widgets:
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: pid_heat_deadband
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - label: { id: set_heat_pid_deadband_val, text: "1.0°C", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: pid_heat_deadband
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
       - obj:
           id: set_cool_pid_deadband_row
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
+          styles: setting_row_style
           widgets:
             - label: { text: "Koelen PID deadband (+/-)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Zone rond setpoint waarin PID-output minder wijzigt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -364,41 +276,29 @@
                 layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                 widgets:
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: pid_cool_deadband
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - label: { id: set_cool_pid_deadband_val, text: "1.0°C", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: pid_cool_deadband
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
       # ── Pagina 4: Pomp P0 PID (Dynamisch PWM) ──
       - obj:
           id: set_pump_pid_kp_row
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
+          styles: setting_row_style
           widgets:
             - label: { text: "Pomp P0 PID P (Kp)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Hoger: sneller meer pompcapaciteit bij oplopende delta-T", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -412,40 +312,28 @@
                 layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                 widgets:
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: pump_p0_pid_kp
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - label: { id: set_adv_pump_pid_kp_val, text: "0.12", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: pump_p0_pid_kp
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
       - obj:
           id: set_pump_pid_ki_row
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
+          styles: setting_row_style
           widgets:
             - label: { text: "Pomp P0 PID I (Ki)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Lage integrale correctie voor trage vloerverwarming zonder jagen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -459,40 +347,28 @@
                 layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                 widgets:
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: pump_p0_pid_ki
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - label: { id: set_adv_pump_pid_ki_val, text: "0.0015", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: pump_p0_pid_ki
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
       - obj:
           id: set_pump_pid_kd_row
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
+          styles: setting_row_style
           widgets:
             - label: { text: "Pomp P0 PID D (Kd)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Demping bij snelle schommelingen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -506,41 +382,29 @@
                 layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                 widgets:
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: pump_p0_pid_kd
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - label: { id: set_adv_pump_pid_kd_val, text: "0.00", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: pump_p0_pid_kd
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
       # ── Pagina 5: Mengventiel Zone 1 PID ──
       - obj:
           id: set_mv_z1_pid_kp_row
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
+          styles: setting_row_style
           widgets:
             - label: { text: "Mengventiel Z1 PID P (Kp)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Hoger: sneller reageren, lager: rustiger maar trager", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -554,40 +418,28 @@
                 layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                 widgets:
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: pid_mixing_valve_zone1_kp
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - label: { id: set_mv_z1_pid_kp_val, text: "1.00", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: pid_mixing_valve_zone1_kp
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
       - obj:
           id: set_mv_z1_pid_ki_row
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
+          styles: setting_row_style
           widgets:
             - label: { text: "Mengventiel Z1 PID I (Ki)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Hoger: corrigeert afwijking sneller, lager: minder agressief", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -601,40 +453,28 @@
                 layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                 widgets:
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: pid_mixing_valve_zone1_ki
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - label: { id: set_mv_z1_pid_ki_val, text: "0.0050", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: pid_mixing_valve_zone1_ki
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
       - obj:
           id: set_mv_z1_pid_kd_row
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
+          styles: setting_row_style
           widgets:
             - label: { text: "Mengventiel Z1 PID D (Kd)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Demping bij snelle schommelingen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -648,41 +488,29 @@
                 layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                 widgets:
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: pid_mixing_valve_zone1_kd
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - label: { id: set_mv_z1_pid_kd_val, text: "0.00", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: pid_mixing_valve_zone1_kd
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
       # ── Pagina 6: Mengventiel Zone 2 PID ──
       - obj:
           id: set_mv_z2_pid_kp_row
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
+          styles: setting_row_style
           widgets:
             - label: { text: "Mengventiel Z2 PID P (Kp)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Hoger: sneller reageren, lager: rustiger maar trager", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -696,40 +524,28 @@
                 layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                 widgets:
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: pid_mixing_valve_zone2_kp
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - label: { id: set_mv_z2_pid_kp_val, text: "1.00", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: pid_mixing_valve_zone2_kp
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
       - obj:
           id: set_mv_z2_pid_ki_row
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
+          styles: setting_row_style
           widgets:
             - label: { text: "Mengventiel Z2 PID I (Ki)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Hoger: corrigeert afwijking sneller, lager: minder agressief", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -743,40 +559,28 @@
                 layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                 widgets:
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: pid_mixing_valve_zone2_ki
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - label: { id: set_mv_z2_pid_ki_val, text: "0.0050", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: pid_mixing_valve_zone2_ki
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
       - obj:
           id: set_mv_z2_pid_kd_row
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
+          styles: setting_row_style
           widgets:
             - label: { text: "Mengventiel Z2 PID D (Kd)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Demping bij snelle schommelingen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -790,41 +594,29 @@
                 layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                 widgets:
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: pid_mixing_valve_zone2_kd
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - label: { id: set_mv_z2_pid_kd_val, text: "0.00", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: pid_mixing_valve_zone2_kd
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
       # ── Pagina 7: Mengventiel PID deadbands ──
       - obj:
           id: set_mv_z1_pid_deadband_row
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
+          styles: setting_row_style
           widgets:
             - label: { text: "Mengventiel Z1 PID deadband (+/-)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Zone rond setpoint waarin mengventiel minder wijzigt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -838,40 +630,28 @@
                 layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                 widgets:
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: pid_mixing_valve_zone1_deadband
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - label: { id: set_mv_z1_pid_deadband_val, text: "1.0°C", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: pid_mixing_valve_zone1_deadband
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
       - obj:
           id: set_mv_z2_pid_deadband_row
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
+          styles: setting_row_style
           widgets:
             - label: { text: "Mengventiel Z2 PID deadband (+/-)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - label: { text: "Zone rond setpoint waarin mengventiel minder wijzigt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -885,32 +665,24 @@
                 layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
                 widgets:
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: pid_mixing_valve_zone2_deadband
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - label: { id: set_mv_z2_pid_deadband_val, text: "1.0°C", text_color: 0x1F2933, text_font: font_text_24 }
                   - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: pid_mixing_valve_zone2_deadband
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
       # ── Overlay bij uitgeschakelde geavanceerde instellingen ──
       - obj:

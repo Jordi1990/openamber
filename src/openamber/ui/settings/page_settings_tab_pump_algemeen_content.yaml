@@ -1,9 +1,5 @@
 ﻿- obj:
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "Pomp P1 aanwezig", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { text: "Extra circulatiepomp P1 aanwezig", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -25,11 +21,7 @@
       
 
 - obj:
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "Pompinterval (min)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { text: "Tussentijd periodiek pompen bij warmte-/koudevraag", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -43,40 +35,28 @@
           layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
           widgets:
             - obj:
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - number.decrement: pump_interval
                 widgets:
-                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { text: "\U000F0374", styles: setting_step_icon_style }
             - label: { id: set_pump_interval_val, text: "15 min", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - number.increment: pump_interval
                 widgets:
-                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { text: "\U000F0415", styles: setting_step_icon_style }
       
 
 - obj:
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "Pompduur (min)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { text: "Draaitijd bij periodiek pompen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -90,40 +70,28 @@
           layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
           widgets:
             - obj:
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - number.decrement: pump_duration
                 widgets:
-                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { text: "\U000F0374", styles: setting_step_icon_style }
             - label: { id: set_pump_dur_val, text: "2 min", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - number.increment: pump_duration
                 widgets:
-                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
 - obj:
     id: set_pump_flow_switch_safety_row
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "Flow switch uitvalvertraging (min)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { text: "Stop bij geen flow na ingesteld aantal minuten", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -137,32 +105,24 @@
           layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
           widgets:
             - obj:
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - number.decrement: flow_switch_safety_delay_minutes
                 widgets:
-                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { text: "\U000F0374", styles: setting_step_icon_style }
             - label: { id: set_pump_flow_switch_safety_delay_val, text: "0 min", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - number.increment: flow_switch_safety_delay_minutes
                 widgets:
-                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { text: "\U000F0415", styles: setting_step_icon_style }
       
                 # ------------------------------------------------------------
 

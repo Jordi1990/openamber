@@ -1,9 +1,5 @@
 - obj:
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "Wintervermogen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { text: "Max compressorvermogen in wintermodus", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -29,11 +25,7 @@
                   if (val < 4) id(dhw_compressor_mode_max).make_call().set_option(opts[val]).perform();
 
 - obj:
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "Wintertemperatuurdrempel", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { text: "Buitentemperatuur waaronder wintermodus actief", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -47,29 +39,21 @@
           layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
           widgets:
             - obj:
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - number.decrement: dhw_temperature_threshold_max_compressor_mode
                 widgets:
-                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { text: "\U000F0374", styles: setting_step_icon_style }
             - label: { id: set_dhw_winter_temp_val, text: "5°C", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - number.increment: dhw_temperature_threshold_max_compressor_mode
                 widgets:
-                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { text: "\U000F0415", styles: setting_step_icon_style }

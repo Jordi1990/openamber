@@ -71,6 +71,40 @@ lvgl:
       text_color: 0x1F2933
       text_font: font_text_20
       text_align: CENTER
+    # Settings pages: margin around the page, every setting a card like the tiles, round +/- buttons.
+    - id: setting_page_style
+      pad_left: 18
+      pad_right: 18
+      pad_top: 4
+      pad_bottom: 18
+      pad_row: 10
+    - id: setting_row_style
+      width: 100%
+      height: SIZE_CONTENT
+      bg_color: 0xFFFFFF
+      bg_opa: 100%
+      radius: 14
+      border_width: 1
+      border_color: 0xD5DEE9
+      border_opa: 100%
+      pad_left: 18
+      pad_right: 18
+      pad_top: 12
+      pad_bottom: 12
+    - id: setting_step_btn_style
+      width: 40
+      height: 40
+      radius: 20
+      bg_color: 0xE6F1FB
+      bg_opa: 100%
+      border_width: 0
+      pad_all: 0
+    - id: setting_step_btn_pressed_style
+      bg_color: 0xB5D4F4
+    - id: setting_step_icon_style
+      align: CENTER
+      text_color: 0x185FA5
+      text_font: font_mdi_24
   widgets:
     - !include root_bg.yaml
     - !include header_bar.yaml

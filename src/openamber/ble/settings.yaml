@@ -12,11 +12,7 @@ lvgl:
                   widgets:
                     - obj:
                         id: ble_source_row
-                        width: 100%
-                        height: SIZE_CONTENT
-                        bg_opa: 0%
-                        border_opa: 0%
-                        pad_all: 6
+                        styles: setting_row_style
                         scrollable: false
                         widgets:
                           - label: { text: "Ruimtetemperatuur bron", text_font: font_text_24, text_color: 0x1F2933, align: TOP_LEFT }
@@ -62,11 +58,7 @@ lvgl:
                   title: "Bluetooth"
                   widgets:
                     - obj:
-                        width: 100%
-                        height: SIZE_CONTENT
-                        bg_opa: 0%
-                        border_opa: 0%
-                        pad_all: 6
+                        styles: setting_row_style
                         scrollable: false
                         widgets:
                           - label: { text: "Bluetooth", text_font: font_text_24, text_color: 0x1F2933, align: TOP_LEFT }

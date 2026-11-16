@@ -2,6 +2,7 @@
 # ------------------------------------------------------------
 id: panel_general_page_systeem
 title: "Systeem"
+styles: setting_page_style
 widgets:
   - obj:
       width: 100%
@@ -14,5 +15,5 @@ widgets:
         flex_flow: COLUMN
         flex_align_main: START
         flex_align_cross: CENTER
-        pad_row: 6
+        pad_row: 10
       widgets: !include page_settings_tab_general_systeem_content.yaml

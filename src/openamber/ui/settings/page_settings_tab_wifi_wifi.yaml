@@ -2,6 +2,7 @@
 # ------------------------------------------------------------
 id: panel_wifi_page_wifi
 title: "WiFi"
+styles: setting_page_style
 widgets:
   - obj:
       width: 100%
@@ -14,15 +15,11 @@ widgets:
         flex_flow: COLUMN
         flex_align_main: START
         flex_align_cross: CENTER
-        pad_row: 6
+        pad_row: 10
       widgets:
         # WiFi verbinding status
         - obj:
-            width: 100%
-            height: SIZE_CONTENT
-            bg_opa: 0%
-            border_opa: 0%
-            pad_all: 6
+            styles: setting_row_style
             widgets:
               - label: { text: "WiFi verbinding", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
               - label:
@@ -46,15 +43,11 @@ widgets:
               flex_flow: COLUMN
               flex_align_main: START
               flex_align_cross: CENTER
-              pad_row: 6
+              pad_row: 10
             widgets:
               # Verbinding details
               - obj:
-                  width: 100%
-                  height: SIZE_CONTENT
-                  bg_opa: 0%
-                  border_opa: 0%
-                  pad_all: 6
+                  styles: setting_row_style
                   widgets:
                     - table:
                         id: wifi_connected_details_table
@@ -83,11 +76,7 @@ widgets:
 
               # Verbinding verbreken knop
               - obj:
-                  width: 100%
-                  height: SIZE_CONTENT
-                  bg_opa: 0%
-                  border_opa: 0%
-                  pad_all: 6
+                  styles: setting_row_style
                   widgets:
                     - button:
                         id: wifi_disconnect_btn
@@ -114,7 +103,7 @@ widgets:
               flex_flow: COLUMN
               flex_align_main: START
               flex_align_cross: CENTER
-              pad_row: 6
+              pad_row: 10
             widgets:
               # Waarschuwing
               - obj:
@@ -135,11 +124,7 @@ widgets:
 
               # Netwerk kiezen
               - obj:
-                  width: 100%
-                  height: SIZE_CONTENT
-                  bg_opa: 0%
-                  border_opa: 0%
-                  pad_all: 6
+                  styles: setting_row_style
                   widgets:
                     - label: { text: "Netwerk", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
                     - obj:
@@ -177,12 +162,8 @@ widgets:
               # Verborgen netwerk
               - obj:
                   id: wifi_hidden_ssid_section
-                  width: 100%
-                  height: SIZE_CONTENT
+                  styles: setting_row_style
                   hidden: true
-                  bg_opa: 0%
-                  border_opa: 0%
-                  pad_all: 6
                   widgets:
                     - label: { text: "Verborgen netwerk (SSID)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
                     - textarea:
@@ -208,11 +189,7 @@ widgets:
 
               # Wachtwoord
               - obj:
-                  width: 100%
-                  height: SIZE_CONTENT
-                  bg_opa: 0%
-                  border_opa: 0%
-                  pad_all: 6
+                  styles: setting_row_style
                   widgets:
                     - label: { text: "Wachtwoord", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
                     - button:
@@ -255,11 +232,7 @@ widgets:
 
               # Verbinden knop
               - obj:
-                  width: 100%
-                  height: SIZE_CONTENT
-                  bg_opa: 0%
-                  border_opa: 0%
-                  pad_all: 6
+                  styles: setting_row_style
                   widgets:
                     - button:
                         id: wifi_connect_btn

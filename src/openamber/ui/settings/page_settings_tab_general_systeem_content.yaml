@@ -2,11 +2,7 @@
 # ------------------------------------------------------------
 - obj:
     id: set_general_system_dhw
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "Tapwater aanwezig", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { text: "Tapwatervat is aanwezig in het systeem", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -30,11 +26,7 @@
 
 - obj:
     id: set_general_system_control_temp_source
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "Regeltemperatuur bron", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { text: "Kies de sensor die de regeling gebruikt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -68,11 +60,7 @@
 
 - obj:
     id: set_general_defrost_advanced_toggle_row
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "Geavanceerde instellingen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { text: "Toon geavanceerde instellingen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -94,11 +82,7 @@
 
 - obj:
     id: set_general_system_screen_timeout
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "Scherm uit na", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - dropdown:

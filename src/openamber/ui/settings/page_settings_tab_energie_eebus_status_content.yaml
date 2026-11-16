@@ -3,11 +3,7 @@
 # ------------------------------------------------------------
 - obj:
     id: eebus_page_2_row_status
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "EEBUS status", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { text: "Bedrijfstoestand van de EEBUS koppeling", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
@@ -21,11 +17,7 @@
 
 - obj:
     id: eebus_page_2_row_power_limit
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "Vermogenslimiet", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
       - label: { text: "Actieve netbegrenzing vanuit het EMS", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
