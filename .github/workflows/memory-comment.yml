@@ -10,6 +10,14 @@ on:
     workflows: ["Build and validate on PR publish"]
     types: [completed]
 
+# One comment run at a time per PR branch, so a slow run for an older commit
+# cannot overwrite the report of a newer one. The PR number is not known before
+# the artifact is read (workflow_run carries no PR for forks), so the group is
+# keyed by the head repository + branch, which identifies the PR.
+concurrency:
+  group: memory-comment-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
 permissions:
   actions: read
   contents: read
@@ -33,6 +41,7 @@ jobs:
         id: pr
         env:
           RUN_ID: ${{ github.event.workflow_run.id }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           if ! gh run download "$RUN_ID" -n memory-report -D pr; then
             echo "No memory report in run $RUN_ID (build failed or skipped)"
@@ -49,7 +58,7 @@ jobs:
           fi
           # Only comment on a PR whose head is the commit that was built.
           head=$(gh api "repos/$GH_REPO/pulls/$number" --jq .head.sha)
-          if [ "$head" != "${{ github.event.workflow_run.head_sha }}" ]; then
+          if [ "$head" != "$HEAD_SHA" ]; then
             echo "PR #$number head is $head, not the built commit; skipping"
             exit 0
           fi
@@ -80,7 +89,15 @@ jobs:
         if: steps.pr.outputs.number != ''
         env:
           NUMBER: ${{ steps.pr.outputs.number }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
+          # Re-check right before writing: the PR may have moved on while this
+          # run waited in the concurrency queue or downloaded the baseline.
+          head=$(gh api "repos/$GH_REPO/pulls/$NUMBER" --jq .head.sha)
+          if [ "$head" != "$HEAD_SHA" ]; then
+            echo "PR #$NUMBER head moved to $head; not writing a stale report"
+            exit 0
+          fi
           marker='<!-- openamber-memory-report -->'
           comment_id=$(gh api --paginate "repos/$GH_REPO/issues/$NUMBER/comments" \
             --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\"))) | .id" | head -n1)

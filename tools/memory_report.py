@@ -52,7 +52,8 @@ METRICS = [
     ("dram_data", "DRAM .data"),
     ("dram_bss", "DRAM .bss"),
     ("iram", "IRAM"),
-    ("psram", "PSRAM (static)"),
+    ("psram", "PSRAM (static .bss)"),
+    ("psram_flash_copy", "PSRAM (flash copied for XIP)"),
     ("flash_text", "Flash code"),
     ("flash_rodata", "Flash rodata"),
     ("bin_size", "Firmware .bin"),
@@ -93,7 +94,33 @@ def classify(name: str) -> str | None:
     return None
 
 
-def measure(elf_path: Path, bin_path: Path | None) -> dict:
+def read_sdkconfig(path: Path | None) -> set[str]:
+    """Return the enabled options from an ESP-IDF config/sdkconfig.h."""
+    if not path or not path.exists():
+        return set()
+    enabled = set()
+    for line in path.read_text(errors="replace").splitlines():
+        parts = line.split()
+        if len(parts) >= 3 and parts[0] == "#define" and parts[2] == "1":
+            enabled.add(parts[1])
+    return enabled
+
+
+def flash_copied_to_psram(config: set[str]) -> tuple[bool, bool]:
+    """Whether flash code / rodata are copied into PSRAM at boot.
+
+    The ELF cannot tell: with XIP from PSRAM the MMU maps the same virtual
+    flash addresses to PSRAM pages, so the section addresses do not change.
+    Only the build configuration says where the bytes end up.
+    """
+    xip = "CONFIG_SPIRAM_XIP_FROM_PSRAM" in config
+    return (
+        xip or "CONFIG_SPIRAM_FETCH_INSTRUCTIONS" in config,
+        xip or "CONFIG_SPIRAM_RODATA" in config,
+    )
+
+
+def measure(elf_path: Path, bin_path: Path | None, sdkconfig: Path | None = None) -> dict:
     regions = {key: 0 for key in REGIONS}
     other: dict[str, int] = {}
     for name, typ, flags, size in read_sections(elf_path):
@@ -107,6 +134,13 @@ def measure(elf_path: Path, bin_path: Path | None) -> dict:
 
     result = dict(regions)
     result["internal_ram"] = regions["dram_data"] + regions["dram_bss"] + regions["iram"]
+    # Flash sections stay counted as flash (that is where they are stored);
+    # psram_flash_copy is the PSRAM they additionally occupy at runtime.
+    text_in_psram, rodata_in_psram = flash_copied_to_psram(read_sdkconfig(sdkconfig))
+    result["psram_flash_copy"] = (
+        (regions["flash_text"] if text_in_psram else 0)
+        + (regions["flash_rodata"] if rodata_in_psram else 0)
+    )
     result["other_sections"] = other
     if bin_path and bin_path.exists():
         result["bin_size"] = bin_path.stat().st_size
@@ -114,7 +148,8 @@ def measure(elf_path: Path, bin_path: Path | None) -> dict:
 
 
 def cmd_measure(args: argparse.Namespace) -> int:
-    report = measure(Path(args.elf), Path(args.bin) if args.bin else None)
+    sdkconfig = Path(args.sdkconfig) if args.sdkconfig else Path(args.elf).parent / "config" / "sdkconfig.h"
+    report = measure(Path(args.elf), Path(args.bin) if args.bin else None, sdkconfig)
     report["name"] = args.name
     Path(args.output).write_text(json.dumps(report, indent=2, sort_keys=True))
     print(json.dumps(report, indent=2, sort_keys=True))
@@ -205,7 +240,10 @@ def render(base: dict | None, pr: dict, threshold: int) -> str:
         "",
         "Sizes come from the section headers of the firmware ELF built in this PR. "
         "Static internal RAM (`.data`, `.bss`, IRAM) is reserved at boot, so it directly "
-        "lowers the heap the firmware can use. This does not yet measure runtime "
+        "lowers the heap the firmware can use. With `CONFIG_SPIRAM_XIP_FROM_PSRAM` (or "
+        "`SPIRAM_FETCH_INSTRUCTIONS`/`SPIRAM_RODATA`) flash code/rodata is copied into PSRAM "
+        "at boot, shown as *PSRAM (flash copied for XIP)*; that lowers the free PSRAM heap. "
+        "This does not yet measure runtime "
         "`heap_free`, `heap_max` or `heap_frag`: those depend on what the firmware allocates "
         "while running and need a real device.",
         "",
@@ -257,6 +295,7 @@ def main(argv: list[str]) -> int:
     p.add_argument("--elf", required=True)
     p.add_argument("--bin", help="factory/ota .bin for the image size")
     p.add_argument("--name", required=True, help="build name, e.g. openamber-leejow")
+    p.add_argument("--sdkconfig", help="config/sdkconfig.h of the build (default: next to the ELF)")
     p.add_argument("--output", required=True)
     p.set_defaults(func=cmd_measure)
 
