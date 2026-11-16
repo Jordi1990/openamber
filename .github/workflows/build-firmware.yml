@@ -29,6 +29,11 @@ on:
         required: false
         default: ''
         type: string
+      memory-report:
+        description: Measure static RAM/flash usage per build and upload a memory-report artifact
+        required: false
+        default: false
+        type: boolean
 
     outputs:
       version:
@@ -137,6 +142,33 @@ jobs:
           release-summary: ${{ inputs.release-summary }}
           release-url: ${{ inputs.release-url }}
 
+      - name: Measure memory usage
+        if: inputs.memory-report
+        id: memory
+        run: |
+          name=$(basename "${{ matrix.file }}" .yaml)
+          # The build container writes into the mounted workspace. ESP-IDF builds put
+          # the ELF in .esphome/build/<name>/build/, PlatformIO builds in .pioenvs/<name>/.
+          elf=$(find "$GITHUB_WORKSPACE" -path '*/.esphome/build/*' -name firmware.elf -not -path '*bootloader*' 2>/dev/null | head -n1)
+          if [ -z "$elf" ]; then
+            echo "::warning::No firmware.elf found for $name, skipping the memory report"
+            exit 0
+          fi
+          dir=$(dirname "$elf")
+          bin="$dir/firmware.ota.bin"
+          [ -f "$bin" ] || bin="$dir/firmware.bin"
+          mkdir -p memory
+          python3 tools/memory_report.py measure --elf "$elf" --bin "$bin" --name "$name" --output "memory/$name.json"
+          echo name=$name >> $GITHUB_OUTPUT
+
+      - name: Upload memory measurement
+        if: inputs.memory-report && steps.memory.outputs.name != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: memory-${{ needs.prepare.outputs.artifact-prefix }}-${{ steps.memory.outputs.name }}
+          path: memory/${{ steps.memory.outputs.name }}.json
+          retention-days: 1
+
       - name: Move files for versioning
         run: |
           mkdir -p output/${{ needs.prepare.outputs.version }}
@@ -197,3 +229,47 @@ jobs:
         with:
           name: ${{ inputs.combined-name }}
           path: output
+
+  memory-report:
+    name: Memory report
+    needs:
+      - prepare
+      - build-firmware
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() && inputs.memory-report }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Download measurements
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          path: memory
+          pattern: memory-${{ needs.prepare.outputs.artifact-prefix }}-*
+          merge-multiple: true
+
+      - name: Merge into one report
+        id: merge
+        env:
+          COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+          REF: ${{ github.base_ref || github.ref_name }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          shopt -s nullglob
+          files=(memory/*.json)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::warning::No memory measurements were produced"
+            exit 0
+          fi
+          python3 tools/memory_report.py merge --commit "$COMMIT" --ref "$REF" ${PR:+--pr "$PR"}             --output memory-report.json "${files[@]}"
+          python3 tools/memory_report.py compare --pr memory-report.json --output summary.md
+          cat summary.md >> $GITHUB_STEP_SUMMARY
+          echo ok=true >> $GITHUB_OUTPUT
+
+      - name: Upload memory report
+        if: steps.merge.outputs.ok == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: memory-report
+          path: memory-report.json
+          retention-days: 90
