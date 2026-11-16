@@ -6,7 +6,7 @@ import tempfile
 import time
 import pytest
 from openamber_client import OpenAmberClient
-from helpers import set_outside_temperature
+from helpers import advance_until_state, set_outside_temperature
 
 # The simulator's test bridge port. Set OPENAMBER_TEST_PORT to run the suites of several checkouts at
 # the same time: with the same port they would all talk to whichever simulator got the port first.
@@ -147,6 +147,12 @@ def clean_system(openamber):
     # Mocked Modbus registers now keep injected values, so clear them explicitly
     for reg in ("error_register_2119_raw", "error_register_2120_raw", "error_register_2121_raw", "inside_unit_status_1225_raw"):
         openamber.set_sensor(reg, 0.0)
+    # A test that failed while the heat pump was still stopping: resuming is refused until it is in Standby,
+    # so let the stop complete (the oil return register is cleared above) and resume then.
+    openamber.step(ms=50)
+    if openamber.get_label("header_maintenance_badge_label") == "Warmtepomp wordt gestopt..." and openamber.is_visible("header_maintenance_badge"):
+        advance_until_state(openamber, "state_machine_state_main", "Standby", max_s=900, step=10)
+        openamber.press_button("controlled_stop_resume_button")
     openamber.set_switch("pump_p0_relay_switch", True)
     openamber.set_number("backup_heater_degmin_threshold", 50.0)
     openamber.set_number("dhw_setpoint_temperature", 50.0)

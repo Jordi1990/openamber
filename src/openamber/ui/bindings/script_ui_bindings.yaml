@@ -1087,7 +1087,18 @@
   mode: restart
   then:
     - lambda: |-
-        if (id(service_mode_enabled).state && id(state_machine_state_main).state == "Maintenance") {
+        // The heat pump is out of operation after a controlled stop; maintenance mode only runs on top of it.
+        const char *stopped_text = nullptr;
+        if (id(service_mode_enabled).state || id(amber_ctrl).is_standby()) {
+          stopped_text = "Warmtepomp gestopt";
+        } else if (id(controlled_stop_active)) {
+          stopped_text = "Warmtepomp wordt gestopt...";
+        }
+        if (stopped_text != nullptr) {
+          if (strcmp(lv_label_get_text(id(header_maintenance_badge_label)), stopped_text) != 0) {
+            lv_label_set_text(id(header_maintenance_badge_label), stopped_text);
+            lv_obj_send_event(id(header_maintenance_badge_label), lvgl::lv_update_event, nullptr);
+          }
           lv_obj_remove_flag(id(header_maintenance_badge), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(header_emergency_badge), LV_OBJ_FLAG_HIDDEN);
         } else {
@@ -2636,13 +2647,25 @@
           } else {
             lv_obj_add_flag(id(service_update_progress_overlay), LV_OBJ_FLAG_HIDDEN);
           }
-          // The stop can also end by itself (30 min) or be changed from Home Assistant, so follow the actual state.
-          const char *stop_label = id(controlled_stop_active) ? "Hervat warmtepomp" : "Stop warmtepomp";
-          if (strcmp(lv_label_get_text(id(service_controlled_stop_button_label)), stop_label) != 0) {
-            lv_label_set_text(id(service_controlled_stop_button_label), stop_label);
-            lv_obj_send_event(id(service_controlled_stop_button_label), lvgl::lv_update_event, nullptr);
-          }
+          id(update_controlled_stop_button_ui).execute();
         }
+
+- id: update_controlled_stop_button_ui
+  mode: restart
+  then:
+    - lambda: |-
+        // The stop can also end by itself (30 min) or be changed from Home Assistant, so follow the actual state.
+        const char *stop_label = id(controlled_stop_active) ? "Hervat warmtepomp" : "Stop warmtepomp";
+        if (strcmp(lv_label_get_text(id(service_controlled_stop_button_label)), stop_label) != 0) {
+          lv_label_set_text(id(service_controlled_stop_button_label), stop_label);
+          lv_obj_send_event(id(service_controlled_stop_button_label), lvgl::lv_update_event, nullptr);
+        }
+        // Resuming is only possible once the heat pump is fully stopped (Standby), and not while maintenance mode
+        // runs on top of the controlled stop: turn that off first.
+        const bool resume_blocked = id(controlled_stop_active) && (id(service_mode_enabled).state || !id(amber_ctrl).is_standby());
+        lvgl::LvglComponent::lv_obj_set_state_value(id(service_controlled_stop_button), LV_STATE_DISABLED, resume_blocked);
+        lv_obj_set_style_bg_color(id(service_controlled_stop_button), lv_color_hex(resume_blocked ? 0xC7CDD6 : 0x0072CE), LV_PART_MAIN);
+        lv_obj_set_style_text_color(id(service_controlled_stop_button_label), lv_color_hex(resume_blocked ? 0x4B5563 : 0xFFFFFF), LV_PART_MAIN);
 
 - id: update_service_errors_ui
   mode: restart
@@ -2861,6 +2884,20 @@
             }
           }
           lv_obj_remove_flag(id(service_maintenance_layout), LV_OBJ_FLAG_HIDDEN);
+          // Maintenance mode can only be turned on while the heat pump is stopped (Systeem > Beheer > Stop warmtepomp).
+          const bool stopped = id(controlled_stop_active) && id(amber_ctrl).is_standby();
+          const char *hint = id(service_mode_enabled).state
+              ? "Onderhoudsmodus wordt voorbereid."
+              : (stopped
+                  ? "Warmtepomp gestopt: onderhoudsmodus kan worden ingeschakeld."
+                  : "Stop eerst de warmtepomp via Systeem > Beheer.");
+          if (strcmp(lv_label_get_text(id(service_maintenance_lock_hint)), hint) != 0) {
+            lv_label_set_text(id(service_maintenance_lock_hint), hint);
+            lv_obj_send_event(id(service_maintenance_lock_hint), lvgl::lv_update_event, nullptr);
+          }
+          const bool switch_allowed = id(service_mode_enabled).state || stopped;
+          lvgl::LvglComponent::lv_obj_set_state_value(id(set_service_mode_switch_ui), LV_STATE_DISABLED, !switch_allowed);
+          lv_obj_set_style_opa(id(set_service_mode_switch_ui), static_cast<uint8_t>(switch_allowed ? 255.0f : 102.0f), LV_PART_MAIN);
           if (id(service_mode_enabled).state && id(state_machine_state_main).state == "Maintenance") {
             lv_label_set_text(id(service_maintenance_state), "Onderhoudsmodus actief");
             lv_obj_send_event(id(service_maintenance_state), lvgl::lv_update_event, nullptr);
@@ -2872,7 +2909,7 @@
           } else {
             if (id(service_mode_enabled).state) {
               lv_obj_remove_flag(id(service_maintenance_lock_hint), LV_OBJ_FLAG_HIDDEN);
-              lv_label_set_text(id(service_maintenance_state), "Compressor en pompen worden gestopt...");
+              lv_label_set_text(id(service_maintenance_state), "Onderhoudsmodus wordt gestart...");
               lv_obj_send_event(id(service_maintenance_state), lvgl::lv_update_event, nullptr);
               lv_obj_set_style_text_color(id(service_maintenance_state), lv_color_hex(0xB45309), LV_PART_MAIN);
             } else {
@@ -2893,6 +2930,7 @@
           }
         }
         id(update_header_mode_badge).execute();
+        id(update_controlled_stop_button_ui).execute();
         id(update_service_top_tabs_ui).execute();
 
 - id: update_home_pump_tile_state

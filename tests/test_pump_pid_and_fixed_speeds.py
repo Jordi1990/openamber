@@ -11,7 +11,7 @@ Covers:
 
 import pytest
 
-from helpers import advance_until_state
+from helpers import advance_until_state, enter_maintenance, leave_maintenance
 
 
 def _start_idle_heat_demand_with_p1(openamber):
@@ -375,21 +375,17 @@ def test_pump_p1_stops_when_dhw_requested_during_pump_cycle(clean_system):
 
 
 def test_pump_p1_stops_when_entering_maintenance_from_idle_heat_demand(clean_system):
-    """Entering maintenance from idle with heat demand stops P1, which idle leaves running."""
+    """Stopping (and then entering maintenance) from idle with heat demand stops P1, which idle leaves running."""
     openamber = clean_system
     _start_idle_heat_demand_with_p1(openamber)
     # After a DHW run the pump interval is reset and a pump cycle starts right away: let it finish first.
     assert advance_until_state(openamber, "state_machine_state_heat_cool", "Idle", max_s=300, step=5)
     assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 must keep running in idle with heat demand"
 
-    openamber.set_switch("service_mode_enabled", True)
-    openamber.step(ms=50)
-    assert advance_until_state(openamber, "state_machine_state_main", "Maintenance", max_s=60)
+    enter_maintenance(openamber, max_s=120)
     openamber.step(ms=50)
     assert openamber.get_entity("pump_p1_relay_switch") is False, "P1 must not keep running in maintenance"
 
-    openamber.set_switch("service_mode_enabled", False)
-    openamber.advance_time(seconds=10, step_s=1)
-    openamber.step(ms=50)
+    leave_maintenance(openamber)
 
 

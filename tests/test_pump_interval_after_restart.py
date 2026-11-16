@@ -9,7 +9,7 @@ Leaving service mode takes exactly the same path, so it is used here to re-run t
 initialization inside the already running simulator.
 """
 
-from helpers import advance_until_state, offset_s
+from helpers import advance_until_state, offset_s, stop_heat_pump
 
 
 def test_pump_starts_directly_after_restart_with_heat_demand(clean_system):
@@ -25,11 +25,8 @@ def test_pump_starts_directly_after_restart_with_heat_demand(clean_system):
         openamber.set_sensor("outlet_temperature_tuo", 35.0)
         openamber.set_sensor("inlet_temperature_tui", 33.0)
 
-        # "Power off": go to maintenance so the main state machine has to re-initialize.
-        openamber.set_switch("service_mode_enabled", True)
-        assert advance_until_state(openamber, "state_machine_state_main", "Maintenance", max_s=900), (
-            f"Did not reach Maintenance (state: {openamber.get_entity('state_machine_state_main')})"
-        )
+        # "Power off": a controlled stop, so the main state machine has to re-initialize on resume.
+        stop_heat_pump(openamber)
 
         # Heat demand is already present when the unit comes back (e.g. thermostat contact closed).
         openamber.set_switch("heat_demand_switch", True)
@@ -37,7 +34,7 @@ def test_pump_starts_directly_after_restart_with_heat_demand(clean_system):
         assert openamber.get_entity("heat_demand_active_sensor") is True
 
         # "Power on": boot path WAIT_MODBUS_CONNECTION -> INITIALIZING -> ... -> Heat/Cool.
-        openamber.set_switch("service_mode_enabled", False)
+        openamber.press_button("controlled_stop_resume_button")
         assert advance_until_state(openamber, "state_machine_state_main", "Heat/Cool", max_s=300, step=5), (
             f"Did not return to Heat/Cool (state: {openamber.get_entity('state_machine_state_main')})"
         )
@@ -60,7 +57,7 @@ def test_pump_starts_directly_after_restart_with_heat_demand(clean_system):
         assert openamber.get_entity("internal_pump_active") is True
         print(f"Pump started {waited:.0f}s after returning to Heat/Cool")
     finally:
-        openamber.set_switch("service_mode_enabled", False)
+        openamber.press_button("controlled_stop_resume_button")
         openamber.set_switch("heat_demand_switch", False)
         if original_interval is not None:
             openamber.set_number("pump_interval", float(original_interval))

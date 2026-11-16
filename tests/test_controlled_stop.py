@@ -90,6 +90,19 @@ def test_controlled_stop_finishes_oil_return_cycle_first(clean_system):
     openamber.step(ms=50)
     assert compressor_mode(openamber) > 0, "The compressor must run until the oil return cycle ends"
 
+    # Still stopping: resuming is not possible yet, and the header says the heat pump is being stopped.
+    assert openamber.click("nav_system")
+    openamber.advance_time(seconds=6, step_s=2)
+    openamber.step(ms=100)
+    assert openamber.get_label("service_controlled_stop_button_label") == "Hervat warmtepomp"
+    assert openamber.is_disabled("service_controlled_stop_button"), "Resume is not available while stopping"
+    assert openamber.is_visible("header_maintenance_badge")
+    assert openamber.get_label("header_maintenance_badge_label") == "Warmtepomp wordt gestopt..."
+    openamber.press_button(RESUME)
+    openamber.step(ms=50)
+    assert openamber.click("nav_home")
+    openamber.step(ms=100)
+
     assert openamber.set_sensor("error_register_2119_raw", 0.0)
     openamber.advance_time(seconds=10, step_s=2)
     openamber.step(ms=50)
@@ -176,17 +189,42 @@ def test_system_tab_buttons(openamber):
     openamber.step(ms=100)
 
 
-def test_maintenance_and_controlled_stop_wait_for_minimum_on_time(clean_system):
-    """With maintenance mode and the controlled stop both on, maintenance wins and waits for the minimum on time."""
+def test_maintenance_mode_only_after_the_stop_is_complete(clean_system):
+    """Maintenance mode is refused while the controlled stop still winds down; it is allowed once in Standby."""
     openamber = clean_system
     start_space_heating(openamber)
-    openamber.set_switch("service_mode_enabled", True)
     openamber.press_button(STOP)
+    openamber.step(ms=50)
+    openamber.set_switch("service_mode_enabled", True)
+    openamber.step(ms=50)
+    assert openamber.get_entity("service_mode_enabled") is False, "Not yet stopped: maintenance mode is refused"
+
+    assert advance_until_state(openamber, MAIN, "Standby", max_s=600, step=5)
+    openamber.set_switch("service_mode_enabled", True)
+    openamber.step(ms=50)
+    assert openamber.get_entity("service_mode_enabled") is True
+    assert advance_until_state(openamber, MAIN, "Maintenance", max_s=300, step=2)
+    assert compressor_mode(openamber) == 0
+
+    # Resuming is blocked while maintenance mode is on, also with the button on System > Beheer.
+    assert openamber.click("nav_system")
+    openamber.step(ms=100)
+    assert openamber.get_label("service_controlled_stop_button_label") == "Hervat warmtepomp"
+    assert openamber.is_disabled("service_controlled_stop_button")
+    openamber.press_button(RESUME)
     openamber.advance_time(seconds=30, step_s=5)
     openamber.step(ms=50)
-    assert compressor_mode(openamber) > 0, "A maintenance stop waits for the minimum on time"
+    assert openamber.get_entity(MAIN) == "Maintenance"
 
-    openamber.press_button(RESUME)
+    # Maintenance mode off: back to Standby (still stopped), then resuming works again.
     openamber.set_switch("service_mode_enabled", False)
+    openamber.step(ms=50)
+    assert advance_until_state(openamber, MAIN, "Standby", max_s=300, step=5)
+    openamber.advance_time(seconds=6, step_s=2)
+    openamber.step(ms=100)
+    assert not openamber.is_disabled("service_controlled_stop_button")
+    assert openamber.click("nav_home")
+    openamber.step(ms=100)
     openamber.set_switch("heat_demand_switch", False)
+    resume(openamber)
     openamber.advance_time(seconds=900, step_s=20)

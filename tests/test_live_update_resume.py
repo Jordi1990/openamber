@@ -547,22 +547,6 @@ def test_inconsistent_state_falls_back_to_initialization(clean_system, make_inco
         openamber.set_switch("reset_start_timeout_errors_switch", True)
 
 
-def test_maintenance_requested_falls_back_to_initialization(clean_system):
-    """Maintenance requested: the restart runs the normal initialization."""
-    openamber = clean_system
-    try:
-        start_space_heating(openamber, tc=28.0, target=35.0)
-        openamber.set_switch("service_mode_enabled", True)
-
-        samples = _restart_and_sample(openamber, seconds=30)
-
-        assert any(s["main"] == "Checking running units" for s in samples), samples
-        _assert_initialized(samples)
-    finally:
-        openamber.set_switch("service_mode_enabled", False)
-        advance_until_state(openamber, "state_machine_state_main", "Heat/Cool", max_s=300, step=10)
-
-
 # ---------------------------------------------------------------------------
 # OTA hold: the state machine is frozen while an update is written
 # ---------------------------------------------------------------------------
