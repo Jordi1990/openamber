@@ -257,17 +257,6 @@ switch:
         id(error_inside_unit_failsafe).publish_state(false);
     - switch.turn_off: reset_start_timeout_errors_switch
 
-# Backup element blokkeren: above "Backup element blokkeren boven buitentemperatuur" (averaged Ta) the
-# degree/minutes do not switch the backup heater on during space heating. Off by default (no change).
-- platform: template
-  id: backup_heater_outside_block_enabled
-  name: "Backup element blokkeren"
-  optimistic: True
-  restore_mode: RESTORE_DEFAULT_OFF
-  entity_category: config
-  web_server:
-    sorting_group_id: heating_settings
-
 - platform: template
   optimistic: True
   id: backup_heater_relay
