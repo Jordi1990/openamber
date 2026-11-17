@@ -483,15 +483,19 @@ private:
     }
 
     // Check from temperatures that the heating water goes through the CV circuit. Outlet water far above Tc comes from
-    // the DHW side (the valve did not switch back, the tank is heated instead of the house); far below Tc means the CV
-    // water does not pass the heat pump either. Same check as for DHW, with Tc as the circuit temperature.
+    // the DHW side: the valve did not switch back and the tank is heated instead of the house. Same check as for DHW,
+    // with Tc as the circuit temperature. Only this direction: with a stratified buffer Tc (top) can be far above the
+    // water the heat pump draws in at the start of a run, with the valve in the right position.
+    // The run time counts from the soft start, so the check starts THREE_WAY_VALVE_CHECK_RUN_TIME_S after the compressor.
     const bool valve_check_active = compressor_controller_->IsRunning() && IsWorkingMode(WORKING_MODE_HEATING) &&
-                                    state_ == HeatCoolState::COMPRESSOR_RUNNING && !id(defrost_active_sensor).state;
+                                    (state_ == HeatCoolState::COMPRESSOR_SOFTSTART ||
+                                     state_ == HeatCoolState::COMPRESSOR_RUNNING) &&
+                                    !id(defrost_active_sensor).state;
     if (valve_position_check_.Update(valve_check_active, id(outlet_temperature_tuo).state,
-                                     id(heat_cool_temperature_tc).state, true, true,
+                                     id(heat_cool_temperature_tc).state, true, false,
                                      App.get_loop_component_start_time()))
     {
-      ESP_LOGE("amber", "Safety check: outlet water deviates from the CV circuit (Tuo %.2f°C, Tc %.2f°C), 3-way valve not in the heating position, stopping system.",
+      ESP_LOGE("amber", "Safety check: outlet water stays far above the CV circuit (Tuo %.2f°C, Tc %.2f°C), 3-way valve not in the heating position, stopping system.",
                id(outlet_temperature_tuo).state, id(heat_cool_temperature_tc).state);
       id(error_three_way_valve_state_timeout).publish_state(true);
       return true;

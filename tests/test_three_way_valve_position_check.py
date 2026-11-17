@@ -1,13 +1,15 @@
 """3-way valve position check from temperatures (TO04).
 
 After the compressor has run for 5 minutes, the outlet water (Tuo - 5 °C) must stay within 12 °C of the circuit the
-valve should serve: Tc while heating, Tw while heating DHW with the DHW pump running. A larger deviation that lasts
-2 minutes raises TO04 and stops the system, like the existing check on the CV temperature during DHW.
+valve should serve: not far above Tc while heating, not far below Tw while heating DHW (DHW demand, DHW pump running).
+A larger deviation that lasts 2 minutes raises TO04 and stops the system, like the existing check on the CV
+temperature during DHW.
 """
 from helpers import advance_until_state, start_space_heating
 
 RUN_TIME_S = 5 * 60
 HOLD_TIME_S = 2 * 60
+SOFTSTART_S = 180  # 'Compressor running' follows the soft start; the run time counts from the soft start
 
 
 def compressor_requested(openamber):
@@ -15,21 +17,23 @@ def compressor_requested(openamber):
 
 
 def test_heating_with_water_from_dhw_side_raises_to04(clean_system):
-    """Heating while the outlet water is far above Tc (valve stuck on DHW): TO04 after 5 + 2 minutes, then a stop."""
+    """Heating while the outlet water is far above Tc (valve stuck on DHW): TO04 5 + 2 minutes after the compressor
+    started (the run time counts from the soft start), then a stop."""
     openamber = clean_system
     start_space_heating(openamber, tc=28.0, target=35.0)
 
-    # Tuo far above Tc, Tuo - Tui small so the Tuo/Tui check does not stop first: (50 - 5) - 30 = 15 >= 12.
+    # Tuo far above Tc, Tuo - Tui small so the Tuo/Tui check does not stop first: (50 - 5) - 30 = 15 > 12.
     openamber.set_sensor("heat_cool_temperature_tc", 30.0)
     openamber.set_sensor("outlet_temperature_tuo", 50.0)
     openamber.set_sensor("inlet_temperature_tui", 45.0)
 
-    # Within the run time plus the hold time nothing happens yet.
-    openamber.advance_time(seconds=RUN_TIME_S + HOLD_TIME_S - 30, step_s=5)
+    # Within the run time plus the hold time, counted from the soft start, nothing happens yet.
+    openamber.advance_time(seconds=RUN_TIME_S + HOLD_TIME_S - SOFTSTART_S - 40, step_s=5)
     assert openamber.get_entity("error_three_way_valve_state_timeout") is False
     assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
 
-    openamber.advance_time(seconds=60, step_s=5)
+    # Had the run time started only in 'Compressor running', TO04 would come 3 minutes later.
+    openamber.advance_time(seconds=80, step_s=5)
     assert openamber.get_entity("error_three_way_valve_state_timeout") is True
     assert openamber.get_entity("error_active") is True
 
@@ -49,6 +53,33 @@ def test_heating_with_normal_temperatures_keeps_running(clean_system):
 
     assert openamber.get_entity("error_three_way_valve_state_timeout") is False
     assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+
+
+def test_heating_deviation_of_exactly_12_degrees_is_allowed(clean_system):
+    """A deviation of exactly 12 °C above Tc is still within the limit: no TO04."""
+    openamber = clean_system
+    start_space_heating(openamber, tc=28.0, target=35.0)
+    openamber.set_sensor("heat_cool_temperature_tc", 30.0)
+
+    # (47 - 5) - 30 = +12
+    openamber.set_sensor("outlet_temperature_tuo", 47.0)
+    openamber.set_sensor("inlet_temperature_tui", 42.0)
+    openamber.advance_time(seconds=RUN_TIME_S + HOLD_TIME_S + 60, step_s=10)
+    assert openamber.get_entity("error_three_way_valve_state_timeout") is False
+
+
+def test_heating_with_outlet_far_below_tc_is_not_checked(clean_system):
+    """While heating only water far above Tc counts: with a stratified buffer Tc (top) can be far above the water the
+    heat pump draws in, with the valve in the right position."""
+    openamber = clean_system
+    start_space_heating(openamber, tc=28.0, target=45.0)
+
+    # (25 - 5) - 38 = -18
+    openamber.set_sensor("heat_cool_temperature_tc", 38.0)
+    openamber.set_sensor("outlet_temperature_tuo", 25.0)
+    openamber.set_sensor("inlet_temperature_tui", 22.0)
+    openamber.advance_time(seconds=RUN_TIME_S + HOLD_TIME_S + 120, step_s=10)
+    assert openamber.get_entity("error_three_way_valve_state_timeout") is False
 
 
 def test_heating_deviation_that_recovers_does_not_raise_to04(clean_system):

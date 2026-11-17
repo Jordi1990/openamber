@@ -353,7 +353,9 @@ private:
 
     // The other side of the same check: with the DHW pump running, water that stays far below the tank comes from the
     // CV circuit, so the valve did not switch to DHW (the CV circuit then does not have to get hot for the check above).
+    // Only while the tank asks for heat: in the run-out after the demand ended (minimum on time) it no longer matters.
     const bool valve_check_active = compressor_controller_->IsRunning() && id(dhw_pump_relay_switch).state &&
+                                    id(dhw_demand_active_sensor).state &&
                                     state_ != DHWState::IDLE && state_ != DHWState::DEFROSTING &&
                                     !id(defrost_active_sensor).state;
     if (valve_position_check_.Update(valve_check_active, id(outlet_temperature_tuo).state,

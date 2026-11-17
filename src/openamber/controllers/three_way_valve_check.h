@@ -26,7 +26,7 @@
 ///
 /// After the compressor has run for THREE_WAY_VALVE_CHECK_RUN_TIME_S, the outlet water (Tuo minus
 /// THREE_WAY_VALVE_CHECK_TUO_OFFSET_C) must stay within THREE_WAY_VALVE_CHECK_DEVIATION_C of the temperature of that
-/// circuit (Tw for DHW, Tc for heating). A larger deviation that lasts THREE_WAY_VALVE_PROTECTION_HIGH_TEMPERATURE_TIME_S
+/// circuit (Tw for DHW, Tc for heating); exactly that deviation is still allowed. A larger deviation that lasts THREE_WAY_VALVE_PROTECTION_HIGH_TEMPERATURE_TIME_S
 /// means the valve is stuck or in the wrong position.
 class ThreeWayValveCheck
 {
@@ -72,8 +72,8 @@ public:
     }
 
     last_deviation_ = (tuo - THREE_WAY_VALVE_CHECK_TUO_OFFSET_C) - reference;
-    const bool deviation = (check_high && last_deviation_ >= THREE_WAY_VALVE_CHECK_DEVIATION_C) ||
-                           (check_low && last_deviation_ <= -THREE_WAY_VALVE_CHECK_DEVIATION_C);
+    const bool deviation = (check_high && last_deviation_ > THREE_WAY_VALVE_CHECK_DEVIATION_C) ||
+                           (check_low && last_deviation_ < -THREE_WAY_VALVE_CHECK_DEVIATION_C);
     if (!deviation)
     {
       deviating_ = false;
@@ -85,6 +85,12 @@ public:
       deviating_ = true;
       deviating_since_ms_ = now;
     }
-    return (now - deviating_since_ms_) >= THREE_WAY_VALVE_PROTECTION_HIGH_TEMPERATURE_TIME_S * 1000UL;
+    if ((now - deviating_since_ms_) < THREE_WAY_VALVE_PROTECTION_HIGH_TEMPERATURE_TIME_S * 1000UL)
+    {
+      return false;
+    }
+    // Start over after a trip: once the error is reset, the full run and hold time apply again.
+    Reset();
+    return true;
   }
 };
