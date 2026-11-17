@@ -306,6 +306,15 @@ private:
       return false; 
   }
 
+  // Above "Backup element blokkeren boven buitentemperatuur" (1 h average Ta) the degree/minutes do not switch the
+  // backup heater on during space heating. Without a valid average the heater is not blocked.
+  bool IsBackupHeaterBlockedByOutsideTemperature()
+  {
+    const float outside_temperature = id(temperature_outside_ta_avg_1h).state;
+    return !std::isnan(outside_temperature) &&
+           outside_temperature > id(backup_heater_outside_block_temperature).state;
+  }
+
   void CalculateAccumulatedDegreeMinutes()
   {
     uint32_t now = App.get_loop_component_start_time();
@@ -931,12 +940,25 @@ public:
             break;
           }
 
-          CalculateAccumulatedDegreeMinutes();
-          if(IsAccumulatedDegreeMinutesReached())
+          if (IsBackupHeaterBlockedByOutsideTemperature())
           {
-            TurnOnBackupHeater();
-            SetNextState(HeatCoolState::WAIT_BACKUP_HEATER_RUNNING);
-            break;
+            // Not counting degree/minutes while blocked: once the block ends the time in between must not be added in one step,
+            // and degree/minutes counted before the block started must not carry over either.
+            InitializeBackupDegMinTracking();
+            if (accumulated_backup_degmin_ != 0.0f)
+            {
+              ResetAccumulatedDegMin();
+            }
+          }
+          else
+          {
+            CalculateAccumulatedDegreeMinutes();
+            if(IsAccumulatedDegreeMinutesReached())
+            {
+              TurnOnBackupHeater();
+              SetNextState(HeatCoolState::WAIT_BACKUP_HEATER_RUNNING);
+              break;
+            }
           }
         }
         else

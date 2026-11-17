@@ -43,3 +43,57 @@
                   - number.increment: backup_heater_degmin_threshold
                 widgets:
                   - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+
+- obj:
+    id: set_backup_block_temp_row
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 6
+    widgets:
+      - label: { text: "Blokkeren boven buitentemp.", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Gemiddeld over 1 uur; 30°C = in de praktijk nooit", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                id: set_backup_block_temp_dec
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  # No wrap-around: from -10 °C to 30 °C (never block) or back in one tap would be a surprise.
+                  - number.decrement:
+                      id: backup_heater_outside_block_temperature
+                      cycle: false
+                widgets:
+                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+            - label: { id: set_backup_block_temp_val, text: "30°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                id: set_backup_block_temp_inc
+                width: 40
+                height: 40
+                bg_color: 0x1F3B68
+                bg_opa: 100%
+                radius: 10
+                border_opa: 0%
+                scrollbar_mode: "OFF"
+                scrollable: false
+                on_click:
+                  - number.increment:
+                      id: backup_heater_outside_block_temperature
+                      cycle: false
+                widgets:
+                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }

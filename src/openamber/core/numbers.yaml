@@ -481,6 +481,23 @@ number:
   web_server: 
       sorting_group_id: heating_settings
 
+# Above this averaged outside temperature (1 h) the degree/minutes do not switch the backup heater on during
+# space heating. The default (30 °C, the maximum) never blocks in practice, so nothing changes until it is lowered.
+- platform: template
+  id: backup_heater_outside_block_temperature
+  name: "Backup element blokkeren boven buitentemperatuur"
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: -10
+  max_value: 30
+  initial_value: 30
+  step: 1
+  optimistic: true
+  restore_value: true
+  entity_category: config
+  web_server:
+      sorting_group_id: heating_settings
+
 - platform: template
   id: pump_speed_heating_number
   name: "Pomp snelheid verwarmen"
