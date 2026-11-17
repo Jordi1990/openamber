@@ -2,6 +2,7 @@
 # ------------------------------------------------------------
 id: service_maintenance_page
 title: "Algemeen"
+styles: setting_page_style
 widgets:
   - obj:
       id: service_maintenance_panel
@@ -19,11 +20,7 @@ widgets:
       widgets:
         - obj:
             id: service_maintenance_header
-            width: 100%
-            height: 72
-            bg_opa: 0%
-            border_opa: 0%
-            pad_all: 4
+            styles: setting_row_style
             widgets:
               - label:
                   id: service_maintenance_title
@@ -60,6 +57,7 @@ widgets:
 
         - label:
             id: service_maintenance_lock_hint
+            pad_left: 18
             width: 100%
             text: "Stop eerst de warmtepomp via Systeem > Beheer."
             text_color: 0x9CA3AF

@@ -2,6 +2,7 @@
 # ------------------------------------------------------------
 id: service_errors_page
 title: "Foutmeldingen"
+styles: setting_page_style
 widgets:
   - obj:
       id: service_errors_panel

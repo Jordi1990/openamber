@@ -2,6 +2,7 @@
 # ------------------------------------------------------------
 id: service_warnings_page
 title: "Waarschuwingen"
+styles: setting_page_style
 widgets:
   - obj:
       id: service_warnings_panel

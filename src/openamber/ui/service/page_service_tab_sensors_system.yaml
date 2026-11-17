@@ -2,6 +2,7 @@
 # ------------------------------------------------------------
 id: service_sensors_system_page
 title: "Systeem"
+styles: setting_page_style
 widgets:
   - obj:
       width: 100%

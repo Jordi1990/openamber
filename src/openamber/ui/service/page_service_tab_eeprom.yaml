@@ -2,6 +2,7 @@
 # ------------------------------------------------------------
 id: service_eeprom_page
 title: "EEPROM"
+styles: setting_page_style
 widgets:
   - obj:
       id: service_eeprom_panel
@@ -10,33 +11,42 @@ widgets:
       bg_opa: 0%
       border_opa: 0%
       pad_all: 0
+      layout:
+        type: FLEX
+        flex_flow: COLUMN
+        flex_align_main: START
+        flex_align_cross: CENTER
+        pad_row: 10
       widgets:
-        - label:
-            text: "EEPROM Dump (Alleen lezen)"
-            text_color: 0x1F2933
-            text_font: font_text_24
-            align: TOP_LEFT
-        - label:
-            text: "Verzend EEPROM parameters naar OpenAmber Analytics."
-            width: 72%
-            text_color: 0x6B7280
-            text_font: font_text_20
-            align: TOP_LEFT
-            y: 34
-        - button:
-            id: service_eeprom_dump_button
-            width: 200
-            height: 56
-            align: TOP_RIGHT
-            bg_color: 0x1F3B68
-            radius: 10
-            on_click:
-              - lambda: |-
-                  lvgl::LvglComponent::lv_obj_set_state_value(id(service_eeprom_dump_button), LV_STATE_DISABLED, true);
-                  id(dump_eeprom_parameters).execute();
+        - obj:
+            styles: setting_row_style
             widgets:
               - label:
-                  text: "Dump EEPROM"
-                  text_color: 0xFFFFFF
+                  text: "EEPROM Dump (Alleen lezen)"
+                  text_color: 0x1F2933
+                  text_font: font_text_24
+                  align: TOP_LEFT
+              - label:
+                  text: "Verzend EEPROM parameters naar OpenAmber Analytics."
+                  width: 72%
+                  text_color: 0x6B7280
                   text_font: font_text_20
-                  align: CENTER
+                  align: TOP_LEFT
+                  y: 34
+              - button:
+                  id: service_eeprom_dump_button
+                  width: 200
+                  height: 56
+                  align: TOP_RIGHT
+                  bg_color: 0x1F3B68
+                  radius: 10
+                  on_click:
+                    - lambda: |-
+                        lvgl::LvglComponent::lv_obj_set_state_value(id(service_eeprom_dump_button), LV_STATE_DISABLED, true);
+                        id(dump_eeprom_parameters).execute();
+                  widgets:
+                    - label:
+                        text: "Dump EEPROM"
+                        text_color: 0xFFFFFF
+                        text_font: font_text_20
+                        align: CENTER

@@ -2,6 +2,7 @@
 # ------------------------------------------------------------
 id: service_sensors_control_page
 title: "Aansturing"
+styles: setting_page_style
 widgets:
   - obj:
       width: 100%

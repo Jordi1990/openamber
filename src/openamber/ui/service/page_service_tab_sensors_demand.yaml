@@ -2,6 +2,7 @@
 # ------------------------------------------------------------
 id: service_sensors_demand_page
 title: "Warmte- en koudevraag"
+styles: setting_page_style
 widgets:
   - obj:
       width: 100%

@@ -2,6 +2,7 @@
 # ------------------------------------------------------------
 id: service_sensors_temp_page
 title: "Druk en temperatuur"
+styles: setting_page_style
 widgets:
   - obj:
       width: 100%
