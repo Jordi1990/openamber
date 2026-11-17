@@ -2,7 +2,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Legionellapreventie", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Periodieke opwarming tegen legionella", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Periodieke opwarming tegen legionella", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - switch:
           id: set_legio_switch
           align: TOP_RIGHT
@@ -23,7 +23,7 @@
     styles: setting_row_style
     widgets:
       - label: { id: set_legio_days_lbl, text: "Legionella herhaling (dgn)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { id: set_legio_days_sub, text: "Dagen tussen preventieverwarming", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { id: set_legio_days_sub, text: "Dagen tussen preventieverwarming", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -75,7 +75,7 @@
     styles: setting_row_style
     widgets:
       - label: { id: set_legio_temp_lbl, text: "Legionella doeltemperatuur (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { id: set_legio_temp_sub, text: "Doeltemperatuur bij legionellapreventie", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { id: set_legio_temp_sub, text: "Doeltemperatuur bij legionellapreventie", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

@@ -5,7 +5,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Uitschakelvertraging (Extern signaal)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Vertraging voor stoppen bij wegvallen warmte- of koudevraag", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Vertraging voor stoppen bij wegvallen warmte- of koudevraag", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -55,7 +55,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Draadloze thermostaat", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Koppeling met externe thermostaat; zet thermostaat bron op intern.", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Koppeling met externe thermostaat; zet thermostaat bron op intern.", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - switch:
           id: set_therm_link_switch_ui
           align: TOP_RIGHT
@@ -73,7 +73,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Koppelcode draadloze thermostaat", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Voer deze code in op de draadloze thermostaat", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Voer deze code in op de draadloze thermostaat", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

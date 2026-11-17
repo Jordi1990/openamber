@@ -15,7 +15,7 @@ widgets:
         flex_flow: COLUMN
         flex_align_main: START
         flex_align_cross: CENTER
-        pad_row: 10
+        pad_row: 8
       widgets:
         # WiFi verbinding status
         - obj:
@@ -43,7 +43,7 @@ widgets:
               flex_flow: COLUMN
               flex_align_main: START
               flex_align_cross: CENTER
-              pad_row: 10
+              pad_row: 8
             widgets:
               # Verbinding details
               - obj:
@@ -103,7 +103,7 @@ widgets:
               flex_flow: COLUMN
               flex_align_main: START
               flex_align_cross: CENTER
-              pad_row: 10
+              pad_row: 8
             widgets:
               # Waarschuwing
               - obj:

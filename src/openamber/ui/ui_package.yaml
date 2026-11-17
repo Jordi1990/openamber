@@ -75,9 +75,9 @@ lvgl:
     - id: setting_page_style
       pad_left: 18
       pad_right: 18
-      pad_top: 4
-      pad_bottom: 18
-      pad_row: 10
+      pad_top: 2
+      pad_bottom: 8
+      pad_row: 8
     - id: setting_row_style
       width: 100%
       height: SIZE_CONTENT
@@ -89,8 +89,8 @@ lvgl:
       border_opa: 100%
       pad_left: 18
       pad_right: 18
-      pad_top: 12
-      pad_bottom: 12
+      pad_top: 9
+      pad_bottom: 9
     - id: setting_step_btn_style
       width: 40
       height: 40

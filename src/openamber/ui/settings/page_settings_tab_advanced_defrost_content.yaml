@@ -15,7 +15,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Exit defrost temperatuur", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Defrost stoptemperatuur", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Defrost stoptemperatuur", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -50,7 +50,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Maximale ontdooitijd", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Maximum duur van een defrost-cyclus", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Maximum duur van een defrost-cyclus", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

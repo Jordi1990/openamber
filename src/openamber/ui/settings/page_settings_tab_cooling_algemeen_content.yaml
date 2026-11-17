@@ -3,7 +3,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Koelen toegestaan", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Bij uit wordt elke koudevraag genegeerd", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Bij uit wordt elke koudevraag genegeerd", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - switch:
           id: set_cooling_allowed_switch_ui
           align: TOP_RIGHT
@@ -26,7 +26,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Koelen vermogen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Max compressorvermogen bij koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Max compressorvermogen bij koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - dropdown:
           id: set_cool_power_dd
           symbol: "\U000F0140"
@@ -57,7 +57,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Start delta (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Verschil met setpoint om compressor te starten tijdens koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Verschil met setpoint om compressor te starten tijdens koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -95,7 +95,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Stop delta (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Verschil met setpoint om compressor te stoppen tijdens koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Verschil met setpoint om compressor te stoppen tijdens koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

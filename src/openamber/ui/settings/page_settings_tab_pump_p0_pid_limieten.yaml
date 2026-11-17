@@ -9,7 +9,7 @@ widgets:
       styles: setting_row_style
       widgets:
         - label: { text: "Pomp P0 Dynamisch PWM (Verwarmen)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-        - label: { text: "Regel P0 automatisch op basis van delta-T tijdens verwarmen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+        - label: { text: "Regel P0 automatisch op basis van delta-T tijdens verwarmen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
         - switch:
             id: set_pump_pid_enabled_switch_ui
             align: TOP_RIGHT
@@ -31,7 +31,7 @@ widgets:
       styles: setting_row_style
       widgets:
         - label: { text: "Gewenste delta-T", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-        - label: { text: "Doelwaarde voor Tuo - Tui tijdens verwarmen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+        - label: { text: "Doelwaarde voor Tuo - Tui tijdens verwarmen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
         - obj:
             width: SIZE_CONTENT
             height: SIZE_CONTENT
@@ -66,7 +66,7 @@ widgets:
       styles: setting_row_style
       widgets:
         - label: { text: "Minimale pomp snelheid", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-        - label: { text: "Ondergrens voor automatische P0-regeling", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+        - label: { text: "Ondergrens voor automatische P0-regeling", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
         - obj:
             width: SIZE_CONTENT
             height: SIZE_CONTENT
@@ -101,7 +101,7 @@ widgets:
       styles: setting_row_style
       widgets:
         - label: { text: "Maximale pomp snelheid", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-        - label: { text: "Bovengrens voor automatische P0-regeling", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+        - label: { text: "Bovengrens voor automatische P0-regeling", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
         - obj:
             width: SIZE_CONTENT
             height: SIZE_CONTENT

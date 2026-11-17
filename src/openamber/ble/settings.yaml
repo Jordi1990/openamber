@@ -16,7 +16,7 @@ lvgl:
                         scrollable: false
                         widgets:
                           - label: { text: "Ruimtetemperatuur bron", text_font: font_text_24, text_color: 0x1F2933, align: TOP_LEFT }
-                          - label: { text: "Bedrade Tr-sensor of gekoppelde Bluetooth-sensor", text_font: font_text_20, text_color: 0x6B7280, align: TOP_LEFT, y: 38 }
+                          - label: { text: "Bedrade Tr-sensor of gekoppelde Bluetooth-sensor", text_font: font_text_20, text_color: 0x6B7280, align: TOP_LEFT, y: 32 }
                           - dropdown:
                               id: ble_source_dropdown
                               width: 360
@@ -62,7 +62,7 @@ lvgl:
                         scrollable: false
                         widgets:
                           - label: { text: "Bluetooth", text_font: font_text_24, text_color: 0x1F2933, align: TOP_LEFT }
-                          - label: { text: "SwitchBot-, BTHome- en Xiaomi ATC-sensoren via BLE", text_font: font_text_20, text_color: 0x6B7280, align: TOP_LEFT, y: 38 }
+                          - label: { text: "SwitchBot-, BTHome- en Xiaomi ATC-sensoren via BLE", text_font: font_text_20, text_color: 0x6B7280, align: TOP_LEFT, y: 32 }
                           - switch:
                               id: ble_enabled_switch_ui
                               align: TOP_RIGHT

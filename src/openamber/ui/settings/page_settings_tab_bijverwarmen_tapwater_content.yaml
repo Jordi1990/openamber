@@ -2,7 +2,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Min. verwarmsnelheid", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Minimale Tapwater-verwarmsnelheid; lager schakelt backup in", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Minimale Tapwater-verwarmsnelheid; lager schakelt backup in", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -36,7 +36,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Backupvertraging", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Tijd onder minimale verwarmsnelheid voordat backup inschakelt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Tijd onder minimale verwarmsnelheid voordat backup inschakelt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

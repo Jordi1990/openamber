@@ -2,7 +2,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Setpoint (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Gewenste tapwatertemperatuur", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Gewenste tapwatertemperatuur", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -36,7 +36,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Herstart delta (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Temperatuurdaling waarna verwarming herstart", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Temperatuurdaling waarna verwarming herstart", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -70,7 +70,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Basisvermogen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Compressorvermogen in normale modus", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Compressorvermogen in normale modus", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - dropdown:
           id: set_dhw_power_dd
           symbol: "\U000F0140"
@@ -99,7 +99,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Tapwaterpomp startmodus", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Wanneer de tapwaterpomp start", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Wanneer de tapwaterpomp start", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - dropdown:
           id: set_dhw_pump_dd
           symbol: "\U000F0140"

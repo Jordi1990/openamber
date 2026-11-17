@@ -6,7 +6,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "EEBUS inschakelen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Activeer EEBUS communicatie met EMS", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Activeer EEBUS communicatie met EMS", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - switch:
           id: set_eebus_enabled_switch_ui
           align: TOP_RIGHT

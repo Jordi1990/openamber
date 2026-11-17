@@ -92,6 +92,11 @@ obj:
           - !include settings/page_settings_tab_wifi_wifi.yaml
           - !include settings/page_settings_tab_advanced.yaml
           - !include settings/page_settings_tab_advanced_pid.yaml
+          - !include settings/page_settings_tab_advanced_pid_heat.yaml
+          - !include settings/page_settings_tab_advanced_pid_cool.yaml
+          - !include settings/page_settings_tab_advanced_pid_pump.yaml
+          - !include settings/page_settings_tab_advanced_pid_mv1.yaml
+          - !include settings/page_settings_tab_advanced_pid_mv2.yaml
           - !include settings/page_settings_tab_advanced_bodemplaat.yaml
           - !include settings/page_settings_tab_advanced_defrost.yaml
           - !include settings/page_settings_tab_advanced_defrost_temps.yaml

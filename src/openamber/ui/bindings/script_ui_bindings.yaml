@@ -846,16 +846,11 @@
             lv_obj_clear_flag(id(stab_advanced), LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(id(panel_advanced), LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_state(id(stab_advanced), LV_STATE_DISABLED);
-            lv_obj_add_flag(id(set_pid_disabled_overlay), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_clear_state(id(set_pid_section), LV_STATE_DISABLED);
           } else {
             lv_obj_clear_state(id(set_advanced_settings_switch_ui), LV_STATE_CHECKED);
             lv_obj_add_flag(id(panel_advanced), LV_OBJ_FLAG_HIDDEN);
             lv_obj_add_flag(id(stab_advanced), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_clear_flag(id(set_pid_disabled_overlay), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_state(id(set_pid_section), LV_STATE_DISABLED);
           }
-          lv_obj_clear_flag(id(set_pid_section), LV_OBJ_FLAG_HIDDEN);
 
           lv_obj_t* adv_rows[19] = {
             id(set_general_bodemplaat_mode_row),

@@ -2,7 +2,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Pomp P1 aanwezig", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Extra circulatiepomp P1 aanwezig", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Extra circulatiepomp P1 aanwezig", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - switch:
           id: set_pump_p1_switch
           align: TOP_RIGHT
@@ -24,7 +24,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Pompinterval (min)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Tussentijd periodiek pompen bij warmte-/koudevraag", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Tussentijd periodiek pompen bij warmte-/koudevraag", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -59,7 +59,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Pompduur (min)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Draaitijd bij periodiek pompen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Draaitijd bij periodiek pompen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -94,7 +94,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Flow switch uitvalvertraging (min)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Stop bij geen flow na ingesteld aantal minuten", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Stop bij geen flow na ingesteld aantal minuten", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

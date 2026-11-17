@@ -3,7 +3,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Koelmodus", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Kies Fixed of Extern setpoint", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Kies Fixed of Extern setpoint", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - dropdown:
           id: set_cool_mode_dd
           symbol: "\U000F0140"
@@ -32,7 +32,7 @@
     styles: setting_row_style
     widgets:
       - label: { id: set_cool_setpoint_lbl, text: "Setpoint (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { id: set_cool_setpoint_sub, text: "Doeltemperatuur voor koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { id: set_cool_setpoint_sub, text: "Doeltemperatuur voor koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -86,7 +86,7 @@
     styles: setting_row_style
     widgets:
       - label: { id: set_cool_manual_sp_lbl, text: "Extern setpoint (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { id: set_cool_manual_sp_sub, text: "Koel setpoint bij extern setpoint", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { id: set_cool_manual_sp_sub, text: "Koel setpoint bij extern setpoint", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

@@ -5,7 +5,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Thermostaat bron", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Kies intern of extern thermostaatsignaal", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Kies intern of extern thermostaatsignaal", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - dropdown:
           id: set_thermostat_dd
           symbol: "\U000F0140"
@@ -34,7 +34,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Standaard setpoint verwarmen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Setpoint verwarmen na herstart", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Setpoint verwarmen na herstart", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -69,7 +69,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Standaard setpoint koelen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Setpoint koelen na herstart", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Setpoint koelen na herstart", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

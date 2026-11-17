@@ -2,7 +2,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Wintervermogen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Max compressorvermogen in wintermodus", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Max compressorvermogen in wintermodus", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - dropdown:
           id: set_dhw_winter_dd
           symbol: "\U000F0140"
@@ -28,7 +28,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Wintertemperatuurdrempel", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Buitentemperatuur waaronder wintermodus actief", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Buitentemperatuur waaronder wintermodus actief", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

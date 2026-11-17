@@ -15,14 +15,14 @@ widgets:
         flex_flow: COLUMN
         flex_align_main: START
         flex_align_cross: CENTER
-        pad_row: 10
+        pad_row: 8
       widgets:
         - obj:
             id: thermostat_row_heat_deadband
             styles: setting_row_style
             widgets:
               - label: { text: "Deadband verwarmen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Temperatuurverschil onder setpoint voor verwarmen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+              - label: { text: "Temperatuurverschil onder setpoint voor verwarmen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT
@@ -57,7 +57,7 @@ widgets:
             styles: setting_row_style
             widgets:
               - label: { text: "Overrun verwarmen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Temperatuurverschil boven setpoint voor stoppen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+              - label: { text: "Temperatuurverschil boven setpoint voor stoppen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT

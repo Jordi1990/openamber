@@ -15,14 +15,14 @@ widgets:
         flex_flow: COLUMN
         flex_align_main: START
         flex_align_cross: CENTER
-        pad_row: 10
+        pad_row: 8
       widgets:
         - obj:
             id: sensor_calibration_page_1_row_tc
             styles: setting_row_style
             widgets:
               - label: { text: "CV-aanvoertemperatuur offset", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Correctie voor CV-aanvoertemperatuurmeting", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+              - label: { text: "Correctie voor CV-aanvoertemperatuurmeting", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT
@@ -57,7 +57,7 @@ widgets:
             styles: setting_row_style
             widgets:
               - label: { text: "CV-retourtemperatuur (Tui) offset", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Correctie voor CV-retourtemperatuurmeting (Tui)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+              - label: { text: "Correctie voor CV-retourtemperatuurmeting (Tui)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT
@@ -92,7 +92,7 @@ widgets:
             styles: setting_row_style
             widgets:
               - label: { text: "CV-aanvoertemperatuur (Tuo) offset", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Correctie voor CV-aanvoertemperatuurmeting (Tuo)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+              - label: { text: "Correctie voor CV-aanvoertemperatuurmeting (Tuo)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT

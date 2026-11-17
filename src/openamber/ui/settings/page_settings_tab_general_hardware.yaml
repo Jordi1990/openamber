@@ -15,14 +15,14 @@ widgets:
         flex_flow: COLUMN
         flex_align_main: START
         flex_align_cross: CENTER
-        pad_row: 10
+        pad_row: 8
       widgets:
         - obj:
             id: set_general_hardware_flow_sensor
             styles: setting_row_style
             widgets:
               - label: { text: "Flow sensor aanwezig", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Gebruik de flowsensor voor flow en energie-berekeningen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+              - label: { text: "Gebruik de flowsensor voor flow en energie-berekeningen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - switch:
                   id: set_flow_sensor_enabled_switch_ui
                   align: TOP_RIGHT
@@ -44,7 +44,7 @@ widgets:
             styles: setting_row_style
             widgets:
               - label: { text: "Flow sensor kalibratie", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Aantal pulses per liter voor de flowsensor", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+              - label: { text: "Aantal pulses per liter voor de flowsensor", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT

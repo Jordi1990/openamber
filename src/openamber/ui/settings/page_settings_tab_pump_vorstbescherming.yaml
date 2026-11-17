@@ -16,13 +16,13 @@ widgets:
         flex_flow: COLUMN
         flex_align_main: START
         flex_align_cross: CENTER
-        pad_row: 10
+        pad_row: 8
       widgets:
         - obj:
             styles: setting_row_style
             widgets:
               - label: { text: "Buitentemperatuur 1e trap", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Buitentemperatuur waaronder trap 1 activeert", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+              - label: { text: "Buitentemperatuur waaronder trap 1 activeert", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT
@@ -56,7 +56,7 @@ widgets:
             styles: setting_row_style
             widgets:
               - label: { text: "Buitentemperatuur 2e trap", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Buitentemperatuur waaronder trap 2 activeert", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+              - label: { text: "Buitentemperatuur waaronder trap 2 activeert", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT
@@ -90,7 +90,7 @@ widgets:
             styles: setting_row_style
             widgets:
               - label: { text: "Watertemperatuur 2e trap", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Watertemperatuur waaronder trap 2 activeert", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+              - label: { text: "Watertemperatuur waaronder trap 2 activeert", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT

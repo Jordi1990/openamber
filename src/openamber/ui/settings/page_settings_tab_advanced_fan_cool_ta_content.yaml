@@ -5,7 +5,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Koelen: warm of hoog", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Ta vanaf 25°C, of compressor vanaf F7", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Ta vanaf 25°C, of compressor vanaf F7", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -40,7 +40,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Koelen: Ta 14-25°C", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Buitentemperatuur 14 tot 25°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Buitentemperatuur 14 tot 25°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -75,7 +75,7 @@
     styles: setting_row_style
     widgets:
       - label: { text: "Koelen: Ta onder 14°C", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Buitentemperatuur onder 14°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Buitentemperatuur onder 14°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
