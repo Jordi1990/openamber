@@ -1028,9 +1028,9 @@ public:
         float current_temperature = GetControlTemperature();
         float target_temperature = id(pid_heat_temperature_control).target_temperature;
 
-        if (current_temperature >= target_temperature + id(compressor_stop_delta_heating).state)
+        if (current_temperature >= target_temperature + id(backup_heater_stop_delta).state)
         {
-          ESP_LOGI("amber", "Disabling backup heater because measured temperature %.2f°C exceeded stop temperature delta %.2f°C.", current_temperature, target_temperature + id(compressor_stop_delta_heating).state);
+          ESP_LOGI("amber", "Disabling backup heater because measured temperature %.2f°C exceeded stop temperature delta %.2f°C.", current_temperature, target_temperature + id(backup_heater_stop_delta).state);
           TurnOffBackupHeater();
           LeaveStateAndSetNextStateAfterWaitTime(id(emergency_mode_enabled).state ? HeatCoolState::PUMP_RUNNING : HeatCoolState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
           break;
@@ -1044,7 +1044,7 @@ public:
           uint32_t settle_elapsed_ms = now - backup_heater_start_time_ms_;
           uint32_t settle_time_ms = BACKUP_HEATER_PREDICTION_SETTLE_TIME_S * 1000UL;
           // Only check predicition after a minimum settle time to avoid disabling backup heater too early due to initial temperature fluctuations when turning it on.
-          if (predicted_temperature >= target_temperature + 2.0f && settle_elapsed_ms >= settle_time_ms)
+          if (predicted_temperature >= target_temperature + id(backup_heater_stop_delta).state && settle_elapsed_ms >= settle_time_ms)
           { // Margin to buffer some heat to reduce undershoot.
             ESP_LOGI("amber", "Disabling backup heater (predicted Temperature %.2f°C above target %.2f°C)", predicted_temperature, target_temperature);
             TurnOffBackupHeater();
