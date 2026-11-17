@@ -76,7 +76,6 @@
         - "\U000F00AF"  # mdi-bluetooth (connectiviteit)
         - "\U000F012A"  # mdi-chart-line (menu tile)
         - "\U000F029A"  # mdi-gauge (menu tile)
-        - "\U000F02FD"  # mdi-information-outline (menu tile)
         - "\U000F0393"  # mdi-thermostat (menu tile)
         - "\U000F040E"  # mdi-play-pause (menu tile)
         - "\U000F04C5"  # mdi-speedometer (menu tile)

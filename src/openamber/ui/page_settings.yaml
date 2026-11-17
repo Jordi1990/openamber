@@ -87,7 +87,6 @@ obj:
           - !include settings/page_settings_tab_smartgrid.yaml
           - !include settings/page_settings_tab_energie_sgready.yaml
           - !include settings/page_settings_tab_energie_eebus.yaml
-          - !include settings/page_settings_tab_energie_eebus_status.yaml
           - !include settings/page_settings_tab_wifi.yaml
           - !include settings/page_settings_tab_wifi_wifi.yaml
           - !include settings/page_settings_tab_advanced.yaml

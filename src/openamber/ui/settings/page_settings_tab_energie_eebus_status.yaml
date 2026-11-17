@@ -1,6 +1,0 @@
-# Menu Page: Energiebeheer - EEBUS status
-# ------------------------------------------------------------
-id: panel_energie_page_eebus_status
-title: "EEBUS status"
-styles: setting_page_style
-widgets: !include page_settings_tab_energie_eebus_status_content.yaml

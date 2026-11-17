@@ -770,45 +770,6 @@
           lv_obj_add_flag(id(eebus_disconnect_btn), LV_OBJ_FLAG_HIDDEN);
         }
 
-        // Update EEBUS status
-        if (!id(eebus_enabled_switch).state) {
-          lv_label_set_text(id(eebus_status_lbl), "Uitgeschakeld");
-          lv_obj_set_style_text_color(id(eebus_status_lbl), lv_color_hex(0x6B7280), LV_PART_MAIN);
-        } else if (id(eebus_status_sensor).has_state()) {
-          std::string st = id(eebus_status_sensor).state;
-          if (st == "Normal operation") st = "Normaal bedrijf";
-          else if (st == "Boost active") st = "Boost actief";
-          else if (st == "Dimmed (§14a)") st = "Gedimd (§14a)";
-          else if (st == "Disconnected") st = "Niet verbonden";
-          else if (st == "Initializing...") st = "Initialiseren...";
-          else if (st == "Disabled") st = "Uitgeschakeld";
-          lv_label_set_text(id(eebus_status_lbl), st.c_str());
-          lv_obj_set_style_text_color(id(eebus_status_lbl), lv_color_hex(0x1F2933), LV_PART_MAIN);
-        } else {
-          lv_label_set_text(id(eebus_status_lbl), "–");
-          lv_obj_set_style_text_color(id(eebus_status_lbl), lv_color_hex(0x1F2933), LV_PART_MAIN);
-        }
-
-        // Update power limit display
-        if (!id(eebus_enabled_switch).state) {
-          lv_label_set_text(id(eebus_power_limit_lbl), "–");
-          lv_obj_set_style_text_color(id(eebus_power_limit_lbl), lv_color_hex(0x6B7280), LV_PART_MAIN);
-        } else if (id(eebus_connected_sensor).state && id(eebus_power_limit_sensor).has_state() && !std::isnan(id(eebus_power_limit_sensor).state)) {
-          float lim = id(eebus_power_limit_sensor).state;
-          if (lim <= 0.0f) {
-            lv_label_set_text(id(eebus_power_limit_lbl), "0 W (Geblokkeerd)");
-            lv_obj_set_style_text_color(id(eebus_power_limit_lbl), lv_color_hex(0xEF4444), LV_PART_MAIN);
-          } else {
-            char buf[32];
-            snprintf(buf, sizeof(buf), "%.0f W", lim);
-            lv_label_set_text(id(eebus_power_limit_lbl), buf);
-            lv_obj_set_style_text_color(id(eebus_power_limit_lbl), lv_color_hex(0x1F2933), LV_PART_MAIN);
-          }
-        } else {
-          lv_label_set_text(id(eebus_power_limit_lbl), "Geen limiet");
-          lv_obj_set_style_text_color(id(eebus_power_limit_lbl), lv_color_hex(0x1F2933), LV_PART_MAIN);
-        }
-
         // Update SKI display
         if (!id(eebus_enabled_switch).state) {
           lv_label_set_text(id(eebus_ski_display_lbl), "–");
