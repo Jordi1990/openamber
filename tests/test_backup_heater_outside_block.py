@@ -179,3 +179,35 @@ def test_backup_heater_outside_block_ui(clean_system):
     assert openamber.set_number("backup_heater_outside_block_temperature", 7.0)
     openamber.step(ms=50)
     assert openamber.get_label("set_backup_block_temp_val") == "7°C"
+
+
+def test_degree_minutes_counted_before_the_block_do_not_carry_over(clean_system):
+    """Degree/minutes counted before the block starts are cleared: while blocked the counter is 0 and once the
+    block ends the heater does not start sooner than it would from zero."""
+    openamber = clean_system
+    set_outside_temperature(openamber, 12.0)
+
+    _start_heating_with_deficit(openamber)
+    assert openamber.set_number("backup_heater_degmin_threshold", 20.0)
+    openamber.advance_time(seconds=60, step_s=5)  # about 15 °C·min, below the threshold
+    openamber.step(ms=50)
+    assert openamber.get_entity("backup_heater_relay") is False
+    assert _degmin(openamber) > 5.0, "Degree/minutes must be counted before the block"
+
+    assert openamber.set_number("backup_heater_outside_block_temperature", 7.0)
+    openamber.advance_time(seconds=10, step_s=5)
+    openamber.step(ms=50)
+    assert _degmin(openamber) == 0.0, "Degree/minutes must be cleared while blocked"
+
+    # Block ends: 30 s at 15 °C below the setpoint is about 7.5 °C·min, about 22.5 with the old count carried over.
+    assert openamber.set_number("backup_heater_outside_block_temperature", 30.0)
+    openamber.advance_time(seconds=30, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.get_entity("backup_heater_relay") is False, "Degree/minutes from before the block must not count"
+    assert _degmin(openamber) < 20.0
+
+    openamber.advance_time(seconds=60, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.get_entity("backup_heater_relay") is True
+
+    _finish_heating(openamber)

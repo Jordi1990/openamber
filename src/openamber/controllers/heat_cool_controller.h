@@ -942,8 +942,13 @@ public:
 
           if (IsBackupHeaterBlockedByOutsideTemperature())
           {
-            // Not counting degree/minutes while blocked: once the block ends the time in between must not be added in one step.
+            // Not counting degree/minutes while blocked: once the block ends the time in between must not be added in one step,
+            // and degree/minutes counted before the block started must not carry over either.
             InitializeBackupDegMinTracking();
+            if (accumulated_backup_degmin_ != 0.0f)
+            {
+              ResetAccumulatedDegMin();
+            }
           }
           else
           {
