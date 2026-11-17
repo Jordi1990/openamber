@@ -487,9 +487,14 @@ private:
     // with Tc as the circuit temperature. Only this direction: with a stratified buffer Tc (top) can be far above the
     // water the heat pump draws in at the start of a run, with the valve in the right position.
     // The run time counts from the soft start, so the check starts THREE_WAY_VALVE_CHECK_RUN_TIME_S after the compressor.
+    // The backup heater states count while the compressor keeps running (SG Ready max boost); backup-only operation is
+    // excluded by the compressor condition. The backup heater cannot cause a trip by itself: Tuo - Tui stays within
+    // 8 °C (checked above), so Tuo far above Tc needs return water far above Tc as well.
     const bool valve_check_active = compressor_controller_->IsRunning() && IsWorkingMode(WORKING_MODE_HEATING) &&
                                     (state_ == HeatCoolState::COMPRESSOR_SOFTSTART ||
-                                     state_ == HeatCoolState::COMPRESSOR_RUNNING) &&
+                                     state_ == HeatCoolState::COMPRESSOR_RUNNING ||
+                                     state_ == HeatCoolState::WAIT_BACKUP_HEATER_RUNNING ||
+                                     state_ == HeatCoolState::BACKUP_HEATER_RUNNING) &&
                                     !id(defrost_active_sensor).state;
     if (valve_position_check_.Update(valve_check_active, id(outlet_temperature_tuo).state,
                                      id(heat_cool_temperature_tc).state, true, false,

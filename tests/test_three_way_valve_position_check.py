@@ -41,6 +41,31 @@ def test_heating_with_water_from_dhw_side_raises_to04(clean_system):
     assert not compressor_requested(openamber), "The compressor must be stopped after TO04"
 
 
+def test_heating_with_backup_heater_and_compressor_is_checked(clean_system):
+    """SG Ready max boost adds the backup heater while the compressor keeps running: the check stays active."""
+    openamber = clean_system
+    openamber.set_select("backup_heating_mode", "Intern verwarmingselement")
+    start_space_heating(openamber, tc=28.0, target=35.0)
+
+    openamber.set_select("sg_ready_mode_select", "Max boost")
+    openamber.advance_time(seconds=10, step_s=2)
+    assert openamber.get_entity("backup_heater_relay") is True
+    assert openamber.get_entity("state_machine_state_heat_cool") in ("Wait backup heater running", "Backup heater running")
+    assert compressor_requested(openamber)
+
+    openamber.set_sensor("heat_cool_temperature_tc", 30.0)
+    openamber.set_sensor("outlet_temperature_tuo", 50.0)
+    openamber.set_sensor("inlet_temperature_tui", 45.0)
+    # The run time counts from the soft start (10 s of max boost already passed).
+    openamber.advance_time(seconds=RUN_TIME_S + HOLD_TIME_S - SOFTSTART_S - 50, step_s=5)
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Backup heater running"
+    assert openamber.get_entity("error_three_way_valve_state_timeout") is False
+
+    openamber.advance_time(seconds=80, step_s=5)
+    assert openamber.get_entity("error_three_way_valve_state_timeout") is True
+    openamber.set_select("sg_ready_mode_select", "Normaal")
+
+
 def test_heating_with_normal_temperatures_keeps_running(clean_system):
     """Normal heating (Tuo a few degrees above Tc) never raises TO04."""
     openamber = clean_system
