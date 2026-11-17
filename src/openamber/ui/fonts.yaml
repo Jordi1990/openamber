@@ -94,6 +94,8 @@
         - "\U000F1A43"  # mdi-heat-pump (menu tile)
         - "\U000F1A71"  # mdi-snowflake-thermometer (menu tile)
         - "\U000F1B91"  # mdi-wrench-cog (menu tile)
+        - "\U000F06B0"  # mdi-update (system tile)
+        - "\U000F0709"  # mdi-restart (system tile)
 
 - file: "openamber/ui/fonts/Inter_28pt-SemiBold.ttf"
   #weight: 500
