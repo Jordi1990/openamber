@@ -31,7 +31,6 @@ font: !include fonts.yaml
 
 lvgl:
   buffer_size: 100%
-  # Only LVGL errors: warnings (such as "lv_menu is deprecated" on every menu page change) are compiled out.
   log_level: ERROR
   bottom_layer:
     bg_color: 0x0A2747
