@@ -33,7 +33,7 @@ obj:
 
         - label:
             id: service_update_version
-            width: 70%
+            width: 62%
             text: "Versie informatie wordt geladen..."
             text_color: 0x1F2933
             text_font: font_text_24
@@ -42,25 +42,25 @@ obj:
 
         - label:
             id: service_update_error
-            width: 70%
+            width: 62%
             text: ""
             hidden: true
             text_color: 0xEF4444
             text_font: font_text_20
             long_mode: WRAP
             align: TOP_LEFT
-            y: 72
+            y: 80
 
         - obj:
             id: service_update_button
-            width: 180
+            width: 250
             height: 52
-            align: TOP_RIGHT
-            y: -2
+            align: TOP_LEFT
+            y: 80
             hidden: true
             bg_color: 0x0072CE
             bg_opa: 100%
-            radius: 14
+            radius: 26
             border_width: 0
             border_opa: 0%
             pad_all: 0
@@ -89,26 +89,27 @@ obj:
             widgets:
               - label:
                   id: service_update_button_label
-                  text: "Update"
+                  text: "Update installeren"
                   text_color: 0xFFFFFF
-                  text_font: font_mdi_24
+                  text_font: font_text_20
                   align: CENTER
 
         - label:
             id: service_release_qr_hint
-            text: "Scan QR voor release info"
+            width: 128
+            text: "Release-info"
             hidden: true
-            text_color: 0x1F2933
+            text_color: 0x6B7280
             text_font: font_text_20
-            align: TOP_LEFT
-            y: 106
+            text_align: CENTER
+            align: TOP_RIGHT
+            y: 134
 
         - qrcode:
             id: service_release_qr
             hidden: true
-            align: TOP_LEFT
-            y: 136
-            size: 180
+            align: TOP_RIGHT
+            size: 128
             dark_color: 0x000000
             light_color: 0xFFFFFF
             text: "https://github.com/Jordi1990/openamber/releases"

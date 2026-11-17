@@ -1060,7 +1060,7 @@
                     lv_label_set_text(id(service_update_status), "");
                     lv_obj_send_event(id(service_update_status), lvgl::lv_update_event, nullptr);
                     lv_obj_add_flag(id(service_update_error), LV_OBJ_FLAG_HIDDEN);
-                    lv_label_set_text(id(service_update_version), str_sprintf("Beschikbaar: %s (huidig: %s)", id(firmware_update).update_info.latest_version.empty() ? "onbekend" : id(firmware_update).update_info.latest_version.c_str(), id(firmware_update).update_info.current_version.empty() ? ESPHOME_PROJECT_VERSION : id(firmware_update).update_info.current_version.c_str()).c_str());
+                    lv_label_set_text(id(service_update_version), str_sprintf("Nieuwe versie %s beschikbaar\nHuidige versie: %s", id(firmware_update).update_info.latest_version.empty() ? "onbekend" : id(firmware_update).update_info.latest_version.c_str(), id(firmware_update).update_info.current_version.empty() ? ESPHOME_PROJECT_VERSION : id(firmware_update).update_info.current_version.c_str()).c_str());
                     lv_obj_send_event(id(service_update_version), lvgl::lv_update_event, nullptr);
                 - if:
                     condition:
@@ -1083,6 +1083,8 @@
                     lv_obj_remove_flag(id(service_release_qr_hint), LV_OBJ_FLAG_HIDDEN);
                     lv_obj_remove_flag(id(service_release_qr), LV_OBJ_FLAG_HIDDEN);
                     lv_obj_remove_flag(id(service_update_button), LV_OBJ_FLAG_HIDDEN);
+                    // The card is SIZE_CONTENT; recompute it now that the QR code and button are shown.
+                    lv_obj_mark_layout_as_dirty(id(service_update_card));
                     if (id(service_update_check_in_progress)) {
                       lvgl::LvglComponent::lv_obj_set_state_value(id(service_check_update_button), LV_STATE_DISABLED, false);
                       lv_obj_remove_flag(id(service_check_update_button), LV_OBJ_FLAG_HIDDEN);
@@ -1117,6 +1119,7 @@
                 lv_obj_add_flag(id(service_release_qr_hint), LV_OBJ_FLAG_HIDDEN);
                 lv_obj_add_flag(id(service_release_qr), LV_OBJ_FLAG_HIDDEN);
                 lv_obj_add_flag(id(service_update_button), LV_OBJ_FLAG_HIDDEN);
+                lv_obj_mark_layout_as_dirty(id(service_update_card));
                 if (id(service_update_check_in_progress)) {
                   lvgl::LvglComponent::lv_obj_set_state_value(id(service_check_update_button), LV_STATE_DISABLED, false);
                   lv_obj_remove_flag(id(service_check_update_button), LV_OBJ_FLAG_HIDDEN);
