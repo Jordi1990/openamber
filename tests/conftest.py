@@ -155,6 +155,7 @@ def clean_system(openamber):
         openamber.press_button("controlled_stop_resume_button")
     openamber.set_switch("pump_p0_relay_switch", True)
     openamber.set_number("backup_heater_degmin_threshold", 50.0)
+    openamber.set_number("backup_heater_outside_block_temperature", 30.0)
     openamber.set_number("dhw_setpoint_temperature", 50.0)
     openamber.set_number("dhw_restart_dhw_delta", 5.0)
     openamber.set_sensor("dhw_temperature_tw_sensor", 55.0)

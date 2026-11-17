@@ -165,6 +165,13 @@
           id(update_dhw_schedule_ui).execute();
           id(update_legio_ui).execute();
         }
+        if (tab_index == 6) {
+          if (id(backup_heater_outside_block_temperature).has_state()) {
+            static char buf[8];
+            snprintf(buf, sizeof(buf), "%.0f°C", id(backup_heater_outside_block_temperature).state);
+            lv_label_set_text(id(set_backup_block_temp_val), buf);
+          }
+        }
         if (tab_index == 7) {
           id(update_eebus_settings_ui).execute();
         }

@@ -1,0 +1,108 @@
+name: Memory report comment
+
+# Runs after the PR build in the context of the base repository, so it can comment
+# on PRs from forks too. It never checks out or runs code from the PR: it only
+# reads the memory-report.json the PR build uploaded, and memory_report.py treats
+# that file as untrusted input.
+
+on:
+  workflow_run:
+    workflows: ["Build and validate on PR publish"]
+    types: [completed]
+
+# One comment run at a time per PR branch, so a slow run for an older commit
+# cannot overwrite the report of a newer one. The PR number is not known before
+# the artifact is read (workflow_run carries no PR for forks), so the group is
+# keyed by the head repository + branch, which identifies the PR.
+concurrency:
+  group: memory-comment-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: write
+
+jobs:
+  comment:
+    name: Comment memory report
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion != 'cancelled'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Checkout tools from the default branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          sparse-checkout: tools
+
+      - name: Download PR memory report
+        id: pr
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          if ! gh run download "$RUN_ID" -n memory-report -D pr; then
+            echo "No memory report in run $RUN_ID (build failed or skipped)"
+            exit 0
+          fi
+          number=$(jq -r '.pr // empty' pr/memory-report.json)
+          ref=$(jq -r '.ref // empty' pr/memory-report.json)
+          if ! [[ "$number" =~ ^[0-9]+$ ]]; then
+            echo "::warning::memory-report.json has no valid PR number"
+            exit 0
+          fi
+          if ! [[ "$ref" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+            ref=""
+          fi
+          # Only comment on a PR whose head is the commit that was built.
+          head=$(gh api "repos/$GH_REPO/pulls/$number" --jq .head.sha)
+          if [ "$head" != "$HEAD_SHA" ]; then
+            echo "PR #$number head is $head, not the built commit; skipping"
+            exit 0
+          fi
+          echo number=$number >> $GITHUB_OUTPUT
+          echo ref=$ref >> $GITHUB_OUTPUT
+
+      - name: Download baseline for the target branch
+        if: steps.pr.outputs.number != '' && steps.pr.outputs.ref != ''
+        env:
+          REF: ${{ steps.pr.outputs.ref }}
+        run: |
+          run_id=$(gh run list --workflow memory-baseline.yml --branch "$REF" --status success \
+            --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+          if [ -z "$run_id" ]; then
+            echo "No successful baseline run for $REF yet"
+            exit 0
+          fi
+          gh run download "$run_id" -n memory-report -D base || echo "Baseline artifact expired or missing"
+
+      - name: Render comment
+        if: steps.pr.outputs.number != ''
+        run: |
+          python3 tools/memory_report.py compare --base base/memory-report.json \
+            --pr pr/memory-report.json --output comment.md
+          cat comment.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Create or update PR comment
+        if: steps.pr.outputs.number != ''
+        env:
+          NUMBER: ${{ steps.pr.outputs.number }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          # Re-check right before writing: the PR may have moved on while this
+          # run waited in the concurrency queue or downloaded the baseline.
+          head=$(gh api "repos/$GH_REPO/pulls/$NUMBER" --jq .head.sha)
+          if [ "$head" != "$HEAD_SHA" ]; then
+            echo "PR #$NUMBER head moved to $head; not writing a stale report"
+            exit 0
+          fi
+          marker='<!-- openamber-memory-report -->'
+          comment_id=$(gh api --paginate "repos/$GH_REPO/issues/$NUMBER/comments" \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\"))) | .id" | head -n1)
+          if [ -n "$comment_id" ]; then
+            gh api -X PATCH "repos/$GH_REPO/issues/comments/$comment_id" -F body=@comment.md > /dev/null
+          else
+            gh api -X POST "repos/$GH_REPO/issues/$NUMBER/comments" -F body=@comment.md > /dev/null
+          fi
