@@ -482,6 +482,22 @@ number:
       sorting_group_id: heating_settings
 
 - platform: template
+  id: backup_heater_stop_delta
+  name: "Backup element stop delta"
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 0.0
+  max_value: 10
+  initial_value: 2.0
+  step: 0.1
+  optimistic: true
+  restore_value: true
+  entity_category: config
+  icon: mdi:thermostat
+  web_server: 
+      sorting_group_id: heating_settings
+
+- platform: template
   id: pump_speed_heating_number
   name: "Pomp snelheid verwarmen"
   optimistic: True
