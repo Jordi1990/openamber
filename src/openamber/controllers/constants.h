@@ -101,6 +101,9 @@ static const float DISCHARGE_LIMIT_RELEASE_TD_MARGIN_C = 8.0f;
 static const uint32_t DISCHARGE_LIMIT_STEP_DOWN_INTERVAL_S = 60;
 static const int DISCHARGE_LIMIT_MIN_MODE = 1;
 
+// Silent mode power option used when the select has no state yet ("Gemiddeld").
+static const int SILENT_MODE_DEFAULT_OPTION_INDEX = 3;
+
 // Pump timing
 static const uint32_t PUMP_START_TIMEOUT_S = 2 * 60;
 static const uint32_t PUMP_STOP_TIMEOUT_S = 2 * 60;

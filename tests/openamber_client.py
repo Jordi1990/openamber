@@ -272,6 +272,12 @@ class OpenAmberClient:
         """Simulate EEBUS EMS disconnection."""
         return self.eebus_request("disconnect")
 
+    def eebus_power_estimate(self) -> float:
+        """Read the power estimate (W) the EEBUS component reports to the EMS."""
+        res = self.send_cmd({"cmd": "eebus_request", "action": "power_estimate"})
+        self._check_status(res, "eebus_power_estimate")
+        return res.get("value")
+
     def exit(self):
         """Ask OpenAmber to exit."""
         try:

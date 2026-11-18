@@ -823,6 +823,14 @@ void TestBridge::process_line(const std::string &line) {
         this->send_response("{\"status\":\"ok\"}");
         return true;
       }
+      if (action == "power_estimate") {
+        float estimate_w = eebus::fake_eebus_power_estimate();
+        this->send_response(json::build_json([estimate_w](JsonObject out) {
+          out["status"] = "ok";
+          out["value"] = estimate_w;
+        }));
+        return true;
+      }
       this->send_response(build_error_json("Unknown eebus action: " + action));
       return true;
 #else
