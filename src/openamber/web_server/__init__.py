@@ -9,10 +9,14 @@ CONF_WEB_SERVER = "web_server"
 CONF_WEB_SERVER_ID = "web_server_id"
 
 web_server_ns = cg.esphome_ns.namespace("web_server")
-WebServer = web_server_ns.class_("WebServer", cg.Component)
+web_server_parents = [cg.Component]
+if hasattr(cg, "Controller"):
+    web_server_parents.append(cg.Controller)
+WebServer = web_server_ns.class_("WebServer", *web_server_parents)
 
 sorting_group = {
-    cv.Required(CONF_ID): cv.string,
+    # ESPHome 2026.11+ references sorting groups from entities with cv.use_id(cg.int_).
+    cv.Required(CONF_ID): cv.declare_id(cg.int_),
     cv.Required("name"): cv.string,
     cv.Optional(CONF_SORTING_WEIGHT): cv.float_,
 }
