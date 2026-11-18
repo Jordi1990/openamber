@@ -1,0 +1,6 @@
+# Menu Page: Energiebeheer - SG-Ready
+# ------------------------------------------------------------
+id: panel_energie_page_sgready
+title: "SG-Ready"
+styles: setting_page_style
+widgets: !include page_settings_tab_energie_sgready_content.yaml

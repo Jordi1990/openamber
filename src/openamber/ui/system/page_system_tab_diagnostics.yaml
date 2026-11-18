@@ -12,125 +12,171 @@ obj:
   scrollable: false
   layout:
     type: FLEX
-    flex_flow: ROW_WRAP
+    flex_flow: COLUMN
     flex_align_main: START
-    flex_align_cross: CENTER
-    pad_row: 10
-    pad_column: 10
+    flex_align_cross: START
+    pad_row: 12
   widgets:
     - obj:
         width: 100%
-        height: 190
-        bg_color: 0xFFFFFF
-        bg_opa: 100%
-        radius: 12
-        border_width: 1
-        border_color: 0xE5E7EB
-        border_opa: 100%
-        pad_all: 10
+        height: 48
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
         scrollbar_mode: "OFF"
         scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: ROW
+          flex_align_cross: CENTER
+          pad_column: 14
         widgets:
-          - label: { text: "Runtime", text_color: 0x111827, text_font: font_text_20, align: TOP_LEFT }
-          - table:
-              id: system_diag_runtime_table
-              width: 100%
-              y: 28
-              bg_opa: 0%
+          - obj:
+              id: system_diagnostics_back_button
+              width: 46
+              height: 46
+              radius: 23
+              bg_color: 0x1F3B68
+              bg_opa: 100%
               border_width: 0
-              scrollbar_mode: "OFF"
+              pad_all: 0
               scrollable: false
-              items:
-                text_font: font_text_20
-                text_color: 0x1F2933
-                border_width: 0
-                bg_opa: 0%
-                pad_top: 2
-                pad_bottom: 2
-                pad_left: 0
-                pad_right: 0
-              columns:
-                - width: 44%
-                - width: 56%
-              rows:
-                - ["ESPHome", "-"]
-                - ["Uptime", "-"]
+              pressed:
+                bg_color: 0x185FA5
+              on_click:
+                - lambda: |-
+                    lv_obj_add_flag(id(system_diagnostics_panel), LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_remove_flag(id(service_updates_panel), LV_OBJ_FLAG_HIDDEN);
+              widgets:
+                - label: { text: "\U000F0141", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+          - label: { text: "Systeem", text_color: 0x6B7280, text_font: font_text_20 }
+          - label: { text: "\U000F0142", text_color: 0x6B7280, text_font: font_text_20 }
+          - label: { text: "Diagnostiek", text_color: 0x1F2933, text_font: font_text_24 }
 
+    # Geheugen on the left, Runtime and ESP stacked on the right.
     - obj:
         width: 100%
-        height: 210
-        bg_color: 0xFFFFFF
-        bg_opa: 100%
-        radius: 12
-        border_width: 1
-        border_color: 0xE5E7EB
-        border_opa: 100%
-        pad_all: 10
+        height: SIZE_CONTENT
+        bg_opa: 0%
+        border_opa: 0%
+        pad_all: 0
         scrollbar_mode: "OFF"
         scrollable: false
+        layout:
+          type: FLEX
+          flex_flow: ROW
+          flex_align_main: SPACE_BETWEEN
+          flex_align_cross: START
         widgets:
-          - label: { text: "Geheugen", text_color: 0x111827, text_font: font_text_20, align: TOP_LEFT }
-          - table:
-              id: system_diag_memory_table
-              width: 100%
-              y: 28
+          - obj:
+              width: 49%
+              height: SIZE_CONTENT
               bg_opa: 0%
-              border_width: 0
+              border_opa: 0%
+              pad_all: 0
               scrollbar_mode: "OFF"
               scrollable: false
-              items:
-                text_font: font_text_20
-                text_color: 0x1F2933
-                border_width: 0
-                bg_opa: 0%
-                pad_top: 2
-                pad_bottom: 2
-                pad_left: 0
-                pad_right: 0
-              columns:
-                - width: 44%
-                - width: 56%
-              rows:
-                - ["Heap vrij", "-"]
-                - ["Heap frag.", "-"]
-                - ["Heap max", "-"]
-                - ["PSRAM vrij", "-"]
-
-    - obj:
-        width: 100%
-        height: 160
-        bg_color: 0xFFFFFF
-        bg_opa: 100%
-        radius: 12
-        border_width: 1
-        border_color: 0xE5E7EB
-        border_opa: 100%
-        pad_all: 10
-        scrollbar_mode: "OFF"
-        scrollable: false
-        widgets:
-          - label: { text: "ESP", text_color: 0x111827, text_font: font_text_20, align: TOP_LEFT }
-          - table:
-              id: system_diag_esp_table
-              width: 100%
-              y: 28
+              layout:
+                type: FLEX
+                flex_flow: COLUMN
+                pad_row: 12
+              widgets:
+                - obj:
+                    styles: setting_row_style
+                    scrollable: false
+                    widgets:
+                      - label: { text: "Geheugen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
+                      - table:
+                          id: system_diag_memory_table
+                          width: 100%
+                          y: 32
+                          bg_opa: 0%
+                          border_width: 0
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          items:
+                            text_font: font_text_20
+                            text_color: 0x1F2933
+                            border_width: 0
+                            bg_opa: 0%
+                            pad_top: 2
+                            pad_bottom: 2
+                            pad_left: 0
+                            pad_right: 0
+                          columns:
+                            - width: 44%
+                            - width: 56%
+                          rows:
+                            - ["Heap vrij", "-"]
+                            - ["Heap frag.", "-"]
+                            - ["Heap max", "-"]
+                            - ["PSRAM vrij", "-"]
+          - obj:
+              width: 49%
+              height: SIZE_CONTENT
               bg_opa: 0%
-              border_width: 0
+              border_opa: 0%
+              pad_all: 0
               scrollbar_mode: "OFF"
               scrollable: false
-              items:
-                text_font: font_text_20
-                text_color: 0x1F2933
-                border_width: 0
-                bg_opa: 0%
-                pad_top: 2
-                pad_bottom: 2
-                pad_left: 0
-                pad_right: 0
-              columns:
-                - width: 44%
-                - width: 56%
-              rows:
-                - ["Chip", "-"]
-                - ["Reset reason", "-"]
-
+              layout:
+                type: FLEX
+                flex_flow: COLUMN
+                pad_row: 12
+              widgets:
+                - obj:
+                    styles: setting_row_style
+                    scrollable: false
+                    widgets:
+                      - label: { text: "Runtime", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
+                      - table:
+                          id: system_diag_runtime_table
+                          width: 100%
+                          y: 32
+                          bg_opa: 0%
+                          border_width: 0
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          items:
+                            text_font: font_text_20
+                            text_color: 0x1F2933
+                            border_width: 0
+                            bg_opa: 0%
+                            pad_top: 2
+                            pad_bottom: 2
+                            pad_left: 0
+                            pad_right: 0
+                          columns:
+                            - width: 44%
+                            - width: 56%
+                          rows:
+                            - ["ESPHome", "-"]
+                            - ["Uptime", "-"]
+                - obj:
+                    styles: setting_row_style
+                    scrollable: false
+                    widgets:
+                      - label: { text: "ESP", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT }
+                      - table:
+                          id: system_diag_esp_table
+                          width: 100%
+                          y: 32
+                          bg_opa: 0%
+                          border_width: 0
+                          scrollbar_mode: "OFF"
+                          scrollable: false
+                          items:
+                            text_font: font_text_20
+                            text_color: 0x1F2933
+                            border_width: 0
+                            bg_opa: 0%
+                            pad_top: 2
+                            pad_bottom: 2
+                            pad_left: 0
+                            pad_right: 0
+                          columns:
+                            - width: 44%
+                            - width: 56%
+                          rows:
+                            - ["Chip", "-"]
+                            - ["Reset reason", "-"]

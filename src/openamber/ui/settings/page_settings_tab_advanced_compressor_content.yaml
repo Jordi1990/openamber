@@ -1,13 +1,9 @@
 - obj:
     id: set_advanced_compressor_outdoor_unit_optimizations_row
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "Buitenunit optimalisaties", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Frequentietabel en buitentemperatuurlimiet aanpassen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Frequentietabel en buitentemperatuurlimiet aanpassen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - switch:
           id: set_outdoor_unit_optimizations_enabled_switch_ui
           align: TOP_RIGHT
@@ -29,14 +25,10 @@
 
 - obj:
     id: set_advanced_compressor_hysteresis_row
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label: { text: "Compressor hysterese (+/-)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Zone rond setpoint waarin de compressor niet moduleert", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "Zone rond setpoint waarin de compressor niet moduleert", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -47,29 +39,21 @@
           layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
           widgets:
             - obj:
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - number.decrement: compressor_hysteresis
                 widgets:
-                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { text: "\U000F0374", styles: setting_step_icon_style }
             - label: { id: set_comp_hysteresis_val, text: "0.5°C", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - number.increment: compressor_hysteresis
                 widgets:
-                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { text: "\U000F0415", styles: setting_step_icon_style }

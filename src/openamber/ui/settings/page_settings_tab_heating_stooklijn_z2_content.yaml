@@ -2,14 +2,8 @@
 
 - obj:
     id: set_heat_curve_z2_chart_container
-    width: 100%
+    styles: setting_row_style
     height: 180
-    bg_color: 0xE5E7EB
-    bg_opa: 70%
-    radius: 10
-    border_width: 0
-    border_opa: 0%
-    pad_all: 6
     widgets:
       # Y-axis labels (aanvoertemperatuur)
       - label:
@@ -58,11 +52,7 @@
 
 - obj:
     id: set_heat_curve_z2_controls_container
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 0
+    styles: setting_row_style
     layout:
       type: FLEX
       flex_flow: ROW
@@ -92,29 +82,27 @@
                   - obj:
                       width: 36
                       height: 36
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 8
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      radius: 18
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: heat_curve_z2_m10
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - obj:
                       width: 36
                       height: 36
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 8
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      radius: 18
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: heat_curve_z2_m10
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
       # 0°C
       - obj:
           width: SIZE_CONTENT
@@ -137,29 +125,27 @@
                   - obj:
                       width: 36
                       height: 36
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 8
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      radius: 18
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: heat_curve_z2_0
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - obj:
                       width: 36
                       height: 36
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 8
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      radius: 18
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: heat_curve_z2_0
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
       # +5°C
       - obj:
           width: SIZE_CONTENT
@@ -182,29 +168,27 @@
                   - obj:
                       width: 36
                       height: 36
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 8
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      radius: 18
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: heat_curve_z2_p5
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - obj:
                       width: 36
                       height: 36
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 8
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      radius: 18
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: heat_curve_z2_p5
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
       # +10°C
       - obj:
           width: SIZE_CONTENT
@@ -227,29 +211,27 @@
                   - obj:
                       width: 36
                       height: 36
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 8
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      radius: 18
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: heat_curve_z2_p10
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - obj:
                       width: 36
                       height: 36
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 8
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      radius: 18
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: heat_curve_z2_p10
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
       # +15°C
       - obj:
           width: SIZE_CONTENT
@@ -272,29 +254,27 @@
                   - obj:
                       width: 36
                       height: 36
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 8
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      radius: 18
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.decrement: heat_curve_z2_p15
                       widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
                   - obj:
                       width: 36
                       height: 36
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 8
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
+                      radius: 18
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
                       scrollable: false
                       on_click:
                         - number.increment: heat_curve_z2_p15
                       widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
 
 

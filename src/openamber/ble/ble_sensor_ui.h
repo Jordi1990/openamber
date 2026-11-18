@@ -125,6 +125,13 @@ static void ble_sensor_set_hidden(lv_obj_t *obj, bool hidden)
     }
 }
 
+// True while Settings -> Connectiviteit -> Bluetooth is the open menu page.
+static bool ble_sensor_bluetooth_page_visible()
+{
+    return !lv_obj_has_flag(&id(page_settings), LV_OBJ_FLAG_HIDDEN) &&
+           lv_menu_get_cur_main_page(&id(settings_menu)) == &id(panel_wifi_page_bluetooth);
+}
+
 // max_name > 0 shortens the name for narrow widgets (ble_sensor_format_short_title).
 static void ble_sensor_slot_title(unsigned slot, char *text, size_t size, size_t max_name = 0)
 {
@@ -305,22 +312,15 @@ static void ble_sensor_update_ui()
         placed = true;
     }
     ble_sensor_update_source_dropdown();
-    if (!lv_obj_has_flag(&id(panel_wifi_page_bluetooth), LV_OBJ_FLAG_HIDDEN))
+    if (ble_sensor_bluetooth_page_visible())
         ble_sensor_update_bluetooth_page();
 }
 
-// Connectiviteit sub-tab: shows the Bluetooth page and starts a search.
-static void ble_sensor_show_bluetooth_page(bool show)
+// Connectiviteit -> Bluetooth menu page was opened: start a search.
+static void ble_sensor_bluetooth_page_opened()
 {
-    ble_sensor_set_hidden(&id(panel_wifi_page_bluetooth), !show);
-    lv_obj_set_style_bg_color(&id(conn_stab_bluetooth), lv_color_hex(show ? 0x1F3B68 : 0xCBD5E1), LV_PART_MAIN);
-    lv_obj_set_style_text_color(&id(conn_stab_bluetooth_lbl), lv_color_hex(show ? 0xFFFFFF : 0x4B5563),
-                                LV_PART_MAIN);
-    if (show && ble_sensor_boot_ready && id(ble_enabled_switch).state && !ble_sensor_is_discovering())
+    if (ble_sensor_boot_ready && id(ble_enabled_switch).state && !ble_sensor_is_discovering())
         ble_sensor_begin_discovery();
-    if (show)
-    {
-        ble_sensor_update_source();
-        ble_sensor_update_ui();
-    }
+    ble_sensor_update_source();
+    ble_sensor_update_ui();
 }

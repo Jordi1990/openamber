@@ -1,135 +1,246 @@
 import pytest
 
 
-def test_settings_sidebar_tabs(openamber):
-    """Verify clicking sidebar tabs in the Settings page switches both labels and panels."""
+def test_settings_overview_navigation(openamber):
+    """Verify clicking category rows in Settings overview navigates to subpages and back."""
     # Ensure on Settings page
     assert openamber.click("nav_settings"), "Clicking nav_settings must succeed"
     openamber.step(ms=100)
     assert openamber.is_visible("page_settings"), "page_settings must be visible"
 
-    # Click Algemeen tab
+    # Click Algemeen on overview
     assert openamber.click("stab_general"), "Clicking stab_general must succeed"
-    openamber.step(ms=50)
-    assert openamber.get_label("stab_general_lbl") == "Algemeen", "stab_general_lbl should be 'Algemeen'"
-    assert openamber.is_visible("panel_general"), "panel_general must be visible when Algemeen tab is selected"
-    assert openamber.is_hidden("panel_heating"), "panel_heating must be hidden when Algemeen tab is selected"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_general"), "panel_general must be visible when Algemeen is selected"
+    assert openamber.is_hidden("panel_heating"), "panel_heating must be hidden when Algemeen is selected"
 
-    # Click Verwarmen tab
+    # Navigate back to overview via header back button
+    assert openamber.click("settings_menu_back_btn"), "Clicking settings_menu_back_btn must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("settings_overview_page"), "settings_overview_page must be visible after back"
+
+    # Click Verwarmen on overview
     assert openamber.click("stab_heating"), "Clicking stab_heating must succeed"
-    openamber.step(ms=50)
-    assert openamber.get_label("stab_heating_lbl") == "Verwarmen", "stab_heating_lbl should be 'Verwarmen'"
-    assert openamber.is_visible("panel_heating"), "panel_heating must be visible when Verwarmen tab is selected"
-    assert openamber.is_hidden("panel_general"), "panel_general must be hidden when Verwarmen tab is selected"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_heating"), "panel_heating must be visible when Verwarmen is selected"
+    assert openamber.is_hidden("panel_general"), "panel_general must be hidden when Verwarmen is selected"
 
-    # Click Tapwater tab
-    assert openamber.click("stab_dhw"), "Clicking stab_dhw must succeed"
-    openamber.step(ms=50)
-    assert openamber.get_label("stab_dhw_lbl") == "Tapwater", "stab_dhw_lbl should be 'Tapwater'"
-    assert openamber.is_visible("panel_dhw"), "panel_dhw must be visible when Tapwater tab is selected"
-    assert openamber.is_hidden("panel_heating"), "panel_heating must be hidden when Tapwater tab is selected"
+    # Navigate back to overview
+    assert openamber.click("settings_menu_back_btn"), "Clicking settings_menu_back_btn must succeed"
+    openamber.step(ms=100)
 
-    # Click Bijverwarmen tab
+    # Click Bijverwarmen on overview
     assert openamber.click("stab_bijverwarmen"), "Clicking stab_bijverwarmen must succeed"
-    openamber.step(ms=50)
-    assert openamber.get_label("stab_bijverwarmen_lbl") == "Bijverwarmen", "stab_bijverwarmen_lbl should be 'Bijverwarmen'"
-    assert openamber.is_visible("panel_bijverwarmen"), "panel_bijverwarmen must be visible when Bijverwarmen tab is selected"
-    assert openamber.is_hidden("panel_dhw"), "panel_dhw must be hidden when Bijverwarmen tab is selected"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_bijverwarmen"), "panel_bijverwarmen must be visible when Bijverwarmen is selected"
+    assert openamber.is_hidden("panel_heating"), "panel_heating must be hidden when Bijverwarmen is selected"
 
 
-def test_general_system_pager_workflow(openamber):
-    """Verify the Systeem pager moves the screen timeout option to page 2 and resets on tab change."""
+def test_general_system_and_silent_mode_pages(openamber):
+    """Verify the Systeem page holds the screen timeout and Stille modus has its own menu page."""
     assert openamber.click("nav_settings"), "Clicking nav_settings must succeed"
     openamber.step(ms=100)
     assert openamber.click("stab_general"), "Clicking stab_general must succeed"
     openamber.step(ms=100)
-
-    assert openamber.is_visible("general_system_pager"), "Pager must be visible on the Systeem tab"
-    assert openamber.is_visible("set_general_system_dhw"), "Page 1 rows must be visible"
-    assert openamber.is_hidden("general_system_page_2"), "Page 2 must be hidden initially"
-
-    assert openamber.click("general_system_page_2_button"), "Clicking page 2 button must succeed"
-    openamber.step(ms=100)
-    indicator = openamber.get_label("general_system_page_indicator")
-    assert "2 / 2" in indicator, f"Page indicator should show '2 / 2', got: '{indicator}'"
-    assert openamber.is_visible("set_general_system_screen_timeout"), "Screen timeout must be on page 2"
-    assert openamber.is_hidden("general_system_page_1"), "Page 1 must be hidden on page 2"
-
-    # Switching subtab hides the pager, returning starts on page 1 again
-    assert openamber.click("general_stab_hardware"), "Clicking general_stab_hardware must succeed"
-    openamber.step(ms=100)
-    assert openamber.is_hidden("general_system_pager"), "Pager must be hidden outside the Systeem tab"
 
     assert openamber.click("general_stab_systeem"), "Clicking general_stab_systeem must succeed"
     openamber.step(ms=100)
-    assert openamber.is_visible("general_system_pager"), "Pager must be visible again on the Systeem tab"
-    indicator = openamber.get_label("general_system_page_indicator")
-    assert "1 / 2" in indicator, f"Page indicator should show '1 / 2', got: '{indicator}'"
+    assert openamber.is_visible("panel_general_page_systeem"), "Systeem page must be visible"
+    assert openamber.is_visible("set_general_system_dhw"), "Systeem rows must be visible"
+    assert openamber.is_visible("set_general_system_screen_timeout"), "Screen timeout must be on the Systeem page"
+
+    assert openamber.click("settings_menu_back_btn"), "Clicking the menu back button must succeed"
+    openamber.step(ms=100)
+    assert openamber.click("general_stab_stiltemodus"), "Clicking general_stab_stiltemodus must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_general_page_stiltemodus"), "Stille modus page must be visible"
+    assert openamber.is_visible("set_silent_mode_enabled_row"), "Silent mode switch row must be visible"
+    assert openamber.is_hidden("set_general_system_screen_timeout"), "Systeem rows must be hidden on Stille modus"
 
 
 def test_sensor_calibration_pager_workflow(openamber):
-    """Verify sensor calibration pager page navigation (Pagina 1 / 2 <-> Pagina 2 / 2)."""
+    """Verify navigating to sensor calibration subpages (Ruimte en tapwater, CV-systeem)."""
     assert openamber.click("nav_settings"), "Clicking nav_settings must succeed"
     openamber.step(ms=100)
     assert openamber.is_visible("page_settings"), "page_settings must be visible"
 
-    # Select Algemeen tab where sensor calibration pager resides
+    # Select Algemeen -> Sensor Kalibratie
     assert openamber.click("stab_general"), "Clicking stab_general must succeed"
     openamber.step(ms=100)
-
-    # Click page 2 button
-    assert openamber.click("sensor_calibration_page_2_button"), "Clicking page 2 button must succeed"
+    assert openamber.click("general_stab_sensor_kalibratie"), "Clicking general_stab_sensor_kalibratie must succeed"
     openamber.step(ms=100)
-    indicator = openamber.get_label("sensor_calibration_page_indicator")
-    assert "2 / 2" in indicator, f"Page indicator should show '2 / 2', got: '{indicator}'"
+    assert openamber.is_visible("panel_general_page_sensor_kalibratie"), "panel_general_page_sensor_kalibratie must be visible"
 
-    # Click page 1 button
-    assert openamber.click("sensor_calibration_page_1_button"), "Clicking page 1 button must succeed"
+    # 1. Ruimte en tapwater subcategory (<= 4 settings: Tr, Tw)
+    assert openamber.click("sensor_kalibratie_tab_ruimte"), "Clicking sensor_kalibratie_tab_ruimte must succeed"
     openamber.step(ms=100)
-    indicator = openamber.get_label("sensor_calibration_page_indicator")
-    assert "1 / 2" in indicator, f"Page indicator should show '1 / 2', got: '{indicator}'"
+    assert openamber.is_visible("panel_general_sensor_kalibratie_ruimte"), "Ruimte subpage must be visible"
+    assert openamber.is_visible("sensor_calibration_page_1_row_tr"), "Row Tr must be visible"
+    assert openamber.is_visible("sensor_calibration_page_1_row_tw"), "Row Tw must be visible"
+
+    # Back to Sensor kalibratie choices
+    assert openamber.click("settings_menu_back_btn"), "Clicking back button must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_general_page_sensor_kalibratie"), "Choice page must be visible"
+
+    # 2. CV-Systeem subcategory (<= 4 settings: Tc, Tui, Tuo)
+    assert openamber.click("sensor_kalibratie_tab_cv"), "Clicking sensor_kalibratie_tab_cv must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_general_sensor_kalibratie_cv"), "CV subpage must be visible"
+    assert openamber.is_visible("sensor_calibration_page_1_row_tc"), "Row Tc must be visible"
+    assert openamber.is_visible("sensor_calibration_page_1_row_tui"), "Row Tui must be visible"
+    assert openamber.is_visible("sensor_calibration_page_2_row_tuo"), "Row Tuo must be visible"
 
 
 def test_zone2_stooklijn_and_mixing_valves_subtabs(openamber):
-    """Verify Zone 2 Stooklijn and Mengventielen UI subtabs and pager."""
+    """Verify Zone 2 Stooklijn and Mengventielen Zone 1 & Zone 2 subpages."""
     assert openamber.click("nav_settings"), "Clicking nav_settings must succeed"
     openamber.step(ms=100)
     assert openamber.is_visible("page_settings"), "page_settings must be visible"
 
-    # 1. Under Verwarmen (stab_heating): Click Stooklijn Z2 tab
+    # 1. Under Verwarmen (stab_heating): Click Stooklijn Z2 subpage
     assert openamber.click("stab_heating"), "Clicking stab_heating must succeed"
     openamber.step(ms=50)
     assert openamber.click("heating_stab_stooklijn_z2"), "Clicking heating_stab_stooklijn_z2 must succeed"
     openamber.step(ms=50)
     assert openamber.is_visible("panel_heating_page_stooklijn_z2"), "panel_heating_page_stooklijn_z2 must be visible"
-    assert openamber.is_hidden("panel_heating_page_algemeen"), "panel_heating_page_algemeen must be hidden"
 
-    # 2. Under Algemeen (stab_general): Click Mengventielen tab
+    # 2. Under Algemeen -> Mengventielen
+    assert openamber.click("nav_settings"), "Clicking nav_settings must succeed"
+    openamber.step(ms=100)
     assert openamber.click("stab_general"), "Clicking stab_general must succeed"
     openamber.step(ms=50)
     assert openamber.click("general_stab_mengventielen"), "Clicking general_stab_mengventielen must succeed"
     openamber.step(ms=50)
     assert openamber.is_visible("panel_general_page_mengventielen"), "panel_general_page_mengventielen must be visible"
 
-    # Default is page 1 (Zone 1)
-    assert openamber.is_visible("set_general_mv_z1_enabled"), "Zone 1 settings row must be visible on page 1"
-    assert openamber.is_hidden("set_general_mv_z2_enabled"), "Zone 2 settings row must be hidden on page 1"
-    indicator = openamber.get_label("mengventielen_page_indicator")
-    assert "1 / 2" in indicator, f"Page indicator should show '1 / 2', got: '{indicator}'"
+    # Click Mengventiel Zone 1 (<= 4 settings: enabled, min, max)
+    assert openamber.click("mengventielen_tab_z1"), "Clicking mengventielen_tab_z1 must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_general_mv_zone1"), "panel_general_mv_zone1 must be visible"
+    assert openamber.is_visible("set_general_mv_z1_enabled"), "Zone 1 settings row must be visible"
 
-    # Switch to page 2 (Zone 2)
-    assert openamber.click("mengventielen_page_2_button"), "Clicking mengventielen_page_2_button must succeed"
-    openamber.step(ms=50)
-    assert openamber.is_hidden("set_general_mv_z1_enabled"), "Zone 1 settings row must be hidden on page 2"
-    assert openamber.is_visible("set_general_mv_z2_enabled"), "Zone 2 settings row must be visible on page 2"
-    indicator = openamber.get_label("mengventielen_page_indicator")
-    assert "2 / 2" in indicator, f"Page indicator should show '2 / 2', got: '{indicator}'"
+    # Back to Mengventielen choices
+    assert openamber.click("settings_menu_back_btn"), "Clicking back button must succeed"
+    openamber.step(ms=100)
 
-    # Switch back to page 1 (Zone 1)
-    assert openamber.click("mengventielen_page_1_button"), "Clicking mengventielen_page_1_button must succeed"
+    # Click Mengventiel Zone 2 (<= 4 settings: enabled, min, max)
+    assert openamber.click("mengventielen_tab_z2"), "Clicking mengventielen_tab_z2 must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_general_mv_zone2"), "panel_general_mv_zone2 must be visible"
+    assert openamber.is_visible("set_general_mv_z2_enabled"), "Zone 2 settings row must be visible"
+
+
+def test_general_systeem_and_opties(openamber):
+    """Verify Systeem and Opties subpages under Algemeen."""
+    assert openamber.click("nav_settings"), "Clicking nav_settings must succeed"
+    openamber.step(ms=100)
+    assert openamber.click("stab_general"), "Clicking stab_general must succeed"
     openamber.step(ms=50)
-    assert openamber.is_visible("set_general_mv_z1_enabled"), "Zone 1 settings row must be visible on page 1"
-    indicator = openamber.get_label("mengventielen_page_indicator")
-    assert "1 / 2" in indicator, f"Page indicator should show '1 / 2', got: '{indicator}'"
+
+    # Systeem subpage (<= 4 settings: DHW, Control temp source, Advanced settings toggle)
+    assert openamber.click("general_stab_systeem"), "Clicking general_stab_systeem must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_general_page_systeem"), "panel_general_page_systeem must be visible"
+    assert openamber.is_visible("set_general_system_dhw"), "Tapwater row must be visible"
+    assert openamber.is_visible("set_general_system_control_temp_source"), "Regeltemp row must be visible"
+    assert openamber.is_visible("set_general_defrost_advanced_toggle_row"), "Geavanceerd row must be visible"
+
+    # Back to Algemeen choices
+    assert openamber.click("settings_menu_back_btn"), "Clicking back button must succeed"
+    openamber.step(ms=100)
+
+    # Analytics subpage (<= 4 settings: Analytics toggle, ID)
+    assert openamber.click("general_stab_analytics"), "Clicking general_stab_analytics must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_general_page_analytics"), "panel_general_page_analytics must be visible"
+    assert openamber.is_visible("set_general_system_analytics"), "Analytics row must be visible"
+
+    # Back to Algemeen choices
+    assert openamber.click("settings_menu_back_btn"), "Clicking back button must succeed"
+    openamber.step(ms=100)
+
+    # Opties (Hardware) subpage (<= 4 settings)
+    assert openamber.click("general_stab_hardware"), "Clicking general_stab_hardware must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_general_page_hardware"), "panel_general_page_hardware must be visible"
+    assert openamber.is_visible("set_general_hardware_flow_sensor"), "Flow sensor row must be visible"
+    assert openamber.is_visible("set_general_hardware_flow_sensor_calibration"), "Kalibratie row must be visible"
+
+
+def test_service_overview_navigation(openamber):
+    """Verify clicking category rows in Service overview navigates to subpages and back."""
+    assert openamber.click("nav_service"), "Clicking nav_service must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("page_service"), "page_service must be visible"
+
+    # Initially Service Overview page is root page and visible
+    assert openamber.is_visible("service_overview_page"), "service_overview_page must be visible initially"
+
+    # Click Algemeen (service_tab_maintenance)
+    assert openamber.click("service_tab_maintenance"), "Clicking service_tab_maintenance must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("service_maintenance_panel"), "service_maintenance_panel must be visible"
+    assert openamber.is_hidden("service_overview_page"), "service_overview_page must be hidden"
+
+    # Click back button to return to service overview
+    assert openamber.click("service_menu_back_btn"), "Clicking service_menu_back_btn must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("service_overview_page"), "service_overview_page must be visible again"
+
+    # Click Ontluchten (service_tab_deaeration)
+    assert openamber.click("service_tab_deaeration"), "Clicking service_tab_deaeration must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("service_deaeration_panel"), "service_deaeration_panel must be visible"
+    assert openamber.is_hidden("service_overview_page"), "service_overview_page must be hidden"
+
+    # Click back button to return to service overview
+    assert openamber.click("service_menu_back_btn"), "Clicking service_menu_back_btn must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("service_overview_page"), "service_overview_page must be visible again"
+
+    # Click Buitenunit (service_tab_compressor)
+    assert openamber.click("service_tab_compressor"), "Clicking service_tab_compressor must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("service_mpanel_compressor"), "service_mpanel_compressor must be visible"
+    assert openamber.is_hidden("service_overview_page"), "service_overview_page must be hidden"
+
+    # Click back button to return to service overview
+    assert openamber.click("service_menu_back_btn"), "Clicking service_menu_back_btn must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("service_overview_page"), "service_overview_page must be visible again"
+
+
+def test_bottom_nav_resets_drilldown_and_hides_back_button(openamber):
+    """Verify switching tabs via bottom navigation bar resets drill-down depth and hides the back button."""
+    # 1. In Service: Navigate deep into Waarschuwingen (service_tab_warnings)
+    assert openamber.click("nav_service"), "Clicking nav_service must succeed"
+    openamber.step(ms=100)
+    assert openamber.click("service_tab_warnings"), "Clicking service_tab_warnings must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("service_warnings_panel"), "service_warnings_panel must be visible"
+    assert openamber.is_visible("service_menu_back_btn"), "service_menu_back_btn must be visible when on subpage"
+
+    # 2. Switch to Settings via bottom nav bar
+    assert openamber.click("nav_settings"), "Clicking nav_settings must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("page_settings"), "page_settings must be visible"
+    assert openamber.is_visible("settings_overview_page"), "settings_overview_page must be visible"
+    assert openamber.is_hidden("settings_menu_back_btn"), "settings_menu_back_btn must be HIDDEN on root overview"
+
+    # 3. Drill down in Settings: Algemeen -> Systeem
+    assert openamber.click("stab_general"), "Clicking stab_general must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("settings_menu_back_btn"), "settings_menu_back_btn must be visible on subpage"
+
+    # 4. Switch back to Service via bottom nav bar
+    assert openamber.click("nav_service"), "Clicking nav_service must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("page_service"), "page_service must be visible"
+    assert openamber.is_visible("service_overview_page"), "service_overview_page must be visible"
+    assert openamber.is_hidden("service_menu_back_btn"), "service_menu_back_btn must be HIDDEN on root overview"
+
+
+
 
 

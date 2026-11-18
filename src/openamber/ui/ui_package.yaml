@@ -31,8 +31,81 @@ font: !include fonts.yaml
 
 lvgl:
   buffer_size: 100%
+  log_level: ERROR
   bottom_layer:
     bg_color: 0x0A2747
+  # Shared styles for the menu tiles (settings and service): stored once instead of as local style
+  # properties on every tile, icon and label.
+  style_definitions:
+    - id: menu_tile_style
+      width: 19.2%
+      height: 140
+      bg_color: 0xFFFFFF
+      bg_opa: 100%
+      radius: 14
+      border_width: 1
+      border_color: 0xD5DEE9
+      border_opa: 100%
+      pad_all: 0
+    - id: menu_tile_pressed_style
+      bg_color: 0xE6F1FB
+      border_color: 0x185FA5
+    - id: menu_tile_disabled_style
+      bg_color: 0xEDF1F6
+      opa: 45%
+    - id: menu_tile_icon_style
+      align: TOP_MID
+      y: 20
+      width: 52
+      height: 52
+      radius: 26
+      bg_color: 0xE6F1FB
+      bg_opa: 100%
+      text_color: 0x185FA5
+      text_font: font_mdi_24
+      text_align: CENTER
+      pad_top: 12
+    - id: menu_tile_label_style
+      align: BOTTOM_MID
+      y: -16
+      width: 96%
+      text_color: 0x1F2933
+      text_font: font_text_20
+      text_align: CENTER
+    # Settings pages: margin around the page, every setting a card like the tiles, round +/- buttons.
+    - id: setting_page_style
+      pad_left: 18
+      pad_right: 18
+      pad_top: 2
+      pad_bottom: 8
+      pad_row: 8
+    - id: setting_row_style
+      width: 100%
+      height: SIZE_CONTENT
+      bg_color: 0xFFFFFF
+      bg_opa: 100%
+      radius: 14
+      border_width: 1
+      border_color: 0xD5DEE9
+      border_opa: 100%
+      pad_left: 18
+      pad_right: 18
+      pad_top: 9
+      pad_bottom: 9
+    - id: setting_step_btn_style
+      width: 40
+      height: 40
+      radius: 20
+      bg_color: 0xE6F1FB
+      bg_opa: 100%
+      border_width: 0
+      pad_all: 0
+    - id: setting_step_btn_pressed_style
+      bg_color: 0xB5D4F4
+    - id: setting_step_icon_style
+      align: CENTER
+      text_color: 0x185FA5
+      text_font: font_mdi_24
   widgets:
     - !include root_bg.yaml
     - !include header_bar.yaml

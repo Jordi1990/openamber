@@ -1,0 +1,155 @@
+# Defrost starttemperaturen content
+# ------------------------------------------------------------
+- obj:
+    id: set_general_defrost_enter1_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Defrost starttemperatuur 1", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Spoeltemperatuur bij buitentemp. vanaf 3°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
+                scrollable: false
+                on_click:
+                  - number.decrement: enter_defrost_temperature
+                widgets:
+                  - label: { text: "\U000F0374", styles: setting_step_icon_style }
+            - label: { id: set_defrost_enter1_val, text: "-3°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
+                scrollable: false
+                on_click:
+                  - number.increment: enter_defrost_temperature
+                widgets:
+                  - label: { text: "\U000F0415", styles: setting_step_icon_style }
+
+- obj:
+    id: set_defrost_advanced_section
+    width: 100%
+    height: SIZE_CONTENT
+    bg_opa: 0%
+    border_opa: 0%
+    pad_all: 0
+    layout:
+      type: FLEX
+      flex_flow: COLUMN
+      flex_align_main: START
+      flex_align_cross: CENTER
+      pad_row: 8
+    widgets:
+      - obj:
+          id: set_general_defrost_enter2_row
+          styles: setting_row_style
+          widgets:
+            - label: { text: "Defrost starttemperatuur 2", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Spoeltemperatuur bij buitentemp. -3 tot 3°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+            - obj:
+                width: SIZE_CONTENT
+                height: SIZE_CONTENT
+                align: TOP_RIGHT
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                widgets:
+                  - obj:
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
+                      scrollable: false
+                      on_click:
+                        - number.decrement: enter_defrost_temperature_2
+                      widgets:
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
+                  - label: { id: set_defrost_enter2_val, text: "-3°C", text_color: 0x1F2933, text_font: font_text_24 }
+                  - obj:
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
+                      scrollable: false
+                      on_click:
+                        - number.increment: enter_defrost_temperature_2
+                      widgets:
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
+
+      - obj:
+          id: set_general_defrost_enter3_row
+          styles: setting_row_style
+          widgets:
+            - label: { text: "Defrost starttemperatuur 3", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Spoeltemperatuur bij buitentemp. -10 tot -3°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+            - obj:
+                width: SIZE_CONTENT
+                height: SIZE_CONTENT
+                align: TOP_RIGHT
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                widgets:
+                  - obj:
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
+                      scrollable: false
+                      on_click:
+                        - number.decrement: enter_defrost_temperature_3
+                      widgets:
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
+                  - label: { id: set_defrost_enter3_val, text: "-5°C", text_color: 0x1F2933, text_font: font_text_24 }
+                  - obj:
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
+                      scrollable: false
+                      on_click:
+                        - number.increment: enter_defrost_temperature_3
+                      widgets:
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
+
+      - obj:
+          id: set_general_defrost_enter4_row
+          styles: setting_row_style
+          widgets:
+            - label: { text: "Defrost starttemperatuur 4", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "Spoeltemperatuur bij buitentemp. onder -10°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+            - obj:
+                width: SIZE_CONTENT
+                height: SIZE_CONTENT
+                align: TOP_RIGHT
+                bg_opa: 0%
+                border_opa: 0%
+                pad_all: 0
+                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                widgets:
+                  - obj:
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
+                      scrollable: false
+                      on_click:
+                        - number.decrement: enter_defrost_temperature_4
+                      widgets:
+                        - label: { text: "\U000F0374", styles: setting_step_icon_style }
+                  - label: { id: set_defrost_enter4_val, text: "-12°C", text_color: 0x1F2933, text_font: font_text_24 }
+                  - obj:
+                      styles: setting_step_btn_style
+                      pressed:
+                        styles: setting_step_btn_pressed_style
+                      scrollable: false
+                      on_click:
+                        - number.increment: enter_defrost_temperature_4
+                      widgets:
+                        - label: { text: "\U000F0415", styles: setting_step_icon_style }
