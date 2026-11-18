@@ -233,25 +233,10 @@ private:
 
   int GetMaxAllowedCompressorMode()
   {
-    auto& active_mode = GetActiveCompressorMode();
-    int mode_offset = id(compressor_control_select).size() - active_mode.size();
-    if (IsCoolingDemand())
-    {
-      // Cooling maximum range is limited to make the mode selection based on the lower frequencies, maximum compressor modes should not be needed for cooling.
-      mode_offset -= 3;
-    }
-    int max_allowed = (int)active_mode.active_index().value() + mode_offset;
-    if (id(silent_mode_active_sensor).state)
-    {
-      int silent_offset = id(compressor_control_select).size() - id(silent_mode_compressor_mode).size();
-      if (IsCoolingDemand())
-      {
-        silent_offset -= 3;
-      }
-      int silent_limit = (int)id(silent_mode_compressor_mode).active_index().value_or(3) + silent_offset;
-      max_allowed = std::min(max_allowed, silent_limit);
-    }
-    return max_allowed;
+    // Cooling uses the lower part of the range: the highest compressor modes should not be needed for cooling.
+    auto scale = IsCoolingDemand() ? CompressorController::PowerScale::LOW : CompressorController::PowerScale::HIGH;
+    int max_allowed = CompressorController::MapPowerSelectToMode(GetActiveCompressorMode(), scale);
+    return CompressorController::ApplySilentModeLimit(max_allowed);
   }
 
   int MapPIDToCompressorMode()

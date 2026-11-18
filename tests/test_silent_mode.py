@@ -123,9 +123,9 @@ def test_silent_mode_heating_limits_and_dynamic_adjustment(clean_system):
     Verify Space Heating compressor mode is capped by silent mode:
     1. System runs heating under full PID demand (Tc = 25°C, Setpoint = 40°C).
     2. heat_compressor_mode is 'Maximaal' (mode 10).
-    3. Silent mode is enabled across the whole day (00:00 - 23:59) with 'Gemiddeld' (mode 7).
-    4. Compressor saturates at mode 7 instead of mode 10.
-    5. Dynamically changing silent mode to 'Beperkt' (mode 4) steps down compressor to mode 4.
+    3. Silent mode is enabled across the whole day (00:00 - 23:59) with 'Gemiddeld' (mode 4).
+    4. Compressor saturates at mode 4 instead of mode 10.
+    5. Dynamically changing silent mode to 'Beperkt' (mode 1) steps down compressor to mode 1.
     6. Turning silent mode OFF allows compressor to ramp back up to mode 10.
     """
     openamber = clean_system
@@ -140,7 +140,7 @@ def test_silent_mode_heating_limits_and_dynamic_adjustment(clean_system):
     # Set wide silent window to cover any time
     openamber.set_time("silent_mode_start_time", 0, 0, 0)
     openamber.set_time("silent_mode_end_time", 23, 59, 0)
-    openamber.set_select("silent_mode_compressor_mode", "Gemiddeld")  # mode 7
+    openamber.set_select("silent_mode_compressor_mode", "Gemiddeld")  # mode 4
     openamber.set_switch("silent_mode_enabled_switch", True)
 
     openamber.set_switch("heat_demand_switch", True)
@@ -165,24 +165,24 @@ def test_silent_mode_heating_limits_and_dynamic_adjustment(clean_system):
     openamber.step(ms=50)
 
     current_mode = int(openamber.get_entity("compressor_control_select") or 0)
-    assert current_mode == 7, f"Heating compressor should be capped at mode 7 (Gemiddeld), got {current_mode}"
+    assert current_mode == 4, f"Heating compressor should be capped at mode 4 (Gemiddeld), got {current_mode}"
 
-    # Dynamically change silent mode to 'Beperkt' (mode 4)
+    # Dynamically change silent mode to 'Beperkt' (mode 1)
     openamber.set_select("silent_mode_compressor_mode", "Beperkt")
-    # Downward ramp takes 10s per step (3 steps from 7 to 4 = 30s)
+    # Downward ramp takes 10s per step (3 steps from 4 to 1 = 30s)
     openamber.advance_time(seconds=50, step_s=5)
     openamber.step(ms=50)
 
     current_mode = int(openamber.get_entity("compressor_control_select") or 0)
-    assert current_mode == 4, f"Heating compressor should step down to mode 4 (Beperkt), got {current_mode}"
+    assert current_mode == 1, f"Heating compressor should step down to mode 1 (Beperkt), got {current_mode}"
 
     # Turn silent mode OFF -> ramps back up to Maximaal (mode 10)
     openamber.set_switch("silent_mode_enabled_switch", False)
     openamber.step(ms=50)
     assert openamber.get_entity("silent_mode_active_sensor") is False
 
-    # 6 steps up from mode 4 to 10 * 300s = 1800s
-    openamber.advance_time(seconds=1900, step_s=30)
+    # 9 steps up from mode 1 to 10 * 300s = 2700s
+    openamber.advance_time(seconds=2800, step_s=30)
     openamber.step(ms=50)
 
     current_mode = int(openamber.get_entity("compressor_control_select") or 0)
@@ -193,7 +193,7 @@ def test_silent_mode_heating_softstart_capping(clean_system):
     """
     Verify Space Heating soft-start mode is capped by silent mode:
     1. Large delta T (|Tc - Target| = 15°C) would normally request soft-start mode 5.
-    2. When silent_mode_compressor_mode is 'Beperkt' (max allowed mode = 4), soft-start is capped to mode 4.
+    2. When silent_mode_compressor_mode is 'Zeer laag' (max allowed mode = 2), soft-start is capped to mode 2.
     """
     openamber = clean_system
 
@@ -205,7 +205,7 @@ def test_silent_mode_heating_softstart_capping(clean_system):
 
     openamber.set_time("silent_mode_start_time", 0, 0, 0)
     openamber.set_time("silent_mode_end_time", 23, 59, 0)
-    openamber.set_select("silent_mode_compressor_mode", "Beperkt")  # Silent limit = 4
+    openamber.set_select("silent_mode_compressor_mode", "Zeer laag")  # Silent limit = 2
     openamber.set_switch("silent_mode_enabled_switch", True)
 
     openamber.set_switch("heat_demand_switch", True)
@@ -223,14 +223,14 @@ def test_silent_mode_heating_softstart_capping(clean_system):
     openamber.step(ms=50)
 
     softstart_mode = int(openamber.get_entity("compressor_control_select") or 0)
-    assert softstart_mode == 4, f"Softstart mode should be capped to 4 by silent mode 'Beperkt', got {softstart_mode}"
+    assert softstart_mode == 2, f"Softstart mode should be capped to 2 by silent mode 'Zeer laag', got {softstart_mode}"
 
 
 def test_silent_mode_cooling_limit(clean_system):
     """
     Verify Space Cooling compressor mode is capped by silent mode:
     1. Normal cool_compressor_mode is 'Maximaal' (mode 7).
-    2. Silent mode is active with 'Laag' (mode 3 in cooling: 0+1=1, 1+1=2, 2+1=3).
+    2. Silent mode is active with 'Laag' (mode 3: silent mode always starts at mode 1, same as cooling).
     3. Cooling compressor mode saturates at mode 3.
     """
     openamber = clean_system
@@ -273,9 +273,10 @@ def test_silent_mode_dhw_limit(clean_system):
     """
     Verify DHW compressor mode is capped by silent mode:
     1. dhw_compressor_mode is 'Maximaal' (mode 10).
-    2. Silent mode is active with 'Gemiddeld' (mode 7).
-    3. DHW compressor runs at mode 7.
-    4. Even in winter mode (Ta <= threshold), DHW stays capped at mode 7.
+    2. Silent mode is active with 'Gemiddeld' (mode 4).
+    3. DHW compressor runs at mode 4.
+    4. Even in winter mode (Ta <= threshold), DHW stays capped at mode 4.
+    5. 'Beperkt' lowers DHW to mode 1, below the lowest DHW power setting (mode 4).
     """
     openamber = clean_system
 
@@ -286,7 +287,7 @@ def test_silent_mode_dhw_limit(clean_system):
 
     openamber.set_time("silent_mode_start_time", 0, 0, 0)
     openamber.set_time("silent_mode_end_time", 23, 59, 0)
-    openamber.set_select("silent_mode_compressor_mode", "Gemiddeld")  # mode 7
+    openamber.set_select("silent_mode_compressor_mode", "Gemiddeld")  # mode 4
     openamber.set_switch("silent_mode_enabled_switch", True)
 
     openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
@@ -300,16 +301,25 @@ def test_silent_mode_dhw_limit(clean_system):
     assert openamber.get_entity("state_machine_state_dhw") == "Compressor running"
 
     actual_mode = int(openamber.get_entity("compressor_control_select") or 0)
-    assert actual_mode == 7, f"DHW compressor should be capped at mode 7 by silent mode, got {actual_mode}"
+    assert actual_mode == 4, f"DHW compressor should be capped at mode 4 by silent mode, got {actual_mode}"
 
     # Drop outside temp to activate winter mode
     openamber.set_sensor("temperature_outside_ta", 0.0)
     openamber.advance_time(seconds=200, step_s=20)
     openamber.step(ms=50)
 
-    # In winter mode, dhw_compressor_mode_max is 10, but silent mode still caps it to 7
+    # In winter mode, dhw_compressor_mode_max is 10, but silent mode still caps it to 4
     actual_mode = int(openamber.get_entity("compressor_control_select") or 0)
-    assert actual_mode == 7, f"DHW winter mode should still be capped at mode 7 by silent mode, got {actual_mode}"
+    assert actual_mode == 4, f"DHW winter mode should still be capped at mode 4 by silent mode, got {actual_mode}"
+
+    # 'Beperkt' steps DHW down to mode 1 (10s per step down)
+    openamber.set_select("silent_mode_compressor_mode", "Beperkt")
+    openamber.advance_time(seconds=60, step_s=5)
+    openamber.step(ms=50)
+
+    actual_mode = int(openamber.get_entity("compressor_control_select") or 0)
+    assert actual_mode == 1, f"DHW should be capped at mode 1 by silent mode 'Beperkt', got {actual_mode}"
+    openamber.set_select("silent_mode_compressor_mode", "Gemiddeld")
 
     # Reset silent mode entities to defaults
     openamber.set_switch("silent_mode_enabled_switch", False)

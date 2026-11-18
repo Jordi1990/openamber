@@ -19,7 +19,9 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cmath>
+#include <limits>
 
 #include "esphome.h"
 #include "constants.h"
@@ -274,7 +276,41 @@ private:
   }
 
 public:
+  /// @brief How a user-facing power select (e.g. "Beperkt" .. "Maximaal") maps onto the compressor modes 1..10.
+  enum class PowerScale
+  {
+    // Last option maps to the highest compressor mode (10); used for heating and DHW.
+    HIGH,
+    // First option maps to the lowest compressor mode (1); used for cooling and silent mode.
+    LOW,
+  };
+
   CompressorController() {}
+
+  /// @brief Converts the selected option of a power select into a compressor mode index.
+  /// @param fallback_index Option index used when the select has no state yet; -1 means the last option.
+  static int MapPowerSelectToMode(select::Select &power_select, PowerScale scale, int fallback_index = -1)
+  {
+    const int option_count = (int)power_select.size();
+    const int index = (int)power_select.active_index().value_or(fallback_index >= 0 ? fallback_index : option_count - 1);
+    const int offset = scale == PowerScale::HIGH ? (int)id(compressor_control_select).size() - option_count : 1;
+    return index + offset;
+  }
+
+  /// @brief Highest compressor mode allowed by silent mode, or INT_MAX when silent mode is not active.
+  static int GetSilentModeLimit()
+  {
+    if (!id(silent_mode_active_sensor).state)
+    {
+      return std::numeric_limits<int>::max();
+    }
+    return MapPowerSelectToMode(id(silent_mode_compressor_mode), PowerScale::LOW, SILENT_MODE_DEFAULT_OPTION_INDEX);
+  }
+
+  static int ApplySilentModeLimit(int compressor_mode)
+  {
+    return std::min(compressor_mode, GetSilentModeLimit());
+  }
 
   uint64_t GetStartTime()
   {
@@ -413,14 +449,8 @@ public:
     // Increase compressor mode by 3 steps to speed up recovery after defrost
     int defrost_recovery_mode = current_compressor_mode + 3;
     auto compressor_set_call = id(compressor_control_select).make_call();
-    int mode_offset = id(compressor_control_select).size() - id(heat_compressor_mode).size();
-    int capped_mode_index = std::min(defrost_recovery_mode, (int)id(heat_compressor_mode).active_index().value() + mode_offset);
-    if (id(silent_mode_active_sensor).state)
-    {
-      int silent_offset = id(compressor_control_select).size() - id(silent_mode_compressor_mode).size();
-      int silent_limit = (int)id(silent_mode_compressor_mode).active_index().value_or(3) + silent_offset;
-      capped_mode_index = std::min(capped_mode_index, silent_limit);
-    }
+    int capped_mode_index = std::min(defrost_recovery_mode, MapPowerSelectToMode(id(heat_compressor_mode), PowerScale::HIGH));
+    capped_mode_index = ApplySilentModeLimit(capped_mode_index);
     capped_mode_index = CapToAmbientFrequencyLimit(capped_mode_index);
     capped_mode_index = ApplyDischargeSideLimit(capped_mode_index, current_compressor_mode);
     if (capped_mode_index == (int)current_compressor_mode)
