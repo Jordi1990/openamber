@@ -1,0 +1,53 @@
+# Menu Page: Sensor kalibratie (Keuzemenu Ruimte / CV-Systeem)
+# ------------------------------------------------------------
+id: panel_general_page_sensor_kalibratie
+title: "Sensor kalibratie"
+widgets:
+  - obj:
+      width: 100%
+      height: SIZE_CONTENT
+      bg_opa: 0%
+      border_opa: 0%
+      pad_left: 12
+      pad_right: 12
+      pad_top: 4
+      pad_bottom: 16
+      layout:
+        type: FLEX
+        flex_flow: ROW_WRAP
+        flex_align_main: START
+        flex_align_cross: START
+        pad_row: 8
+        pad_column: 8
+      widgets:
+        - obj:
+            id: sensor_kalibratie_tab_ruimte
+            styles: menu_tile_style
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_general_sensor_kalibratie_ruimte
+            widgets:
+              - label: { text: "\U000F0F54", styles: menu_tile_icon_style }
+              - label: { id: sensor_kalibratie_tab_ruimte_lbl, text: "Ruimte en tapwater", long_mode: WRAP, styles: menu_tile_label_style }
+
+        - obj:
+            id: sensor_kalibratie_tab_cv
+            styles: menu_tile_style
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_general_sensor_kalibratie_cv
+            widgets:
+              - label: { text: "\U000F0438", styles: menu_tile_icon_style }
+              - label: { id: sensor_kalibratie_tab_cv_lbl, text: "CV-systeem", long_mode: WRAP, styles: menu_tile_label_style }

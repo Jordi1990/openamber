@@ -1,0 +1,71 @@
+# Ventilator content: Ventilator - Verwarmen compressor
+# ------------------------------------------------------------
+- obj:
+    id: set_fan_heat_hz_low_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Verwarmen: compressor laag", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Compressor onder F4", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
+                scrollable: false
+                on_click:
+                  - number.decrement: outdoor_unit_fan_param_3303
+                widgets:
+                  - label: { text: "\U000F0374", styles: setting_step_icon_style }
+            - label: { id: set_fan_heat_hz_low_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
+                scrollable: false
+                on_click:
+                  - number.increment: outdoor_unit_fan_param_3303
+                widgets:
+                  - label: { text: "\U000F0415", styles: setting_step_icon_style }
+
+- obj:
+    id: set_fan_heat_hz_mid_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Verwarmen: compressor midden", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Compressor F4 tot F7 (vanaf F7: zie buitentemp.)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
+                scrollable: false
+                on_click:
+                  - number.decrement: outdoor_unit_fan_param_3305
+                widgets:
+                  - label: { text: "\U000F0374", styles: setting_step_icon_style }
+            - label: { id: set_fan_heat_hz_mid_val, text: "-- rpm", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
+                scrollable: false
+                on_click:
+                  - number.increment: outdoor_unit_fan_param_3305
+                widgets:
+                  - label: { text: "\U000F0415", styles: setting_step_icon_style }

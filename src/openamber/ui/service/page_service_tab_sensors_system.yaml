@@ -1,0 +1,51 @@
+# Menu Page: Diagnose - Systeem
+# ------------------------------------------------------------
+id: service_sensors_system_page
+title: "Systeem"
+styles: setting_page_style
+widgets:
+  - obj:
+      width: 100%
+      height: SIZE_CONTENT
+      bg_color: 0xFFFFFF
+      bg_opa: 100%
+      radius: 14
+      border_width: 1
+      border_color: 0xE2E8F0
+      border_opa: 100%
+      pad_left: 20
+      pad_right: 20
+      pad_top: 14
+      pad_bottom: 8
+      scrollbar_mode: "OFF"
+      scrollable: false
+      widgets:
+        - label: { text: "Systeem", text_color: 0x0F172A, text_font: font_text_24, align: TOP_LEFT }
+        - table:
+            id: service_diag_system_table
+            width: 100%
+            y: 36
+            bg_opa: 0%
+            border_width: 0
+            scrollbar_mode: "OFF"
+            scrollable: false
+            items:
+              text_font: font_text_20
+              text_color: 0x1E293B
+              border_width: 1
+              border_color: 0xF1F5F9
+              border_side: BOTTOM
+              bg_opa: 0%
+              pad_top: 5
+              pad_bottom: 5
+              pad_left: 4
+              pad_right: 4
+            columns:
+              - width: 60%
+              - width: 40%
+            rows:
+              - ["Ontdooiing (Defrost)", "-"]
+              - ["Bodemplaatverwarming", "-"]
+              - ["Modbus binnenunit", "-"]
+              - ["Modbus buitenunit", "-"]
+              - ["SG Ready contacten (A / B)", "-"]

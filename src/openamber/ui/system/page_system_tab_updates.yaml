@@ -1,115 +1,124 @@
+# System -> Beheer: software status card and action tiles. Diagnostiek opens system_diagnostics_panel.
 obj:
   id: service_updates_panel
   width: 100%
   height: 100%
-  align: TOP_LEFT
-  y: 0
-  hidden: false
   bg_opa: 0%
   border_opa: 0%
   pad_all: 0
-  scrollbar_mode: "OFF"
-  scrollable: false
+  scrollbar_mode: AUTO
+  scrollable: true
+  layout:
+    type: FLEX
+    flex_flow: COLUMN
+    flex_align_main: START
+    flex_align_cross: CENTER
+    pad_row: 12
   widgets:
-    - label:
-        id: service_update_status
-        width: 62%
-        text: "Controleren op update..."
-        text_color: 0x1F2933
-        text_font: font_mdi_24
-        long_mode: WRAP
-        align: TOP_LEFT
-
     - obj:
-        id: service_update_button
-        width: 180
-        height: 52
-        align: TOP_RIGHT
-        y: -2
-        hidden: true
-        bg_color: 0x0072CE
-        bg_opa: 100%
-        radius: 14
-        border_width: 0
-        border_opa: 0%
-        pad_all: 0
-        on_click:
-          - lambda: |-
-              // Outside standby the heat pump is in operation (also while the compressor or pump is idle):
-              // offer to stop it in a controlled way first.
-              bool active = !id(amber_ctrl).is_standby();
-              id(service_confirm_action) = active ? 4 : 2;
-              if (active) {
-                lv_obj_set_size(id(service_confirm_card), 620, 330);
-                lv_obj_set_width(id(service_confirm_cancel_button), 150);
-                lv_obj_set_width(id(service_confirm_button), 190);
-                lv_obj_remove_flag(id(service_confirm_stop_first_button), LV_OBJ_FLAG_HIDDEN);
-              }
-              lv_label_set_text(id(service_confirm_title), active ? "Warmtepomp in bedrijf" : "Update bevestigen");
-              lv_obj_send_event(id(service_confirm_title), lvgl::lv_update_event, nullptr);
-              lv_label_set_text(id(service_confirm_text), active
-                  ? "De update kan veilig tijdens bedrijf. Of stop eerst gecontroleerd en start de update opnieuw zodra de status Standby is."
-                  : "Wil je de firmware update nu starten?");
-              lv_obj_send_event(id(service_confirm_text), lvgl::lv_update_event, nullptr);
-              lv_label_set_text(id(service_confirm_button_label), active ? "Nu updaten" : "Update starten");
-              lv_obj_send_event(id(service_confirm_button_label), lvgl::lv_update_event, nullptr);
-              lv_obj_set_style_bg_color(id(service_confirm_button), lv_color_hex(0x0072CE), LV_PART_MAIN);
-              lv_obj_remove_flag(id(service_confirm_modal), LV_OBJ_FLAG_HIDDEN);
+        id: service_update_card
+        styles: setting_row_style
+        scrollable: false
         widgets:
-          - label:
-              id: service_update_button_label
-              text: "Update"
-              text_color: 0xFFFFFF
-              text_font: font_mdi_24
-              align: CENTER
+        - label:
+            id: service_update_status
+            # The update scripts put the whole status in service_update_version.
+            hidden: true
+            width: 62%
+            text: "Controleren op update..."
+            text_color: 0x1F2933
+            text_font: font_mdi_24
+            long_mode: WRAP
+            align: TOP_LEFT
 
-    - label:
-        id: service_update_version
-        width: 96%
-        text: "Versie informatie wordt geladen..."
-        text_color: 0x1F2933
-        text_font: font_mdi_24
-        long_mode: WRAP
-        align: TOP_LEFT
-        y: 32
+        - label:
+            id: service_update_version
+            width: 62%
+            text: "Versie informatie wordt geladen..."
+            text_color: 0x1F2933
+            text_font: font_text_24
+            long_mode: WRAP
+            align: TOP_LEFT
 
-    - label:
-        id: service_update_error
-        width: 96%
-        text: ""
-        hidden: true
-        text_color: 0xEF4444
-        text_font: font_mdi_24
-        long_mode: WRAP
-        align: TOP_LEFT
-        y: 104
+        - label:
+            id: service_update_error
+            width: 62%
+            text: ""
+            hidden: true
+            text_color: 0xEF4444
+            text_font: font_text_20
+            long_mode: WRAP
+            align: TOP_LEFT
+            y: 80
 
-    - label:
-        id: service_release_qr_hint
-        text: "Scan QR voor release info"
-        hidden: true
-        text_color: 0x1F2933
-        text_font: font_mdi_24
-        align: TOP_LEFT
-        y: 110
+        - obj:
+            id: service_update_button
+            width: 250
+            height: 52
+            align: TOP_LEFT
+            y: 80
+            hidden: true
+            bg_color: 0x0072CE
+            bg_opa: 100%
+            radius: 26
+            border_width: 0
+            border_opa: 0%
+            pad_all: 0
+            on_click:
+              - lambda: |-
+                  // Outside standby the heat pump is in operation (also while the compressor or pump is idle):
+                  // offer to stop it in a controlled way first.
+                  bool active = !id(amber_ctrl).is_standby();
+                  id(service_confirm_action) = active ? 4 : 2;
+                  if (active) {
+                    lv_obj_set_size(id(service_confirm_card), 620, 330);
+                    lv_obj_set_width(id(service_confirm_cancel_button), 150);
+                    lv_obj_set_width(id(service_confirm_button), 190);
+                    lv_obj_remove_flag(id(service_confirm_stop_first_button), LV_OBJ_FLAG_HIDDEN);
+                  }
+                  lv_label_set_text(id(service_confirm_title), active ? "Warmtepomp in bedrijf" : "Update bevestigen");
+                  lv_obj_send_event(id(service_confirm_title), lvgl::lv_update_event, nullptr);
+                  lv_label_set_text(id(service_confirm_text), active
+                      ? "De update kan veilig tijdens bedrijf. Of stop eerst gecontroleerd en start de update opnieuw zodra de status Standby is."
+                      : "Wil je de firmware update nu starten?");
+                  lv_obj_send_event(id(service_confirm_text), lvgl::lv_update_event, nullptr);
+                  lv_label_set_text(id(service_confirm_button_label), active ? "Nu updaten" : "Update starten");
+                  lv_obj_send_event(id(service_confirm_button_label), lvgl::lv_update_event, nullptr);
+                  lv_obj_set_style_bg_color(id(service_confirm_button), lv_color_hex(0x0072CE), LV_PART_MAIN);
+                  lv_obj_remove_flag(id(service_confirm_modal), LV_OBJ_FLAG_HIDDEN);
+            widgets:
+              - label:
+                  id: service_update_button_label
+                  text: "Update installeren"
+                  text_color: 0xFFFFFF
+                  text_font: font_text_20
+                  align: CENTER
 
-    - qrcode:
-        id: service_release_qr
-        hidden: true
-        align: TOP_MID
-        x: 80
-        y: 138
-        size: 180
-        dark_color: 0x000000
-        light_color: 0xFFFFFF
-        text: "https://github.com/Jordi1990/openamber/releases"
+        - label:
+            id: service_release_qr_hint
+            width: 128
+            text: "Release-info"
+            hidden: true
+            text_color: 0x6B7280
+            text_font: font_text_20
+            text_align: CENTER
+            align: TOP_RIGHT
+            y: 134
 
-    # Actions side by side: equal width, all in the primary color.
+        - qrcode:
+            id: service_release_qr
+            hidden: true
+            align: TOP_RIGHT
+            size: 128
+            dark_color: 0x000000
+            light_color: 0xFFFFFF
+            text: "https://github.com/Jordi1990/openamber/releases"
+
+    # Actions as tiles; the update scripts gray out the ones that are not available.
     - obj:
         id: service_action_row
         width: 100%
         height: SIZE_CONTENT
-        align: BOTTOM_LEFT
         bg_opa: 0%
         border_opa: 0%
         pad_all: 0
@@ -118,135 +127,131 @@ obj:
         layout:
           type: FLEX
           flex_flow: ROW
+          flex_align_main: SPACE_BETWEEN
           flex_align_cross: CENTER
-          pad_column: 12
         widgets:
-          - obj:
-              id: service_check_update_button
-              height: 52
-              flex_grow: 1
-              bg_color: 0x0072CE
-              bg_opa: 100%
-              radius: 14
-              border_width: 0
-              border_opa: 0%
-              pad_all: 0
-              on_click:
-                - globals.set:
-                    id: service_update_check_failed
-                    value: 'false'
-                - globals.set:
-                    id: service_update_check_in_progress
-                    value: 'true'
-                - lambda: |-
-                    lvgl::LvglComponent::lv_obj_set_state_value(id(service_check_update_button), LV_STATE_DISABLED, true);
-                    lv_obj_set_style_bg_color(id(service_check_update_button), lv_color_hex(0xC7CDD6), LV_PART_MAIN);
-                    lv_label_set_text(id(service_check_update_button_label), "Ophalen...");
-                    lv_obj_send_event(id(service_check_update_button_label), lvgl::lv_update_event, nullptr);
-                    lv_obj_set_style_text_color(id(service_check_update_button_label), lv_color_hex(0x4B5563), LV_PART_MAIN);
-                - update.check:
-                    id: firmware_update
-                - delay: 30s
-                - if:
-                    condition:
-                      and:
-                        - not:
-                            update.is_available: firmware_update
-                        - lambda: |-
-                            const auto &info = id(firmware_update).update_info;
-                            return info.latest_version.empty() && info.release_url.empty();
-                    then:
-                      - globals.set:
-                          id: service_update_check_failed
-                          value: 'true'
-                    else:
-                      - globals.set:
-                          id: service_update_check_failed
-                          value: 'false'
-                - globals.set:
-                    id: service_update_check_in_progress
-                    value: 'false'
-                - script.execute: update_firmware_ui
-              widgets:
-                - label:
-                    id: service_check_update_button_label
-                    text: "Controleer updates"
-                    text_color: 0xFFFFFF
-                    text_font: font_text_20
-                    align: CENTER
-          - obj:
-              id: service_controlled_stop_button
-              height: 52
-              flex_grow: 1
-              bg_color: 0x0072CE
-              bg_opa: 100%
-              radius: 14
-              border_width: 0
-              border_opa: 0%
-              pad_all: 0
-              # One button for both directions: resumes while a controlled stop is active, otherwise asks to stop.
-              # Resuming is blocked while stopping and while maintenance mode is on (the button is disabled then).
-              on_click:
-                - if:
-                    condition:
-                      lambda: 'return id(controlled_stop_active);'
-                    then:
-                      - if:
-                          condition:
-                            lambda: 'return !id(service_mode_enabled).state && id(amber_ctrl).is_standby();'
-                          then:
-                            - button.press: controlled_stop_resume_button
-                            - lambda: |-
-                                lv_label_set_text(id(service_controlled_stop_button_label), "Stop warmtepomp");
-                                lv_obj_send_event(id(service_controlled_stop_button_label), lvgl::lv_update_event, nullptr);
-                                id(update_header_mode_badge).execute();
-                    else:
-                      - globals.set:
-                          id: service_confirm_action
-                          value: '3'
+        - obj:
+            id: service_check_update_button
+            styles: menu_tile_style
+            width: 23.5%
+            height: 128
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            on_click:
+              - globals.set:
+                  id: service_update_check_failed
+                  value: 'false'
+              - globals.set:
+                  id: service_update_check_in_progress
+                  value: 'true'
+              - lambda: |-
+                  lvgl::LvglComponent::lv_obj_set_state_value(id(service_check_update_button), LV_STATE_DISABLED, true);
+                  lv_obj_set_style_bg_color(id(service_check_update_button), lv_color_hex(0xEDF1F6), LV_PART_MAIN);
+                  lv_label_set_text(id(service_check_update_button_label), "Ophalen...");
+                  lv_obj_send_event(id(service_check_update_button_label), lvgl::lv_update_event, nullptr);
+                  lv_obj_set_style_text_color(id(service_check_update_button_label), lv_color_hex(0x9CA3AF), LV_PART_MAIN);
+              - update.check:
+                  id: firmware_update
+              - delay: 30s
+              - if:
+                  condition:
+                    and:
+                      - not:
+                          update.is_available: firmware_update
                       - lambda: |-
-                          lv_label_set_text(id(service_confirm_title), "Warmtepomp stoppen");
-                          lv_obj_send_event(id(service_confirm_title), lvgl::lv_update_event, nullptr);
-                          lv_label_set_text(id(service_confirm_text), "De warmtepomp wordt gecontroleerd uit bedrijf genomen. De regeling hervat automatisch na 30 minuten.");
-                          lv_obj_send_event(id(service_confirm_text), lvgl::lv_update_event, nullptr);
-                          lv_label_set_text(id(service_confirm_button_label), "Stoppen");
-                          lv_obj_send_event(id(service_confirm_button_label), lvgl::lv_update_event, nullptr);
-                          lv_obj_set_style_bg_color(id(service_confirm_button), lv_color_hex(0x0072CE), LV_PART_MAIN);
-                          lv_obj_remove_flag(id(service_confirm_modal), LV_OBJ_FLAG_HIDDEN);
-              widgets:
-                - label:
-                    id: service_controlled_stop_button_label
-                    text: "Stop warmtepomp"
-                    text_color: 0xFFFFFF
-                    text_font: font_text_20
-                    align: CENTER
-          - obj:
-              id: service_restart_button
-              height: 52
-              flex_grow: 1
-              bg_color: 0x0072CE
-              bg_opa: 100%
-              radius: 14
-              border_width: 0
-              border_opa: 0%
-              pad_all: 0
-              on_click:
-                - globals.set:
-                    id: service_confirm_action
-                    value: '1'
-                - lambda: |-
-                    lv_label_set_text(id(service_confirm_title), "Herstarten bevestigen");
-                    lv_obj_send_event(id(service_confirm_title), lvgl::lv_update_event, nullptr);
-                    lv_label_set_text(id(service_confirm_text), "Wil je OpenAmber nu herstarten?");
-                    lv_obj_send_event(id(service_confirm_text), lvgl::lv_update_event, nullptr);
-                    lv_label_set_text(id(service_confirm_button_label), "Herstarten");
-                    lv_obj_send_event(id(service_confirm_button_label), lvgl::lv_update_event, nullptr);
-                    lv_obj_set_style_bg_color(id(service_confirm_button), lv_color_hex(0x0072CE), LV_PART_MAIN);
-                    lv_obj_remove_flag(id(service_confirm_modal), LV_OBJ_FLAG_HIDDEN);
-              widgets:
-                - label:
-                    id: service_restart_button_label
-                    text: "Herstarten"
-                    text_color: 0xFFFFFF
-                    text_font: font_text_20
-                    align: CENTER
+                          const auto &info = id(firmware_update).update_info;
+                          return info.latest_version.empty() && info.release_url.empty();
+                  then:
+                    - globals.set:
+                        id: service_update_check_failed
+                        value: 'true'
+                  else:
+                    - globals.set:
+                        id: service_update_check_failed
+                        value: 'false'
+              - globals.set:
+                  id: service_update_check_in_progress
+                  value: 'false'
+              - script.execute: update_firmware_ui
+            widgets:
+              - label: { text: "\U000F06B0", styles: menu_tile_icon_style }
+              - label: { id: service_check_update_button_label, text: "Controleer updates", long_mode: WRAP, styles: menu_tile_label_style }
+        - obj:
+            id: service_controlled_stop_button
+            styles: menu_tile_style
+            width: 23.5%
+            height: 128
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            on_click:
+              - if:
+                  condition:
+                    lambda: 'return id(controlled_stop_active);'
+                  then:
+                    - if:
+                        condition:
+                          lambda: 'return !id(service_mode_enabled).state && id(amber_ctrl).is_standby();'
+                        then:
+                          - button.press: controlled_stop_resume_button
+                          - lambda: |-
+                              lv_label_set_text(id(service_controlled_stop_button_label), "Stop warmtepomp");
+                              lv_obj_send_event(id(service_controlled_stop_button_label), lvgl::lv_update_event, nullptr);
+                              id(update_header_mode_badge).execute();
+                  else:
+                    - globals.set:
+                        id: service_confirm_action
+                        value: '3'
+                    - lambda: |-
+                        lv_label_set_text(id(service_confirm_title), "Warmtepomp stoppen");
+                        lv_obj_send_event(id(service_confirm_title), lvgl::lv_update_event, nullptr);
+                        lv_label_set_text(id(service_confirm_text), "De warmtepomp wordt gecontroleerd uit bedrijf genomen. De regeling hervat automatisch na 30 minuten.");
+                        lv_obj_send_event(id(service_confirm_text), lvgl::lv_update_event, nullptr);
+                        lv_label_set_text(id(service_confirm_button_label), "Stoppen");
+                        lv_obj_send_event(id(service_confirm_button_label), lvgl::lv_update_event, nullptr);
+                        lv_obj_set_style_bg_color(id(service_confirm_button), lv_color_hex(0x0072CE), LV_PART_MAIN);
+                        lv_obj_remove_flag(id(service_confirm_modal), LV_OBJ_FLAG_HIDDEN);
+            widgets:
+              - label: { text: "\U000F0906", styles: menu_tile_icon_style }
+              - label: { id: service_controlled_stop_button_label, text: "Stop warmtepomp", long_mode: WRAP, styles: menu_tile_label_style }
+        - obj:
+            id: service_restart_button
+            styles: menu_tile_style
+            width: 23.5%
+            height: 128
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            on_click:
+              - globals.set:
+                  id: service_confirm_action
+                  value: '1'
+              - lambda: |-
+                  lv_label_set_text(id(service_confirm_title), "Herstarten bevestigen");
+                  lv_obj_send_event(id(service_confirm_title), lvgl::lv_update_event, nullptr);
+                  lv_label_set_text(id(service_confirm_text), "Wil je OpenAmber nu herstarten?");
+                  lv_obj_send_event(id(service_confirm_text), lvgl::lv_update_event, nullptr);
+                  lv_label_set_text(id(service_confirm_button_label), "Herstarten");
+                  lv_obj_send_event(id(service_confirm_button_label), lvgl::lv_update_event, nullptr);
+                  lv_obj_set_style_bg_color(id(service_confirm_button), lv_color_hex(0x0072CE), LV_PART_MAIN);
+                  lv_obj_remove_flag(id(service_confirm_modal), LV_OBJ_FLAG_HIDDEN);
+            widgets:
+              - label: { text: "\U000F0709", styles: menu_tile_icon_style }
+              - label: { id: service_restart_button_label, text: "Herstarten", long_mode: WRAP, styles: menu_tile_label_style }
+        - obj:
+            id: system_tab_diagnostics
+            styles: menu_tile_style
+            width: 23.5%
+            height: 128
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            on_click:
+              - lambda: |-
+                  lv_obj_add_flag(id(service_updates_panel), LV_OBJ_FLAG_HIDDEN);
+                  lv_obj_remove_flag(id(system_diagnostics_panel), LV_OBJ_FLAG_HIDDEN);
+                  id(update_system_diagnostics_ui).execute();
+            widgets:
+              - label: { text: "\U000F04D9", styles: menu_tile_icon_style }
+              - label: { id: system_tab_diagnostics_lbl, text: "Diagnostiek", long_mode: WRAP, styles: menu_tile_label_style }

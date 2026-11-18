@@ -241,6 +241,13 @@ lv_obj_t *TestBridge::resolve_widget(const std::string &id) {
   if (it2 != this->obj_getters_.end()) {
     return it2->second();
   }
+  if (id.size() > 9 && id.rfind("_back_btn") == id.size() - 9) {
+    std::string menu_id = id.substr(0, id.size() - 9);
+    auto mit = this->widgets_.find(menu_id);
+    if (mit != this->widgets_.end() && mit->second != nullptr && *(mit->second) != nullptr) {
+      return lv_menu_get_main_header_back_button(*(mit->second));
+    }
+  }
   return nullptr;
 }
 
@@ -287,7 +294,13 @@ void TestBridge::process_line(const std::string &line) {
         this->send_response(build_error_json("Widget not found: " + id));
         return true;
       }
-      bool hidden = lv_obj_has_flag(obj, LV_OBJ_FLAG_HIDDEN);
+      bool hidden = false;
+      for (lv_obj_t *p = obj; p != nullptr; p = lv_obj_get_parent(p)) {
+        if (lv_obj_has_flag(p, LV_OBJ_FLAG_HIDDEN)) {
+          hidden = true;
+          break;
+        }
+      }
       bool disabled = lv_obj_has_state(obj, LV_STATE_DISABLED);
       bool checked = lv_obj_has_state(obj, LV_STATE_CHECKED);
 
@@ -808,6 +821,14 @@ void TestBridge::process_line(const std::string &line) {
       if (action == "disconnect") {
         eebus::fake_eebus_connected(false);
         this->send_response("{\"status\":\"ok\"}");
+        return true;
+      }
+      if (action == "power_estimate") {
+        float estimate_w = eebus::fake_eebus_power_estimate();
+        this->send_response(json::build_json([estimate_w](JsonObject out) {
+          out["status"] = "ok";
+          out["value"] = estimate_w;
+        }));
         return true;
       }
       this->send_response(build_error_json("Unknown eebus action: " + action));

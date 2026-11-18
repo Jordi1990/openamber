@@ -65,10 +65,14 @@ def test_advanced_settings_switch_controls_ui_tab_visibility(clean_system):
     openamber.step(ms=100)
     assert openamber.is_hidden("stab_advanced"), "stab_advanced tab must be hidden when advanced_settings_enabled is False"
 
-    # Enable advanced settings -> tab becomes visible
+    # Enable advanced settings -> tab becomes visible and enabled
     openamber.set_switch("advanced_settings_enabled", True)
     openamber.step(ms=100)
     assert openamber.is_visible("stab_advanced"), "stab_advanced tab must be visible when advanced_settings_enabled is True"
+    assert openamber.get_widget("stab_advanced").get("disabled") is False, "stab_advanced must not be disabled when advanced settings enabled"
+    assert openamber.click("stab_advanced"), "Clicking stab_advanced must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_advanced"), "panel_advanced should be visible after clicking stab_advanced"
 
     # Turn back off -> tab hidden again
     openamber.set_switch("advanced_settings_enabled", False)

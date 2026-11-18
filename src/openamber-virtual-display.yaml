@@ -19,6 +19,7 @@ esphome:
         - lvgl.label.update:
             id: header_title
             text: "OpenAmber"
+        - script.execute: setup_menu_header_ui
   includes:
     - openamber/controllers/constants.h
     - openamber/controllers/timing.h
@@ -42,6 +43,19 @@ debug:
 
 web_server:
   port: 80
+  # Same groups as core/openamber.yaml: ESPHome 2026.11+ checks the entities' sorting_group_id references.
+  sorting_groups:
+    - { id: overview, name: "Overzicht", sorting_weight: 0 }
+    - { id: general_settings, name: "Algemene instellingen", sorting_weight: 10 }
+    - { id: dhw_settings, name: "Tapwater instellingen", sorting_weight: 20 }
+    - { id: dhw_schedule_settings, name: "Tapwater schema instellingen", sorting_weight: 30 }
+    - { id: heating_settings, name: "Verwarmingsinstellingen", sorting_weight: 40 }
+    - { id: cooling_settings, name: "Koelinstellingen", sorting_weight: 45 }
+    - { id: temperature_sensors, name: "Temperatuursensoren", sorting_weight: 50 }
+    - { id: diagnostic, name: "Diagnostiek", sorting_weight: 60 }
+    - { id: error_codes, name: "Foutcodes", sorting_weight: 70 }
+    - { id: manual_control, name: "Handmatige bediening", sorting_weight: 80 }
+    - { id: config, name: "Config", sorting_weight: 90 }
 
 logger:
   level: INFO

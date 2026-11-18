@@ -21,7 +21,3 @@ globals:
     type: bool
     restore_value: no
     initial_value: 'false'
-  - id: advanced_fan_page
-    type: int
-    restore_value: no
-    initial_value: '1'

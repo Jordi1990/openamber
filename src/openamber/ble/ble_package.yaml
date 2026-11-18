@@ -59,7 +59,7 @@ esphome:
             ble_sensor_boot_ready = true;
             ble_sensor_update_source();
             // The Bluetooth page may have been opened during the boot delay.
-            if (id(ble_enabled_switch).state && !lv_obj_has_flag(id(panel_wifi_page_bluetooth), LV_OBJ_FLAG_HIDDEN))
+            if (id(ble_enabled_switch).state && ble_sensor_bluetooth_page_visible())
               ble_sensor_begin_discovery();
             ble_sensor_update_ui();
 
@@ -106,7 +106,7 @@ switch:
           then:
             - lambda: |-
                 ble_sensor_update_source();
-                if (!lv_obj_has_flag(id(panel_wifi_page_bluetooth), LV_OBJ_FLAG_HIDDEN)) ble_sensor_begin_discovery();
+                if (ble_sensor_bluetooth_page_visible()) ble_sensor_begin_discovery();
                 ble_sensor_update_ui();
     on_turn_off:
       - if:
@@ -260,9 +260,3 @@ sensor:
 climate:
   - id: !extend climate_controller
     humidity_sensor: effective_room_humidity
-
-script:
-  # Connectiviteit sub-tabs: index 1 is the Bluetooth page added in settings.yaml.
-  - id: !extend connectivity_select_tab
-    then:
-      - lambda: ble_sensor_show_bluetooth_page(tab_index == 1);
