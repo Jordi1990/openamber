@@ -304,5 +304,9 @@ void fake_eebus_connected(bool connected, const std::string &ems_name) {
   }
 }
 
+float fake_eebus_power_estimate() {
+  return global_eebus_component != nullptr ? global_eebus_component->get_power_estimate_w() : NAN;
+}
+
 }  // namespace eebus
 }  // namespace esphome

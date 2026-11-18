@@ -73,6 +73,7 @@ class EEBusComponent : public PollingComponent {
   void fake_request_dim(bool active);
   void fake_set_power_limit(float limit_w);
   void fake_set_connected(bool connected, const std::string &ems_name = "EVCC (192.168.1.100)");
+  float get_power_estimate_w() const { return this->read_power_estimate_ ? this->read_power_estimate_() : NAN; }
 
  private:
   std::string device_sku_{"EEBUS-Device"};
@@ -118,6 +119,7 @@ void fake_eebus_boost(bool active);
 void fake_eebus_dim(bool active);
 void fake_eebus_limit(float limit_w);
 void fake_eebus_connected(bool connected, const std::string &ems_name = "EVCC (192.168.1.100)");
+float fake_eebus_power_estimate();
 
 }  // namespace eebus
 

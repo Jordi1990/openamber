@@ -325,3 +325,116 @@ def test_silent_mode_dhw_limit(clean_system):
     openamber.set_switch("silent_mode_enabled_switch", False)
     openamber.set_time("silent_mode_start_time", 23, 0, 0)
     openamber.set_time("silent_mode_end_time", 7, 0, 0)
+
+
+@pytest.mark.parametrize("silent_option,expected_mode", [
+    ("Beperkt", 1),
+    ("Zeer laag", 2),
+    ("Laag", 3),
+    ("Gemiddeld", 4),
+    ("Verhoogd", 5),
+    ("Hoog", 6),
+    ("Maximaal", 7),
+])
+def test_silent_mode_heating_limit_per_option(clean_system, silent_option, expected_mode):
+    """
+    Verify every silent mode option caps space heating at its compressor mode (1..7)
+    under full heating demand with heat_compressor_mode 'Maximaal' (mode 10).
+    """
+    openamber = clean_system
+
+    openamber.set_select("thermostat_mode_select", "Extern")
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 40.0)
+    openamber.set_climate("pid_heat_temperature_control", target_temperature=40.0)
+    openamber.set_number("backup_heater_degmin_threshold", 999.0)
+    openamber.set_select("heat_compressor_mode", "Maximaal")
+
+    openamber.set_time("silent_mode_start_time", 0, 0, 0)
+    openamber.set_time("silent_mode_end_time", 23, 59, 0)
+    openamber.set_select("silent_mode_compressor_mode", silent_option)
+    openamber.set_switch("silent_mode_enabled_switch", True)
+
+    openamber.set_switch("heat_demand_switch", True)
+    openamber.set_sensor("current_water_temperature_tc_sensor", 25.0)
+    openamber.set_sensor("heat_cool_temperature_tc", 25.0)
+    openamber.set_sensor("outlet_temperature_tuo", 25.0)
+    openamber.set_sensor("inlet_temperature_tui", 22.0)
+    openamber.step(ms=50)
+
+    # Pump interval (900s) + pump settle (140s) + softstart (190s)
+    openamber.advance_time(seconds=900, step_s=30)
+    openamber.advance_time(seconds=140, step_s=10)
+    openamber.advance_time(seconds=190, step_s=10)
+    openamber.step(ms=50)
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+
+    # Soft start begins at mode 5 (capped by the silent limit); reaching mode 7 takes 2 steps of 300s.
+    openamber.advance_time(seconds=900, step_s=30)
+    openamber.step(ms=50)
+
+    current_mode = int(openamber.get_entity("compressor_control_select") or 0)
+    assert current_mode == expected_mode, (
+        f"Silent mode '{silent_option}' should cap heating at mode {expected_mode}, got {current_mode}"
+    )
+
+    openamber.set_switch("silent_mode_enabled_switch", False)
+    openamber.set_time("silent_mode_start_time", 23, 0, 0)
+    openamber.set_time("silent_mode_end_time", 7, 0, 0)
+
+
+def test_silent_mode_caps_defrost_recovery_boost(clean_system):
+    """
+    Verify the defrost recovery boost (+3 modes) does not exceed the silent mode limit:
+    1. Heating runs at the silent limit 'Laag' (mode 3) with heat_compressor_mode 'Maximaal'.
+    2. A defrost ends with Tc far below target, which normally boosts the compressor by 3 modes.
+    3. The compressor stays at mode 3 instead of jumping to mode 6.
+    """
+    openamber = clean_system
+
+    openamber.set_select("thermostat_mode_select", "Extern")
+    openamber.set_select("heat_mode_select", "Extern setpoint")
+    openamber.set_number("manual_setpoint", 35.0)
+    openamber.set_climate("pid_heat_temperature_control", target_temperature=35.0)
+    openamber.set_number("backup_heater_degmin_threshold", 999.0)
+    openamber.set_select("heat_compressor_mode", "Maximaal")
+    openamber.set_sensor("temperature_outside_ta", 5.0)
+
+    openamber.set_time("silent_mode_start_time", 0, 0, 0)
+    openamber.set_time("silent_mode_end_time", 23, 59, 0)
+    openamber.set_select("silent_mode_compressor_mode", "Laag")  # mode 3
+    openamber.set_switch("silent_mode_enabled_switch", True)
+
+    openamber.set_switch("heat_demand_switch", True)
+    openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
+    openamber.set_sensor("heat_cool_temperature_tc", 28.0)
+    openamber.set_sensor("outlet_temperature_tuo", 28.0)
+    openamber.set_sensor("inlet_temperature_tui", 26.0)
+    openamber.step(ms=50)
+
+    openamber.advance_time(seconds=900, step_s=30)
+    openamber.advance_time(seconds=140, step_s=10)
+    openamber.advance_time(seconds=190, step_s=10)
+    openamber.advance_time(seconds=600, step_s=30)
+    openamber.step(ms=50)
+
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    assert int(openamber.get_entity("compressor_control_select") or 0) == 3
+
+    # Defrost starts and ends with Tc < target - 3°C, which triggers the recovery boost
+    openamber.set_binary_sensor("defrost_active_sensor", True)
+    openamber.advance_time(seconds=10, step_s=2)
+    openamber.step(ms=50)
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Defrosting"
+
+    openamber.set_binary_sensor("defrost_active_sensor", False)
+    openamber.advance_time(seconds=10, step_s=2)
+    openamber.step(ms=50)
+
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Wait for state switch"
+    recovery_mode = int(openamber.get_entity("compressor_control_select") or 0)
+    assert recovery_mode == 3, f"Defrost recovery boost should be capped at silent mode 'Laag' (mode 3), got {recovery_mode}"
+
+    openamber.set_switch("silent_mode_enabled_switch", False)
+    openamber.set_time("silent_mode_start_time", 23, 0, 0)
+    openamber.set_time("silent_mode_end_time", 7, 0, 0)
