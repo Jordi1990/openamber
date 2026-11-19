@@ -91,6 +91,7 @@ private:
   bool started_by_openamber_ = false;
   bool overrun_warned_ = false;
   bool control_mode_write_failed_logged_ = false;
+  bool dry_air_delay_logged_ = false;
   std::string pending_reason_;
   std::string last_status_;
 
@@ -528,6 +529,7 @@ private:
     id(custom_defrost_runtime_s) = 0;
     runtime_remainder_ms_ = 0;
     compressor_stops_ = 0;
+    dry_air_delay_logged_ = false;
     PublishRuntime();
     ResetTriggerTimers();
     forced_mode_seen_since_ms_ = 0;
@@ -619,12 +621,29 @@ private:
       return "";
     }
 
+    // Dry air: the coil must be at least the margin below the frost point before ice can grow. The delay is
+    // limited, so a wrong or drifting humidity sensor cannot postpone defrosts for long.
     float frost_point = GetFrostPoint(ta);
-    if (IsValid(frost_point) && tp > frost_point)
+    if (IsValid(frost_point))
     {
-      snprintf(buffer, sizeof(buffer), "droge lucht, Tp boven rijppunt %.1f°C", frost_point);
-      *waiting = buffer;
-      return "";
+      float margin = id(custom_defrost_frost_point_margin).state;
+      float icing_limit = frost_point - (IsValid(margin) ? margin : 0.0f);
+      float max_delay = id(custom_defrost_humidity_max_delay).state;
+      bool delay_passed = IsValid(max_delay) && max_delay > 0.0f && runtime_min >= interval_min + (uint32_t)max_delay;
+      if (tp > icing_limit)
+      {
+        if (!delay_passed)
+        {
+          snprintf(buffer, sizeof(buffer), "droge lucht, Tp boven %.1f°C (rijppunt %.1f°C)", icing_limit, frost_point);
+          *waiting = buffer;
+          return "";
+        }
+        if (!dry_air_delay_logged_)
+        {
+          dry_air_delay_logged_ = true;
+          ESP_LOGW("amber", "CustomDefrost: dry air delayed the defrost for %.0f min, ignoring the humidity now.", max_delay);
+        }
+      }
     }
 
     if (below_start_line_s >= CUSTOM_DEFROST_CONFIRM_S)

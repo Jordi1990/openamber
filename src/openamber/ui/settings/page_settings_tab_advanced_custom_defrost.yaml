@@ -69,6 +69,22 @@ widgets:
               - label: { id: custom_defrost_stab_vangnet_lbl, text: "Vangnet en blokkades", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
+            id: custom_defrost_stab_vocht
+            styles: menu_tile_style
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_advanced_page_custom_defrost_vocht
+            widgets:
+              - label: { text: "\U000F058C", styles: menu_tile_icon_style }
+              - label: { id: custom_defrost_stab_vocht_lbl, text: "Lucht-\nvochtigheid", long_mode: WRAP, styles: menu_tile_label_style }
+
+        - obj:
             id: custom_defrost_stab_status
             styles: menu_tile_style
             scrollable: false

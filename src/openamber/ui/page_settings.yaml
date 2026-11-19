@@ -109,6 +109,7 @@ obj:
           - !include settings/page_settings_tab_advanced_custom_defrost_regie.yaml
           - !include settings/page_settings_tab_advanced_custom_defrost_startlijn.yaml
           - !include settings/page_settings_tab_advanced_custom_defrost_vangnet.yaml
+          - !include settings/page_settings_tab_advanced_custom_defrost_vocht.yaml
           - !include settings/page_settings_tab_advanced_custom_defrost_status.yaml
           - !include settings/page_settings_tab_advanced_custom_defrost_unit.yaml
 

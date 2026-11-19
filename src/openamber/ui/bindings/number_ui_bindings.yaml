@@ -934,3 +934,23 @@
           text:
             format: "%.0f s"
             args: ['x']
+
+- id: !extend custom_defrost_frost_point_margin
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_custom_defrost_frost_margin_val
+          text:
+            format: "%.1f K"
+            args: ['x']
+
+- id: !extend custom_defrost_humidity_max_delay
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_custom_defrost_humidity_delay_val
+          text: !lambda |-
+            if (x <= 0.0f) return std::string("Onbeperkt");
+            char buf[16];
+            snprintf(buf, sizeof(buf), "%.0f min", x);
+            return std::string(buf);

@@ -299,3 +299,14 @@
   on_value:
     then:
       - script.execute: update_custom_defrost_unit_ui
+
+# ── Geavanceerd: Eigen defrost, luchtvochtigheid ──
+- id: !extend outdoor_humidity
+  on_value:
+    then:
+      - script.execute: update_custom_defrost_humidity_ui
+
+- id: !extend custom_defrost_frost_point
+  on_value:
+    then:
+      - script.execute: update_custom_defrost_humidity_ui

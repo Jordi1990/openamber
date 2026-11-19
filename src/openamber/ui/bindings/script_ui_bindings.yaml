@@ -2074,3 +2074,18 @@
         lv_label_set_text_fmt(id(set_custom_defrost_runtime_val), "%d / %d min",
                               std::isnan(runtime) ? 0 : (int) runtime,
                               std::isnan(interval) ? 35 : (int) interval);
+
+- id: update_custom_defrost_humidity_ui
+  mode: queued
+  max_runs: 2
+  then:
+    - lambda: |-
+        float rh = id(outdoor_humidity).state;
+        float frost_point = id(custom_defrost_frost_point).state;
+        if (std::isnan(rh)) {
+          lv_label_set_text(id(set_custom_defrost_humidity_value_val), "Geen meting");
+        } else if (std::isnan(frost_point)) {
+          lv_label_set_text_fmt(id(set_custom_defrost_humidity_value_val), "%d%%", (int) roundf(rh));
+        } else {
+          lv_label_set_text_fmt(id(set_custom_defrost_humidity_value_val), "%d%% / %.1f°C", (int) roundf(rh), frost_point);
+        }

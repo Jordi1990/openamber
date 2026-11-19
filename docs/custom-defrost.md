@@ -70,8 +70,35 @@ IJs groeit alleen als de spoel kouder is dan het rijppunt van de buitenlucht. Me
 OpenAmber dat rijppunt uit. Ligt Tp erboven, dan wacht de regeling, ook als de startlijn bereikt is: de lucht is
 te droog om ijs te vormen. Het vangnet werkt altijd, ook zonder of met een verkeerde sensor.
 
-Zet hiervoor **Luchtvochtigheid gebruiken** aan en publiceer de relatieve vochtigheid (%) in de sensor
-`outdoor_humidity`. Zonder geldige waarde werkt de regeling zoals zonder sensor. Bijvoorbeeld vanuit Home Assistant:
+De instellingen staan onder **Eigen defrost → Luchtvochtigheid**:
+
+| Instelling | Standaard | Betekenis |
+| --- | --- | --- |
+| Luchtvochtigheid gebruiken | uit | Zet de controle op het rijppunt aan. |
+| Bron buitenvochtigheid | Extern | Alleen op displays met Bluetooth: een gekoppelde BLE-sensor of extern. |
+| Marge rijppunt | 0 K | Tp moet zoveel onder het rijppunt liggen voordat er ijs telt. Hoger = later ontdooien in droge lucht. |
+| Maximaal uitstel droge lucht | 60 min | Na het interval plus deze tijd telt de vochtigheid niet meer mee. 0 = onbeperkt. Beschermt tegen een verkeerde of verlopen sensor. |
+
+Op dezelfde pagina staan de actuele vochtigheid en het rijppunt.
+
+Zonder geldige waarde (geen meting, of geen meting van de BLE-sensor in de laatste 10 min) werkt de regeling zoals
+zonder sensor.
+
+### Bluetooth-sensor (Waveshare-displays)
+
+1. Zet Bluetooth aan onder **Instellingen → Connectiviteit → Bluetooth** en koppel de sensor (SwitchBot, BTHome of
+   Xiaomi met ATC-firmware). Er zijn drie plekken voor sensoren, samen met de ruimtesensor.
+2. Kies de sensor bij **Eigen defrost → Luchtvochtigheid → Bron buitenvochtigheid** (of in Home Assistant met de
+   select "Luchtvochtigheid buiten bron").
+3. Zet **Luchtvochtigheid gebruiken** aan.
+
+OpenAmber zet de vochtigheid van die sensor dan in `outdoor_humidity`. Bij het ontkoppelen of uitzetten van Bluetooth
+valt de bron terug op Extern.
+
+### Externe sensor
+
+Laat de bron op **Extern** staan en publiceer de relatieve vochtigheid (%) in de sensor `outdoor_humidity`.
+Bijvoorbeeld vanuit Home Assistant:
 
 ```yaml
 sensor:
@@ -85,5 +112,9 @@ sensor:
 ```
 
 Of met een lokale I²C-sensor (SHT4x, SHT3x met filterkap of BME280), op dezelfde manier via `on_value`.
-Plaats een lokale sensor in de aanzuiglucht van de buitenunit, beschut tegen regen en zon, en niet in de
-uitblaas (die lucht is afgekoeld en altijd bijna 100 %).
+
+### Plaatsing
+
+Plaats de sensor in de aanzuiglucht van de buitenunit, beschut tegen regen en zon, en niet in de uitblaas (die lucht
+is afgekoeld en altijd bijna 100 %). Een BLE-sensor moet binnen bereik van het display blijven; met een metalen
+omkasting of een muur ertussen kan dat lastig zijn.
