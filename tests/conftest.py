@@ -138,6 +138,10 @@ def clean_system(openamber):
     openamber.set_binary_sensor("defrost_active_sensor", False)
     openamber.set_number("mock_compressor_frequency_override", -1.0)
     openamber.set_sensor("model_identification_1", 150.0)
+    openamber.set_select("custom_defrost_mode_select", "Buitenunit")
+    openamber.set_binary_sensor("warning_custom_defrost_failed", False)
+    openamber.set_sensor("evaporation_temperature_tp", 5.0)
+    openamber.set_sensor("evaporating_temperature_te", 2.0)
     # Reset heating curves to their numbers.yaml defaults so curve edits in one test do not
     # silently change the setpoint (and with it the start/stop behaviour) of later tests.
     for anchor, z1, z2 in (("m10", 35.0, 30.0), ("0", 30.0, 28.0), ("p5", 28.0, 26.0),
@@ -162,6 +166,7 @@ def clean_system(openamber):
     openamber.set_sensor("temperature_outside_ta", 7.0)
     openamber.set_sensor("discharge_pressure_pd", 18.0)
     openamber.set_sensor("discharge_temperature_td", 60.0)
+    openamber.set_sensor("outside_unit_program_version", 272.0)
     openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
     openamber.set_sensor("heat_cool_temperature_tc", 28.0)
     openamber.set_sensor("outlet_temperature_tuo", 28.0)

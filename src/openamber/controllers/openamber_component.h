@@ -19,6 +19,7 @@
 
 #include "constants.h"
 #include "timing.h"
+#include "custom_defrost_controller.h"
 #include "dhw_controller.h"
 #include "mixing_valve_actuator.h"
 #include "heat_cool_controller.h"
@@ -41,8 +42,11 @@ OpenAmberComponent::OpenAmberComponent()
     id(mixing_valve_zone2_output),
     id(mixing_valve_zone2_min_position),
     id(mixing_valve_zone2_max_position));
+  custom_defrost_controller_ = new CustomDefrostController();
   dhw_controller_ = new DHWController(pump_controller_, compressor_controller_);
   heat_cool_controller_ = new HeatCoolController(pump_controller_, compressor_controller_, mixing_valve_zone1_, mixing_valve_zone2_);
+  dhw_controller_->SetCustomDefrostController(custom_defrost_controller_);
+  heat_cool_controller_->SetCustomDefrostController(custom_defrost_controller_);
   deaeration_routine_ = new DeaerationRoutine();
 }
 
@@ -51,6 +55,7 @@ OpenAmberComponent::~OpenAmberComponent()
   delete dhw_controller_;
   delete heat_cool_controller_;
   delete deaeration_routine_;
+  delete custom_defrost_controller_;
   delete pump_controller_;
   delete compressor_controller_;
   delete mixing_valve_zone1_;
@@ -151,6 +156,8 @@ void OpenAmberComponent::update()
   // Maintenance mode is only turned on from a controlled stop and wins while both are on; the stop stays active
   // so the heat pump returns to standby once maintenance mode is turned off.
   bool controlled_stop_requested = id(controlled_stop_active) && !maintenance_requested;
+
+  custom_defrost_controller_->Update(modbus_connected);
 
   switch (state_)
   {
@@ -433,6 +440,11 @@ void OpenAmberComponent::write_pump_p0_pid_value(float value)
 void OpenAmberComponent::reset_pump_interval()
 {
   pump_controller_->ResetInterval();
+}
+
+void OpenAmberComponent::request_custom_defrost()
+{
+  custom_defrost_controller_->RequestManualDefrost();
 }
 
 bool OpenAmberComponent::is_maintenance_state() const

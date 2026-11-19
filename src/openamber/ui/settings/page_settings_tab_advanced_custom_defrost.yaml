@@ -1,0 +1,101 @@
+# Menu Page: Geavanceerd - Eigen defrost (Categorie keuzemenu)
+# ------------------------------------------------------------
+id: panel_advanced_page_custom_defrost
+title: "Eigen defrost"
+widgets:
+  - obj:
+      width: 100%
+      height: SIZE_CONTENT
+      bg_opa: 0%
+      border_opa: 0%
+      pad_left: 12
+      pad_right: 12
+      pad_top: 4
+      pad_bottom: 16
+      layout:
+        type: FLEX
+        flex_flow: ROW_WRAP
+        flex_align_main: START
+        flex_align_cross: START
+        pad_row: 8
+        pad_column: 8
+      widgets:
+        - obj:
+            id: custom_defrost_stab_regie
+            styles: menu_tile_style
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_advanced_page_custom_defrost_regie
+            widgets:
+              - label: { text: "\U000F062E", styles: menu_tile_icon_style }
+              - label: { id: custom_defrost_stab_regie_lbl, text: "Regie en interval", long_mode: WRAP, styles: menu_tile_label_style }
+
+        - obj:
+            id: custom_defrost_stab_startlijn
+            styles: menu_tile_style
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_advanced_page_custom_defrost_startlijn
+            widgets:
+              - label: { text: "\U000F1A71", styles: menu_tile_icon_style }
+              - label: { id: custom_defrost_stab_startlijn_lbl, text: "Startlijn", long_mode: WRAP, styles: menu_tile_label_style }
+
+        - obj:
+            id: custom_defrost_stab_vangnet
+            styles: menu_tile_style
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_advanced_page_custom_defrost_vangnet
+            widgets:
+              - label: { text: "\U000F04DB", styles: menu_tile_icon_style }
+              - label: { id: custom_defrost_stab_vangnet_lbl, text: "Vangnet en blokkades", long_mode: WRAP, styles: menu_tile_label_style }
+
+        - obj:
+            id: custom_defrost_stab_status
+            styles: menu_tile_style
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_advanced_page_custom_defrost_status
+            widgets:
+              - label: { text: "\U000F1767", styles: menu_tile_icon_style }
+              - label: { id: custom_defrost_stab_status_lbl, text: "Status", long_mode: WRAP, styles: menu_tile_label_style }
+
+        - obj:
+            id: custom_defrost_stab_unit
+            styles: menu_tile_style
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_advanced_page_custom_defrost_unit
+            widgets:
+              - label: { text: "\U000F1A43", styles: menu_tile_icon_style }
+              - label: { id: custom_defrost_stab_unit_lbl, text: "Algoritme buitenunit", long_mode: WRAP, styles: menu_tile_label_style }

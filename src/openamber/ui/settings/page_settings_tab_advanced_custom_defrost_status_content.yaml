@@ -1,0 +1,49 @@
+# Eigen defrost: status content
+# ------------------------------------------------------------
+- obj:
+    id: set_custom_defrost_status_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Status", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label:
+          id: set_custom_defrost_status_val
+          width: 100%
+          text: "-"
+          text_color: 0x1F3B68
+          text_font: font_text_20
+          long_mode: WRAP
+          align: TOP_LEFT
+          y: 34
+      - label:
+          id: set_custom_defrost_last_trigger_val
+          width: 100%
+          text: "Nog geen trigger"
+          text_color: 0x6B7280
+          text_font: font_text_20
+          long_mode: WRAP
+          align: TOP_LEFT
+          y: 62
+
+- obj:
+    id: set_custom_defrost_runtime_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Draaitijd / interval", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Compressor-draaitijd sinds defrost", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { id: set_custom_defrost_runtime_val, text: "0 / 35 min", text_color: 0x1F2933, text_font: font_text_24, align: TOP_RIGHT }
+
+- obj:
+    id: set_custom_defrost_last_duration_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Laatste defrostduur", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Van start tot einde defrost", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { id: set_custom_defrost_last_duration_val, text: "-", text_color: 0x1F2933, text_font: font_text_24, align: TOP_RIGHT }
+
+- obj:
+    id: set_custom_defrost_count_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Defrosts laatste 24 uur", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Door unit en OpenAmber samen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { id: set_custom_defrost_count_val, text: "0", text_color: 0x1F2933, text_font: font_text_24, align: TOP_RIGHT }

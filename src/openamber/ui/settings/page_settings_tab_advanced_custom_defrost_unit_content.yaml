@@ -1,0 +1,33 @@
+# Eigen defrost: algoritme buitenunit content
+# ------------------------------------------------------------
+- obj:
+    id: set_custom_defrost_unit_state_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Algoritme buitenunit", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Alleen lezen, uit interne registers", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { id: set_custom_defrost_unit_state_val, text: "-", text_color: 0x1F3B68, text_font: font_text_24, align: TOP_RIGHT }
+
+- obj:
+    id: set_custom_defrost_unit_runtime_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Compressortijd buitenunit", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Sinds vorige defrost / interval", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { id: set_custom_defrost_unit_runtime_val, text: "-", text_color: 0x1F2933, text_font: font_text_24, align: TOP_RIGHT }
+
+- obj:
+    id: set_custom_defrost_unit_counters_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Bevestiging / voorfase", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Tellers buitenunit (max 180 s / 300 s)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { id: set_custom_defrost_unit_counters_val, text: "-", text_color: 0x1F2933, text_font: font_text_24, align: TOP_RIGHT }
+
+- obj:
+    id: set_custom_defrost_unit_last_duration_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Laatste defrostduur unit", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Wordt door de unit na gebruik gewist", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { id: set_custom_defrost_unit_last_duration_val, text: "-", text_color: 0x1F2933, text_font: font_text_24, align: TOP_RIGHT }

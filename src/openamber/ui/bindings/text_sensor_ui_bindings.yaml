@@ -120,3 +120,24 @@
           if (index >= 0) {
             lv_dropdown_set_selected(id(wifi_network_dd)->obj, index);
           }
+
+# ── Geavanceerd: Eigen defrost ──
+- id: !extend custom_defrost_status
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_custom_defrost_status_val
+          text: !lambda 'return x;'
+
+- id: !extend custom_defrost_last_trigger
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_custom_defrost_last_trigger_val
+          text: !lambda 'return x;'
+
+# ── Geavanceerd: Eigen defrost, algoritme buitenunit ──
+- id: !extend outside_unit_defrost_internal_state_text
+  on_value:
+    then:
+      - script.execute: update_custom_defrost_unit_ui

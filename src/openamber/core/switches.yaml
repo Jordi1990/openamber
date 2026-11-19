@@ -544,3 +544,12 @@ switch:
   entity_category: config
   web_server:
     sorting_group_id: manual_control
+
+- platform: template
+  id: custom_defrost_humidity_switch
+  name: "Eigen defrost luchtvochtigheid gebruiken"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server:
+    sorting_group_id: custom_defrost

@@ -1,0 +1,6 @@
+# Menu Page: Geavanceerd - Eigen defrost: algoritme buitenunit
+# ------------------------------------------------------------
+id: panel_advanced_page_custom_defrost_unit
+title: "Eigen defrost: algoritme buitenunit"
+styles: setting_page_style
+widgets: !include page_settings_tab_advanced_custom_defrost_unit_content.yaml

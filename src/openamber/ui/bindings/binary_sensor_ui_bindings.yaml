@@ -174,6 +174,11 @@
           id(update_service_warnings_ui).execute();
           id(update_header_alert_icons).execute();
 
+- id: !extend warning_custom_defrost_failed
+  on_state:
+    then:
+      - script.execute: update_service_warnings_ui
+
 - id: !extend error_flag_p01
   on_state:
     then:
@@ -419,3 +424,8 @@
       - script.execute: update_service_warnings_ui
       - script.execute: update_header_alert_icons
 
+# ── Geavanceerd: Eigen defrost, algoritme buitenunit ──
+- id: !extend outside_unit_internal_registers_supported
+  on_state:
+    then:
+      - script.execute: update_custom_defrost_unit_ui

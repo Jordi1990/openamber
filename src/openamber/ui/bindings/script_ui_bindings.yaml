@@ -1280,7 +1280,8 @@
           {"P13 - Storing compressor - laag drukverschil", "Toerental compressor wordt verlaagd. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart.", id(error_flag_p13).state},
           {"Communicatie-failsafe binnenunit", "Communicatie-failsafe binnenunit actief.", id(error_flag_inside_comm_failsafe).state},
           {"EEPROM-fout binnenunit", "EEPROM- of statusfout binnenunit.", id(error_flag_inside_eeprom).state},
-          {"Pompterugmelding P0 alarm", "Alarm pompterugmelding P0.", id(error_flag_pump_p0_alarm).state}
+          {"Pompterugmelding P0 alarm", "Alarm pompterugmelding P0.", id(error_flag_pump_p0_alarm).state},
+          {"OA01 - Eigen defrost mislukt", "De buitenunit startte geen defrost na de aanvraag van OpenAmber. De defrost-regie is teruggezet naar de buitenunit. Zet de regie opnieuw op OpenAmber om de melding te wissen.", id(warning_custom_defrost_failed).state}
         };
 
         lv_obj_clean(id(service_warnings_list));
@@ -2020,3 +2021,56 @@
             lv_obj_add_flag(crumbs[m], LV_OBJ_FLAG_HIDDEN);
           }
         }
+
+- id: update_custom_defrost_unit_ui
+  mode: queued
+  max_runs: 2
+  then:
+    - lambda: |-
+        if (!id(outside_unit_internal_registers_supported).state) {
+          lv_label_set_text(id(set_custom_defrost_unit_state_val), "Niet beschikbaar");
+          lv_label_set_text(id(set_custom_defrost_unit_runtime_val), "-");
+          lv_label_set_text(id(set_custom_defrost_unit_counters_val), "-");
+          lv_label_set_text(id(set_custom_defrost_unit_last_duration_val), "-");
+          return;
+        }
+        auto valid = [](sensor::Sensor *s) { return s->has_state() && !std::isnan(s->state); };
+
+        if (id(outside_unit_defrost_internal_state_text).has_state()) {
+          lv_label_set_text(id(set_custom_defrost_unit_state_val),
+                            id(outside_unit_defrost_internal_state_text).state.c_str());
+        }
+
+        if (valid(id(outside_unit_defrost_compressor_time)) && valid(id(outside_unit_defrost_interval))) {
+          lv_label_set_text_fmt(id(set_custom_defrost_unit_runtime_val), "%d / %d min",
+                                (int) id(outside_unit_defrost_compressor_time).state / 60,
+                                (int) id(outside_unit_defrost_interval).state / 60);
+        } else {
+          lv_label_set_text(id(set_custom_defrost_unit_runtime_val), "-");
+        }
+
+        if (valid(id(outside_unit_defrost_confirm_counter)) && valid(id(outside_unit_defrost_prephase_counter))) {
+          lv_label_set_text_fmt(id(set_custom_defrost_unit_counters_val), "%d s / %d s",
+                                (int) id(outside_unit_defrost_confirm_counter).state,
+                                (int) id(outside_unit_defrost_prephase_counter).state);
+        } else {
+          lv_label_set_text(id(set_custom_defrost_unit_counters_val), "-");
+        }
+
+        int last = valid(id(outside_unit_defrost_last_duration)) ? (int) id(outside_unit_defrost_last_duration).state : 0;
+        if (last > 0) {
+          lv_label_set_text_fmt(id(set_custom_defrost_unit_last_duration_val), "%d:%02d min", last / 60, last % 60);
+        } else {
+          lv_label_set_text(id(set_custom_defrost_unit_last_duration_val), "-");
+        }
+
+- id: update_custom_defrost_runtime_ui
+  mode: queued
+  max_runs: 2
+  then:
+    - lambda: |-
+        float runtime = id(custom_defrost_runtime_sensor).state;
+        float interval = id(custom_defrost_interval_sensor).state;
+        lv_label_set_text_fmt(id(set_custom_defrost_runtime_val), "%d / %d min",
+                              std::isnan(runtime) ? 0 : (int) runtime,
+                              std::isnan(interval) ? 35 : (int) interval);

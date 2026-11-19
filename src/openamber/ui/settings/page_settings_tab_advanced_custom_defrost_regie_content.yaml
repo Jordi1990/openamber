@@ -1,0 +1,127 @@
+# Eigen defrost: regie en interval content
+# ------------------------------------------------------------
+- obj:
+    id: set_custom_defrost_mode_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Defrost-regie", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Wie bepaalt wanneer er ontdooid wordt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - dropdown:
+          id: set_custom_defrost_mode_dd
+          symbol: "\U000F0140"
+          width: 230
+          align: TOP_RIGHT
+          y: 0
+          options:
+            - "Buitenunit"
+            - "Dry-run"
+            - "OpenAmber"
+          text_font: font_text_20
+          dropdown_list:
+            text_font: font_text_20
+          on_value:
+            then:
+              - lambda: |-
+                  auto val = lv_dropdown_get_selected(id(set_custom_defrost_mode_dd)->obj);
+                  auto current = id(custom_defrost_mode_select).active_index().value_or(0);
+                  if (val == current) return;
+                  if (val == 2) {
+                    // OpenAmber takes over defrost control: ask for confirmation first.
+                    lv_dropdown_set_selected(id(set_custom_defrost_mode_dd)->obj, current);
+                    lv_obj_clear_flag(id(custom_defrost_confirm_modal), LV_OBJ_FLAG_HIDDEN);
+                    return;
+                  }
+                  id(custom_defrost_mode_select).make_call().set_index(val).perform();
+
+- obj:
+    id: set_custom_defrost_max_ta_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Maximale buitentemperatuur", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Boven deze Ta wordt niet ontdooid", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
+                scrollable: false
+                on_click:
+                  - number.decrement: custom_defrost_max_ta
+                widgets:
+                  - label: { text: "\U000F0374", styles: setting_step_icon_style }
+            - label: { id: set_custom_defrost_max_ta_val, text: "7°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
+                scrollable: false
+                on_click:
+                  - number.increment: custom_defrost_max_ta
+                widgets:
+                  - label: { text: "\U000F0415", styles: setting_step_icon_style }
+
+- obj:
+    id: set_custom_defrost_min_runtime_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Minimaal interval", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Draaitijd tussen twee defrosts", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
+                scrollable: false
+                on_click:
+                  - number.decrement: custom_defrost_min_runtime
+                widgets:
+                  - label: { text: "\U000F0374", styles: setting_step_icon_style }
+            - label: { id: set_custom_defrost_min_runtime_val, text: "35 min", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
+                scrollable: false
+                on_click:
+                  - number.increment: custom_defrost_min_runtime
+                widgets:
+                  - label: { text: "\U000F0415", styles: setting_step_icon_style }
+
+- obj:
+    id: set_custom_defrost_humidity_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Luchtvochtigheid gebruiken", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Alleen met optionele RV-sensor buiten", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - switch:
+          id: set_custom_defrost_humidity_switch_ui
+          align: TOP_RIGHT
+          bg_color: 0x9CA3AF
+          indicator:
+            bg_color: 0x16A34A
+          knob:
+            bg_color: 0xFFFFFF
+          on_click:
+            - if:
+                condition:
+                  switch.is_on: custom_defrost_humidity_switch
+                then:
+                  - switch.turn_off: custom_defrost_humidity_switch
+                else:
+                  - switch.turn_on: custom_defrost_humidity_switch
