@@ -14,7 +14,6 @@ INTERVAL_S = 35 * 60
 
 def _configure(openamber, mode):
     openamber.set_select("custom_defrost_mode_select", mode)
-    openamber.set_switch("custom_defrost_humidity_switch", False)
     openamber.set_number("custom_defrost_max_ta", 7.0)
     openamber.set_number("custom_defrost_delta_at_zero", 7.0)
     openamber.set_number("custom_defrost_delta_at_cold", 4.0)
@@ -265,10 +264,9 @@ def test_safety_net_max_runtime(clean_system):
 
 
 def test_humidity_sensor_blocks_defrost_in_dry_air(clean_system):
-    """With the humidity sensor enabled, a coil above the frost point of the air does not defrost."""
+    """With a humidity value, a coil above the frost point of the air does not defrost."""
     openamber = clean_system
     _configure(openamber, "Dry-run")
-    openamber.set_switch("custom_defrost_humidity_switch", True)
     openamber.set_sensor("outdoor_humidity", 40.0)
     _heat_and_reset_runtime(openamber)
     _wait_for_interval(openamber)
@@ -290,14 +288,12 @@ def test_humidity_sensor_blocks_defrost_in_dry_air(clean_system):
     openamber.set_sensor("outdoor_humidity", 0.0)
     openamber.advance_time(seconds=10, step_s=5)
     assert openamber.get_entity("custom_defrost_frost_point") is None
-    openamber.set_switch("custom_defrost_humidity_switch", False)
 
 
 def test_humidity_frost_point_margin_and_max_delay(clean_system):
     """The frost point margin moves the icing limit down; the maximum delay ends the wait for dry air."""
     openamber = clean_system
     _configure(openamber, "Dry-run")
-    openamber.set_switch("custom_defrost_humidity_switch", True)
     openamber.set_sensor("outdoor_humidity", 40.0)
     openamber.set_number("custom_defrost_frost_point_margin", 2.0)
     openamber.set_number("custom_defrost_humidity_max_delay", 10.0)
@@ -315,7 +311,6 @@ def test_humidity_frost_point_margin_and_max_delay(clean_system):
     assert openamber.get_entity("custom_defrost_runtime_sensor") >= 45
 
     openamber.set_sensor("outdoor_humidity", 0.0)
-    openamber.set_switch("custom_defrost_humidity_switch", False)
 
 
 def test_low_return_temperature_blocks_until_max_wait(clean_system):
@@ -358,7 +353,7 @@ def test_custom_defrost_settings_page(clean_system):
     openamber.step(ms=100)
     assert openamber.is_hidden("panel_advanced_page_custom_defrost_regie") is False
     assert openamber.is_hidden("set_custom_defrost_mode_row") is False
-    assert openamber.is_hidden("set_custom_defrost_humidity_row") is True
+    assert openamber.is_hidden("set_custom_defrost_frost_margin_row") is True
     assert openamber.is_hidden("set_custom_defrost_status_row") is True
 
     # Startlijn
@@ -375,12 +370,11 @@ def test_custom_defrost_settings_page(clean_system):
     openamber.step(ms=100)
     assert openamber.click("custom_defrost_stab_vocht")
     openamber.step(ms=100)
-    assert openamber.is_hidden("set_custom_defrost_humidity_row") is False
     assert openamber.is_hidden("set_custom_defrost_frost_margin_row") is False
     assert openamber.get_label("set_custom_defrost_humidity_delay_val") == "60 min"
     openamber.set_sensor("outdoor_humidity", 85.0)
     openamber.step(ms=50)
-    assert openamber.get_label("set_custom_defrost_humidity_value_val") == "85%"
+    assert openamber.get_label("set_custom_defrost_humidity_value_val").startswith("85% / ")
     openamber.set_sensor("outdoor_humidity", 0.0)
 
     # Status

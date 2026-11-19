@@ -213,13 +213,9 @@ private:
 
   // ── Optional humidity sensor ──
 
-  /// @brief Frost point of the outdoor air, or NAN when the humidity sensor is not used or has no valid value.
+  /// @brief Frost point of the outdoor air, or NAN without a valid humidity value (no sensor: humidity is ignored).
   float GetFrostPoint(float ta)
   {
-    if (!id(custom_defrost_humidity_switch).state)
-    {
-      return NAN;
-    }
     float rh = id(outdoor_humidity).state;
     if (!IsValid(rh) || rh < 1.0f || rh > 100.0f)
     {

@@ -74,14 +74,14 @@ De instellingen staan onder **Eigen defrost → Luchtvochtigheid**:
 
 | Instelling | Standaard | Betekenis |
 | --- | --- | --- |
-| Luchtvochtigheid gebruiken | uit | Zet de controle op het rijppunt aan. |
 | Bron buitenvochtigheid | Extern | Alleen op displays met Bluetooth: een gekoppelde BLE-sensor of extern. |
 | Marge rijppunt | 0 K | Tp moet zoveel onder het rijppunt liggen voordat er ijs telt. Hoger = later ontdooien in droge lucht. |
 | Maximaal uitstel droge lucht | 60 min | Na het interval plus deze tijd telt de vochtigheid niet meer mee. 0 = onbeperkt. Beschermt tegen een verkeerde of verlopen sensor. |
 
 Op dezelfde pagina staan de actuele vochtigheid en het rijppunt.
 
-Zonder geldige waarde (geen meting, of geen meting van de BLE-sensor in de laatste 10 min) werkt de regeling zoals
+Er is geen aparte schakelaar: de controle werkt zodra er een geldige vochtigheid is. Zonder geldige waarde (geen
+sensor, of geen meting van de BLE-sensor in de laatste 10 min) doet de vochtigheid niet mee en werkt de regeling zoals
 zonder sensor.
 
 ### Bluetooth-sensor (Waveshare-displays)
@@ -90,8 +90,6 @@ zonder sensor.
    Xiaomi met ATC-firmware). Er zijn drie plekken voor sensoren, samen met de ruimtesensor.
 2. Kies de sensor bij **Eigen defrost → Luchtvochtigheid → Bron buitenvochtigheid** (of in Home Assistant met de
    select "Luchtvochtigheid buiten bron").
-3. Zet **Luchtvochtigheid gebruiken** aan.
-
 OpenAmber zet de vochtigheid van die sensor dan in `outdoor_humidity`. Bij het ontkoppelen of uitzetten van Bluetooth
 valt de bron terug op Extern.
 

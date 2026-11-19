@@ -400,8 +400,8 @@ static void ble_sensor_update_ui()
     if (!placed)
     {
         lv_obj_move_to_index(&id(ble_source_row), 1);
-        // Right below "Luchtvochtigheid gebruiken" on the custom defrost humidity page.
-        lv_obj_move_to_index(&id(ble_outdoor_humidity_row), 1);
+        // First row on the custom defrost humidity page.
+        lv_obj_move_to_index(&id(ble_outdoor_humidity_row), 0);
         placed = true;
     }
     ble_sensor_update_source_dropdown();

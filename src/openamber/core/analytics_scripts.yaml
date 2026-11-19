@@ -339,7 +339,7 @@ script:
           root["zf"] = id(custom_defrost_delta_at_cold).state;
           root["zg"] = id(custom_defrost_max_coil_temperature).state;
           root["zh"] = id(custom_defrost_max_runtime).state;
-          root["zi"] = id(custom_defrost_humidity_switch).state;
+          root["zi"] = !std::isnan(id(outdoor_humidity).state);
           root["zj"] = id(custom_defrost_min_runtime).state;
           root["zk"] = id(custom_defrost_frost_point_margin).state;
           root["zl"] = id(custom_defrost_humidity_max_delay).state;

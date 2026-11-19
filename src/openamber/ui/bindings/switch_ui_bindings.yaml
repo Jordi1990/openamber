@@ -271,12 +271,3 @@
           id: set_outdoor_unit_optimizations_enabled_switch_ui
           state:
             checked: !lambda 'return x;'
-
-# ── Geavanceerd: Eigen defrost ──
-- id: !extend custom_defrost_humidity_switch
-  on_state:
-    then:
-      - lvgl.widget.update:
-          id: set_custom_defrost_humidity_switch_ui
-          state:
-            checked: !lambda 'return x;'
