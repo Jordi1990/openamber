@@ -664,9 +664,12 @@ public:
 
     // Overshoot is positive when temp has passed the setpoint in the working direction
     // Heating: too hot (Tc > target), Cooling: too cold (Tc < target)
-    // While the backup heater is the active heat source it stops on its own configured
+    // While the controller is driving the backup heater it stops on its own configured
     // stop delta, so a backup delta above the compressor delta is not capped by it.
-    float stop_delta = IsBackupHeaterActive() ? id(backup_heater_stop_delta).state
+    // backup_heater_start_time_ms_ is set when the element is turned on and cleared when it
+    // is turned off, and unlike IsBackupHeaterActive() it is reliable for external backup
+    // heating, where the relay state cannot be sensed.
+    float stop_delta = backup_heater_start_time_ms_ != 0 ? id(backup_heater_stop_delta).state
                        : (IsWorkingMode(WORKING_MODE_COOLING) ? id(compressor_stop_delta_cooling).state : id(compressor_stop_delta_heating).state);
     float overshoot = IsWorkingMode(WORKING_MODE_COOLING) ? (target_temperature - current_temperature) : (current_temperature - target_temperature);
 
