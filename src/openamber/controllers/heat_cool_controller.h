@@ -645,7 +645,7 @@ public:
     return capped_mode_index;
   }
 
-  bool ShouldStopCompressor(float stop_delta_override = -1.0f)
+  bool ShouldStopCompressor()
   {
     if(!HasCompressorDemand())
     {
@@ -664,9 +664,9 @@ public:
 
     // Overshoot is positive when temp has passed the setpoint in the working direction
     // Heating: too hot (Tc > target), Cooling: too cold (Tc < target)
-    // The backup heater pass overrides the delta so a configured backup stop delta above
-    // the compressor delta is honored instead of stopping on the compressor overshoot limit.
-    float stop_delta = stop_delta_override >= 0.0f ? stop_delta_override
+    // While the backup heater is the active heat source it stops on its own configured
+    // stop delta, so a backup delta above the compressor delta is not capped by it.
+    float stop_delta = IsBackupHeaterActive() ? id(backup_heater_stop_delta).state
                        : (IsWorkingMode(WORKING_MODE_COOLING) ? id(compressor_stop_delta_cooling).state : id(compressor_stop_delta_heating).state);
     float overshoot = IsWorkingMode(WORKING_MODE_COOLING) ? (target_temperature - current_temperature) : (current_temperature - target_temperature);
 
@@ -1057,7 +1057,7 @@ public:
           }
         }
 
-        if(ShouldStopCompressor(id(backup_heater_stop_delta).state))
+        if(ShouldStopCompressor())
         {
           TurnOffBackupHeater();
           if (id(emergency_mode_enabled).state)
