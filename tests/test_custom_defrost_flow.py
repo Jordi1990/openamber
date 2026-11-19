@@ -137,12 +137,26 @@ def test_dry_run_waits_for_interval_and_start_line(clean_system):
     assert delta is not None and 2.5 <= delta <= 4.0, f"Expected ~3 min dry-run delta, got {delta}"
     assert openamber.get_entity("custom_defrost_status") == "Ontdooien (buitenunit)"
 
-    openamber.advance_time(seconds=120, step_s=10)
+    # 5 min pre-phase (2118 high, coil still cold), then hot gas: 90 s melting around 0 °C, 30 s up to the end temperature
+    openamber.advance_time(seconds=300, step_s=10)
+    openamber.set_sensor("outlet_temperature_tuo", 25.0)
+    openamber.set_sensor("inlet_temperature_tui", 30.0)
+    openamber.set_sensor("evaporation_temperature_tp", 1.0)
+    openamber.advance_time(seconds=90, step_s=10)
+    openamber.set_sensor("evaporation_temperature_tp", 18.0)
+    openamber.advance_time(seconds=30, step_s=10)
     openamber.set_binary_sensor("defrost_active_sensor", False)
     openamber.advance_time(seconds=10, step_s=5)
     openamber.step(ms=50)
+    total = openamber.get_entity("custom_defrost_last_total_duration")
+    assert total is not None and 420 <= total <= 445, f"Unexpected 2118 duration {total}"
     duration = openamber.get_entity("custom_defrost_last_duration")
-    assert duration is not None and 120 <= duration <= 135, f"Unexpected defrost duration {duration}"
+    assert duration is not None and 115 <= duration <= 135, f"Execution must exclude the pre-phase, got {duration}"
+    melt = openamber.get_entity("custom_defrost_last_melt_time")
+    assert melt is not None and 80 <= melt <= 100, f"Unexpected melt time {melt}"
+    # Mock flow 18.2 l/min, 5 K for about 120 s: about 760 kJ
+    energy = openamber.get_entity("custom_defrost_last_energy")
+    assert energy is not None and 650 <= energy <= 850, f"Unexpected energy {energy}"
     assert openamber.get_entity("custom_defrost_runtime_sensor") == 0
     # A defrost by the outdoor unit includes its pre-phase, so the interval is not adapted
     assert openamber.get_entity("custom_defrost_interval_sensor") == 35

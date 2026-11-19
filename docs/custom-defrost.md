@@ -116,3 +116,24 @@ Of met een lokale I²C-sensor (SHT4x, SHT3x met filterkap of BME280), op dezelfd
 Plaats de sensor in de aanzuiglucht van de buitenunit, beschut tegen regen en zon, en niet in de uitblaas (die lucht
 is afgekoeld en altijd bijna 100 %). Een BLE-sensor moet binnen bereik van het display blijven; met een metalen
 omkasting of een muur ertussen kan dat lastig zijn.
+
+## Meten van een defrost
+
+Register 2118 is geen goede maat voor de defrostduur. Bij een defrost op eigen initiatief zet de buitenunit 2118
+ongeveer 5 minuten vóór de echte defrost al aan (voorfase), terwijl de compressor dan nog gewoon verwarmt. Hoe lang die
+voorfase duurt hangt af van de firmware, en de interne registers (5149 en hoger) verschillen ook per firmware.
+
+OpenAmber meet daarom fysiek, op elke firmware:
+
+| Sensor | Wat |
+| --- | --- |
+| Laatste duur incl. voorfase | Hoe lang 2118 hoog was. |
+| Laatste defrostduur | Vanaf het moment dat Tp minstens 3 K boven het laagste punt van de laatste minuut komt (heet gas op de spoel) tot 2118 weer laag is. Bij een geforceerde defrost zonder gedetecteerde stijging: de hele 2118-tijd. |
+| Laatste smelttijd | Hoe lang Tp tijdens de uitvoering tussen −1 en 3 °C bleef. Zolang er ijs smelt blijft de spoel rond 0 °C hangen; dit is de beste maat voor de hoeveelheid ijs. |
+| Laatste energie uit water | Warmte die de defrost uit het water haalde: debiet × (Tui − Tuo), in kJ. |
+
+Het interval past zich alleen aan op de uitvoeringsduur van een defrost die OpenAmber zelf startte.
+
+Na elke defrost stuurt OpenAmber (met analytics aan) één bericht met deze waarden, plus Ta, Tp, startlijn, vochtigheid
+en rijppunt bij de start, de compressortijd en het aantal stops sinds de vorige defrost, het dry-run verschil, de regie
+en de programmaversie van de buitenunit (sleutels `dfa` t/m `dfo`).

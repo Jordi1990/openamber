@@ -93,6 +93,23 @@ private:
   bool control_mode_write_failed_logged_ = false;
   bool dry_air_delay_logged_ = false;
   std::string pending_reason_;
+
+  // Measurement of the current defrost (see OnDefrostStarted / TrackDefrost / OnDefrostEnded).
+  float tp_samples_[CUSTOM_DEFROST_TP_SAMPLES] = {NAN, NAN, NAN, NAN, NAN, NAN};
+  int tp_sample_index_ = 0;
+  uint32_t last_tp_sample_ms_ = 0;
+  uint32_t execution_started_ms_ = 0;
+  uint32_t melt_ms_ = 0;
+  float energy_kj_ = 0.0f;
+  float event_ta_ = NAN;
+  float event_tp_ = NAN;
+  float event_start_line_ = NAN;
+  float event_humidity_ = NAN;
+  float event_frost_point_ = NAN;
+  float event_runtime_min_ = NAN;
+  uint32_t event_stops_ = 0;
+  float event_dry_run_delta_min_ = NAN;
+  int event_source_ = 0;
   std::string last_status_;
 
   int GetMode()
@@ -463,6 +480,66 @@ private:
     PublishStatus("Teruggevallen op buitenunit");
   }
 
+  /// @brief Keeps one Tp sample per 10 s, so the lowest Tp of the last minute is known when the hot gas arrives.
+  void SampleTp(uint32_t now)
+  {
+    if (last_tp_sample_ms_ != 0 && (now - last_tp_sample_ms_) < CUSTOM_DEFROST_TP_SAMPLE_S * 1000UL)
+    {
+      return;
+    }
+    last_tp_sample_ms_ = NonZero(now);
+    tp_samples_[tp_sample_index_] = id(evaporation_temperature_tp).state;
+    tp_sample_index_ = (tp_sample_index_ + 1) % CUSTOM_DEFROST_TP_SAMPLES;
+  }
+
+  float GetRecentMinTp()
+  {
+    float result = NAN;
+    for (float sample : tp_samples_)
+    {
+      if (IsValid(sample) && (!IsValid(result) || sample < result))
+      {
+        result = sample;
+      }
+    }
+    return result;
+  }
+
+  /// @brief Measures the running defrost: start of the execution, melt time and the heat taken from the water.
+  void TrackDefrost(uint32_t now, uint32_t dt_ms)
+  {
+    float tp = id(evaporation_temperature_tp).state;
+    if (execution_started_ms_ == 0)
+    {
+      float min_tp = GetRecentMinTp();
+      if (IsValid(tp) && IsValid(min_tp) && tp >= min_tp + CUSTOM_DEFROST_EXECUTION_TP_RISE_K)
+      {
+        execution_started_ms_ = NonZero(now);
+        ESP_LOGI("amber", "CustomDefrost: execution started after %u s (Tp %.1f°C, was %.1f°C).",
+                 (unsigned) ((now - defrost_started_ms_) / 1000), tp, min_tp);
+      }
+      else
+      {
+        // Keep sampling during the outdoor unit's pre-phase, the compressor still heats normally then.
+        SampleTp(now);
+      }
+      return;
+    }
+
+    if (IsValid(tp) && tp >= CUSTOM_DEFROST_MELT_MIN_C && tp <= CUSTOM_DEFROST_MELT_MAX_C)
+    {
+      melt_ms_ += dt_ms;
+    }
+
+    // The defrost takes its heat from the water: flow (l/min) x (Tui - Tuo).
+    float flow = id(water_flow_rate).state;
+    float delta = id(inlet_temperature_tui).state - id(outlet_temperature_tuo).state;
+    if (IsValid(flow) && IsValid(delta) && flow > 0.0f && delta > 0.0f)
+    {
+      energy_kj_ += flow / 60.0f * 0.998f * 4.19f * delta * (float) dt_ms / 1000.0f;
+    }
+  }
+
   void OnDefrostStarted(uint32_t now)
   {
     defrost_started_ms_ = NonZero(now);
@@ -481,6 +558,19 @@ private:
     id(custom_defrost_start_tp).publish_state(tp);
     id(custom_defrost_start_ta).publish_state(ta);
 
+    execution_started_ms_ = 0;
+    melt_ms_ = 0;
+    energy_kj_ = 0.0f;
+    event_ta_ = ta;
+    event_tp_ = tp;
+    event_start_line_ = IsValid(ta) ? GetStartTemperature(ta) : NAN;
+    event_humidity_ = id(outdoor_humidity).state;
+    event_frost_point_ = IsValid(ta) ? GetFrostPoint(ta) : NAN;
+    event_runtime_min_ = GetRuntimeSeconds() / 60.0f;
+    event_stops_ = compressor_stops_;
+    event_dry_run_delta_min_ = NAN;
+    event_source_ = started_by_openamber_ ? 1 : (state_ == CustomDefrostState::DRY_RUN_TRIGGERED ? 2 : 0);
+
     if (started_by_openamber_)
     {
       ESP_LOGI("amber", "CustomDefrost: defrost started by OpenAmber (Tp %.1f°C, Ta %.1f°C).", tp, ta);
@@ -488,7 +578,8 @@ private:
     else if (state_ == CustomDefrostState::DRY_RUN_TRIGGERED)
     {
       float delta_min = (float)(now - dry_run_trigger_ms_) / 60000.0f;
-      id(custom_defrost_dry_run_delta).publish_state(roundf(delta_min * 10.0f) / 10.0f);
+      event_dry_run_delta_min_ = roundf(delta_min * 10.0f) / 10.0f;
+      id(custom_defrost_dry_run_delta).publish_state(event_dry_run_delta_min_);
       ESP_LOGI("amber", "CustomDefrost dry-run: outdoor unit started defrost %.1f min after dry-run trigger (Tp %.1f°C, Ta %.1f°C).", delta_min, tp, ta);
     }
     else
@@ -509,14 +600,27 @@ private:
   {
     if (defrost_started_ms_ != 0)
     {
-      uint32_t duration_s = (now - defrost_started_ms_) / 1000;
-      id(custom_defrost_last_duration).publish_state(duration_s);
-      ESP_LOGI("amber", "CustomDefrost: defrost ended after %u s (%s).", (unsigned) duration_s, started_by_openamber_ ? "OpenAmber" : "outdoor unit");
-      // Only a forced defrost has no pre-phase, so only then the duration is the real defrost time.
-      if (started_by_openamber_)
+      // 2118 also covers the outdoor unit's pre-phase (about 5 min, firmware dependent), so the execution time is
+      // measured from the detected Tp rise. Without that detection only a forced defrost (no pre-phase) has a duration.
+      float total_s = (float) ((now - defrost_started_ms_) / 1000);
+      float execution_s = execution_started_ms_ != 0 ? (float) ((now - execution_started_ms_) / 1000)
+                                                     : (started_by_openamber_ ? total_s : NAN);
+      float melt_s = execution_started_ms_ != 0 ? (float) (melt_ms_ / 1000) : NAN;
+      float energy_kj = execution_started_ms_ != 0 ? roundf(energy_kj_) : NAN;
+      id(custom_defrost_last_total_duration).publish_state(total_s);
+      id(custom_defrost_last_duration).publish_state(execution_s);
+      id(custom_defrost_last_melt_time).publish_state(melt_s);
+      id(custom_defrost_last_energy).publish_state(energy_kj);
+      ESP_LOGI("amber", "CustomDefrost: defrost ended (%s): 2118 %.0f s, execution %.0f s, melt %.0f s, %.0f kJ.",
+               started_by_openamber_ ? "OpenAmber" : "outdoor unit", total_s, execution_s, melt_s, energy_kj);
+      // Only adapt the interval to a defrost OpenAmber started itself.
+      if (started_by_openamber_ && IsValid(execution_s))
       {
-        AdaptInterval(duration_s);
+        AdaptInterval((uint32_t) execution_s);
       }
+      id(send_defrost_event).execute(event_source_, total_s, execution_s, melt_s, energy_kj, event_ta_, event_tp_,
+                                     event_start_line_, event_humidity_, event_frost_point_, event_runtime_min_,
+                                     (int) event_stops_, event_dry_run_delta_min_);
     }
     // The outdoor unit returns to heating by itself but leaves 3999 on 4, which would start a new defrost after 30 min.
     RestoreHeatingWorkingMode();
@@ -764,6 +868,15 @@ public:
 
     CheckForcedModeRestore(now, defrost_active);
     CheckDefrostOverrun(now, defrost_active);
+
+    if (defrost_active)
+    {
+      TrackDefrost(now, dt_ms);
+    }
+    else
+    {
+      SampleTp(now);
+    }
 
     if (defrost_active)
     {

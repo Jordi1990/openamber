@@ -204,3 +204,12 @@ static const uint32_t CUSTOM_DEFROST_DRY_RUN_MATCH_WINDOW_S = 60 * 60;
 static const uint32_t CUSTOM_DEFROST_MAX_REQUEST_ATTEMPTS = 2;
 static const uint32_t CUSTOM_DEFROST_OVERRUN_MARGIN_S = 5 * 60;
 static const uint32_t CUSTOM_DEFROST_TRIGGER_PULSE_S = 10;
+// Defrost measurement. The outdoor unit raises 2118 about 5 min before its own defrost really starts (pre-phase) and
+// the length of that pre-phase is firmware dependent, so the execution is detected physically: hot gas on the coil
+// makes Tp rise at least this much above its lowest value of the last minute.
+static const float CUSTOM_DEFROST_EXECUTION_TP_RISE_K = 3.0f;
+static const uint32_t CUSTOM_DEFROST_TP_SAMPLE_S = 10;
+static const int CUSTOM_DEFROST_TP_SAMPLES = 6;
+// While ice melts the coil stays around 0 °C: the time Tp spends in this band during the execution is the melt time.
+static const float CUSTOM_DEFROST_MELT_MIN_C = -1.0f;
+static const float CUSTOM_DEFROST_MELT_MAX_C = 3.0f;

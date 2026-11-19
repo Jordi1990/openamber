@@ -451,6 +451,50 @@ script:
           root["ym"] = id(custom_defrost_start_temperature).state;
           root["yn"] = id(outdoor_humidity).state;
 
+# One message per defrost, sent by the custom defrost controller when 2118 drops. Not retained: it is an event.
+- id: send_defrost_event
+  mode: queued
+  max_runs: 3
+  parameters:
+    source: int
+    total_s: float
+    execution_s: float
+    melt_s: float
+    energy_kj: float
+    ta: float
+    tp: float
+    start_line: float
+    humidity: float
+    frost_point: float
+    runtime_min: float
+    stops: int
+    dry_run_delta_min: float
+  then:
+    - if:
+        condition:
+          - switch.is_on: analytics_enabled_switch
+        then:
+          - tiny_mqtt.publish_json:
+              topic: !lambda 'return id(analytics_topic);'
+              retain: false
+              payload: |-
+                root["ts"] = id(my_time).timestamp_now();
+                root["dfa"] = source;
+                root["dfb"] = total_s;
+                root["dfc"] = execution_s;
+                root["dfd"] = melt_s;
+                root["dfe"] = energy_kj;
+                root["dff"] = ta;
+                root["dfg"] = tp;
+                root["dfh"] = start_line;
+                root["dfi"] = humidity;
+                root["dfj"] = frost_point;
+                root["dfk"] = runtime_min;
+                root["dfl"] = stops;
+                root["dfm"] = dry_run_delta_min;
+                root["dfn"] = id(custom_defrost_mode_select).active_index().value_or(0);
+                root["dfo"] = id(outside_unit_program_version).state;
+
 - id: schedule_send_errors_realtime
   mode: restart
   then:

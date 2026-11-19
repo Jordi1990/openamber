@@ -695,10 +695,44 @@ sensor:
 - platform: template
   id: custom_defrost_last_duration
   name: "Eigen defrost laatste defrostduur"
+  # Execution only (hot gas on the coil), without the outdoor unit's 5 min pre-phase, see custom_defrost_controller.h.
   update_interval: never
   accuracy_decimals: 0
   unit_of_measurement: "s"
   icon: "mdi:timer-outline"
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_last_total_duration
+  name: "Eigen defrost laatste duur incl. voorfase"
+  update_interval: never
+  accuracy_decimals: 0
+  unit_of_measurement: "s"
+  icon: "mdi:timer-outline"
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_last_melt_time
+  name: "Eigen defrost laatste smelttijd"
+  update_interval: never
+  accuracy_decimals: 0
+  unit_of_measurement: "s"
+  icon: "mdi:water-outline"
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_last_energy
+  name: "Eigen defrost laatste energie uit water"
+  update_interval: never
+  accuracy_decimals: 0
+  unit_of_measurement: "kJ"
+  icon: "mdi:lightning-bolt-outline"
   entity_category: diagnostic
   web_server:
     sorting_group_id: custom_defrost
