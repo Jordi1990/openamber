@@ -22,6 +22,7 @@ Covers:
 
 import pytest
 
+from helpers import advance_until_state
 
 def test_silent_mode_entities_and_ui_navigation(clean_system):
     """
@@ -362,12 +363,10 @@ def test_silent_mode_heating_limit_per_option(clean_system, silent_option, expec
     openamber.set_sensor("inlet_temperature_tui", 22.0)
     openamber.step(ms=50)
 
-    # Pump interval (900s) + pump settle (140s) + softstart (190s)
-    openamber.advance_time(seconds=900, step_s=30)
-    openamber.advance_time(seconds=140, step_s=10)
-    openamber.advance_time(seconds=190, step_s=10)
-    openamber.step(ms=50)
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    # The new heat demand starts the pump directly; then pump settle (140s) + softstart (190s)
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Compressor running", max_s=1500, step=10), (
+        f"Compressor did not start (state: {openamber.get_entity('state_machine_state_heat_cool')})"
+    )
 
     # Soft start begins at mode 5 (capped by the silent limit); reaching mode 7 takes 2 steps of 300s.
     openamber.advance_time(seconds=900, step_s=30)
