@@ -281,9 +281,18 @@ private:
     return std::min(start_compressor_frequency_mode, max_allowed);
   }
 
+  // "Backup element verwarmen toegestaan" off: the backup heater is not used for space heating. Emergency mode is an
+  // explicit request for the backup heater and is not affected.
+  bool IsBackupHeaterAllowedForHeating()
+  {
+    return id(backup_heater_heating_allowed_switch).state;
+  }
+
   bool IsAccumulatedDegreeMinutesReached()
   {
-      if (accumulated_backup_degmin_ >= id(backup_heater_degmin_threshold).state)
+      // Only with an actual shortage: with a threshold of 0 the heater would otherwise switch on at every compressor
+      // cycle, because 0 >= 0 holds while nothing has been accumulated yet.
+      if (accumulated_backup_degmin_ > 0.0f && accumulated_backup_degmin_ >= id(backup_heater_degmin_threshold).state)
       {
         ESP_LOGI("amber", "Enabling backup heater (degree/min limit reached: %.2f)", accumulated_backup_degmin_);
         return true;
@@ -914,8 +923,9 @@ public:
         }
 
         // Backup heater logic only applies to heating mode, and not while the compressor only runs on to finish its
-        // minimum on time, an oil return cycle or a defrost (no demand anymore or a stop request).
-        if (!IsWorkingMode(WORKING_MODE_COOLING) && HasCompressorDemand())
+        // minimum on time, an oil return cycle or a defrost (no demand anymore or a stop request), and not when the
+        // backup heater is not allowed for heating.
+        if (!IsWorkingMode(WORKING_MODE_COOLING) && HasCompressorDemand() && IsBackupHeaterAllowedForHeating())
         {
           if (id(sg_ready_max_boost_mode_active_sensor).state)
           {
@@ -950,6 +960,11 @@ public:
         {
           // Not counting degree/minutes now: when the demand returns the time in between must not be added in one step.
           InitializeBackupDegMinTracking();
+          // Not allowed: degree/minutes counted before must not switch the heater on once it is allowed again.
+          if (!IsBackupHeaterAllowedForHeating() && accumulated_backup_degmin_ != 0.0f)
+          {
+            ResetAccumulatedDegMin();
+          }
         }
 
         compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
@@ -1032,6 +1047,15 @@ public:
           break;
         }
 
+        // "Backup element verwarmen toegestaan" switched off while the heater supports the compressor: stop it now.
+        if (!id(emergency_mode_enabled).state && !IsBackupHeaterAllowedForHeating())
+        {
+          ESP_LOGI("amber", "Backup heater not allowed for heating anymore, stopping backup heater.");
+          TurnOffBackupHeater();
+          LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
+          break;
+        }
+
         float current_temperature = GetControlTemperature();
         float target_temperature = id(pid_heat_temperature_control).target_temperature;
 
@@ -1100,7 +1124,8 @@ public:
         ResetMixingValvesIntegralTerm();
         StartPumpP1IfNeeded();
 
-        if (id(temperature_outside_ta_avg_1h).state <= id(defrost_backup_heater_boost_temperature_sensor).state && !requested_to_stop_)
+        if (id(temperature_outside_ta_avg_1h).state <= id(defrost_backup_heater_boost_temperature_sensor).state && !requested_to_stop_ &&
+            IsBackupHeaterAllowedForHeating())
         {
           ESP_LOGI("amber", "Defrost ended, enabling backup heater as configured for outside temperature %.2f°C to boost temperature back to setpoint.", id(temperature_outside_ta_avg_1h).state);
           TurnOnBackupHeater();
