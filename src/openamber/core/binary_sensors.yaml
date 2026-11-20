@@ -213,7 +213,15 @@ binary_sensor:
     return id(heat_demand_active_sensor_zone_1).state || id(heat_demand_active_sensor_zone_2).state;
   on_state:
     - component.update: current_setpoint
-  web_server: 
+  # A new demand starts the pump directly instead of waiting for the remaining pump interval.
+  on_press:
+    then:
+      - logger.log:
+          format: "Pump interval reset due to new heat demand."
+          level: INFO
+      - lambda: |-
+          id(amber_ctrl).reset_pump_interval();
+  web_server:
     sorting_group_id: overview
 
 - platform: template
@@ -231,7 +239,15 @@ binary_sensor:
     return id(external_cool_demand_wired_delayed).state || id(cool_demand_switch).state;
   on_state:
     - component.update : current_setpoint
-  web_server: 
+  # A new demand starts the pump directly instead of waiting for the remaining pump interval.
+  on_press:
+    then:
+      - logger.log:
+          format: "Pump interval reset due to new cool demand."
+          level: INFO
+      - lambda: |-
+          id(amber_ctrl).reset_pump_interval();
+  web_server:
     sorting_group_id: overview
 
 - platform: template
