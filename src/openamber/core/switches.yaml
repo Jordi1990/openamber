@@ -305,10 +305,14 @@ switch:
         id: backup_heater_stage_2
         state: !lambda return x;
 
+# Externe warm-/koudevraag: set by Home Assistant or another external controller. They keep their
+# state across a reboot, so a running demand is not silently dropped after a restart: Home Assistant
+# shows the switch as off afterwards and does not switch it back on by itself.
 - platform: template
   id: heat_demand_switch
   name: "Externe warmtevraag"
   optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
   web_server: 
     sorting_group_id: manual_control
 
@@ -316,6 +320,7 @@ switch:
   id: heat_demand_zone_2_switch
   name: "Externe warmtevraag Zone 2"
   optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
   web_server: 
     sorting_group_id: manual_control
 
@@ -323,6 +328,7 @@ switch:
   id: cool_demand_switch
   name: "Externe koudevraag"
   optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
   web_server: 
     sorting_group_id: manual_control
 - platform: template
