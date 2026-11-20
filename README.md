@@ -14,6 +14,8 @@ Open source control firmware based on ESPHome for Itho Daalderop Amber heat pump
 ### HomeAssistant dashboard example
 ![HomeAssistant example](/docs/images/openamber-hass-example.png)
 
+A community dashboard that mirrors the Waveshare display in Home Assistant (all pages, Dutch/English/German) is available at [Spirituso/openamber-display-card](https://github.com/Spirituso/openamber-display-card). It is unofficial and maintained separately.
+
 ### Supply temperature regulation with PID-based compressor Hz modulation
 ![Supply temperature regulation with PID-based compressor Hz modulation](/docs/images/openamber-pid.png)
 
