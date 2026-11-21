@@ -28,6 +28,7 @@ switch:
   internal: True
   address: 1099
   register_type: holding
+  bitmask: 0x1
     
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -36,6 +37,7 @@ switch:
   internal: True
   address: 1100
   register_type: holding
+  bitmask: 0x1
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -44,6 +46,7 @@ switch:
   internal: True
   address: 1101
   register_type: holding
+  bitmask: 0x1
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -52,6 +55,7 @@ switch:
   internal: True
   address: 1102
   register_type: holding
+  bitmask: 0x1
     
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -60,6 +64,7 @@ switch:
   name: "Binnen unit relais onbekend"
   address: 1104
   register_type: holding
+  bitmask: 0x1
   reuse_previous_range: true
 
 - platform: modbus_controller
@@ -69,6 +74,7 @@ switch:
   internal: True
   address: 1105
   register_type: holding
+  bitmask: 0x1
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -76,6 +82,7 @@ switch:
   internal: True
   address: 1108
   register_type: holding
+  bitmask: 0x1
   reuse_previous_range: true
 
 - platform: modbus_controller
@@ -85,6 +92,7 @@ switch:
   internal: True
   address: 1109
   register_type: holding
+  bitmask: 0x1
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -93,6 +101,7 @@ switch:
   internal: True
   address: 1110
   register_type: holding
+  bitmask: 0x1
 
 - platform: modbus_controller
   modbus_controller_id: modbus_inside_unit
@@ -101,5 +110,6 @@ switch:
   internal: True
   address: 1112
   register_type: holding
+  bitmask: 0x1
   reuse_previous_range: true
 
