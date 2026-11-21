@@ -278,6 +278,9 @@ def _run_dhw_with_realistic_tw(openamber, rate_c_per_min, duration_s):
         if i % 3 == 0:
             tw += step_c
             openamber.set_sensor("dhw_temperature_tw_sensor", tw)
+            # The outlet water stays above the tank, as the 3-way valve position check (TO04) expects.
+            openamber.set_sensor("outlet_temperature_tuo", tw + 5.0)
+            openamber.set_sensor("inlet_temperature_tui", tw + 2.0)
         openamber.advance_time(seconds=5)
 
         # Once the DHW pump has completed its settle time, state transitions through

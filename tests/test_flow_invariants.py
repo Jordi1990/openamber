@@ -25,6 +25,12 @@ def _heating_conditions(openamber, tc=28.0, target=35.0):
     openamber.set_sensor("inlet_temperature_tui", tc - 2.0)
 
 
+def _dhw_outlet(openamber, tuo=42.0):
+    """Outlet water while DHW heats: above the tank (Tw 38), as the 3-way valve position check (TO04) expects."""
+    openamber.set_sensor("outlet_temperature_tuo", tuo)
+    openamber.set_sensor("inlet_temperature_tui", tuo - 3.0)
+
+
 def _cooling_conditions(openamber, tc=25.0):
     """Cool demand conditions with Tc above the start temperature (18 °C + start delta)."""
     openamber.set_sensor("heat_cool_temperature_tc", tc)
@@ -61,6 +67,7 @@ def test_heat_dhw_heat_cycle_keeps_hardware_rules(clean_system):
 
     # DHW request during heating: heating finishes its minimum on time, then the valve switches.
     openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
+    _dhw_outlet(openamber)
     assert monitor.advance_until("state_machine_state_main", "DHW", 900), (
         f"Never switched to DHW (main: {openamber.get_entity('state_machine_state_main')})"
     )
@@ -75,6 +82,7 @@ def test_heat_dhw_heat_cycle_keeps_hardware_rules(clean_system):
 
     # Tank at setpoint: DHW stops, the valve returns and heating resumes.
     openamber.set_sensor("dhw_temperature_tw_sensor", 52.0)
+    _dhw_outlet(openamber, tuo=28.0)
     assert _advance_until_compressor(monitor, running=False, max_s=30) is not None, "DHW must stop at the setpoint"
     assert monitor.advance_until("state_machine_state_main", "Heat/Cool", 200)
     assert openamber.get_entity("three_way_valve_dhw_switch") is False
@@ -99,11 +107,13 @@ def test_cool_dhw_cool_cycle_keeps_hardware_rules(clean_system):
     assert openamber.get_entity("working_mode_switch") == "Koelen"
 
     openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
+    _dhw_outlet(openamber)
     assert monitor.advance_until("state_machine_state_dhw", "Compressor running", 1500)
     assert openamber.get_entity("working_mode_switch") == "Verwarmen"
     monitor.advance(700)
 
     openamber.set_sensor("dhw_temperature_tw_sensor", 52.0)
+    _cooling_conditions(openamber)
     assert monitor.advance_until("state_machine_state_main", "Heat/Cool", 300)
     assert openamber.get_entity("working_mode_switch") == "Standby"
     assert _advance_until_compressor(monitor, running=True, max_s=1500) is not None, (
