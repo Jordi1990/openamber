@@ -73,8 +73,11 @@ jobs:
                   (if .ota then .ota.path |= "beta/" + . else . end)
                   | (if .parts then .parts |= map(.path |= "beta/" + .) else . end))' \
               openamber.manifest.json > openamber.beta.manifest.json
-            gh release delete-asset "$TAG" openamber.manifest.json --repo "$GITHUB_REPOSITORY" --yes
           else
             cp openamber.manifest.json openamber.beta.manifest.json
           fi
           gh release upload "$TAG" openamber.beta.manifest.json --repo "$GITHUB_REPOSITORY" --clobber
+          # Only after the beta manifest is uploaded, so a failed upload can be retried with the original still there.
+          if [ "$PRERELEASE" = "true" ]; then
+            gh release delete-asset "$TAG" openamber.manifest.json --repo "$GITHUB_REPOSITORY" --yes
+          fi
