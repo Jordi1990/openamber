@@ -27,5 +27,5 @@ async def to_code(config):
     add_idf_sdkconfig_option("CONFIG_SPIRAM_ALLOW_BSS_SEG_EXTERNAL_MEMORY", True)
     add_idf_component(
         name="openamber_psram_bss",
-        path=str(Path(__file__).parent.resolve() / "idf"),
+        path=str(Path(__file__).parent.resolve() / "openamber_psram_bss"),
     )
