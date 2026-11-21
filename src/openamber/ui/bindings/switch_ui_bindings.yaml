@@ -165,6 +165,15 @@
     then:
       - script.execute: update_service_valve_ui
 
+# ── Settings: Backup heater allowed for heating toggle ──
+- id: !extend backup_heater_heating_allowed_switch
+  on_state:
+    then:
+      - lvgl.widget.update:
+          id: set_backup_heating_allowed_switch_ui
+          state:
+            checked: !lambda 'return x;'
+
 # ── Settings: Pump P1 toggle ──
 - id: !extend pump_p1_enabled
   on_state:
