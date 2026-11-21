@@ -1,0 +1,7 @@
+# Map the .bss of ESPHome's generated main.cpp (all component, entity,
+# automation and LVGL objects) to external RAM. See ../__init__.py.
+[mapping:openamber_psram_bss]
+archive: libsrc.a
+entries:
+    if SPIRAM_ALLOW_BSS_SEG_EXTERNAL_MEMORY = y:
+        main (extram_bss)
