@@ -70,6 +70,17 @@ This can be used to run OpenAmber however it is not an ideal replacement of the 
 Download release to flash through web interface(*ota.bin) or from ESP web tools(*factory.bin), or copy src files into ESPHome config directory and flash it through ESPHome builder.
 Connect to the OpenAmber access point(password openamber) to setup WiFi.
 
+**Display language**
+
+The display UI is Dutch by default. When building from source you can choose German or English by adding `ui_language` to the substitutions of your device YAML:
+
+```yaml
+substitutions:
+  ui_language: de   # nl (default), de or en
+```
+
+Translations live in `src/openamber/ui/i18n/translations.yaml`. After editing that file, run `python3 tools/i18n.py generate` and `python3 tools/i18n.py check`.
+
 **Physicial connection**
 
 Remove modbus cables from port 7 and 8 of the WinCE module and connect them to the ESP32 RS485 board.
