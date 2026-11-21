@@ -78,15 +78,31 @@ private:
     {
       id(pump_p1_relay_switch).turn_on();
     }
+    if (id(pump_p2_enabled).state && !id(pump_p2_relay_switch).state)
+    {
+      id(pump_p2_relay_switch).turn_on();
+    }
   }
 
   void StopPumps()
   {
     SetPwmDutyCycle(0);
     id(pump_p0_relay_switch).turn_off();
+    StopZonePumps();
+  }
+
+  /// P1 and P2 only take part in the CV circuit. Running them while the valve is on DHW pulls water through the CV
+  /// side of the 3-way valve, so hot DHW water ends up in the floor (the original controller does not run them for
+  /// DHW deaeration either).
+  void StopZonePumps()
+  {
     if (id(pump_p1_enabled).state)
     {
       id(pump_p1_relay_switch).turn_off();
+    }
+    if (id(pump_p2_enabled).state)
+    {
+      id(pump_p2_relay_switch).turn_off();
     }
   }
 
@@ -377,6 +393,7 @@ public:
 
         first_circuit_done_ = true;
         cycles_remaining_ = GetCycles();
+        StopZonePumps();
         SetValveToDhw();
 
         ESP_LOGI("amber", "DEAERATION: Switching to DHW circuit, waiting %lu s for valve",
