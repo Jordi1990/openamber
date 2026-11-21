@@ -67,7 +67,7 @@ obj:
                             widgets:
                                 - label:
                                         id: service_confirm_title
-                                        text: "Actie bevestigen"
+                                        text: "${t_actie_bevestigen}"
                                         text_color: 0x1F2933
                                         text_font: font_mdi_24
                                         align: TOP_LEFT
@@ -103,7 +103,7 @@ obj:
                                         widgets:
                                             - label:
                                                     id: service_confirm_cancel_label
-                                                    text: "Annuleren"
+                                                    text: "${t_annuleren}"
                                                     text_color: 0x1F2933
                                                     text_font: font_mdi_24
                                                     align: CENTER
@@ -132,7 +132,7 @@ obj:
                                                 ESP_LOGI("amber", "Firmware update dialog: controlled stop started; update again once in standby.");
                                         widgets:
                                             - label:
-                                                    text: "Eerst stoppen"
+                                                    text: "${t_eerst_stoppen}"
                                                     text_color: 0x1F2933
                                                     text_font: font_mdi_24
                                                     align: CENTER
@@ -158,7 +158,7 @@ obj:
                                                     then:
                                                         - button.press: controlled_stop_button
                                                         - lambda: |-
-                                                            lv_label_set_text(id(service_controlled_stop_button_label), "Hervat warmtepomp");
+                                                            lv_label_set_text(id(service_controlled_stop_button_label), oa_tr("Hervat warmtepomp"));
                                                             lv_obj_send_event(id(service_controlled_stop_button_label), lvgl::lv_update_event, nullptr);
                                                             id(update_header_mode_badge).execute();
                                                             id(update_controlled_stop_button_ui).execute();
@@ -179,7 +179,7 @@ obj:
                                         widgets:
                                             - label:
                                                     id: service_confirm_button_label
-                                                    text: "Herstarten"
+                                                    text: "${t_herstarten}"
                                                     text_color: 0xFFFFFF
                                                     text_font: font_mdi_24
                                                     align: CENTER
@@ -216,7 +216,7 @@ obj:
               widgets:
                 - label:
                     id: service_update_progress_title
-                    text: "Update wordt geinstalleerd"
+                    text: "${t_update_wordt_geinstalleerd}"
                     text_color: 0x1F2933
                     text_font: font_mdi_24
                     align: CENTER

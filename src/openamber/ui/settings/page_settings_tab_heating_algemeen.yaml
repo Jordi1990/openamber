@@ -1,6 +1,6 @@
 # Menu Page: Verwarmen Algemeen
 # ------------------------------------------------------------
 id: panel_heating_page_algemeen
-title: "Algemeen"
+title: "${t_algemeen}"
 styles: setting_page_style
 widgets: !include page_settings_tab_heating_algemeen_content.yaml

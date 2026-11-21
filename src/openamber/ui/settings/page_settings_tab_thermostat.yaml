@@ -1,7 +1,7 @@
 # Menu Page: Thermostaat (Categorie keuzemenu)
 # ------------------------------------------------------------
 id: panel_thermostat
-title: "Thermostaat"
+title: "${t_thermostaat}"
 widgets:
   - obj:
       width: 100%
@@ -34,7 +34,7 @@ widgets:
                   page: panel_thermostat_page_setpoint
             widgets:
               - label: { text: "\U000F08BB", styles: menu_tile_icon_style }
-              - label: { id: thermostat_stab_setpoints_lbl, text: "Algemeen", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: thermostat_stab_setpoints_lbl, text: "${t_algemeen}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: thermostat_stab_verwarmen
@@ -50,7 +50,7 @@ widgets:
                   page: panel_thermostat_page_verwarmen
             widgets:
               - label: { text: "\U000F0238", styles: menu_tile_icon_style }
-              - label: { id: thermostat_stab_verwarmen_lbl, text: "Verwarmen", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: thermostat_stab_verwarmen_lbl, text: "${t_verwarmen}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: thermostat_stab_koelen
@@ -66,7 +66,7 @@ widgets:
                   page: panel_thermostat_page_koelen
             widgets:
               - label: { text: "\U000F0717", styles: menu_tile_icon_style }
-              - label: { id: thermostat_stab_koelen_lbl, text: "Koelen", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: thermostat_stab_koelen_lbl, text: "${t_koelen}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: thermostat_stab_extern
@@ -83,4 +83,4 @@ widgets:
               - script.execute: update_thermostat_settings_ui
             widgets:
               - label: { text: "\U000F0337", styles: menu_tile_icon_style }
-              - label: { id: thermostat_stab_extern_lbl, text: "Externe thermostaat", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: thermostat_stab_extern_lbl, text: "${t_externe_thermostaat}", long_mode: WRAP, styles: menu_tile_label_style }

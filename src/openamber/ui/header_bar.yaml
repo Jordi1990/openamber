@@ -185,7 +185,7 @@ obj:
               text_font: font_mdi_24
           - label:
               id: header_maintenance_badge_label
-              text: "Warmtepomp gestopt"
+              text: "${t_warmtepomp_gestopt}"
               text_color: 0xFFFFFF
               text_font: font_text_20
 
@@ -217,7 +217,7 @@ obj:
               text_color: 0xFFFFFF
               text_font: font_mdi_24
           - label:
-              text: "Noodbedrijf actief"
+              text: "${t_noodbedrijf_actief}"
               text_color: 0xFFFFFF
               text_font: font_text_20
 
@@ -250,7 +250,7 @@ obj:
               text_font: font_mdi_24
           - label:
               id: header_model_badge_label
-              text: "Verbinden..."
+              text: "${t_verbinden_2}"
               text_color: 0xFFFFFF
               text_font: font_text_20
 

@@ -1,6 +1,6 @@
 # Menu Page: Algemeen & Interval (Pomp)
 # ------------------------------------------------------------
 id: panel_pump_page_algemeen
-title: "Algemeen"
+title: "${t_algemeen}"
 styles: setting_page_style
 widgets: !include page_settings_tab_pump_algemeen_content.yaml

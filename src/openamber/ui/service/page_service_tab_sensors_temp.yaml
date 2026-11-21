@@ -1,7 +1,7 @@
 # Menu Page: Diagnose - Druk en temperatuur
 # ------------------------------------------------------------
 id: service_sensors_temp_page
-title: "Druk en temperatuur"
+title: "${t_druk_en_temperatuur}"
 styles: setting_page_style
 widgets:
   - obj:
@@ -20,7 +20,7 @@ widgets:
       scrollbar_mode: "OFF"
       scrollable: false
       widgets:
-        - label: { text: "Druk en temperatuur", text_color: 0x0F172A, text_font: font_text_24, align: TOP_LEFT }
+        - label: { text: "${t_druk_en_temperatuur}", text_color: 0x0F172A, text_font: font_text_24, align: TOP_LEFT }
         - table:
             id: service_diag_temp_table
             width: 100%
@@ -44,11 +44,11 @@ widgets:
               - width: 60%
               - width: 40%
             rows:
-              - ["Buitentemperatuur (Ta)", "-"]
-              - ["CV-aanvoertemperatuur (Tuo)", "-"]
-              - ["CV-retourtemperatuur (Tui)", "-"]
-              - ["Regeltemperatuur (Tc)", "-"]
-              - ["Tapwatertemperatuur (Tw)", "-"]
+              - ["${t_buitentemperatuur_ta}", "-"]
+              - ["${t_cv_aanvoertemperatuur_tuo}", "-"]
+              - ["${t_cv_retourtemperatuur_tui}", "-"]
+              - ["${t_regeltemperatuur_tc}", "-"]
+              - ["${t_tapwatertemperatuur_tw}", "-"]
               - ["Delta-T (Tuo - Tui)", "-"]
-              - ["Zuiggasdruk (Ps)", "-"]
-              - ["Persgasdruk (Pd)", "-"]
+              - ["${t_zuiggasdruk_ps}", "-"]
+              - ["${t_persgasdruk_pd}", "-"]

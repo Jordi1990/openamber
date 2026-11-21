@@ -1,6 +1,6 @@
 # Menu Page: Geavanceerd - PID-regeling Pomp P0
 # ------------------------------------------------------------
 id: panel_advanced_page_pid_pump
-title: "Pomp P0"
+title: "${t_pomp_p0}"
 styles: setting_page_style
 widgets: !include page_settings_tab_advanced_pid_pump_content.yaml

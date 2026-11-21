@@ -9,6 +9,9 @@
 #include <cstring>
 #include "constants.h"
 
+// Display text translation, defined in ui/i18n/oa_i18n_<lang>.h (ui_language).
+static const char *oa_tr(const char *text);
+
 namespace openamber_graph {
 
 enum SampleState : uint8_t { STATE_IDLE, STATE_RUN, STATE_SOFTSTART, STATE_DHW, STATE_DEFROST };
@@ -249,7 +252,7 @@ class Page {
       int minutes = ((now.hour * 60 + now.minute - age) % 1440 + 1440) % 1440;
       snprintf(out, size, "%02d:%02d", minutes / 60, minutes % 60);
     } else if (age >= 60) {
-      snprintf(out, size, "-%d u", age / 60);
+      snprintf(out, size, oa_tr("-%d u"), age / 60);
     } else {
       snprintf(out, size, "-%d min", age);
     }
@@ -308,7 +311,7 @@ class Page {
     set_visible_(tuo, has_data && this->show_pipes_);
     set_visible_(tui, has_data && this->show_pipes_);
     if (!has_data) {
-      set_label_text_(&id(graph_tc_caption), "Tc nu");
+      set_label_text_(&id(graph_tc_caption), oa_tr("Tc nu"));
       set_label_text_(&id(graph_tc_value), "-");
       set_label_text_(&id(graph_sp_value), "");
       set_label_text_(&id(graph_hz_value), "-");
@@ -321,26 +324,26 @@ class Page {
     if (has_cursor) {
       char time_text[16], caption[24];
       format_time_(time_text, sizeof(time_text), this->cursor_age_);
-      snprintf(caption, sizeof(caption), "Tc om %s", time_text);
+      snprintf(caption, sizeof(caption), oa_tr("Tc om %s"), time_text);
       set_label_text_(&id(graph_tc_caption), caption);
     } else {
-      set_label_text_(&id(graph_tc_caption), "Tc nu");
+      set_label_text_(&id(graph_tc_caption), oa_tr("Tc nu"));
     }
     set_temp_(&id(graph_tc_value), "", s.tc, " °C");
-    set_temp_(&id(graph_sp_value), "Setpoint ", s.sp, "");
+    set_temp_(&id(graph_sp_value), oa_tr("Setpoint "), s.sp, "");
     char hz_text[16];
     snprintf(hz_text, sizeof(hz_text), "%u Hz", s.hz);
     set_label_text_(&id(graph_hz_value), hz_text);
 
-    const char *state_text = "Staat stil";
+    const char *state_text = oa_tr("Staat stil");
     if (s.state == STATE_RUN)
-      state_text = this->is_cooling_() ? "Koelen" : "Verwarmen";
+      state_text = this->is_cooling_() ? oa_tr("Koelen") : oa_tr("Verwarmen");
     else if (s.state == STATE_SOFTSTART)
-      state_text = "Softstart";
+      state_text = oa_tr("Softstart");
     else if (s.state == STATE_DHW)
-      state_text = "Tapwater";
+      state_text = oa_tr("Tapwater");
     else if (s.state == STATE_DEFROST)
-      state_text = "Ontdooien";
+      state_text = oa_tr("Ontdooien");
     set_label_text_(state, state_text);
     set_visible_(chip, s.state != STATE_IDLE);
     lv_obj_set_x(state, s.state == STATE_IDLE ? 20 : 40);

@@ -1,6 +1,6 @@
 # Menu Page: Thermostaat - Extern signaal & draadloze thermostaat
 # ------------------------------------------------------------
 id: panel_thermostat_page_extern
-title: "Externe thermostaat"
+title: "${t_externe_thermostaat}"
 styles: setting_page_style
 widgets: !include page_settings_tab_thermostat_extern_content.yaml

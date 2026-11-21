@@ -1,7 +1,7 @@
 # Menu Page: Thermostaat Koelen
 # ------------------------------------------------------------
 id: panel_thermostat_page_koelen
-title: "Koelen"
+title: "${t_koelen}"
 styles: setting_page_style
 widgets:
   - obj:
@@ -21,8 +21,8 @@ widgets:
             id: thermostat_row_cool_deadband
             styles: setting_row_style
             widgets:
-              - label: { text: "Deadband koelen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Temperatuurverschil boven setpoint voor koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - label: { text: "${t_deadband_koelen}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_temperatuurverschil_boven_setpoint_voor}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT
@@ -56,8 +56,8 @@ widgets:
             id: thermostat_row_cool_overrun
             styles: setting_row_style
             widgets:
-              - label: { text: "Overrun koelen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Temperatuurverschil onder setpoint voor stoppen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - label: { text: "${t_overrun_koelen}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_temperatuurverschil_onder_setpoint_voor}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT

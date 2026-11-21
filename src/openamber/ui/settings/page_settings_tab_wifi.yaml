@@ -1,7 +1,7 @@
 # Menu Page: Connectiviteit (Categorie keuzemenu)
 # ------------------------------------------------------------
 id: panel_wifi
-title: "Connectiviteit"
+title: "${t_connectiviteit}"
 widgets:
   - obj:
       # The BLE package adds its Bluetooth card here.
@@ -37,4 +37,4 @@ widgets:
               - script.execute: wifi_scan_networks_if_empty
             widgets:
               - label: { text: "\U000F0928", styles: menu_tile_icon_style }
-              - label: { id: conn_stab_wifi_lbl, text: "WiFi", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: conn_stab_wifi_lbl, text: "${t_wifi}", long_mode: WRAP, styles: menu_tile_label_style }

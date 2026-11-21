@@ -1,6 +1,6 @@
 # Menu Page: Geavanceerd - Compressor
 # ------------------------------------------------------------
 id: panel_advanced_page_compressor
-title: "Compressor"
+title: "${t_compressor}"
 styles: setting_page_style
 widgets: !include page_settings_tab_advanced_compressor_content.yaml

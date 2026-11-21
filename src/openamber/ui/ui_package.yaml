@@ -2,6 +2,14 @@
 # OpenAmber Shared UI Package (Images, Fonts, and LVGL Widget Hierarchy)
 # ==============================================================================
 
+# Display language: nl (default), de or en. Set `ui_language: de` in the substitutions of the
+# device YAML. Texts come from i18n/<lang>.yaml and oa_i18n_<lang>.h (see tools/i18n.py).
+substitutions:
+  ui_language: nl
+
+packages:
+  ui_language: !include i18n/${ui_language}.yaml
+
 image:
   - platform: file
     file: openamber/ui/images/water_circuit.png

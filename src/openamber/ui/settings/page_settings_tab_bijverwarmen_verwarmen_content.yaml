@@ -1,8 +1,8 @@
 - obj:
     styles: setting_row_style
     widgets:
-      - label: { text: "Backup °min drempel", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Graadminuten drempel voor backup element tijdens verwarmen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_backup_min_drempel}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_graadminuten_drempel_voor_backup_element}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -36,8 +36,8 @@
     id: set_backup_block_temp_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Blokkeren boven buitentemp.", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Gemiddeld over 1 uur; 30°C = in de praktijk nooit", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_blokkeren_boven_buitentemp}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_gemiddeld_over_1_uur_30c_in_de_praktijk}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

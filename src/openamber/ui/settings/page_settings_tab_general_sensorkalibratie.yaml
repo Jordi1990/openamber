@@ -1,7 +1,7 @@
 # Menu Page: Sensor kalibratie (Keuzemenu Ruimte / CV-Systeem)
 # ------------------------------------------------------------
 id: panel_general_page_sensor_kalibratie
-title: "Sensor kalibratie"
+title: "${t_sensor_kalibratie}"
 widgets:
   - obj:
       width: 100%
@@ -34,7 +34,7 @@ widgets:
                   page: panel_general_sensor_kalibratie_ruimte
             widgets:
               - label: { text: "\U000F0F54", styles: menu_tile_icon_style }
-              - label: { id: sensor_kalibratie_tab_ruimte_lbl, text: "Ruimte en tapwater", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: sensor_kalibratie_tab_ruimte_lbl, text: "${t_ruimte_en_tapwater}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: sensor_kalibratie_tab_cv
@@ -50,4 +50,4 @@ widgets:
                   page: panel_general_sensor_kalibratie_cv
             widgets:
               - label: { text: "\U000F0438", styles: menu_tile_icon_style }
-              - label: { id: sensor_kalibratie_tab_cv_lbl, text: "CV-systeem", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: sensor_kalibratie_tab_cv_lbl, text: "${t_cv_systeem}", long_mode: WRAP, styles: menu_tile_label_style }

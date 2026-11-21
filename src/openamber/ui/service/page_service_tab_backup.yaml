@@ -1,7 +1,7 @@
 # Menu Page: Back-up
 # ------------------------------------------------------------
 id: service_backup_page
-title: "Back-up"
+title: "${t_back_up}"
 styles: setting_page_style
 widgets:
   - obj:
@@ -22,12 +22,12 @@ widgets:
             styles: setting_row_style
             widgets:
               - label:
-                  text: "Backup element"
+                  text: "${t_backup_element}"
                   text_color: 0x1F2933
                   text_font: font_text_24
                   align: TOP_LEFT
               - label:
-                  text: "Schakel elektrisch backup element"
+                  text: "${t_schakel_elektrisch_backup_element}"
                   width: 72%
                   text_color: 0x6B7280
                   text_font: font_text_20
@@ -53,12 +53,12 @@ widgets:
             styles: setting_row_style
             widgets:
               - label:
-                  text: "CV hybride backup relais"
+                  text: "${t_cv_hybride_backup_relais}"
                   text_color: 0x1F2933
                   text_font: font_text_24
                   align: TOP_LEFT
               - label:
-                  text: "Schakel hybride backup relais"
+                  text: "${t_schakel_hybride_backup_relais}"
                   width: 72%
                   text_color: 0x6B7280
                   text_font: font_text_20

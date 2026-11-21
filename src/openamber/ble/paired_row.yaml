@@ -34,4 +34,4 @@ obj:
         on_click:
           - lambda: ble_sensor_unpair(${index});
         widgets:
-          - label: { text: "Ontkoppelen", text_font: font_text_20, text_color: 0xFFFFFF, align: CENTER }
+          - label: { text: "${t_ontkoppelen}", text_font: font_text_20, text_color: 0xFFFFFF, align: CENTER }

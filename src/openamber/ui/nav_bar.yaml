@@ -49,7 +49,7 @@ obj:
               y: 0
           - label:
               id: nav_home_label
-              text: "Home"
+              text: "${t_home}"
               text_color: 0xFFFFFF
               text_font: font_mdi_24
               align: BOTTOM_MID
@@ -93,7 +93,7 @@ obj:
               y: 0
           - label:
               id: nav_thermostat_label
-              text: "Thermostaat"
+              text: "${t_thermostaat}"
               text_color: 0xD1D5DB
               text_font: font_text_20
               align: BOTTOM_MID
@@ -131,7 +131,7 @@ obj:
               y: 0
           - label:
               id: nav_graph_label
-              text: "Grafiek"
+              text: "${t_grafiek}"
               text_color: 0xD1D5DB
               text_font: font_mdi_24
               align: BOTTOM_MID
@@ -173,7 +173,7 @@ obj:
               y: 0
           - label:
               id: nav_settings_label
-              text: "Instellingen"
+              text: "${t_instellingen}"
               text_color: 0xD1D5DB
               text_font: font_mdi_24
               align: BOTTOM_MID
@@ -249,7 +249,7 @@ obj:
               y: 0
           - label:
               id: nav_system_label
-              text: "Systeem"
+              text: "${t_systeem}"
               text_color: 0xD1D5DB
               text_font: font_mdi_24
               align: BOTTOM_MID

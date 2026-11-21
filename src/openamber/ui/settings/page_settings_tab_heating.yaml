@@ -1,7 +1,7 @@
 # Menu Page: Verwarmen (Categorie keuzemenu)
 # ------------------------------------------------------------
 id: panel_heating
-title: "Verwarmen"
+title: "${t_verwarmen}"
 widgets:
   - obj:
       width: 100%
@@ -34,7 +34,7 @@ widgets:
                   page: panel_heating_page_algemeen
             widgets:
               - label: { text: "\U000F08BB", styles: menu_tile_icon_style }
-              - label: { id: heating_stab_algemeen_lbl, text: "Algemeen", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: heating_stab_algemeen_lbl, text: "${t_algemeen}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: heating_stab_stooklijn
@@ -51,7 +51,7 @@ widgets:
               - script.execute: update_heat_curve_chart
             widgets:
               - label: { text: "\U000F0FA7", styles: menu_tile_icon_style }
-              - label: { id: heating_stab_stooklijn_lbl, text: "Stooklijn Zone 1", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: heating_stab_stooklijn_lbl, text: "${t_stooklijn_zone_1}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: heating_stab_stooklijn_z2
@@ -68,7 +68,7 @@ widgets:
               - script.execute: update_heat_curve_z2_chart
             widgets:
               - label: { text: "\U000F0FA7", styles: menu_tile_icon_style }
-              - label: { id: heating_stab_stooklijn_z2_lbl, text: "Stooklijn Zone 2", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: heating_stab_stooklijn_z2_lbl, text: "${t_stooklijn_zone_2}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: heating_stab_start_stop
@@ -84,7 +84,7 @@ widgets:
                   page: panel_heating_page_start_stop
             widgets:
               - label: { text: "\U000F040E", styles: menu_tile_icon_style }
-              - label: { id: heating_stab_start_stop_lbl, text: "Start/stop", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: heating_stab_start_stop_lbl, text: "${t_start_stop}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: heating_stab_noodbedrijf
@@ -100,4 +100,4 @@ widgets:
                   page: panel_heating_page_noodbedrijf
             widgets:
               - label: { text: "\U000F0026", styles: menu_tile_icon_style }
-              - label: { id: heating_stab_noodbedrijf_lbl, text: "Noodbedrijf", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: heating_stab_noodbedrijf_lbl, text: "${t_noodbedrijf}", long_mode: WRAP, styles: menu_tile_label_style }

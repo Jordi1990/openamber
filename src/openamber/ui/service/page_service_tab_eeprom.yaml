@@ -22,12 +22,12 @@ widgets:
             styles: setting_row_style
             widgets:
               - label:
-                  text: "EEPROM Dump (Alleen lezen)"
+                  text: "${t_eeprom_dump_alleen_lezen}"
                   text_color: 0x1F2933
                   text_font: font_text_24
                   align: TOP_LEFT
               - label:
-                  text: "Verzend EEPROM parameters naar OpenAmber Analytics."
+                  text: "${t_verzend_eeprom_parameters_naar_openamber}"
                   width: 72%
                   text_color: 0x6B7280
                   text_font: font_text_20
@@ -46,7 +46,7 @@ widgets:
                         id(dump_eeprom_parameters).execute();
                   widgets:
                     - label:
-                        text: "Dump EEPROM"
+                        text: "${t_dump_eeprom}"
                         text_color: 0xFFFFFF
                         text_font: font_text_20
                         align: CENTER

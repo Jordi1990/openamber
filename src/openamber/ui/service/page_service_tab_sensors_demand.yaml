@@ -1,7 +1,7 @@
 # Menu Page: Diagnose - Warmte- en koudevraag
 # ------------------------------------------------------------
 id: service_sensors_demand_page
-title: "Warmte- en koudevraag"
+title: "${t_warmte_en_koudevraag}"
 styles: setting_page_style
 widgets:
   - obj:
@@ -20,7 +20,7 @@ widgets:
       scrollbar_mode: "OFF"
       scrollable: false
       widgets:
-        - label: { text: "Warmte- en koudevraag", text_color: 0x0F172A, text_font: font_text_24, align: TOP_LEFT }
+        - label: { text: "${t_warmte_en_koudevraag}", text_color: 0x0F172A, text_font: font_text_24, align: TOP_LEFT }
         - table:
             id: service_diag_demand_table
             width: 100%
@@ -44,9 +44,9 @@ widgets:
               - width: 60%
               - width: 40%
             rows:
-              - ["Warmtevraag Zone 1", "-"]
-              - ["Warmtevraag Zone 2", "-"]
-              - ["Koudevraag", "-"]
-              - ["Warmtevraag Zone 1 (Extern signaal)", "-"]
-              - ["Warmtevraag Zone 2 (Extern signaal)", "-"]
-              - ["Koudevraag (Extern signaal)", "-"]
+              - ["${t_warmtevraag_zone_1}", "-"]
+              - ["${t_warmtevraag_zone_2}", "-"]
+              - ["${t_koudevraag}", "-"]
+              - ["${t_warmtevraag_zone_1_extern_signaal}", "-"]
+              - ["${t_warmtevraag_zone_2_extern_signaal}", "-"]
+              - ["${t_koudevraag_extern_signaal}", "-"]

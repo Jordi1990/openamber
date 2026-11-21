@@ -4,12 +4,16 @@
   id: font_header_title
   size: 32
   bpp: 4
+  glyphsets: [GF_Latin_Kernel]
+  glyphs: "ÄÖÜäöüß"  # German display texts (ui_language: de)
 
 - file: "openamber/ui/fonts/Inter_28pt-SemiBold.ttf"
   #weight: 500
   id: font_mdi_24
   size: 24
   bpp: 4
+  glyphsets: [GF_Latin_Kernel]
+  glyphs: "ÄÖÜäöüß"  # German display texts (ui_language: de)
   extras:
     - file: "openamber/ui/fonts/materialdesignicons-webfont.ttf"
       glyphs:
@@ -101,6 +105,8 @@
   id: font_text_24
   size: 24
   bpp: 4
+  glyphsets: [GF_Latin_Kernel]
+  glyphs: "ÄÖÜäöüß"  # German display texts (ui_language: de)
   extras:
     - file: "openamber/ui/fonts/materialdesignicons-webfont.ttf"
       glyphs:
@@ -111,6 +117,8 @@
   id: font_text_20
   size: 20
   bpp: 4
+  glyphsets: [GF_Latin_Kernel]
+  glyphs: "ÄÖÜäöüß"  # German display texts (ui_language: de)
   extras:
     - file: "openamber/ui/fonts/materialdesignicons-webfont.ttf"
       glyphs:
@@ -123,6 +131,8 @@
   id: font_value_big
   size: 32
   bpp: 4
+  glyphsets: [GF_Latin_Kernel]
+  glyphs: "ÄÖÜäöüß"  # German display texts (ui_language: de)
   extras: 
     - file: "openamber/ui/fonts/materialdesignicons-webfont.ttf"
       glyphs:
@@ -133,6 +143,8 @@
   id: font_mdi_30
   size: 30
   bpp: 4
+  glyphsets: [GF_Latin_Kernel]
+  glyphs: "ÄÖÜäöüß"  # German display texts (ui_language: de)
   extras:
     - file: "openamber/ui/fonts/materialdesignicons-webfont.ttf"
       glyphs:
@@ -159,6 +171,8 @@
   id: font_mdi_36
   size: 36
   bpp: 4
+  glyphsets: [GF_Latin_Kernel]
+  glyphs: "ÄÖÜäöüß"  # German display texts (ui_language: de)
   extras:
     - file: "openamber/ui/fonts/materialdesignicons-webfont.ttf"
       glyphs:

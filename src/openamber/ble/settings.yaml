@@ -15,8 +15,8 @@ lvgl:
                         styles: setting_row_style
                         scrollable: false
                         widgets:
-                          - label: { text: "Ruimtetemperatuur bron", text_font: font_text_24, text_color: 0x1F2933, align: TOP_LEFT }
-                          - label: { text: "Bedrade Tr-sensor of gekoppelde Bluetooth-sensor", text_font: font_text_20, text_color: 0x6B7280, align: TOP_LEFT, y: 32 }
+                          - label: { text: "${t_ruimtetemperatuur_bron}", text_font: font_text_24, text_color: 0x1F2933, align: TOP_LEFT }
+                          - label: { text: "${t_bedrade_tr_sensor_of_gekoppelde_bluetoot}", text_font: font_text_20, text_color: 0x6B7280, align: TOP_LEFT, y: 32 }
                           - dropdown:
                               id: ble_source_dropdown
                               width: 360
@@ -62,7 +62,7 @@ lvgl:
                         scrollable: false
                         widgets:
                           - label: { text: "Bluetooth", text_font: font_text_24, text_color: 0x1F2933, align: TOP_LEFT }
-                          - label: { text: "SwitchBot-, BTHome- en Xiaomi ATC-sensoren via BLE", text_font: font_text_20, text_color: 0x6B7280, align: TOP_LEFT, y: 32 }
+                          - label: { text: "${t_switchbot_bthome_en_xiaomi_atc_sensoren}", text_font: font_text_20, text_color: 0x6B7280, align: TOP_LEFT, y: 32 }
                           - switch:
                               id: ble_enabled_switch_ui
                               align: TOP_RIGHT
@@ -80,7 +80,7 @@ lvgl:
                     - label:
                         id: ble_hint_label
                         width: 100%
-                        text: "Schakel Bluetooth in om sensoren te koppelen."
+                        text: "${t_schakel_bluetooth_in_om_sensoren_te_kopp}"
                         text_font: font_text_20
                         text_color: 0x6B7280
                         long_mode: WRAP
@@ -96,7 +96,7 @@ lvgl:
                         scrollable: false
                         layout: { type: FLEX, flex_flow: COLUMN, pad_row: 8 }
                         widgets:
-                          - label: { id: ble_paired_title, text: "Gekoppelde sensoren", text_font: font_text_20, text_color: 0x4B5563, pad_left: 6 }
+                          - label: { id: ble_paired_title, text: "${t_gekoppelde_sensoren}", text_font: font_text_20, text_color: 0x4B5563, pad_left: 6 }
                           - !include { file: paired_row.yaml, vars: { index: 0 } }
                           - !include { file: paired_row.yaml, vars: { index: 1 } }
                           - !include { file: paired_row.yaml, vars: { index: 2 } }
@@ -108,7 +108,7 @@ lvgl:
                               pad_all: 6
                               scrollable: false
                               widgets:
-                                - label: { id: ble_discovery_status_label, text: "Gevonden sensoren", text_font: font_text_20, text_color: 0x4B5563, align: LEFT_MID }
+                                - label: { id: ble_discovery_status_label, text: "${t_gevonden_sensoren}", text_font: font_text_20, text_color: 0x4B5563, align: LEFT_MID }
                                 - button:
                                     width: 160
                                     height: 40
@@ -117,7 +117,7 @@ lvgl:
                                     on_click:
                                       - button.press: ble_discovery_button
                                     widgets:
-                                      - label: { text: "Zoeken", text_font: font_text_20, text_color: 0xFFFFFF, align: CENTER }
+                                      - label: { text: "${t_zoeken}", text_font: font_text_20, text_color: 0xFFFFFF, align: CENTER }
                           - !include { file: sensor_row.yaml, vars: { index: 0 } }
                           - !include { file: sensor_row.yaml, vars: { index: 1 } }
                           - !include { file: sensor_row.yaml, vars: { index: 2 } }

@@ -9,7 +9,7 @@
   on_value:
     then:
       - lambda: |-
-          lv_label_set_text(id(water_mode_text), std::string((id(working_mode_switch).current_option().c_str())).c_str());
+          lv_label_set_text(id(water_mode_text), oa_tr(std::string(id(working_mode_switch).current_option().c_str()).c_str()));
           lv_obj_send_event(id(water_mode_text), lvgl::lv_update_event, nullptr);
           lv_label_set_text(id(water_mode_icon), std::string([&]() -> std::string {
             auto idx = id(working_mode_switch).active_index();

@@ -4,8 +4,8 @@
     id: set_general_defrost_enter1_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Defrost starttemperatuur 1", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Spoeltemperatuur bij buitentemp. vanaf 3°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_defrost_starttemperatuur_1}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_spoeltemperatuur_bij_buitentemp_vanaf_3c}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -53,8 +53,8 @@
           id: set_general_defrost_enter2_row
           styles: setting_row_style
           widgets:
-            - label: { text: "Defrost starttemperatuur 2", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-            - label: { text: "Spoeltemperatuur bij buitentemp. -3 tot 3°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+            - label: { text: "${t_defrost_starttemperatuur_2}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "${t_spoeltemperatuur_bij_buitentemp_3_tot_3c}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
             - obj:
                 width: SIZE_CONTENT
                 height: SIZE_CONTENT
@@ -88,8 +88,8 @@
           id: set_general_defrost_enter3_row
           styles: setting_row_style
           widgets:
-            - label: { text: "Defrost starttemperatuur 3", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-            - label: { text: "Spoeltemperatuur bij buitentemp. -10 tot -3°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+            - label: { text: "${t_defrost_starttemperatuur_3}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "${t_spoeltemperatuur_bij_buitentemp_10_tot_3}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
             - obj:
                 width: SIZE_CONTENT
                 height: SIZE_CONTENT
@@ -123,8 +123,8 @@
           id: set_general_defrost_enter4_row
           styles: setting_row_style
           widgets:
-            - label: { text: "Defrost starttemperatuur 4", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-            - label: { text: "Spoeltemperatuur bij buitentemp. onder -10°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+            - label: { text: "${t_defrost_starttemperatuur_4}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { text: "${t_spoeltemperatuur_bij_buitentemp_onder_10}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
             - obj:
                 width: SIZE_CONTENT
                 height: SIZE_CONTENT

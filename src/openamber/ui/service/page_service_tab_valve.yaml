@@ -1,7 +1,7 @@
 # Menu Page: 3-weg klep
 # ------------------------------------------------------------
 id: service_valve_page
-title: "3-weg klep"
+title: "${t_3_weg_klep}"
 styles: setting_page_style
 widgets:
   - obj:
@@ -22,13 +22,13 @@ widgets:
             styles: setting_row_style
             widgets:
               - label:
-                  text: "Klepstand forceren"
+                  text: "${t_klepstand_forceren}"
                   text_color: 0x1F2933
                   text_font: font_text_24
                   align: TOP_LEFT
               - label:
                   width: 100%
-                  text: "Forceer de 3-weg klep tijdelijk naar CV/Koelen of Tapwater"
+                  text: "${t_forceer_de_3_weg_klep_tijdelijk_naar_cv}"
                   text_color: 0x6B7280
                   text_font: font_text_20
                   long_mode: WRAP
@@ -60,7 +60,7 @@ widgets:
                   widgets:
                     - label:
                         id: service_valve_btn_heat_cool_lbl
-                        text: "CV/Koelen"
+                        text: "${t_cv_koelen}"
                         text_color: 0x4B5563
                         text_font: font_text_20
                         align: CENTER
@@ -90,7 +90,7 @@ widgets:
                   widgets:
                     - label:
                         id: service_valve_btn_dhw_lbl
-                        text: "Tapwater"
+                        text: "${t_tapwater}"
                         text_color: 0x4B5563
                         text_font: font_text_20
                         align: CENTER

@@ -1,7 +1,7 @@
 # Menu Page: Diagnose - Aansturing
 # ------------------------------------------------------------
 id: service_sensors_control_page
-title: "Aansturing"
+title: "${t_aansturing}"
 styles: setting_page_style
 widgets:
   - obj:
@@ -20,7 +20,7 @@ widgets:
       scrollbar_mode: "OFF"
       scrollable: false
       widgets:
-        - label: { text: "Aansturing", text_color: 0x0F172A, text_font: font_text_24, align: TOP_LEFT }
+        - label: { text: "${t_aansturing}", text_color: 0x0F172A, text_font: font_text_24, align: TOP_LEFT }
         - table:
             id: service_diag_control_table
             width: 100%
@@ -44,12 +44,12 @@ widgets:
               - width: 60%
               - width: 40%
             rows:
-              - ["Compressorfrequentie", "- Hz"]
-              - ["Compressorniveau OpenAmber", "-"]
-              - ["Doelfrequentie buitenunit", "- Hz"]
-              - ["Circulatiepomp (P0)", "- %"]
-              - ["Ventilator (Fan)", "- rpm"]
-              - ["Expansieklep", "- %"]
-              - ["Mengventiel Zone 1", "- %"]
-              - ["Mengventiel Zone 2", "- %"]
-              - ["Driewegklep positie", "-"]
+              - ["${t_compressorfrequentie}", "- Hz"]
+              - ["${t_compressorniveau_openamber}", "-"]
+              - ["${t_doelfrequentie_buitenunit}", "- Hz"]
+              - ["${t_circulatiepomp_p0}", "- %"]
+              - ["${t_ventilator_fan}", "- rpm"]
+              - ["${t_expansieklep}", "- %"]
+              - ["${t_mengventiel_zone_1_3}", "- %"]
+              - ["${t_mengventiel_zone_2_3}", "- %"]
+              - ["${t_driewegklep_positie}", "-"]
