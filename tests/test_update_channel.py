@@ -86,24 +86,33 @@ def test_channel_setting_on_display(channels):
     openamber = channels
     show_updates(openamber, "Stabiel", "Nieuwe beta")
 
-    assert openamber.click("nav_settings")
+    assert openamber.click("nav_system")
     openamber.step(ms=100)
-    assert openamber.click("stab_general")
-    openamber.step(ms=100)
-    assert openamber.click("general_stab_systeem")
-    openamber.step(ms=100)
-    assert openamber.is_visible("set_general_system_update_channel")
+    assert openamber.is_visible("service_update_channel_row")
 
-    assert openamber.set_dropdown("set_firmware_update_channel_dd", 1)
+    assert openamber.set_dropdown("service_update_channel_dd", 1)
     openamber.step(ms=100)
     assert openamber.get_entity("firmware_update_channel") == "Beta"
 
     # Switching the channel checks the beta manifest right away.
-    assert openamber.click("nav_system")
-    openamber.step(ms=100)
     assert openamber.get_label("service_update_version") == "Nieuwe versie 1.1.0-beta.1 beschikbaar\nHuidige versie: 1.0.0"
 
     # And the dropdown follows the entity (e.g. a change from Home Assistant).
     openamber.set_select("firmware_update_channel", "Stabiel")
     openamber.step(ms=100)
-    assert openamber.get_widget("set_firmware_update_channel_dd").get("selected_index") == 0
+    assert openamber.get_widget("service_update_channel_dd").get("selected_index") == 0
+
+
+@pytest.mark.parametrize("scenario", ["Geen update", "Beta, finale uit"])
+def test_channel_row_fits_without_scrolling(channels, scenario):
+    # With an update available the card also shows the release QR code and is taller; the channel row below the
+    # tiles must still fit in the panel without scrolling.
+    openamber = channels
+    show_updates(openamber, "Stabiel", scenario)
+    if scenario != "Geen update":
+        assert openamber.is_visible("service_release_qr_hint")
+    panel = openamber.get_widget("service_updates_panel")
+    tiles = openamber.get_widget("service_action_row")
+    row = openamber.get_widget("service_update_channel_row")
+    assert tiles["y2"] < row["y1"]
+    assert row["y2"] <= panel["y2"], f"channel row ends at {row['y2']}, panel at {panel['y2']}"

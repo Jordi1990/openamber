@@ -72,7 +72,7 @@ Connect to the OpenAmber access point(password openamber) to setup WiFi.
 
 **Updates and beta versions**
 
-OpenAmber checks for new firmware itself and shows it in Home Assistant and on the display (Systeem). The setting *Updatekanaal* (in Home Assistant, or on the display under Instellingen > Algemeen > Systeem) chooses which versions you are offered:
+OpenAmber checks for new firmware itself and shows it in Home Assistant and on the display (Systeem). The setting *Updatekanaal* (in Home Assistant, or on the display under Systeem) chooses which versions you are offered:
 - *Stabiel* (default): stable releases only, such as `0.10.0`.
 - *Beta*: beta versions such as `0.10.0-beta.1` as well, and the final release once it is out.
 
