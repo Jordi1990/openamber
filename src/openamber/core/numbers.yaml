@@ -7,6 +7,7 @@ number:
   min_value: -5
   max_value: 5
   step: 0.1
+  mode: box
   initial_value: 0
   restore_value: true
   optimistic: true
@@ -19,6 +20,7 @@ number:
   min_value: -5
   max_value: 5
   step: 0.1
+  mode: box
   initial_value: 0
   restore_value: true
   optimistic: true
@@ -31,6 +33,7 @@ number:
   min_value: -5
   max_value: 5
   step: 0.1
+  mode: box
   initial_value: 0
   restore_value: true
   optimistic: true
@@ -43,6 +46,7 @@ number:
   min_value: -5
   max_value: 5
   step: 0.1
+  mode: box
   initial_value: 0
   restore_value: true
   optimistic: true
@@ -55,6 +59,7 @@ number:
   min_value: -5
   max_value: 5
   step: 0.1
+  mode: box
   initial_value: 0
   restore_value: true
   optimistic: true
@@ -66,6 +71,7 @@ number:
   min_value: 0
   max_value: 10
   step: 0.1
+  mode: box
   unit_of_measurement: "°C"
   device_class: "temperature"
   initial_value: 5.0
@@ -81,6 +87,7 @@ number:
   min_value: 0
   max_value: 10
   step: 0.1
+  mode: box
   unit_of_measurement: "°C"
   device_class: "temperature"
   initial_value: 4.0
@@ -96,6 +103,7 @@ number:
   min_value: 0
   max_value: 10
   step: 0.1
+  mode: box
   unit_of_measurement: "°C"
   device_class: "temperature"
   initial_value: 7.0
@@ -111,6 +119,7 @@ number:
   min_value: 0.1
   max_value: 10
   step: 0.1
+  mode: box
   unit_of_measurement: "°C"
   device_class: "temperature"
   initial_value: 3.0
@@ -126,6 +135,7 @@ number:
   min_value: 0.1
   max_value: 10
   step: 0.1
+  mode: box
   unit_of_measurement: "°C"
   device_class: "temperature"
   initial_value: 5.0
@@ -141,6 +151,7 @@ number:
   min_value: 0.1
   max_value: 2.0
   step: 0.1
+  mode: box
   unit_of_measurement: "°C"
   device_class: "temperature"
   initial_value: 1
@@ -158,6 +169,7 @@ number:
   min_value: 15
   max_value: 45
   step: 1
+  mode: box
   restore_value: true
   initial_value: 25
   # Recalculate both heating curves at once, so the combined setpoint never mixes a new and an old zone value.
@@ -178,6 +190,7 @@ number:
   min_value: 15
   max_value: 45
   step: 1
+  mode: box
   restore_value: true
   initial_value: 27
   on_value: *heat_curve_changed
@@ -194,6 +207,7 @@ number:
   min_value: 15
   max_value: 45
   step: 1
+  mode: box
   restore_value: true
   initial_value: 28
   on_value: *heat_curve_changed
@@ -210,6 +224,7 @@ number:
   min_value: 15
   max_value: 45
   step: 1
+  mode: box
   restore_value: true
   initial_value: 30
   on_value: *heat_curve_changed
@@ -226,6 +241,7 @@ number:
   min_value: 15
   max_value: 45
   step: 1
+  mode: box
   restore_value: true
   initial_value: 35
   on_value: *heat_curve_changed
@@ -243,6 +259,7 @@ number:
   min_value: 15
   max_value: 45
   step: 1
+  mode: box
   restore_value: true
   initial_value: 22
   on_value: *heat_curve_changed
@@ -259,6 +276,7 @@ number:
   min_value: 15
   max_value: 45
   step: 1
+  mode: box
   restore_value: true
   initial_value: 24
   on_value: *heat_curve_changed
@@ -275,6 +293,7 @@ number:
   min_value: 15
   max_value: 45
   step: 1
+  mode: box
   restore_value: true
   initial_value: 26
   on_value: *heat_curve_changed
@@ -291,6 +310,7 @@ number:
   min_value: 15
   max_value: 45
   step: 1
+  mode: box
   restore_value: true
   initial_value: 28
   on_value: *heat_curve_changed
@@ -307,6 +327,7 @@ number:
   min_value: 15
   max_value: 45
   step: 1
+  mode: box
   restore_value: true
   initial_value: 30
   on_value: *heat_curve_changed
@@ -323,6 +344,7 @@ number:
   min_value: 0
   max_value: 100
   step: 1
+  mode: box
   restore_value: true
   initial_value: 0
   entity_category: config
@@ -337,6 +359,7 @@ number:
   min_value: 0
   max_value: 100
   step: 1
+  mode: box
   restore_value: true
   initial_value: 100
   entity_category: config
@@ -352,6 +375,7 @@ number:
   min_value: 0
   max_value: 100
   step: 1
+  mode: box
   restore_value: true
   initial_value: 0
   entity_category: config
@@ -366,6 +390,7 @@ number:
   min_value: 0
   max_value: 100
   step: 1
+  mode: box
   restore_value: true
   initial_value: 100
   entity_category: config
@@ -381,6 +406,7 @@ number:
   min_value: 15
   max_value: 45
   step: 1
+  mode: box
   initial_value: 30
   entity_category: config
   on_value: 
@@ -398,6 +424,7 @@ number:
   min_value: 25
   max_value: 75
   step: 1
+  mode: box
   initial_value: 55
   restore_value: True
   entity_category: config
@@ -417,6 +444,7 @@ number:
   min_value: 5
   max_value: 25
   step: 1
+  mode: box
   initial_value: 15
   entity_category: config
   web_server: 
@@ -432,6 +460,7 @@ number:
   min_value: -20
   max_value: 10
   step: 1
+  mode: box
   initial_value: 5
   entity_category: config
   web_server: 
@@ -444,6 +473,7 @@ number:
   min_value: 0
   max_value: 5
   step: 0.01
+  mode: box
   initial_value: 0.12
   optimistic: true
   restore_value: true
@@ -459,6 +489,7 @@ number:
   min_value: 0
   max_value: 60
   step: 1
+  mode: box
   initial_value: 5
   optimistic: true
   restore_value: true
@@ -474,6 +505,7 @@ number:
   max_value: 600
   initial_value: 40
   step: 5
+  mode: box
   optimistic: true
   restore_value: true
   entity_category: config
@@ -492,6 +524,7 @@ number:
   max_value: 30
   initial_value: 30
   step: 1
+  mode: box
   optimistic: true
   restore_value: true
   entity_category: config
@@ -505,6 +538,7 @@ number:
   min_value: 0
   max_value: 100
   step: 1
+  mode: box
   unit_of_measurement: "%"
   initial_value: 100
   restore_value: True
@@ -519,6 +553,7 @@ number:
   min_value: 0
   max_value: 100
   step: 1
+  mode: box
   unit_of_measurement: "%"
   initial_value: 100
   restore_value: True
@@ -533,6 +568,7 @@ number:
   min_value: 2.0
   max_value: 10.0
   step: 0.1
+  mode: box
   unit_of_measurement: "°C"
   device_class: "temperature"
   initial_value: 3.0
@@ -554,6 +590,7 @@ number:
   min_value: 20
   max_value: 100
   step: 1
+  mode: box
   unit_of_measurement: "%"
   initial_value: 70
   restore_value: True
@@ -568,6 +605,7 @@ number:
   min_value: 20
   max_value: 100
   step: 1
+  mode: box
   unit_of_measurement: "%"
   initial_value: 100
   restore_value: True
@@ -582,6 +620,7 @@ number:
   min_value: 20
   max_value: 100
   step: 1
+  mode: box
   unit_of_measurement: "%"
   initial_value: 100
   restore_value: True
@@ -597,6 +636,7 @@ number:
   min_value: 0.00
   max_value: 1.00
   step: 0.01
+  mode: box
   initial_value: 0.12
   restore_value: True
   entity_category: config
@@ -617,6 +657,7 @@ number:
   min_value: 0.0000
   max_value: 0.0100
   step: 0.0001
+  mode: box
   initial_value: 0.0015
   restore_value: True
   entity_category: config
@@ -637,6 +678,7 @@ number:
   min_value: 0.00
   max_value: 2.00
   step: 0.01
+  mode: box
   initial_value: 0.00
   restore_value: True
   entity_category: config
@@ -659,6 +701,7 @@ number:
   min_value: 5
   max_value: 25
   step: 1
+  mode: box
   initial_value: 7
   restore_value: True
   entity_category: config
@@ -675,6 +718,7 @@ number:
   min_value: 0.1
   max_value: 10
   step: 0.1
+  mode: box
   unit_of_measurement: "°C"
   device_class: "temperature"
   initial_value: 3.0
@@ -690,6 +734,7 @@ number:
   min_value: 0.1
   max_value: 10
   step: 0.1
+  mode: box
   unit_of_measurement: "°C"
   device_class: "temperature"
   initial_value: 5.0
@@ -705,6 +750,7 @@ number:
   min_value: 0.0
   max_value: 3.0
   step: 0.01
+  mode: box
   initial_value: 0.6
   restore_value: True
   entity_category: config
@@ -725,6 +771,7 @@ number:
   min_value: 0.0000
   max_value: 0.0500
   step: 0.0001
+  mode: box
   initial_value: 0.0020
   restore_value: True
   entity_category: config
@@ -745,6 +792,7 @@ number:
   min_value: 0.0
   max_value: 25.0
   step: 0.01
+  mode: box
   initial_value: 0.7
   restore_value: True
   entity_category: config
@@ -765,6 +813,7 @@ number:
   min_value: 0.0
   max_value: 5.0
   step: 0.1
+  mode: box
   unit_of_measurement: "°C"
   initial_value: 1.0
   restore_value: True
@@ -785,6 +834,7 @@ number:
   min_value: 0.0
   max_value: 3.0
   step: 0.01
+  mode: box
   initial_value: 0.6
   restore_value: True
   entity_category: config
@@ -805,6 +855,7 @@ number:
   min_value: 0.0000
   max_value: 0.0500
   step: 0.0001
+  mode: box
   initial_value: 0.0020
   restore_value: True
   entity_category: config
@@ -825,6 +876,7 @@ number:
   min_value: 0.0
   max_value: 25.0
   step: 0.01
+  mode: box
   initial_value: 0.7
   restore_value: True
   entity_category: config
@@ -845,6 +897,7 @@ number:
   min_value: 0.0
   max_value: 5.0
   step: 0.1
+  mode: box
   unit_of_measurement: "°C"
   initial_value: 1.0
   restore_value: True
@@ -866,6 +919,7 @@ number:
   min_value: 0.0
   max_value: 5.0
   step: 0.01
+  mode: box
   initial_value: 1.0
   restore_value: True
   entity_category: config
@@ -886,6 +940,7 @@ number:
   min_value: 0.0000
   max_value: 0.0500
   step: 0.0001
+  mode: box
   initial_value: 0.0050
   restore_value: True
   entity_category: config
@@ -906,6 +961,7 @@ number:
   min_value: 0.0
   max_value: 25.0
   step: 0.01
+  mode: box
   initial_value: 0.0
   restore_value: True
   entity_category: config
@@ -926,6 +982,7 @@ number:
   min_value: 0.0
   max_value: 5.0
   step: 0.1
+  mode: box
   unit_of_measurement: "°C"
   initial_value: 1.0
   restore_value: True
@@ -947,6 +1004,7 @@ number:
   min_value: 0.0
   max_value: 5.0
   step: 0.01
+  mode: box
   initial_value: 1.0
   restore_value: True
   entity_category: config
@@ -967,6 +1025,7 @@ number:
   min_value: 0.0000
   max_value: 0.0500
   step: 0.0001
+  mode: box
   initial_value: 0.0050
   restore_value: True
   entity_category: config
@@ -987,6 +1046,7 @@ number:
   min_value: 0.0
   max_value: 25.0
   step: 0.01
+  mode: box
   initial_value: 0.0
   restore_value: True
   entity_category: config
@@ -1007,6 +1067,7 @@ number:
   min_value: 0.0
   max_value: 5.0
   step: 0.1
+  mode: box
   unit_of_measurement: "°C"
   initial_value: 1.0
   restore_value: True
@@ -1027,6 +1088,7 @@ number:
   min_value: 0
   max_value: 100
   step: 1
+  mode: box
   unit_of_measurement: "%"
   initial_value: 100
   restore_value: True
@@ -1042,6 +1104,7 @@ number:
   min_value: 0
   max_value: 10
   step: 1
+  mode: box
   unit_of_measurement: "min"
   icon: "mdi:timer-alert-outline"
   initial_value: 0
@@ -1057,6 +1120,7 @@ number:
   min_value: 5
   max_value: 60
   step: 1
+  mode: box
   unit_of_measurement: "min"
   icon: "mdi:timer-outline"
   initial_value: 15
@@ -1072,6 +1136,7 @@ number:
   min_value: 2
   max_value: 10
   step: 1
+  mode: box
   unit_of_measurement: "min"
   icon: "mdi:clock-outline"
   initial_value: 2
@@ -1086,6 +1151,7 @@ number:
   restore_value: True
   initial_value: -3
   step: 1
+  mode: box
   min_value: -15
   max_value: 15
   unit_of_measurement: "°C"
@@ -1117,6 +1183,7 @@ number:
   min_value: 55
   max_value: 65
   step: 1
+  mode: box
   initial_value: 60
   restore_value: True
   optimistic: True
@@ -1134,6 +1201,7 @@ number:
   restore_value: True
   initial_value: 5
   step: 1
+  mode: box
   min_value: 0
   max_value: 10
   unit_of_measurement: "°C"
@@ -1152,6 +1220,7 @@ number:
   restore_value: True
   initial_value: 5
   step: 1
+  mode: box
   min_value: 0
   max_value: 25
   unit_of_measurement: "°C"
@@ -1170,6 +1239,7 @@ number:
   min_value: 10
   max_value: 30
   step: 0.1
+  mode: box
   unit_of_measurement: "°C"
   device_class: "temperature"
   initial_value: 20.5
@@ -1184,6 +1254,7 @@ number:
   min_value: 18
   max_value: 30
   step: 0.1
+  mode: box
   unit_of_measurement: "°C"
   device_class: "temperature"
   initial_value: 24.0
@@ -1198,6 +1269,7 @@ number:
   min_value: 0.1
   max_value: 5.0
   step: 0.1
+  mode: box
   unit_of_measurement: "°C"
   device_class: "temperature"
   initial_value: 0.3
@@ -1217,6 +1289,7 @@ number:
   min_value: 0.1
   max_value: 5.0
   step: 0.1
+  mode: box
   unit_of_measurement: "°C"
   device_class: "temperature"
   initial_value: 0.2
@@ -1235,6 +1308,7 @@ number:
   min_value: 0.1
   max_value: 5.0
   step: 0.1
+  mode: box
   unit_of_measurement: "°C"
   device_class: "temperature"
   initial_value: 0.5
@@ -1253,6 +1327,7 @@ number:
   min_value: 0.1
   max_value: 10.0
   step: 0.1
+  mode: box
   unit_of_measurement: "°C"
   device_class: "temperature"
   initial_value: 3.0
@@ -1274,6 +1349,7 @@ number:
   min_value: 0
   max_value: 60
   step: 5
+  mode: box
   unit_of_measurement: "min"
   icon: "mdi:timer-sand"
   initial_value: 0
@@ -1366,6 +1442,7 @@ number:
   min_value: 1.0
   max_value: 10.0
   step: 1.0
+  mode: box
   initial_value: 3.0
   entity_category: config
 
@@ -1375,6 +1452,7 @@ number:
   min_value: 1.0
   max_value: 20.0
   step: 1.0
+  mode: box
   initial_value: 6.0
   entity_category: config
 
@@ -1384,6 +1462,7 @@ number:
   min_value: 10.0
   max_value: 300.0
   step: 5.0
+  mode: box
   initial_value: 30.0
   entity_category: config
 
@@ -1393,6 +1472,7 @@ number:
   min_value: 5.0
   max_value: 120.0
   step: 5.0
+  mode: box
   initial_value: 10.0
   entity_category: config
 
