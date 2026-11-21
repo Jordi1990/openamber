@@ -77,6 +77,7 @@ obj:
                     lv_obj_remove_flag(id(service_confirm_stop_first_button), LV_OBJ_FLAG_HIDDEN);
                   }
                   bool rollback = id(service_update_offer) == openamber_fw::OFFER_ROLLBACK;
+                  id(service_update_target) = id(firmware_update).update_info.latest_version;
                   lv_label_set_text(id(service_confirm_title), active ? "Warmtepomp in bedrijf"
                       : (rollback ? "Terug naar stabiel" : "Update bevestigen"));
                   lv_obj_send_event(id(service_confirm_title), lvgl::lv_update_event, nullptr);

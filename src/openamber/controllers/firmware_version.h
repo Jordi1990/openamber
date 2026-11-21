@@ -130,6 +130,10 @@ enum UpdateOffer {
 };
 
 inline UpdateOffer update_offer(const std::string &latest, const std::string &current, bool beta_channel) {
+  // The Stabiel channel never installs a beta, also not one left over from a check on the beta channel before
+  // the channel was switched (or one whose check is still in flight).
+  if (!beta_channel && is_prerelease(latest))
+    return OFFER_NONE;
   if (is_newer(latest, current))
     return OFFER_UPDATE;
   if (!beta_channel && is_prerelease(current) && parse(latest).valid && !is_prerelease(latest) && latest != current)

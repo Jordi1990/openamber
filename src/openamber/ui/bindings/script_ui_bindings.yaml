@@ -1948,19 +1948,28 @@
 - id: start_firmware_update
   mode: single
   then:
-    - globals.set:
-        id: service_update_install_in_progress
-        value: 'true'
-    - lvgl.widget.show:
-        id: service_update_progress_overlay
-    - update.perform:
-        id: firmware_update
-    - delay: 10min
-    - globals.set:
-        id: service_update_install_in_progress
-        value: 'false'
-    - lvgl.widget.hide:
-        id: service_update_progress_overlay
+    - if:
+        # A check (e.g. after a channel change from Home Assistant) replaced the version the dialog described:
+        # install nothing and show the new offer, so the user confirms what is actually installed.
+        condition:
+          lambda: 'return id(firmware_update).update_info.latest_version != id(service_update_target);'
+        then:
+          - logger.log: "Firmware update target changed after confirmation, not installing"
+          - script.execute: update_firmware_ui
+        else:
+          - globals.set:
+              id: service_update_install_in_progress
+              value: 'true'
+          - lvgl.widget.show:
+              id: service_update_progress_overlay
+          - update.perform:
+              id: firmware_update
+          - delay: 10min
+          - globals.set:
+              id: service_update_install_in_progress
+              value: 'false'
+          - lvgl.widget.hide:
+              id: service_update_progress_overlay
 
 # Restore the confirm dialog to its two-button layout.
 - id: service_confirm_reset_layout
