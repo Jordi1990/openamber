@@ -1053,22 +1053,44 @@
   then:
     - if:
         condition:
-          update.is_available: firmware_update
+          # ESPHome reports every different version as available, also an older stable one while a beta is
+          # installed. Compare the versions properly and offer an update or, on the Stabiel channel with a beta
+          # installed, the way back to the stable release.
+          lambda: |-
+            const auto &info = id(firmware_update).update_info;
+            std::string current = info.current_version.empty() ? std::string(ESPHOME_PROJECT_VERSION) : info.current_version;
+            auto channel = id(firmware_update_channel).active_index();
+            bool beta_channel = channel.has_value() && channel.value() == 1;
+            id(service_update_offer) = openamber_fw::update_offer(info.latest_version, current, beta_channel);
+            return id(service_update_offer) != openamber_fw::OFFER_NONE;
         then:
           - globals.set:
               id: service_update_check_failed
               value: 'false'
-          - lvgl.widget.show: { id: nav_system_badge }
+          - lambda: |-
+              // Going back to stable is a choice, not a pending update: no badge for it.
+              if (id(service_update_offer) == openamber_fw::OFFER_UPDATE)
+                lv_obj_remove_flag(id(nav_system_badge), LV_OBJ_FLAG_HIDDEN);
+              else
+                lv_obj_add_flag(id(nav_system_badge), LV_OBJ_FLAG_HIDDEN);
           - if:
               condition:
                 lambda: 'return !lv_obj_has_flag(id(page_system), LV_OBJ_FLAG_HIDDEN);'
               then:
                 - lambda: |-
+                    const auto &info = id(firmware_update).update_info;
+                    const char *latest = info.latest_version.empty() ? "onbekend" : info.latest_version.c_str();
+                    const char *current = info.current_version.empty() ? ESPHOME_PROJECT_VERSION : info.current_version.c_str();
+                    bool rollback = id(service_update_offer) == openamber_fw::OFFER_ROLLBACK;
                     lv_label_set_text(id(service_update_status), "");
                     lv_obj_send_event(id(service_update_status), lvgl::lv_update_event, nullptr);
                     lv_obj_add_flag(id(service_update_error), LV_OBJ_FLAG_HIDDEN);
-                    lv_label_set_text(id(service_update_version), str_sprintf("Nieuwe versie %s beschikbaar\nHuidige versie: %s", id(firmware_update).update_info.latest_version.empty() ? "onbekend" : id(firmware_update).update_info.latest_version.c_str(), id(firmware_update).update_info.current_version.empty() ? ESPHOME_PROJECT_VERSION : id(firmware_update).update_info.current_version.c_str()).c_str());
+                    lv_label_set_text(id(service_update_version), str_sprintf(rollback
+                        ? "Stabiele versie %s beschikbaar\nHuidige versie: %s (beta)"
+                        : "Nieuwe versie %s beschikbaar\nHuidige versie: %s", latest, current).c_str());
                     lv_obj_send_event(id(service_update_version), lvgl::lv_update_event, nullptr);
+                    lv_label_set_text(id(service_update_button_label), rollback ? "Terug naar stabiel" : "Update installeren");
+                    lv_obj_send_event(id(service_update_button_label), lvgl::lv_update_event, nullptr);
                 - if:
                     condition:
                       lambda: |-

@@ -188,3 +188,28 @@ select:
 - platform: logger
   name: "Logging niveau"
 
+
+# Which firmware releases this device is offered: Stabiel (default) or Beta. The beta channel also offers the
+# final release once it is out. Switching back to Stabiel on a beta offers "Terug naar stabiel" on the display.
+- platform: template
+  id: firmware_update_channel
+  name: "Updatekanaal"
+  icon: mdi:source-branch
+  optimistic: true
+  options:
+    - "Stabiel"
+    - "Beta"
+  initial_option: "Stabiel"
+  restore_value: true
+  entity_category: config
+  web_server:
+    sorting_group_id: general_settings
+  on_value:
+    then:
+      - script.execute: apply_firmware_update_channel
+      - if:
+          condition:
+            lambda: 'return id(my_time).now().is_valid();'
+          then:
+            - update.check:
+                id: firmware_update

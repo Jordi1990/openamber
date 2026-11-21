@@ -126,6 +126,25 @@
                   auto idx = id(display_screen_timeout_select).active_index();
                   return idx.has_value() ? idx.value() : 2;
 
+# ── Settings: Update channel dropdown ──
+- id: !extend firmware_update_channel
+  on_value:
+    then:
+      - if:
+          condition:
+            lambda: |-
+              auto idx = id(firmware_update_channel).active_index();
+              if (!idx.has_value()) return false;
+              return lv_dropdown_get_selected(id(set_firmware_update_channel_dd)->obj) != (uint16_t) idx.value();
+          then:
+            - lvgl.dropdown.update:
+                id: set_firmware_update_channel_dd
+                selected_index: !lambda |-
+                  auto idx = id(firmware_update_channel).active_index();
+                  return idx.has_value() ? idx.value() : 0;
+      # The channel decides whether the Updates card offers "Terug naar stabiel".
+      - script.execute: update_firmware_ui
+
 # ── Settings: Backup heating mode dropdown ──
 - id: !extend backup_heating_mode
   on_value:

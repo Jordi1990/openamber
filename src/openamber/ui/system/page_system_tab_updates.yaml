@@ -76,13 +76,17 @@ obj:
                     lv_obj_set_width(id(service_confirm_button), 190);
                     lv_obj_remove_flag(id(service_confirm_stop_first_button), LV_OBJ_FLAG_HIDDEN);
                   }
-                  lv_label_set_text(id(service_confirm_title), active ? "Warmtepomp in bedrijf" : "Update bevestigen");
+                  bool rollback = id(service_update_offer) == openamber_fw::OFFER_ROLLBACK;
+                  lv_label_set_text(id(service_confirm_title), active ? "Warmtepomp in bedrijf"
+                      : (rollback ? "Terug naar stabiel" : "Update bevestigen"));
                   lv_obj_send_event(id(service_confirm_title), lvgl::lv_update_event, nullptr);
                   lv_label_set_text(id(service_confirm_text), active
                       ? "De update kan veilig tijdens bedrijf. Of stop eerst gecontroleerd en start de update opnieuw zodra de status Standby is."
-                      : "Wil je de firmware update nu starten?");
+                      : (rollback ? "Wil je de beta vervangen door de stabiele versie?"
+                                  : "Wil je de firmware update nu starten?"));
                   lv_obj_send_event(id(service_confirm_text), lvgl::lv_update_event, nullptr);
-                  lv_label_set_text(id(service_confirm_button_label), active ? "Nu updaten" : "Update starten");
+                  lv_label_set_text(id(service_confirm_button_label), active ? "Nu updaten"
+                      : (rollback ? "Terugzetten" : "Update starten"));
                   lv_obj_send_event(id(service_confirm_button_label), lvgl::lv_update_event, nullptr);
                   lv_obj_set_style_bg_color(id(service_confirm_button), lv_color_hex(0x0072CE), LV_PART_MAIN);
                   lv_obj_remove_flag(id(service_confirm_modal), LV_OBJ_FLAG_HIDDEN);

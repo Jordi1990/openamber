@@ -73,3 +73,11 @@ script:
           }
         target_temperature_low: !lambda 'return id(thermostat_default_heat_setpoint).state;'
         target_temperature_high: !lambda 'return id(thermostat_default_cool_setpoint).state;'
+
+# Point the firmware update entity at the manifest of the chosen update channel.
+- id: apply_firmware_update_channel
+  then:
+    - lambda: |-
+        auto idx = id(firmware_update_channel).active_index();
+        bool beta = idx.has_value() && idx.value() == 1;
+        id(firmware_update).set_source_url(beta ? "${firmware_manifest_beta_url}" : "${firmware_manifest_stable_url}");
