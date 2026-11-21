@@ -28,6 +28,7 @@ class HeatCoolController;
 class PumpController;
 class CompressorController;
 class DeaerationRoutine;
+class CustomDefrostController;
 class MixingValveActuator;
 enum ThreeWayValvePosition
 {
@@ -60,6 +61,7 @@ private:
   PumpController *pump_controller_;
   CompressorController *compressor_controller_;
   DeaerationRoutine *deaeration_routine_;
+  CustomDefrostController *custom_defrost_controller_;
   MixingValveActuator *mixing_valve_zone1_;
   MixingValveActuator *mixing_valve_zone2_;
   State deferred_machine_state_;
@@ -111,6 +113,7 @@ public:
   float get_mixing_valve_zone1_position() const;
   float get_mixing_valve_zone2_position() const;
   void reset_pump_interval();
+  void request_custom_defrost();
   bool is_maintenance_state() const;
   void start_deaeration_routine(bool extended);
   void stop_deaeration_routine();

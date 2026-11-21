@@ -1,0 +1,6 @@
+# Menu Page: Geavanceerd - Eigen defrost: status
+# ------------------------------------------------------------
+id: panel_advanced_page_custom_defrost_status
+title: "Eigen defrost: status"
+styles: setting_page_style
+widgets: !include page_settings_tab_advanced_custom_defrost_status_content.yaml

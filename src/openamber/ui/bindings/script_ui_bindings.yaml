@@ -1280,7 +1280,8 @@
           {"P13 - Storing compressor - laag drukverschil", "Toerental compressor wordt verlaagd. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart.", id(error_flag_p13).state},
           {"Communicatie-failsafe binnenunit", "Communicatie-failsafe binnenunit actief.", id(error_flag_inside_comm_failsafe).state},
           {"EEPROM-fout binnenunit", "EEPROM- of statusfout binnenunit.", id(error_flag_inside_eeprom).state},
-          {"Pompterugmelding P0 alarm", "Alarm pompterugmelding P0.", id(error_flag_pump_p0_alarm).state}
+          {"Pompterugmelding P0 alarm", "Alarm pompterugmelding P0.", id(error_flag_pump_p0_alarm).state},
+          {"OA01 - Eigen defrost mislukt", "De buitenunit startte geen defrost na twee aanvragen van OpenAmber. OpenAmber probeert het na 30 min opnieuw. De melding verdwijnt na een geslaagde defrost of als je de defrost controle wijzigt.", id(warning_custom_defrost_failed).state}
         };
 
         lv_obj_clean(id(service_warnings_list));
@@ -2019,4 +2020,30 @@
           } else {
             lv_obj_add_flag(crumbs[m], LV_OBJ_FLAG_HIDDEN);
           }
+        }
+
+- id: update_custom_defrost_runtime_ui
+  mode: queued
+  max_runs: 2
+  then:
+    - lambda: |-
+        float runtime = id(custom_defrost_runtime_sensor).state;
+        float interval = id(custom_defrost_interval_sensor).state;
+        lv_label_set_text_fmt(id(set_custom_defrost_runtime_val), "%d / %d min",
+                              std::isnan(runtime) ? 0 : (int) runtime,
+                              std::isnan(interval) ? 35 : (int) interval);
+
+- id: update_custom_defrost_humidity_ui
+  mode: queued
+  max_runs: 2
+  then:
+    - lambda: |-
+        float rh = id(outdoor_humidity).state;
+        float frost_point = CustomDefrostFrostPoint(id(temperature_outside_ta).state, rh);
+        if (std::isnan(rh)) {
+          lv_label_set_text(id(set_custom_defrost_humidity_value_val), "Geen meting");
+        } else if (std::isnan(frost_point)) {
+          lv_label_set_text_fmt(id(set_custom_defrost_humidity_value_val), "%d%%", (int) roundf(rh));
+        } else {
+          lv_label_set_text_fmt(id(set_custom_defrost_humidity_value_val), "%d%% / %.1f°C", (int) roundf(rh), frost_point);
         }

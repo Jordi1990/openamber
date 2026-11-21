@@ -188,3 +188,20 @@ select:
 - platform: logger
   name: "Logging niveau"
 
+- platform: template
+  id: defrost_control_select
+  name: "Defrost controle"
+  optimistic: True
+  options:
+    - "Buitenunit"
+    - "OpenAmber"
+  initial_option: "Buitenunit"
+  restore_value: True
+  icon: "mdi:snowflake-melt"
+  entity_category: config
+  web_server:
+    sorting_group_id: custom_defrost
+  on_value:
+    then:
+      - lambda: |-
+          global_preferences->sync();

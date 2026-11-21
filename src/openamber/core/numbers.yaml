@@ -1396,3 +1396,183 @@ number:
   initial_value: 10.0
   entity_category: config
 
+# ── Eigen defrost ──
+- platform: template
+  id: custom_defrost_max_ta
+  name: "Eigen defrost maximale buitentemperatuur"
+  optimistic: True
+  restore_value: True
+  initial_value: 7
+  min_value: 0
+  max_value: 15
+  step: 1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  entity_category: config
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_delta_at_zero
+  name: "Eigen defrost Ta-Tp bij 0°C"
+  optimistic: True
+  restore_value: True
+  initial_value: 7
+  min_value: 3
+  max_value: 15
+  step: 0.5
+  unit_of_measurement: "K"
+  icon: "mdi:thermometer-minus"
+  entity_category: config
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_delta_at_cold
+  name: "Eigen defrost Ta-Tp bij -15°C"
+  optimistic: True
+  restore_value: True
+  initial_value: 4
+  min_value: 2
+  max_value: 12
+  step: 0.5
+  unit_of_measurement: "K"
+  icon: "mdi:thermometer-minus"
+  entity_category: config
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_max_coil_temperature
+  name: "Eigen defrost maximale Tp"
+  optimistic: True
+  restore_value: True
+  initial_value: -5
+  min_value: -10
+  max_value: 0
+  step: 0.5
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  entity_category: config
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_max_runtime
+  name: "Eigen defrost vangnet maximale draaitijd"
+  optimistic: True
+  restore_value: True
+  initial_value: 120
+  min_value: 30
+  max_value: 360
+  step: 5
+  unit_of_measurement: "min"
+  icon: "mdi:timer-alert-outline"
+  entity_category: config
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_fallback_tp
+  name: "Eigen defrost vangnet Tp drempel"
+  optimistic: True
+  restore_value: True
+  initial_value: -2
+  min_value: -10
+  max_value: 5
+  step: 0.5
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  entity_category: config
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_min_runtime
+  name: "Eigen defrost minimaal interval"
+  optimistic: True
+  restore_value: True
+  initial_value: 35
+  min_value: 30
+  max_value: 180
+  step: 5
+  unit_of_measurement: "min"
+  icon: "mdi:timer-sand"
+  entity_category: config
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_min_return_temperature
+  name: "Eigen defrost minimale retourtemperatuur"
+  optimistic: True
+  restore_value: True
+  initial_value: 20
+  min_value: 10
+  max_value: 35
+  step: 1
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  entity_category: config
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_max_return_wait
+  name: "Eigen defrost maximale wachttijd retourtemperatuur"
+  optimistic: True
+  restore_value: True
+  initial_value: 15
+  min_value: 0
+  max_value: 60
+  step: 1
+  unit_of_measurement: "min"
+  icon: "mdi:timer-sand"
+  entity_category: config
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_confirm_timeout
+  name: "Eigen defrost bevestigingstijd"
+  optimistic: True
+  restore_value: True
+  initial_value: 120
+  min_value: 30
+  max_value: 600
+  step: 10
+  unit_of_measurement: "s"
+  icon: "mdi:timer-check-outline"
+  entity_category: config
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_frost_point_margin
+  name: "Eigen defrost marge rijppunt"
+  optimistic: True
+  restore_value: True
+  initial_value: 0
+  min_value: -2
+  max_value: 5
+  step: 0.5
+  unit_of_measurement: "K"
+  icon: "mdi:water-thermometer-outline"
+  entity_category: config
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_humidity_max_delay
+  name: "Eigen defrost maximaal uitstel droge lucht"
+  optimistic: True
+  restore_value: True
+  initial_value: 60
+  min_value: 0
+  max_value: 240
+  step: 5
+  unit_of_measurement: "min"
+  icon: "mdi:timer-sand"
+  entity_category: config
+  web_server:
+    sorting_group_id: custom_defrost

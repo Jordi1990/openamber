@@ -334,6 +334,16 @@ script:
           root["zb"] = id(pump_p0_pid_kd).state;
           root["zc"] = id(pump_p0_pid_defrost_pwm).state;
 
+          root["zd"] = id(defrost_control_select).active_index().value_or(0);
+          root["ze"] = id(custom_defrost_delta_at_zero).state;
+          root["zf"] = id(custom_defrost_delta_at_cold).state;
+          root["zg"] = id(custom_defrost_max_coil_temperature).state;
+          root["zh"] = id(custom_defrost_max_runtime).state;
+          root["zi"] = !std::isnan(id(outdoor_humidity).state);
+          root["zj"] = id(custom_defrost_min_runtime).state;
+          root["zk"] = id(custom_defrost_frost_point_margin).state;
+          root["zl"] = id(custom_defrost_humidity_max_delay).state;
+
 - id: send_telemetry_1
   then:
     - tiny_mqtt.publish_json:
@@ -430,6 +440,56 @@ script:
           root["yc"] = id(system_heap_fragmentation).state;
           root["yd"] = id(system_heap_max_block).state;
           root["ye"] = id(water_flow_rate).state;
+
+          root["yf"] = id(custom_defrost_status).state;
+          root["yg"] = id(custom_defrost_ta_tp).state;
+          root["yh"] = id(custom_defrost_runtime_sensor).state;
+          root["yj"] = id(custom_defrost_last_duration).state;
+          root["yl"] = id(custom_defrost_interval_sensor).state;
+          root["ym"] = id(custom_defrost_start_temperature).state;
+          root["yn"] = id(outdoor_humidity).state;
+
+# One message per defrost, sent by the custom defrost controller when 2118 drops. Not retained: it is an event.
+- id: send_defrost_event
+  mode: queued
+  max_runs: 3
+  parameters:
+    source: int
+    total_s: float
+    execution_s: float
+    melt_s: float
+    energy_kj: float
+    ta: float
+    tp: float
+    start_line: float
+    humidity: float
+    frost_point: float
+    runtime_min: float
+    stops: int
+  then:
+    - if:
+        condition:
+          - switch.is_on: analytics_enabled_switch
+        then:
+          - tiny_mqtt.publish_json:
+              topic: !lambda 'return id(analytics_topic);'
+              retain: false
+              payload: |-
+                root["ts"] = id(my_time).timestamp_now();
+                root["dfa"] = source;
+                root["dfb"] = total_s;
+                root["dfc"] = execution_s;
+                root["dfd"] = melt_s;
+                root["dfe"] = energy_kj;
+                root["dff"] = ta;
+                root["dfg"] = tp;
+                root["dfh"] = start_line;
+                root["dfi"] = humidity;
+                root["dfj"] = frost_point;
+                root["dfk"] = runtime_min;
+                root["dfl"] = stops;
+                root["dfn"] = id(defrost_control_select).active_index().value_or(0);
+                root["dfo"] = id(outside_unit_program_version).state;
 
 - id: schedule_send_errors_realtime
   mode: restart
