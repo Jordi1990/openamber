@@ -13,6 +13,7 @@ import pytest
 def channels(clean_system):
     openamber = clean_system
     yield openamber
+    openamber.set_switch("mock_update_check_fails", False)
     openamber.set_select("firmware_update_channel", "Stabiel")
     openamber.set_select("mock_firmware_versions", "Geen update")
     openamber.step(ms=100)
@@ -116,3 +117,21 @@ def test_channel_row_fits_without_scrolling(channels, scenario):
     row = openamber.get_widget("service_update_channel_row")
     assert tiles["y2"] < row["y1"]
     assert row["y2"] <= panel["y2"], f"channel row ends at {row['y2']}, panel at {panel['y2']}"
+
+
+def test_confirmed_beta_not_installed_after_switch_to_stable(channels):
+    """The dialog offered a beta; the channel then goes to Stabiel (e.g. from Home Assistant) while the stable check
+    fails, so the update entity still holds the beta. Confirming must not install it."""
+    openamber = channels
+    show_updates(openamber, "Beta", "Nieuwe beta")
+    assert openamber.click("service_update_button")
+    openamber.step(ms=100)
+    assert openamber.is_visible("service_confirm_modal")
+
+    openamber.set_switch("mock_update_check_fails", True)
+    openamber.set_select("firmware_update_channel", "Stabiel")
+    openamber.step(ms=100)
+    assert openamber.click("service_confirm_button")
+    openamber.step(ms=100)
+    assert openamber.is_hidden("service_update_progress_overlay"), "A beta must not be installed on Stabiel"
+    assert openamber.is_hidden("service_update_button"), "Stabiel must not offer the cached beta"

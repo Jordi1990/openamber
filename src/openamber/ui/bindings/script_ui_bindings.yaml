@@ -1951,8 +1951,13 @@
     - if:
         # A check (e.g. after a channel change from Home Assistant) replaced the version the dialog described:
         # install nothing and show the new offer, so the user confirms what is actually installed.
+        # Also refuse a beta once the channel is Stabiel: a failed or pending check keeps the beta-channel result.
         condition:
-          lambda: 'return id(firmware_update).update_info.latest_version != id(service_update_target);'
+          lambda: |-
+            const std::string &latest = id(firmware_update).update_info.latest_version;
+            auto channel = id(firmware_update_channel).active_index();
+            bool beta_channel = channel.has_value() && channel.value() == 1;
+            return latest != id(service_update_target) || (!beta_channel && openamber_fw::is_prerelease(latest));
         then:
           - logger.log: "Firmware update target changed after confirmation, not installing"
           - script.execute: update_firmware_ui
