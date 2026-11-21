@@ -55,3 +55,26 @@ jobs:
       - build-firmware
     with:
       version: ${{ github.event.release.tag_name }}
+
+  beta-manifest:
+    name: Beta manifest
+    needs: upload-to-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add openamber.beta.manifest.json to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+          PRERELEASE: ${{ github.event.release.prerelease }}
+        run: |
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern openamber.manifest.json
+          if [ "$PRERELEASE" = "true" ]; then
+            jq '.builds |= map(
+                  (if .ota then .ota.path |= "beta/" + . else . end)
+                  | (if .parts then .parts |= map(.path |= "beta/" + .) else . end))' \
+              openamber.manifest.json > openamber.beta.manifest.json
+            gh release delete-asset "$TAG" openamber.manifest.json --repo "$GITHUB_REPOSITORY" --yes
+          else
+            cp openamber.manifest.json openamber.beta.manifest.json
+          fi
+          gh release upload "$TAG" openamber.beta.manifest.json --repo "$GITHUB_REPOSITORY" --clobber

@@ -3,7 +3,7 @@ substitutions:
   # Firmware manifests per update channel. The beta manifest always describes the newest release, beta or
   # stable, so a beta user also gets the final release. Relative firmware paths resolve next to the manifest.
   firmware_manifest_stable_url: http://openamber.nl/openamber.manifest.json
-  firmware_manifest_beta_url: http://openamber.nl/beta/openamber.manifest.json
+  firmware_manifest_beta_url: http://openamber.nl/openamber.beta.manifest.json
 
 # ==============================================================================
 # OpenAmber Core Application Package (Hardware-Independent Business Logic)

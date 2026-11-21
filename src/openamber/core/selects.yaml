@@ -190,7 +190,7 @@ select:
 
 
 # Which firmware releases this device is offered: Stabiel (default) or Beta. The beta channel also offers the
-# final release once it is out. Switching back to Stabiel on a beta offers "Terug naar stabiel" on the display.
+# final release once it is out. Switching back to Stabiel on a beta offers "Stabiel installeren" on the display.
 - platform: template
   id: firmware_update_channel
   name: "Updatekanaal"

@@ -1,9 +1,9 @@
 """Update channels (Stabiel / Beta) and what the Updates card on the Systeem page offers.
 
 The simulator's update entity serves one version per channel (mock_firmware_versions picks the installed version
-and what the stable and beta manifests offer). ESPHome itself calls every different version an update; the display
-compares semver versions, so an older stable release is not offered as an update while a beta is installed, and
-on the Stabiel channel it offers "Terug naar stabiel" instead.
+and what the stable and beta manifests offer). Like ESPHome, any different version is an update: the beta
+manifest always holds the newest release, beta or stable. On the Stabiel channel with a beta installed the card
+offers the stable version instead ("Stabiel installeren").
 """
 
 import pytest
@@ -45,13 +45,18 @@ def test_new_beta_only_on_beta_channel(channels):
     assert openamber.is_visible("nav_system_badge")
 
 
-@pytest.mark.parametrize("channel", ["Stabiel", "Beta"])
-def test_final_release_is_an_update_for_beta(channels, channel):
+def test_final_release_is_an_update_for_beta(channels):
     openamber = channels
-    show_updates(openamber, channel, "Beta, finale uit")
+    show_updates(openamber, "Beta", "Beta, finale uit")
     assert openamber.get_label("service_update_version") == "Nieuwe versie 1.1.0 beschikbaar\nHuidige versie: 1.1.0-beta.1"
     assert openamber.get_label("service_update_button_label") == "Update installeren"
     assert openamber.is_visible("service_update_button")
+    assert openamber.is_visible("nav_system_badge")
+
+    # On the Stabiel channel the final release is offered as the stable version.
+    show_updates(openamber, "Stabiel", "Beta, finale uit")
+    assert openamber.get_label("service_update_version") == "Stabiele versie 1.1.0 beschikbaar\nHuidige versie: 1.1.0-beta.1 (beta)"
+    assert openamber.get_label("service_update_button_label") == "Stabiel installeren"
     assert openamber.is_visible("nav_system_badge")
 
 
@@ -67,16 +72,15 @@ def test_back_to_stable_on_stable_channel(channels):
     openamber = channels
     show_updates(openamber, "Stabiel", "Beta, stabiel ouder")
     assert openamber.get_label("service_update_version") == "Stabiele versie 1.0.0 beschikbaar\nHuidige versie: 1.1.0-beta.1 (beta)"
-    assert openamber.get_label("service_update_button_label") == "Terug naar stabiel"
+    assert openamber.get_label("service_update_button_label") == "Stabiel installeren"
     assert openamber.is_visible("service_update_button")
-    assert openamber.is_hidden("nav_system_badge"), "Going back to stable is a choice, not a pending update"
 
     assert openamber.click("service_update_button")
     openamber.step(ms=100)
     assert openamber.is_visible("service_confirm_modal")
     if openamber.get_label("service_confirm_title") != "Warmtepomp in bedrijf":
-        assert openamber.get_label("service_confirm_title") == "Terug naar stabiel"
-        assert openamber.get_label("service_confirm_button_label") == "Terugzetten"
+        assert openamber.get_label("service_confirm_title") == "Stabiele versie installeren"
+        assert openamber.get_label("service_confirm_button_label") == "Installeren"
     assert openamber.click("service_confirm_cancel_button")
     openamber.step(ms=100)
     assert openamber.is_hidden("service_confirm_modal")

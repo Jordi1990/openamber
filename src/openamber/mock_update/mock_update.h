@@ -9,7 +9,7 @@ namespace esphome {
 namespace mock_update {
 
 // Simulator stand-in for the http_request update entity. It serves one version per update channel: a source URL
-// containing "/beta/" gets the beta manifest version, any other URL the stable one. Like ESPHome's http_request
+// ending in ".beta.manifest.json" gets the beta manifest version, any other URL the stable one. Like ESPHome's http_request
 // update, any version that differs from the installed one counts as available.
 class MockUpdate : public update::UpdateEntity, public Component {
  public:
@@ -19,7 +19,7 @@ class MockUpdate : public update::UpdateEntity, public Component {
   }
   void perform(bool force) override { this->perform_count_++; }
   void check() override {
-    bool beta = this->source_url_.find("/beta/") != std::string::npos;
+    bool beta = this->source_url_.find(".beta.manifest.json") != std::string::npos;
     this->update_info_.current_version = this->current_;
     this->update_info_.latest_version = beta ? this->beta_latest_ : this->stable_latest_;
     this->state_ = this->update_info_.latest_version.empty() ||

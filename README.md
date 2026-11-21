@@ -76,7 +76,7 @@ OpenAmber checks for new firmware itself and shows it in Home Assistant and on t
 - *Stabiel* (default): stable releases only, such as `0.10.0`.
 - *Beta*: beta versions such as `0.10.0-beta.1` as well, and the final release once it is out.
 
-On a beta you can switch back to *Stabiel*: the display then offers *Terug naar stabiel* to install the latest stable release.
+On a beta you can switch back to *Stabiel*: the display then offers *Stabiel installeren* to install the latest stable release.
 
 **Physicial connection**
 

@@ -142,7 +142,7 @@
                 selected_index: !lambda |-
                   auto idx = id(firmware_update_channel).active_index();
                   return idx.has_value() ? idx.value() : 0;
-      # The channel decides whether the Updates card offers "Terug naar stabiel".
+      # The channel decides whether the Updates card offers "Stabiel installeren".
       - script.execute: update_firmware_ui
 
 # ── Settings: Backup heating mode dropdown ──

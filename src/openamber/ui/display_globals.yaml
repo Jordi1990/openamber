@@ -18,11 +18,11 @@ globals:
     type: bool
     restore_value: no
     initial_value: 'false'
-  # What the Updates card offers: openamber_fw::OFFER_NONE / OFFER_UPDATE / OFFER_ROLLBACK (back to stable).
-  - id: service_update_offer
-    type: int
+  # The Updates card offers the stable version over an installed beta (Stabiel channel).
+  - id: service_update_to_stable
+    type: bool
     restore_value: no
-    initial_value: '0'
+    initial_value: 'false'
   - id: service_update_install_in_progress
     type: bool
     restore_value: no
