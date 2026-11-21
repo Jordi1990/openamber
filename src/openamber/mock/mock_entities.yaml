@@ -807,6 +807,14 @@ number:
     step: 1.0
     initial_value: 1000.0
 switch:
+  # Simulator only: update checks fail (the update entity keeps its last result), like an unreachable server.
+  - platform: template
+    id: mock_update_check_fails
+    optimistic: true
+    turn_on_action:
+      - lambda: 'id(firmware_update).set_mock_check_fails(true);'
+    turn_off_action:
+      - lambda: 'id(firmware_update).set_mock_check_fails(false);'
   - platform: template
     id: mock_reset_outside_temperature_average
     # Simulator only: restarts the averaged Ta, so the next Ta value becomes the new average.

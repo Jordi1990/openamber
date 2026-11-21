@@ -23,6 +23,10 @@ globals:
     type: bool
     restore_value: no
     initial_value: 'false'
+  # The version the confirm dialog described; the install is refused when the check changed it meanwhile.
+  - id: service_update_target
+    type: std::string
+    restore_value: no
   - id: service_update_install_in_progress
     type: bool
     restore_value: no

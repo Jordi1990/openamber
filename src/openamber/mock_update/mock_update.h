@@ -19,6 +19,8 @@ class MockUpdate : public update::UpdateEntity, public Component {
   }
   void perform(bool force) override { this->perform_count_++; }
   void check() override {
+    if (this->check_fails_)
+      return;
     bool beta = this->source_url_.find(".beta.manifest.json") != std::string::npos;
     this->update_info_.current_version = this->current_;
     this->update_info_.latest_version = beta ? this->beta_latest_ : this->stable_latest_;
@@ -41,6 +43,7 @@ class MockUpdate : public update::UpdateEntity, public Component {
     this->beta_latest_ = beta_latest;
     this->check();
   }
+  void set_mock_check_fails(bool fails) { this->check_fails_ = fails; }
   int get_perform_count() const { return this->perform_count_; }
 
  protected:
@@ -49,6 +52,7 @@ class MockUpdate : public update::UpdateEntity, public Component {
   std::string stable_latest_;
   std::string beta_latest_;
   int perform_count_{0};
+  bool check_fails_{false};
 };
 
 }  // namespace mock_update

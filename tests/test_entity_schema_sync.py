@@ -167,6 +167,7 @@ def test_hardware_mocks_correspond_to_physical_modbus_or_subsystems():
         "my_time",
         "firmware_update",
         "mock_firmware_versions",
+        "mock_update_check_fails",
         "dump_eeprom_parameters",
         "dump_eeprom_parameters_ui_disable",
         "dump_eeprom_parameters_ui_enable",

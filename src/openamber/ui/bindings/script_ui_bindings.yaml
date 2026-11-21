@@ -1053,7 +1053,13 @@
   then:
     - if:
         condition:
-          update.is_available: firmware_update
+          # Like ESPHome, any different version is available. The Stabiel channel never offers a beta, also not one
+          # left over from a check on the beta channel (a failed or still running check keeps that result).
+          lambda: |-
+            if (id(firmware_update).state != update::UPDATE_STATE_AVAILABLE) return false;
+            auto channel = id(firmware_update_channel).active_index();
+            bool beta_channel = channel.has_value() && channel.value() == 1;
+            return beta_channel || id(firmware_update).update_info.latest_version.find('-') == std::string::npos;
         then:
           - globals.set:
               id: service_update_check_failed
@@ -1944,19 +1950,33 @@
 - id: start_firmware_update
   mode: single
   then:
-    - globals.set:
-        id: service_update_install_in_progress
-        value: 'true'
-    - lvgl.widget.show:
-        id: service_update_progress_overlay
-    - update.perform:
-        id: firmware_update
-    - delay: 10min
-    - globals.set:
-        id: service_update_install_in_progress
-        value: 'false'
-    - lvgl.widget.hide:
-        id: service_update_progress_overlay
+    - if:
+        # A check (e.g. after a channel change from Home Assistant) replaced the version the dialog described:
+        # install nothing and show the new offer, so the user confirms what is actually installed.
+        # Also refuse a beta once the channel is Stabiel: a failed or pending check keeps the beta-channel result.
+        condition:
+          lambda: |-
+            const std::string &latest = id(firmware_update).update_info.latest_version;
+            auto channel = id(firmware_update_channel).active_index();
+            bool beta_channel = channel.has_value() && channel.value() == 1;
+            return latest != id(service_update_target) || (!beta_channel && latest.find('-') != std::string::npos);
+        then:
+          - logger.log: "Firmware update target changed after confirmation, not installing"
+          - script.execute: update_firmware_ui
+        else:
+          - globals.set:
+              id: service_update_install_in_progress
+              value: 'true'
+          - lvgl.widget.show:
+              id: service_update_progress_overlay
+          - update.perform:
+              id: firmware_update
+          - delay: 10min
+          - globals.set:
+              id: service_update_install_in_progress
+              value: 'false'
+          - lvgl.widget.hide:
+              id: service_update_progress_overlay
 
 # Restore the confirm dialog to its two-button layout.
 - id: service_confirm_reset_layout
