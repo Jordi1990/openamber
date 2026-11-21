@@ -87,6 +87,10 @@ uart:
     number: GPIO27
     inverted: False
 
+# ESPHome's generated objects in PSRAM instead of internal RAM.
+# Safe because this device executes from PSRAM (SPIRAM_XIP_FROM_PSRAM).
+psram_bss:
+
 psram:
   mode: hex
   speed: 200MHz
