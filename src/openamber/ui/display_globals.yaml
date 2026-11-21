@@ -18,6 +18,15 @@ globals:
     type: bool
     restore_value: no
     initial_value: 'false'
+  # What the Updates card offers: openamber_fw::OFFER_NONE / OFFER_UPDATE / OFFER_ROLLBACK (back to stable).
+  - id: service_update_offer
+    type: int
+    restore_value: no
+    initial_value: '0'
+  # The version the confirm dialog described; the install is refused when the check changed it meanwhile.
+  - id: service_update_target
+    type: std::string
+    restore_value: no
   - id: service_update_install_in_progress
     type: bool
     restore_value: no

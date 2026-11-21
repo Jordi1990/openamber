@@ -8,8 +8,34 @@ permissions:
   contents: write
 
 jobs:
+  # Versions are semver: 0.10.0 for a stable release, 0.10.0-beta.1 for a beta. Only stable releases may reach the
+  # stable manifest (GitHub's "latest" release), so a beta must be published as a pre-release and a stable
+  # release must not. Devices compare these versions to decide what counts as an update.
+  check-version:
+    name: Check version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check tag and pre-release flag
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          PRERELEASE: ${{ github.event.release.prerelease }}
+        run: |
+          if [[ ! "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-(beta|rc)\.[0-9]+)?$ ]]; then
+            echo "::error::Tag '$TAG' is not a release version like 0.10.0, 0.10.0-beta.1 or 0.10.0-rc.1"
+            exit 1
+          fi
+          if [[ "$TAG" == *-* && "$PRERELEASE" != "true" ]]; then
+            echo "::error::Beta '$TAG' must be published as a pre-release, otherwise it lands in the stable manifest"
+            exit 1
+          fi
+          if [[ "$TAG" != *-* && "$PRERELEASE" == "true" ]]; then
+            echo "::error::Stable release '$TAG' must not be marked as a pre-release"
+            exit 1
+          fi
+
   build-firmware:
     name: Build Firmware
+    needs: check-version
     uses: ./.github/workflows/build-firmware.yml
     with:
       files: |
