@@ -556,6 +556,14 @@ public:
       return;
     }
 
+    // The remaining cases continue the pump cycle (via WAIT_COMPRESSOR_STOP or directly). A pump cycle started from
+    // IDLE runs the secondary pumps with it, and the resume skips that start, so start them here (not during a
+    // defrost, like WAIT_PUMP_STOP).
+    if (!id(defrost_active_sensor).state)
+    {
+      StartSecondaryPumpsIfNeeded();
+    }
+
     if (compressor_commanded)
     {
       // Level set but compressor not (yet) running: it was starting. Cancel the start, the normal flow
@@ -567,20 +575,8 @@ public:
     }
 
     compressor_controller_->RecordStopTime();
-    if (compressor_running)
-    {
-      // Level 0 but still running: the compressor was stopping.
-      SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
-      return;
-    }
-
-    // Only the pump was running: continue the pump cycle. A pump cycle started from IDLE runs the secondary pumps
-    // with it, and the resume skips that start, so start them here (not during a defrost, like WAIT_PUMP_STOP).
-    if (!id(defrost_active_sensor).state)
-    {
-      StartSecondaryPumpsIfNeeded();
-    }
-    SetNextState(HeatCoolState::PUMP_RUNNING);
+    // Level 0 but still running: the compressor was stopping. Otherwise only the pump was running.
+    SetNextState(compressor_running ? HeatCoolState::WAIT_COMPRESSOR_STOP : HeatCoolState::PUMP_RUNNING);
   }
 
   /// @brief Evaluates the safety checks without running the state machine (used while an OTA update holds it).
