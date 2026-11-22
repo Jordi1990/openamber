@@ -73,3 +73,28 @@ script:
           }
         target_temperature_low: !lambda 'return id(thermostat_default_heat_setpoint).state;'
         target_temperature_high: !lambda 'return id(thermostat_default_cool_setpoint).state;'
+
+# Point the firmware update entity at the manifest of the chosen update channel.
+- id: apply_firmware_update_channel
+  then:
+    - lambda: |-
+        auto idx = id(firmware_update_channel).active_index();
+        bool beta = idx.has_value() && idx.value() == 1;
+        id(firmware_update).set_source_url(beta ? "${firmware_manifest_beta_url}" : "${firmware_manifest_stable_url}");
+
+# Check the chosen channel's manifest. A channel chosen before the clock is synchronized is checked once it is.
+- id: check_firmware_update_channel
+  mode: restart
+  then:
+    - wait_until:
+        condition:
+          lambda: 'return id(my_time).now().is_valid();'
+        timeout: 30min
+    - if:
+        condition:
+          lambda: 'return id(my_time).now().is_valid();'
+        then:
+          - update.check:
+              id: firmware_update
+        else:
+          - logger.log: "Skipping firmware update check for the new channel until time is synchronized"
