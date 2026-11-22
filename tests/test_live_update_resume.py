@@ -317,6 +317,22 @@ def test_pump_run_on_after_compressor_stop_is_resumed_after_restart(clean_system
     assert openamber.get_entity("state_machine_state_heat_cool") == "Pump running"
 
 
+def test_p1_is_restored_when_resuming_pump_run_on(clean_system):
+    """Taking over a running pump cycle (no compressor) starts P1 too, like a pump cycle started from IDLE does."""
+    openamber = clean_system
+    openamber.set_switch("pump_p1_enabled", True)
+    start_space_heating(openamber, tc=28.0, target=35.0)
+    openamber.set_select("compressor_control_select", "0")
+    openamber.set_switch("pump_p1_relay_switch", False)
+    openamber.step(ms=50)
+
+    samples = _restart_and_sample(openamber, seconds=30)
+
+    _assert_not_initialized(samples)
+    assert _resumed_sample(samples)["hc"] == "Pump running"
+    assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 must run with the taken-over pump cycle"
+
+
 def test_pump_cycle_before_compressor_start_falls_back_to_initialization(clean_system):
     """Pump interval before a compressor start runs in standby: not taken over, the pump restarts after initialization."""
     openamber = clean_system
