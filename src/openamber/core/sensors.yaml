@@ -669,10 +669,10 @@ sensor:
     }
     return id(heat_cool_temperature_tc).state;
 
-# ── Eigen defrost ──
+# ── Defrost-regeling ──
 - platform: template
   id: custom_defrost_runtime_sensor
-  name: "Eigen defrost draaitijd sinds defrost"
+  name: "Defrost draaitijd sinds defrost"
   update_interval: never
   accuracy_decimals: 0
   unit_of_measurement: "min"
@@ -683,7 +683,7 @@ sensor:
 
 - platform: template
   id: custom_defrost_last_duration
-  name: "Eigen defrost laatste defrostduur"
+  name: "Defrost laatste defrostduur"
   # Execution only (hot gas on the coil), without the outdoor unit's 5 min pre-phase, see custom_defrost_controller.h.
   update_interval: never
   accuracy_decimals: 0
@@ -695,7 +695,7 @@ sensor:
 
 - platform: template
   id: custom_defrost_ta_tp
-  name: "Eigen defrost Ta-Tp"
+  name: "Defrost Ta-Tp"
   update_interval: never
   accuracy_decimals: 1
   unit_of_measurement: "K"
@@ -706,7 +706,7 @@ sensor:
 
 - platform: template
   id: custom_defrost_start_temperature
-  name: "Eigen defrost starttemperatuur Tp"
+  name: "Defrost starttemperatuur Tp"
   update_interval: never
   accuracy_decimals: 1
   unit_of_measurement: "°C"
@@ -717,7 +717,7 @@ sensor:
 
 - platform: template
   id: custom_defrost_interval_sensor
-  name: "Eigen defrost interval"
+  name: "Defrost interval"
   update_interval: never
   accuracy_decimals: 0
   unit_of_measurement: "min"

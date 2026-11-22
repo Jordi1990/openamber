@@ -121,7 +121,7 @@
             lv_dropdown_set_selected(id(wifi_network_dd)->obj, index);
           }
 
-# ── Geavanceerd: Eigen defrost ──
+# ── Geavanceerd: Defrost ──
 - id: !extend custom_defrost_status
   on_value:
     then:

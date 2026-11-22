@@ -389,7 +389,12 @@ private:
   {
     uint32_t desired = mode == (int)CUSTOM_DEFROST_MODE_OPENAMBER ? DEFROST_CONTROL_BY_MASTER : DEFROST_CONTROL_BY_OUTDOOR_UNIT;
     auto idx = id(defrost_control_mode_select).active_index();
-    if (idx.has_value() && idx.value() == desired)
+    // Only write after a valid readback, so a restart does not cause an EEPROM write before 3274 was read.
+    if (!idx.has_value())
+    {
+      return;
+    }
+    if (idx.value() == desired)
     {
       control_mode_writes_ = 0;
       control_mode_write_failed_logged_ = false;
@@ -641,7 +646,7 @@ private:
     bool soft_start_done = compressor_on_s >= COMPRESSOR_SOFT_START_DURATION_S;
 
     // Safety net: long runtime with a cold coil, regardless of the start line and humidity.
-    bool safety_net_cold = soft_start_done && runtime_min >= (uint32_t)id(custom_defrost_max_runtime).state && tp < id(custom_defrost_fallback_tp).state;
+    bool safety_net_cold = soft_start_done && runtime_min >= CUSTOM_DEFROST_SAFETY_NET_RUNTIME_MIN && tp < CUSTOM_DEFROST_SAFETY_NET_TP_C;
     if (HoldSeconds(safety_net_cold, &below_safety_net_since_ms_, now) >= CUSTOM_DEFROST_CONFIRM_S)
     {
       snprintf(buffer, sizeof(buffer), "Vangnet: %u min draaitijd, Tp %.1f°C", (unsigned) runtime_min, tp);
@@ -681,8 +686,7 @@ private:
     {
       float margin = id(custom_defrost_frost_point_margin).state;
       float icing_limit = frost_point - (IsValid(margin) ? margin : 0.0f);
-      float max_delay = id(custom_defrost_humidity_max_delay).state;
-      bool delay_passed = IsValid(max_delay) && max_delay > 0.0f && runtime_min >= interval_min + (uint32_t)max_delay;
+      bool delay_passed = runtime_min >= interval_min + CUSTOM_DEFROST_HUMIDITY_MAX_DELAY_MIN;
       if (tp > icing_limit)
       {
         if (!delay_passed)
@@ -694,7 +698,7 @@ private:
         if (!dry_air_delay_logged_)
         {
           dry_air_delay_logged_ = true;
-          ESP_LOGW("amber", "CustomDefrost: dry air delayed the defrost for %.0f min, ignoring the humidity now.", max_delay);
+          ESP_LOGW("amber", "CustomDefrost: dry air delayed the defrost for %u min, ignoring the humidity now.", (unsigned) CUSTOM_DEFROST_HUMIDITY_MAX_DELAY_MIN);
         }
       }
     }
@@ -736,14 +740,14 @@ private:
     }
 
     float return_temperature = id(inlet_temperature_tui).state;
-    float min_return_temperature = id(custom_defrost_min_return_temperature).state;
+    float min_return_temperature = CUSTOM_DEFROST_MIN_RETURN_TEMPERATURE_C;
     if (IsValid(return_temperature) && return_temperature < min_return_temperature)
     {
       if (return_temperature_block_since_ms_ == 0)
       {
         return_temperature_block_since_ms_ = NonZero(now);
       }
-      uint32_t max_wait_ms = (uint32_t)(id(custom_defrost_max_return_wait).state * 60000.0f);
+      uint32_t max_wait_ms = CUSTOM_DEFROST_MAX_RETURN_WAIT_S * 1000UL;
       if ((now - return_temperature_block_since_ms_) < max_wait_ms)
       {
         char buffer[64];
@@ -849,7 +853,7 @@ public:
 
     if (state_ == CustomDefrostState::REQUESTED)
     {
-      uint32_t timeout_ms = (uint32_t)(id(custom_defrost_confirm_timeout).state * 1000.0f);
+      uint32_t timeout_ms = CUSTOM_DEFROST_CONFIRM_TIMEOUT_S * 1000UL;
       if ((now - request_started_ms_) < timeout_ms)
       {
         PublishStatus("Aangevraagd");
@@ -857,7 +861,7 @@ public:
       }
 
       request_attempts_++;
-      ESP_LOGW("amber", "CustomDefrost: no defrost started within %.0f s after forced defrost request (attempt %u).", id(custom_defrost_confirm_timeout).state, (unsigned) request_attempts_);
+      ESP_LOGW("amber", "CustomDefrost: no defrost started within %u s after forced defrost request (attempt %u).", (unsigned) CUSTOM_DEFROST_CONFIRM_TIMEOUT_S, (unsigned) request_attempts_);
       // Take the 4 back, otherwise the outdoor unit would still start the defrost later.
       RestoreHeatingWorkingMode();
       if (request_attempts_ >= CUSTOM_DEFROST_MAX_REQUEST_ATTEMPTS)
@@ -881,6 +885,12 @@ public:
         manual_request_ = false;
         request_pending_ = false;
       }
+      else if (!IsCompressorRunning())
+      {
+        ESP_LOGW("amber", "CustomDefrost: compressor stopped, manual defrost request cancelled.");
+        manual_request_ = false;
+        request_pending_ = false;
+      }
       else if (IsOutdoorUnitLocked())
       {
         request_pending_ = false;
@@ -895,7 +905,7 @@ public:
       }
     }
 
-    if (!IsHeatingWithCompressor(defrost_active) || id(temperature_outside_ta).state > id(custom_defrost_max_ta).state)
+    if (!IsHeatingWithCompressor(defrost_active) || id(temperature_outside_ta).state > CUSTOM_DEFROST_MAX_TA_C)
     {
       ResetTriggerTimers();
       request_pending_ = false;
@@ -979,6 +989,11 @@ public:
     if (state_ == CustomDefrostState::REQUESTED || id(defrost_active_sensor).state)
     {
       ESP_LOGW("amber", "CustomDefrost: defrost already requested or active.");
+      return;
+    }
+    if (!IsHeatingWithCompressor(false))
+    {
+      ESP_LOGW("amber", "CustomDefrost: manual defrost only possible while heating with the compressor running.");
       return;
     }
     ESP_LOGI("amber", "CustomDefrost: manual defrost requested.");

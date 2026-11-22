@@ -195,13 +195,9 @@ select:
   options:
     - "Buitenunit"
     - "OpenAmber"
+  # Not restored: after a restart the outdoor unit controls the defrost again until it is switched at runtime.
   initial_option: "Buitenunit"
-  restore_value: True
   icon: "mdi:snowflake-melt"
   entity_category: config
   web_server:
     sorting_group_id: custom_defrost
-  on_value:
-    then:
-      - lambda: |-
-          global_preferences->sync();

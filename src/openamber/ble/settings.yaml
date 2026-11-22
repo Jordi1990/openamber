@@ -33,7 +33,7 @@ lvgl:
                               on_change:
                                 - lambda: ble_sensor_source_dropdown_changed();
 
-                - id: !extend panel_advanced_page_custom_defrost_vocht
+                - id: !extend panel_advanced_page_defrost_vocht
                   widgets:
                     - obj:
                         id: ble_outdoor_humidity_row

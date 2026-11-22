@@ -1,0 +1,65 @@
+# Defrost: status content
+# ------------------------------------------------------------
+- obj:
+    id: set_custom_defrost_status_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Status", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label:
+          id: set_custom_defrost_status_val
+          width: 100%
+          text: "-"
+          text_color: 0x1F3B68
+          text_font: font_text_20
+          long_mode: WRAP
+          align: TOP_LEFT
+          y: 34
+      - label:
+          id: set_custom_defrost_last_trigger_val
+          width: 100%
+          text: "Nog geen trigger"
+          text_color: 0x6B7280
+          text_font: font_text_20
+          long_mode: WRAP
+          align: TOP_LEFT
+          y: 62
+
+- obj:
+    id: set_custom_defrost_runtime_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Draaitijd / interval", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Compressor-draaitijd sinds defrost", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { id: set_custom_defrost_runtime_val, text: "0 / 35 min", text_color: 0x1F2933, text_font: font_text_24, align: TOP_RIGHT }
+
+- obj:
+    id: set_custom_defrost_last_duration_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Laatste defrostduur", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Heet gas op de spoel, zonder voorfase", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { id: set_custom_defrost_last_duration_val, text: "-", text_color: 0x1F2933, text_font: font_text_24, align: TOP_RIGHT }
+
+- obj:
+    id: set_custom_defrost_force_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Defrost forceren", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Alleen tijdens verwarmen met draaiende compressor", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - button:
+          id: set_custom_defrost_force_btn
+          width: SIZE_CONTENT
+          height: 44
+          align: TOP_RIGHT
+          bg_color: 0x0072CE
+          radius: 10
+          pad_left: 16
+          pad_right: 16
+          state:
+            disabled: true
+          disabled:
+            bg_color: 0xCBD5E1
+          on_click:
+            - lvgl.widget.show: custom_defrost_force_modal
+          widgets:
+            - label: { text: "Forceren", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }

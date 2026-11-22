@@ -51,12 +51,3 @@ button:
                   - globals.set:
                       id: controlled_stop_active
                       value: 'false'
-  - platform: template
-    id: custom_defrost_start_button
-    name: "Eigen defrost nu starten"
-    icon: "mdi:snowflake-melt"
-    web_server:
-      sorting_group_id: custom_defrost
-    on_press:
-      - lambda: |-
-          id(amber_ctrl).request_custom_defrost();

@@ -1,6 +1,0 @@
-# Menu Page: Geavanceerd - Eigen defrost: startlijn
-# ------------------------------------------------------------
-id: panel_advanced_page_custom_defrost_startlijn
-title: "Eigen defrost: startlijn"
-styles: setting_page_style
-widgets: !include page_settings_tab_advanced_custom_defrost_startlijn_content.yaml

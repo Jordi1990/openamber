@@ -14,21 +14,14 @@ INTERVAL_S = 35 * 60
 
 def _configure(openamber, mode):
     openamber.set_select("defrost_control_select", mode)
-    openamber.set_number("custom_defrost_max_ta", 7.0)
     openamber.set_number("custom_defrost_delta_at_zero", 7.0)
     openamber.set_number("custom_defrost_delta_at_cold", 4.0)
     openamber.set_number("custom_defrost_max_coil_temperature", -5.0)
-    openamber.set_number("custom_defrost_max_runtime", 120.0)
-    openamber.set_number("custom_defrost_fallback_tp", -2.0)
     # Changing the minimum interval also resets the adaptive interval of a previous test
     openamber.set_number("custom_defrost_min_runtime", 40.0)
     openamber.advance_time(seconds=5, step_s=5)
     openamber.set_number("custom_defrost_min_runtime", 35.0)
-    openamber.set_number("custom_defrost_min_return_temperature", 20.0)
-    openamber.set_number("custom_defrost_max_return_wait", 15.0)
-    openamber.set_number("custom_defrost_confirm_timeout", 120.0)
     openamber.set_number("custom_defrost_frost_point_margin", 0.0)
-    openamber.set_number("custom_defrost_humidity_max_delay", 60.0)
     openamber.set_binary_sensor("warning_custom_defrost_failed", False)
     openamber.set_sensor("outdoor_humidity", 0.0)
     openamber.set_sensor("temperature_outside_ta", 0.0)
@@ -259,7 +252,6 @@ def test_openamber_request_timeout_warns_and_retries(clean_system):
     """Without confirmation (2118) the request is retried once; after that a warning, and a new attempt after 30 min."""
     openamber = clean_system
     _configure(openamber, "OpenAmber")
-    openamber.set_number("custom_defrost_confirm_timeout", 30.0)
     _heat_and_reset_runtime(openamber)
 
     _wait_for_interval(openamber)
@@ -269,11 +261,11 @@ def test_openamber_request_timeout_warns_and_retries(clean_system):
     assert openamber.get_entity("working_mode_switch") == "Geforceerde defrost"
 
     # First timeout: working mode restored and a second request follows
-    assert advance_until_state(openamber, "working_mode_switch", "Verwarmen", max_s=60, step=5)
+    assert advance_until_state(openamber, "working_mode_switch", "Verwarmen", max_s=150, step=5)
     assert advance_until_state(openamber, "working_mode_switch", "Geforceerde defrost", max_s=30, step=5), "Second attempt expected"
 
     # Second timeout: warning, control stays with OpenAmber
-    assert advance_until_state(openamber, "warning_custom_defrost_failed", True, max_s=60, step=5)
+    assert advance_until_state(openamber, "warning_custom_defrost_failed", True, max_s=150, step=5)
     assert openamber.get_entity("working_mode_switch") == "Verwarmen"
     openamber.advance_time(seconds=70, step_s=5)
     openamber.step(ms=50)
@@ -318,18 +310,18 @@ def test_safety_net_max_runtime(clean_system):
     """The safety net triggers after the maximum runtime even when Tp never reaches the start line."""
     openamber = clean_system
     _configure(openamber, "OpenAmber")
-    openamber.set_number("custom_defrost_max_runtime", 40.0)
-    openamber.set_number("custom_defrost_min_runtime", 60.0)
+    # Interval longer than the safety net runtime (120 min), so only the safety net can trigger
+    openamber.set_number("custom_defrost_min_runtime", 180.0)
     _heat_and_reset_runtime(openamber)
 
     openamber.set_sensor("evaporation_temperature_tp", -2.5)
-    openamber.advance_time(seconds=34 * 60, step_s=30)
+    openamber.advance_time(seconds=114 * 60, step_s=60)
     openamber.step(ms=50)
     assert openamber.get_entity("custom_defrost_status").startswith("Bewaken")
 
     assert advance_until_state(openamber, "custom_defrost_status", "Aangevraagd", max_s=12 * 60, step=30)
     assert openamber.get_entity("custom_defrost_last_trigger").startswith("Vangnet")
-    assert openamber.get_entity("custom_defrost_runtime_sensor") >= 43
+    assert openamber.get_entity("custom_defrost_runtime_sensor") >= 123
     openamber.set_number("custom_defrost_min_runtime", 35.0)
 
 
@@ -365,7 +357,6 @@ def test_humidity_frost_point_margin_and_max_delay(clean_system):
     _configure(openamber, "OpenAmber")
     openamber.set_sensor("outdoor_humidity", 40.0)
     openamber.set_number("custom_defrost_frost_point_margin", 2.0)
-    openamber.set_number("custom_defrost_humidity_max_delay", 10.0)
     _heat_and_reset_runtime(openamber)
     _wait_for_interval(openamber)
 
@@ -375,9 +366,9 @@ def test_humidity_frost_point_margin_and_max_delay(clean_system):
     openamber.step(ms=50)
     assert openamber.get_entity("custom_defrost_status").startswith("Bewaken: droge lucht")
 
-    # After interval + 10 min the humidity no longer delays the defrost.
-    assert advance_until_state(openamber, "custom_defrost_status", "Aangevraagd", max_s=10 * 60, step=30)
-    assert openamber.get_entity("custom_defrost_runtime_sensor") >= 45
+    # After interval + 60 min the humidity no longer delays the defrost.
+    assert advance_until_state(openamber, "custom_defrost_status", "Aangevraagd", max_s=60 * 60, step=60)
+    assert openamber.get_entity("custom_defrost_runtime_sensor") >= 95
 
     openamber.set_sensor("outdoor_humidity", 0.0)
 
@@ -386,7 +377,6 @@ def test_low_return_temperature_blocks_until_max_wait(clean_system):
     """A low return temperature delays the defrost, but only up to the maximum wait time."""
     openamber = clean_system
     _configure(openamber, "OpenAmber")
-    openamber.set_number("custom_defrost_max_return_wait", 3.0)
     _heat_and_reset_runtime(openamber)
     _wait_for_interval(openamber)
 
@@ -397,13 +387,14 @@ def test_low_return_temperature_blocks_until_max_wait(clean_system):
     openamber.step(ms=50)
     assert openamber.get_entity("custom_defrost_status").startswith("Geblokkeerd: retour")
 
-    openamber.advance_time(seconds=3 * 60, step_s=10)
+    # Maximum wait 15 min
+    openamber.advance_time(seconds=15 * 60, step_s=10)
     openamber.step(ms=50)
     assert openamber.get_entity("custom_defrost_status") == "Aangevraagd"
 
 
-def test_custom_defrost_settings_page(clean_system):
-    """The 'Eigen defrost' menu opens the sub-pages: control mode first, the start line, and the details."""
+def test_defrost_settings_menu(clean_system):
+    """The 'Defrost' menu opens the sub-pages; the tiles follow the defrost control mode."""
     openamber = clean_system
     _configure(openamber, "OpenAmber")
 
@@ -413,14 +404,20 @@ def test_custom_defrost_settings_page(clean_system):
     openamber.step(ms=100)
     assert openamber.click("stab_advanced")
     openamber.step(ms=50)
-    assert openamber.click("advanced_stab_custom_defrost")
+    assert openamber.click("advanced_stab_defrost")
     openamber.step(ms=100)
-    assert openamber.is_hidden("panel_advanced_page_custom_defrost") is False
+    assert openamber.is_hidden("panel_advanced_page_defrost") is False
+    # OpenAmber: start line and humidity, not the outdoor unit's start temperatures
+    assert openamber.is_hidden("defrost_stab_startlijn") is False
+    assert openamber.is_hidden("defrost_stab_vocht") is False
+    assert openamber.is_hidden("defrost_stab_start_temps") is True
+    assert openamber.is_hidden("defrost_stab_end") is True
+    assert openamber.is_hidden("defrost_stab_status") is False
 
-    # Regie en interval
-    assert openamber.click("custom_defrost_stab_regie")
+    # Algemeen
+    assert openamber.click("defrost_stab_general")
     openamber.step(ms=100)
-    assert openamber.is_hidden("panel_advanced_page_custom_defrost_regie") is False
+    assert openamber.is_hidden("panel_advanced_page_defrost_general") is False
     assert openamber.is_hidden("set_custom_defrost_mode_row") is False
     assert openamber.is_hidden("set_custom_defrost_frost_margin_row") is True
     assert openamber.is_hidden("set_custom_defrost_status_row") is True
@@ -428,7 +425,7 @@ def test_custom_defrost_settings_page(clean_system):
     # Startlijn
     assert openamber.click("settings_menu_back_btn")
     openamber.step(ms=100)
-    assert openamber.click("custom_defrost_stab_startlijn")
+    assert openamber.click("defrost_stab_startlijn")
     openamber.step(ms=100)
     assert openamber.is_hidden("set_custom_defrost_mode_row") is True
     assert openamber.is_hidden("set_custom_defrost_delta_zero_row") is False
@@ -437,10 +434,9 @@ def test_custom_defrost_settings_page(clean_system):
     # Luchtvochtigheid
     assert openamber.click("settings_menu_back_btn")
     openamber.step(ms=100)
-    assert openamber.click("custom_defrost_stab_vocht")
+    assert openamber.click("defrost_stab_vocht")
     openamber.step(ms=100)
     assert openamber.is_hidden("set_custom_defrost_frost_margin_row") is False
-    assert openamber.get_label("set_custom_defrost_humidity_delay_val") == "60 min"
     openamber.set_sensor("outdoor_humidity", 85.0)
     openamber.step(ms=50)
     assert openamber.get_label("set_custom_defrost_humidity_value_val").startswith("85% / ")
@@ -449,21 +445,20 @@ def test_custom_defrost_settings_page(clean_system):
     # Status
     assert openamber.click("settings_menu_back_btn")
     openamber.step(ms=100)
-    assert openamber.click("custom_defrost_stab_status")
+    assert openamber.click("defrost_stab_status")
     openamber.step(ms=100)
     assert openamber.is_hidden("set_custom_defrost_status_row") is False
     assert openamber.is_hidden("set_custom_defrost_runtime_row") is False
     openamber.advance_time(seconds=10, step_s=5)
     assert openamber.get_label("set_custom_defrost_status_val").startswith("Bewaken")
 
-    # Vangnet en blokkades
-    assert openamber.click("settings_menu_back_btn")
-    openamber.step(ms=100)
-    assert openamber.click("custom_defrost_stab_vangnet")
-    openamber.step(ms=100)
-    assert openamber.is_hidden("set_custom_defrost_fallback_tp_row") is False
-    assert openamber.is_hidden("set_custom_defrost_status_row") is True
-
+    # Buitenunit: the outdoor unit's start temperatures instead of the start line and humidity
     openamber.set_select("defrost_control_select", "Buitenunit")
+    openamber.step(ms=50)
+    assert openamber.is_hidden("defrost_stab_start_temps") is False
+    assert openamber.is_hidden("defrost_stab_startlijn") is True
+    assert openamber.is_hidden("defrost_stab_vocht") is True
+    assert openamber.is_hidden("defrost_stab_end") is False
+    assert openamber.is_hidden("defrost_stab_status") is True
     openamber.set_switch("advanced_settings_enabled", False)
     openamber.step(ms=50)

@@ -1,0 +1,44 @@
+# Defrost: luchtvochtigheid content
+# ------------------------------------------------------------
+- obj:
+    id: set_custom_defrost_frost_margin_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Marge rijppunt", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Tp moet zoveel onder het rijppunt liggen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
+                scrollable: false
+                on_click:
+                  - number.decrement: custom_defrost_frost_point_margin
+                widgets:
+                  - label: { text: "\U000F0374", styles: setting_step_icon_style }
+            - label: { id: set_custom_defrost_frost_margin_val, text: "0.0 K", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
+                scrollable: false
+                on_click:
+                  - number.increment: custom_defrost_frost_point_margin
+                widgets:
+                  - label: { text: "\U000F0415", styles: setting_step_icon_style }
+
+- obj:
+    id: set_custom_defrost_humidity_value_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "Buitenvochtigheid / rijppunt", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Huidige meting en rijppunt van de lucht", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { id: set_custom_defrost_humidity_value_val, text: "-", text_color: 0x1F2933, text_font: font_text_24, align: TOP_RIGHT }

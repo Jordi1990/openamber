@@ -281,10 +281,11 @@
                   auto idx = id(dhw_pump_start_mode_select).active_index();
                   return idx.has_value() ? idx.value() : 0;
 
-# ── Settings: Defrost controle dropdown ──
+# ── Settings: Defrost controle dropdown and tiles ──
 - id: !extend defrost_control_select
   on_value:
     then:
+      - script.execute: update_defrost_tiles_ui
       - if:
           condition:
             lambda: |-

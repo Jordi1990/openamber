@@ -1281,7 +1281,7 @@
           {"Communicatie-failsafe binnenunit", "Communicatie-failsafe binnenunit actief.", id(error_flag_inside_comm_failsafe).state},
           {"EEPROM-fout binnenunit", "EEPROM- of statusfout binnenunit.", id(error_flag_inside_eeprom).state},
           {"Pompterugmelding P0 alarm", "Alarm pompterugmelding P0.", id(error_flag_pump_p0_alarm).state},
-          {"OA01 - Eigen defrost mislukt", "De buitenunit startte geen defrost na twee aanvragen van OpenAmber. OpenAmber probeert het na 30 min opnieuw. De melding verdwijnt na een geslaagde defrost of als je de defrost controle wijzigt.", id(warning_custom_defrost_failed).state}
+          {"OA01 - Defrost door OpenAmber mislukt", "De buitenunit startte geen defrost na twee aanvragen van OpenAmber. OpenAmber probeert het na 30 min opnieuw. De melding verdwijnt na een geslaagde defrost of als je de defrost controle wijzigt.", id(warning_custom_defrost_failed).state}
         };
 
         lv_obj_clean(id(service_warnings_list));
@@ -2021,6 +2021,23 @@
             lv_obj_add_flag(crumbs[m], LV_OBJ_FLAG_HIDDEN);
           }
         }
+
+# The outdoor unit's EEPROM defrost settings only matter when it controls the defrost; the rest only with OpenAmber.
+- id: update_defrost_tiles_ui
+  mode: queued
+  max_runs: 2
+  then:
+    - lambda: |-
+        bool openamber = id(defrost_control_select).active_index().value_or(0) == CUSTOM_DEFROST_MODE_OPENAMBER;
+        auto set_hidden = [](lv_obj_t *obj, bool hidden) {
+          if (hidden) lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+          else lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
+        };
+        set_hidden(id(defrost_stab_start_temps), openamber);
+        set_hidden(id(defrost_stab_end), openamber);
+        set_hidden(id(defrost_stab_startlijn), !openamber);
+        set_hidden(id(defrost_stab_vocht), !openamber);
+        set_hidden(id(defrost_stab_status), !openamber);
 
 - id: update_custom_defrost_runtime_ui
   mode: queued

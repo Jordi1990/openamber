@@ -1,6 +1,0 @@
-# Menu Page: Geavanceerd - Eigen defrost: vangnet en blokkades
-# ------------------------------------------------------------
-id: panel_advanced_page_custom_defrost_vangnet
-title: "Eigen defrost: vangnet en blokkades"
-styles: setting_page_style
-widgets: !include page_settings_tab_advanced_custom_defrost_vangnet_content.yaml

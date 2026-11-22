@@ -1,11 +1,11 @@
-# Eigen defrost: vangnet en blokkades content
+# Defrost: startlijn en interval content
 # ------------------------------------------------------------
 - obj:
-    id: set_custom_defrost_fallback_tp_row
+    id: set_custom_defrost_delta_zero_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Vangnet: Tp drempel", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Vangnet alleen als Tp hieronder ligt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "Ta - Tp bij 0°C en warmer", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Verschil waarbij de spoel als bevroren telt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -21,26 +21,26 @@
                   styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
-                  - number.decrement: custom_defrost_fallback_tp
+                  - number.decrement: custom_defrost_delta_at_zero
                 widgets:
                   - label: { text: "\U000F0374", styles: setting_step_icon_style }
-            - label: { id: set_custom_defrost_fallback_tp_val, text: "-2.0°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_custom_defrost_delta_zero_val, text: "7.0 K", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 styles: setting_step_btn_style
                 pressed:
                   styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
-                  - number.increment: custom_defrost_fallback_tp
+                  - number.increment: custom_defrost_delta_at_zero
                 widgets:
                   - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
 - obj:
-    id: set_custom_defrost_min_return_row
+    id: set_custom_defrost_delta_cold_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Minimale retourtemperatuur", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Wachten tot het retour warm genoeg is", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "Ta - Tp bij -15°C en kouder", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Daartussen loopt de lijn recht", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -56,26 +56,26 @@
                   styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
-                  - number.decrement: custom_defrost_min_return_temperature
+                  - number.decrement: custom_defrost_delta_at_cold
                 widgets:
                   - label: { text: "\U000F0374", styles: setting_step_icon_style }
-            - label: { id: set_custom_defrost_min_return_val, text: "20°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_custom_defrost_delta_cold_val, text: "4.0 K", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 styles: setting_step_btn_style
                 pressed:
                   styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
-                  - number.increment: custom_defrost_min_return_temperature
+                  - number.increment: custom_defrost_delta_at_cold
                 widgets:
                   - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
 - obj:
-    id: set_custom_defrost_max_return_wait_row
+    id: set_custom_defrost_max_coil_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Maximale wachttijd retour", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Daarna toch ontdooien", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "Maximale Tp", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Tp moet ook onder deze waarde liggen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -91,26 +91,26 @@
                   styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
-                  - number.decrement: custom_defrost_max_return_wait
+                  - number.decrement: custom_defrost_max_coil_temperature
                 widgets:
                   - label: { text: "\U000F0374", styles: setting_step_icon_style }
-            - label: { id: set_custom_defrost_max_return_wait_val, text: "15 min", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_custom_defrost_max_coil_val, text: "-5.0°C", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 styles: setting_step_btn_style
                 pressed:
                   styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
-                  - number.increment: custom_defrost_max_return_wait
+                  - number.increment: custom_defrost_max_coil_temperature
                 widgets:
                   - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
 - obj:
-    id: set_custom_defrost_confirm_timeout_row
+    id: set_custom_defrost_min_runtime_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Bevestigingstijd", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Wachttijd op start defrost na aanvraag", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "Minimaal interval", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "Draaitijd tussen twee defrosts", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -126,16 +126,16 @@
                   styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
-                  - number.decrement: custom_defrost_confirm_timeout
+                  - number.decrement: custom_defrost_min_runtime
                 widgets:
                   - label: { text: "\U000F0374", styles: setting_step_icon_style }
-            - label: { id: set_custom_defrost_confirm_timeout_val, text: "120 s", text_color: 0x1F2933, text_font: font_text_24 }
+            - label: { id: set_custom_defrost_min_runtime_val, text: "35 min", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
                 styles: setting_step_btn_style
                 pressed:
                   styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
-                  - number.increment: custom_defrost_confirm_timeout
+                  - number.increment: custom_defrost_min_runtime
                 widgets:
                   - label: { text: "\U000F0415", styles: setting_step_icon_style }

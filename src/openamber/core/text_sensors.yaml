@@ -124,7 +124,7 @@ text_sensor:
 
 - platform: template
   id: custom_defrost_status
-  name: "Eigen defrost status"
+  name: "Defrost status"
   icon: "mdi:snowflake-melt"
   update_interval: never
   entity_category: diagnostic
@@ -133,7 +133,7 @@ text_sensor:
 
 - platform: template
   id: custom_defrost_last_trigger
-  name: "Eigen defrost laatste trigger"
+  name: "Defrost laatste trigger"
   icon: "mdi:snowflake-alert"
   update_interval: never
   entity_category: diagnostic

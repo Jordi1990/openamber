@@ -155,7 +155,7 @@ web_server:
       name: "Diagnostiek"
       sorting_weight: 60
     - id: custom_defrost
-      name: "Eigen defrost"
+      name: "Defrost-regeling"
       sorting_weight: 65
     - id: error_codes
       name: "Foutcodes"

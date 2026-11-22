@@ -183,6 +183,18 @@ static const uint32_t CUSTOM_DEFROST_MODE_OPENAMBER = 1;
 static const uint32_t CUSTOM_DEFROST_CONFIRM_S = 3 * 60;
 static const uint32_t CUSTOM_DEFROST_MIN_COMPRESSOR_ON_S = 5 * 60;
 static const float CUSTOM_DEFROST_COLD_REFERENCE_TA_C = -15.0f;
+// No defrost above this outdoor temperature.
+static const float CUSTOM_DEFROST_MAX_TA_C = 7.0f;
+// Safety net: after this runtime a coil below the threshold always defrosts, regardless of start line and humidity.
+static const uint32_t CUSTOM_DEFROST_SAFETY_NET_RUNTIME_MIN = 120;
+static const float CUSTOM_DEFROST_SAFETY_NET_TP_C = -2.0f;
+// A return temperature below the minimum postpones the defrost, but at most the maximum wait.
+static const float CUSTOM_DEFROST_MIN_RETURN_TEMPERATURE_C = 20.0f;
+static const uint32_t CUSTOM_DEFROST_MAX_RETURN_WAIT_S = 15 * 60;
+// Time the outdoor unit gets to raise 2118 after working mode 4 was written.
+static const uint32_t CUSTOM_DEFROST_CONFIRM_TIMEOUT_S = 120;
+// Dry air postpones a defrost at most this long after the interval, so a wrong humidity sensor cannot block it.
+static const uint32_t CUSTOM_DEFROST_HUMIDITY_MAX_DELAY_MIN = 60;
 // Cycling compressor route: at least 10 compressor stops since the last defrost and Ta at most 3 °C.
 static const uint32_t CUSTOM_DEFROST_CYCLING_MIN_STOPS = 10;
 static const float CUSTOM_DEFROST_CYCLING_MAX_TA_C = 3.0f;

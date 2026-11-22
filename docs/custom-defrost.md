@@ -1,22 +1,33 @@
-# Eigen defrost-regeling
+# Defrost-regeling
 
-OpenAmber kan zelf bepalen wanneer de buitenunit ontdooit. De instellingen staan onder
-**Instellingen → Geavanceerd → Eigen defrost**.
+OpenAmber kan zelf bepalen wanneer de buitenunit ontdooit. Alle defrost-instellingen staan onder
+**Instellingen → Geavanceerd → Defrost**:
+
+| Tegel | Inhoud | Zichtbaar |
+| --- | --- | --- |
+| Algemeen | Defrost controle | altijd |
+| Startlijn en interval | Verschil Ta − Tp, maximale Tp en minimaal interval | bij OpenAmber |
+| Luchtvochtigheid | Bron, marge rijppunt, actuele waarde | bij OpenAmber |
+| Starttemperaturen unit | EEPROM-starttemperaturen van de buitenunit | bij Buitenunit |
+| Einde defrost | EEPROM exit-temperatuur en maximale ontdooitijd | bij Buitenunit |
+| Status | Status, draaitijd en laatste defrostduur | bij OpenAmber |
 
 | Defrost controle | Wat er gebeurt |
 | --- | --- |
 | Buitenunit | De unit ontdooit zelf (standaard). OpenAmber houdt alleen statistiek bij. |
 | OpenAmber | EEPROM 3274 staat op master. OpenAmber start de defrost door werkmodus 4 te schrijven. |
 
-Je kunt altijd wisselen, ook vanuit Home Assistant (bijvoorbeeld naar Buitenunit als je niet thuis bent). Een defrost
+De stand wordt niet onthouden: na een herstart staat hij op Buitenunit en zet OpenAmber 3274 terug naar de
+buitenunit (alleen als de teruggelezen waarde afwijkt). Je kunt altijd wisselen, ook vanuit Home Assistant (bijvoorbeeld naar Buitenunit als je niet thuis bent). Een defrost
 die al loopt maakt eerst af; daarna zet OpenAmber werkmodus 4 terug naar verwarmen en schrijft 3274 opnieuw. Lukt een
 geforceerde defrost twee keer niet, dan gaat waarschuwing OA01 aan en probeert OpenAmber het na 30 min opnieuw. De
 controle blijft bij OpenAmber; alleen jij wisselt de stand.
 
 ## Wanneer wordt er ontdooid
 
-Het algoritme volgt Mitsubishi (technische handleiding SRK20-35ZSX-W, 17-SRK-T-228, hoofdstuk 17c).
-Een defrost start alleen als alles tegelijk geldt:
+Het algoritme volgt Mitsubishi (technische handleiding SRK20-35ZSX-W, 17-SRK-T-228, hoofdstuk 17c). Er wordt
+alleen ontdooid tijdens verwarmen met draaiende compressor en Ta tot 7 °C. Een defrost start alleen als alles
+tegelijk geldt:
 
 1. De compressor heeft sinds de vorige defrost minstens het **interval** gedraaid (start op 35 min).
 2. De compressor draait minstens 5 min onafgebroken.
@@ -62,12 +73,23 @@ van de buitenunit:
 
 Het minimale interval is instelbaar, maar nooit korter dan 30 min.
 
+## Instellingen
+
+Alleen wat het moment van ontdooien bepaalt is instelbaar: de defrost controle, het minimale interval, het verschil
+bij 0 °C en bij −15 °C, de maximale Tp en de marge rijppunt. De overige waarden (maximale Ta, vangnet,
+retourblokkade, bevestigingstijd en maximaal uitstel droge lucht) staan vast in `controllers/constants.h`.
+
 ## Blokkades
 
 - **Slot van de buitenunit.** Na een geforceerde defrost voert de unit een nieuwe pas uit na 30 min
   compressortijd. OpenAmber vraagt in die tijd niets aan (ook een handmatige aanvraag wacht). De tijd komt uit
   de eigen draaitijdteller, zodat dit niet van de firmware van de buitenunit afhangt.
-- **Retourtemperatuur.** Onder de minimale retourtemperatuur wordt gewacht, maximaal de ingestelde wachttijd.
+- **Handmatig forceren.** Onder **Defrost → Status** staat de knop "Forceren" (alleen op het display). Die werkt
+  alleen tijdens verwarmen met draaiende compressor. De aanvraag wacht op het slot van 30 min en vervalt als de
+  compressor stopt of na 40 min.
+- **Retourtemperatuur.** Onder 20 °C retourtemperatuur wordt gewacht, maximaal 15 min.
+- **Bevestiging.** Zet de unit 2118 niet binnen 120 s aan, dan neemt OpenAmber werkmodus 4 terug en probeert het
+  nog één keer.
 
 Na de defrost zet OpenAmber werkmodus 4 direct terug naar verwarmen. Anders zou de unit 30 min later opnieuw
 ontdooien.
@@ -78,13 +100,14 @@ IJs groeit alleen als de spoel kouder is dan het rijppunt van de buitenlucht. Me
 OpenAmber dat rijppunt uit. Ligt Tp erboven, dan wacht de regeling, ook als de startlijn bereikt is: de lucht is
 te droog om ijs te vormen. Het vangnet werkt altijd, ook zonder of met een verkeerde sensor.
 
-De instellingen staan onder **Eigen defrost → Luchtvochtigheid**:
+De instellingen staan onder **Defrost → Luchtvochtigheid**:
 
 | Instelling | Standaard | Betekenis |
 | --- | --- | --- |
 | Bron buitenvochtigheid | Extern | Alleen op displays met Bluetooth: een gekoppelde BLE-sensor of extern. |
 | Marge rijppunt | 0 K | Tp moet zoveel onder het rijppunt liggen voordat er ijs telt. Hoger = later ontdooien in droge lucht. |
-| Maximaal uitstel droge lucht | 60 min | Na het interval plus deze tijd telt de vochtigheid niet meer mee. 0 = onbeperkt. Beschermt tegen een verkeerde of verlopen sensor. |
+
+Na het interval plus 60 min telt de vochtigheid niet meer mee. Dat beschermt tegen een verkeerde of verlopen sensor.
 
 Op dezelfde pagina staan de actuele vochtigheid en het rijppunt.
 
@@ -96,7 +119,7 @@ zonder sensor.
 
 1. Zet Bluetooth aan onder **Instellingen → Connectiviteit → Bluetooth** en koppel de sensor (SwitchBot, BTHome of
    Xiaomi met ATC-firmware). Er zijn drie plekken voor sensoren, samen met de ruimtesensor.
-2. Kies de sensor bij **Eigen defrost → Luchtvochtigheid → Bron buitenvochtigheid** (of in Home Assistant met de
+2. Kies de sensor bij **Defrost → Luchtvochtigheid → Bron buitenvochtigheid** (of in Home Assistant met de
    select "Luchtvochtigheid buiten bron").
 OpenAmber zet de vochtigheid van die sensor dan in `outdoor_humidity`. Bij het ontkoppelen of uitzetten van Bluetooth
 valt de bron terug op Extern.

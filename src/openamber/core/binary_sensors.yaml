@@ -1016,7 +1016,7 @@ binary_sensor:
 
 - platform: template
   id: warning_custom_defrost_failed
-  name: "Eigen defrost mislukt"
+  name: "Defrost door OpenAmber mislukt"
   device_class: problem
   entity_category: diagnostic
   web_server:

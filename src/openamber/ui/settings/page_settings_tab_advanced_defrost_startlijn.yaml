@@ -1,0 +1,6 @@
+# Menu Page: Geavanceerd - Defrost: startlijn en interval
+# ------------------------------------------------------------
+id: panel_advanced_page_defrost_startlijn
+title: "Defrost: startlijn en interval"
+styles: setting_page_style
+widgets: !include page_settings_tab_advanced_defrost_startlijn_content.yaml
