@@ -571,7 +571,12 @@ public:
       return;
     }
 
-    // Only the pump was running: continue the pump cycle.
+    // Only the pump was running: continue the pump cycle. A pump cycle started from IDLE runs P1 with it, and the
+    // resume skips that start, so start P1 here (not during a defrost, like WAIT_PUMP_STOP).
+    if (!id(defrost_active_sensor).state)
+    {
+      StartPumpP1IfNeeded();
+    }
     SetNextState(HeatCoolState::PUMP_RUNNING);
   }
 
