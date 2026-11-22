@@ -228,10 +228,116 @@ def test_deaeration_runs_p1_and_p2_on_the_cv_circuit_only(clean_system):
         assert advance_until_state(openamber, "three_way_valve_dhw_switch", True, max_s=1200, step=5), (
             f"DHW circuit not reached (routine: {openamber.get_entity('state_machine_state_routine')})"
         )
+        assert openamber.get_entity("pump_p1_relay_switch") is False, "P1 must stop before the valve switches to DHW"
+        assert openamber.get_entity("pump_p2_relay_switch") is False, "P2 must stop before the valve switches to DHW"
         _settle(openamber, seconds=5)
         assert openamber.get_entity("pump_p0_relay_switch") is True
         assert openamber.get_entity("pump_p1_relay_switch") is False, "P1 must not run during DHW deaeration"
         assert openamber.get_entity("pump_p2_relay_switch") is False, "P2 must not run during DHW deaeration"
+    finally:
+        openamber.set_switch("deaeration_short_switch", False)
+        openamber.step(ms=50)
+        leave_maintenance(openamber)
+
+
+def test_pump_p2_frost_protection_with_zone1_demand_only_with_p0(clean_system):
+    """Zone 1 demand keeps the secondary pumps active in idle; frost protection alone must still only run P2
+    together with P0, not continuously between the P0 cycles."""
+    openamber = clean_system
+    _setup_without_compressor_start(openamber)
+    openamber.set_number("pump_interval", 15.0)
+    set_outside_temperature(openamber, 2.0)
+    openamber.set_number("frost_protection_stage_1_temp_ta", 5.0)
+    try:
+        assert advance_until_state(openamber, "frost_protection_stage1_active", True, max_s=400, step=10)
+        openamber.set_switch("heat_demand_switch", True)
+        _settle(openamber)
+
+        assert advance_until_state(openamber, "state_machine_state_heat_cool", "Pump running", max_s=1200)
+        _settle(openamber)
+        assert openamber.get_entity("pump_p2_relay_switch") is True, "P2 must run with the P0 cycle on frost protection"
+
+        assert advance_until_state(openamber, "state_machine_state_heat_cool", "Idle", max_s=900)
+        _settle(openamber)
+        assert openamber.get_entity("pump_p1_relay_switch") is False or openamber.get_entity("pump_p1_enabled") is False
+        assert openamber.get_entity("heat_demand_active_sensor") is True, "Zone 1 still asks for heat"
+        assert openamber.get_entity("pump_p2_relay_switch") is False, "P2 must not run between the P0 cycles"
+    finally:
+        _end_demand(openamber)
+        set_outside_temperature(openamber, 7.0)
+        openamber.advance_time(seconds=310, step_s=10)
+        openamber.step(ms=50)
+
+
+def test_pump_p2_stays_off_during_cooling_run_on(clean_system):
+    """Zone 2 asks for heat while the compressor still runs on in cooling (minimum on time): P2 stays off as long
+    as the working mode is cooling."""
+    openamber = clean_system
+    _setup_without_compressor_start(openamber)
+    openamber.set_climate("pid_cool_temperature_control", target_temperature=18.0)
+    for sensor in ("current_water_temperature_tc_sensor", "heat_cool_temperature_tc", "outlet_temperature_tuo",
+                   "inlet_temperature_tui"):
+        openamber.set_sensor(sensor, 25.0)
+    openamber.set_switch("cool_demand_switch", True)
+    openamber.step(ms=50)
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Compressor running", max_s=1800)
+    assert openamber.get_entity("working_mode_switch") == "Koelen"
+
+    openamber.set_switch("cool_demand_switch", False)
+    openamber.set_switch("heat_demand_zone_2_switch", True)
+    openamber.step(ms=50)
+    assert openamber.get_entity("heat_demand_active_sensor_zone_2") is True
+    checked_while_cooling = 0
+    for _ in range(24):
+        if openamber.get_entity("working_mode_switch") != "Koelen":
+            break
+        assert openamber.get_entity("pump_p2_relay_switch") is False, "P2 must stay off while the mode is cooling"
+        checked_while_cooling += 1
+        openamber.advance_time(seconds=10, step_s=5)
+        openamber.step(ms=20)
+    assert checked_while_cooling >= 3, "The cooling run-on was not reached, the test checked nothing"
+
+    _end_demand(openamber)
+
+
+def test_pump_p2_restored_when_resuming_pump_cycle(clean_system):
+    """After an ESP restart that takes over a running pump cycle, P2 runs again on zone 2 heat demand."""
+    openamber = clean_system
+    _setup_without_compressor_start(openamber)
+    openamber.set_switch("heat_demand_zone_2_switch", True)
+    _settle(openamber)
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Pump running", max_s=1200)
+    openamber.set_select("working_mode_switch", "Verwarmen")
+    openamber.set_switch("pump_p2_relay_switch", False)
+    openamber.step(ms=50)
+
+    assert openamber.set_switch("mock_simulate_esp_restart", True)
+    openamber.step(ms=50)
+    assert advance_until_state(openamber, "state_machine_state_main", "Heat/Cool", max_s=120, step=5)
+    _settle(openamber)
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Pump running", "The pump cycle must be taken over"
+    assert openamber.get_entity("pump_p2_relay_switch") is True, "P2 must run again after the takeover"
+
+    _end_demand(openamber)
+
+
+def test_deaeration_starts_p2_after_the_valve_switched_from_dhw(clean_system):
+    openamber = clean_system
+    openamber.set_switch("pump_p2_enabled", True)
+    enter_maintenance(openamber)
+    openamber.set_switch("three_way_valve_heat_cool_switch", False)
+    openamber.set_switch("three_way_valve_dhw_switch", True)
+    openamber.set_switch("pump_p2_relay_switch", False)
+    openamber.step(ms=50)
+    try:
+        assert openamber.set_switch("deaeration_short_switch", True) is True
+        openamber.step(ms=50)
+        assert openamber.get_entity("pump_p0_relay_switch") is True
+        assert openamber.get_entity("pump_p2_relay_switch") is False, "P2 must wait for the valve"
+
+        openamber.advance_time(seconds=65, step_s=5)
+        openamber.step(ms=50)
+        assert openamber.get_entity("pump_p2_relay_switch") is True, "P2 must start once the valve is on CV"
     finally:
         openamber.set_switch("deaeration_short_switch", False)
         openamber.step(ms=50)

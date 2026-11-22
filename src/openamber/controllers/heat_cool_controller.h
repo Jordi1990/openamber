@@ -574,8 +574,8 @@ public:
       return;
     }
 
-    // Only the pump was running: continue the pump cycle. A pump cycle started from IDLE runs P1 with it, and the
-    // resume skips that start, so start P1 here (not during a defrost, like WAIT_PUMP_STOP).
+    // Only the pump was running: continue the pump cycle. A pump cycle started from IDLE runs the secondary pumps
+    // with it, and the resume skips that start, so start them here (not during a defrost, like WAIT_PUMP_STOP).
     if (!id(defrost_active_sensor).state)
     {
       StartSecondaryPumpsIfNeeded();
@@ -1175,16 +1175,21 @@ public:
   }
 
   /// P2 is the circulation pump of zone 2. Like the original controller (M11.9 on, M11.10 off) it runs during
-  /// space heating only: on zone 2 heat demand, or on frost protection (then together with the P0 interval cycles,
-  /// like P1). Not during cooling.
+  /// space heating only: on zone 2 heat demand, or on frost protection (then only while P0 runs, so together with the
+  /// P0 interval cycles, also when zone 1 keeps the secondary pumps active in IDLE). Not during cooling, including the
+  /// run-on of a cooling compressor after the demand switched to heating (the working mode is still cooling then).
   bool IsPumpP2Wanted()
   {
-    if (IsCoolingDemand())
+    if (IsCoolingDemand() || IsWorkingMode(WORKING_MODE_COOLING))
     {
       return false;
     }
+    if (id(heat_demand_active_sensor_zone_2).state)
+    {
+      return true;
+    }
     bool frost_protection = id(frost_protection_stage1_active).state || id(frost_protection_stage2_active).state;
-    return id(heat_demand_active_sensor_zone_2).state || frost_protection;
+    return frost_protection && pump_controller_->IsRunning();
   }
 
   void UpdatePumpP2()
