@@ -116,6 +116,8 @@ def clean_system(openamber):
     openamber.set_switch("cooling_allowed_switch", True)
     openamber.set_switch("pump_p1_enabled", False)
     openamber.set_switch("pump_p1_relay_switch", False)
+    openamber.set_switch("pump_p2_enabled", False)
+    openamber.set_switch("pump_p2_relay_switch", False)
     openamber.set_switch("emergency_mode_enabled", False)
     # A test that failed in maintenance mode must not leave the next tests in Maintenance.
     openamber.set_switch("service_mode_enabled", False)
