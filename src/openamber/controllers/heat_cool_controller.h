@@ -50,6 +50,8 @@ private:
   float compressor_cool_pid_ = 0.0f;
   float start_current_temperature_ = 0.0f;
   uint32_t pump_flow_missing_since_ms_ = 0;
+  bool defrost_from_dhw_tank_ = false;
+  uint32_t defrost_from_dhw_tank_ended_ms_ = 0;
   MixingValveActuator* mixing_valve_zone1_ = nullptr;
   MixingValveActuator* mixing_valve_zone2_ = nullptr;
 
@@ -468,7 +470,8 @@ private:
     }
 
     // If temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stop compressor to avoid damage
-    if (fabsf(id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state) > 8.0f && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) && state_ != HeatCoolState::IDLE)
+    // Not during a defrost from the DHW tank: hot tank water then enters the unit, as in a DHW run (which has no such check).
+    if (!IsDefrostFromDhwTankSettling() && fabsf(id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state) > 8.0f && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) && state_ != HeatCoolState::IDLE)
     {
       ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stopping compressor to avoid damage.");
       return true;
@@ -476,7 +479,69 @@ private:
 
     return false;
   }
-  
+
+  /// @brief "Ontdooien via tapwatervat": at the start of a defrost during heating, switch the 3-way valve to the DHW
+  /// tank so the defrost takes its heat from the tank instead of the heating circuit. As the original controller
+  /// does, the valve moves while the compressor and pump P0 keep running. The DHW pump relay is switched on as in a
+  /// DHW run, for tanks with their own pump and heat exchanger.
+  void StartDefrostFromDhwTankIfNeeded()
+  {
+    if (!id(defrost_from_dhw_tank_switch).state || !id(dhw_enabled_switch).state)
+    {
+      return;
+    }
+    const float tank_temperature = id(dhw_temperature_tw_sensor).state;
+    if (std::isnan(tank_temperature) || tank_temperature <= DEFROST_DHW_TANK_MIN_TEMPERATURE_C ||
+        tank_temperature > DEFROST_DHW_TANK_MAX_TEMPERATURE_C)
+    {
+      ESP_LOGI("amber", "Defrost from the DHW tank not possible (Tw %.1f°C), defrosting on the heating circuit.", tank_temperature);
+      return;
+    }
+    ESP_LOGI("amber", "Defrosting from the DHW tank (Tw %.1f°C), switching the 3-way valve to DHW.", tank_temperature);
+    id(three_way_valve_dhw_switch).turn_on();
+    id(three_way_valve_heat_cool_switch).turn_off();
+    id(dhw_pump_relay_switch).turn_on();
+    defrost_from_dhw_tank_ = true;
+  }
+
+  /// @brief Puts the 3-way valve back on the heating circuit after a defrost from the DHW tank.
+  void EndDefrostFromDhwTank()
+  {
+    if (!defrost_from_dhw_tank_)
+    {
+      return;
+    }
+    ESP_LOGI("amber", "Defrost from the DHW tank ended, switching the 3-way valve back to heating.");
+    id(dhw_pump_relay_switch).turn_off();
+    id(three_way_valve_dhw_switch).turn_off();
+    id(three_way_valve_heat_cool_switch).turn_on();
+    defrost_from_dhw_tank_ = false;
+    defrost_from_dhw_tank_ended_ms_ = App.get_loop_component_start_time();
+    if (defrost_from_dhw_tank_ended_ms_ == 0)
+    {
+      defrost_from_dhw_tank_ended_ms_ = 1;
+    }
+  }
+
+  /// @brief True during a defrost from the DHW tank and until the valve is back and the tank water is flushed out.
+  bool IsDefrostFromDhwTankSettling()
+  {
+    if (defrost_from_dhw_tank_)
+    {
+      return true;
+    }
+    if (defrost_from_dhw_tank_ended_ms_ == 0)
+    {
+      return false;
+    }
+    if (HasElapsedMs(defrost_from_dhw_tank_ended_ms_, DEFROST_DHW_TANK_SETTLE_TIME_S * 1000UL, App.get_loop_component_start_time()))
+    {
+      defrost_from_dhw_tank_ended_ms_ = 0;
+      return false;
+    }
+    return true;
+  }
+
   void SetPidController(climate::ClimateMode climate_mode)
   {
     auto heat_call = id(pid_heat_temperature_control).make_call();
@@ -503,6 +568,7 @@ public:
     TurnOffBackupHeater();
     StopPumps();
     CloseMixingValves();
+    EndDefrostFromDhwTank();
     // Safety stop: leave heating/cooling at once, also during a defrost.
     SetWorkingMode(WORKING_MODE_STANDBY);
     SetNextState(HeatCoolState::IDLE);
@@ -895,6 +961,7 @@ public:
         if (id(defrost_running_sensor).state)
         {
           StopPumpP1IfNeeded();
+          StartDefrostFromDhwTankIfNeeded();
           SetNextState(HeatCoolState::DEFROSTING);
           break;
         }
@@ -1095,6 +1162,7 @@ public:
           break;
         }
 
+        EndDefrostFromDhwTank();
         pump_controller_->ResetHeatingPidState();
         GetPidController().reset_integral_term();
         ResetMixingValvesIntegralTerm();

@@ -64,6 +64,13 @@ static const uint32_t DEFROST_PREPHASE_MAX_S = 330;
 static const float DEFROST_STANDBY_FREQUENCY_MARGIN_HZ = 5.0f;
 // After 2118 drops the unit switches the 4-way valve back and restarts the fan within 30 s.
 static const uint32_t DEFROST_RECOVERY_PHASE_S = 30;
+// Defrost from the DHW tank ("Ontdooien via tapwatervat"): only with tank water in this range, as the original
+// controller does.
+static const float DEFROST_DHW_TANK_MIN_TEMPERATURE_C = 30.0f;
+static const float DEFROST_DHW_TANK_MAX_TEMPERATURE_C = 55.0f;
+// After such a defrost the 3-way valve travels back (THREE_WAY_VALVE_SWITCH_TIME_S) and the tank water still in
+// the unit is flushed out. Until then Tuo and Tui say nothing about the flow in the heating circuit.
+static const uint32_t DEFROST_DHW_TANK_SETTLE_TIME_S = 2 * 60;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_DOWN_S = 10;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_UP_S = 5 * 60;
 

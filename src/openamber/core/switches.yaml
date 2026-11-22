@@ -65,6 +65,17 @@ switch:
   web_server: 
     sorting_group_id: dhw_settings
 
+# Ontdooien via tapwatervat: a defrost during heating takes its heat from the DHW tank (Tw 30-55 °C) instead of
+# the heating circuit. Defaults to off so existing installs defrost as before.
+- platform: template
+  id: defrost_from_dhw_tank_switch
+  name: "Ontdooien via tapwatervat"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server:
+    sorting_group_id: dhw_settings
+
 - platform: template
   id: dhw_schedule_enabled_switch
   name: "Tapwater schema actief"
