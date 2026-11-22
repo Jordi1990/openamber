@@ -105,6 +105,7 @@ obj:
           - !include settings/page_settings_tab_advanced_fan_heat_hz.yaml
           - !include settings/page_settings_tab_advanced_fan_cool_ta.yaml
           - !include settings/page_settings_tab_advanced_fan_cool_hz.yaml
+          - !include settings/page_settings_tab_advanced_pump.yaml
 
     - obj:
         id: outdoor_unit_optimizations_modal
