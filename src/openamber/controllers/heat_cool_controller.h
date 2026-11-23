@@ -803,7 +803,14 @@ public:
         pump_controller_->ApplySpeedChangeIfNeeded(false);
 
         // Stop if there is no compressor demand or the temperature does not ask for the compressor and pump interval is finished.
-        const bool compressor_wanted = HasCompressorDemand() && IsStartTemperatureReached();
+        // Emergency mode runs on the backup heater, which can only heat: a cooling demand is not served, so the
+        // pump cycle ends normally instead of running on for a demand nothing can serve.
+        const bool emergency_cooling = id(emergency_mode_enabled).state && IsCoolingDemand();
+        const bool compressor_wanted = HasCompressorDemand() && IsStartTemperatureReached() && !emergency_cooling;
+        if (emergency_cooling)
+        {
+          ESP_LOGD("amber", "Emergency mode enabled: cooling is not possible on the backup heater, not starting.");
+        }
         if (!compressor_wanted && pump_controller_->IsIntervalCycleFinished())
         {
           ESP_LOGI("amber", "Stopping pump (interval cycle finished)");
@@ -830,13 +837,6 @@ public:
         if (!pump_controller_->IsPumpSettled())
         {
           ESP_LOGI("amber", "Not starting compressor because temperature needs to stabilize (pump on time too short)");
-          break;
-        }
-
-        // Emergency mode runs on the backup heater, which can only heat: a cooling demand is not served.
-        if (id(emergency_mode_enabled).state && IsCoolingDemand())
-        {
-          ESP_LOGW("amber", "Emergency mode enabled: cooling is not possible on the backup heater, not starting.");
           break;
         }
 
