@@ -134,27 +134,6 @@ def test_pump_p2_turning_off_present_switches_relay_off(clean_system):
     _end_demand(openamber)
 
 
-def test_pump_p2_stops_at_cycle_end_during_defrost(clean_system):
-    """WAIT_PUMP_STOP holds while a defrost is active, P2 must not run during that wait (like P1)."""
-    openamber = clean_system
-    openamber.set_number("flow_switch_safety_delay_minutes", 2.0)
-    _setup_without_compressor_start(openamber)
-    openamber.set_switch("heat_demand_zone_2_switch", True)
-    _settle(openamber)
-
-    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Pump running", max_s=1200)
-    openamber.set_binary_sensor("defrost_active_sensor", True)
-    openamber.step(ms=50)
-
-    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Wait pump stop", max_s=1800)
-    _settle(openamber)
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Wait pump stop"
-    assert openamber.get_entity("pump_p2_relay_switch") is False, "P2 must stop when the cycle ends during defrost"
-
-    openamber.set_binary_sensor("defrost_active_sensor", False)
-    _end_demand(openamber)
-
-
 def test_pump_p2_stops_when_dhw_requested(clean_system):
     openamber = clean_system
     _setup_without_compressor_start(openamber)

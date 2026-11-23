@@ -349,11 +349,13 @@ private:
   /// return cycle runs. A running oil return cycle is finished first.
   bool ShouldStop()
   {
-    // Checked before the demand: a stop request still lets the oil return cycle or a defrost finish when the demand
-    // ends meanwhile.
-    if (requested_to_stop_ && (id(oil_return_cycle_active).state || id(defrost_active_sensor).state))
+    // Never stop during a defrost, including the pre-phase (2118 set), or an oil return cycle, whatever the reason
+    // (no demand, stop request). The outdoor unit only runs the pre-phase and the defrost while the compressor
+    // runs: a stop aborts the defrost and leaves 2118 set until standby, so the ice stays. Safety stops do not
+    // pass here.
+    if (id(defrost_active_sensor).state || id(oil_return_cycle_active).state)
     {
-      ESP_LOGI("amber", "DHW stop requested: waiting for the oil return cycle or defrost to finish before stopping.");
+      ESP_LOGI("amber", "Defrost or oil return cycle active, not stopping the compressor until it has finished.");
       return false;
     }
     return !HasDemand() || requested_to_stop_;
@@ -651,12 +653,8 @@ public:
       case DHWState::WAIT_PUMP_STOP:
         if (!pump_controller_->IsRunning())
         {
-          // Leaving heating aborts a running defrost without its recovery phase, so wait for 2118 to drop.
-          if (id(defrost_active_sensor).state)
-          {
-            ESP_LOGI("amber", "Defrost active, waiting before switching to standby.");
-            break;
-          }
+          // No wait for 2118 here: the compressor has stopped, and the outdoor unit only runs its defrost (and
+          // pre-phase) while the compressor runs. 2118 then stays set until standby, which clears it.
           pump_controller_->ClearStopWaitTimer();
           SetWorkingMode(WORKING_MODE_STANDBY);
           id(dhw_active).publish_state(false);
