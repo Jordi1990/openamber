@@ -85,26 +85,36 @@ def test_backup_heater_prediction_settle_time_flow(clean_system):
     assert openamber.get_widget("service_backup_heater_relay_switch_ui").get("checked") is True, "Switch should be checked"
     assert openamber.get_label("tile_backup_state") == "AAN", "Tile label should be 'AAN'"
 
-    # Establish prediction-shutoff condition before the 30-second assertion:
-    # Set supply temperature to 37.2°C (predicted >= target 35.0 + 2.0 = 37.0°C),
-    # while keeping current temp below high-temperature shutoff threshold (35.0 + 5.0 = 40.0°C).
-    assert openamber.set_sensor("current_water_temperature_tc_sensor", 37.2)
-    assert openamber.set_sensor("heat_cool_temperature_tc", 37.2)
-    assert openamber.set_sensor("outlet_temperature_tuo", 37.2)
-    assert openamber.set_sensor("inlet_temperature_tui", 35.2)
-    openamber.step(ms=50)
+    # Unified stop margin: measured and predicted shutoff both use target + backup_heater_stop_delta.
+    # Hold the water temperature below 35.0 + 2.0 = 37.0°C while it rises slowly (0.15°C/min),
+    # so the prediction (current + 2 min lookahead) crosses 37.0°C while the measured value does not.
+    assert openamber.set_number("backup_heater_stop_delta", 2.0)
+    temp = 36.0
+
+    def set_water_temperature(t):
+        assert openamber.set_sensor("current_water_temperature_tc_sensor", t)
+        assert openamber.set_sensor("heat_cool_temperature_tc", t)
+        assert openamber.set_sensor("outlet_temperature_tuo", t)
+        assert openamber.set_sensor("inlet_temperature_tui", t - 2.0)
 
     # Advance virtual time by only 30 seconds (30s < BACKUP_HEATER_PREDICTION_SETTLE_TIME_S = 300s)
-    openamber.advance_time(seconds=30, step_s=5)
-    openamber.step(ms=50)
+    for _ in range(6):
+        temp += 0.0125  # 0.15 °C/min
+        set_water_temperature(temp)
+        openamber.advance_time(seconds=5, step_s=5)
+        openamber.step(ms=50)
 
-    # Settle time not elapsed yet (30s < 300s), prediction shutoff is suppressed: backup heater must remain ON
+    # Settle time not elapsed yet (30s < 300s), prediction shutoff is suppressed and the
+    # measured temperature is still below the 37.0°C stop threshold: backup heater must remain ON
     assert openamber.get_entity("backup_heater_relay") is True, "Backup heater should stay ON before settle time (300s)"
     assert openamber.get_label("tile_backup_state") == "AAN", "Tile label should remain 'AAN'"
 
     # Advance virtual time by an additional 280 seconds (total 310s > 300s settle time)
-    openamber.advance_time(seconds=280, step_s=10)
-    openamber.step(ms=50)
+    for _ in range(28):
+        temp += 0.025  # same 0.15 °C/min in 10s steps
+        set_water_temperature(temp)
+        openamber.advance_time(seconds=10, step_s=10)
+        openamber.step(ms=50)
 
     # Settle time elapsed (> 300s): prediction shutoff triggers and turns OFF backup heater
     assert openamber.get_entity("backup_heater_relay") is False, "Controller must shut OFF backup heater via prediction shutoff"
