@@ -138,6 +138,10 @@ def clean_system(openamber):
     openamber.set_binary_sensor("external_cool_demand_wired", False)
     openamber.set_binary_sensor("sg_ready_block_mode_active_sensor", False)
     openamber.set_binary_sensor("defrost_active_sensor", False)
+    # Backup heater settings are per-test and must not leak between tests.
+    openamber.set_select("backup_heating_mode", "Intern verwarmingselement")
+    openamber.set_number("backup_heater_stop_delta", 2.0)
+    openamber.set_number("backup_heater_degmin_threshold", 40.0)
     openamber.set_number("mock_compressor_frequency_override", -1.0)
     openamber.set_sensor("model_identification_1", 150.0)
     # Reset heating curves to their numbers.yaml defaults so curve edits in one test do not
