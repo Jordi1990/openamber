@@ -8,6 +8,19 @@ switch:
   web_server: 
     sorting_group_id: heating_settings
 
+# Pomp P2 aanwezig: circulation pump of zone 2 on the P2 contact. Runs on zone 2 heat demand (see
+# HeatCoolController::IsPumpP2Wanted). Switching it off also switches the relay off, so it cannot stay on.
+- platform: template
+  id: pump_p2_enabled
+  name: "Pomp P2 aanwezig"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  on_turn_off:
+    - switch.turn_off: pump_p2_relay_switch
+  web_server: 
+    sorting_group_id: heating_settings
+
 - platform: template
   id: pump_p0_pid_enabled
   name: "Pomp P0 PID regeling"

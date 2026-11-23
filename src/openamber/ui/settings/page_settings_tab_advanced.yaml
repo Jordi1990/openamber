@@ -115,3 +115,19 @@ widgets:
             widgets:
               - label: { text: "\U000F0210", styles: menu_tile_icon_style }
               - label: { id: advanced_stab_fan_lbl, text: "Ventilator", long_mode: WRAP, styles: menu_tile_label_style }
+
+        - obj:
+            id: advanced_stab_pump
+            styles: menu_tile_style
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_advanced_page_pump
+            widgets:
+              - label: { text: "󰖏", styles: menu_tile_icon_style }
+              - label: { id: advanced_stab_pump_lbl, text: "Pomp", long_mode: WRAP, styles: menu_tile_label_style }

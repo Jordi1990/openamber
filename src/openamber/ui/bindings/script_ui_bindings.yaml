@@ -1053,22 +1053,45 @@
   then:
     - if:
         condition:
-          update.is_available: firmware_update
+          # Like ESPHome, any different version is available. The Stabiel channel never offers a beta, also not one
+          # left over from a check on the beta channel (a failed or still running check keeps that result).
+          lambda: |-
+            if (id(firmware_update).state != update::UPDATE_STATE_AVAILABLE) return false;
+            auto channel = id(firmware_update_channel).active_index();
+            bool beta_channel = channel.has_value() && channel.value() == 1;
+            return beta_channel || id(firmware_update).update_info.latest_version.find('-') == std::string::npos;
         then:
           - globals.set:
               id: service_update_check_failed
               value: 'false'
-          - lvgl.widget.show: { id: nav_system_badge }
+          - lambda: |-
+              // The beta manifest always holds the newest release, so a different version there is an update. On the
+              // Stabiel channel with a beta installed (versions like 0.10.0-beta.1) the stable version is the way
+              // back to stable, or the final release of that beta.
+              const auto &info = id(firmware_update).update_info;
+              auto channel = id(firmware_update_channel).active_index();
+              bool beta_channel = channel.has_value() && channel.value() == 1;
+              const std::string &current = info.current_version.empty() ? std::string(ESPHOME_PROJECT_VERSION) : info.current_version;
+              id(service_update_to_stable) = !beta_channel && current.find('-') != std::string::npos;
+              lv_obj_remove_flag(id(nav_system_badge), LV_OBJ_FLAG_HIDDEN);
           - if:
               condition:
                 lambda: 'return !lv_obj_has_flag(id(page_system), LV_OBJ_FLAG_HIDDEN);'
               then:
                 - lambda: |-
+                    const auto &info = id(firmware_update).update_info;
+                    const char *latest = info.latest_version.empty() ? "onbekend" : info.latest_version.c_str();
+                    const char *current = info.current_version.empty() ? ESPHOME_PROJECT_VERSION : info.current_version.c_str();
+                    bool to_stable = id(service_update_to_stable);
                     lv_label_set_text(id(service_update_status), "");
                     lv_obj_send_event(id(service_update_status), lvgl::lv_update_event, nullptr);
                     lv_obj_add_flag(id(service_update_error), LV_OBJ_FLAG_HIDDEN);
-                    lv_label_set_text(id(service_update_version), str_sprintf("Nieuwe versie %s beschikbaar\nHuidige versie: %s", id(firmware_update).update_info.latest_version.empty() ? "onbekend" : id(firmware_update).update_info.latest_version.c_str(), id(firmware_update).update_info.current_version.empty() ? ESPHOME_PROJECT_VERSION : id(firmware_update).update_info.current_version.c_str()).c_str());
+                    lv_label_set_text(id(service_update_version), str_sprintf(to_stable
+                        ? "Stabiele versie %s beschikbaar\nHuidige versie: %s (beta)"
+                        : "Nieuwe versie %s beschikbaar\nHuidige versie: %s", latest, current).c_str());
                     lv_obj_send_event(id(service_update_version), lvgl::lv_update_event, nullptr);
+                    lv_label_set_text(id(service_update_button_label), to_stable ? "Stabiel installeren" : "Update installeren");
+                    lv_obj_send_event(id(service_update_button_label), lvgl::lv_update_event, nullptr);
                 - if:
                     condition:
                       lambda: |-
@@ -1110,6 +1133,7 @@
                     }
         else:
           - lambda: |-
+              id(service_update_to_stable) = false;
               lv_obj_add_flag(id(nav_system_badge), LV_OBJ_FLAG_HIDDEN);
               if (!lv_obj_has_flag(id(page_system), LV_OBJ_FLAG_HIDDEN)) {
                 if (id(service_update_check_failed)) {
@@ -1926,19 +1950,33 @@
 - id: start_firmware_update
   mode: single
   then:
-    - globals.set:
-        id: service_update_install_in_progress
-        value: 'true'
-    - lvgl.widget.show:
-        id: service_update_progress_overlay
-    - update.perform:
-        id: firmware_update
-    - delay: 10min
-    - globals.set:
-        id: service_update_install_in_progress
-        value: 'false'
-    - lvgl.widget.hide:
-        id: service_update_progress_overlay
+    - if:
+        # A check (e.g. after a channel change from Home Assistant) replaced the version the dialog described:
+        # install nothing and show the new offer, so the user confirms what is actually installed.
+        # Also refuse a beta once the channel is Stabiel: a failed or pending check keeps the beta-channel result.
+        condition:
+          lambda: |-
+            const std::string &latest = id(firmware_update).update_info.latest_version;
+            auto channel = id(firmware_update_channel).active_index();
+            bool beta_channel = channel.has_value() && channel.value() == 1;
+            return latest != id(service_update_target) || (!beta_channel && latest.find('-') != std::string::npos);
+        then:
+          - logger.log: "Firmware update target changed after confirmation, not installing"
+          - script.execute: update_firmware_ui
+        else:
+          - globals.set:
+              id: service_update_install_in_progress
+              value: 'true'
+          - lvgl.widget.show:
+              id: service_update_progress_overlay
+          - update.perform:
+              id: firmware_update
+          - delay: 10min
+          - globals.set:
+              id: service_update_install_in_progress
+              value: 'false'
+          - lvgl.widget.hide:
+              id: service_update_progress_overlay
 
 # Restore the confirm dialog to its two-button layout.
 - id: service_confirm_reset_layout

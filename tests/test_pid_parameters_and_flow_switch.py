@@ -157,3 +157,31 @@ def test_flow_switch_missing_pump_safety_delay_stops_compressor(clean_system):
     openamber.set_switch("heat_demand_switch", False)
     openamber.set_number("flow_switch_safety_delay_minutes", 2.0)
     openamber.step(ms=50)
+
+
+def test_flow_switch_safety_delay_setting_under_advanced_pump(clean_system):
+    """The flow switch delay is an advanced setting: Instellingen > Geavanceerd > Pomp, not Pomp > Algemeen."""
+    import os
+
+    settings_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                "src", "openamber", "ui", "settings")
+    with open(os.path.join(settings_dir, "page_settings_tab_pump_algemeen_content.yaml"), encoding="utf-8-sig") as f:
+        assert "flow_switch_safety" not in f.read(), "The flow switch delay must not be on Pomp > Algemeen"
+
+    openamber = clean_system
+    openamber.set_number("flow_switch_safety_delay_minutes", 2.0)
+    assert openamber.click("nav_settings")
+    openamber.step(ms=100)
+    openamber.set_switch("advanced_settings_enabled", True)
+    openamber.step(ms=100)
+    try:
+        assert openamber.click("stab_advanced")
+        openamber.step(ms=50)
+        assert openamber.click("advanced_stab_pump")
+        openamber.step(ms=100)
+        assert openamber.is_hidden("panel_advanced_page_pump") is False
+        assert openamber.is_hidden("set_pump_flow_switch_safety_row") is False
+        assert openamber.get_label("set_pump_flow_switch_safety_delay_val").startswith("2")
+    finally:
+        openamber.set_switch("advanced_settings_enabled", False)
+        openamber.step(ms=50)

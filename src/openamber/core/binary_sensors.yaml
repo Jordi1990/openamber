@@ -989,13 +989,20 @@ binary_sensor:
       running = false;
       return false;
     }
+    const float frequency = id(current_compressor_frequency).state;
+    // A stopped compressor is no defrost: the unit only runs its pre-phase and defrost while the compressor runs,
+    // and a compressor stop aborts the execution while 2118 stays set.
+    // An unknown frequency (no Modbus data) keeps the previous state.
+    if (!std::isnan(frequency) && frequency <= 0.0f) {
+      running = false;
+      return false;
+    }
     if (running) return true;
 
     const uint32_t now = millis();
     if (prephase_started_ms == 0) prephase_started_ms = now == 0 ? 1 : now;
 
     const float standby = id(defrost_standby_frequency).has_state() ? id(defrost_standby_frequency).state : 36.0f;
-    const float frequency = id(current_compressor_frequency).state;
     const bool dropped = !std::isnan(frequency) && frequency <= standby + DEFROST_STANDBY_FREQUENCY_MARGIN_HZ;
     const bool prephase_timeout = (now - prephase_started_ms) >= DEFROST_PREPHASE_MAX_S * 1000UL;
     running = dropped || prephase_timeout;
