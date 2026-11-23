@@ -1739,6 +1739,10 @@
   nl: "Scherm uit na"
   de: "Bildschirm aus nach"
   en: "Screen off after"
+- key: t_taal
+  nl: "Taal"
+  de: "Sprache"
+  en: "Language"
 - key: t_stooklijn_zone_1
   nl: "Stooklijn Zone 1"
   de: "Heizkurve Zone 1"

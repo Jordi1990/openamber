@@ -1887,12 +1887,12 @@
           - delay: 30s
           - lvgl.label.update:
               id: wifi_connect_btn_label
-              text: "${t_verbinden}"
+              text: !lambda return std::string(oa_tr("Verbinden"));
         else:
           # Placeholder selected: nothing to connect, undo the "Verbinden..." set by on_click right away.
           - lvgl.label.update:
               id: wifi_connect_btn_label
-              text: "${t_verbinden}"
+              text: !lambda return std::string(oa_tr("Verbinden"));
 
 - id: wifi_disconnect
   then:
@@ -2001,6 +2001,11 @@
           }
           lv_obj_t *page = lv_menu_get_cur_main_page(menu);
           lv_obj_t *title = lv_obj_get_child(header, -1);
+          // LVGL sets the header from the page title, which holds the compiled-in language.
+          if (title != nullptr) {
+            const char *tr = oa_i18n_to(lv_label_get_text(title));
+            if (tr != nullptr && strcmp(tr, lv_label_get_text(title)) != 0) lv_label_set_text(title, tr);
+          }
           std::string text = title != nullptr ? lv_label_get_text(title) : "";
           auto &h = history[m];
           if (page == roots[m]) {

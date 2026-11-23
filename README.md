@@ -72,7 +72,9 @@ Connect to the OpenAmber access point(password openamber) to setup WiFi.
 
 **Display language**
 
-The display UI is Dutch by default. When building from source you can choose German or English by adding `ui_language` to the substitutions of your device YAML:
+The display UI is available in Dutch, German and English. Every build contains all three; choose the language on the display under Settings > General > System > Language, or with the `Display taal` select in Home Assistant. The choice is kept across reboots and applies immediately.
+
+`ui_language` (nl, de or en) in the substitutions of your device YAML sets the default language:
 
 ```yaml
 substitutions:

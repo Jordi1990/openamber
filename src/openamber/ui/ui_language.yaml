@@ -1,0 +1,38 @@
+# Runtime display language. All languages are compiled in (i18n/oa_i18n.h); the select below picks
+# one. On a change ui_apply_language walks the LVGL tree and swaps the texts, and oa_tr() returns
+# the selected language for texts that are set from C++.
+
+esphome:
+  includes:
+    - openamber/ui/i18n/oa_i18n.h
+
+select:
+  - platform: template
+    id: display_language_select
+    name: "Display taal"
+    icon: mdi:translate
+    optimistic: true
+    options:
+      - "Nederlands"
+      - "Deutsch"
+      - "English"
+    initial_option: "${ui_language_option}"
+    restore_value: true
+    entity_category: config
+    on_value:
+      then:
+        - lambda: oa_i18n_set_lang((int) i);
+        - script.execute: ui_apply_language
+
+script:
+  - id: ui_apply_language
+    mode: restart
+    then:
+      # Also runs from the restore during setup: wait until the widgets exist.
+      - delay: 300ms
+      - lambda: |-
+          oa_i18n_apply({lv_screen_active(), lv_layer_top()});
+          auto idx = id(display_language_select).active_index();
+          if (idx.has_value() && lv_dropdown_get_selected(id(set_display_language_dd)->obj) != (uint32_t) idx.value())
+            lv_dropdown_set_selected(id(set_display_language_dd)->obj, idx.value());
+      - script.execute: setup_menu_header_ui

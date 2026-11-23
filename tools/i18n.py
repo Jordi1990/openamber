@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 """Display translations for the OpenAmber LVGL UI.
 
-The UI is written in Dutch. Texts are translated at build time with the `ui_language`
-substitution (nl, de or en):
+The UI is written in Dutch. One build contains all languages (nl, de, en); the display language
+is a select entity ("Display taal") that can be changed at runtime. `ui_language` (nl, de or en)
+only sets the language compiled into the widgets and the default of that select.
 
 * YAML texts (`text:`, `title:`, `placeholder_text:`, dropdown `options:`) use substitutions,
   for example `text: "${t_algemeen}"`. src/openamber/ui/i18n/<lang>.yaml defines them.
 * Texts set from C++ (lambdas and the UI headers) go through `oa_tr("Dutch text")`, which looks
-  the text up in src/openamber/ui/i18n/oa_i18n_<lang>.h and returns it unchanged when there is no
+  the text up in src/openamber/ui/i18n/oa_i18n.h and returns it unchanged when there is no
   translation. Values of selects and other entities are never translated.
+* On a language change oa_i18n_apply() walks the LVGL tree and swaps label, dropdown, table and
+  placeholder texts (see src/openamber/ui/ui_language.yaml).
 
 src/openamber/ui/i18n/translations.yaml is the single source; the language files are generated.
 
 Usage:
-  tools/i18n.py generate   write i18n/<lang>.yaml and oa_i18n_<lang>.h from translations.yaml
+  tools/i18n.py generate   write i18n/<lang>.yaml and oa_i18n.h from translations.yaml
   tools/i18n.py convert    replace Dutch literals that have a translation (YAML -> ${t_...},
                            lambdas -> oa_tr(...)) and add missing keys to translations.yaml
   tools/i18n.py check      exit 1 when generated files are stale or a translated literal is unconverted
@@ -71,32 +74,132 @@ def save_translations(entries):
 def c_lit(s):
     return '"' + s.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n') + '"'
 
+LANG_NAMES = {'nl': 'Nederlands', 'de': 'Deutsch', 'en': 'English'}
+
+H_RUNTIME = r'''
+static int oa_i18n_lang_ = 0;       // selected display language: 0 nl, 1 de, 2 en
+static int oa_i18n_prev_lang_ = 0;  // language the widgets currently show
+
+static inline const char *oa_i18n_str_(uint16_t e) { return OA_I18N_ROWS[e >> 2][e & 3]; }
+
+// Row of a display text in any language (-1 if unknown). Prefers a match in column `pref`.
+static int oa_i18n_row(const char *text, int pref) {
+  if (text == nullptr || *text == '\0') return -1;
+  size_t lo = 0, hi = OA_I18N_INDEX_COUNT;
+  while (lo < hi) {
+    size_t mid = (lo + hi) / 2;
+    if (strcmp(oa_i18n_str_(OA_I18N_INDEX[mid]), text) < 0) lo = mid + 1; else hi = mid;
+  }
+  int row = -1;
+  for (size_t i = lo; i < OA_I18N_INDEX_COUNT && strcmp(oa_i18n_str_(OA_I18N_INDEX[i]), text) == 0; i++) {
+    if (row < 0) row = OA_I18N_INDEX[i] >> 2;
+    if ((OA_I18N_INDEX[i] & 3) == pref) return OA_I18N_INDEX[i] >> 2;
+  }
+  return row;
+}
+
+// Translation of a Dutch display text into the selected language, or the text itself.
+static const char *oa_tr(const char *text) {
+  if (oa_i18n_lang_ == 0) return text;
+  int row = oa_i18n_row(text, 0);
+  return row < 0 ? text : OA_I18N_ROWS[row][oa_i18n_lang_];
+}
+
+// Translation of a display text in any language into the selected language, or nullptr.
+static const char *oa_i18n_to(const char *text) {
+  int row = oa_i18n_row(text, oa_i18n_prev_lang_);
+  return row < 0 ? nullptr : OA_I18N_ROWS[row][oa_i18n_lang_];
+}
+
+static void oa_i18n_set_lang(int lang) {
+  if (lang >= 0 && lang < 3) oa_i18n_lang_ = lang;
+}
+
+#ifdef USE_LVGL
+// Translates labels, dropdown options, table cells and textarea placeholders below `obj`.
+static void oa_i18n_apply_obj_(lv_obj_t *obj) {
+  if (obj == nullptr) return;
+  if (lv_obj_check_type(obj, &lv_label_class)) {
+    const char *cur = lv_label_get_text(obj);
+    const char *t = oa_i18n_to(cur);
+    if (t != nullptr && strcmp(t, cur) != 0) lv_label_set_text(obj, t);
+  } else if (lv_obj_check_type(obj, &lv_dropdown_class)) {
+    const char *opts = lv_dropdown_get_options(obj);
+    if (opts != nullptr) {
+      std::string out, line;
+      bool changed = false;
+      for (const char *p = opts;; p++) {
+        if (*p == '\n' || *p == '\0') {
+          const char *t = oa_i18n_to(line.c_str());
+          if (t != nullptr && line != t) { out += t; changed = true; } else out += line;
+          line.clear();
+          if (*p == '\0') break;
+          out += '\n';
+        } else {
+          line += *p;
+        }
+      }
+      if (changed) {
+        uint32_t sel = lv_dropdown_get_selected(obj);
+        lv_dropdown_set_options(obj, out.c_str());
+        lv_dropdown_set_selected(obj, sel);
+      }
+    }
+  } else if (lv_obj_check_type(obj, &lv_table_class)) {
+    for (uint32_t r = 0; r < lv_table_get_row_count(obj); r++)
+      for (uint32_t c = 0; c < lv_table_get_column_count(obj); c++) {
+        const char *cur = lv_table_get_cell_value(obj, r, c);
+        const char *t = oa_i18n_to(cur);
+        if (t != nullptr && strcmp(t, cur) != 0) lv_table_set_cell_value(obj, r, c, t);
+      }
+  } else if (lv_obj_check_type(obj, &lv_textarea_class)) {
+    const char *cur = lv_textarea_get_placeholder_text(obj);
+    const char *t = oa_i18n_to(cur);
+    if (t != nullptr && strcmp(t, cur) != 0) lv_textarea_set_placeholder_text(obj, t);
+    return;  // the text itself is user input
+  }
+  for (uint32_t i = 0; i < lv_obj_get_child_count(obj); i++) oa_i18n_apply_obj_(lv_obj_get_child(obj, i));
+}
+
+// Switches every widget below the roots to the selected language.
+static void oa_i18n_apply(std::initializer_list<lv_obj_t *> roots) {
+  for (lv_obj_t *root : roots) oa_i18n_apply_obj_(root);
+  oa_i18n_prev_lang_ = oa_i18n_lang_;
+}
+#endif
+'''
+
 def gen_files(entries):
     files = {}
     for lang in LANGS:
         y = [f'# Generated by tools/i18n.py from translations.yaml - do not edit.',
-             'substitutions:']
+             f'# Texts compiled into the widgets for ui_language: {lang}. The display language can be',
+             '# changed at runtime (select "Display taal"); see ui_language.yaml.',
+             'substitutions:', f'  ui_language_option: "{LANG_NAMES[lang]}"']
         for e in entries:
             if e.get('key'):
-                y.append(f"  {e['key']}: {_yq(e[lang] if lang != 'nl' else e['nl'])}")
-        y += ['', 'esphome:', '  includes:', f'    - openamber/ui/i18n/oa_i18n_{lang}.h', '']
-        files[os.path.join(I18N, f'{lang}.yaml')] = '\n'.join(y)
-        rows = [e for e in entries if lang != 'nl' and e[lang] != e['nl']]
-        h = ['// Generated by tools/i18n.py from translations.yaml - do not edit.',
-             f'// Display texts for ui_language: {lang}', '#pragma once', '#include <cstddef>', '#include <cstring>', '',
-             'static const char *const OA_I18N_TABLE[][2] = {']
-        for e in rows:
-            h.append(f'    {{{c_lit(e["nl"])}, {c_lit(e[lang])}}},')
-        h += ['    {nullptr, nullptr},', '};', '',
-              '// Returns the translation of a Dutch display text, or the text itself.',
-              'static const char *oa_tr(const char *text) {',
-              '  for (size_t i = 0; OA_I18N_TABLE[i][0] != nullptr; i++) {',
-              '    if (strcmp(OA_I18N_TABLE[i][0], text) == 0)',
-              '      return OA_I18N_TABLE[i][1];',
-              '  }',
-              '  return text;',
-              '}', '']
-        files[os.path.join(I18N, f'oa_i18n_{lang}.h')] = '\n'.join(h)
+                y.append(f"  {e['key']}: {_yq(e[lang])}")
+        files[os.path.join(I18N, f'{lang}.yaml')] = '\n'.join(y) + '\n'
+    # one table with all languages, plus an index over every string sorted bytewise for binary search
+    pairs = []
+    for r, e in enumerate(entries):
+        seen = set()
+        for c, lang in enumerate(LANGS):
+            if e[lang] not in seen:
+                seen.add(e[lang]); pairs.append((e[lang].encode('utf-8'), r * 4 + c))
+    pairs.sort()
+    h = ['// Generated by tools/i18n.py from translations.yaml - do not edit.',
+         '// Display texts in all languages (nl, de, en); the language is selected at runtime.',
+         '#pragma once', '#include <cstdint>', '#include <cstring>', '#include <string>',
+         '#include <initializer_list>', '',
+         'static const char *const OA_I18N_ROWS[][3] = {']
+    for e in entries:
+        h.append('    {' + ', '.join(c_lit(e[l]) for l in LANGS) + '},')
+    h += ['};', '', 'static const uint16_t OA_I18N_INDEX[] = {']
+    for i in range(0, len(pairs), 12):
+        h.append('    ' + ', '.join(str(v) for _, v in pairs[i:i + 12]) + ',')
+    h += ['};', f'static const size_t OA_I18N_INDEX_COUNT = {len(pairs)};']
+    files[os.path.join(I18N, 'oa_i18n.h')] = '\n'.join(h) + '\n' + H_RUNTIME
     return files
 
 # ---------------------------------------------------------------- scanning
