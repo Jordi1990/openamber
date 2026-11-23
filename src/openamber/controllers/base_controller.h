@@ -92,6 +92,13 @@ protected:
     return true; // Assume external backup heater is active when enabled, as we don't have a sensor for it.
   }
 
+  /// @brief True while the controller has a backup heater (internal element or external relay) switched on.
+  /// Unlike IsBackupHeaterActive() this is not always true in external mode, so it can be used for safety checks.
+  bool IsBackupHeaterSwitchedOn()
+  {
+    return backup_heater_start_time_ms_ != 0 || id(backup_heater_relay).state || id(external_backup_heating_relay).state;
+  }
+
   void TurnOnBackupHeater()
   {
     backup_heater_start_time_ms_ = App.get_loop_component_start_time();

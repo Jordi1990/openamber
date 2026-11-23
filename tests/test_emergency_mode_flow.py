@@ -160,3 +160,80 @@ def test_cooling_compressor_lockout_in_emergency_mode(clean_system):
     assert openamber.set_switch("emergency_mode_enabled", False)
     openamber.step(ms=50)
 
+
+
+def test_cooling_demand_in_emergency_mode_never_switches_on_backup_heater(clean_system):
+    """
+    Regression: emergency mode runs on the backup heater, which can only heat.
+    A cooling demand must not switch the element on (and must not set working mode cooling).
+    """
+    openamber = clean_system
+
+    assert openamber.set_switch("emergency_mode_enabled", True)
+    assert openamber.set_select("thermostat_mode_select", "Extern")
+    assert openamber.set_switch("cool_demand_switch", True)
+    assert openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
+    assert openamber.set_sensor("heat_cool_temperature_tc", 28.0)
+    openamber.step(ms=50)
+
+    # Through the pump interval, the pump settle time and well beyond.
+    for _ in range(6):
+        openamber.advance_time(seconds=300, step_s=10)
+        openamber.step(ms=50)
+        assert openamber.get_entity("backup_heater_relay") is False, "Backup heater must stay OFF on a cooling demand in emergency mode"
+        assert int(openamber.get_entity("compressor_control_select") or 0) == 0, "Compressor must stay OFF in emergency mode"
+
+    assert openamber.get_entity("state_machine_state_heat_cool") not in ("Wait backup heater running", "Backup heater running")
+
+    # Cleanup
+    assert openamber.set_switch("cool_demand_switch", False)
+    assert openamber.set_switch("emergency_mode_enabled", False)
+    openamber.step(ms=50)
+
+
+def test_emergency_mode_flow_loss_stops_backup_heater(clean_system):
+    """
+    Safety: in emergency mode the element runs without the compressor. When pump flow is lost the
+    flow switch safety delay must also stop the backup heater (the inside unit has no interlock itself).
+    """
+    openamber = clean_system
+
+    assert openamber.set_number("flow_switch_safety_delay_minutes", 1.0)  # 60 s
+    assert openamber.set_switch("emergency_mode_enabled", True)
+    assert openamber.set_select("thermostat_mode_select", "Extern")
+    assert openamber.set_select("heat_mode_select", "Extern setpoint")
+    assert openamber.set_number("manual_setpoint", 35.0)
+    assert openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
+    assert openamber.set_sensor("heat_cool_temperature_tc", 28.0)
+    assert openamber.set_sensor("outlet_temperature_tuo", 28.0)
+    assert openamber.set_sensor("inlet_temperature_tui", 26.0)
+    openamber.step(ms=50)
+    openamber.advance_time(seconds=130, step_s=10)
+
+    assert openamber.set_binary_sensor("external_heat_demand_wired", True)
+    openamber.advance_time(seconds=900, step_s=30)
+    openamber.advance_time(seconds=140, step_s=10)
+    openamber.step(ms=100)
+
+    assert openamber.get_entity("backup_heater_relay") is True, "Backup heater must run in emergency heating"
+    assert int(openamber.get_entity("compressor_control_select") or 0) == 0
+
+    # Flow lost: PWM to 0 % while the relay stays on.
+    assert openamber.set_number("pump_control_pwm_number", 1000.0)
+    openamber.step(ms=50)
+    assert openamber.get_entity("internal_pump_active") is False
+
+    openamber.advance_time(seconds=30, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.get_entity("backup_heater_relay") is True, "Backup heater keeps running within the grace period"
+
+    openamber.advance_time(seconds=40, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.get_entity("backup_heater_relay") is False, "Backup heater must stop once the flow safety delay has passed"
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Idle"
+
+    # Cleanup
+    assert openamber.set_binary_sensor("external_heat_demand_wired", False)
+    assert openamber.set_switch("emergency_mode_enabled", False)
+    assert openamber.set_number("flow_switch_safety_delay_minutes", 2.0)
+    openamber.step(ms=50)
