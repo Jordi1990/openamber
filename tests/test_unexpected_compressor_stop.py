@@ -2,14 +2,19 @@
 
 The outdoor unit can stop the compressor on its own, for example after a protection trip, a power dip or a loss
 of Modbus communication. A started compressor that is still requested but reports 0 Hz for
-COMPRESSOR_UNEXPECTED_STOP_S (180 s), outside a defrost or oil return cycle, raises TO07. Like the inside unit
+COMPRESSOR_UNEXPECTED_STOP_S (300 s), outside a defrost or oil return cycle, raises TO07. Like the inside unit
 failsafe (TO06), OpenAmber then stops everything and re-initializes. The error blocks heat and DHW demand until
 the user resets it.
+
+After a stop the outdoor unit blocks a restart for 165-180 s and needs about 18 s to start, so a stop it recovers
+from by itself shows 0 Hz for up to ~200 s. That must not raise TO07.
 """
 
 from helpers import advance_until_state, start_space_heating
 
-UNEXPECTED_STOP_S = 180
+UNEXPECTED_STOP_S = 300
+# Longest 0 Hz period of a stop the outdoor unit recovers from by itself: 180 s restart block plus ~18 s start.
+OUTDOOR_RESTART_BLOCK_S = 200
 FREQUENCY_OVERRIDE = "mock_compressor_frequency_override"
 ERROR = "error_compressor_unexpected_stop"
 
@@ -44,19 +49,19 @@ def stop_heating(openamber):
 
 
 def test_heating_unexpected_stop_raises_error_and_stops_everything(clean_system):
-    """0 Hz for 180 s while heating raises TO07, stops the compressor and re-initializes; reset restarts heating."""
+    """0 Hz for 300 s while heating raises TO07, stops the compressor and re-initializes; reset restarts heating."""
     openamber = clean_system
     start_space_heating(openamber)
 
     outdoor_unit_stops_compressor(openamber)
     openamber.advance_time(seconds=UNEXPECTED_STOP_S - 20, step_s=5)
     openamber.step(ms=50)
-    assert openamber.get_entity(ERROR) is False, "No error before 180 s"
+    assert openamber.get_entity(ERROR) is False, "No error before 300 s"
     assert compressor_mode(openamber) > 0
 
     openamber.advance_time(seconds=30, step_s=5)
     openamber.step(ms=50)
-    assert openamber.get_entity(ERROR) is True, "TO07 after 180 s at 0 Hz"
+    assert openamber.get_entity(ERROR) is True, "TO07 after 300 s at 0 Hz"
     assert openamber.get_entity("error_active") is True
     assert compressor_mode(openamber) == 0, "The compressor must be stopped"
     assert openamber.get_entity("state_machine_state_heat_cool") == "Idle"
@@ -119,8 +124,26 @@ def test_no_error_while_compressor_runs(clean_system):
     stop_heating(openamber)
 
 
+def test_no_error_when_outdoor_unit_restarts_by_itself(clean_system):
+    """A short stop of the outdoor unit with its own restart block (~200 s at 0 Hz) does not raise TO07."""
+    openamber = clean_system
+    start_space_heating(openamber)
+
+    outdoor_unit_stops_compressor(openamber)
+    openamber.advance_time(seconds=OUTDOOR_RESTART_BLOCK_S, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.get_entity(ERROR) is False, "The outdoor unit's own restart block is no error"
+
+    outdoor_unit_follows_requests_again(openamber)
+    openamber.advance_time(seconds=UNEXPECTED_STOP_S * 2, step_s=10)
+    openamber.step(ms=50)
+    assert openamber.get_entity(ERROR) is False
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    stop_heating(openamber)
+
+
 def test_no_error_during_defrost_or_oil_return(clean_system):
-    """0 Hz during a defrost or an oil return cycle is expected; the 180 s only count outside them."""
+    """0 Hz during a defrost or an oil return cycle is expected; the 300 s only count outside them."""
     openamber = clean_system
     start_space_heating(openamber)
 
@@ -137,7 +160,7 @@ def test_no_error_during_defrost_or_oil_return(clean_system):
     assert openamber.get_entity(ERROR) is False, "0 Hz during a defrost is no error"
     openamber.set_binary_sensor("defrost_active_sensor", False)
 
-    # After the defrost a full 180 s at 0 Hz is needed again.
+    # After the defrost a full 300 s at 0 Hz is needed again.
     openamber.advance_time(seconds=UNEXPECTED_STOP_S - 20, step_s=5)
     openamber.step(ms=50)
     assert openamber.get_entity(ERROR) is False, "The 0 Hz period must start again after the defrost"
