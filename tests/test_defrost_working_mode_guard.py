@@ -1,21 +1,18 @@
-"""Standby is not written while the outdoor unit can still finish a defrost.
+"""Defrost (2118) and stopping the compressor.
 
-The outdoor unit aborts a running defrost without its recovery phase when 3999 leaves heating,
-so the heat/cool controller waits in 'Wait pump stop' until defrost_active_sensor (2118) drops.
-
-The unit only runs its pre-phase and defrost timers while the compressor runs. When 2118 rises just
-before OpenAmber stops the compressor, 2118 stays set until standby is written. Waiting for it then
-blocks the controller (and the pump cycles of frost protection) for good, so OpenAmber only waits while
-the compressor still runs, and never longer than DEFROST_STANDBY_WAIT_MAX_S (15 min).
+The outdoor unit only runs its defrost pre-phase and the defrost itself while the compressor runs. A
+compressor stop aborts it and leaves 2118 set until the working mode goes to standby. So OpenAmber does not
+stop the compressor while 2118 is set, and does not wait for 2118 once the compressor has stopped anyway:
+that wait never ended and blocked the pump cycles of frost protection.
 """
 
 from helpers import advance_until_state, start_space_heating
 
+
 def _stop_compressor_then_defrost(openamber, compressor_frequency):
     """Stop the compressor through the stop delta, then report a defrost while the pump runs on.
 
-    compressor_frequency is the frequency the outdoor unit reports once 2118 is set: 0 for a stopped
-    compressor, above 0 when the unit still runs it.
+    compressor_frequency is the frequency the outdoor unit reports once 2118 is set.
     """
     openamber.set_sensor("heat_cool_temperature_tc", 38.0)
     openamber.set_sensor("current_water_temperature_tc_sensor", 38.0)
@@ -51,29 +48,34 @@ def test_standby_not_blocked_by_defrost_flag_with_compressor_off(clean_system):
     )
 
 
-def test_standby_deferred_while_compressor_still_runs(clean_system):
+def test_overshoot_does_not_stop_compressor_during_defrost_prephase(clean_system):
+    """2118 rises while the compressor runs: an overshoot must not stop it before the defrost has finished."""
     openamber = clean_system
     start_space_heating(openamber, tc=28.0, target=35.0)
+    # Past the minimum compressor on time, so the stop conditions are checked.
+    openamber.advance_time(seconds=11 * 60, step_s=10)
+    openamber.step(ms=50)
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
 
-    # The flow switch safety stop (default 0 min) would otherwise stop everything as soon as the compressor runs
-    # without the pump. With the delay at its maximum the defrost wait itself is tested.
-    openamber.set_number("flow_switch_safety_delay_minutes", 10.0)
     try:
-        # The outdoor unit still runs the compressor at the defrost standby frequency.
-        _stop_compressor_then_defrost(openamber, compressor_frequency=36.0)
-
-        assert advance_until_state(openamber, "state_machine_state_heat_cool", "Wait pump stop", max_s=1800)
+        # Pre-phase: 2118 set, compressor still at its normal frequency, and the temperature overshoots.
+        openamber.set_number("mock_compressor_frequency_override", 70.0)
+        openamber.set_binary_sensor("defrost_active_sensor", True)
+        openamber.set_sensor("heat_cool_temperature_tc", 38.0)
+        openamber.set_sensor("current_water_temperature_tc_sensor", 38.0)
         openamber.advance_time(seconds=120, step_s=5)
-        assert openamber.get_entity("state_machine_state_heat_cool") == "Wait pump stop"
-        assert openamber.get_entity("working_mode_switch") == "Verwarmen", (
-            "Standby must not be written while the outdoor unit is defrosting"
-        )
+        openamber.step(ms=50)
 
+        assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running", (
+            "The compressor must keep running while 2118 is set"
+        )
+        assert int(openamber.get_entity("compressor_control_select") or 0) > 0
+
+        # 2118 drops: the overshoot stops the compressor as usual.
         openamber.set_binary_sensor("defrost_active_sensor", False)
-        openamber.set_number("mock_compressor_frequency_override", 0.0)
-        assert advance_until_state(openamber, "state_machine_state_heat_cool", "Idle", max_s=60)
-        assert openamber.get_entity("working_mode_switch") == "Standby", (
-            "Standby must be written once the defrost has ended"
+        openamber.set_number("mock_compressor_frequency_override", -1.0)
+        assert advance_until_state(openamber, "state_machine_state_heat_cool", "Pump running", max_s=600), (
+            f"Compressor did not stop after 2118 dropped (state: {openamber.get_entity('state_machine_state_heat_cool')})"
         )
     finally:
-        openamber.set_number("flow_switch_safety_delay_minutes", 0.0)
+        openamber.set_number("mock_compressor_frequency_override", -1.0)

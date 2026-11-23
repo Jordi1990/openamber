@@ -645,13 +645,22 @@ public:
 
   bool ShouldStopCompressor()
   {
+    // Never stop during a defrost, including the pre-phase (2118 set). The outdoor unit only runs the pre-phase
+    // and the defrost while the compressor runs: a stop aborts the defrost and leaves 2118 set until standby, so
+    // the ice stays. Safety stops do not pass here.
+    if (id(defrost_active_sensor).state)
+    {
+      ESP_LOGI("amber", "Defrost active (2118), not stopping the compressor until it has finished.");
+      return false;
+    }
+
     if(!HasCompressorDemand())
     {
-      // A stop request (switch to DHW, maintenance mode, controlled stop) lets a running oil return cycle or defrost
-      // finish first, like the normal stop on temperature overshoot does.
-      if (requested_to_stop_ && (id(oil_return_cycle_active).state || id(defrost_active_sensor).state))
+      // A stop request (switch to DHW, maintenance mode, controlled stop) lets a running oil return cycle finish
+      // first, like the normal stop on temperature overshoot does.
+      if (requested_to_stop_ && id(oil_return_cycle_active).state)
       {
-        ESP_LOGI("amber", "Stop requested: waiting for the oil return cycle or defrost to finish before stopping.");
+        ESP_LOGI("amber", "Stop requested: waiting for the oil return cycle to finish before stopping.");
         return false;
       }
       return true;
@@ -985,14 +994,8 @@ public:
       {
         if (!pump_controller_->IsRunning())
         {
-          // Leaving heating aborts a running defrost without its recovery phase, so wait for 2118 to drop while
-          // the outdoor unit can still finish it (see ShouldWaitForDefrostBeforeStandby).
-          if (ShouldWaitForDefrostBeforeStandby(now))
-          {
-            ESP_LOGI("amber", "Defrost active, waiting before switching to standby.");
-            StopSecondaryPumpsIfNeeded();
-            break;
-          }
+          // No wait for 2118 here: the compressor has stopped, and the outdoor unit only runs its defrost (and
+          // pre-phase) while the compressor runs. 2118 then stays set until standby, which clears it.
           pump_controller_->ClearStopWaitTimer();
           SetWorkingMode(WORKING_MODE_STANDBY);
           SetPidController(climate::CLIMATE_MODE_OFF);
