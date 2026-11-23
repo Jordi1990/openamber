@@ -349,19 +349,13 @@ private:
   /// return cycle runs. A running oil return cycle is finished first.
   bool ShouldStop()
   {
-    // Never stop during a defrost, including the pre-phase (2118 set). The outdoor unit only runs the pre-phase
-    // and the defrost while the compressor runs: a stop aborts the defrost and leaves 2118 set until standby, so
-    // the ice stays. Safety stops do not pass here.
-    if (id(defrost_active_sensor).state)
+    // Never stop during a defrost, including the pre-phase (2118 set), or an oil return cycle, whatever the reason
+    // (no demand, stop request). The outdoor unit only runs the pre-phase and the defrost while the compressor
+    // runs: a stop aborts the defrost and leaves 2118 set until standby, so the ice stays. Safety stops do not
+    // pass here.
+    if (id(defrost_active_sensor).state || id(oil_return_cycle_active).state)
     {
-      ESP_LOGI("amber", "Defrost active (2118), not stopping the compressor until it has finished.");
-      return false;
-    }
-    // Checked before the demand: a stop request still lets the oil return cycle finish when the demand ends
-    // meanwhile.
-    if (requested_to_stop_ && id(oil_return_cycle_active).state)
-    {
-      ESP_LOGI("amber", "DHW stop requested: waiting for the oil return cycle to finish before stopping.");
+      ESP_LOGI("amber", "Defrost or oil return cycle active, not stopping the compressor until it has finished.");
       return false;
     }
     return !HasDemand() || requested_to_stop_;

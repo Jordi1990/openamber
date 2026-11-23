@@ -645,24 +645,18 @@ public:
 
   bool ShouldStopCompressor()
   {
-    // Never stop during a defrost, including the pre-phase (2118 set). The outdoor unit only runs the pre-phase
-    // and the defrost while the compressor runs: a stop aborts the defrost and leaves 2118 set until standby, so
-    // the ice stays. Safety stops do not pass here.
-    if (id(defrost_active_sensor).state)
+    // Never stop during a defrost, including the pre-phase (2118 set), or an oil return cycle, whatever the reason
+    // (no demand, overshoot, stop request). The outdoor unit only runs the pre-phase and the defrost while the
+    // compressor runs: a stop aborts the defrost and leaves 2118 set until standby, so the ice stays. Safety
+    // stops do not pass here.
+    if (id(defrost_active_sensor).state || id(oil_return_cycle_active).state)
     {
-      ESP_LOGI("amber", "Defrost active (2118), not stopping the compressor until it has finished.");
+      ESP_LOGI("amber", "Defrost or oil return cycle active, not stopping the compressor until it has finished.");
       return false;
     }
 
     if(!HasCompressorDemand())
     {
-      // A stop request (switch to DHW, maintenance mode, controlled stop) lets a running oil return cycle finish
-      // first, like the normal stop on temperature overshoot does.
-      if (requested_to_stop_ && id(oil_return_cycle_active).state)
-      {
-        ESP_LOGI("amber", "Stop requested: waiting for the oil return cycle to finish before stopping.");
-        return false;
-      }
       return true;
     }
 
