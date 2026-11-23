@@ -333,6 +333,14 @@ void TestBridge::process_line(const std::string &line) {
         out["disabled"] = disabled;
         out["checked"] = checked;
         out["text"] = text;
+        // Screen coordinates after layout, so tests can check that a widget fits in its container.
+        lv_obj_update_layout(obj);
+        lv_area_t area;
+        lv_obj_get_coords(obj, &area);
+        out["x1"] = area.x1;
+        out["y1"] = area.y1;
+        out["x2"] = area.x2;
+        out["y2"] = area.y2;
         if (selected_index >= 0) {
           out["selected_index"] = selected_index;
         }

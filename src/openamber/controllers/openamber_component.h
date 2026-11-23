@@ -217,6 +217,7 @@ void OpenAmberComponent::update()
       }
       id(pump_p0_relay_switch).turn_on();
       id(pump_p1_relay_switch).turn_off();
+      id(pump_p2_relay_switch).turn_off();
       id(dhw_pump_relay_switch).turn_off();
       id(three_way_valve_dhw_switch).turn_off();
       id(three_way_valve_heat_cool_switch).turn_off();
@@ -261,7 +262,7 @@ void OpenAmberComponent::update()
           working_mode_call.set_index(WORKING_MODE_MAINTENANCE);
           working_mode_call.perform();
           id(pump_p0_relay_switch).turn_off();
-          heat_cool_controller_->StopPumpP1IfNeeded();
+          heat_cool_controller_->StopSecondaryPumpsIfNeeded();
           SetNextState(State::MAINTENANCE);
           break;
         }
@@ -274,7 +275,7 @@ void OpenAmberComponent::update()
         {
           // P1 keeps running while the heat/cool controller idles with heat demand. Running it during DHW
           // pulls water through the CV side of the 3-way valve, so hot DHW water ends up in the floor.
-          heat_cool_controller_->StopPumpP1IfNeeded();
+          heat_cool_controller_->StopSecondaryPumpsIfNeeded();
           SwitchThreeWayValveAndWait(desired_valve_position, desired_state);
           break;
         }
@@ -336,7 +337,7 @@ void OpenAmberComponent::update()
         working_mode_call.set_index(WORKING_MODE_MAINTENANCE);
         working_mode_call.perform();
         id(pump_p0_relay_switch).turn_off();
-        heat_cool_controller_->StopPumpP1IfNeeded();
+        heat_cool_controller_->StopSecondaryPumpsIfNeeded();
         SetNextState(State::MAINTENANCE);
         break;
       }
@@ -908,7 +909,7 @@ float OpenAmberComponent::get_mixing_valve_zone2_position() const
 void OpenAmberComponent::EnterStandby()
 {
   // The heat/cool controller keeps P1 running in IDLE on heat demand, and STANDBY no longer updates it.
-  heat_cool_controller_->StopPumpP1IfNeeded();
+  heat_cool_controller_->StopSecondaryPumpsIfNeeded();
   standby_started_ms_ = App.get_loop_component_start_time();
   ESP_LOGI("amber", "Controlled stop: units stopped, regulation paused.");
   SetNextState(State::STANDBY);

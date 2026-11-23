@@ -76,13 +76,18 @@ obj:
                     lv_obj_set_width(id(service_confirm_button), 190);
                     lv_obj_remove_flag(id(service_confirm_stop_first_button), LV_OBJ_FLAG_HIDDEN);
                   }
-                  lv_label_set_text(id(service_confirm_title), active ? oa_tr("Warmtepomp in bedrijf") : oa_tr("Update bevestigen"));
+                  bool to_stable = id(service_update_to_stable);
+                  id(service_update_target) = id(firmware_update).update_info.latest_version;
+                  lv_label_set_text(id(service_confirm_title), active ? oa_tr("Warmtepomp in bedrijf")
+                      : (to_stable ? oa_tr("Stabiele versie installeren") : oa_tr("Update bevestigen")));
                   lv_obj_send_event(id(service_confirm_title), lvgl::lv_update_event, nullptr);
                   lv_label_set_text(id(service_confirm_text), active
                       ? oa_tr("De update kan veilig tijdens bedrijf. Of stop eerst gecontroleerd en start de update opnieuw zodra de status Standby is.")
-                      : oa_tr("Wil je de firmware update nu starten?"));
+                      : (to_stable ? oa_tr("Wil je de beta vervangen door de stabiele versie?")
+                                  : oa_tr("Wil je de firmware update nu starten?")));
                   lv_obj_send_event(id(service_confirm_text), lvgl::lv_update_event, nullptr);
-                  lv_label_set_text(id(service_confirm_button_label), active ? oa_tr("Nu updaten") : oa_tr("Update starten"));
+                  lv_label_set_text(id(service_confirm_button_label), active ? oa_tr("Nu updaten")
+                      : (to_stable ? oa_tr("Installeren") : oa_tr("Update starten")));
                   lv_obj_send_event(id(service_confirm_button_label), lvgl::lv_update_event, nullptr);
                   lv_obj_set_style_bg_color(id(service_confirm_button), lv_color_hex(0x0072CE), LV_PART_MAIN);
                   lv_obj_remove_flag(id(service_confirm_modal), LV_OBJ_FLAG_HIDDEN);
@@ -96,20 +101,21 @@ obj:
 
         - label:
             id: service_release_qr_hint
-            width: 128
+            width: 120
             text: "${t_release_info}"
             hidden: true
             text_color: 0x6B7280
             text_font: font_text_20
             text_align: CENTER
             align: TOP_RIGHT
-            y: 134
+            y: 126
 
         - qrcode:
             id: service_release_qr
             hidden: true
             align: TOP_RIGHT
-            size: 128
+            # 120 keeps the card low enough for the update channel row below the tiles to fit without scrolling.
+            size: 120
             dark_color: 0x000000
             light_color: 0xFFFFFF
             text: "https://github.com/Jordi1990/openamber/releases"
@@ -255,3 +261,32 @@ obj:
             widgets:
               - label: { text: "\U000F04D9", styles: menu_tile_icon_style }
               - label: { id: system_tab_diagnostics_lbl, text: "${t_diagnostiek}", long_mode: WRAP, styles: menu_tile_label_style }
+
+    # Update channel: Beta offers new versions earlier. Switching it checks the chosen manifest right away.
+    - obj:
+        id: service_update_channel_row
+        styles: setting_row_style
+        scrollable: false
+        widgets:
+          - label: { text: "${t_updatekanaal}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+          - label: { text: "${t_beta_geeft_nieuwe_versies_eerder_met_mee}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+          - dropdown:
+              id: service_update_channel_dd
+              symbol: "󰅀"
+              width: 220
+              align: TOP_RIGHT
+              y: 0
+              options:
+                - "${t_stabiel}"
+                - "${t_beta}"
+              selected_index: 0
+              text_font: font_text_20
+              dropdown_list:
+                text_font: font_text_20
+              on_change:
+                then:
+                  - lambda: |-
+                      auto val = lv_dropdown_get_selected(id(service_update_channel_dd)->obj);
+                      auto idx = id(firmware_update_channel).active_index();
+                      if (idx.has_value() && idx.value() == (size_t) val) return;
+                      id(firmware_update_channel).make_call().set_index(val).perform();

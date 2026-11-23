@@ -70,6 +70,14 @@ This can be used to run OpenAmber however it is not an ideal replacement of the 
 Download release to flash through web interface(*ota.bin) or from ESP web tools(*factory.bin), or copy src files into ESPHome config directory and flash it through ESPHome builder.
 Connect to the OpenAmber access point(password openamber) to setup WiFi.
 
+**Updates and beta versions**
+
+OpenAmber checks for new firmware itself and shows it in Home Assistant and on the display (Systeem). The setting *Updatekanaal* (in Home Assistant, or on the display under Systeem) chooses which versions you are offered:
+- *Stabiel* (default): stable releases only, such as `0.10.0`.
+- *Beta*: beta versions such as `0.10.0-beta.1` as well, and the final release once it is out.
+
+On a beta you can switch back to *Stabiel*: the display then offers *Stabiel installeren* to install the latest stable release.
+
 **Display language**
 
 The display UI is available in Dutch, German and English. Every build contains all three; choose the language on the display under Settings > General > System > Language, or with the `Display taal` select in Home Assistant. The choice is kept across reboots and applies immediately.
