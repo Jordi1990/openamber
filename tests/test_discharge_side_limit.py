@@ -52,3 +52,46 @@ def test_hold_and_release(clean_system):
     openamber.step(ms=50)
     assert openamber.get_entity("discharge_side_limit_active_sensor") is False
 
+
+
+def _ramp_up(openamber):
+    start_space_heating(openamber, tc=25.0, target=40.0)
+    openamber.advance_time(seconds=600, step_s=10)
+    openamber.step(ms=50)
+    level = _level(openamber)
+    assert level >= 3, f"Expected the compressor to have ramped up, got level {level}"
+    return level
+
+
+def test_r32_fallback_when_unit_pd_limit_is_not_in_bar(clean_system):
+    """R32 units (e.g. HP-S 95) store 87 in 3269: fall back to 36 bar instead of the R290 26 bar."""
+    openamber = clean_system
+    openamber.set_sensor("outdoor_unit_refrigerant", 0.0)
+    openamber.set_sensor("outdoor_unit_pd_no_increase_limit", 87.0)
+    start_level = _ramp_up(openamber)
+
+    # 25.5 bar steps down with the R290 default, but is far below the R32 limit.
+    openamber.set_sensor("discharge_pressure_pd", 25.5)
+    openamber.advance_time(seconds=130, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.get_entity("discharge_side_limit_active_sensor") is False
+    assert _level(openamber) >= start_level
+
+    # 35.5 bar is within 1 bar of the R32 fallback: step down.
+    openamber.set_sensor("discharge_pressure_pd", 35.5)
+    openamber.advance_time(seconds=130, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.get_entity("discharge_side_limit_active_sensor") is True
+    assert _level(openamber) <= start_level - 2
+
+
+def test_r290_keeps_default_when_unit_pd_limit_is_not_in_bar(clean_system):
+    openamber = clean_system
+    openamber.set_sensor("outdoor_unit_refrigerant", 1.0)
+    openamber.set_sensor("outdoor_unit_pd_no_increase_limit", 87.0)
+    _ramp_up(openamber)
+
+    openamber.set_sensor("discharge_pressure_pd", 25.5)
+    openamber.advance_time(seconds=20, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.get_entity("discharge_side_limit_active_sensor") is True
