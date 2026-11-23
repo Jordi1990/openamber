@@ -138,3 +138,61 @@ def test_external_backup_mode_uses_compressor_delta_while_element_off(clean_syst
 
     assert openamber.set_binary_sensor("external_heat_demand_wired", False)
     openamber.step(ms=100)
+
+
+def test_emergency_mode_stops_element_only_at_backup_delta(clean_system):
+    """
+    In emergency mode the backup element is the only heat source; it must run until
+    setpoint + backup_heater_stop_delta even when that is above compressor_stop_delta_heating.
+    """
+    openamber = clean_system
+
+    target_temperature = 35.0
+    assert openamber.set_select("thermostat_mode_select", "Extern")
+    assert openamber.set_select("heat_mode_select", "Extern setpoint")
+    assert openamber.set_number("manual_setpoint", target_temperature)
+    assert openamber.set_climate("pid_heat_temperature_control", target_temperature=target_temperature)
+    assert openamber.set_number("compressor_start_delta_heating", 2.0)
+    assert openamber.set_number("compressor_stop_delta_heating", 1.0)
+    assert openamber.set_number("backup_heater_stop_delta", 5.0)
+    assert openamber.set_select("backup_heating_mode", "Intern verwarmingselement")
+    assert openamber.set_switch("emergency_mode_enabled", True)
+
+    assert openamber.set_sensor("current_water_temperature_tc_sensor", 32.5)
+    assert openamber.set_sensor("heat_cool_temperature_tc", 32.5)
+    assert openamber.set_sensor("outlet_temperature_tuo", 32.5)
+    assert openamber.set_sensor("inlet_temperature_tui", 30.5)
+    openamber.step(ms=50)
+    openamber.advance_time(seconds=130, step_s=10)
+    openamber.step(ms=50)
+
+    assert openamber.set_binary_sensor("external_heat_demand_wired", True)
+    openamber.step(ms=100)
+
+    # Pump interval + pump settle, then emergency mode runs the element instead of the compressor
+    openamber.advance_time(seconds=900, step_s=30)
+    openamber.advance_time(seconds=130, step_s=10)
+    openamber.step(ms=100)
+    assert openamber.get_entity("backup_heater_relay") is True, "Emergency mode should run the backup element"
+    assert openamber.get_entity("state_machine_state_heat_cool") in ("Backup heater running", "Wait backup heater running"), "Emergency mode must run the element, not the compressor"
+
+    # 36.1°C is above target + compressor stop delta (36.0): the element must keep running.
+    assert openamber.set_sensor("current_water_temperature_tc_sensor", 36.1)
+    assert openamber.set_sensor("heat_cool_temperature_tc", 36.1)
+    assert openamber.set_sensor("outlet_temperature_tuo", 36.1)
+    assert openamber.set_sensor("inlet_temperature_tui", 34.1)
+    openamber.advance_time(seconds=60, step_s=10)
+    openamber.step(ms=100)
+    assert openamber.get_entity("backup_heater_relay") is True, "Element must not stop at the compressor delta in emergency mode"
+
+    # Above target + backup stop delta (40.0°C) the element stops.
+    assert openamber.set_sensor("current_water_temperature_tc_sensor", 40.1)
+    assert openamber.set_sensor("heat_cool_temperature_tc", 40.1)
+    assert openamber.set_sensor("outlet_temperature_tuo", 40.1)
+    assert openamber.set_sensor("inlet_temperature_tui", 38.1)
+    openamber.advance_time(seconds=5, step_s=1)
+    openamber.step(ms=100)
+    assert openamber.get_entity("backup_heater_relay") is False, "Element should stop at target + 5.0°C in emergency mode"
+
+    assert openamber.set_binary_sensor("external_heat_demand_wired", False)
+    openamber.step(ms=100)

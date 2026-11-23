@@ -94,7 +94,9 @@
                   styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
-                  - number.decrement: backup_heater_stop_delta
+                  - number.decrement:
+                      id: backup_heater_stop_delta
+                      cycle: false
                 widgets:
                   - label: { text: "\U000F0374", styles: setting_step_icon_style }
             - label: { id: set_buh_stop_delta_val, text: "2.0 °C", text_color: 0x1F2933, text_font: font_text_24 }
@@ -104,6 +106,8 @@
                   styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
-                  - number.increment: backup_heater_stop_delta
+                  - number.increment:
+                      id: backup_heater_stop_delta
+                      cycle: false
                 widgets:
                   - label: { text: "\U000F0415", styles: setting_step_icon_style }
