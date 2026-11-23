@@ -1,6 +1,6 @@
 # Menu Page: Algemeen - Stille modus
 # ------------------------------------------------------------
 id: panel_general_page_stiltemodus
-title: "Stille modus"
+title: "${t_stille_modus}"
 styles: setting_page_style
 widgets: !include page_settings_tab_general_stiltemodus_content.yaml

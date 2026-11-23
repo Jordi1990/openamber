@@ -1,7 +1,7 @@
 # Menu Page: Service - Diagnose (Categorie keuzemenu)
 # ------------------------------------------------------------
 id: service_sensors_page
-title: "Diagnose"
+title: "${t_diagnose}"
 widgets:
   - obj:
       id: service_sensors_panel
@@ -53,7 +53,7 @@ widgets:
               - script.execute: update_service_diag_summary_ui
             widgets:
               - label: { text: "\U000F029A", styles: menu_tile_icon_style }
-              - label: { id: service_sensors_stab_temp_lbl, text: "Druk en temperatuur", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: service_sensors_stab_temp_lbl, text: "${t_druk_en_temperatuur}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: service_sensors_stab_control
@@ -70,7 +70,7 @@ widgets:
               - script.execute: update_service_diag_summary_ui
             widgets:
               - label: { text: "\U000F062E", styles: menu_tile_icon_style }
-              - label: { id: service_sensors_stab_control_lbl, text: "Aansturing", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: service_sensors_stab_control_lbl, text: "${t_aansturing}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: service_sensors_stab_system
@@ -87,7 +87,7 @@ widgets:
               - script.execute: update_service_diag_summary_ui
             widgets:
               - label: { text: "\U000F08D6", styles: menu_tile_icon_style }
-              - label: { id: service_sensors_stab_system_lbl, text: "Systeem", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: service_sensors_stab_system_lbl, text: "${t_systeem}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: service_sensors_stab_demand
@@ -104,4 +104,4 @@ widgets:
               - script.execute: update_service_diag_summary_ui
             widgets:
               - label: { text: "\U000F0393", styles: menu_tile_icon_style }
-              - label: { id: service_sensors_stab_demand_lbl, text: "Warmte- en koudevraag", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: service_sensors_stab_demand_lbl, text: "${t_warmte_en_koudevraag}", long_mode: WRAP, styles: menu_tile_label_style }

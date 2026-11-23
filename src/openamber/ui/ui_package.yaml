@@ -2,6 +2,16 @@
 # OpenAmber Shared UI Package (Images, Fonts, and LVGL Widget Hierarchy)
 # ==============================================================================
 
+# Display language: every build contains nl, de and en; the select "Display taal" switches at
+# runtime. `ui_language` (nl, de or en) sets the default of that select and the language compiled
+# into the widgets. Texts come from i18n/<lang>.yaml and i18n/oa_i18n.h (see tools/i18n.py).
+substitutions:
+  ui_language: nl
+
+packages:
+  ui_language: !include i18n/${ui_language}.yaml
+  ui_language_runtime: !include ui_language.yaml
+
 image:
   - platform: file
     file: openamber/ui/images/water_circuit.png

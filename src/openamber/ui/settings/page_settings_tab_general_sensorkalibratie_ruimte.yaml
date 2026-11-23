@@ -1,7 +1,7 @@
 # Menu Page: Sensor kalibratie - Ruimte & Tapwater
 # ------------------------------------------------------------
 id: panel_general_sensor_kalibratie_ruimte
-title: "Ruimte en tapwater"
+title: "${t_ruimte_en_tapwater}"
 styles: setting_page_style
 widgets:
   - obj:
@@ -21,8 +21,8 @@ widgets:
             id: sensor_calibration_page_1_row_tr
             styles: setting_row_style
             widgets:
-              - label: { text: "Ruimtetemperatuur offset", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Correctie voor interne ruimtetemperatuurmeting", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - label: { text: "${t_ruimtetemperatuur_offset}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_correctie_voor_interne_ruimtetemperatuur}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT
@@ -56,8 +56,8 @@ widgets:
             id: sensor_calibration_page_1_row_tw
             styles: setting_row_style
             widgets:
-              - label: { text: "Tapwatertemperatuur offset", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Correctie voor tapwatertemperatuurmeting", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - label: { text: "${t_tapwatertemperatuur_offset}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_correctie_voor_tapwatertemperatuurmeting}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT

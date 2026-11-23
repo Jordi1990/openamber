@@ -219,11 +219,11 @@
             return lv_color_hex(0xEF4444);
           }(), LV_PART_MAIN);
           if (!isnan(x)) {
-            lv_label_set_text(id(wifi_status_label), "Verbonden");
+            lv_label_set_text(id(wifi_status_label), oa_tr("Verbonden"));
             lv_obj_send_event(id(wifi_status_label), lvgl::lv_update_event, nullptr);
             lv_obj_set_style_text_color(id(wifi_status_label), lv_color_hex(0x16A34A), LV_PART_MAIN);
           } else {
-            lv_label_set_text(id(wifi_status_label), "Niet verbonden");
+            lv_label_set_text(id(wifi_status_label), oa_tr("Niet verbonden"));
             lv_obj_send_event(id(wifi_status_label), lvgl::lv_update_event, nullptr);
             lv_obj_set_style_text_color(id(wifi_status_label), lv_color_hex(0xEF4444), LV_PART_MAIN);
           }

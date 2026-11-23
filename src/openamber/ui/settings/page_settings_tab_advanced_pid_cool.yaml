@@ -1,6 +1,6 @@
 # Menu Page: Geavanceerd - PID-regeling Koelen
 # ------------------------------------------------------------
 id: panel_advanced_page_pid_cool
-title: "Koelen"
+title: "${t_koelen}"
 styles: setting_page_style
 widgets: !include page_settings_tab_advanced_pid_cool_content.yaml

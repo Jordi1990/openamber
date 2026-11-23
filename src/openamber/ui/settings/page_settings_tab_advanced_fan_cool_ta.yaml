@@ -1,6 +1,6 @@
 # Menu Page: Ventilator - Koelen buitentemperatuur
 # ------------------------------------------------------------
 id: panel_advanced_page_fan_cool_ta
-title: "Koelen: buitentemp."
+title: "${t_koelen_buitentemp}"
 styles: setting_page_style
 widgets: !include page_settings_tab_advanced_fan_cool_ta_content.yaml

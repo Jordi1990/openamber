@@ -23,14 +23,14 @@
   then:
     - if:
         condition:
-          lambda: 'return strcmp(lv_label_get_text(id(set_therm_link_new_btn_lbl)), "Zeker?") == 0;'
+          lambda: 'return strcmp(lv_label_get_text(id(set_therm_link_new_btn_lbl)), oa_tr("Zeker?")) == 0;'
         then:
           - script.execute: thermostat_link_new_code_ui
         else:
-          - lvgl.label.update: { id: set_therm_link_new_btn_lbl, text: "Zeker?" }
+          - lvgl.label.update: { id: set_therm_link_new_btn_lbl, text: "${t_zeker}" }
           - lvgl.widget.update: { id: set_therm_link_new_btn, bg_color: 0xDC2626 }
           - delay: 5s
-    - lvgl.label.update: { id: set_therm_link_new_btn_lbl, text: "Nieuw" }
+    - lvgl.label.update: { id: set_therm_link_new_btn_lbl, text: "${t_nieuw}" }
     - lvgl.widget.update: { id: set_therm_link_new_btn, bg_color: 0x1F3B68 }
 
 - id: update_thermostat_settings_ui
@@ -604,9 +604,9 @@
         // The heat pump is out of operation after a controlled stop; maintenance mode only runs on top of it.
         const char *stopped_text = nullptr;
         if (id(service_mode_enabled).state || id(amber_ctrl).is_standby()) {
-          stopped_text = "Warmtepomp gestopt";
+          stopped_text = oa_tr("Warmtepomp gestopt");
         } else if (id(controlled_stop_active)) {
-          stopped_text = "Warmtepomp wordt gestopt...";
+          stopped_text = oa_tr("Warmtepomp wordt gestopt...");
         }
         if (stopped_text != nullptr) {
           if (strcmp(lv_label_get_text(id(header_maintenance_badge_label)), stopped_text) != 0) {
@@ -642,7 +642,7 @@
           bool outside_ok = id(modbus_outside_online).state;
           
           if (!inside_ok || !outside_ok) {
-            return "Verbinden...";
+            return oa_tr("Verbinden...");
           }
           
           // Both online
@@ -654,7 +654,7 @@
               case 15:  return "Amber 120";
               case 145:
               case 160: return "HP-S 95";
-              default:  return "Onbekend model";
+              default:  return oa_tr("Onbekend model");
             }
           }
           return "Amber";
@@ -750,30 +750,30 @@
 
         // Update connection status, EMS info and disconnect button
         if (!id(eebus_enabled_switch).state) {
-          lv_label_set_text(id(eebus_connection_status_lbl), "Uitgeschakeld");
+          lv_label_set_text(id(eebus_connection_status_lbl), oa_tr("Uitgeschakeld"));
           lv_obj_set_style_text_color(id(eebus_connection_status_lbl), lv_color_hex(0x6B7280), LV_PART_MAIN);
           lv_label_set_text(id(eebus_connection_status_icon), "\U000F0338");
           lv_obj_set_style_text_color(id(eebus_connection_status_icon), lv_color_hex(0x6B7280), LV_PART_MAIN);
-          lv_label_set_text(id(eebus_connection_sub_lbl), "EEBUS is uitgeschakeld");
+          lv_label_set_text(id(eebus_connection_sub_lbl), oa_tr("EEBUS is uitgeschakeld"));
           lv_obj_add_flag(id(eebus_disconnect_btn), LV_OBJ_FLAG_HIDDEN);
         } else if (id(eebus_connected_sensor).state) {
-          lv_label_set_text(id(eebus_connection_status_lbl), "Verbonden");
+          lv_label_set_text(id(eebus_connection_status_lbl), oa_tr("Verbonden"));
           lv_obj_set_style_text_color(id(eebus_connection_status_lbl), lv_color_hex(0x16A34A), LV_PART_MAIN);
           lv_label_set_text(id(eebus_connection_status_icon), "\U000F0337");
           lv_obj_set_style_text_color(id(eebus_connection_status_icon), lv_color_hex(0x16A34A), LV_PART_MAIN);
           if (id(eebus_ems_sensor).has_state() && id(eebus_ems_sensor).state != "–" && !id(eebus_ems_sensor).state.empty()) {
-            std::string sub = "Verbonden met " + id(eebus_ems_sensor).state;
+            std::string sub = oa_tr("Verbonden met ") + id(eebus_ems_sensor).state;
             lv_label_set_text(id(eebus_connection_sub_lbl), sub.c_str());
           } else {
-            lv_label_set_text(id(eebus_connection_sub_lbl), "Verbonden met EMS");
+            lv_label_set_text(id(eebus_connection_sub_lbl), oa_tr("Verbonden met EMS"));
           }
           lv_obj_clear_flag(id(eebus_disconnect_btn), LV_OBJ_FLAG_HIDDEN);
         } else {
-          lv_label_set_text(id(eebus_connection_status_lbl), "Niet verbonden");
+          lv_label_set_text(id(eebus_connection_status_lbl), oa_tr("Niet verbonden"));
           lv_obj_set_style_text_color(id(eebus_connection_status_lbl), lv_color_hex(0xEF4444), LV_PART_MAIN);
           lv_label_set_text(id(eebus_connection_status_icon), "\U000F0338");
           lv_obj_set_style_text_color(id(eebus_connection_status_icon), lv_color_hex(0xEF4444), LV_PART_MAIN);
-          lv_label_set_text(id(eebus_connection_sub_lbl), "Niet verbonden met een EMS");
+          lv_label_set_text(id(eebus_connection_sub_lbl), oa_tr("Niet verbonden met een EMS"));
           lv_obj_add_flag(id(eebus_disconnect_btn), LV_OBJ_FLAG_HIDDEN);
         }
 
@@ -783,7 +783,7 @@
         } else if (id(eebus_ski).has_state() && id(eebus_ski).state != "–" && !id(eebus_ski).state.empty()) {
           lv_label_set_text(id(eebus_ski_display_lbl), id(eebus_ski).state.c_str());
         } else {
-          lv_label_set_text(id(eebus_ski_display_lbl), "Laden...");
+          lv_label_set_text(id(eebus_ski_display_lbl), oa_tr("Laden..."));
         }
 
 - id: eebus_disconnect
@@ -959,7 +959,7 @@
             lv_table_set_cell_value(st, 3, 1, id(current_setpoint).has_state() ? str_sprintf("%.1f°C", id(current_setpoint).state).c_str() : "-");
             lv_table_set_cell_value(st, 4, 1, id(current_dhw_setpoint_sensor).has_state() ? str_sprintf("%.1f°C", id(current_dhw_setpoint_sensor).state).c_str() : "-");
             lv_table_set_cell_value(st, 5, 1, id(thermal_power).has_state() ? str_sprintf("%.1f kW", id(thermal_power).state).c_str() : "-");
-            lv_table_set_cell_value(st, 6, 1, id(service_mode_enabled).state ? "Actief" : "Inactief");
+            lv_table_set_cell_value(st, 6, 1, id(service_mode_enabled).state ? oa_tr("Actief") : oa_tr("Inactief"));
 
             auto *tt = id(service_diag_temp_table)->obj;
             lv_table_set_cell_value(tt, 0, 1, id(temperature_outside_ta).has_state() ? str_sprintf("%.1f°C", id(temperature_outside_ta).state).c_str() : "-");
@@ -981,7 +981,7 @@
             lv_table_set_cell_value(ct, 1, 1, compressor_level.has_value() ? str_sprintf("%d", (int) compressor_level.value()).c_str() : "-");
             // 2102 is the frequency the outdoor unit targets after applying its own limits (ambient temperature table, protections).
             if (id(compressor_setpoint_frequency).has_state()) {
-              lv_table_set_cell_value(ct, 2, 1, str_sprintf(id(error_flag_p12).state ? "%.0f Hz (begrensd)" : "%.0f Hz", id(compressor_setpoint_frequency).state).c_str());
+              lv_table_set_cell_value(ct, 2, 1, str_sprintf(id(error_flag_p12).state ? oa_tr("%.0f Hz (begrensd)") : "%.0f Hz", id(compressor_setpoint_frequency).state).c_str());
             } else {
               lv_table_set_cell_value(ct, 2, 1, "- Hz");
             }
@@ -990,23 +990,23 @@
             lv_table_set_cell_value(ct, 5, 1, id(expansion_valve_position).has_state() ? str_sprintf("%.0f %%", id(expansion_valve_position).state).c_str() : "- %");
             lv_table_set_cell_value(ct, 6, 1, id(mixing_valve_zone1_position).has_state() ? str_sprintf("%.0f %%", id(mixing_valve_zone1_position).state).c_str() : "- %");
             lv_table_set_cell_value(ct, 7, 1, id(mixing_valve_zone2_position).has_state() ? str_sprintf("%.0f %%", id(mixing_valve_zone2_position).state).c_str() : "- %");
-            lv_table_set_cell_value(ct, 8, 1, id(three_way_valve_heat_cool_switch).state ? "CV" : "Tapwater");
+            lv_table_set_cell_value(ct, 8, 1, id(three_way_valve_heat_cool_switch).state ? oa_tr("CV") : oa_tr("Tapwater"));
 
             auto *sy = id(service_diag_system_table)->obj;
-            lv_table_set_cell_value(sy, 0, 1, id(defrost_phase_text).state.empty() ? "-" : id(defrost_phase_text).state.c_str());
-            lv_table_set_cell_value(sy, 1, 1, id(bottom_heater_active_sensor).state ? "AAN" : "UIT");
+            lv_table_set_cell_value(sy, 0, 1, id(defrost_phase_text).state.empty() ? "-" : oa_tr(id(defrost_phase_text).state.c_str()));
+            lv_table_set_cell_value(sy, 1, 1, id(bottom_heater_active_sensor).state ? oa_tr("AAN") : oa_tr("UIT"));
             lv_table_set_cell_value(sy, 2, 1, id(modbus_inside_online).state ? "Online" : "Offline");
             lv_table_set_cell_value(sy, 3, 1, id(modbus_outside_online).state ? "Online" : "Offline");
-            std::string sg_ab = str_sprintf("%s / %s", id(sg_ready_a_active_sensor).state ? "AAN" : "UIT", id(sg_ready_b_active_sensor).state ? "AAN" : "UIT");
+            std::string sg_ab = str_sprintf("%s / %s", id(sg_ready_a_active_sensor).state ? oa_tr("AAN") : oa_tr("UIT"), id(sg_ready_b_active_sensor).state ? oa_tr("AAN") : oa_tr("UIT"));
             lv_table_set_cell_value(sy, 4, 1, sg_ab.c_str());
 
             auto *dm = id(service_diag_demand_table)->obj;
-            lv_table_set_cell_value(dm, 0, 1, id(heat_demand_active_sensor_zone_1).state ? "AAN" : "UIT");
-            lv_table_set_cell_value(dm, 1, 1, id(heat_demand_active_sensor_zone_2).state ? "AAN" : "UIT");
-            lv_table_set_cell_value(dm, 2, 1, id(cool_demand_active_sensor).state ? "AAN" : "UIT");
-            lv_table_set_cell_value(dm, 3, 1, id(external_heat_demand_wired).state ? "AAN" : "UIT");
-            lv_table_set_cell_value(dm, 4, 1, id(external_heat_demand_wired_zone_2).state ? "AAN" : "UIT");
-            lv_table_set_cell_value(dm, 5, 1, id(external_cool_demand_wired).state ? "AAN" : "UIT");
+            lv_table_set_cell_value(dm, 0, 1, id(heat_demand_active_sensor_zone_1).state ? oa_tr("AAN") : oa_tr("UIT"));
+            lv_table_set_cell_value(dm, 1, 1, id(heat_demand_active_sensor_zone_2).state ? oa_tr("AAN") : oa_tr("UIT"));
+            lv_table_set_cell_value(dm, 2, 1, id(cool_demand_active_sensor).state ? oa_tr("AAN") : oa_tr("UIT"));
+            lv_table_set_cell_value(dm, 3, 1, id(external_heat_demand_wired).state ? oa_tr("AAN") : oa_tr("UIT"));
+            lv_table_set_cell_value(dm, 4, 1, id(external_heat_demand_wired_zone_2).state ? oa_tr("AAN") : oa_tr("UIT"));
+            lv_table_set_cell_value(dm, 5, 1, id(external_cool_demand_wired).state ? oa_tr("AAN") : oa_tr("UIT"));
           }();
         }
 
@@ -1025,11 +1025,11 @@
             if (id(sensor_uptime).has_state()) {
               uint32_t mins = static_cast<uint32_t>(id(sensor_uptime).state) / 60U;
               if (mins >= 1440U) {
-                lv_table_set_cell_value(rt, 1, 1, str_sprintf("%lu d %lu u", static_cast<unsigned long>(mins / 1440U), static_cast<unsigned long>((mins / 60U) % 24U)).c_str());
+                lv_table_set_cell_value(rt, 1, 1, str_sprintf(oa_tr("%lu d %lu u"), static_cast<unsigned long>(mins / 1440U), static_cast<unsigned long>((mins / 60U) % 24U)).c_str());
               } else if (mins >= 60U) {
-                lv_table_set_cell_value(rt, 1, 1, str_sprintf("%lu u %lu m", static_cast<unsigned long>(mins / 60U), static_cast<unsigned long>(mins % 60U)).c_str());
+                lv_table_set_cell_value(rt, 1, 1, str_sprintf(oa_tr("%lu u %lu m"), static_cast<unsigned long>(mins / 60U), static_cast<unsigned long>(mins % 60U)).c_str());
               } else {
-                lv_table_set_cell_value(rt, 1, 1, str_sprintf("%lu m", static_cast<unsigned long>(mins)).c_str());
+                lv_table_set_cell_value(rt, 1, 1, str_sprintf(oa_tr("%lu m"), static_cast<unsigned long>(mins)).c_str());
               }
             } else {
               lv_table_set_cell_value(rt, 1, 1, "-");
@@ -1080,17 +1080,17 @@
               then:
                 - lambda: |-
                     const auto &info = id(firmware_update).update_info;
-                    const char *latest = info.latest_version.empty() ? "onbekend" : info.latest_version.c_str();
+                    const char *latest = info.latest_version.empty() ? oa_tr("onbekend") : info.latest_version.c_str();
                     const char *current = info.current_version.empty() ? ESPHOME_PROJECT_VERSION : info.current_version.c_str();
                     bool to_stable = id(service_update_to_stable);
                     lv_label_set_text(id(service_update_status), "");
                     lv_obj_send_event(id(service_update_status), lvgl::lv_update_event, nullptr);
                     lv_obj_add_flag(id(service_update_error), LV_OBJ_FLAG_HIDDEN);
                     lv_label_set_text(id(service_update_version), str_sprintf(to_stable
-                        ? "Stabiele versie %s beschikbaar\nHuidige versie: %s (beta)"
-                        : "Nieuwe versie %s beschikbaar\nHuidige versie: %s", latest, current).c_str());
+                        ? oa_tr("Stabiele versie %s beschikbaar\nHuidige versie: %s (beta)")
+                        : oa_tr("Nieuwe versie %s beschikbaar\nHuidige versie: %s"), latest, current).c_str());
                     lv_obj_send_event(id(service_update_version), lvgl::lv_update_event, nullptr);
-                    lv_label_set_text(id(service_update_button_label), to_stable ? "Stabiel installeren" : "Update installeren");
+                    lv_label_set_text(id(service_update_button_label), to_stable ? oa_tr("Stabiel installeren") : oa_tr("Update installeren"));
                     lv_obj_send_event(id(service_update_button_label), lvgl::lv_update_event, nullptr);
                 - if:
                     condition:
@@ -1120,14 +1120,14 @@
                       lv_obj_remove_flag(id(service_check_update_button), LV_OBJ_FLAG_HIDDEN);
                       lvgl::LvglComponent::lv_obj_set_state_value(id(service_check_update_button), LV_STATE_DISABLED, true);
                       lv_obj_set_style_bg_color(id(service_check_update_button), lv_color_hex(0xEDF1F6), LV_PART_MAIN);
-                      lv_label_set_text(id(service_check_update_button_label), "Ophalen...");
+                      lv_label_set_text(id(service_check_update_button_label), oa_tr("Ophalen..."));
                       lv_obj_send_event(id(service_check_update_button_label), lvgl::lv_update_event, nullptr);
                       lv_obj_set_style_text_color(id(service_check_update_button_label), lv_color_hex(0x9CA3AF), LV_PART_MAIN);
                     } else {
                       lvgl::LvglComponent::lv_obj_set_state_value(id(service_check_update_button), LV_STATE_DISABLED, false);
                       lv_obj_remove_flag(id(service_check_update_button), LV_OBJ_FLAG_HIDDEN);
                       lv_obj_set_style_bg_color(id(service_check_update_button), lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-                      lv_label_set_text(id(service_check_update_button_label), "Controleer updates");
+                      lv_label_set_text(id(service_check_update_button_label), oa_tr("Controleer updates"));
                       lv_obj_send_event(id(service_check_update_button_label), lvgl::lv_update_event, nullptr);
                       lv_obj_set_style_text_color(id(service_check_update_button_label), lv_color_hex(0x1F2933), LV_PART_MAIN);
                     }
@@ -1137,7 +1137,7 @@
               lv_obj_add_flag(id(nav_system_badge), LV_OBJ_FLAG_HIDDEN);
               if (!lv_obj_has_flag(id(page_system), LV_OBJ_FLAG_HIDDEN)) {
                 if (id(service_update_check_failed)) {
-                  lv_label_set_text(id(service_update_error), "Geen verbinding mogelijk met update server");
+                  lv_label_set_text(id(service_update_error), oa_tr("Geen verbinding mogelijk met update server"));
                   lv_obj_send_event(id(service_update_error), lvgl::lv_update_event, nullptr);
                   lv_obj_remove_flag(id(service_update_error), LV_OBJ_FLAG_HIDDEN);
                 } else {
@@ -1145,7 +1145,7 @@
                 }
                 lv_label_set_text(id(service_update_status), "");
                 lv_obj_send_event(id(service_update_status), lvgl::lv_update_event, nullptr);
-                lv_label_set_text(id(service_update_version), str_sprintf("Geen nieuwe software beschikbaar\nHuidige versie: %s", id(firmware_update).update_info.current_version.empty() ? ESPHOME_PROJECT_VERSION : id(firmware_update).update_info.current_version.c_str()).c_str());
+                lv_label_set_text(id(service_update_version), str_sprintf(oa_tr("Geen nieuwe software beschikbaar\nHuidige versie: %s"), id(firmware_update).update_info.current_version.empty() ? ESPHOME_PROJECT_VERSION : id(firmware_update).update_info.current_version.c_str()).c_str());
                 lv_obj_send_event(id(service_update_version), lvgl::lv_update_event, nullptr);
                 lv_obj_add_flag(id(service_release_qr_hint), LV_OBJ_FLAG_HIDDEN);
                 lv_obj_add_flag(id(service_release_qr), LV_OBJ_FLAG_HIDDEN);
@@ -1156,14 +1156,14 @@
                   lv_obj_remove_flag(id(service_check_update_button), LV_OBJ_FLAG_HIDDEN);
                   lvgl::LvglComponent::lv_obj_set_state_value(id(service_check_update_button), LV_STATE_DISABLED, true);
                   lv_obj_set_style_bg_color(id(service_check_update_button), lv_color_hex(0xEDF1F6), LV_PART_MAIN);
-                  lv_label_set_text(id(service_check_update_button_label), "Ophalen...");
+                  lv_label_set_text(id(service_check_update_button_label), oa_tr("Ophalen..."));
                   lv_obj_send_event(id(service_check_update_button_label), lvgl::lv_update_event, nullptr);
                   lv_obj_set_style_text_color(id(service_check_update_button_label), lv_color_hex(0x9CA3AF), LV_PART_MAIN);
                 } else {
                   lv_obj_remove_flag(id(service_check_update_button), LV_OBJ_FLAG_HIDDEN);
                   lvgl::LvglComponent::lv_obj_set_state_value(id(service_check_update_button), LV_STATE_DISABLED, false);
                   lv_obj_set_style_bg_color(id(service_check_update_button), lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-                  lv_label_set_text(id(service_check_update_button_label), "Controleer updates");
+                  lv_label_set_text(id(service_check_update_button_label), oa_tr("Controleer updates"));
                   lv_obj_send_event(id(service_check_update_button_label), lvgl::lv_update_event, nullptr);
                   lv_obj_set_style_text_color(id(service_check_update_button_label), lv_color_hex(0x1F2933), LV_PART_MAIN);
                 }
@@ -1183,7 +1183,7 @@
   then:
     - lambda: |-
         // The stop can also end by itself (30 min) or be changed from Home Assistant, so follow the actual state.
-        const char *stop_label = id(controlled_stop_active) ? "Hervat warmtepomp" : "Stop warmtepomp";
+        const char *stop_label = id(controlled_stop_active) ? oa_tr("Hervat warmtepomp") : oa_tr("Stop warmtepomp");
         if (strcmp(lv_label_get_text(id(service_controlled_stop_button_label)), stop_label) != 0) {
           lv_label_set_text(id(service_controlled_stop_button_label), stop_label);
           lv_obj_send_event(id(service_controlled_stop_button_label), lvgl::lv_update_event, nullptr);
@@ -1213,44 +1213,44 @@
         };
 
         const AlertItem items[] = {
-          {"P03 - Storing compressorstart", "De warmtepomp is geblokkeerd door een storing in de compressorstart.", id(error_flag_p03).state},
-          {"P05 - Storing compressor - hogedrukbeveiliging", "Als de persdruk meer dan 32 bar bedraagt wordt de compressor uitgeschakeld.", id(error_flag_p05).state},
-          {"P08 - Storing sensor persgasdruk", "Storing sensor persgasdruk.", id(error_flag_p08).state},
-          {"P09 - Storing sensor verdamper/condensor buitendeel", "Storing sensor verdamper/condensor buitendeel.", id(error_flag_p09).state},
-          {"P10 - Voedingsspanning te hoog of te laag", "Voedingsspanning te hoog of te laag.", id(error_flag_p10).state},
-          {"F01 - Storing buitentemperatuursensor", "Storing buitentemperatuursensor.", id(error_flag_f01).state},
-          {"F02 - Storing sensor verdamper/condensor buitendeel", "Storing sensor verdamper/condensor buitendeel.", id(error_flag_f02).state},
-          {"F03 - Storing persgas temp sensor", "Storing persgas temp sensor.", id(error_flag_f03).state},
-          {"F04 - Storing zuiggas temp sensor", "Storing zuiggas temp sensor.", id(error_flag_f04).state},
-          {"F05 - Storing zuiggas druk sensor", "Storing zuiggas druk sensor.", id(error_flag_f05).state},
-          {"F06 - Storing sensor persgasdruk", "Storing sensor persgasdruk.", id(error_flag_f06).state},
-          {"F07 - Storing hogedrukbeveiliging", "Storing hogedrukbeveiliging.", id(error_flag_f07).state},
-          {"F09 - Storing ventilatormotor DC", "Storing ventilatormotor DC.", id(error_flag_f09).state},
-          {"E01 - Communicatiestoring", "Communicatiestoring tussen printplaten en/of bedieningspaneel.", id(error_flag_e01).state},
-          {"E02 - Communicatiestoring", "Er is een communicatiestoring tussen beide printplaten in de warmtepomp.", id(error_flag_e02).state},
-          {"E03 - Voedingsspanning", "De voedingsspanning is niet in orde.", id(error_flag_e03).state},
-          {"E04 - Overbelasting voedingsspanning", "Er is een overbelasting van de voedingsspanning.", id(error_flag_e04).state},
-          {"E05 - Probleem inverter PCB", "Er is een probleem met de inverter PCB.", id(error_flag_e05).state},
-          {"E06 - VDC-module voedingsspanning", "De voedingsspanning in de VDC-module (24 Volt-omvormer) is te hoog of te laag.", id(error_flag_e06).state},
-          {"E07 - Voedingsspanning te hoog of te laag", "Voedingsspanning te hoog of te laag.", id(error_flag_e07).state},
-          {"E08 - Storing EEPROM warmtepomp", "Storing EEPROM warmtepomp.", id(error_flag_e08).state},
-          {"F10 - Storing ventilatormotor DC", "Storing ventilatormotor DC.", id(error_flag_f10).state},
-          {"TO01 - Pomp start timeout", "De pomp startte niet binnen de verwachte tijd. Controleer pompaansturing, relais, bedrijfstoestand en de flow (flow switch), omdat deze timeout op flow-detectie wordt bepaald.", id(error_pump_start_timeout).state},
-          {"TO02 - Compressor start timeout", "De compressor startte niet binnen de verwachte tijd. Controleer permissies, beveiligingen en startcondities.", id(error_compressor_start_timeout).state},
-          {"TO03 - Pomp stop timeout", "De pomp stopte niet binnen de verwachte tijd. Controleer relaisstatus, besturingslogica en de flow (flow switch), omdat deze timeout op flow-detectie wordt bepaald.", id(error_pump_stop_timeout).state},
-          {"TO04 - 3-weg klep status fout", "De 3-weg klep bevindt zich niet in de verwachte stand (relaisterugmelding ontbreekt of temperatuurafwijking overschreden). Controleer klepaansturing, bedrading en klepmotor.", id(error_three_way_valve_state_timeout).state},
-          {"TO05 - Modbus verbinding timeout", "De Modbus-communicatie met de binnen- of buitenunit kon niet worden hersteld binnen de verwachte tijd. Controleer bekabeling, voeding en Modbus-instellingen.", id(error_modbus_connection_timeout).state},
-          {"TO06 - Binnenunit failsafe / herstart", "De binnenunit bevindt zich in failsafe of is herstart. Een of meer uitgangsregisters (1099-1113) wijken af van de verwachte status. De regeling is gestopt.", id(error_inside_unit_failsafe).state},
-          {"TO07 - Compressor onverwacht gestopt", "De buitenunit stopte de compressor zelf terwijl OpenAmber hem liet draaien. De regeling is gestopt. Controleer beveiligingen, voeding en de Modbus-verbinding met de buitenunit en reset daarna de fout.", id(error_compressor_unexpected_stop).state},
-          {"F13 - Storing sensor ruimtetemperatuur", "Storing sensor ruimtetemperatuur.", id(error_flag_f13).state},
-          {"B01 - Geen meting BLE-ruimtesensor", "De gekozen BLE-ruimtesensor heeft 10 minuten geen meting gestuurd. Controleer de batterij en het bereik van de sensor.", id(error_flag_b01).state},
-          {"F14 - Storing sensor tapwatertemperatuur", "Storing sensor tapwatertemperatuur.", id(error_flag_f14).state},
-          {"F15 - Storing sensor cv-aanvoertemperatuur", "Storing sensor cv-aanvoertemperatuur.", id(error_flag_f15).state},
-          {"F16 - Storing sensor aanvoertemperatuur Tuo", "Storing sensor aanvoertemperatuur Tuo.", id(error_flag_f16).state},
-          {"F17 - Storing sensor retourtemperatuur Tui", "Storing sensor retourtemperatuur Tui.", id(error_flag_f17).state},
-          {"F18 - Storing sensor condensortemperatuur Tup", "Storing sensor condensortemperatuur Tup.", id(error_flag_f18).state},
-          {"F21 - Storing sensor cv-aanvoertemperatuur zone 1", "Storing sensor cv-aanvoertemperatuur zone 1.", id(error_flag_f21).state},
-          {"F22 - Storing sensor cv-aanvoertemperatuur zone 2", "Storing sensor cv-aanvoertemperatuur zone 2.", id(error_flag_f22).state}
+          {oa_tr("P03 - Storing compressorstart"), oa_tr("De warmtepomp is geblokkeerd door een storing in de compressorstart."), id(error_flag_p03).state},
+          {oa_tr("P05 - Storing compressor - hogedrukbeveiliging"), oa_tr("Als de persdruk meer dan 32 bar bedraagt wordt de compressor uitgeschakeld."), id(error_flag_p05).state},
+          {oa_tr("P08 - Storing sensor persgasdruk"), oa_tr("Storing sensor persgasdruk."), id(error_flag_p08).state},
+          {oa_tr("P09 - Storing sensor verdamper/condensor buitendeel"), oa_tr("Storing sensor verdamper/condensor buitendeel."), id(error_flag_p09).state},
+          {oa_tr("P10 - Voedingsspanning te hoog of te laag"), oa_tr("Voedingsspanning te hoog of te laag."), id(error_flag_p10).state},
+          {oa_tr("F01 - Storing buitentemperatuursensor"), oa_tr("Storing buitentemperatuursensor."), id(error_flag_f01).state},
+          {oa_tr("F02 - Storing sensor verdamper/condensor buitendeel"), oa_tr("Storing sensor verdamper/condensor buitendeel."), id(error_flag_f02).state},
+          {oa_tr("F03 - Storing persgas temp sensor"), oa_tr("Storing persgas temp sensor."), id(error_flag_f03).state},
+          {oa_tr("F04 - Storing zuiggas temp sensor"), oa_tr("Storing zuiggas temp sensor."), id(error_flag_f04).state},
+          {oa_tr("F05 - Storing zuiggas druk sensor"), oa_tr("Storing zuiggas druk sensor."), id(error_flag_f05).state},
+          {oa_tr("F06 - Storing sensor persgasdruk"), oa_tr("Storing sensor persgasdruk."), id(error_flag_f06).state},
+          {oa_tr("F07 - Storing hogedrukbeveiliging"), oa_tr("Storing hogedrukbeveiliging."), id(error_flag_f07).state},
+          {oa_tr("F09 - Storing ventilatormotor DC"), oa_tr("Storing ventilatormotor DC."), id(error_flag_f09).state},
+          {oa_tr("E01 - Communicatiestoring"), oa_tr("Communicatiestoring tussen printplaten en/of bedieningspaneel."), id(error_flag_e01).state},
+          {oa_tr("E02 - Communicatiestoring"), oa_tr("Er is een communicatiestoring tussen beide printplaten in de warmtepomp."), id(error_flag_e02).state},
+          {oa_tr("E03 - Voedingsspanning"), oa_tr("De voedingsspanning is niet in orde."), id(error_flag_e03).state},
+          {oa_tr("E04 - Overbelasting voedingsspanning"), oa_tr("Er is een overbelasting van de voedingsspanning."), id(error_flag_e04).state},
+          {oa_tr("E05 - Probleem inverter PCB"), oa_tr("Er is een probleem met de inverter PCB."), id(error_flag_e05).state},
+          {oa_tr("E06 - VDC-module voedingsspanning"), oa_tr("De voedingsspanning in de VDC-module (24 Volt-omvormer) is te hoog of te laag."), id(error_flag_e06).state},
+          {oa_tr("E07 - Voedingsspanning te hoog of te laag"), oa_tr("Voedingsspanning te hoog of te laag."), id(error_flag_e07).state},
+          {oa_tr("E08 - Storing EEPROM warmtepomp"), oa_tr("Storing EEPROM warmtepomp."), id(error_flag_e08).state},
+          {oa_tr("F10 - Storing ventilatormotor DC"), oa_tr("Storing ventilatormotor DC."), id(error_flag_f10).state},
+          {oa_tr("TO01 - Pomp start timeout"), oa_tr("De pomp startte niet binnen de verwachte tijd. Controleer pompaansturing, relais, bedrijfstoestand en de flow (flow switch), omdat deze timeout op flow-detectie wordt bepaald."), id(error_pump_start_timeout).state},
+          {oa_tr("TO02 - Compressor start timeout"), oa_tr("De compressor startte niet binnen de verwachte tijd. Controleer permissies, beveiligingen en startcondities."), id(error_compressor_start_timeout).state},
+          {oa_tr("TO03 - Pomp stop timeout"), oa_tr("De pomp stopte niet binnen de verwachte tijd. Controleer relaisstatus, besturingslogica en de flow (flow switch), omdat deze timeout op flow-detectie wordt bepaald."), id(error_pump_stop_timeout).state},
+          {oa_tr("TO04 - 3-weg klep status fout"), oa_tr("De 3-weg klep bevindt zich niet in de verwachte stand (relaisterugmelding ontbreekt of temperatuurafwijking overschreden). Controleer klepaansturing, bedrading en klepmotor."), id(error_three_way_valve_state_timeout).state},
+          {oa_tr("TO05 - Modbus verbinding timeout"), oa_tr("De Modbus-communicatie met de binnen- of buitenunit kon niet worden hersteld binnen de verwachte tijd. Controleer bekabeling, voeding en Modbus-instellingen."), id(error_modbus_connection_timeout).state},
+          {oa_tr("TO06 - Binnenunit failsafe / herstart"), oa_tr("De binnenunit bevindt zich in failsafe of is herstart. Een of meer uitgangsregisters (1099-1113) wijken af van de verwachte status. De regeling is gestopt."), id(error_inside_unit_failsafe).state},
+          {oa_tr("TO07 - Compressor onverwacht gestopt"), oa_tr("De buitenunit stopte de compressor zelf terwijl OpenAmber hem liet draaien. De regeling is gestopt. Controleer beveiligingen, voeding en de Modbus-verbinding met de buitenunit en reset daarna de fout."), id(error_compressor_unexpected_stop).state},
+          {oa_tr("F13 - Storing sensor ruimtetemperatuur"), oa_tr("Storing sensor ruimtetemperatuur."), id(error_flag_f13).state},
+          {oa_tr("B01 - Geen meting BLE-ruimtesensor"), oa_tr("De gekozen BLE-ruimtesensor heeft 10 minuten geen meting gestuurd. Controleer de batterij en het bereik van de sensor."), id(error_flag_b01).state},
+          {oa_tr("F14 - Storing sensor tapwatertemperatuur"), oa_tr("Storing sensor tapwatertemperatuur."), id(error_flag_f14).state},
+          {oa_tr("F15 - Storing sensor cv-aanvoertemperatuur"), oa_tr("Storing sensor cv-aanvoertemperatuur."), id(error_flag_f15).state},
+          {oa_tr("F16 - Storing sensor aanvoertemperatuur Tuo"), oa_tr("Storing sensor aanvoertemperatuur Tuo."), id(error_flag_f16).state},
+          {oa_tr("F17 - Storing sensor retourtemperatuur Tui"), oa_tr("Storing sensor retourtemperatuur Tui."), id(error_flag_f17).state},
+          {oa_tr("F18 - Storing sensor condensortemperatuur Tup"), oa_tr("Storing sensor condensortemperatuur Tup."), id(error_flag_f18).state},
+          {oa_tr("F21 - Storing sensor cv-aanvoertemperatuur zone 1"), oa_tr("Storing sensor cv-aanvoertemperatuur zone 1."), id(error_flag_f21).state},
+          {oa_tr("F22 - Storing sensor cv-aanvoertemperatuur zone 2"), oa_tr("Storing sensor cv-aanvoertemperatuur zone 2."), id(error_flag_f22).state}
         };
 
         const bool timeout_error_active =
@@ -1279,7 +1279,7 @@
           }
         }
         if (active_count == 0) {
-          lv_list_add_text(id(service_errors_list), "Geen actieve foutmeldingen");
+          lv_list_add_text(id(service_errors_list), oa_tr("Geen actieve foutmeldingen"));
         }
 
 - id: update_service_warnings_ui
@@ -1296,15 +1296,15 @@
         };
 
         const AlertItem items[] = {
-          {"P01 - Bedrijfstroom warmtepomp", "De eerste keer wordt de normale werking van de warmtepomp na 5 minuten automatisch hervat.", id(error_flag_p01).state},
-          {"P02 - Bedrijfstroom warmtepomp", "De eerste keer wordt de normale werking van de warmtepomp na 5 minuten automatisch hervat. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart.", id(error_flag_p02).state},
-          {"P06 - Storing compressor - laag drukverschil", "De compressorfrequentie zal worden begrensd. De druk zal hierdoor zakken en een normale werking wordt voortgezet.", id(error_flag_p06).state},
-          {"P07 - Compressor voorverwarming", "De compressor wordt voorverwarmd om te kunnen starten. Het zal maximaal 30 minuten duren voordat de compressor op bedrijfstemperatuur is. Daarna zal deze storing vanzelf verdwijnen en zal de compressor starten.", id(error_flag_p07).state},
-          {"P11 - Compressor geblokkeerd door buitentemperatuur", "De buitenunit laat de compressor niet draaien bij deze buitentemperatuur (Ta). Bij verwarmen gebeurt dit onder ongeveer -25°C en boven 46°C. De compressor start weer zodra Ta binnen het werkgebied valt.", id(error_flag_p11).state},
-          {"P13 - Storing compressor - laag drukverschil", "Toerental compressor wordt verlaagd. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart.", id(error_flag_p13).state},
-          {"Communicatie-failsafe binnenunit", "Communicatie-failsafe binnenunit actief.", id(error_flag_inside_comm_failsafe).state},
-          {"EEPROM-fout binnenunit", "EEPROM- of statusfout binnenunit.", id(error_flag_inside_eeprom).state},
-          {"Pompterugmelding P0 alarm", "Alarm pompterugmelding P0.", id(error_flag_pump_p0_alarm).state}
+          {oa_tr("P01 - Bedrijfstroom warmtepomp"), oa_tr("De eerste keer wordt de normale werking van de warmtepomp na 5 minuten automatisch hervat."), id(error_flag_p01).state},
+          {oa_tr("P02 - Bedrijfstroom warmtepomp"), oa_tr("De eerste keer wordt de normale werking van de warmtepomp na 5 minuten automatisch hervat. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart."), id(error_flag_p02).state},
+          {oa_tr("P06 - Storing compressor - laag drukverschil"), oa_tr("De compressorfrequentie zal worden begrensd. De druk zal hierdoor zakken en een normale werking wordt voortgezet."), id(error_flag_p06).state},
+          {oa_tr("P07 - Compressor voorverwarming"), oa_tr("De compressor wordt voorverwarmd om te kunnen starten. Het zal maximaal 30 minuten duren voordat de compressor op bedrijfstemperatuur is. Daarna zal deze storing vanzelf verdwijnen en zal de compressor starten."), id(error_flag_p07).state},
+          {oa_tr("P11 - Compressor geblokkeerd door buitentemperatuur"), oa_tr("De buitenunit laat de compressor niet draaien bij deze buitentemperatuur (Ta). Bij verwarmen gebeurt dit onder ongeveer -25°C en boven 46°C. De compressor start weer zodra Ta binnen het werkgebied valt."), id(error_flag_p11).state},
+          {oa_tr("P13 - Storing compressor - laag drukverschil"), oa_tr("Toerental compressor wordt verlaagd. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart."), id(error_flag_p13).state},
+          {oa_tr("Communicatie-failsafe binnenunit"), oa_tr("Communicatie-failsafe binnenunit actief."), id(error_flag_inside_comm_failsafe).state},
+          {oa_tr("EEPROM-fout binnenunit"), oa_tr("EEPROM- of statusfout binnenunit."), id(error_flag_inside_eeprom).state},
+          {oa_tr("Pompterugmelding P0 alarm"), oa_tr("Alarm pompterugmelding P0."), id(error_flag_pump_p0_alarm).state}
         };
 
         lv_obj_clean(id(service_warnings_list));
@@ -1318,7 +1318,7 @@
           }
         }
         if (active_count == 0) {
-          lv_list_add_text(id(service_warnings_list), "Geen actieve waarschuwingen");
+          lv_list_add_text(id(service_warnings_list), oa_tr("Geen actieve waarschuwingen"));
         }
 
 - id: update_service_deaeration_ui
@@ -1329,7 +1329,7 @@
           lv_label_set_text(id(service_deaeration_status_val), str_sprintf("%s", id(amber_ctrl).get_deaeration_phase_text().c_str()).c_str());
           lv_obj_send_event(id(service_deaeration_status_val), lvgl::lv_update_event, nullptr);
           lv_obj_set_style_text_color(id(service_deaeration_status_val), lv_color_hex(0x166534), LV_PART_MAIN);
-          lv_label_set_text(id(service_deaeration_time_val), str_sprintf("Nog %02lu:%02lu (%d%%)", id(amber_ctrl).get_deaeration_remaining_seconds() / 60UL, id(amber_ctrl).get_deaeration_remaining_seconds() % 60UL, id(amber_ctrl).get_deaeration_progress_percent()).c_str());
+          lv_label_set_text(id(service_deaeration_time_val), str_sprintf(oa_tr("Nog %02lu:%02lu (%d%%)"), id(amber_ctrl).get_deaeration_remaining_seconds() / 60UL, id(amber_ctrl).get_deaeration_remaining_seconds() % 60UL, id(amber_ctrl).get_deaeration_progress_percent()).c_str());
           lv_obj_send_event(id(service_deaeration_time_val), lvgl::lv_update_event, nullptr);
           lv_obj_set_style_text_color(id(service_deaeration_time_val), lv_color_hex(0x1F3B68), LV_PART_MAIN);
           {
@@ -1340,27 +1340,27 @@
           if (!id(amber_ctrl).is_deaeration_extended()) {
             lv_obj_set_style_bg_color(id(service_deaeration_short_btn), lv_color_hex(0x1F3B68), LV_PART_MAIN);
             lv_obj_set_style_text_color(id(service_deaeration_short_btn_lbl), lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-            lv_label_set_text(id(service_deaeration_short_btn_lbl), "Stoppen (Kort)");
+            lv_label_set_text(id(service_deaeration_short_btn_lbl), oa_tr("Stoppen (Kort)"));
             lv_obj_send_event(id(service_deaeration_short_btn_lbl), lvgl::lv_update_event, nullptr);
             lv_obj_set_style_bg_color(id(service_deaeration_extended_btn), lv_color_hex(0xEDF1F6), LV_PART_MAIN);
             lv_obj_set_style_text_color(id(service_deaeration_extended_btn_lbl), lv_color_hex(0x9CA3AF), LV_PART_MAIN);
-            lv_label_set_text(id(service_deaeration_extended_btn_lbl), str_sprintf("Uitgebreid (~%lu min)", (id(amber_ctrl).get_deaeration_duration_seconds(true) + 30UL) / 60UL).c_str());
+            lv_label_set_text(id(service_deaeration_extended_btn_lbl), str_sprintf(oa_tr("Uitgebreid (~%lu min)"), (id(amber_ctrl).get_deaeration_duration_seconds(true) + 30UL) / 60UL).c_str());
             lv_obj_send_event(id(service_deaeration_extended_btn_lbl), lvgl::lv_update_event, nullptr);
           } else {
             lv_obj_set_style_bg_color(id(service_deaeration_extended_btn), lv_color_hex(0x1F3B68), LV_PART_MAIN);
             lv_obj_set_style_text_color(id(service_deaeration_extended_btn_lbl), lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-            lv_label_set_text(id(service_deaeration_extended_btn_lbl), "Stoppen (Uitgebreid)");
+            lv_label_set_text(id(service_deaeration_extended_btn_lbl), oa_tr("Stoppen (Uitgebreid)"));
             lv_obj_send_event(id(service_deaeration_extended_btn_lbl), lvgl::lv_update_event, nullptr);
             lv_obj_set_style_bg_color(id(service_deaeration_short_btn), lv_color_hex(0xEDF1F6), LV_PART_MAIN);
             lv_obj_set_style_text_color(id(service_deaeration_short_btn_lbl), lv_color_hex(0x9CA3AF), LV_PART_MAIN);
-            lv_label_set_text(id(service_deaeration_short_btn_lbl), str_sprintf("Kort (~%lu min)", (id(amber_ctrl).get_deaeration_duration_seconds(false) + 30UL) / 60UL).c_str());
+            lv_label_set_text(id(service_deaeration_short_btn_lbl), str_sprintf(oa_tr("Kort (~%lu min)"), (id(amber_ctrl).get_deaeration_duration_seconds(false) + 30UL) / 60UL).c_str());
             lv_obj_send_event(id(service_deaeration_short_btn_lbl), lvgl::lv_update_event, nullptr);
           }
         } else {
-          lv_label_set_text(id(service_deaeration_status_val), "Inactief");
+          lv_label_set_text(id(service_deaeration_status_val), oa_tr("Inactief"));
           lv_obj_send_event(id(service_deaeration_status_val), lvgl::lv_update_event, nullptr);
           lv_obj_set_style_text_color(id(service_deaeration_status_val), lv_color_hex(0x6B7280), LV_PART_MAIN);
-          lv_label_set_text(id(service_deaeration_time_val), "Resterend: -");
+          lv_label_set_text(id(service_deaeration_time_val), oa_tr("Resterend: -"));
           lv_obj_send_event(id(service_deaeration_time_val), lvgl::lv_update_event, nullptr);
           lv_obj_set_style_text_color(id(service_deaeration_time_val), lv_color_hex(0x6B7280), LV_PART_MAIN);
           {
@@ -1370,11 +1370,11 @@
           }
           lv_obj_set_style_bg_color(id(service_deaeration_short_btn), lv_color_hex(0xE8ECF1), LV_PART_MAIN);
           lv_obj_set_style_text_color(id(service_deaeration_short_btn_lbl), lv_color_hex(0x4B5563), LV_PART_MAIN);
-          lv_label_set_text(id(service_deaeration_short_btn_lbl), str_sprintf("Kort (~%lu min)", (id(amber_ctrl).get_deaeration_duration_seconds(false) + 30UL) / 60UL).c_str());
+          lv_label_set_text(id(service_deaeration_short_btn_lbl), str_sprintf(oa_tr("Kort (~%lu min)"), (id(amber_ctrl).get_deaeration_duration_seconds(false) + 30UL) / 60UL).c_str());
           lv_obj_send_event(id(service_deaeration_short_btn_lbl), lvgl::lv_update_event, nullptr);
           lv_obj_set_style_bg_color(id(service_deaeration_extended_btn), lv_color_hex(0xE8ECF1), LV_PART_MAIN);
           lv_obj_set_style_text_color(id(service_deaeration_extended_btn_lbl), lv_color_hex(0x4B5563), LV_PART_MAIN);
-          lv_label_set_text(id(service_deaeration_extended_btn_lbl), str_sprintf("Uitgebreid (~%lu min)", (id(amber_ctrl).get_deaeration_duration_seconds(true) + 30UL) / 60UL).c_str());
+          lv_label_set_text(id(service_deaeration_extended_btn_lbl), str_sprintf(oa_tr("Uitgebreid (~%lu min)"), (id(amber_ctrl).get_deaeration_duration_seconds(true) + 30UL) / 60UL).c_str());
           lv_obj_send_event(id(service_deaeration_extended_btn_lbl), lvgl::lv_update_event, nullptr);
         }
 
@@ -1413,10 +1413,10 @@
           // Maintenance mode can only be turned on while the heat pump is stopped (Systeem > Beheer > Stop warmtepomp).
           const bool stopped = id(controlled_stop_active) && id(amber_ctrl).is_standby();
           const char *hint = id(service_mode_enabled).state
-              ? "Onderhoudsmodus wordt voorbereid."
+              ? oa_tr("Onderhoudsmodus wordt voorbereid.")
               : (stopped
-                  ? "Warmtepomp gestopt: onderhoudsmodus kan worden ingeschakeld."
-                  : "Stop eerst de warmtepomp via Systeem > Beheer.");
+                  ? oa_tr("Warmtepomp gestopt: onderhoudsmodus kan worden ingeschakeld.")
+                  : oa_tr("Stop eerst de warmtepomp via Systeem > Beheer."));
           for (lv_obj_t *hint_lbl : {id(service_maintenance_lock_hint)}) {
             if (strcmp(lv_label_get_text(hint_lbl), hint) != 0) {
               lv_label_set_text(hint_lbl, hint);
@@ -1427,7 +1427,7 @@
           lvgl::LvglComponent::lv_obj_set_state_value(id(set_service_mode_switch_ui), LV_STATE_DISABLED, !switch_allowed);
           lv_obj_set_style_opa(id(set_service_mode_switch_ui), static_cast<uint8_t>(switch_allowed ? 255.0f : 102.0f), LV_PART_MAIN);
           if (id(service_mode_enabled).state && id(state_machine_state_main).state == "Maintenance") {
-            lv_label_set_text(id(service_maintenance_state), "Onderhoudsmodus actief");
+            lv_label_set_text(id(service_maintenance_state), oa_tr("Onderhoudsmodus actief"));
             lv_obj_send_event(id(service_maintenance_state), lvgl::lv_update_event, nullptr);
             lv_obj_set_style_text_color(id(service_maintenance_state), lv_color_hex(0x166534), LV_PART_MAIN);
             lv_obj_add_flag(id(service_maintenance_lock_hint), LV_OBJ_FLAG_HIDDEN);
@@ -1438,11 +1438,11 @@
             if (id(service_mode_enabled).state) {
               lv_obj_remove_flag(id(service_maintenance_lock_hint), LV_OBJ_FLAG_HIDDEN);
               lv_obj_remove_flag(id(service_deaeration_lock_hint), LV_OBJ_FLAG_HIDDEN);
-              lv_label_set_text(id(service_maintenance_state), "Onderhoudsmodus wordt gestart...");
+              lv_label_set_text(id(service_maintenance_state), oa_tr("Onderhoudsmodus wordt gestart..."));
               lv_obj_send_event(id(service_maintenance_state), lvgl::lv_update_event, nullptr);
               lv_obj_set_style_text_color(id(service_maintenance_state), lv_color_hex(0xB45309), LV_PART_MAIN);
             } else {
-              lv_label_set_text(id(service_maintenance_state), "Onderhoudsmodus niet actief");
+              lv_label_set_text(id(service_maintenance_state), oa_tr("Onderhoudsmodus niet actief"));
               lv_obj_send_event(id(service_maintenance_state), lvgl::lv_update_event, nullptr);
               lv_obj_set_style_text_color(id(service_maintenance_state), lv_color_hex(0x6B7280), LV_PART_MAIN);
               lv_obj_remove_flag(id(service_maintenance_lock_hint), LV_OBJ_FLAG_HIDDEN);
@@ -1486,10 +1486,10 @@
               }
             } else {
               if (isnan(id(water_flow_rate).state)) {
-                lv_label_set_text(id(tile_pump_state), "UIT\n- l/u");
+                lv_label_set_text(id(tile_pump_state), oa_tr("UIT\n- l/u"));
                 lv_obj_send_event(id(tile_pump_state), lvgl::lv_update_event, nullptr);
               } else {
-                lv_label_set_text(id(tile_pump_state), str_sprintf("UIT\n%.0f l/u", id(water_flow_rate).state * 60.0f).c_str());
+                lv_label_set_text(id(tile_pump_state), str_sprintf(oa_tr("UIT\n%.0f l/u"), id(water_flow_rate).state * 60.0f).c_str());
                 lv_obj_send_event(id(tile_pump_state), lvgl::lv_update_event, nullptr);
               }
             }
@@ -1498,7 +1498,7 @@
               lv_label_set_text(id(tile_pump_state), str_sprintf("%.0f%%", id(pump_p0_current_pwm_sensor).state).c_str());
               lv_obj_send_event(id(tile_pump_state), lvgl::lv_update_event, nullptr);
             } else {
-              lv_label_set_text(id(tile_pump_state), "UIT");
+              lv_label_set_text(id(tile_pump_state), oa_tr("UIT"));
               lv_obj_send_event(id(tile_pump_state), lvgl::lv_update_event, nullptr);
             }
           }
@@ -1769,22 +1769,22 @@
         }(), LV_PART_MAIN);
         lv_label_set_text(id(set_dhw_days_summary), std::string([&]() -> std::string {
           if (!id(dhw_schedule_enabled_switch).state) {
-            return std::string("Schema uit");
+            return std::string(oa_tr("Schema uit"));
           }
           
-          std::string out = "Actief op: ";
+          std::string out = oa_tr("Actief op: ");
           bool first = true;
           
-          if (id(dhw_schedule_monday_enabled_switch).state) { out += first ? "Ma" : ", Ma"; first = false; }
-          if (id(dhw_schedule_tuesday_enabled_switch).state) { out += first ? "Di" : ", Di"; first = false; }
-          if (id(dhw_schedule_wednesday_enabled_switch).state) { out += first ? "Wo" : ", Wo"; first = false; }
-          if (id(dhw_schedule_thursday_enabled_switch).state) { out += first ? "Do" : ", Do"; first = false; }
-          if (id(dhw_schedule_friday_enabled_switch).state) { out += first ? "Vr" : ", Vr"; first = false; }
-          if (id(dhw_schedule_saturday_enabled_switch).state) { out += first ? "Za" : ", Za"; first = false; }
-          if (id(dhw_schedule_sunday_enabled_switch).state) { out += first ? "Zo" : ", Zo"; first = false; }
+          if (id(dhw_schedule_monday_enabled_switch).state) { out += first ? oa_tr("Ma") : oa_tr(", Ma"); first = false; }
+          if (id(dhw_schedule_tuesday_enabled_switch).state) { out += first ? oa_tr("Di") : oa_tr(", Di"); first = false; }
+          if (id(dhw_schedule_wednesday_enabled_switch).state) { out += first ? oa_tr("Wo") : oa_tr(", Wo"); first = false; }
+          if (id(dhw_schedule_thursday_enabled_switch).state) { out += first ? oa_tr("Do") : oa_tr(", Do"); first = false; }
+          if (id(dhw_schedule_friday_enabled_switch).state) { out += first ? oa_tr("Vr") : oa_tr(", Vr"); first = false; }
+          if (id(dhw_schedule_saturday_enabled_switch).state) { out += first ? oa_tr("Za") : oa_tr(", Za"); first = false; }
+          if (id(dhw_schedule_sunday_enabled_switch).state) { out += first ? oa_tr("Zo") : oa_tr(", Zo"); first = false; }
           
           if (first) {
-            return std::string("Geen dagen geselecteerd");
+            return std::string(oa_tr("Geen dagen geselecteerd"));
           }
           return out;
         }()).c_str());
@@ -1811,8 +1811,8 @@
   then:
     - lambda: |-
         const char *current_options = lv_dropdown_get_options(id(wifi_network_dd)->obj);
-        if (current_options == nullptr || std::string(current_options) != "Zoeken...") {
-          lv_dropdown_set_options(id(wifi_network_dd)->obj, "Zoeken...");
+        if (current_options == nullptr || std::string(current_options) != oa_tr("Zoeken...")) {
+          lv_dropdown_set_options(id(wifi_network_dd)->obj, oa_tr("Zoeken..."));
         }
     - lambda: |-
         #ifdef USE_WIFI
@@ -1827,8 +1827,8 @@
         uint16_t count = lv_dropdown_get_option_cnt(id(wifi_network_dd)->obj);
         if (count <= 1) {
           const char *current_options = lv_dropdown_get_options(id(wifi_network_dd)->obj);
-          if (current_options == nullptr || std::string(current_options) != "Zoeken...") {
-            lv_dropdown_set_options(id(wifi_network_dd)->obj, "Zoeken...");
+          if (current_options == nullptr || std::string(current_options) != oa_tr("Zoeken...")) {
+            lv_dropdown_set_options(id(wifi_network_dd)->obj, oa_tr("Zoeken..."));
           }
           #ifdef USE_WIFI
           wifi::global_wifi_component->start_scanning();
@@ -1840,7 +1840,7 @@
     - lambda: |-
         char buf[64];
         lv_dropdown_get_selected_str(id(wifi_network_dd)->obj, buf, sizeof(buf));
-        if (strcmp(buf, "Handmatig...") == 0) {
+        if (strcmp(buf, oa_tr("Handmatig...")) == 0) {
           lv_obj_clear_flag(id(wifi_hidden_ssid_section), LV_OBJ_FLAG_HIDDEN);
         } else {
           lv_obj_add_flag(id(wifi_hidden_ssid_section), LV_OBJ_FLAG_HIDDEN);
@@ -1878,7 +1878,7 @@
             lv_table_set_cell_value(wt, 0, 1, id(wifi_ssid_ui).state.empty() ? "-" : id(wifi_ssid_ui).state.c_str());
             lv_table_set_cell_value(wt, 1, 1, id(wifi_ip_ui).state.empty() ? "-" : id(wifi_ip_ui).state.c_str());
             lv_table_set_cell_value(wt, 2, 1, id(wifi_mac_ui).state.empty() ? "-" : id(wifi_mac_ui).state.c_str());
-            lv_table_set_cell_value(wt, 3, 1, isnan(id(wifi_signal_db).state) ? "Geen signaal" : str_sprintf("%.0f dBm", id(wifi_signal_db).state).c_str());
+            lv_table_set_cell_value(wt, 3, 1, isnan(id(wifi_signal_db).state) ? oa_tr("Geen signaal") : str_sprintf("%.0f dBm", id(wifi_signal_db).state).c_str());
           }();
         }
 
@@ -1892,12 +1892,12 @@
             char dd_buf[64];
             lv_dropdown_get_selected_str(id(wifi_network_dd)->obj, dd_buf, sizeof(dd_buf));
             std::string ssid;
-            if (std::string(dd_buf) == "Handmatig...") {
+            if (std::string(dd_buf) == oa_tr("Handmatig...")) {
               ssid = lv_textarea_get_text(id(wifi_hidden_ssid_ta));
             } else {
               ssid = dd_buf;
             }
-            if (ssid.empty() || ssid == "Geen netwerken gevonden" || ssid == "Zoeken..." || ssid == "Kies netwerk...") return false;
+            if (ssid.empty() || ssid == oa_tr("Geen netwerken gevonden") || ssid == oa_tr("Zoeken...") || ssid == oa_tr("Kies netwerk...")) return false;
             std::string password = lv_textarea_get_text(id(wifi_password_ta));
             #ifdef USE_WIFI
             wifi::global_wifi_component->save_wifi_sta(ssid, password);
@@ -1911,12 +1911,12 @@
           - delay: 30s
           - lvgl.label.update:
               id: wifi_connect_btn_label
-              text: "Verbinden"
+              text: !lambda return std::string(oa_tr("Verbinden"));
         else:
           # Placeholder selected: nothing to connect, undo the "Verbinden..." set by on_click right away.
           - lvgl.label.update:
               id: wifi_connect_btn_label
-              text: "Verbinden"
+              text: !lambda return std::string(oa_tr("Verbinden"));
 
 - id: wifi_disconnect
   then:
@@ -1937,7 +1937,7 @@
           }
           #endif
         }
-        lv_label_set_text(id(wifi_status_label), "Niet verbonden");
+        lv_label_set_text(id(wifi_status_label), oa_tr("Niet verbonden"));
         lv_obj_send_event(id(wifi_status_label), lvgl::lv_update_event, nullptr);
         lv_obj_set_style_text_color(id(wifi_status_label), lv_color_hex(0xEF4444), LV_PART_MAIN);
         lv_label_set_text(id(nav_status_wifi_icon), "󰤮");
@@ -2039,8 +2039,19 @@
           }
           lv_obj_t *page = lv_menu_get_cur_main_page(menu);
           lv_obj_t *title = lv_obj_get_child(header, -1);
+          // LVGL sets the header from the page title, which holds the compiled-in language.
+          if (title != nullptr) {
+            const char *tr = oa_i18n_to(lv_label_get_text(title));
+            if (tr != nullptr && strcmp(tr, lv_label_get_text(title)) != 0) lv_label_set_text(title, tr);
+          }
           std::string text = title != nullptr ? lv_label_get_text(title) : "";
           auto &h = history[m];
+          // The stack keeps titles in the language they were shown in: bring them to the selected
+          // language, so the breadcrumb follows a language switch.
+          for (auto &entry : h) {
+            int row = oa_i18n_row(entry.second.c_str(), oa_i18n_lang_);
+            if (row >= 0) entry.second = OA_I18N_ROWS[row][oa_i18n_lang_];
+          }
           if (page == roots[m]) {
             h.clear();
             h.emplace_back(page, text);

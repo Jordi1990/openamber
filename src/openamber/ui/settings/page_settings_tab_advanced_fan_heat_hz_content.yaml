@@ -4,8 +4,8 @@
     id: set_fan_heat_hz_low_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Verwarmen: compressor laag", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Compressor onder F4", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_verwarmen_compressor_laag}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_compressor_onder_f4}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -39,8 +39,8 @@
     id: set_fan_heat_hz_mid_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Verwarmen: compressor midden", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Compressor F4 tot F7 (vanaf F7: zie buitentemp.)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_verwarmen_compressor_midden}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_compressor_f4_tot_f7_vanaf_f7_zie_buiten}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

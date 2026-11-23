@@ -78,6 +78,19 @@ OpenAmber checks for new firmware itself and shows it in Home Assistant and on t
 
 On a beta you can switch back to *Stabiel*: the display then offers *Stabiel installeren* to install the latest stable release.
 
+**Display language**
+
+The display UI is available in Dutch, German and English. Every build contains all three; choose the language on the display under Settings > General > Display > Language, or with the `Display taal` select in Home Assistant. The choice is kept across reboots and applies immediately.
+
+`ui_language` (nl, de or en) in the substitutions of your device YAML sets the default language:
+
+```yaml
+substitutions:
+  ui_language: de   # nl (default), de or en
+```
+
+Translations live in `src/openamber/ui/i18n/translations.yaml`. After editing that file, run `python3 tools/i18n.py generate` and `python3 tools/i18n.py check`.
+
 **Physicial connection**
 
 Remove modbus cables from port 7 and 8 of the WinCE module and connect them to the ESP32 RS485 board.

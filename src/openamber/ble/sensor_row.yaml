@@ -28,4 +28,4 @@ obj:
         on_click:
           - lambda: ble_sensor_pair(${index});
         widgets:
-          - label: { text: "Koppelen", text_font: font_text_20, text_color: 0xFFFFFF, align: CENTER }
+          - label: { text: "${t_koppelen}", text_font: font_text_20, text_color: 0xFFFFFF, align: CENTER }

@@ -4,8 +4,8 @@
     id: set_pump_pid_kp_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Pomp P0 PID P (Kp)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Hoger: sneller meer pompcapaciteit bij oplopende delta-T", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_pomp_p0_pid_p_kp}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_hoger_sneller_meer_pompcapaciteit_bij_op}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -39,8 +39,8 @@
     id: set_pump_pid_ki_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Pomp P0 PID I (Ki)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Lage integrale correctie voor trage vloerverwarming zonder jagen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_pomp_p0_pid_i_ki}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_lage_integrale_correctie_voor_trage_vloe}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -74,8 +74,8 @@
     id: set_pump_pid_kd_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Pomp P0 PID D (Kd)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Demping bij snelle schommelingen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_pomp_p0_pid_d_kd}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_demping_bij_snelle_schommelingen}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

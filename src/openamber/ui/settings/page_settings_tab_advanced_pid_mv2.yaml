@@ -1,6 +1,6 @@
 # Menu Page: Geavanceerd - PID-regeling Mengventiel zone 2
 # ------------------------------------------------------------
 id: panel_advanced_page_pid_mv2
-title: "Mengventiel zone 2"
+title: "${t_mengventiel_zone_2_2}"
 styles: setting_page_style
 widgets: !include page_settings_tab_advanced_pid_mv2_content.yaml

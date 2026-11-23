@@ -1,7 +1,7 @@
 # Menu Page: Buitenunit
 # ------------------------------------------------------------
 id: service_compressor_page
-title: "Buitenunit"
+title: "${t_buitenunit}"
 styles: setting_page_style
 widgets:
   - obj:
@@ -22,7 +22,7 @@ widgets:
             styles: setting_row_style
             widgets:
               - label:
-                  text: "Ventilator RPM"
+                  text: "${t_ventilator_rpm}"
                   text_color: 0x1F2933
                   text_font: font_text_24
                   align: TOP_LEFT
@@ -33,7 +33,7 @@ widgets:
                   text_font: font_text_24
                   align: TOP_RIGHT
               - label:
-                  text: "Kies handmatig een ventilator RPM waarde (0-1000)"
+                  text: "${t_kies_handmatig_een_ventilator_rpm_waarde}"
                   text_color: 0x6B7280
                   text_font: font_text_20
                   align: TOP_LEFT
@@ -73,12 +73,12 @@ widgets:
             styles: setting_row_style
             widgets:
               - label:
-                  text: "Carterverwarming"
+                  text: "${t_carterverwarming}"
                   text_color: 0x1F2933
                   text_font: font_text_24
                   align: TOP_LEFT
               - label:
-                  text: "Schakel de carterverwarming"
+                  text: "${t_schakel_de_carterverwarming}"
                   width: 72%
                   text_color: 0x6B7280
                   text_font: font_text_20
@@ -104,12 +104,12 @@ widgets:
             styles: setting_row_style
             widgets:
               - label:
-                  text: "Bodemplaat verwarming"
+                  text: "${t_bodemplaat_verwarming_2}"
                   text_color: 0x1F2933
                   text_font: font_text_24
                   align: TOP_LEFT
               - label:
-                  text: "Schakel de bodemplaatverwarming"
+                  text: "${t_schakel_de_bodemplaatverwarming}"
                   width: 72%
                   text_color: 0x6B7280
                   text_font: font_text_20

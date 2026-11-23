@@ -1,7 +1,7 @@
 # Menu Page: Geavanceerd - Ventilator (Categorie keuzemenu)
 # ------------------------------------------------------------
 id: panel_advanced_page_fan
-title: "Ventilator"
+title: "${t_ventilator}"
 widgets:
   - obj:
       width: 100%
@@ -34,7 +34,7 @@ widgets:
                   page: panel_advanced_page_fan_heat_ta
             widgets:
               - label: { text: "\U000F0238", styles: menu_tile_icon_style }
-              - label: { id: advanced_fan_stab_heat_ta_lbl, text: "Verwarmen: buitentemp.", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: advanced_fan_stab_heat_ta_lbl, text: "${t_verwarmen_buitentemp}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: advanced_fan_stab_heat_hz
@@ -50,7 +50,7 @@ widgets:
                   page: panel_advanced_page_fan_heat_hz
             widgets:
               - label: { text: "\U000F04C5", styles: menu_tile_icon_style }
-              - label: { id: advanced_fan_stab_heat_hz_lbl, text: "Verwarmen: compressor", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: advanced_fan_stab_heat_hz_lbl, text: "${t_verwarmen_compressor}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: advanced_fan_stab_cool_ta
@@ -66,7 +66,7 @@ widgets:
                   page: panel_advanced_page_fan_cool_ta
             widgets:
               - label: { text: "\U000F0717", styles: menu_tile_icon_style }
-              - label: { id: advanced_fan_stab_cool_ta_lbl, text: "Koelen: buitentemp.", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: advanced_fan_stab_cool_ta_lbl, text: "${t_koelen_buitentemp}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: advanced_fan_stab_cool_hz
@@ -82,4 +82,4 @@ widgets:
                   page: panel_advanced_page_fan_cool_hz
             widgets:
               - label: { text: "\U000F04C5", styles: menu_tile_icon_style }
-              - label: { id: advanced_fan_stab_cool_hz_lbl, text: "Koelen: compressor", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: advanced_fan_stab_cool_hz_lbl, text: "${t_koelen_compressor}", long_mode: WRAP, styles: menu_tile_label_style }

@@ -1,15 +1,15 @@
 # Menu Page: Noodbedrijf
 # ------------------------------------------------------------
 id: panel_heating_page_noodbedrijf
-title: "Noodbedrijf"
+title: "${t_noodbedrijf}"
 styles: setting_page_style
 widgets:
   - obj:
       id: set_general_emergency_mode_row
       styles: setting_row_style
       widgets:
-        - label: { text: "Noodbedrijf", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-        - label: { text: "Schakel de compressor uit en laat alleen het backup-element werken", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+        - label: { text: "${t_noodbedrijf}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+        - label: { text: "${t_schakel_de_compressor_uit_en_laat_alleen}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
         - switch:
             id: set_emergency_mode_switch_ui
             align: TOP_RIGHT

@@ -1,7 +1,7 @@
 # Menu Page: Tapwater (Categorie keuzemenu)
 # ------------------------------------------------------------
 id: panel_dhw
-title: "Tapwater"
+title: "${t_tapwater}"
 widgets:
   - obj:
       width: 100%
@@ -34,7 +34,7 @@ widgets:
                   page: panel_dhw_page_algemeen
             widgets:
               - label: { text: "\U000F08BB", styles: menu_tile_icon_style }
-              - label: { id: dhw_stab_algemeen_lbl, text: "Algemeen", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: dhw_stab_algemeen_lbl, text: "${t_algemeen}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: dhw_stab_schema
@@ -50,7 +50,7 @@ widgets:
                   page: panel_dhw_page_schema
             widgets:
               - label: { text: "\U000F00F0", styles: menu_tile_icon_style }
-              - label: { id: dhw_stab_schema_lbl, text: "Schema", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: dhw_stab_schema_lbl, text: "${t_schema}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: dhw_stab_legionella
@@ -66,7 +66,7 @@ widgets:
                   page: panel_dhw_page_legionella
             widgets:
               - label: { text: "\U000F0ED5", styles: menu_tile_icon_style }
-              - label: { id: dhw_stab_legionella_lbl, text: "Legionella", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: dhw_stab_legionella_lbl, text: "${t_legionella}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: dhw_stab_winter

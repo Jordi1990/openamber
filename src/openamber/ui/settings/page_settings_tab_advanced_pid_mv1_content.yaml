@@ -4,8 +4,8 @@
     id: set_mv_z1_pid_kp_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Mengventiel Z1 PID P (Kp)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Hoger: sneller reageren, lager: rustiger maar trager", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_mengventiel_z1_pid_p_kp}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_hoger_sneller_reageren_lager_rustiger_ma}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -39,8 +39,8 @@
     id: set_mv_z1_pid_ki_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Mengventiel Z1 PID I (Ki)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Hoger: corrigeert afwijking sneller, lager: minder agressief", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_mengventiel_z1_pid_i_ki}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_hoger_corrigeert_afwijking_sneller_lager}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -74,8 +74,8 @@
     id: set_mv_z1_pid_kd_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Mengventiel Z1 PID D (Kd)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Demping bij snelle schommelingen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_mengventiel_z1_pid_d_kd}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_demping_bij_snelle_schommelingen}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -109,8 +109,8 @@
     id: set_mv_z1_pid_deadband_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Mengventiel Z1 PID deadband (+/-)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Zone rond setpoint waarin mengventiel minder wijzigt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_mengventiel_z1_pid_deadband}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_zone_rond_setpoint_waarin_mengventiel_mi}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

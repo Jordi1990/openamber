@@ -4,8 +4,8 @@
     id: thermostat_row_off_delay
     styles: setting_row_style
     widgets:
-      - label: { text: "Uitschakelvertraging (Extern signaal)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Vertraging voor stoppen bij wegvallen warmte- of koudevraag", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_uitschakelvertraging_extern_signaal}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_vertraging_voor_stoppen_bij_wegvallen_wa}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -54,8 +54,8 @@
     hidden: true
     styles: setting_row_style
     widgets:
-      - label: { text: "Draadloze thermostaat", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Koppeling met externe thermostaat; zet thermostaat bron op intern.", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_draadloze_thermostaat}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_koppeling_met_externe_thermostaat_zet_th}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - switch:
           id: set_therm_link_switch_ui
           align: TOP_RIGHT
@@ -72,8 +72,8 @@
     hidden: true
     styles: setting_row_style
     widgets:
-      - label: { text: "Koppelcode draadloze thermostaat", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Voer deze code in op de draadloze thermostaat", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_koppelcode_draadloze_thermostaat}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_voer_deze_code_in_op_de_draadloze_thermo}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -99,4 +99,4 @@
                 on_click:
                   - script.execute: thermostat_link_new_code_confirm
                 widgets:
-                  - label: { id: set_therm_link_new_btn_lbl, text: "Nieuw", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
+                  - label: { id: set_therm_link_new_btn_lbl, text: "${t_nieuw}", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }

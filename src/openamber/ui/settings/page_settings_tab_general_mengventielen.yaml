@@ -1,7 +1,7 @@
 # Menu Page: Mengventielen (Keuzemenu Zone 1 / Zone 2)
 # ------------------------------------------------------------
 id: panel_general_page_mengventielen
-title: "Mengventielen"
+title: "${t_mengventielen}"
 widgets:
   - obj:
       width: 100%
@@ -34,7 +34,7 @@ widgets:
                   page: panel_general_mv_zone1
             widgets:
               - label: { text: "\U000F1066", styles: menu_tile_icon_style }
-              - label: { id: mengventielen_tab_z1_lbl, text: "Mengventiel Zone 1", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: mengventielen_tab_z1_lbl, text: "${t_mengventiel_zone_1_3}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: mengventielen_tab_z2
@@ -50,4 +50,4 @@ widgets:
                   page: panel_general_mv_zone2
             widgets:
               - label: { text: "\U000F1066", styles: menu_tile_icon_style }
-              - label: { id: mengventielen_tab_z2_lbl, text: "Mengventiel Zone 2", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: mengventielen_tab_z2_lbl, text: "${t_mengventiel_zone_2_3}", long_mode: WRAP, styles: menu_tile_label_style }

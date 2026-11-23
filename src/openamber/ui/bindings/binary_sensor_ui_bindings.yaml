@@ -14,8 +14,8 @@
             return lv_color_hex(0x919191);
           }(), LV_PART_MAIN);
           lv_label_set_text(id(tile_defrost_state), std::string([&]() -> std::string {
-            if (x) return "AAN";
-            return "UIT";
+            if (x) return oa_tr("AAN");
+            return oa_tr("UIT");
           }()).c_str());
           lv_obj_send_event(id(tile_defrost_state), lvgl::lv_update_event, nullptr);
           id(update_service_diag_summary_ui).execute();
@@ -29,8 +29,8 @@
             return lv_color_hex(0x919191);
           }(), LV_PART_MAIN);
           lv_label_set_text(id(tile_backup_state), std::string([&]() -> std::string {
-            if (x) return "AAN";
-            return "UIT";
+            if (x) return oa_tr("AAN");
+            return oa_tr("UIT");
           }()).c_str());
           lv_obj_send_event(id(tile_backup_state), lvgl::lv_update_event, nullptr);
 
@@ -43,8 +43,8 @@
             return lv_color_hex(0x919191);
           }(), LV_PART_MAIN);
           lv_label_set_text(id(tile_baseplate_state), std::string([&]() -> std::string {
-            if (x) return "AAN";
-            return "UIT";
+            if (x) return oa_tr("AAN");
+            return oa_tr("UIT");
           }()).c_str());
           lv_obj_send_event(id(tile_baseplate_state), lvgl::lv_update_event, nullptr);
           id(update_service_diag_summary_ui).execute();
@@ -96,8 +96,8 @@
             lv_obj_remove_flag(id(dhw_flow_arrow_down), LV_OBJ_FLAG_HIDDEN);
           }
           lv_label_set_text(id(dhw_pump_state_label), std::string([&]() -> std::string {
-            if (x) return "AAN";
-            return "UIT";
+            if (x) return oa_tr("AAN");
+            return oa_tr("UIT");
           }()).c_str());
           lv_obj_send_event(id(dhw_pump_state_label), lvgl::lv_update_event, nullptr);
           lv_obj_set_style_text_color(id(dhw_pump_icon), [&]() -> lv_color_t {

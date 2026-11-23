@@ -1,7 +1,7 @@
 # Menu Page: Vorstbescherming
 # ------------------------------------------------------------
 id: panel_pump_page_vorstbescherming
-title: "Vorstbescherming"
+title: "${t_vorstbescherming}"
 styles: setting_page_style
 widgets:
   - obj:
@@ -21,8 +21,8 @@ widgets:
         - obj:
             styles: setting_row_style
             widgets:
-              - label: { text: "Buitentemperatuur 1e trap", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Buitentemperatuur waaronder trap 1 activeert", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - label: { text: "${t_buitentemperatuur_1e_trap}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_buitentemperatuur_waaronder_trap_1_activ}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT
@@ -55,8 +55,8 @@ widgets:
         - obj:
             styles: setting_row_style
             widgets:
-              - label: { text: "Buitentemperatuur 2e trap", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Buitentemperatuur waaronder trap 2 activeert", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - label: { text: "${t_buitentemperatuur_2e_trap}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_buitentemperatuur_waaronder_trap_2_activ}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT
@@ -89,8 +89,8 @@ widgets:
         - obj:
             styles: setting_row_style
             widgets:
-              - label: { text: "Watertemperatuur 2e trap", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Watertemperatuur waaronder trap 2 activeert", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - label: { text: "${t_watertemperatuur_2e_trap}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_watertemperatuur_waaronder_trap_2_active}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT
