@@ -534,6 +534,7 @@ number:
 - platform: template
   id: backup_heater_stop_delta
   name: "Backup element stop delta"
+  mode: box
   unit_of_measurement: "°C"
   device_class: "temperature"
   min_value: 0.0
