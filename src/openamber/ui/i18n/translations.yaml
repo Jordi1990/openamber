@@ -2414,3 +2414,7 @@
 - nl: "Installeren"
   de: "Installieren"
   en: "Install"
+- key: t_display
+  nl: "Display"
+  de: "Anzeige"
+  en: "Display"

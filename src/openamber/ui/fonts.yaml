@@ -88,6 +88,7 @@
         - "\U000F059D"  # mdi-weather-windy (menu tile)
         - "\U000F062E"  # mdi-tune (menu tile)
         - "\U000F08D6"  # mdi-cogs (menu tile)
+        - "\U000F0379"  # mdi-monitor (menu tile Display)
         - "\U000F0ED5"  # mdi-bacteria (menu tile)
         - "\U000F0F92"  # mdi-water-boiler (menu tile)
         - "\U000F0FA7"  # mdi-chart-bell-curve-cumulative (menu tile)

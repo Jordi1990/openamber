@@ -2046,6 +2046,12 @@
           }
           std::string text = title != nullptr ? lv_label_get_text(title) : "";
           auto &h = history[m];
+          // The stack keeps titles in the language they were shown in: bring them to the selected
+          // language, so the breadcrumb follows a language switch.
+          for (auto &entry : h) {
+            int row = oa_i18n_row(entry.second.c_str(), oa_i18n_lang_);
+            if (row >= 0) entry.second = OA_I18N_ROWS[row][oa_i18n_lang_];
+          }
           if (page == roots[m]) {
             h.clear();
             h.emplace_back(page, text);

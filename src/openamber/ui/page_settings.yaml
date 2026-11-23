@@ -45,6 +45,7 @@ obj:
           - !include settings/page_settings_overview.yaml
           - !include settings/page_settings_tab_general.yaml
           - !include settings/page_settings_tab_general_systeem.yaml
+          - !include settings/page_settings_tab_general_display.yaml
           - !include settings/page_settings_tab_general_analytics.yaml
           - !include settings/page_settings_tab_general_stiltemodus.yaml
           - !include settings/page_settings_tab_general_hardware.yaml

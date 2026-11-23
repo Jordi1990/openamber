@@ -470,3 +470,4 @@ substitutions:
   t_beta_geeft_nieuwe_versies_eerder_met_mee: "Beta liefert neue Versionen früher, mit höherem Fehlerrisiko"
   t_pomp_p2_aanwezig: "Pumpe P2 vorhanden"
   t_circulatiepomp_p2_zone_2_draait_bij_warm: "Umwälzpumpe P2 Zone 2, läuft bei Wärmeanforderung Zone 2"
+  t_display: "Anzeige"

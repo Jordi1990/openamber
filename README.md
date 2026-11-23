@@ -80,7 +80,7 @@ On a beta you can switch back to *Stabiel*: the display then offers *Stabiel ins
 
 **Display language**
 
-The display UI is available in Dutch, German and English. Every build contains all three; choose the language on the display under Settings > General > System > Language, or with the `Display taal` select in Home Assistant. The choice is kept across reboots and applies immediately.
+The display UI is available in Dutch, German and English. Every build contains all three; choose the language on the display under Settings > General > Display > Language, or with the `Display taal` select in Home Assistant. The choice is kept across reboots and applies immediately.
 
 `ui_language` (nl, de or en) in the substitutions of your device YAML sets the default language:
 

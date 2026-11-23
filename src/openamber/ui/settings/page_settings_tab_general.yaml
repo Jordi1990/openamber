@@ -37,6 +37,22 @@ widgets:
               - label: { id: general_stab_systeem_lbl, text: "${t_systeem}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
+            id: general_stab_display
+            styles: menu_tile_style
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_general_page_display
+            widgets:
+              - label: { text: "\U000F0379", styles: menu_tile_icon_style }
+              - label: { id: general_stab_display_lbl, text: "${t_display}", long_mode: WRAP, styles: menu_tile_label_style }
+
+        - obj:
             id: general_stab_mengventielen
             styles: menu_tile_style
             scrollable: false

@@ -1,0 +1,56 @@
+# Display content (taal en scherm)
+# ------------------------------------------------------------
+- obj:
+    id: set_general_display_language
+    styles: setting_row_style
+    widgets:
+      - label: { text: "${t_taal}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - dropdown:
+          id: set_display_language_dd
+          symbol: "\U000F0140"
+          width: 220
+          align: TOP_RIGHT
+          y: 0
+          options:
+            - "Nederlands"
+            - "Deutsch"
+            - "English"
+          text_font: font_text_20
+          dropdown_list:
+            text_font: font_text_20
+          on_change:
+            then:
+              - lambda: |-
+                  auto val = lv_dropdown_get_selected(id(set_display_language_dd)->obj);
+                  auto idx = id(display_language_select).active_index();
+                  if (idx.has_value() && idx.value() == (size_t) val) return;
+                  id(display_language_select).make_call().set_index(val).perform();
+
+- obj:
+    id: set_general_display_screen_timeout
+    styles: setting_row_style
+    widgets:
+      - label: { text: "${t_scherm_uit_na}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - dropdown:
+          id: set_display_screen_timeout_dd
+          symbol: "\U000F0140"
+          width: 220
+          align: TOP_RIGHT
+          y: 0
+          options:
+            - "${t_nooit}"
+            - "${t_30_seconden}"
+            - "${t_1_minuut}"
+            - "${t_2_minuten}"
+            - "${t_5_minuten}"
+          selected_index: 2
+          text_font: font_text_20
+          dropdown_list:
+            text_font: font_text_20
+          on_change:
+            then:
+              - lambda: |-
+                  auto val = lv_dropdown_get_selected(id(set_display_screen_timeout_dd)->obj);
+                  auto idx = id(display_screen_timeout_select).active_index();
+                  if (idx.has_value() && idx.value() == (size_t) val) return;
+                  id(display_screen_timeout_select).make_call().set_index(val).perform();

@@ -28,3 +28,33 @@ def test_runtime_language_switch(clean_system):
         assert openamber.get_label("nav_thermostat_label") == "Thermostaat"
     finally:
         _set_language(openamber, "Nederlands")
+
+
+def test_breadcrumb_follows_language_switch(clean_system):
+    """The menu breadcrumb keeps the parent title: it must switch language with the rest."""
+    openamber = clean_system
+    try:
+        _set_language(openamber, "English")
+        assert openamber.click("nav_settings")
+        openamber.step(ms=100)
+        assert openamber.click("stab_general")
+        openamber.step(ms=100)
+        assert openamber.click("general_stab_systeem")
+        openamber.step(ms=100)
+        assert openamber.get_label("settings_menu_title") == "System"
+        assert openamber.get_label("settings_menu_crumb").startswith("General ")
+
+        _set_language(openamber, "Nederlands")
+        assert openamber.get_label("settings_menu_title") == "Systeem"
+        assert openamber.get_label("settings_menu_crumb").startswith("Algemeen "), (
+            "Breadcrumb must read Algemeen > Systeem after switching back to Nederlands"
+        )
+
+        # Navigating again keeps the Dutch parent title.
+        assert openamber.click("settings_menu_back_btn")
+        openamber.step(ms=100)
+        assert openamber.click("general_stab_systeem")
+        openamber.step(ms=100)
+        assert openamber.get_label("settings_menu_crumb").startswith("Algemeen ")
+    finally:
+        _set_language(openamber, "Nederlands")
