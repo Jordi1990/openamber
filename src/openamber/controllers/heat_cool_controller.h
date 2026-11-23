@@ -643,7 +643,7 @@ public:
     return capped_mode_index;
   }
 
-  bool ShouldStopCompressor()
+  bool ShouldStopCompressor(float stop_delta_override = -1.0f)
   {
     if(!HasCompressorDemand())
     {
@@ -662,7 +662,10 @@ public:
 
     // Overshoot is positive when temp has passed the setpoint in the working direction
     // Heating: too hot (Tc > target), Cooling: too cold (Tc < target)
-    float stop_delta = IsWorkingMode(WORKING_MODE_COOLING) ? id(compressor_stop_delta_cooling).state : id(compressor_stop_delta_heating).state;
+    // The backup heater pass overrides the delta so a configured backup stop delta above
+    // the compressor delta is honored instead of stopping on the compressor overshoot limit.
+    float stop_delta = stop_delta_override >= 0.0f ? stop_delta_override
+                       : (IsWorkingMode(WORKING_MODE_COOLING) ? id(compressor_stop_delta_cooling).state : id(compressor_stop_delta_heating).state);
     float overshoot = IsWorkingMode(WORKING_MODE_COOLING) ? (target_temperature - current_temperature) : (current_temperature - target_temperature);
 
     if (overshoot >= stop_delta)
@@ -926,7 +929,8 @@ public:
         // minimum on time, an oil return cycle or a defrost (no demand anymore or a stop request).
         if (!IsWorkingMode(WORKING_MODE_COOLING) && HasCompressorDemand())
         {
-          if (id(sg_ready_max_boost_mode_active_sensor).state)
+          if (id(sg_ready_max_boost_mode_active_sensor).state &&
+              GetControlTemperature() < GetPidController().target_temperature + id(backup_heater_stop_delta).state)
           {
             ESP_LOGI("amber", "Enabling backup heater (SG Ready max boost active)");
             TurnOnBackupHeater();
@@ -1069,7 +1073,7 @@ public:
           }
         }
 
-        if(ShouldStopCompressor())
+        if(ShouldStopCompressor(id(backup_heater_stop_delta).state))
         {
           TurnOffBackupHeater();
           if (id(emergency_mode_enabled).state)
