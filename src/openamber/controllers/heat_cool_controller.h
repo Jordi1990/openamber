@@ -985,8 +985,9 @@ public:
       {
         if (!pump_controller_->IsRunning())
         {
-          // Leaving heating aborts a running defrost without its recovery phase, so wait for 2118 to drop.
-          if (id(defrost_active_sensor).state)
+          // Leaving heating aborts a running defrost without its recovery phase, so wait for 2118 to drop while
+          // the outdoor unit can still finish it (see ShouldWaitForDefrostBeforeStandby).
+          if (ShouldWaitForDefrostBeforeStandby(now))
           {
             ESP_LOGI("amber", "Defrost active, waiting before switching to standby.");
             StopSecondaryPumpsIfNeeded();

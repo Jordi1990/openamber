@@ -82,6 +82,38 @@ protected:
     return true;
   }
 
+  /// @brief True while switching to standby has to wait for the outdoor unit's defrost (2118) to end.
+  /// Standby aborts a running defrost without its recovery phase, but the unit only runs its pre-phase and
+  /// defrost timers while the compressor runs (firmware v1.10/v1.18: the pre-phase counter needs the continuous
+  /// compressor run time, the defrost timer only counts during the execution, and a compressor stop clears the
+  /// execution but not 2118). With the compressor off 2118 therefore stays set until standby is written, so
+  /// waiting for it would never end. Only wait while the compressor still runs, and never longer than
+  /// DEFROST_STANDBY_WAIT_MAX_S after the pump stop.
+  bool ShouldWaitForDefrostBeforeStandby(uint32_t now)
+  {
+    if (!id(defrost_active_sensor).state)
+    {
+      return false;
+    }
+
+    if (!compressor_controller_->IsRunning())
+    {
+      ESP_LOGW("amber", "%s: defrost flag (2118) set while the compressor is off, the outdoor unit cannot finish it. "
+               "Switching to standby, which clears it.", LogTag());
+      return false;
+    }
+
+    const uint32_t stop_started_ms = pump_controller_->GetStopWaitStartedTime();
+    if (stop_started_ms != 0 && HasElapsedMs(stop_started_ms, DEFROST_STANDBY_WAIT_MAX_S * 1000UL, now))
+    {
+      ESP_LOGW("amber", "%s: defrost still active after %lu seconds, switching to standby anyway.", LogTag(),
+               (unsigned long) DEFROST_STANDBY_WAIT_MAX_S);
+      return false;
+    }
+
+    return true;
+  }
+
   bool IsBackupHeaterActive()
   {
     if(id(backup_heating_mode).active_index().value() == 0)

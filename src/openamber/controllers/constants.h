@@ -64,6 +64,10 @@ static const uint32_t DEFROST_PREPHASE_MAX_S = 330;
 static const float DEFROST_STANDBY_FREQUENCY_MARGIN_HZ = 5.0f;
 // After 2118 drops the unit switches the 4-way valve back and restarts the fan within 30 s.
 static const uint32_t DEFROST_RECOVERY_PHASE_S = 30;
+// Upper bound for holding the working mode while 2118 is set after the compressor has stopped. The unit only
+// counts its pre-phase and defrost timers while the compressor runs, so with the compressor off 2118 stays set
+// until the working mode goes to standby. Pre-phase (300 s) + maximum defrost (8 min) + recovery, with margin.
+static const uint32_t DEFROST_STANDBY_WAIT_MAX_S = 15 * 60;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_DOWN_S = 10;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_UP_S = 5 * 60;
 
