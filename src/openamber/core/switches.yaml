@@ -78,7 +78,7 @@ switch:
   web_server: 
     sorting_group_id: dhw_settings
 
-# Ontdooien via tapwatervat: a defrost during heating takes its heat from the DHW tank (Tw 30-55 °C) instead of
+# Ontdooien via tapwatervat: a defrost during heating takes its heat from the DHW tank (Tw above 30 °C, up to defrost_from_dhw_tank_max_temperature) instead of
 # the heating circuit. Defaults to off so existing installs defrost as before.
 - platform: template
   id: defrost_from_dhw_tank_switch

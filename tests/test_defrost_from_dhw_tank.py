@@ -2,7 +2,8 @@
 
 With the switch on, a defrost during heating takes its heat from the DHW tank: at the start of the actual defrost
 the 3-way valve goes to DHW (compressor and pump P0 keep running, DHW pump relay on) and it goes back when the
-defrost ends. Only with "Tapwater aanwezig" on and the tank between 30 and 55 °C. Defaults to off.
+defrost ends. Only with "Tapwater aanwezig" on and the tank above 30 °C and at most the configured maximum
+(defrost_from_dhw_tank_max_temperature, default 60 °C). Defaults to off.
 """
 
 import os
@@ -12,14 +13,17 @@ import yaml
 
 from test_entity_schema_sync import ESPHomeYamlLoader
 
-SWITCHES_YAML = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                             "src", "openamber", "core", "switches.yaml")
+CORE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src", "openamber", "core")
+SWITCHES_YAML = os.path.join(CORE_DIR, "switches.yaml")
+NUMBERS_YAML = os.path.join(CORE_DIR, "numbers.yaml")
 
 
 @pytest.fixture
 def tank_defrost_system(clean_system):
-    """clean_system does not know this switch: leave it off for the tests that follow."""
+    """clean_system does not know these settings: put them back for the tests that follow."""
+    clean_system.set_number("defrost_from_dhw_tank_max_temperature", 60.0)
     yield clean_system
+    clean_system.set_number("defrost_from_dhw_tank_max_temperature", 60.0)
     clean_system.set_sensor("dhw_temperature_tw_sensor", 50.0)
     clean_system.set_binary_sensor("defrost_active_sensor", False)
     clean_system.set_switch("defrost_from_dhw_tank_switch", False)
@@ -67,6 +71,11 @@ def test_defrost_from_dhw_tank_defaults_off():
     entry = next(s for s in switches if s.get("id") == "defrost_from_dhw_tank_switch")
     assert entry["restore_mode"] == "RESTORE_DEFAULT_OFF"
     assert entry["name"] == "Ontdooien via tapwatervat"
+
+    with open(NUMBERS_YAML, encoding="utf-8") as f:
+        numbers = yaml.load(f, Loader=ESPHomeYamlLoader)["number"]
+    entry = next(n for n in numbers if n.get("id") == "defrost_from_dhw_tank_max_temperature")
+    assert entry["initial_value"] == 60
 
 
 def test_defrost_stays_on_heating_circuit_when_switched_off(tank_defrost_system):
@@ -124,11 +133,18 @@ def test_defrost_takes_heat_from_dhw_tank(tank_defrost_system):
     assert openamber.get_entity("three_way_valve_dhw_switch") is False
 
 
-@pytest.mark.parametrize("tank_temperature", [30.0, 56.0])
-def test_defrost_stays_on_heating_circuit_when_tank_out_of_range(tank_defrost_system, tank_temperature):
-    """A tank at or below 30 °C or above 55 °C is not used."""
+@pytest.mark.parametrize("tank_temperature, maximum, used", [
+    (30.0, 60.0, False),  # at or below the fixed minimum
+    (61.0, 60.0, False),  # above the default maximum
+    (56.0, 60.0, True),   # a tank just above its 55 °C setpoint is used with the default
+    (56.0, 55.0, False),  # ... and not with the maximum lowered
+    (56.0, 56.0, True),   # the maximum itself is still used
+])
+def test_tank_temperature_limits(tank_defrost_system, tank_temperature, maximum, used):
+    """The tank is used above 30 °C and up to the configured maximum."""
     openamber = tank_defrost_system
     openamber.set_switch("defrost_from_dhw_tank_switch", True)
+    openamber.set_number("defrost_from_dhw_tank_max_temperature", maximum)
     _start_heating(openamber, tank_temperature=50.0)
 
     # The tank temperature counts at the start of the defrost. A cold tank also asks for a DHW run, which waits
@@ -136,8 +152,8 @@ def test_defrost_stays_on_heating_circuit_when_tank_out_of_range(tank_defrost_sy
     openamber.set_sensor("dhw_temperature_tw_sensor", tank_temperature)
     _start_defrost(openamber)
 
-    assert openamber.get_entity("three_way_valve_dhw_switch") is False
-    assert openamber.get_entity("dhw_pump_relay_switch") is False
+    assert openamber.get_entity("three_way_valve_dhw_switch") is used
+    assert openamber.get_entity("dhw_pump_relay_switch") is used
 
 
 def test_defrost_stays_on_heating_circuit_without_dhw(tank_defrost_system):
@@ -167,3 +183,27 @@ def test_defrost_from_dhw_tank_ui_switch(tank_defrost_system):
     assert openamber.set_switch("defrost_from_dhw_tank_switch", False)
     openamber.step(ms=50)
     assert openamber.get_widget("set_defrost_from_dhw_tank_switch_ui").get("checked") is False
+
+
+def test_defrost_from_dhw_tank_max_temperature_ui(tank_defrost_system):
+    """The maximum under Instellingen > Tapwater > Algemeen: -/+ without wrap-around."""
+    openamber = tank_defrost_system
+    openamber.step(ms=50)
+    assert openamber.get_label("set_defrost_from_dhw_tank_max_val") == "60°C"
+
+    assert openamber.click("set_defrost_from_dhw_tank_max_dec")
+    openamber.step(ms=50)
+    assert float(openamber.get_entity("defrost_from_dhw_tank_max_temperature")) == 59.0
+    assert openamber.get_label("set_defrost_from_dhw_tank_max_val") == "59°C"
+
+    assert openamber.click("set_defrost_from_dhw_tank_max_inc")
+    assert openamber.click("set_defrost_from_dhw_tank_max_inc")
+    openamber.step(ms=50)
+    assert float(openamber.get_entity("defrost_from_dhw_tank_max_temperature")) == 61.0
+
+    # No wrap-around at the ends, and a change from elsewhere updates the label.
+    assert openamber.set_number("defrost_from_dhw_tank_max_temperature", 75.0)
+    assert openamber.click("set_defrost_from_dhw_tank_max_inc")
+    openamber.step(ms=50)
+    assert float(openamber.get_entity("defrost_from_dhw_tank_max_temperature")) == 75.0
+    assert openamber.get_label("set_defrost_from_dhw_tank_max_val") == "75°C"

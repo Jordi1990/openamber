@@ -495,7 +495,7 @@ private:
     }
     const float tank_temperature = id(dhw_temperature_tw_sensor).state;
     if (std::isnan(tank_temperature) || tank_temperature <= DEFROST_DHW_TANK_MIN_TEMPERATURE_C ||
-        tank_temperature > DEFROST_DHW_TANK_MAX_TEMPERATURE_C)
+        tank_temperature > id(defrost_from_dhw_tank_max_temperature).state)
     {
       ESP_LOGI("amber", "Defrost from the DHW tank not possible (Tw %.1f°C), defrosting on the heating circuit.", tank_temperature);
       return;

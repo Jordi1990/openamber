@@ -568,6 +568,15 @@
             format: "%.0f°C"
             args: ['x']
 
+- id: !extend defrost_from_dhw_tank_max_temperature
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_defrost_from_dhw_tank_max_val
+          text:
+            format: "%.0f°C"
+            args: ['x']
+
 # ── SmartGrid ──
 - id: !extend sg_ready_heating_boost_temperature_number
   on_value:

@@ -434,6 +434,23 @@ number:
     then:
       - component.update: current_dhw_setpoint_sensor
 
+# Ontdooien via tapwatervat: a tank warmer than this is not used for a defrost (see defrost_from_dhw_tank_switch).
+- platform: template
+  id: defrost_from_dhw_tank_max_temperature
+  name: "Ontdooien via tapwatervat tot vattemperatuur"
+  unit_of_measurement: "°C"
+  device_class: "temperature"
+  min_value: 40
+  max_value: 75
+  initial_value: 60
+  step: 1
+  mode: box
+  optimistic: true
+  restore_value: true
+  entity_category: config
+  web_server:
+      sorting_group_id: dhw_settings
+
 - platform: template
   id: dhw_restart_dhw_delta
   name: "∆T herstart tapwater verwarmen"
