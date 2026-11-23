@@ -90,7 +90,12 @@ static const float AMBIENT_LIMIT_TA_OFFSET_C = 1.0f;
 // Discharge side limiter: stay below the outdoor unit's own Pd/Td protection instead of running
 // into it. The limits are margins below the unit's "no further frequency increase" thresholds,
 // read from 3269 (Pd) and 3262 (Td); the defaults are used until those are read (EEPROM 114).
+// When 3269 holds no usable bar value the Pd fallback follows the refrigerant in 3497
+// (0 = R32/R410A, 1 = R290): R32 runs at much higher pressures, and R32 units (e.g. HP-S 95) store
+// 92/89/87 in 3267-3269 instead of bar, which would otherwise limit them at the R290 default.
 static const float DISCHARGE_LIMIT_DEFAULT_UNIT_PD_BAR = 26.0f;
+static const float DISCHARGE_LIMIT_DEFAULT_UNIT_PD_BAR_R32 = 36.0f;
+static const int OUTDOOR_UNIT_REFRIGERANT_R32 = 0;
 static const float DISCHARGE_LIMIT_DEFAULT_UNIT_TD_C = 95.0f;
 static const float DISCHARGE_LIMIT_HOLD_PD_MARGIN_BAR = 2.0f;
 static const float DISCHARGE_LIMIT_STEP_DOWN_PD_MARGIN_BAR = 1.0f;

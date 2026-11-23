@@ -210,6 +210,17 @@ private:
     return value;
   }
 
+  /// @brief Pd fallback when 3269 holds no usable bar value: depends on the refrigerant (3497).
+  static float GetDefaultUnitPdLimit()
+  {
+    const float refrigerant = id(outdoor_unit_refrigerant).state;
+    if (!std::isnan(refrigerant) && (int)refrigerant == OUTDOOR_UNIT_REFRIGERANT_R32)
+    {
+      return DISCHARGE_LIMIT_DEFAULT_UNIT_PD_BAR_R32;
+    }
+    return DISCHARGE_LIMIT_DEFAULT_UNIT_PD_BAR;
+  }
+
   /// @brief Keeps Pd and Td below the outdoor unit's own protection: hold the level when close,
   /// step down one level per DISCHARGE_LIMIT_STEP_DOWN_INTERVAL_S when closer.
   int ApplyDischargeSideLimit(int compressor_mode, int current_compressor_mode)
@@ -234,7 +245,7 @@ private:
       return discharge_limit_active_ ? std::min(compressor_mode, current_compressor_mode) : compressor_mode;
     }
 
-    const float unit_pd = GetUnitLimit(id(outdoor_unit_pd_no_increase_limit).state, DISCHARGE_LIMIT_DEFAULT_UNIT_PD_BAR, 15.0f, 45.0f);
+    const float unit_pd = GetUnitLimit(id(outdoor_unit_pd_no_increase_limit).state, GetDefaultUnitPdLimit(), 15.0f, 45.0f);
     const float unit_td = GetUnitLimit(id(outdoor_unit_td_no_increase_limit).state, DISCHARGE_LIMIT_DEFAULT_UNIT_TD_C, 70.0f, 130.0f);
 
     const bool step_down = (pd_valid && pd >= unit_pd - DISCHARGE_LIMIT_STEP_DOWN_PD_MARGIN_BAR) || (td_valid && td >= unit_td - DISCHARGE_LIMIT_STEP_DOWN_TD_MARGIN_C);
