@@ -48,6 +48,10 @@ private:
   uint32_t heating_rate_below_min_since_ms_ = 0;
   float last_temperature_rate_ = 0.0f;
   float last_measured_temperature_ = 0.0f;
+  // Return temperature (Tui) at the start of the rate window and its rate over the last window. A tank with a
+  // loading module is heated from the cold side up: Tw stays flat for a long time while Tui rises all along.
+  float last_measured_return_temperature_ = 0.0f;
+  float return_temperature_rate_ = NAN;
   uint32_t dhw_pump_settled_time_ = 0;
   uint32_t pump_flow_missing_since_ms_ = 0;
   uint32_t valve_safety_condition_since_ms_ = 0;
@@ -200,6 +204,9 @@ private:
     float rate = (current_temperature - last_measured_temperature_) / delta_min;
     id(dhw_backup_current_avg_rate_sensor).publish_state(rate);
     last_measured_temperature_ = current_temperature;
+    float current_return_temperature = id(inlet_temperature_tui).state;
+    return_temperature_rate_ = (current_return_temperature - last_measured_return_temperature_) / delta_min;
+    last_measured_return_temperature_ = current_return_temperature;
     last_rate_measured_time_ = now;
   }
 
@@ -237,6 +244,14 @@ private:
     }
 
     if (current_avg_rate >= min_avg_rate)
+    {
+      heating_rate_below_min_since_ms_ = 0;
+      return false;
+    }
+
+    // A rising return temperature also counts as progress: the tank is taking up heat, Tw just does not show it yet
+    // (tank with a loading module, or a sensor above the part that is being heated). NaN compares false.
+    if (return_temperature_rate_ >= min_avg_rate)
     {
       heating_rate_below_min_since_ms_ = 0;
       return false;
@@ -630,6 +645,8 @@ public:
 
       case DHWState::DHW_PUMP_SETTLED:
         last_measured_temperature_ = id(dhw_temperature_tw_sensor).state;
+        last_measured_return_temperature_ = id(inlet_temperature_tui).state;
+        return_temperature_rate_ = NAN;
         last_rate_measured_time_ = now;
         dhw_pump_settled_time_ = now;
         rate_window_active_ = true;
