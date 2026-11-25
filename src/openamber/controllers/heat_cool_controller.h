@@ -872,6 +872,12 @@ public:
         }
         else
         {
+          // The outdoor unit does not start the compressor while it preheats it (P07, about 30 min). Keep the pump
+          // running and start once the preheat is done, instead of letting the start time out.
+          if (compressor_controller_->IsWaitingForPreheat())
+          {
+            break;
+          }
           compressor_controller_->ApplyCompressorMode(DetermineSoftStartMode());
           compressor_controller_->ArmStartWaitTimer();
           SetNextState(HeatCoolState::WAIT_COMPRESSOR_RUNNING);
@@ -888,13 +894,17 @@ public:
           compressor_controller_->RecordStartTime();
           SetNextState(HeatCoolState::COMPRESSOR_SOFTSTART);
         }
-        else 
+        else
         {
           const uint32_t timeout_ms = COMPRESSOR_START_TIMEOUT_S * 1000UL;
           if ((now - compressor_controller_->GetStartWaitStartedTime()) >= timeout_ms)
           {
-            ESP_LOGE("amber", "Heat/cool compressor start timeout reached after %lu seconds, stopping system.", (unsigned long) COMPRESSOR_START_TIMEOUT_S);
-            id(error_compressor_start_timeout).publish_state(true);
+            if (compressor_controller_->RegisterStartTimeout())
+            {
+              ESP_LOGE("amber", "Heat/cool compressor start timeout reached after %lu seconds, stopping system.", (unsigned long) COMPRESSOR_START_TIMEOUT_S);
+              id(error_compressor_start_timeout).publish_state(true);
+            }
+            // WAIT_COMPRESSOR_STOP returns to PUMP_RUNNING, which retries after the minimum off time.
             compressor_controller_->Stop();
             SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
           }

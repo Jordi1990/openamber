@@ -295,6 +295,8 @@ switch:
     sorting_group_id: error_codes
   turn_on_action:
     - lambda: |-
+        id(compressor_start_failures) = 0;
+    - lambda: |-
         id(error_pump_start_timeout).publish_state(false);
         id(error_compressor_start_timeout).publish_state(false);
         id(error_compressor_unexpected_stop).publish_state(false);

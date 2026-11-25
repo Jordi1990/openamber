@@ -548,6 +548,11 @@ public:
           {
             break;
           }
+          // The outdoor unit does not start the compressor while it preheats it (P07, about 30 min).
+          if (compressor_controller_->IsWaitingForPreheat())
+          {
+            break;
+          }
           compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
           compressor_controller_->ArmStartWaitTimer();
           SetNextState(DHWState::WAIT_COMPRESSOR_RUNNING);
@@ -560,13 +565,17 @@ public:
           compressor_controller_->RecordStartTime();
           SetNextState(DHWState::COMPRESSOR_RUNNING);
         }
-        else 
+        else
         {
           const uint32_t timeout_ms = COMPRESSOR_START_TIMEOUT_S * 1000UL;
           if ((now - compressor_controller_->GetStartWaitStartedTime()) >= timeout_ms)
           {
-            ESP_LOGE("amber", "DHW compressor start timeout reached after %lu seconds, stopping system.", (unsigned long) COMPRESSOR_START_TIMEOUT_S);
-            id(error_compressor_start_timeout).publish_state(true);
+            if (compressor_controller_->RegisterStartTimeout())
+            {
+              ESP_LOGE("amber", "DHW compressor start timeout reached after %lu seconds, stopping system.", (unsigned long) COMPRESSOR_START_TIMEOUT_S);
+              id(error_compressor_start_timeout).publish_state(true);
+            }
+            // The DHW cycle ends; while the demand remains it starts again and retries after the minimum off time.
             compressor_controller_->Stop();
             SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
           }

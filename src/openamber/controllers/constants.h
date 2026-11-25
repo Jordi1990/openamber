@@ -65,6 +65,9 @@ static const uint32_t COMPRESSOR_MIN_OFF_S = 200;
 static const uint32_t COMPRESSOR_MIN_ON_S = 10 * 60;
 static const uint32_t COMPRESSOR_SOFT_START_DURATION_S = 3 * 60;
 static const uint32_t COMPRESSOR_START_TIMEOUT_S = 2 * 60;
+// A start that times out is retried after the minimum off time. Only this many failed starts in a row raise TO02,
+// which blocks all demand until it is reset, so a single refused start cannot stop heating for a whole night.
+static const uint32_t COMPRESSOR_START_MAX_ATTEMPTS = 3;
 static const uint32_t COMPRESSOR_MIN_TIME_PUMP_ON = 2 * 60;
 static const uint32_t COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 5 * 60;
 // A started compressor that reports 0 Hz this long, outside a defrost or oil return cycle, has been stopped by the
