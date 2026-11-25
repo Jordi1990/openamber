@@ -878,6 +878,10 @@ binary_sensor:
   entity_category: diagnostic
   web_server:
     sorting_group_id: error_codes
+  # OpenAmber errors (TO01-TO09) go to analytics as one bitmask, see send_errors_realtime.
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
 
 - platform: template
   id: error_compressor_start_timeout
@@ -886,6 +890,10 @@ binary_sensor:
   entity_category: diagnostic
   web_server:
     sorting_group_id: error_codes
+  # OpenAmber errors (TO01-TO09) go to analytics as one bitmask, see send_errors_realtime.
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
 
 - platform: template
   id: error_compressor_unexpected_stop
@@ -894,6 +902,10 @@ binary_sensor:
   entity_category: diagnostic
   web_server:
     sorting_group_id: error_codes
+  # OpenAmber errors (TO01-TO09) go to analytics as one bitmask, see send_errors_realtime.
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
 
 - platform: template
   id: error_pump_stop_timeout
@@ -902,6 +914,10 @@ binary_sensor:
   entity_category: diagnostic
   web_server:
     sorting_group_id: error_codes
+  # OpenAmber errors (TO01-TO09) go to analytics as one bitmask, see send_errors_realtime.
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
 
 - platform: template
   id: error_modbus_connection_timeout
@@ -910,6 +926,10 @@ binary_sensor:
   entity_category: diagnostic
   web_server:
     sorting_group_id: error_codes
+  # OpenAmber errors (TO01-TO09) go to analytics as one bitmask, see send_errors_realtime.
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
 
 - platform: template
   id: error_three_way_valve_state_timeout
@@ -918,6 +938,10 @@ binary_sensor:
   entity_category: diagnostic
   web_server:
     sorting_group_id: error_codes
+  # OpenAmber errors (TO01-TO09) go to analytics as one bitmask, see send_errors_realtime.
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
 
 - platform: template
   id: error_inside_unit_failsafe
@@ -926,6 +950,10 @@ binary_sensor:
   entity_category: diagnostic
   web_server:
     sorting_group_id: error_codes
+  # OpenAmber errors (TO01-TO09) go to analytics as one bitmask, see send_errors_realtime.
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
 
 - platform: template
   id: error_water_delta_t_too_high
@@ -934,6 +962,10 @@ binary_sensor:
   entity_category: diagnostic
   web_server:
     sorting_group_id: error_codes
+  # OpenAmber errors (TO01-TO09) go to analytics as one bitmask, see send_errors_realtime.
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
 
 - platform: template
   id: error_pump_flow_missing
@@ -942,6 +974,10 @@ binary_sensor:
   entity_category: diagnostic
   web_server:
     sorting_group_id: error_codes
+  # OpenAmber errors (TO01-TO09) go to analytics as one bitmask, see send_errors_realtime.
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
 
 - platform: template
   id: error_active

@@ -451,6 +451,22 @@ script:
                 root["e2119"] = (uint16_t) id(error_register_2119_raw).state;
                 root["e2120"] = (uint16_t) id(error_register_2120_raw).state;
                 root["e2121"] = (uint16_t) id(error_register_2121_raw).state;
+                // OpenAmber's own errors, one bit per error: bit 0 = TO01 ... bit 8 = TO09. Only append bits.
+                const binary_sensor::BinarySensor *oa_errors[] = {
+                  id(error_pump_start_timeout),             // TO01
+                  id(error_compressor_start_timeout),       // TO02
+                  id(error_pump_stop_timeout),              // TO03
+                  id(error_three_way_valve_state_timeout),  // TO04
+                  id(error_modbus_connection_timeout),      // TO05
+                  id(error_inside_unit_failsafe),           // TO06
+                  id(error_compressor_unexpected_stop),     // TO07
+                  id(error_water_delta_t_too_high),         // TO08
+                  id(error_pump_flow_missing)               // TO09
+                };
+                uint16_t oa_error_bits = 0;
+                for (size_t i = 0; i < sizeof(oa_errors) / sizeof(oa_errors[0]); i++)
+                  if (oa_errors[i]->state) oa_error_bits |= 1u << i;
+                root["eto"] = oa_error_bits;
 
 # Sends a telemetry snapshot shortly after a state machine transition, so start/stop
 # moments are not only visible on the 5 minute interval. The short delay combines
