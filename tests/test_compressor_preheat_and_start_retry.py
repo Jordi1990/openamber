@@ -1,22 +1,20 @@
 """Automated tests for the compressor preheat (P07) and the retry of a compressor start that times out.
 
 While the outdoor unit preheats the compressor (P07, register 2119 bit 0x40, about 30 min) it does not start the
-compressor. OpenAmber holds the start until P07 clears (at most COMPRESSOR_PREHEAT_MAX_WAIT_S, 35 min) instead of
-letting the start time out after COMPRESSOR_START_TIMEOUT_S (120 s). A preheat that starts after the start command
+compressor. OpenAmber holds the start until P07 clears instead of letting the start time out after COMPRESSOR_START_TIMEOUT_S (120 s). A preheat that starts after the start command
 cancels the start without counting it as a failed start.
 
 A start that times out without P07 is retried after the minimum off time. Only COMPRESSOR_START_MAX_ATTEMPTS (3)
 failed starts in a row raise TO02 (error_compressor_start_timeout), which blocks all demand until it is reset.
 """
 
-from helpers import advance_until_state, elapsed_s, now_s
+from helpers import advance_until_state
 
 P07 = 0x40
 ERROR = "error_compressor_start_timeout"
 PREHEAT_WAIT = "compressor_preheat_wait_active_sensor"
 FREQUENCY_OVERRIDE = "mock_compressor_frequency_override"
 PREHEAT_S = 30 * 60
-PREHEAT_MAX_WAIT_S = 35 * 60
 START_TIMEOUT_S = 120
 MAX_ATTEMPTS = 3
 
@@ -167,23 +165,6 @@ def test_heating_preheat_after_start_command_cancels_start(clean_system):
     set_preheat(openamber, False)
     outdoor_unit_refuses_start(openamber, False)
     assert advance_until_state(openamber, "state_machine_state_heat_cool", "Compressor softstart", max_s=60, step=1)
-    assert openamber.get_entity(ERROR) is False
-    cleanup(openamber)
-
-
-def test_heating_preheat_wait_is_bounded(clean_system):
-    """A P07 bit that never clears holds the start for at most 35 min."""
-    openamber = clean_system
-    set_preheat(openamber, True)
-    preheat_seen_at = now_s(openamber)
-    request_heating(openamber)
-    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Pump running", max_s=600, step=5)
-    remaining = PREHEAT_MAX_WAIT_S - 30 - elapsed_s(preheat_seen_at, now_s(openamber))
-    advance_without_compressor(openamber, int(remaining // 10) * 10, "state_machine_state_heat_cool")
-
-    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Compressor softstart", max_s=5 * 60, step=5), (
-        "The compressor must start once the maximum preheat wait has passed"
-    )
     assert openamber.get_entity(ERROR) is False
     cleanup(openamber)
 

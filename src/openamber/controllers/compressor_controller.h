@@ -45,12 +45,10 @@ private:
   int heating_ambient_band_ = -1;
   int cooling_ambient_band_ = -1;
   int last_logged_ambient_limit_ = -1;
-  // Compressor preheat (P07): when it was first seen (0 = not set), whether a controller held a start for it since
-  // the last UpdatePreheatTracking() call, and whether the indicator is on.
-  uint64_t preheat_since_ms_ = 0;
+  // Compressor preheat (P07): whether a controller held a start for it since the last UpdatePreheatTracking() call,
+  // and whether the indicator is on.
   bool preheat_wait_requested_ = false;
   bool preheat_wait_active_ = false;
-  bool preheat_limit_logged_ = false;
 
   /// @brief Ta offset for a step from one band to another: only a step to a lower, non-zero limit is
   /// delayed. The step to a band outside the operating range (level 1) is never delayed.
@@ -464,21 +462,10 @@ public:
     return false;
   }
 
-  /// @brief Call once per controller update, before the state machines run. Tracks how long the outdoor unit has
-  /// been preheating the compressor (P07) and publishes whether a start was held for it in the previous update.
+  /// @brief Call once per controller update, before the state machines run. Publishes whether a start was held
+  /// for the compressor preheat (P07) in the previous update.
   void UpdatePreheatTracking()
   {
-    if (!id(error_flag_p07).state)
-    {
-      preheat_since_ms_ = 0;
-      preheat_limit_logged_ = false;
-    }
-    else if (preheat_since_ms_ == 0)
-    {
-      const uint64_t now = millis_64();
-      preheat_since_ms_ = now == 0 ? 1 : now;
-    }
-
     if (preheat_wait_requested_ != preheat_wait_active_)
     {
       preheat_wait_active_ = preheat_wait_requested_;
@@ -495,28 +482,14 @@ public:
     preheat_wait_requested_ = false;
   }
 
-  /// @brief True while the outdoor unit preheats the compressor (P07): it would not start the compressor now, so
-  /// a start must not be commanded or timed. False once P07 has been set for COMPRESSOR_PREHEAT_MAX_WAIT_S.
+  /// @brief True while the outdoor unit preheats the compressor (P07, about 30 min): it does not start the
+  /// compressor then, so a start must not be commanded or timed. The bit clears when the preheat ends.
   bool IsWaitingForPreheat()
   {
     if (!id(error_flag_p07).state)
     {
       return false;
     }
-
-    const uint64_t now = millis_64();
-    const uint64_t since = preheat_since_ms_ != 0 ? preheat_since_ms_ : now;
-    if ((now - since) >= COMPRESSOR_PREHEAT_MAX_WAIT_S * 1000ULL)
-    {
-      if (!preheat_limit_logged_)
-      {
-        ESP_LOGW("amber", "Compressor preheat (P07) still active after %lu seconds, starting the compressor anyway.",
-                 (unsigned long) COMPRESSOR_PREHEAT_MAX_WAIT_S);
-        preheat_limit_logged_ = true;
-      }
-      return false;
-    }
-
     preheat_wait_requested_ = true;
     return true;
   }
