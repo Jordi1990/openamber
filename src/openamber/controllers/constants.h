@@ -43,6 +43,14 @@ static const uint32_t THREE_WAY_VALVE_PROTECTION_DELTA_TEMPERATURE_C = 5.0f;
 static const uint32_t THREE_WAY_VALVE_PROTECTION_HIGH_TEMPERATURE_TIME_S = 2 * 60;
 static const float THREE_WAY_VALVE_PROTECTION_TUO_TC_THRESHOLD_C = 5.0f;
 
+// Water delta-T safety check: the difference across the plate heat exchanger, in the direction the unit heats or
+// cools the water (heating and DHW: Tuo - Tui, cooling: Tui - Tuo), may not stay above this limit for
+// WATER_DELTA_T_SAFETY_DELAY_S. Then the unit stops and raises TO08.
+static const float HEAT_COOL_MAX_WATER_DELTA_T_C = 8.0f;
+static const float DHW_MAX_WATER_DELTA_T_C = 15.0f;
+// Tuo and Tui are read every 15 s, so this is about four readings in a row.
+static const uint32_t WATER_DELTA_T_SAFETY_DELAY_S = 60;
+
 // Controlled stop: regulation resumes by itself after this time, so a forgotten stop cannot cool the house.
 static const uint32_t CONTROLLED_STOP_AUTO_RESUME_S = 30 * 60;
 

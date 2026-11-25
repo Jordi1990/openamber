@@ -50,6 +50,7 @@ private:
   float compressor_cool_pid_ = 0.0f;
   float start_current_temperature_ = 0.0f;
   uint32_t pump_flow_missing_since_ms_ = 0;
+  uint32_t water_delta_t_exceeded_since_ms_ = 0;
   MixingValveActuator* mixing_valve_zone1_ = nullptr;
   MixingValveActuator* mixing_valve_zone2_ = nullptr;
   // True between StartSecondaryPumpsIfNeeded() and StopSecondaryPumpsIfNeeded(): P1 runs and P2 follows the zone 2
@@ -461,7 +462,8 @@ private:
 
       if ((now - pump_flow_missing_since_ms_) >= flow_switch_delay_ms)
       {
-        ESP_LOGW("amber", "Safety check: Pump flow missing for %.0f min while compressor is running, stopping compressor to avoid damage.", id(flow_switch_safety_delay_minutes).state);
+        ESP_LOGE("amber", "Safety check: Pump flow missing for %.0f min while compressor is running, stopping compressor to avoid damage.", id(flow_switch_safety_delay_minutes).state);
+        id(error_pump_flow_missing).publish_state(true);
         return true;
       }
     }
@@ -470,11 +472,37 @@ private:
       pump_flow_missing_since_ms_ = 0;
     }
 
-    // If temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stop compressor to avoid damage
-    if (fabsf(id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state) > 8.0f && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) && state_ != HeatCoolState::IDLE)
+    // Tuo-Tui difference in the direction the unit heats or cools the water. While heating, Tuo below Tui is the
+    // defrost itself (the plate heat exchanger briefly acts as evaporator), and its dip can last a few readings
+    // after the defrost ends: that is no reason to stop.
+    const float tuo = id(outlet_temperature_tuo).state;
+    const float tui = id(inlet_temperature_tui).state;
+    const bool cooling = IsWorkingMode(WORKING_MODE_COOLING);
+    const float water_delta_t = cooling ? tui - tuo : tuo - tui;
+    if (water_delta_t > HEAT_COOL_MAX_WATER_DELTA_T_C && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) &&
+        state_ != HeatCoolState::IDLE)
     {
-      ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stopping compressor to avoid damage.");
-      return true;
+      const uint32_t now = App.get_loop_component_start_time();
+      if (water_delta_t_exceeded_since_ms_ == 0)
+      {
+        water_delta_t_exceeded_since_ms_ = now;
+        ESP_LOGW("amber", "Safety check: %s delta-T %.2f°C above %.1f°C (Tuo %.2f°C, Tui %.2f°C), waiting %u s before shutdown.",
+                 cooling ? "Cooling" : "Heating", water_delta_t, HEAT_COOL_MAX_WATER_DELTA_T_C, tuo, tui,
+                 (unsigned) WATER_DELTA_T_SAFETY_DELAY_S);
+      }
+
+      if ((now - water_delta_t_exceeded_since_ms_) >= WATER_DELTA_T_SAFETY_DELAY_S * 1000UL)
+      {
+        ESP_LOGE("amber", "Safety check: %s delta-T %.2f°C above %.1f°C for %u s (Tuo %.2f°C, Tui %.2f°C), stopping to avoid damage.",
+                 cooling ? "Cooling" : "Heating", water_delta_t, HEAT_COOL_MAX_WATER_DELTA_T_C,
+                 (unsigned) WATER_DELTA_T_SAFETY_DELAY_S, tuo, tui);
+        id(error_water_delta_t_too_high).publish_state(true);
+        return true;
+      }
+    }
+    else
+    {
+      water_delta_t_exceeded_since_ms_ = 0;
     }
 
     return false;
@@ -520,6 +548,7 @@ public:
     requested_to_stop_ = false;
     start_current_temperature_ = 0.0f;
     pump_flow_missing_since_ms_ = 0;
+    water_delta_t_exceeded_since_ms_ = 0;
     pump_controller_->AdoptRunningPump();
     const bool cooling = IsWorkingMode(WORKING_MODE_COOLING);
 

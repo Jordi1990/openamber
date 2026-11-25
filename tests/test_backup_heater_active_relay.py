@@ -67,6 +67,9 @@ def test_heat_cool_delta_t_safety_follows_external_relay(clean_system):
         "Safety stop must trigger while the external relay reports the element on"
     )
     assert openamber.get_entity("external_backup_heating_relay") is False, "Safety stop must switch the external relay off"
+    assert openamber.get_entity("error_water_delta_t_too_high") is True, "The safety stop must raise TO08"
+    openamber.set_switch("reset_start_timeout_errors_switch", True)
+    openamber.step(ms=50)
 
     # The system restarts the cycle. During the pump phase the element is off, so the same 10 K
     # difference may not trigger the safety stop any more (it did when the function returned true
@@ -114,6 +117,9 @@ def test_dhw_delta_t_safety_follows_external_relay(clean_system):
         "Safety stop must trigger while the external relay reports the element on"
     )
     assert openamber.get_entity("external_backup_heating_relay") is False
+    assert openamber.get_entity("error_water_delta_t_too_high") is True, "The safety stop must raise TO08"
+    openamber.set_switch("reset_start_timeout_errors_switch", True)
+    openamber.step(ms=50)
 
     # Restart: during the pump phase the element is off, so 16 K may not trigger the stop.
     assert advance_until_state(openamber, "state_machine_state_dhw", "Pump running", max_s=300, step=5), (

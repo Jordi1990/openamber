@@ -657,7 +657,7 @@ def test_ota_hold_times_out_without_progress(clean_system):
 
 
 def test_ota_hold_does_not_block_safety_stop(clean_system):
-    """A safety condition (Tuo-Tui difference) during the hold stops the compressor at once."""
+    """A safety condition (Tuo-Tui difference for 60 s) during the hold stops the compressor."""
     openamber = clean_system
     try:
         _heating_past_min_on_time(openamber)
@@ -668,11 +668,13 @@ def test_ota_hold_does_not_block_safety_stop(clean_system):
         openamber.set_sensor("outlet_temperature_tuo", 40.0)
         openamber.set_sensor("inlet_temperature_tui", 30.0)
         assert openamber.set_switch("mock_ota_progress", True)
-        openamber.advance_time(seconds=10, step_s=5)
+        openamber.advance_time(seconds=70, step_s=5)
         openamber.step(ms=50)
         assert _level(openamber) == 0, "Safety stop must not be held by the OTA update"
+        assert openamber.get_entity("error_water_delta_t_too_high") is True
     finally:
         openamber.set_switch("mock_ota_error", True)
+        openamber.set_switch("reset_start_timeout_errors_switch", True)
 
 
 def test_ota_hold_does_not_block_modbus_connection_timeout(clean_system):
