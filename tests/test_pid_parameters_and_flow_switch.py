@@ -182,6 +182,15 @@ def test_negative_delta_t_while_heating_does_not_stop(clean_system):
     assert openamber.get_entity("state_machine_state_heat_cool") != "Idle"
     assert openamber.get_entity("error_water_delta_t_too_high") is False
 
+    # Also beyond the 15°C heating limit: only Tuo above Tui counts while heating.
+    openamber.set_sensor("outlet_temperature_tuo", 16.5)
+    openamber.advance_time(seconds=120, step_s=5)
+    openamber.step(ms=50)
+
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0, "Tuo 16°C below Tui must not stop heating"
+    assert openamber.get_entity("state_machine_state_heat_cool") != "Idle"
+    assert openamber.get_entity("error_water_delta_t_too_high") is False
+
     # Cleanup
     openamber.set_sensor("outlet_temperature_tuo", 28.0)
     openamber.set_sensor("inlet_temperature_tui", 26.0)

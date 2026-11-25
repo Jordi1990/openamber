@@ -575,6 +575,10 @@ script:
     - delay: 150ms
     - script.execute: send_telemetry_4
     - delay: 150ms
+    # Resend the error registers and the "eto" bitmask with every batch, so an error change whose realtime
+    # publish was lost (no connection) is corrected on the next batch.
+    - script.execute: send_errors_realtime
+    - delay: 150ms
     - script.execute: fetch_analytics_device_id
 
 - id: dump_eeprom_parameters_ui_disable
