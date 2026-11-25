@@ -5,7 +5,7 @@ compressor recovery boost mode (+3 steps), and low ambient backup heater boost.
 
 import pytest
 
-from helpers import set_outside_temperature
+from helpers import set_outside_temperature, start_space_heating
 
 
 def test_heat_defrost_recovery_boost_and_settle_time(clean_system):
@@ -382,3 +382,39 @@ def test_dhw_defrost_flow_and_settle_time(clean_system):
 
     assert openamber.get_entity("three_way_valve_dhw_switch") is False, "Valve should switch back to heating/cooling"
     assert openamber.get_entity("state_machine_state_main") == "Heat/Cool", "Main state should return to Heat/Cool"
+
+
+def test_defrost_tuo_dip_does_not_trip_delta_t_safety(clean_system):
+    """
+    Regression (field case 2026-11-25 10:26): during a defrost the plate heat exchanger cools the water, so at
+    the end Tuo is well below Tui (Tuo 24.5, Tui 32.6). The old check stopped on |Tuo - Tui| > 8 at once,
+    five seconds after the defrost. Tuo below Tui while heating is the defrost itself: no stop, no TO08.
+    """
+    openamber = clean_system
+    set_outside_temperature(openamber, 5.0)  # above the defrost backup heater boost temperature
+    start_space_heating(openamber, tc=30.0, target=38.0)
+
+    openamber.set_binary_sensor("defrost_active_sensor", True)
+    openamber.advance_time(seconds=10, step_s=2)
+    openamber.step(ms=50)
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Defrosting"
+
+    # End of the defrost: Tuo 8.1 K below Tui (beyond the old 8 K absolute limit), in the defrost and after it.
+    openamber.set_sensor("inlet_temperature_tui", 32.6)
+    openamber.set_sensor("outlet_temperature_tuo", 24.5)
+    openamber.advance_time(seconds=30, step_s=5)
+    openamber.set_binary_sensor("defrost_active_sensor", False)
+    openamber.advance_time(seconds=120, step_s=5)
+    openamber.step(ms=50)
+
+    assert openamber.get_entity("error_water_delta_t_too_high") is False, "Tuo below Tui must not raise TO08"
+    assert openamber.get_entity("error_active") is False
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Wait for state switch", (
+        f"Heating must continue with the post-defrost settle time, got "
+        f"{openamber.get_entity('state_machine_state_heat_cool')}"
+    )
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0, "The compressor must keep running"
+
+    # Cleanup
+    openamber.set_switch("heat_demand_switch", False)
+    openamber.step(ms=50)

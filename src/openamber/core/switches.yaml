@@ -302,6 +302,8 @@ switch:
         id(error_modbus_connection_timeout).publish_state(false);
         id(error_three_way_valve_state_timeout).publish_state(false);
         id(error_inside_unit_failsafe).publish_state(false);
+        id(error_water_delta_t_too_high).publish_state(false);
+        id(error_pump_flow_missing).publish_state(false);
     - switch.turn_off: reset_start_timeout_errors_switch
 
 - platform: template
