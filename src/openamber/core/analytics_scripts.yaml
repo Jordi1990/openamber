@@ -37,6 +37,53 @@ text_sensor:
           last_state = x;
           id(schedule_send_state_snapshot).execute();
 
+# OpenAmber errors (TO01-TO09) go to analytics as one bitmask ("eto"), see send_errors_realtime.
+binary_sensor:
+- id: !extend error_pump_start_timeout
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
+
+- id: !extend error_compressor_start_timeout
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
+
+- id: !extend error_pump_stop_timeout
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
+
+- id: !extend error_three_way_valve_state_timeout
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
+
+- id: !extend error_modbus_connection_timeout
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
+
+- id: !extend error_inside_unit_failsafe
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
+
+- id: !extend error_compressor_unexpected_stop
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
+
+- id: !extend error_water_delta_t_too_high
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
+
+- id: !extend error_pump_flow_missing
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
+
 script:
 - id: fetch_analytics_device_id
   then:

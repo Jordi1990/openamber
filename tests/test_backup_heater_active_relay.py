@@ -11,6 +11,23 @@ safety checks and the transition to BACKUP_HEATER_RUNNING in both controllers:
 from helpers import advance_until_state
 
 
+def hold_without_element(openamber, state_entity, seconds=75):
+    """Hold the current Tuo-Tui difference past the 60 s safety delay while the element stays off.
+
+    Stops early when the element starts, because from then on a safety stop is legitimate. Until then the
+    state may not drop to Idle and TO08 may not be raised.
+    """
+    for _ in range(seconds // 5):
+        openamber.advance_time(seconds=5, step_s=5)
+        openamber.step(ms=50)
+        if openamber.get_entity("external_backup_heating_relay") is True:
+            break
+        assert openamber.get_entity(state_entity) != "Idle", (
+            "With the external relay off, a Tuo-Tui difference must not stop the system"
+        )
+        assert openamber.get_entity("error_water_delta_t_too_high") is False
+
+
 def test_dhw_emergency_external_backup_runs_on_external_relay(clean_system):
     """DHW emergency heating with 'Externe backup verwarming' runs on the external relay."""
     openamber = clean_system
@@ -78,11 +95,7 @@ def test_heat_cool_delta_t_safety_follows_external_relay(clean_system):
         f"Heating never restarted after the safety stop "
         f"(heat/cool: {openamber.get_entity('state_machine_state_heat_cool')})"
     )
-    openamber.advance_time(seconds=60, step_s=10)
-    openamber.step(ms=100)
-    assert openamber.get_entity("state_machine_state_heat_cool") != "Idle", (
-        "With the external relay off, a Tuo-Tui difference must not stop the system"
-    )
+    hold_without_element(openamber, "state_machine_state_heat_cool")
 
     # The element takes over again and is safe to run with a small difference.
     openamber.set_sensor("outlet_temperature_tuo", 27.0)
@@ -125,11 +138,7 @@ def test_dhw_delta_t_safety_follows_external_relay(clean_system):
     assert advance_until_state(openamber, "state_machine_state_dhw", "Pump running", max_s=300, step=5), (
         f"DHW never restarted after the safety stop (dhw: {openamber.get_entity('state_machine_state_dhw')})"
     )
-    openamber.advance_time(seconds=30, step_s=10)
-    openamber.step(ms=100)
-    assert openamber.get_entity("state_machine_state_dhw") != "Idle", (
-        "With the external relay off, a Tuo-Tui difference must not stop DHW heating"
-    )
+    hold_without_element(openamber, "state_machine_state_dhw")
 
     openamber.set_sensor("outlet_temperature_tuo", 31.0)
     assert advance_until_state(openamber, "state_machine_state_dhw", "Backup heater running", max_s=300, step=5), (
