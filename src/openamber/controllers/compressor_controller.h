@@ -45,10 +45,6 @@ private:
   int heating_ambient_band_ = -1;
   int cooling_ambient_band_ = -1;
   int last_logged_ambient_limit_ = -1;
-  // Compressor preheat (P07): whether a controller held a start for it since the last UpdatePreheatTracking() call,
-  // and whether the indicator is on.
-  bool preheat_wait_requested_ = false;
-  bool preheat_wait_active_ = false;
 
   /// @brief Ta offset for a step from one band to another: only a step to a lower, non-zero limit is
   /// delayed. The step to a band outside the operating range (level 1) is never delayed.
@@ -462,36 +458,11 @@ public:
     return false;
   }
 
-  /// @brief Call once per controller update, before the state machines run. Publishes whether a start was held
-  /// for the compressor preheat (P07) in the previous update.
-  void UpdatePreheatTracking()
-  {
-    if (preheat_wait_requested_ != preheat_wait_active_)
-    {
-      preheat_wait_active_ = preheat_wait_requested_;
-      if (preheat_wait_active_)
-      {
-        ESP_LOGI("amber", "Waiting for compressor preheat (P07) before starting the compressor.");
-      }
-      else
-      {
-        ESP_LOGI("amber", "No longer waiting for compressor preheat (P07).");
-      }
-      id(compressor_preheat_wait_active_sensor).publish_state(preheat_wait_active_);
-    }
-    preheat_wait_requested_ = false;
-  }
-
   /// @brief True while the outdoor unit preheats the compressor (P07, about 30 min): it does not start the
-  /// compressor then, so a start must not be commanded or timed. The bit clears when the preheat ends.
+  /// compressor then, so a start must not be commanded. The bit clears when the preheat ends.
   bool IsWaitingForPreheat()
   {
-    if (!id(error_flag_p07).state)
-    {
-      return false;
-    }
-    preheat_wait_requested_ = true;
-    return true;
+    return id(error_flag_p07).state;
   }
 
   void ArmStartWaitTimer()

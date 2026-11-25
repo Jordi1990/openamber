@@ -1,8 +1,8 @@
 """Automated tests for the compressor preheat (P07) and the retry of a compressor start that times out.
 
 While the outdoor unit preheats the compressor (P07, register 2119 bit 0x40, about 30 min) it does not start the
-compressor. OpenAmber holds the start until P07 clears instead of letting the start time out after COMPRESSOR_START_TIMEOUT_S (120 s). A preheat that starts after the start command
-cancels the start without counting it as a failed start.
+compressor. OpenAmber holds the start until P07 clears instead of letting the start time out after
+COMPRESSOR_START_TIMEOUT_S (120 s).
 
 A start that times out without P07 is retried after the minimum off time. Only COMPRESSOR_START_MAX_ATTEMPTS (3)
 failed starts in a row raise TO02 (error_compressor_start_timeout), which blocks all demand until it is reset.
@@ -12,7 +12,6 @@ from helpers import advance_until_state
 
 P07 = 0x40
 ERROR = "error_compressor_start_timeout"
-PREHEAT_WAIT = "compressor_preheat_wait_active_sensor"
 FREQUENCY_OVERRIDE = "mock_compressor_frequency_override"
 PREHEAT_S = 30 * 60
 START_TIMEOUT_S = 120
@@ -134,7 +133,6 @@ def test_heating_waits_for_preheat_instead_of_start_timeout(clean_system):
     # Pump settle time and minimum off time pass while the preheat goes on; the start stays held.
     advance_without_compressor(openamber, PREHEAT_S - 9 * 60 - 120, "state_machine_state_heat_cool")
     assert openamber.get_entity("state_machine_state_heat_cool") == "Pump running"
-    assert openamber.get_entity(PREHEAT_WAIT) is True, "The preheat wait must be shown"
 
     set_preheat(openamber, False)
     assert advance_until_state(openamber, "state_machine_state_heat_cool", "Compressor softstart", max_s=60, step=1), (
@@ -142,29 +140,6 @@ def test_heating_waits_for_preheat_instead_of_start_timeout(clean_system):
     )
     openamber.advance_time(seconds=10, step_s=5)
     openamber.step(ms=50)
-    assert openamber.get_entity(PREHEAT_WAIT) is False
-    assert openamber.get_entity(ERROR) is False
-    cleanup(openamber)
-
-
-def test_heating_preheat_after_start_command_cancels_start(clean_system):
-    """P07 that appears while the start is pending cancels the start without TO02; it starts after P07 clears."""
-    openamber = clean_system
-    outdoor_unit_refuses_start(openamber, True)
-    request_heating(openamber)
-    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Wait compressor running", max_s=1800, step=5)
-    assert compressor_mode(openamber) > 0
-
-    set_preheat(openamber, True)
-    openamber.advance_time(seconds=10, step_s=5)
-    openamber.step(ms=50)
-    assert compressor_mode(openamber) == 0, "The start must be cancelled during the preheat"
-    advance_without_compressor(openamber, PREHEAT_S, "state_machine_state_heat_cool")
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Pump running"
-
-    set_preheat(openamber, False)
-    outdoor_unit_refuses_start(openamber, False)
-    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Compressor softstart", max_s=60, step=1)
     assert openamber.get_entity(ERROR) is False
     cleanup(openamber)
 
@@ -227,7 +202,6 @@ def test_dhw_waits_for_preheat_instead_of_start_timeout(clean_system):
     )
     advance_without_compressor(openamber, PREHEAT_S - 9 * 60 - 120, "state_machine_state_dhw")
     assert openamber.get_entity("state_machine_state_dhw") == "Pump running"
-    assert openamber.get_entity(PREHEAT_WAIT) is True
 
     set_preheat(openamber, False)
     assert advance_until_compressor_runs(openamber, max_s=60), (

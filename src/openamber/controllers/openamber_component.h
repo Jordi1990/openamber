@@ -72,8 +72,6 @@ void OpenAmberComponent::loop()
 
 void OpenAmberComponent::update()
 {
-  compressor_controller_->UpdatePreheatTracking();
-
   if ((state_ == State::HEAT_COOL || state_ == State::DHW_HEAT) && !id(pump_p0_relay_switch).state)
   {
     ota_in_progress_ = false;

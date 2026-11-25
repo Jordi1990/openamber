@@ -864,14 +864,6 @@ public:
           compressor_controller_->RecordStartTime();
           SetNextState(HeatCoolState::COMPRESSOR_SOFTSTART);
         }
-        else if (compressor_controller_->IsWaitingForPreheat())
-        {
-          // The preheat started after the start command: cancel the start, it does not count as a failed start.
-          // PUMP_RUNNING starts again once the preheat is done.
-          ESP_LOGI("amber", "Heat/cool: compressor preheat (P07) started, cancelling the compressor start until it ends.");
-          compressor_controller_->Stop();
-          SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
-        }
         else
         {
           const uint32_t timeout_ms = COMPRESSOR_START_TIMEOUT_S * 1000UL;
