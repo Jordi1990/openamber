@@ -3,7 +3,7 @@
 The function used to return true whenever external backup heating was selected, even with the
 external relay off. It now reports the state of external_backup_heating_relay, which arms the
 safety checks and the transition to BACKUP_HEATER_RUNNING in both controllers:
-- heat/cool: Tuo-Tui difference above 8 K stops the running unit (PerformSafetyChecks),
+- heat/cool: Tuo-Tui difference above 15 K (heating) stops the running unit (PerformSafetyChecks),
 - DHW: Tuo-Tui difference above 15 K stops the running unit,
 - WAIT_BACKUP_HEATER_RUNNING only continues once the backup heater reports as active.
 """
@@ -59,7 +59,7 @@ def test_dhw_emergency_external_backup_runs_on_external_relay(clean_system):
 
 
 def test_heat_cool_delta_t_safety_follows_external_relay(clean_system):
-    """The 8 K Tuo-Tui stop only applies in external mode while the external relay is on."""
+    """The 15 K Tuo-Tui heating stop only applies in external mode while the external relay is on."""
     openamber = clean_system
 
     assert openamber.set_switch("emergency_mode_enabled", True)
@@ -78,8 +78,8 @@ def test_heat_cool_delta_t_safety_follows_external_relay(clean_system):
     )
     assert openamber.get_entity("external_backup_heating_relay") is True
 
-    # Relay on: a 10 K difference is dangerous and must trigger the safety stop.
-    openamber.set_sensor("outlet_temperature_tuo", 36.0)  # Tui is 25 K from clean_system
+    # Relay on: a 17 K difference points to missing flow and must trigger the safety stop.
+    openamber.set_sensor("outlet_temperature_tuo", 42.0)  # Tui is 25 K from clean_system
     assert advance_until_state(openamber, "state_machine_state_heat_cool", "Idle", max_s=120, step=5), (
         "Safety stop must trigger while the external relay reports the element on"
     )
@@ -88,7 +88,7 @@ def test_heat_cool_delta_t_safety_follows_external_relay(clean_system):
     openamber.set_switch("reset_start_timeout_errors_switch", True)
     openamber.step(ms=50)
 
-    # The system restarts the cycle. During the pump phase the element is off, so the same 10 K
+    # The system restarts the cycle. During the pump phase the element is off, so the same 17 K
     # difference may not trigger the safety stop any more (it did when the function returned true
     # for external mode regardless of the relay).
     assert advance_until_state(openamber, "state_machine_state_heat_cool", "Pump running", max_s=1300, step=10), (

@@ -479,7 +479,8 @@ private:
     const float tui = id(inlet_temperature_tui).state;
     const bool cooling = IsWorkingMode(WORKING_MODE_COOLING);
     const float water_delta_t = cooling ? tui - tuo : tuo - tui;
-    if (water_delta_t > HEAT_COOL_MAX_WATER_DELTA_T_C && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) &&
+    const float max_water_delta_t = cooling ? COOLING_MAX_WATER_DELTA_T_C : HEATING_MAX_WATER_DELTA_T_C;
+    if (water_delta_t > max_water_delta_t && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) &&
         state_ != HeatCoolState::IDLE)
     {
       const uint32_t now = App.get_loop_component_start_time();
@@ -487,14 +488,14 @@ private:
       {
         water_delta_t_exceeded_since_ms_ = now;
         ESP_LOGW("amber", "Safety check: %s delta-T %.2f°C above %.1f°C (Tuo %.2f°C, Tui %.2f°C), waiting %u s before shutdown.",
-                 cooling ? "Cooling" : "Heating", water_delta_t, HEAT_COOL_MAX_WATER_DELTA_T_C, tuo, tui,
+                 cooling ? "Cooling" : "Heating", water_delta_t, max_water_delta_t, tuo, tui,
                  (unsigned) WATER_DELTA_T_SAFETY_DELAY_S);
       }
 
       if ((now - water_delta_t_exceeded_since_ms_) >= WATER_DELTA_T_SAFETY_DELAY_S * 1000UL)
       {
         ESP_LOGE("amber", "Safety check: %s delta-T %.2f°C above %.1f°C for %u s (Tuo %.2f°C, Tui %.2f°C), stopping to avoid damage.",
-                 cooling ? "Cooling" : "Heating", water_delta_t, HEAT_COOL_MAX_WATER_DELTA_T_C,
+                 cooling ? "Cooling" : "Heating", water_delta_t, max_water_delta_t,
                  (unsigned) WATER_DELTA_T_SAFETY_DELAY_S, tuo, tui);
         id(error_water_delta_t_too_high).publish_state(true);
         return true;

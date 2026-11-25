@@ -665,7 +665,7 @@ def test_ota_hold_does_not_block_safety_stop(clean_system):
         openamber.advance_time(seconds=10, step_s=5)
         assert _level(openamber) > 0
 
-        openamber.set_sensor("outlet_temperature_tuo", 40.0)
+        openamber.set_sensor("outlet_temperature_tuo", 46.0)
         openamber.set_sensor("inlet_temperature_tui", 30.0)
         assert openamber.set_switch("mock_ota_progress", True)
         openamber.advance_time(seconds=70, step_s=5)

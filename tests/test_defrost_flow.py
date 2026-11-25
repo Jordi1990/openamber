@@ -399,7 +399,7 @@ def test_defrost_tuo_dip_does_not_trip_delta_t_safety(clean_system):
     openamber.step(ms=50)
     assert openamber.get_entity("state_machine_state_heat_cool") == "Defrosting"
 
-    # End of the defrost: Tuo 8.1 K below Tui, beyond the 8 K limit, in the defrost and after it.
+    # End of the defrost: Tuo 8.1 K below Tui (beyond the old 8 K absolute limit), in the defrost and after it.
     openamber.set_sensor("inlet_temperature_tui", 32.6)
     openamber.set_sensor("outlet_temperature_tuo", 24.5)
     openamber.advance_time(seconds=30, step_s=5)

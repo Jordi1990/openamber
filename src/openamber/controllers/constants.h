@@ -46,7 +46,11 @@ static const float THREE_WAY_VALVE_PROTECTION_TUO_TC_THRESHOLD_C = 5.0f;
 // Water delta-T safety check: the difference across the plate heat exchanger, in the direction the unit heats or
 // cools the water (heating and DHW: Tuo - Tui, cooling: Tui - Tuo), may not stay above this limit for
 // WATER_DELTA_T_SAFETY_DELAY_S. Then the unit stops and raises TO08.
-static const float HEAT_COOL_MAX_WATER_DELTA_T_C = 8.0f;
+// The check catches missing flow (stuck pump, air, closed valves). While heating a large difference is no risk in
+// itself: at full compressor power with a moderate pump speed it reaches 8 °C in normal operation, so heating uses
+// the same limit as DHW. Cooling keeps 8 °C because of the freezing risk in the plate heat exchanger.
+static const float HEATING_MAX_WATER_DELTA_T_C = 15.0f;
+static const float COOLING_MAX_WATER_DELTA_T_C = 8.0f;
 static const float DHW_MAX_WATER_DELTA_T_C = 15.0f;
 // Tuo and Tui are read every 15 s, so this is about four readings in a row.
 static const uint32_t WATER_DELTA_T_SAFETY_DELAY_S = 60;
