@@ -51,6 +51,8 @@ private:
   float start_current_temperature_ = 0.0f;
   uint32_t pump_flow_missing_since_ms_ = 0;
   uint32_t water_delta_t_exceeded_since_ms_ = 0;
+  uint32_t water_delta_t_last_step_down_ms_ = 0;
+  bool water_delta_t_limit_active_ = false;
   MixingValveActuator* mixing_valve_zone1_ = nullptr;
   MixingValveActuator* mixing_valve_zone2_ = nullptr;
   // True between StartSecondaryPumpsIfNeeded() and StopSecondaryPumpsIfNeeded(): P1 runs and P2 follows the zone 2
@@ -672,6 +674,54 @@ public:
     return capped_mode_index;
   }
 
+  /// @brief Keeps the Tuo-Tui difference below the safety limit by holding back the compressor: a rising
+  /// compressor frequency with a fixed pump speed widens the difference until the safety check stops the unit.
+  int ApplyWaterDeltaTLimit(int compressor_mode)
+  {
+    const int current_compressor_mode = id(compressor_control_select).active_index().value();
+    const float tuo = id(outlet_temperature_tuo).state;
+    const float tui = id(inlet_temperature_tui).state;
+    if (current_compressor_mode <= 0 || std::isnan(tuo) || std::isnan(tui))
+    {
+      water_delta_t_limit_active_ = false;
+      return compressor_mode;
+    }
+
+    const bool cooling = IsWorkingMode(WORKING_MODE_COOLING);
+    const float water_delta_t = cooling ? tui - tuo : tuo - tui;
+    const float hold_from = HEAT_COOL_MAX_WATER_DELTA_T_C - HEAT_COOL_WATER_DELTA_T_HOLD_MARGIN_K;
+    const float step_down_from = HEAT_COOL_MAX_WATER_DELTA_T_C - HEAT_COOL_WATER_DELTA_T_STEP_DOWN_MARGIN_K;
+
+    if (water_delta_t < hold_from)
+    {
+      if (water_delta_t_limit_active_)
+      {
+        ESP_LOGI("amber", "Water delta-T limiter released (delta-T %.2f°C).", water_delta_t);
+        water_delta_t_limit_active_ = false;
+      }
+      return compressor_mode;
+    }
+
+    if (!water_delta_t_limit_active_)
+    {
+      ESP_LOGW("amber", "Water delta-T limiter active: delta-T %.2f°C (Tuo %.2f°C, Tui %.2f°C), compressor held at mode %d.",
+               water_delta_t, tuo, tui, current_compressor_mode);
+      water_delta_t_limit_active_ = true;
+    }
+
+    int limited_mode = std::min(compressor_mode, current_compressor_mode);
+    const uint32_t now = App.get_loop_component_start_time();
+    if (water_delta_t >= step_down_from && current_compressor_mode > 1 &&
+        (now - water_delta_t_last_step_down_ms_) >= WATER_DELTA_T_STEP_DOWN_INTERVAL_S * 1000UL)
+    {
+      limited_mode = std::min(limited_mode, current_compressor_mode - 1);
+      water_delta_t_last_step_down_ms_ = now;
+      ESP_LOGW("amber", "Water delta-T %.2f°C close to the %.1f°C limit, stepping compressor down to mode %d.",
+               water_delta_t, HEAT_COOL_MAX_WATER_DELTA_T_C, limited_mode);
+    }
+    return limited_mode;
+  }
+
   bool ShouldStopCompressor()
   {
     // Never stop during a defrost, including the pre-phase (2118 set), or an oil return cycle, whatever the reason
@@ -1001,7 +1051,7 @@ public:
           InitializeBackupDegMinTracking();
         }
 
-        compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
+        compressor_controller_->ApplyCompressorMode(ApplyWaterDeltaTLimit(DetermineCompressorMode()));
         break;
       }
 

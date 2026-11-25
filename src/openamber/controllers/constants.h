@@ -47,6 +47,11 @@ static const float THREE_WAY_VALVE_PROTECTION_TUO_TC_THRESHOLD_C = 5.0f;
 // cools the water (heating and DHW: Tuo - Tui, cooling: Tui - Tuo), may not stay above this limit for
 // WATER_DELTA_T_SAFETY_DELAY_S. Then the unit stops and raises TO08.
 static const float HEAT_COOL_MAX_WATER_DELTA_T_C = 8.0f;
+// Below the safety limit the compressor is held back instead of stopped: from the hold margin it may not
+// modulate up, from the step-down margin it steps down one mode per WATER_DELTA_T_STEP_DOWN_INTERVAL_S.
+static const float HEAT_COOL_WATER_DELTA_T_HOLD_MARGIN_K = 1.0f;
+static const float HEAT_COOL_WATER_DELTA_T_STEP_DOWN_MARGIN_K = 0.5f;
+static const uint32_t WATER_DELTA_T_STEP_DOWN_INTERVAL_S = 60;
 static const float DHW_MAX_WATER_DELTA_T_C = 15.0f;
 // Tuo and Tui are read every 15 s, so this is about four readings in a row.
 static const uint32_t WATER_DELTA_T_SAFETY_DELAY_S = 60;
