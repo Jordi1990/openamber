@@ -1011,6 +1011,15 @@ binary_sensor:
     sorting_group_id: diagnostic
 
 - platform: template
+  id: compressor_preheat_wait_active_sensor
+  name: "Wacht op compressor voorverwarming"
+  # A compressor start is held while the outdoor unit preheats the compressor (P07).
+  device_class: running
+  entity_category: diagnostic
+  web_server: 
+    sorting_group_id: diagnostic
+
+- platform: template
   id: discharge_side_limit_active_sensor
   name: "Perskantbewaking actief"
   device_class: running

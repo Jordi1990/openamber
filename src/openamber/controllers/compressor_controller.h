@@ -45,6 +45,12 @@ private:
   int heating_ambient_band_ = -1;
   int cooling_ambient_band_ = -1;
   int last_logged_ambient_limit_ = -1;
+  // Compressor preheat (P07): when it was first seen (0 = not set), whether a controller held a start for it since
+  // the last UpdatePreheatTracking() call, and whether the indicator is on.
+  uint64_t preheat_since_ms_ = 0;
+  bool preheat_wait_requested_ = false;
+  bool preheat_wait_active_ = false;
+  bool preheat_limit_logged_ = false;
 
   /// @brief Ta offset for a step from one band to another: only a step to a lower, non-zero limit is
   /// delayed. The step to a band outside the operating range (level 1) is never delayed.
@@ -434,9 +440,85 @@ public:
 
   void RecordStartTime()
   {
+    // The compressor runs: earlier failed starts no longer count towards TO02.
+    id(compressor_start_failures) = 0;
     not_running_since_ms_ = 0;
     ClearStartWaitTimer();
     last_compressor_start_ms_ = millis_64();
+  }
+
+  /// @brief Counts a start that timed out. Returns true when this was the last allowed attempt
+  /// (COMPRESSOR_START_MAX_ATTEMPTS in a row), so the caller raises TO02; otherwise the start is retried.
+  bool RegisterStartTimeout()
+  {
+    int &failures = id(compressor_start_failures);
+    failures++;
+    if (failures >= (int) COMPRESSOR_START_MAX_ATTEMPTS)
+    {
+      ESP_LOGE("amber", "Compressor did not start within %lu seconds, %d attempts in a row failed.",
+               (unsigned long) COMPRESSOR_START_TIMEOUT_S, failures);
+      return true;
+    }
+    ESP_LOGW("amber", "Compressor did not start within %lu seconds (attempt %d of %lu), retrying after the minimum off time.",
+             (unsigned long) COMPRESSOR_START_TIMEOUT_S, failures, (unsigned long) COMPRESSOR_START_MAX_ATTEMPTS);
+    return false;
+  }
+
+  /// @brief Call once per controller update, before the state machines run. Tracks how long the outdoor unit has
+  /// been preheating the compressor (P07) and publishes whether a start was held for it in the previous update.
+  void UpdatePreheatTracking()
+  {
+    if (!id(error_flag_p07).state)
+    {
+      preheat_since_ms_ = 0;
+      preheat_limit_logged_ = false;
+    }
+    else if (preheat_since_ms_ == 0)
+    {
+      const uint64_t now = millis_64();
+      preheat_since_ms_ = now == 0 ? 1 : now;
+    }
+
+    if (preheat_wait_requested_ != preheat_wait_active_)
+    {
+      preheat_wait_active_ = preheat_wait_requested_;
+      if (preheat_wait_active_)
+      {
+        ESP_LOGI("amber", "Waiting for compressor preheat (P07) before starting the compressor.");
+      }
+      else
+      {
+        ESP_LOGI("amber", "No longer waiting for compressor preheat (P07).");
+      }
+      id(compressor_preheat_wait_active_sensor).publish_state(preheat_wait_active_);
+    }
+    preheat_wait_requested_ = false;
+  }
+
+  /// @brief True while the outdoor unit preheats the compressor (P07): it would not start the compressor now, so
+  /// a start must not be commanded or timed. False once P07 has been set for COMPRESSOR_PREHEAT_MAX_WAIT_S.
+  bool IsWaitingForPreheat()
+  {
+    if (!id(error_flag_p07).state)
+    {
+      return false;
+    }
+
+    const uint64_t now = millis_64();
+    const uint64_t since = preheat_since_ms_ != 0 ? preheat_since_ms_ : now;
+    if ((now - since) >= COMPRESSOR_PREHEAT_MAX_WAIT_S * 1000ULL)
+    {
+      if (!preheat_limit_logged_)
+      {
+        ESP_LOGW("amber", "Compressor preheat (P07) still active after %lu seconds, starting the compressor anyway.",
+                 (unsigned long) COMPRESSOR_PREHEAT_MAX_WAIT_S);
+        preheat_limit_logged_ = true;
+      }
+      return false;
+    }
+
+    preheat_wait_requested_ = true;
+    return true;
   }
 
   void ArmStartWaitTimer()
