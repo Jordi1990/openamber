@@ -1218,6 +1218,8 @@
           {"TO05 - Modbus verbinding timeout", "De Modbus-communicatie met de binnen- of buitenunit kon niet worden hersteld binnen de verwachte tijd. Controleer bekabeling, voeding en Modbus-instellingen.", id(error_modbus_connection_timeout).state},
           {"TO06 - Binnenunit failsafe / herstart", "De binnenunit bevindt zich in failsafe of is herstart. Een of meer uitgangsregisters (1099-1113) wijken af van de verwachte status. De regeling is gestopt.", id(error_inside_unit_failsafe).state},
           {"TO07 - Compressor onverwacht gestopt", "De buitenunit stopte de compressor zelf terwijl OpenAmber hem liet draaien. De regeling is gestopt. Controleer beveiligingen, voeding en de Modbus-verbinding met de buitenunit en reset daarna de fout.", id(error_compressor_unexpected_stop).state},
+          {"TO08 - Temperatuurverschil Tuo-Tui te groot", "Het temperatuurverschil over de platenwisselaar (Tuo-Tui) bleef 60 seconden boven de grens (15 °C bij verwarmen en tapwater, 8 °C bij koelen). De regeling is gestopt. Controleer de flow (pomp, filter, lucht, kranen) en reset daarna de fout.", id(error_water_delta_t_too_high).state},
+          {"TO09 - Geen flow bij draaiende compressor", "De flowschakelaar meldde geen flow terwijl de compressor draaide, langer dan de ingestelde vertraging. De regeling is gestopt. Controleer pomp P0, filter, lucht en de flowschakelaar en reset daarna de fout.", id(error_pump_flow_missing).state},
           {"F13 - Storing sensor ruimtetemperatuur", "Storing sensor ruimtetemperatuur.", id(error_flag_f13).state},
           {"B01 - Geen meting BLE-ruimtesensor", "De gekozen BLE-ruimtesensor heeft 10 minuten geen meting gestuurd. Controleer de batterij en het bereik van de sensor.", id(error_flag_b01).state},
           {"F14 - Storing sensor tapwatertemperatuur", "Storing sensor tapwatertemperatuur.", id(error_flag_f14).state},
@@ -1236,7 +1238,9 @@
             id(error_pump_stop_timeout).state ||
             id(error_modbus_connection_timeout).state ||
             id(error_three_way_valve_state_timeout).state ||
-            id(error_inside_unit_failsafe).state;
+            id(error_inside_unit_failsafe).state ||
+            id(error_water_delta_t_too_high).state ||
+            id(error_pump_flow_missing).state;
 
         if (id(service_errors_reset_timeout_btn) != nullptr) {
           if (timeout_error_active) lv_obj_clear_flag(id(service_errors_reset_timeout_btn), LV_OBJ_FLAG_HIDDEN);

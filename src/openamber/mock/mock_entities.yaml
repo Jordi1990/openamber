@@ -372,6 +372,12 @@ sensor:
       return 26.0f;
     update_interval: 5s
   - platform: template
+    id: outdoor_unit_refrigerant
+    lambda: |-
+      if (id(outdoor_unit_refrigerant).has_state()) return {};
+      return 1.0f;
+    update_interval: 5s
+  - platform: template
     id: discharge_temperature_td
     name: "Persgastemperatuur (Td)"
     lambda: |-
