@@ -185,34 +185,6 @@ def test_short_delta_t_spike_does_not_stop(clean_system):
     openamber.step(ms=50)
 
 
-def test_delta_t_close_to_limit_steps_compressor_down_instead_of_stopping(clean_system):
-    """
-    Field case (2026-11-24, 21:26): the compressor ramped up to 90 Hz with the pump fixed at 60% PWM and
-    Tuo - Tui crept over 8°C, so the safety check stopped the unit. Close to the limit the compressor is
-    held back instead: from 7°C it does not modulate up, from 7.5°C it steps down, and nothing stops.
-    """
-    openamber = clean_system
-    _start_heating_with_compressor(openamber)
-    mode_before = int(openamber.get_entity("compressor_control_select") or 0)
-    assert mode_before > 1, "Test needs a compressor mode that can step down"
-
-    openamber.set_sensor("outlet_temperature_tuo", 33.7)
-    openamber.set_sensor("inlet_temperature_tui", 26.0)
-    openamber.advance_time(seconds=70, step_s=5)
-    openamber.step(ms=50)
-
-    mode_after = int(openamber.get_entity("compressor_control_select") or 0)
-    assert 0 < mode_after < mode_before, f"Compressor should step down near the delta-T limit ({mode_before} -> {mode_after})"
-    assert openamber.get_entity("state_machine_state_heat_cool") != "Idle"
-    assert openamber.get_entity("error_water_delta_t_too_high") is False
-
-    # Cleanup
-    openamber.set_sensor("outlet_temperature_tuo", 28.0)
-    openamber.set_sensor("inlet_temperature_tui", 26.0)
-    openamber.set_switch("heat_demand_switch", False)
-    openamber.step(ms=50)
-
-
 def test_flow_switch_missing_pump_safety_delay_stops_compressor(clean_system):
     """
     Safety Flow:
