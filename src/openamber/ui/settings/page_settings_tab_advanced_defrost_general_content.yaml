@@ -4,8 +4,8 @@
     id: set_custom_defrost_mode_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Defrost controle", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Wie bepaalt wanneer er ontdooid wordt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_defrost_controle}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_wie_bepaalt_wanneer_er_ontdooid_wordt}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - dropdown:
           id: set_custom_defrost_mode_dd
           symbol: "\U000F0140"

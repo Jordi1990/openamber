@@ -4,8 +4,8 @@
     id: set_custom_defrost_delta_zero_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Ta - Tp bij 0°C en warmer", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Verschil waarbij de spoel als bevroren telt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_ta_tp_bij_0c_en_warmer}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_verschil_waarbij_de_spoel_als_bevroren_t}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -39,8 +39,8 @@
     id: set_custom_defrost_delta_cold_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Ta - Tp bij -15°C en kouder", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Daartussen loopt de lijn recht", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_ta_tp_bij_15c_en_kouder}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_daartussen_loopt_de_lijn_recht}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -74,8 +74,8 @@
     id: set_custom_defrost_max_coil_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Maximale Tp", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Tp moet ook onder deze waarde liggen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_maximale_tp}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_tp_moet_ook_onder_deze_waarde_liggen}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -109,8 +109,8 @@
     id: set_custom_defrost_min_runtime_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Minimaal interval", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Draaitijd tussen twee defrosts", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_minimaal_interval}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_draaitijd_tussen_twee_defrosts}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

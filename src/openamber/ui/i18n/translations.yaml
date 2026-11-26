@@ -2426,3 +2426,231 @@
   nl: "Display"
   de: "Anzeige"
   en: "Display"
+- key: t_bron_buitenvochtigheid
+  nl: "Bron buitenvochtigheid"
+  de: "Quelle Außenfeuchte"
+  en: "Outdoor humidity source"
+- key: t_extern_of_gekoppelde_bluetooth_sensor
+  nl: "Extern of gekoppelde Bluetooth-sensor"
+  de: "Extern oder gekoppelter Bluetooth-Sensor"
+  en: "External or paired Bluetooth sensor"
+- key: t_activeren
+  nl: "Activeren"
+  de: "Aktivieren"
+  en: "Activate"
+- key: t_de_buitenunit_ontdooit_dan_niet_meer_zel
+  nl: "De buitenunit ontdooit dan niet meer zelf, OpenAmber start de defrosts. Lukt een defrost niet, dan krijg je een melding en probeert OpenAmber het na 30 min opnieuw. Je kunt altijd terugschakelen naar Buitenunit, ook vanuit Home Assistant."
+  de: "Die Außeneinheit taut dann nicht mehr selbst ab, OpenAmber startet das Abtauen. Klappt ein Abtauen nicht, erhältst du eine Meldung und OpenAmber versucht es nach 30 min erneut. Du kannst jederzeit zurück auf Außeneinheit schalten, auch aus Home Assistant."
+  en: "The outdoor unit then no longer defrosts by itself, OpenAmber starts the defrosts. If a defrost fails, you get a warning and OpenAmber tries again after 30 min. You can always switch back to Outdoor unit, also from Home Assistant."
+- key: t_de_buitenunit_start_direct_een_defrost_o
+  nl: "De buitenunit start direct een defrost, of zodra 30 min na de vorige defrost voorbij is. Stopt de compressor voor die tijd, dan vervalt de aanvraag."
+  de: "Die Außeneinheit startet sofort ein Abtauen oder sobald 30 min nach dem letzten Abtauen vergangen sind. Stoppt der Kompressor vorher, verfällt die Anforderung."
+  en: "The outdoor unit starts a defrost right away, or once 30 min have passed since the previous defrost. If the compressor stops before then, the request is cancelled."
+- key: t_defrost_controle_naar_openamber
+  nl: "Defrost controle naar OpenAmber"
+  de: "Abtausteuerung an OpenAmber"
+  en: "Defrost control to OpenAmber"
+- key: t_defrost_forceren
+  nl: "Defrost forceren"
+  de: "Abtauen erzwingen"
+  en: "Force defrost"
+- key: t_forceren
+  nl: "Forceren"
+  de: "Erzwingen"
+  en: "Force"
+- key: t_einde_defrost
+  nl: "Einde defrost"
+  de: "Abtauende"
+  en: "End of defrost"
+- key: t_lucht_vochtigheid
+  nl: "Lucht-\nvochtigheid"
+  de: "Luft-\nfeuchte"
+  en: "Humidity"
+- key: t_start_temperaturen_unit
+  nl: "Start-\ntemperaturen unit"
+  de: "Start-\ntemperaturen Einheit"
+  en: "Unit start\ntemperatures"
+- key: t_startlijn_en_interval
+  nl: "Startlijn en\ninterval"
+  de: "Startlinie und\nIntervall"
+  en: "Start line and\ninterval"
+- key: t_defrost_algemeen
+  nl: "Defrost: algemeen"
+  de: "Abtauen: Allgemein"
+  en: "Defrost: general"
+- key: t_defrost_controle
+  nl: "Defrost controle"
+  de: "Abtausteuerung"
+  en: "Defrost control"
+- key: t_wie_bepaalt_wanneer_er_ontdooid_wordt
+  nl: "Wie bepaalt wanneer er ontdooid wordt"
+  de: "Wer entscheidet, wann abgetaut wird"
+  en: "Who decides when to defrost"
+- key: t_defrost_startlijn_en_interval
+  nl: "Defrost: startlijn en interval"
+  de: "Abtauen: Startlinie und Intervall"
+  en: "Defrost: start line and interval"
+- key: t_ta_tp_bij_0c_en_warmer
+  nl: "Ta - Tp bij 0°C en warmer"
+  de: "Ta - Tp bei 0°C und wärmer"
+  en: "Ta - Tp at 0°C and warmer"
+- key: t_verschil_waarbij_de_spoel_als_bevroren_t
+  nl: "Verschil waarbij de spoel als bevroren telt"
+  de: "Differenz, ab der das Register als vereist gilt"
+  en: "Difference at which the coil counts as iced"
+- key: t_ta_tp_bij_15c_en_kouder
+  nl: "Ta - Tp bij -15°C en kouder"
+  de: "Ta - Tp bei -15°C und kälter"
+  en: "Ta - Tp at -15°C and colder"
+- key: t_daartussen_loopt_de_lijn_recht
+  nl: "Daartussen loopt de lijn recht"
+  de: "Dazwischen verläuft die Linie gerade"
+  en: "In between, the line is straight"
+- key: t_maximale_tp
+  nl: "Maximale Tp"
+  de: "Maximale Tp"
+  en: "Maximum Tp"
+- key: t_tp_moet_ook_onder_deze_waarde_liggen
+  nl: "Tp moet ook onder deze waarde liggen"
+  de: "Tp muss auch unter diesem Wert liegen"
+  en: "Tp must also be below this value"
+- key: t_minimaal_interval
+  nl: "Minimaal interval"
+  de: "Minimales Intervall"
+  en: "Minimum interval"
+- key: t_draaitijd_tussen_twee_defrosts
+  nl: "Draaitijd tussen twee defrosts"
+  de: "Laufzeit zwischen zwei Abtauvorgängen"
+  en: "Run time between two defrosts"
+- key: t_defrost_status
+  nl: "Defrost: status"
+  de: "Abtauen: Status"
+  en: "Defrost: status"
+- key: t_alleen_tijdens_verwarmen_met_draaiende_c
+  nl: "Alleen tijdens verwarmen met draaiende compressor"
+  de: "Nur beim Heizen mit laufendem Kompressor"
+  en: "Only while heating with the compressor running"
+- key: t_compressor_draaitijd_sinds_defrost
+  nl: "Compressor-draaitijd sinds defrost"
+  de: "Kompressorlaufzeit seit dem Abtauen"
+  en: "Compressor run time since defrost"
+- key: t_draaitijd_interval
+  nl: "Draaitijd / interval"
+  de: "Laufzeit / Intervall"
+  en: "Run time / interval"
+- key: t_heet_gas_op_de_spoel_zonder_voorfase
+  nl: "Heet gas op de spoel, zonder voorfase"
+  de: "Heißgas auf dem Register, ohne Vorphase"
+  en: "Hot gas on the coil, without pre-phase"
+- key: t_laatste_defrostduur
+  nl: "Laatste defrostduur"
+  de: "Letzte Abtaudauer"
+  en: "Last defrost duration"
+- key: t_nog_geen_trigger
+  nl: "Nog geen trigger"
+  de: "Noch kein Auslöser"
+  en: "No trigger yet"
+- key: t_defrost_luchtvochtigheid
+  nl: "Defrost: luchtvochtigheid"
+  de: "Abtauen: Luftfeuchte"
+  en: "Defrost: humidity"
+- key: t_buitenvochtigheid_rijppunt
+  nl: "Buitenvochtigheid / rijppunt"
+  de: "Außenfeuchte / Reifpunkt"
+  en: "Outdoor humidity / frost point"
+- key: t_huidige_meting_en_rijppunt_van_de_lucht
+  nl: "Huidige meting en rijppunt van de lucht"
+  de: "Aktueller Messwert und Reifpunkt der Luft"
+  en: "Current reading and frost point of the air"
+- key: t_marge_rijppunt
+  nl: "Marge rijppunt"
+  de: "Reifpunkt-Marge"
+  en: "Frost point margin"
+- key: t_tp_moet_zoveel_onder_het_rijppunt_liggen
+  nl: "Tp moet zoveel onder het rijppunt liggen"
+  de: "Tp muss so weit unter dem Reifpunkt liegen"
+  en: "Tp must be this far below the frost point"
+- key: t_drempel_ijsteller
+  nl: "Drempel ijsteller"
+  de: "Schwelle Eiszähler"
+  en: "Ice counter threshold"
+- key: t_ontdooien_bij_zoveel_ijsaangroei_0_uit
+  nl: "Ontdooien bij zoveel ijsaangroei (0 = uit)"
+  de: "Abtauen bei so viel Eisansatz (0 = aus)"
+  en: "Defrost at this much ice growth (0 = off)"
+- key: t_ijsteller
+  nl: "IJsteller"
+  de: "Eiszähler"
+  en: "Ice counter"
+- key: t_ijsaangroei_sinds_de_laatste_defrost
+  nl: "IJsaangroei sinds de laatste defrost"
+  de: "Eisansatz seit dem letzten Abtauen"
+  en: "Ice growth since the last defrost"
+- nl: "Geen meting"
+  de: "Kein Messwert"
+  en: "No reading"
+- nl: "OA01 - Defrost door OpenAmber mislukt"
+  de: "OA01 - Abtauen durch OpenAmber fehlgeschlagen"
+  en: "OA01 - Defrost by OpenAmber failed"
+- nl: "De buitenunit startte geen defrost na twee aanvragen van OpenAmber. OpenAmber probeert het na 30 min opnieuw. De melding verdwijnt na een geslaagde defrost of als je de defrost controle wijzigt."
+  de: "Die Außeneinheit hat nach zwei Anforderungen von OpenAmber kein Abtauen gestartet. OpenAmber versucht es nach 30 min erneut. Die Meldung verschwindet nach einem erfolgreichen Abtauen oder wenn du die Abtausteuerung änderst."
+  en: "The outdoor unit did not start a defrost after two requests from OpenAmber. OpenAmber tries again after 30 min. The warning clears after a successful defrost or when you change the defrost control."
+- use: state
+  nl: "Bewaken"
+  de: "Überwachen"
+  en: "Monitoring"
+- use: state
+  nl: "Bewaken: geen Ta of Tp"
+  de: "Überwachen: kein Ta oder Tp"
+  en: "Monitoring: no Ta or Tp"
+- use: state
+  nl: "Defrost gewenst"
+  de: "Abtauen gewünscht"
+  en: "Defrost wanted"
+- use: state
+  nl: "Aangevraagd"
+  de: "Angefordert"
+  en: "Requested"
+- use: state
+  nl: "Opnieuw aanvragen"
+  de: "Erneut anfordern"
+  en: "Requesting again"
+- use: state
+  nl: "Mislukt, wacht op nieuwe poging"
+  de: "Fehlgeschlagen, warte auf neuen Versuch"
+  en: "Failed, waiting for a new attempt"
+- use: state
+  nl: "Handmatig aangevraagd"
+  de: "Manuell angefordert"
+  en: "Requested manually"
+- use: state
+  nl: "Handmatig: wacht op slot buitenunit"
+  de: "Manuell: warte auf Sperre der Außeneinheit"
+  en: "Manual: waiting for the outdoor unit lock"
+- use: state
+  nl: "Handmatig"
+  de: "Manuell"
+  en: "Manual"
+- use: state
+  nl: "Geblokkeerd"
+  de: "Gesperrt"
+  en: "Blocked"
+- use: state
+  nl: "Geblokkeerd: slot buitenunit (30 min na defrost)"
+  de: "Gesperrt: Sperre Außeneinheit (30 min nach Abtauen)"
+  en: "Blocked: outdoor unit lock (30 min after defrost)"
+- use: state
+  nl: "Ontdooien (buitenunit)"
+  de: "Abtauen (Außeneinheit)"
+  en: "Defrosting (outdoor unit)"
+- use: state
+  nl: "Startlijn"
+  de: "Startlinie"
+  en: "Start line"
+- use: state
+  nl: "Interval"
+  de: "Intervall"
+  en: "Interval"
+- nl: "Extern (bijv. HA)"
+  de: "Extern (z. B. HA)"
+  en: "External (e.g. HA)"

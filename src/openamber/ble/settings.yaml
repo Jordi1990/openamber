@@ -40,8 +40,8 @@ lvgl:
                         styles: setting_row_style
                         scrollable: false
                         widgets:
-                          - label: { text: "Bron buitenvochtigheid", text_font: font_text_24, text_color: 0x1F2933, align: TOP_LEFT }
-                          - label: { text: "Extern of gekoppelde Bluetooth-sensor", text_font: font_text_20, text_color: 0x6B7280, align: TOP_LEFT, y: 32 }
+                          - label: { text: "${t_bron_buitenvochtigheid}", text_font: font_text_24, text_color: 0x1F2933, align: TOP_LEFT }
+                          - label: { text: "${t_extern_of_gekoppelde_bluetooth_sensor}", text_font: font_text_20, text_color: 0x6B7280, align: TOP_LEFT, y: 32 }
                           - dropdown:
                               id: ble_outdoor_humidity_dropdown
                               width: 360

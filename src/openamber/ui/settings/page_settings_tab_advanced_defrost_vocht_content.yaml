@@ -4,8 +4,8 @@
     id: set_custom_defrost_frost_margin_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Marge rijppunt", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Tp moet zoveel onder het rijppunt liggen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_marge_rijppunt}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_tp_moet_zoveel_onder_het_rijppunt_liggen}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -39,16 +39,16 @@
     id: set_custom_defrost_humidity_value_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Buitenvochtigheid / rijppunt", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Huidige meting en rijppunt van de lucht", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_buitenvochtigheid_rijppunt}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_huidige_meting_en_rijppunt_van_de_lucht}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - label: { id: set_custom_defrost_humidity_value_val, text: "-", text_color: 0x1F2933, text_font: font_text_24, align: TOP_RIGHT }
 
 - obj:
     id: set_custom_defrost_ice_threshold_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Drempel ijsteller", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Ontdooien bij zoveel ijsaangroei (0 = uit)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_drempel_ijsteller}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_ontdooien_bij_zoveel_ijsaangroei_0_uit}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -82,6 +82,6 @@
     id: set_custom_defrost_ice_load_row
     styles: setting_row_style
     widgets:
-      - label: { text: "IJsteller", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "IJsaangroei sinds de laatste defrost", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_ijsteller}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_ijsaangroei_sinds_de_laatste_defrost}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - label: { id: set_custom_defrost_ice_load_val, text: "0 Pa·h", text_color: 0x1F2933, text_font: font_text_24, align: TOP_RIGHT }

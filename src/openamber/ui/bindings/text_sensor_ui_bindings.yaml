@@ -127,11 +127,27 @@
     then:
       - lvgl.label.update:
           id: set_custom_defrost_status_val
-          text: !lambda 'return x;'
+          text: !lambda |-
+            // Translated on the display only, the Home Assistant state stays Dutch: the whole text, or else
+            // the part before ": " (the details after it stay Dutch).
+            const char *full = oa_tr(x.c_str());
+            if (full != x.c_str()) return std::string(full);
+            size_t colon = x.find(": ");
+            if (colon == std::string::npos) return x;
+            std::string head = x.substr(0, colon);
+            return std::string(oa_tr(head.c_str())) + x.substr(colon);
 
 - id: !extend custom_defrost_last_trigger
   on_value:
     then:
       - lvgl.label.update:
           id: set_custom_defrost_last_trigger_val
-          text: !lambda 'return x;'
+          text: !lambda |-
+            // Translated on the display only, the Home Assistant state stays Dutch: the whole text, or else
+            // the part before ": " (the details after it stay Dutch).
+            const char *full = oa_tr(x.c_str());
+            if (full != x.c_str()) return std::string(full);
+            size_t colon = x.find(": ");
+            if (colon == std::string::npos) return x;
+            std::string head = x.substr(0, colon);
+            return std::string(oa_tr(head.c_str())) + x.substr(colon);

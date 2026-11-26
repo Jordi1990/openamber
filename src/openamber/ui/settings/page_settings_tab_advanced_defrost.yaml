@@ -50,7 +50,7 @@ widgets:
                   page: panel_advanced_page_defrost_startlijn
             widgets:
               - label: { text: "\U000F1A71", styles: menu_tile_icon_style }
-              - label: { id: defrost_stab_startlijn_lbl, text: "Startlijn en\ninterval", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: defrost_stab_startlijn_lbl, text: "${t_startlijn_en_interval}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: defrost_stab_vocht
@@ -66,7 +66,7 @@ widgets:
                   page: panel_advanced_page_defrost_vocht
             widgets:
               - label: { text: "\U000F058C", styles: menu_tile_icon_style }
-              - label: { id: defrost_stab_vocht_lbl, text: "Lucht-\nvochtigheid", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: defrost_stab_vocht_lbl, text: "${t_lucht_vochtigheid}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: defrost_stab_start_temps
@@ -82,7 +82,7 @@ widgets:
                   page: panel_advanced_page_defrost_temps
             widgets:
               - label: { text: "\U000F050F", styles: menu_tile_icon_style }
-              - label: { id: defrost_stab_start_temps_lbl, text: "Start-\ntemperaturen unit", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: defrost_stab_start_temps_lbl, text: "${t_start_temperaturen_unit}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: defrost_stab_end
@@ -98,7 +98,7 @@ widgets:
                   page: panel_advanced_page_defrost_end
             widgets:
               - label: { text: "\U000F12CB", styles: menu_tile_icon_style }
-              - label: { id: defrost_stab_end_lbl, text: "Einde defrost", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: defrost_stab_end_lbl, text: "${t_einde_defrost}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: defrost_stab_status

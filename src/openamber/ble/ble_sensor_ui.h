@@ -250,7 +250,7 @@ static int ble_outdoor_humidity_dropdown_slots[1 + BLE_SENSOR_SLOTS] = {-1, -1, 
 
 static void ble_outdoor_humidity_update_dropdown()
 {
-    std::string options = "Extern (bijv. HA)";
+    std::string options = oa_tr("Extern (bijv. HA)");
     unsigned count = 1, selected = 0;
     int source = ble_outdoor_humidity_selected_slot();
     for (unsigned i = 0; i < BLE_SENSOR_SLOTS; i++)

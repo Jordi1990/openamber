@@ -147,14 +147,14 @@ obj:
 
               widgets:
                 - label:
-                    text: "Defrost controle naar OpenAmber"
+                    text: "${t_defrost_controle_naar_openamber}"
                     text_color: 0x1F2933
                     text_font: font_text_24
                     align: TOP_LEFT
 
                 - label:
                     width: 100%
-                    text: "De buitenunit ontdooit dan niet meer zelf, OpenAmber start de defrosts. Lukt een defrost niet, dan krijg je een melding en probeert OpenAmber het na 30 min opnieuw. Je kunt altijd terugschakelen naar Buitenunit, ook vanuit Home Assistant."
+                    text: "${t_de_buitenunit_ontdooit_dan_niet_meer_zel}"
                     text_color: 0x1F2933
                     text_font: font_text_20
                     long_mode: WRAP
@@ -205,7 +205,7 @@ obj:
                           option: "OpenAmber"
                     widgets:
                       - label:
-                          text: "Activeren"
+                          text: "${t_activeren}"
                           text_color: 0xFFFFFF
                           text_font: font_text_24
                           align: CENTER
@@ -244,14 +244,14 @@ obj:
 
               widgets:
                 - label:
-                    text: "Defrost forceren"
+                    text: "${t_defrost_forceren}"
                     text_color: 0x1F2933
                     text_font: font_text_24
                     align: TOP_LEFT
 
                 - label:
                     width: 100%
-                    text: "De buitenunit start direct een defrost, of zodra 30 min na de vorige defrost voorbij is. Stopt de compressor voor die tijd, dan vervalt de aanvraag."
+                    text: "${t_de_buitenunit_start_direct_een_defrost_o}"
                     text_color: 0x1F2933
                     text_font: font_text_20
                     long_mode: WRAP
@@ -300,7 +300,7 @@ obj:
                       - lambda: id(amber_ctrl).request_custom_defrost();
                     widgets:
                       - label:
-                          text: "Forceren"
+                          text: "${t_forceren}"
                           text_color: 0xFFFFFF
                           text_font: font_text_24
                           align: CENTER

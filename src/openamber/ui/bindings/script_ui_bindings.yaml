@@ -2111,7 +2111,7 @@
         float rh = id(outdoor_humidity).state;
         float frost_point = CustomDefrostFrostPoint(id(temperature_outside_ta).state, rh);
         if (std::isnan(rh)) {
-          lv_label_set_text(id(set_custom_defrost_humidity_value_val), "Geen meting");
+          lv_label_set_text(id(set_custom_defrost_humidity_value_val), oa_tr("Geen meting"));
         } else if (std::isnan(frost_point)) {
           lv_label_set_text_fmt(id(set_custom_defrost_humidity_value_val), "%d%%", (int) roundf(rh));
         } else {
