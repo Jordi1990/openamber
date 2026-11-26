@@ -69,6 +69,16 @@ switch:
   web_server: 
     sorting_group_id: dhw_settings
 
+# Warme wissel: switch from heating to DHW while the compressor and pump P0 keep running. Defaults to off.
+- platform: template
+  id: hot_switch_heat_to_dhw_switch
+  name: "Warme wissel verwarmen naar tapwater"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  web_server:
+    sorting_group_id: dhw_settings
+
 - platform: template
   id: dhw_enabled_switch
   name: "Tapwater aanwezig"

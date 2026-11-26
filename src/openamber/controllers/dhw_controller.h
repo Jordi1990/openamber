@@ -409,7 +409,8 @@ public:
 
   /// @brief Takes over units that kept running while the ESP restarted, instead of stopping them.
   /// Only called with the 3-way valve in the DHW position and pump P0 running.
-  void ResumeFromRunningUnits()
+  /// hand_over: the compressor comes running from heating (hot switch), its start time is known and kept.
+  void ResumeFromRunningUnits(bool hand_over = false)
   {
     const bool compressor_running = compressor_controller_->IsRunning();
     const bool compressor_commanded = compressor_controller_->IsCommanded();
@@ -424,7 +425,10 @@ public:
     if (compressor_running && compressor_commanded)
     {
       // The run time before the restart is unknown: keep the compressor on for at least the minimum on time.
-      compressor_controller_->RecordStartTime();
+      if (!hand_over)
+      {
+        compressor_controller_->RecordStartTime();
+      }
       // Pre-phase: keep heating in COMPRESSOR_RUNNING, which switches to DEFROSTING once the actual defrost starts.
       if (id(defrost_running_sensor).state)
       {

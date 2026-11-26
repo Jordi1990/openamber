@@ -71,6 +71,8 @@ private:
   ThreeWayValvePosition valve_target_position_ = ThreeWayValvePosition::HEATING_COOLING;
   State valve_target_state_ = State::UNKNOWN;
   uint32_t valve_switch_started_ms_ = 0;
+  // The 3-way valve moves from heating to DHW while the compressor and pump P0 keep running.
+  bool hot_switch_active_ = false;
   // Live update: hold the state machine while an OTA update is being written.
   bool ota_in_progress_ = false;
   uint32_t ota_last_activity_ms_ = 0;

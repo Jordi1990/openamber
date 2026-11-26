@@ -124,6 +124,7 @@ def clean_system(openamber):
     # A test that failed while stopped must not leave the next test in Standby.
     openamber.press_button("controlled_stop_resume_button")
     openamber.set_switch("dhw_enabled_switch", True)
+    openamber.set_switch("hot_switch_heat_to_dhw_switch", False)
     openamber.set_switch("dhw_schedule_enabled_switch", False)
     openamber.set_switch("silent_mode_enabled_switch", False)
     openamber.set_select("silent_mode_compressor_mode", "Gemiddeld")
