@@ -10,7 +10,9 @@ from helpers import FlowMonitor, start_space_heating
 def test_hot_switch_keeps_compressor_running(clean_system):
     openamber = clean_system
     openamber.set_sensor("dhw_temperature_tw_sensor", 51.0)
+    openamber.set_select("dhw_compressor_mode", "Maximaal")
     start_space_heating(openamber)
+    heating_level = int(openamber.get_entity("compressor_control_select") or 0)
 
     monitor = FlowMonitor(openamber)
     monitor.check()
@@ -30,6 +32,10 @@ def test_hot_switch_keeps_compressor_running(clean_system):
     assert openamber.get_entity("state_machine_state_heat_cool") == "Idle"
     assert openamber.get_entity("state_machine_state_dhw") == "Compressor running"
     assert openamber.get_entity("error_three_way_valve_state_timeout") is False
+    dhw_level = int(openamber.get_entity("compressor_control_select") or 0)
+    assert dhw_level > heating_level + 1, (
+        f"DHW should go straight to its own level (heating {heating_level}, DHW {dhw_level})"
+    )
 
     # DHW heats; the DHW pump starts once Tuo reaches the tank temperature.
     openamber.set_sensor("heat_cool_temperature_tc", 30.0)

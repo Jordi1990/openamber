@@ -429,6 +429,12 @@ public:
       {
         compressor_controller_->RecordStartTime();
       }
+      else if (!id(defrost_running_sensor).state)
+      {
+        // Hot switch: go straight to the DHW level, as a DHW start from standstill does. The ambient and
+        // discharge side limits still apply.
+        compressor_controller_->ApplyCompressorMode(DetermineCompressorMode(), true);
+      }
       // Pre-phase: keep heating in COMPRESSOR_RUNNING, which switches to DEFROSTING once the actual defrost starts.
       if (id(defrost_running_sensor).state)
       {
