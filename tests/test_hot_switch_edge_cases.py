@@ -6,7 +6,7 @@ relay feedback, an ESP restart within the valve travel time, and the cases that 
 switch (compressor off first). FlowMonitor (helpers.py) checks the hardware rules after every step.
 """
 
-from helpers import FlowMonitor, elapsed_s, now_s
+from helpers import FlowMonitor, elapsed_s, now_s, stop_heat_pump
 
 DEFROST_STANDBY_HZ = 36.0  # actual defrost: compressor at the defrost standby frequency
 VALVE_TIME_S = 60          # THREE_WAY_VALVE_SWITCH_TIME_S
@@ -394,6 +394,24 @@ def test_error_during_dhw_stops_instead_of_hot_switch(clean_system):
         openamber.step(ms=20)
         assert _level(openamber) == 0, "No restart and no hot switch after the error"
     assert openamber.get_entity("state_machine_state_heat_cool") != "Compressor running"
+
+
+def test_controlled_stop_during_the_valve_travel(clean_system):
+    """A controlled stop 20 s after the hot switch to DHW: DHW stops the compressor and the heat pump goes to
+    standby without errors; when DHW then ends there is no hot switch back."""
+    openamber = clean_system
+    monitor = _start_heating(openamber)
+    _hot_switch_to_dhw(openamber, monitor)
+    monitor.advance(20)
+    history_start = len(monitor.history)
+
+    monitor.allow_short_run = True  # a controlled stop may end the minimum on time early
+    openamber.set_sensor("dhw_temperature_tw_sensor", 55.0)
+    stop_heat_pump(openamber)
+    assert _level(openamber) == 0
+    assert openamber.get_entity("error_active") is False
+    monitor.check()
+    assert not _valve_moves_with_compressor(monitor.history[history_start - 1:])
 
 
 # ---------------------------------------------------------------------------
