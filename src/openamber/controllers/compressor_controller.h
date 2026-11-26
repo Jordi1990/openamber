@@ -434,9 +434,35 @@ public:
 
   void RecordStartTime()
   {
+    // The compressor runs: earlier failed starts no longer count towards TO02.
+    id(compressor_start_failures) = 0;
     not_running_since_ms_ = 0;
     ClearStartWaitTimer();
     last_compressor_start_ms_ = millis_64();
+  }
+
+  /// @brief Counts a start that timed out. Returns true when this was the last allowed attempt
+  /// (COMPRESSOR_START_MAX_ATTEMPTS in a row), so the caller raises TO02; otherwise the start is retried.
+  bool RegisterStartTimeout()
+  {
+    int &failures = id(compressor_start_failures);
+    failures++;
+    if (failures >= (int) COMPRESSOR_START_MAX_ATTEMPTS)
+    {
+      ESP_LOGE("amber", "Compressor did not start within %lu seconds, %d attempts in a row failed.",
+               (unsigned long) COMPRESSOR_START_TIMEOUT_S, failures);
+      return true;
+    }
+    ESP_LOGW("amber", "Compressor did not start within %lu seconds (attempt %d of %lu), retrying after the minimum off time.",
+             (unsigned long) COMPRESSOR_START_TIMEOUT_S, failures, (unsigned long) COMPRESSOR_START_MAX_ATTEMPTS);
+    return false;
+  }
+
+  /// @brief True while the outdoor unit preheats the compressor (P07, about 30 min): it does not start the
+  /// compressor then, so a start must not be commanded. The bit clears when the preheat ends.
+  bool IsWaitingForPreheat()
+  {
+    return id(error_flag_p07).state;
   }
 
   void ArmStartWaitTimer()
