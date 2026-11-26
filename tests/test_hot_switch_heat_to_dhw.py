@@ -59,6 +59,9 @@ def test_switch_off_stops_compressor_before_valve_moves(clean_system):
 
     monitor = FlowMonitor(openamber)
     monitor.check()
+    # The compressor started before the monitor did: its real run time is unknown here, the minimum on time is
+    # covered by the other flow tests.
+    monitor.compressor_running_since = None
     _request_dhw(openamber)
 
     assert monitor.advance_until("state_machine_state_main", "DHW", max_s=1500)
