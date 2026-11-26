@@ -164,8 +164,8 @@ def test_cooling_compressor_lockout_in_emergency_mode(clean_system):
 
 def test_cooling_demand_in_emergency_mode_never_switches_on_backup_heater(clean_system):
     """
-    Regression: emergency mode runs on the backup heater, which can only heat.
-    A cooling demand must not switch the element on (and must not set working mode cooling).
+    Emergency mode runs on the backup heater, which can only heat, so it blocks cooling demand altogether:
+    a cooling request does not count as demand and nothing starts.
     """
     openamber = clean_system
 
@@ -175,6 +175,7 @@ def test_cooling_demand_in_emergency_mode_never_switches_on_backup_heater(clean_
     assert openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
     assert openamber.set_sensor("heat_cool_temperature_tc", 28.0)
     openamber.step(ms=50)
+    assert openamber.get_entity("cool_demand_active_sensor") is False, "Emergency mode must block cooling demand"
 
     # Through the pump interval, the pump settle time and well beyond.
     for _ in range(6):
@@ -184,6 +185,11 @@ def test_cooling_demand_in_emergency_mode_never_switches_on_backup_heater(clean_
         assert int(openamber.get_entity("compressor_control_select") or 0) == 0, "Compressor must stay OFF in emergency mode"
 
     assert openamber.get_entity("state_machine_state_heat_cool") not in ("Wait backup heater running", "Backup heater running")
+
+    # Emergency mode off again: the same request counts as cooling demand.
+    assert openamber.set_switch("emergency_mode_enabled", False)
+    openamber.step(ms=50)
+    assert openamber.get_entity("cool_demand_active_sensor") is True, "Cooling demand must return once emergency mode is off"
 
     # Cleanup
     assert openamber.set_switch("cool_demand_switch", False)
