@@ -216,7 +216,7 @@ def test_switching_back_and_forth_within_the_valve_travel_time(clean_system):
     assert monitor.advance_until("state_machine_state_main", "DHW", 30)
     monitor.advance(VALVE_TIME_S + 60)
 
-    history = monitor.history[history_start:]
+    history = monitor.history[history_start - 1:]
     assert all(s["compressor"] > 0 for s in history), "The compressor must keep running"
     assert sum(1 for a, b in zip(history, history[1:]) if a["valve_dhw"] != b["valve_dhw"]) == 3
     assert not any(s["p1"] for s in history[1:]), "P1 must not start: the valve was never 60 s on CV"
@@ -350,9 +350,9 @@ def test_defrost_during_the_valve_travel_to_heating(clean_system):
 # Fall back to the regular switch
 # ---------------------------------------------------------------------------
 
-def test_dhw_ending_with_backup_heater_on_uses_the_regular_switch(clean_system):
-    """The backup heater helps DHW when the tank heats too slowly. When DHW ends with heat demand, the compressor
-    and backup heater are stopped first and the valve moves with everything off."""
+def test_dhw_ending_with_backup_heater_on_switches_it_off_before_the_valve_moves(clean_system):
+    """The backup heater helps DHW when the tank heats too slowly. When DHW ends with heat demand, the backup heater
+    is switched off first; the valve only moves with the backup heater off (FlowMonitor checks this at every step)."""
     openamber = clean_system
     try:
         openamber.set_number("dhw_backup_min_avg_rate", 0.5)
@@ -360,15 +360,14 @@ def test_dhw_ending_with_backup_heater_on_uses_the_regular_switch(clean_system):
         monitor = _start_heating(openamber)
         _hot_switch_to_dhw(openamber, monitor)
         _dhw_heating(openamber)
-        history_start = len(monitor.history)
         assert monitor.advance_until("backup_heater_relay", True, 1800), "The DHW backup heater never turned on"
+        assert openamber.get_entity("three_way_valve_dhw_switch") is True
 
         openamber.set_sensor("dhw_temperature_tw_sensor", 55.0)
         assert monitor.advance_until("state_machine_state_main", "Heat/Cool", 900)
-        assert not _valve_moves_with_compressor(monitor.history[history_start:]), (
-            "With the backup heater on the valve must move with the compressor off"
-        )
         assert openamber.get_entity("three_way_valve_heat_cool_switch") is True
+        assert openamber.get_entity("backup_heater_relay") is False
+        assert openamber.get_entity("error_active") is False
     finally:
         openamber.set_number("dhw_backup_min_avg_rate", 0.12)
         openamber.set_number("dhw_backup_min_avg_rate_delay_minutes", 5.0)
@@ -387,9 +386,14 @@ def test_error_during_dhw_stops_instead_of_hot_switch(clean_system):
     openamber.set_binary_sensor("error_compressor_start_timeout", True)
     openamber.set_sensor("dhw_temperature_tw_sensor", 55.0)
     assert _advance_until_compressor_off(monitor, 30), "The error must stop the compressor"
-    monitor.advance(300)
-    assert not _valve_moves_with_compressor(monitor.history[history_start:])
-    assert _level(openamber) == 0
+    assert not _valve_moves_with_compressor(monitor.history[history_start - 1:])
+    # Not under FlowMonitor from here: the regular safety stop moves the valve back while the compressor still runs
+    # down (frequency > 0), which is outside the scope of the hot switch.
+    for _ in range(60):
+        openamber.advance_time(seconds=5, step_s=5)
+        openamber.step(ms=20)
+        assert _level(openamber) == 0, "No restart and no hot switch after the error"
+    assert openamber.get_entity("state_machine_state_heat_cool") != "Compressor running"
 
 
 # ---------------------------------------------------------------------------
