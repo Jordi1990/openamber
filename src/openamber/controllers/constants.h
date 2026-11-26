@@ -208,9 +208,6 @@ static const uint32_t CUSTOM_DEFROST_MIN_COMPRESSOR_ON_S = 5 * 60;
 static const float CUSTOM_DEFROST_COLD_REFERENCE_TA_C = -15.0f;
 // No defrost above this outdoor temperature.
 static const float CUSTOM_DEFROST_MAX_TA_C = 7.0f;
-// Safety net: after this runtime a coil below the threshold always defrosts, regardless of start line and humidity.
-static const uint32_t CUSTOM_DEFROST_SAFETY_NET_RUNTIME_MIN = 120;
-static const float CUSTOM_DEFROST_SAFETY_NET_TP_C = -2.0f;
 // Interval route: after the adaptive interval a coil below this temperature defrosts (start line not needed).
 static const float CUSTOM_DEFROST_INTERVAL_TP_C = -2.0f;
 // A return temperature below the minimum postpones the defrost, but at most the maximum wait.
@@ -218,14 +215,10 @@ static const float CUSTOM_DEFROST_MIN_RETURN_TEMPERATURE_C = 20.0f;
 static const uint32_t CUSTOM_DEFROST_MAX_RETURN_WAIT_S = 15 * 60;
 // Time the outdoor unit gets to raise 2118 after working mode 4 was written.
 static const uint32_t CUSTOM_DEFROST_CONFIRM_TIMEOUT_S = 120;
-// Dry air postpones a defrost at most this long after the interval, so a wrong humidity sensor cannot block it.
-static const uint32_t CUSTOM_DEFROST_HUMIDITY_MAX_DELAY_MIN = 60;
-// Cycling compressor route: at least 10 compressor stops since the last defrost and Ta at most 3 °C.
-static const uint32_t CUSTOM_DEFROST_CYCLING_MIN_STOPS = 10;
-static const float CUSTOM_DEFROST_CYCLING_MAX_TA_C = 3.0f;
 // After a forced defrost the outdoor unit only accepts a new one after 30 min compressor time.
 static const uint32_t CUSTOM_DEFROST_OUTDOOR_UNIT_LOCK_S = 30 * 60;
 // Interval between defrosts adapts to the duration of the last defrost, like the outdoor unit's Smart mode.
+// The maximum is also the safety net: after it a coil below CUSTOM_DEFROST_INTERVAL_TP_C always defrosts, dry air or not.
 static const uint32_t CUSTOM_DEFROST_INTERVAL_MAX_MIN = 120;
 static const uint32_t CUSTOM_DEFROST_INTERVAL_STEP_UP_MIN = 20;
 static const uint32_t CUSTOM_DEFROST_INTERVAL_STEP_DOWN_MIN = 10;
@@ -234,10 +227,7 @@ static const uint32_t CUSTOM_DEFROST_LONG_DEFROST_S = 5 * 60;
 static const uint32_t CUSTOM_DEFROST_MANUAL_REQUEST_EXPIRY_S = 40 * 60;
 
 static const uint32_t CUSTOM_DEFROST_CONTROL_MODE_WRITE_INTERVAL_S = 60;
-static const uint32_t CUSTOM_DEFROST_MAX_CONTROL_MODE_WRITES = 5;
 static const uint32_t CUSTOM_DEFROST_RESTORE_WORKING_MODE_DELAY_S = 2 * 60;
-// Deep frost route: Tp this far below the start line defrosts without waiting for the interval (only the 30 min lock).
-static const float CUSTOM_DEFROST_DEEP_FROST_K = 5.0f;
 static const uint32_t CUSTOM_DEFROST_MAX_REQUEST_ATTEMPTS = 2;
 static const uint32_t CUSTOM_DEFROST_FAILED_RETRY_S = 30 * 60;
 static const uint32_t CUSTOM_DEFROST_OVERRUN_MARGIN_S = 5 * 60;

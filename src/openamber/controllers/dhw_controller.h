@@ -603,7 +603,7 @@ public:
           break;
         }
 
-        if (custom_defrost_ != nullptr && custom_defrost_->ShouldRequestDefrost() && !IsControlledStopRequested())
+        if (custom_defrost_->ShouldRequestDefrost() && !IsControlledStopRequested())
         {
           custom_defrost_->StartRequest();
           SetNextState(DHWState::DEFROST_REQUESTED);
@@ -656,7 +656,7 @@ public:
         }
 
         // Request timed out or was cancelled, continue heating.
-        if (custom_defrost_ == nullptr || !custom_defrost_->IsRequestActive())
+        if (!custom_defrost_->IsRequestActive())
         {
           SetNextState(DHWState::COMPRESSOR_RUNNING);
         }

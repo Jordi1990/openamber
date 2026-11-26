@@ -15,30 +15,29 @@ OpenAmber kan zelf bepalen wanneer de buitenunit ontdooit. Alle defrost-instelli
 | Defrost controle | Wat er gebeurt |
 | --- | --- |
 | Buitenunit | De unit ontdooit zelf (standaard). OpenAmber houdt alleen statistiek bij. |
-| OpenAmber | EEPROM 3274 staat op master. OpenAmber start de defrost door werkmodus 4 te schrijven. |
+| OpenAmber | 3274 staat op master. OpenAmber start de defrost door werkmodus 4 te schrijven. |
 
 De stand wordt niet onthouden: na een herstart staat hij op Buitenunit en zet OpenAmber 3274 terug naar de
-buitenunit (alleen als de teruggelezen waarde afwijkt). Je kunt altijd wisselen, ook vanuit Home Assistant (bijvoorbeeld naar Buitenunit als je niet thuis bent). Een defrost
+buitenunit (alleen als de teruggelezen waarde afwijkt). Een Modbus-schrijfactie op 3274 wijzigt alleen het RAM van de buitenunit,
+niet het EEPROM; na een stroomonderbreking van de buitenunit schrijft OpenAmber de waarde binnen een minuut opnieuw. Je kunt altijd wisselen, ook vanuit Home Assistant (bijvoorbeeld naar Buitenunit als je niet thuis bent). Een defrost
 die al loopt maakt eerst af; daarna zet OpenAmber werkmodus 4 terug naar verwarmen en schrijft 3274 opnieuw. Lukt een
 geforceerde defrost twee keer niet, dan gaat waarschuwing OA01 aan en probeert OpenAmber het na 30 min opnieuw. De
 controle blijft bij OpenAmber; alleen jij wisselt de stand.
 
 ## Wanneer wordt er ontdooid
 
-Er wordt alleen ontdooid tijdens verwarmen met draaiende compressor en Ta tot 7 °C. Er zijn zes routes. De eerste
-die geldt, start de defrost.
+Er wordt alleen ontdooid tijdens verwarmen met draaiende compressor en Ta tot 7 °C. Er zijn drie routes, alle drie
+pas na het minimale interval. De eerste die geldt, start de defrost.
 
 | Route | Wanneer | Wacht op vochtigheid |
 | --- | --- | --- |
 | Startlijn | Na het minimale interval: Tp ligt 3 min op of onder de startlijn | ja |
 | IJsteller | Na het minimale interval: de ijsteller heeft de drempel bereikt (alleen met vochtigheidssensor) | nee |
-| Interval | Na het adaptieve interval: Tp ligt 3 min onder −2 °C | ja |
-| Pendelen | Na het adaptieve interval: ≥ 10 compressorstops, Ta ≤ 3 °C en Tp 3 min op of onder de maximale Tp | ja |
-| Vangnet | Na 120 min draaitijd: Tp ligt 3 min onder −2 °C | nee |
-| Diepe bevriezing | Tp ligt 3 min minstens 5 K onder de startlijn, zonder op een interval te wachten | nee |
+| Interval | Na het adaptieve interval (maximaal 120 min): Tp ligt 3 min onder −2 °C | ja, tot 120 min draaitijd |
 
-De startlijn, het pendelen en de diepe bevriezing vragen daarnaast dat de compressor minstens 5 min onafgebroken
-draait. Het slot van 30 min van de buitenunit geldt altijd.
+De startlijn vraagt daarnaast dat de compressor minstens 5 min onafgebroken draait. Het slot van 30 min van de
+buitenunit geldt altijd. Omdat het interval nooit langer is dan 120 min, is de intervalroute ook het vangnet: na
+120 min draaitijd wordt er altijd ontdooid als Tp onder −2 °C ligt, ook als de vochtigheid zegt dat de lucht droog is.
 
 ### Startlijn
 
@@ -70,7 +69,7 @@ defrost die OpenAmber zelf startte, net als de Smart-stand van de buitenunit met
 | langer dan 5 min | −10 min |
 | tot de maximale defrosttijd (3278) | terug naar het minimale interval |
 
-Het interval begint op het minimale interval (35 min) en is nooit korter dan 30 min. Zo ontdooit de regeling bij
+Het interval begint op het minimale interval (35 min, instelbaar van 30 tot 120 min) en is nooit korter dan 30 min. Zo ontdooit de regeling bij
 vochtig weer vaker dan bij droog weer, ook als de startlijn niet gehaald wordt. Een defrost die de buitenunit zelf
 startte, past het interval niet aan.
 
@@ -85,22 +84,11 @@ Ter indicatie (november 2026, Ta −1 tot −3 °C): bij 90–95 % RV groeide de
 48 min zichtbaar ijs (uitvoering ±4 min). Bij 80 % RV was dat 25–50 Pa per uur en bleef de spoel na 48 min schoon
 (uitvoering ±2 min). Met 70 Pa·h wordt het dan ±50 min bij mist en ±105 min bij 80 % RV.
 
-### Pendelen, vangnet en diepe bevriezing
-
-**Pendelende compressor.** De tweede route van Mitsubishi, voor weer waarin de compressor niet lang genoeg aan
-blijft voor de startlijn.
-
-**Vangnet.** Na 120 min draaitijd wordt er altijd ontdooid als Tp onder −2 °C ligt, ook als de vochtigheid zegt dat
-de lucht droog is.
-
-**Diepe bevriezing.** Ligt Tp ver onder de startlijn, dan is de spoel duidelijk bevroren. Er wordt dan ontdooid
-zonder op het interval of de luchtvochtigheid te wachten.
-
 ## Instellingen
 
 Alleen wat het moment van ontdooien bepaalt is instelbaar: de defrost controle, het minimale interval, het verschil
-bij 0 °C en bij −15 °C, de maximale Tp, de marge rijppunt en de drempel ijsteller. De overige waarden (maximale Ta, vangnet,
-retourblokkade, bevestigingstijd en maximaal uitstel droge lucht) staan vast in `controllers/constants.h`.
+bij 0 °C en bij −15 °C, de maximale Tp, de marge rijppunt en de drempel ijsteller. De overige waarden (maximale Ta, maximaal
+interval, retourblokkade en bevestigingstijd) staan vast in `controllers/constants.h`.
 
 ## Blokkades
 
@@ -121,7 +109,7 @@ ontdooien.
 
 IJs groeit alleen als de spoel kouder is dan het rijppunt van de buitenlucht. Met een vochtigheidssensor rekent
 OpenAmber dat rijppunt uit. Ligt Tp erboven, dan wacht de regeling, ook als de startlijn bereikt is: de lucht is
-te droog om ijs te vormen. Het vangnet werkt altijd, ook zonder of met een verkeerde sensor.
+te droog om ijs te vormen. Dat wachten stopt bij 120 min draaitijd, ook zonder of met een verkeerde sensor.
 
 De instellingen staan onder **Defrost → Luchtvochtigheid**:
 
@@ -131,7 +119,8 @@ De instellingen staan onder **Defrost → Luchtvochtigheid**:
 | Marge rijppunt | 0 K | Tp moet zoveel onder het rijppunt liggen voordat er ijs telt. Hoger = later ontdooien in droge lucht. |
 | Drempel ijsteller | 70 Pa·h | Ontdooien zodra er zoveel ijsaangroei geteld is (zie IJsteller). 0 = uit. |
 
-Na het interval plus 60 min telt de vochtigheid niet meer mee. Dat beschermt tegen een verkeerde of verlopen sensor.
+Vanaf 120 min draaitijd (het maximale interval) telt de vochtigheid niet meer mee. Dat beschermt tegen een
+verkeerde of verlopen sensor.
 
 Op dezelfde pagina staan de actuele vochtigheid, het rijppunt en de ijsteller.
 

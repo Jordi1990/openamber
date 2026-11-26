@@ -26,25 +26,32 @@
 
 using namespace esphome;
 
-enum class CustomDefrostState
+/// @brief Saturation vapour pressure over water at t (°C), in Pa (Magnus formula).
+inline float CustomDefrostVapourPressureWater(float t)
 {
-  OFF,
-  MONITORING,
-  BLOCKED,
-  REQUESTED,
-  DEFROSTING,
-};
+  return 611.2f * expf(17.62f * t / (243.12f + t));
+}
+
+/// @brief Saturation vapour pressure over ice at t (°C), in Pa (Magnus formula).
+inline float CustomDefrostVapourPressureIce(float t)
+{
+  return 611.2f * expf(22.46f * t / (272.62f + t));
+}
+
+inline bool CustomDefrostValidHumidity(float rh)
+{
+  return !std::isnan(rh) && rh >= 1.0f && rh <= 100.0f;
+}
 
 /// @brief Frost point of the outdoor air, NAN without a valid humidity (1-100 %).
 inline float CustomDefrostFrostPoint(float ta, float rh)
 {
-  if (std::isnan(ta) || std::isnan(rh) || rh < 1.0f || rh > 100.0f)
+  if (std::isnan(ta) || !CustomDefrostValidHumidity(rh))
   {
     return NAN;
   }
-  // Magnus formula: vapour pressure of the air (over water), then the temperature where that pressure saturates over ice.
-  float vapour_pressure = rh / 100.0f * 6.112f * expf(17.62f * ta / (243.12f + ta));
-  float l = logf(vapour_pressure / 6.112f);
+  // The temperature where the vapour pressure of the air saturates over ice (inverse of CustomDefrostVapourPressureIce).
+  float l = logf(rh / 100.0f * CustomDefrostVapourPressureWater(ta) / 611.2f);
   return 272.62f * l / (22.46f - l);
 }
 
@@ -52,55 +59,59 @@ inline float CustomDefrostFrostPoint(float ta, float rh)
 /// This drives frost growth on the coil: 0 when the coil is above the frost point, NAN without a valid humidity.
 inline float CustomDefrostIcingRate(float ta, float rh, float tp)
 {
-  if (std::isnan(ta) || std::isnan(tp) || std::isnan(rh) || rh < 1.0f || rh > 100.0f)
+  if (std::isnan(ta) || std::isnan(tp) || !CustomDefrostValidHumidity(rh))
   {
     return NAN;
   }
-  float air_pa = rh / 100.0f * 611.2f * expf(17.62f * ta / (243.12f + ta));
-  float ice_pa = 611.2f * expf(22.46f * tp / (272.62f + tp));
-  return std::max(0.0f, air_pa - ice_pa);
+  return std::max(0.0f, rh / 100.0f * CustomDefrostVapourPressureWater(ta) - CustomDefrostVapourPressureIce(tp));
 }
 
 /// @brief Decides when the outdoor unit should defrost.
 ///
-/// The start condition follows the Mitsubishi SRK-ZSX algorithm (technical manual 17-SRK-T-228, chapter 17c).
-/// Start line (ice seen on the coil), after the minimum interval:
-///  1. The compressor ran at least the minimum interval since the previous defrost (35 min).
-///  2. The compressor runs continuously for at least 5 min.
-///  3. The coil temperature Tp stays below the start line for 3 min. The start line is
-///     Ta - (required difference), where the required difference is 5 K at Ta >= 0 °C and 4 K at Ta = -15 °C,
-///     and never above -5 °C. All three values are settings. Mitsubishi uses 7 K at 0 °C, but on the Amber a clean
-///     coil sits only about 3 K below Ta, so 7 K was never reached before the safety net (data of Nov 2026).
-/// Ice counter (needs a humidity value): the vapour pressure excess of the air over ice at Tp, summed over the
-/// compressor time since the last defrost (Pa·h). Defrost when it reaches the threshold, after the minimum interval.
-/// Interval: after the adaptive interval with Tp below -2 °C for 3 min. The interval grows after short defrosts and
-/// shrinks after long ones, like the outdoor unit's Smart mode, so wet weather defrosts more often than dry weather.
-/// Cycling route (Mitsubishi): the compressor stopped at least 10 times, Ta <= 3 °C and Tp <= -5 °C for 3 min.
-/// Safety net: after the maximum runtime with Tp below the safety net threshold for 3 min, regardless of humidity.
-/// Deep frost: Tp 3 min at least 5 K below the start line defrosts without waiting for the interval (the 30 min lock
-/// of the outdoor unit still applies).
-/// Optional humidity sensor: when the coil is above the frost point of the air, no ice can grow,
-/// so the start line, interval and cycling route wait (the ice counter and safety net do not).
+/// Three start routes, each after the minimum interval (at least the outdoor unit's 30 min lock):
+///  - Start line (Mitsubishi SRK-ZSX, technical manual 17-SRK-T-228, chapter 17c): the compressor runs continuously
+///    for at least 5 min and the coil temperature Tp stays below the start line for 3 min. The start line is
+///    Ta - (required difference), where the required difference is 5 K at Ta >= 0 °C and 4 K at Ta = -15 °C,
+///    and never above -5 °C. All three values are settings. Mitsubishi uses 7 K at 0 °C, but on the Amber a clean
+///    coil sits only about 3 K below Ta, so 7 K was never reached (data of Nov 2026).
+///  - Ice counter (needs a humidity value): the vapour pressure excess of the air over ice at Tp, summed over the
+///    compressor time since the last defrost (Pa·h). Defrost when it reaches the threshold.
+///  - Interval: after the adaptive interval with Tp below -2 °C for 3 min. The interval grows after short defrosts and
+///    shrinks after long ones, like the outdoor unit's Smart mode, so wet weather defrosts more often than dry weather.
+///    It is at most 120 min, so this route is also the safety net.
+/// Optional humidity sensor: when the coil is above the frost point of the air, no ice can grow, so the start line
+/// and interval route wait. That wait ends at the maximum interval (120 min), so a wrong sensor cannot block defrosts.
 ///
 /// Modes (defrost_control_select), switchable at any time:
 ///  - Buitenunit: the outdoor unit decides itself, only statistics are kept here.
-///  - OpenAmber: EEPROM 3274 is set to master control and a defrost is started by writing working mode 4.
+///  - OpenAmber: 3274 is set to master control and a defrost is started by writing working mode 4.
 /// A running defrost always finishes; 3274 is only rewritten when no defrost is active.
 /// The heat/cool and DHW controllers pick up a pending request in COMPRESSOR_RUNNING via ShouldRequestDefrost().
 class CustomDefrostController
 {
 private:
-  CustomDefrostState state_ = CustomDefrostState::OFF;
+  /// @brief Conditions at the start of a defrost, sent with the defrost event when it ends.
+  struct DefrostEvent
+  {
+    float ta = NAN;
+    float tp = NAN;
+    float start_line = NAN;
+    float humidity = NAN;
+    float frost_point = NAN;
+    float runtime_min = NAN;
+    float ice_load = NAN;
+    uint32_t stops = 0;
+    int source = 0;
+  };
+
   uint32_t last_update_ms_ = 0;
   uint32_t runtime_remainder_ms_ = 0;
   uint32_t compressor_running_since_ms_ = 0;
   uint32_t compressor_stops_ = 0;
   uint32_t below_start_line_since_ms_ = 0;
-  uint32_t below_max_coil_since_ms_ = 0;
-  uint32_t below_safety_net_since_ms_ = 0;
-  uint32_t below_deep_frost_since_ms_ = 0;
   uint32_t below_interval_tp_since_ms_ = 0;
   uint32_t return_temperature_block_since_ms_ = 0;
+  // Non-zero while working mode 4 was written and the outdoor unit has not started the defrost yet.
   uint32_t request_started_ms_ = 0;
   uint32_t manual_request_ms_ = 0;
   uint32_t defrost_started_ms_ = 0;
@@ -108,7 +119,6 @@ private:
   uint32_t last_control_mode_write_ms_ = 0;
   uint32_t request_attempts_ = 0;
   uint32_t failed_since_ms_ = 0;
-  uint32_t control_mode_writes_ = 0;
   int last_published_runtime_min_ = -1;
   int previous_mode_ = -1;
   float previous_min_interval_ = NAN;
@@ -117,7 +127,6 @@ private:
   bool manual_request_ = false;
   bool started_by_openamber_ = false;
   bool overrun_warned_ = false;
-  bool control_mode_write_failed_logged_ = false;
   bool dry_air_delay_logged_ = false;
   std::string pending_reason_;
 
@@ -128,22 +137,19 @@ private:
   uint32_t execution_started_ms_ = 0;
   uint32_t melt_ms_ = 0;
   float energy_kj_ = 0.0f;
-  float event_ta_ = NAN;
-  float event_tp_ = NAN;
-  float event_start_line_ = NAN;
-  float event_humidity_ = NAN;
-  float event_frost_point_ = NAN;
-  float event_runtime_min_ = NAN;
-  float event_ice_load_ = NAN;
+  DefrostEvent event_;
   float last_published_ice_load_ = NAN;
-  uint32_t event_stops_ = 0;
-  int event_source_ = 0;
   std::string last_status_;
 
   int GetMode()
   {
     auto idx = id(defrost_control_select).active_index();
     return idx.has_value() ? (int)idx.value() : (int)CUSTOM_DEFROST_MODE_OUTDOOR_UNIT;
+  }
+
+  bool IsOpenAmberMode()
+  {
+    return GetMode() == (int)CUSTOM_DEFROST_MODE_OPENAMBER;
   }
 
   bool IsWorkingModeIndex(uint32_t working_mode)
@@ -162,6 +168,11 @@ private:
   bool IsCompressorRunning()
   {
     return id(current_compressor_frequency).state > 0;
+  }
+
+  bool IsHeatingWithCompressor(bool defrost_active)
+  {
+    return IsCompressorRunning() && !defrost_active && IsWorkingModeIndex(WORKING_MODE_HEATING);
   }
 
   static uint32_t NonZero(uint32_t now)
@@ -199,35 +210,16 @@ private:
     id(custom_defrost_status).publish_state(status);
   }
 
-  void SetState(CustomDefrostState state)
+  void ClearRequest()
   {
-    if (state_ == state)
-    {
-      return;
-    }
-    state_ = state;
-    ESP_LOGI("amber", "CustomDefrost state changed: %s", StateToString(state));
-  }
-
-  static const char* StateToString(CustomDefrostState state)
-  {
-    switch (state)
-    {
-      case CustomDefrostState::OFF:               return "Off";
-      case CustomDefrostState::MONITORING:        return "Monitoring";
-      case CustomDefrostState::BLOCKED:           return "Blocked";
-      case CustomDefrostState::REQUESTED:         return "Requested";
-      case CustomDefrostState::DEFROSTING:        return "Defrosting";
-      default:                                    return "Unknown";
-    }
+    request_pending_ = false;
+    manual_request_ = false;
+    request_attempts_ = 0;
   }
 
   void ResetTriggerTimers()
   {
     below_start_line_since_ms_ = 0;
-    below_max_coil_since_ms_ = 0;
-    below_safety_net_since_ms_ = 0;
-    below_deep_frost_since_ms_ = 0;
     below_interval_tp_since_ms_ = 0;
     return_temperature_block_since_ms_ = 0;
   }
@@ -257,30 +249,28 @@ private:
     return std::min(id(custom_defrost_max_coil_temperature).state, ta - GetRequiredDelta(ta));
   }
 
-  // ── Optional humidity sensor ──
-
-  /// @brief Frost point of the outdoor air, or NAN without a valid humidity value (no sensor: humidity is ignored).
-  float GetFrostPoint(float ta)
-  {
-    return CustomDefrostFrostPoint(ta, id(outdoor_humidity).state);
-  }
-
   // ── Interval between defrosts ──
 
   uint32_t GetMinIntervalMinutes()
   {
-    return std::max((uint32_t)id(custom_defrost_min_runtime).state, CUSTOM_DEFROST_OUTDOOR_UNIT_LOCK_S / 60);
+    uint32_t setting = (uint32_t)id(custom_defrost_min_runtime).state;
+    return std::min(std::max(setting, CUSTOM_DEFROST_OUTDOOR_UNIT_LOCK_S / 60), CUSTOM_DEFROST_INTERVAL_MAX_MIN);
+  }
+
+  uint32_t ClampInterval(uint32_t interval)
+  {
+    return std::min(std::max(interval, GetMinIntervalMinutes()), CUSTOM_DEFROST_INTERVAL_MAX_MIN);
   }
 
   uint32_t GetIntervalMinutes()
   {
-    uint32_t min_interval = GetMinIntervalMinutes();
-    uint32_t interval = id(custom_defrost_interval_min);
-    if (interval < min_interval)
-    {
-      return min_interval;
-    }
-    return std::min(interval, std::max(CUSTOM_DEFROST_INTERVAL_MAX_MIN, min_interval));
+    return ClampInterval(id(custom_defrost_interval_min));
+  }
+
+  void SetIntervalMinutes(uint32_t interval)
+  {
+    id(custom_defrost_interval_min) = ClampInterval(interval);
+    id(custom_defrost_interval_sensor).publish_state(id(custom_defrost_interval_min));
   }
 
   /// @brief A changed minimum interval setting restarts the adaptive interval from that value.
@@ -291,12 +281,9 @@ private:
     {
       return;
     }
-    if (!std::isnan(previous_min_interval_))
-    {
-      id(custom_defrost_interval_min) = GetMinIntervalMinutes();
-    }
+    bool first = std::isnan(previous_min_interval_);
     previous_min_interval_ = min_interval;
-    id(custom_defrost_interval_sensor).publish_state(GetIntervalMinutes());
+    SetIntervalMinutes(first ? id(custom_defrost_interval_min) : GetMinIntervalMinutes());
   }
 
   /// @brief Short defrost = little ice, so wait longer next time. Long defrost = wait shorter. Same rule as the outdoor unit's Smart mode.
@@ -316,11 +303,8 @@ private:
     {
       interval = interval > CUSTOM_DEFROST_INTERVAL_STEP_DOWN_MIN ? interval - CUSTOM_DEFROST_INTERVAL_STEP_DOWN_MIN : 0;
     }
-    id(custom_defrost_interval_min) = interval;
-    interval = GetIntervalMinutes();
-    id(custom_defrost_interval_min) = interval;
-    id(custom_defrost_interval_sensor).publish_state(interval);
-    ESP_LOGI("amber", "CustomDefrost: defrost took %u s, interval is now %u min.", (unsigned) duration_s, (unsigned) interval);
+    SetIntervalMinutes(interval);
+    ESP_LOGI("amber", "CustomDefrost: defrost took %u s, interval is now %u min.", (unsigned) duration_s, (unsigned) GetIntervalMinutes());
   }
 
   /// @brief The outdoor unit postpones a forced defrost until 30 min compressor time after the previous one.
@@ -336,7 +320,7 @@ private:
 
   void UpdateRuntime(uint32_t dt_ms, bool defrost_active)
   {
-    if (!IsCompressorRunning() || defrost_active || !IsWorkingModeIndex(WORKING_MODE_HEATING))
+    if (!IsHeatingWithCompressor(defrost_active))
     {
       return;
     }
@@ -348,7 +332,7 @@ private:
     PublishRuntime();
   }
 
-  /// @brief Tracks how long the compressor runs and counts its stops while heating (for the cycling route).
+  /// @brief Tracks how long the compressor runs and counts its stops while heating (sent with the defrost event).
   void UpdateCompressorStops(uint32_t now)
   {
     if (IsCompressorRunning())
@@ -435,49 +419,26 @@ private:
     }
   }
 
-  void ManageDefrostControlMode(int mode, uint32_t now)
+  /// @brief Keeps 3274 on the control that matches the mode. A Modbus write only changes the outdoor unit's RAM (no EEPROM
+  /// wear), and the unit loses it after a power cycle, so it is simply rewritten once a minute while the readback differs.
+  void ManageDefrostControlMode(uint32_t now)
   {
-    uint32_t desired = mode == (int)CUSTOM_DEFROST_MODE_OPENAMBER ? DEFROST_CONTROL_BY_MASTER : DEFROST_CONTROL_BY_OUTDOOR_UNIT;
+    uint32_t desired = IsOpenAmberMode() ? DEFROST_CONTROL_BY_MASTER : DEFROST_CONTROL_BY_OUTDOOR_UNIT;
     auto idx = id(defrost_control_mode_select).active_index();
-    // Only write after a valid readback, so a restart does not cause an EEPROM write before 3274 was read.
-    if (!idx.has_value())
+    // Only write after a valid readback, so nothing is written before 3274 was read.
+    if (!idx.has_value() || idx.value() == desired)
     {
       return;
     }
-    if (idx.value() == desired)
-    {
-      control_mode_writes_ = 0;
-      control_mode_write_failed_logged_ = false;
-      return;
-    }
-
     if (last_control_mode_write_ms_ != 0 && (now - last_control_mode_write_ms_) < CUSTOM_DEFROST_CONTROL_MODE_WRITE_INTERVAL_S * 1000UL)
     {
       return;
     }
-
-    // 3274 is an EEPROM parameter: stop rewriting it when the readback never follows, to spare the EEPROM.
-    if (control_mode_writes_ >= CUSTOM_DEFROST_MAX_CONTROL_MODE_WRITES)
-    {
-      if (!control_mode_write_failed_logged_)
-      {
-        control_mode_write_failed_logged_ = true;
-        ESP_LOGE("amber", "CustomDefrost: defrost control mode (3274) does not follow after %u writes, giving up until the mode changes.", (unsigned) control_mode_writes_);
-      }
-      return;
-    }
-
-    control_mode_writes_++;
     last_control_mode_write_ms_ = NonZero(now);
     ESP_LOGI("amber", "CustomDefrost: writing defrost control mode (3274) = %s", desired == DEFROST_CONTROL_BY_MASTER ? "master (OpenAmber)" : "outdoor unit");
     auto call = id(defrost_control_mode_select).make_call();
     call.set_index(desired);
     call.perform();
-  }
-
-  void PublishTrigger(uint32_t now, const std::string& text)
-  {
-    id(custom_defrost_last_trigger).publish_state(text);
   }
 
   void RestoreHeatingWorkingMode()
@@ -490,17 +451,14 @@ private:
   }
 
   /// @brief Control stays with OpenAmber: raise the warning and try again after the retry delay.
-  void OnRequestFailed()
+  void OnRequestFailed(uint32_t now)
   {
     ESP_LOGE("amber", "CustomDefrost: forced defrost was not confirmed by the outdoor unit, retrying in %u min.",
              (unsigned) (CUSTOM_DEFROST_FAILED_RETRY_S / 60));
     id(warning_custom_defrost_failed).publish_state(true);
-    request_pending_ = false;
-    manual_request_ = false;
-    request_attempts_ = 0;
-    failed_since_ms_ = NonZero(App.get_loop_component_start_time());
+    ClearRequest();
+    failed_since_ms_ = NonZero(now);
     ResetTriggerTimers();
-    SetState(CustomDefrostState::MONITORING);
   }
 
   /// @brief Keeps one Tp sample per 10 s, so the lowest Tp of the last minute is known when the hot gas arrives.
@@ -567,10 +525,9 @@ private:
   {
     defrost_started_ms_ = NonZero(now);
     overrun_warned_ = false;
-    started_by_openamber_ = state_ == CustomDefrostState::REQUESTED;
-    request_pending_ = false;
-    manual_request_ = false;
-    request_attempts_ = 0;
+    started_by_openamber_ = request_started_ms_ != 0;
+    request_started_ms_ = 0;
+    ClearRequest();
 
     float tp = id(evaporation_temperature_tp).state;
     float ta = id(temperature_outside_ta).state;
@@ -578,15 +535,16 @@ private:
     execution_started_ms_ = 0;
     melt_ms_ = 0;
     energy_kj_ = 0.0f;
-    event_ta_ = ta;
-    event_tp_ = tp;
-    event_start_line_ = IsValid(ta) ? GetStartTemperature(ta) : NAN;
-    event_humidity_ = id(outdoor_humidity).state;
-    event_frost_point_ = IsValid(ta) ? GetFrostPoint(ta) : NAN;
-    event_runtime_min_ = GetRuntimeSeconds() / 60.0f;
-    event_ice_load_ = id(custom_defrost_ice_load);
-    event_stops_ = compressor_stops_;
-    event_source_ = started_by_openamber_ ? 1 : 0;
+    event_ = DefrostEvent{};
+    event_.ta = ta;
+    event_.tp = tp;
+    event_.start_line = IsValid(ta) ? GetStartTemperature(ta) : NAN;
+    event_.humidity = id(outdoor_humidity).state;
+    event_.frost_point = CustomDefrostFrostPoint(ta, event_.humidity);
+    event_.runtime_min = GetRuntimeSeconds() / 60.0f;
+    event_.ice_load = id(custom_defrost_ice_load);
+    event_.stops = compressor_stops_;
+    event_.source = started_by_openamber_ ? 1 : 0;
     failed_since_ms_ = 0;
     if (started_by_openamber_)
     {
@@ -595,8 +553,6 @@ private:
 
     ESP_LOGI("amber", "CustomDefrost: defrost started by %s (Tp %.1f°C, Ta %.1f°C).",
              started_by_openamber_ ? "OpenAmber" : "outdoor unit", tp, ta);
-
-    SetState(CustomDefrostState::DEFROSTING);
   }
 
   void OnDefrostEnded(uint32_t now)
@@ -618,9 +574,9 @@ private:
       {
         AdaptInterval((uint32_t) execution_s);
       }
-      id(send_defrost_event).execute(event_source_, total_s, execution_s, melt_s, energy_kj, event_ta_, event_tp_,
-                                     event_start_line_, event_humidity_, event_frost_point_, event_runtime_min_,
-                                     (int) event_stops_, event_ice_load_);
+      id(send_defrost_event).execute(event_.source, total_s, execution_s, melt_s, energy_kj, event_.ta, event_.tp,
+                                     event_.start_line, event_.humidity, event_.frost_point, event_.runtime_min,
+                                     (int) event_.stops, event_.ice_load);
     }
     // The outdoor unit returns to heating by itself but leaves 3999 on 4, which would start a new defrost after 30 min.
     RestoreHeatingWorkingMode();
@@ -635,25 +591,13 @@ private:
     PublishIceLoad();
     ResetTriggerTimers();
     forced_mode_seen_since_ms_ = 0;
-    SetState(GetMode() == (int)CUSTOM_DEFROST_MODE_OUTDOOR_UNIT ? CustomDefrostState::OFF : CustomDefrostState::MONITORING);
   }
 
   /// @brief Backup: restores the working mode when the outdoor unit is still in forced defrost mode without a defrost.
   void CheckForcedModeRestore(uint32_t now, bool defrost_active)
   {
-    if (defrost_active || state_ == CustomDefrostState::REQUESTED || !IsWorkingModeIndex(WORKING_MODE_FORCED_DEFROST))
-    {
-      forced_mode_seen_since_ms_ = 0;
-      return;
-    }
-
-    if (forced_mode_seen_since_ms_ == 0)
-    {
-      forced_mode_seen_since_ms_ = NonZero(now);
-      return;
-    }
-
-    if ((now - forced_mode_seen_since_ms_) >= CUSTOM_DEFROST_RESTORE_WORKING_MODE_DELAY_S * 1000UL)
+    bool stuck = !defrost_active && request_started_ms_ == 0 && IsWorkingModeIndex(WORKING_MODE_FORCED_DEFROST);
+    if (HoldSeconds(stuck, &forced_mode_seen_since_ms_, now) >= CUSTOM_DEFROST_RESTORE_WORKING_MODE_DELAY_S)
     {
       ESP_LOGW("amber", "CustomDefrost: outdoor unit still in forced defrost mode without active defrost.");
       RestoreHeatingWorkingMode();
@@ -680,7 +624,7 @@ private:
     }
   }
 
-  /// @brief Checks the three start routes. Returns the trigger reason, or an empty string with *waiting set to why not.
+  /// @brief Checks the start routes. Returns the trigger reason, or an empty string with *waiting set to why not.
   std::string EvaluateTriggers(uint32_t now, std::string* waiting)
   {
     float ta = id(temperature_outside_ta).state;
@@ -696,41 +640,17 @@ private:
     uint32_t runtime_min = GetRuntimeSeconds() / 60;
     uint32_t interval_min = GetIntervalMinutes();
     uint32_t compressor_on_s = GetCompressorOnSeconds(now);
-    bool soft_start_done = compressor_on_s >= COMPRESSOR_SOFT_START_DURATION_S;
 
-    // Safety net: long runtime with a cold coil, regardless of the start line and humidity.
-    bool safety_net_cold = soft_start_done && runtime_min >= CUSTOM_DEFROST_SAFETY_NET_RUNTIME_MIN && tp < CUSTOM_DEFROST_SAFETY_NET_TP_C;
-    if (HoldSeconds(safety_net_cold, &below_safety_net_since_ms_, now) >= CUSTOM_DEFROST_CONFIRM_S)
-    {
-      snprintf(buffer, sizeof(buffer), "Vangnet: %u min draaitijd, Tp %.1f°C", (unsigned) runtime_min, tp);
-      return buffer;
-    }
-
-    // Normal route: Tp below the start line, compressor running continuously.
+    // Start line: Tp below the start line, compressor running continuously.
     float start_temperature = GetStartTemperature(ta);
     bool below_start_line = compressor_on_s >= CUSTOM_DEFROST_MIN_COMPRESSOR_ON_S && tp <= start_temperature;
     uint32_t below_start_line_s = HoldSeconds(below_start_line, &below_start_line_since_ms_, now);
 
-    // Deep frost: far below the start line the coil is clearly iced, so don't wait for the interval or the humidity.
-    float deep_frost_temperature = start_temperature - CUSTOM_DEFROST_DEEP_FROST_K;
-    bool deep_frost = below_start_line && tp <= deep_frost_temperature;
-    if (HoldSeconds(deep_frost, &below_deep_frost_since_ms_, now) >= CUSTOM_DEFROST_CONFIRM_S)
-    {
-      snprintf(buffer, sizeof(buffer), "Diepe bevriezing: Tp %.1f <= %.1f°C (Ta %.1f°C)", tp, deep_frost_temperature, ta);
-      return buffer;
-    }
-
-    // Cycling route: many compressor stops, cold weather and a cold coil.
-    bool cycling = compressor_stops_ >= CUSTOM_DEFROST_CYCLING_MIN_STOPS && ta <= CUSTOM_DEFROST_CYCLING_MAX_TA_C;
-    bool below_max_coil = cycling && soft_start_done && tp <= id(custom_defrost_max_coil_temperature).state;
-    uint32_t below_max_coil_s = HoldSeconds(below_max_coil, &below_max_coil_since_ms_, now);
-
     // Interval route: once the adaptive interval has passed, a coil below -2 °C is enough.
-    bool interval_cold = soft_start_done && tp < CUSTOM_DEFROST_INTERVAL_TP_C;
+    bool interval_cold = compressor_on_s >= COMPRESSOR_SOFT_START_DURATION_S && tp < CUSTOM_DEFROST_INTERVAL_TP_C;
     uint32_t interval_cold_s = HoldSeconds(interval_cold, &below_interval_tp_since_ms_, now);
 
-    uint32_t min_interval_min = GetMinIntervalMinutes();
-    if (runtime_min < min_interval_min)
+    if (runtime_min < GetMinIntervalMinutes())
     {
       snprintf(buffer, sizeof(buffer), "interval %u / %u min", (unsigned) runtime_min, (unsigned) interval_min);
       *waiting = buffer;
@@ -746,24 +666,19 @@ private:
       return buffer;
     }
 
-    // Dry air: the coil must be at least the margin below the frost point before ice can grow. The delay is
-    // limited, so a wrong or drifting humidity sensor cannot postpone defrosts for long.
+    // Dry air: the coil must be at least the margin below the frost point before ice can grow. The wait ends at the
+    // maximum interval, so a wrong or drifting humidity sensor cannot postpone defrosts for long.
     bool dry_air = false;
-    float icing_limit = NAN;
-    float frost_point = GetFrostPoint(ta);
-    if (IsValid(frost_point))
+    float frost_point = CustomDefrostFrostPoint(ta, id(outdoor_humidity).state);
+    float margin = id(custom_defrost_frost_point_margin).state;
+    float icing_limit = frost_point - (IsValid(margin) ? margin : 0.0f);
+    if (IsValid(frost_point) && tp > icing_limit)
     {
-      float margin = id(custom_defrost_frost_point_margin).state;
-      icing_limit = frost_point - (IsValid(margin) ? margin : 0.0f);
-      bool delay_passed = runtime_min >= interval_min + CUSTOM_DEFROST_HUMIDITY_MAX_DELAY_MIN;
-      if (tp > icing_limit)
+      dry_air = runtime_min < CUSTOM_DEFROST_INTERVAL_MAX_MIN;
+      if (!dry_air && !dry_air_delay_logged_)
       {
-        dry_air = !delay_passed;
-        if (delay_passed && !dry_air_delay_logged_)
-        {
-          dry_air_delay_logged_ = true;
-          ESP_LOGW("amber", "CustomDefrost: dry air delayed the defrost for %u min, ignoring the humidity now.", (unsigned) CUSTOM_DEFROST_HUMIDITY_MAX_DELAY_MIN);
-        }
+        dry_air_delay_logged_ = true;
+        ESP_LOGW("amber", "CustomDefrost: dry air delayed the defrost to %u min runtime, ignoring the humidity now.", (unsigned) CUSTOM_DEFROST_INTERVAL_MAX_MIN);
       }
     }
 
@@ -787,12 +702,6 @@ private:
       return "";
     }
 
-    if (below_max_coil_s >= CUSTOM_DEFROST_CONFIRM_S)
-    {
-      snprintf(buffer, sizeof(buffer), "Pendelen: %u keer gestopt, Tp %.1f°C", (unsigned) compressor_stops_, tp);
-      return buffer;
-    }
-
     if (interval_cold_s >= CUSTOM_DEFROST_CONFIRM_S)
     {
       snprintf(buffer, sizeof(buffer), "Interval: %u min draaitijd, Tp %.1f°C", (unsigned) runtime_min, tp);
@@ -806,12 +715,12 @@ private:
   /// @brief Returns the block reason or an empty string.
   std::string EvaluateBlocks(uint32_t now)
   {
+    char buffer[64];
     if (failed_since_ms_ != 0)
     {
       uint32_t elapsed_s = (now - failed_since_ms_) / 1000;
       if (elapsed_s < CUSTOM_DEFROST_FAILED_RETRY_S)
       {
-        char buffer[64];
         snprintf(buffer, sizeof(buffer), "mislukt, opnieuw over %u min", (unsigned) ((CUSTOM_DEFROST_FAILED_RETRY_S - elapsed_s + 59) / 60));
         return buffer;
       }
@@ -824,21 +733,15 @@ private:
     }
 
     float return_temperature = id(inlet_temperature_tui).state;
-    float min_return_temperature = CUSTOM_DEFROST_MIN_RETURN_TEMPERATURE_C;
-    if (IsValid(return_temperature) && return_temperature < min_return_temperature)
+    bool too_cold = IsValid(return_temperature) && return_temperature < CUSTOM_DEFROST_MIN_RETURN_TEMPERATURE_C;
+    if (too_cold)
     {
-      if (return_temperature_block_since_ms_ == 0)
+      if (HoldSeconds(true, &return_temperature_block_since_ms_, now) < CUSTOM_DEFROST_MAX_RETURN_WAIT_S)
       {
-        return_temperature_block_since_ms_ = NonZero(now);
-      }
-      uint32_t max_wait_ms = CUSTOM_DEFROST_MAX_RETURN_WAIT_S * 1000UL;
-      if ((now - return_temperature_block_since_ms_) < max_wait_ms)
-      {
-        char buffer[64];
-        snprintf(buffer, sizeof(buffer), "retour %.1f < %.1f°C", return_temperature, min_return_temperature);
+        snprintf(buffer, sizeof(buffer), "retour %.1f < %.1f°C", return_temperature, CUSTOM_DEFROST_MIN_RETURN_TEMPERATURE_C);
         return buffer;
       }
-      ESP_LOGW("amber", "CustomDefrost: return temperature %.1f°C still below %.1f°C after maximum wait, defrosting anyway.", return_temperature, min_return_temperature);
+      ESP_LOGW("amber", "CustomDefrost: return temperature %.1f°C still below %.1f°C after maximum wait, defrosting anyway.", return_temperature, CUSTOM_DEFROST_MIN_RETURN_TEMPERATURE_C);
     }
     else
     {
@@ -846,11 +749,6 @@ private:
     }
 
     return "";
-  }
-
-  bool IsHeatingWithCompressor(bool defrost_active)
-  {
-    return IsCompressorRunning() && !defrost_active && IsWorkingModeIndex(WORKING_MODE_HEATING);
   }
 
 public:
@@ -865,26 +763,21 @@ public:
 
     int mode = GetMode();
     bool defrost_active = id(defrost_active_sensor).state;
+    // Set again below when a defrost is wanted now.
+    request_pending_ = false;
 
     if (mode != previous_mode_)
     {
       ESP_LOGI("amber", "CustomDefrost: mode changed to %s", id(defrost_control_select).current_option().c_str());
       id(warning_custom_defrost_failed).publish_state(false);
       failed_since_ms_ = 0;
-      if (state_ == CustomDefrostState::REQUESTED && !defrost_active)
+      if (request_started_ms_ != 0 && !defrost_active)
       {
         RestoreHeatingWorkingMode();
+        request_started_ms_ = 0;
       }
-      request_pending_ = false;
-      manual_request_ = false;
-      request_attempts_ = 0;
-      control_mode_writes_ = 0;
-      control_mode_write_failed_logged_ = false;
+      ClearRequest();
       ResetTriggerTimers();
-      if (!defrost_active)
-      {
-        SetState(mode == (int)CUSTOM_DEFROST_MODE_OUTDOOR_UNIT ? CustomDefrostState::OFF : CustomDefrostState::MONITORING);
-      }
       previous_mode_ = mode;
     }
 
@@ -898,7 +791,7 @@ public:
     // Switching during a defrost: let the defrost finish first, then hand 3274 over.
     if (modbus_connected && !defrost_active)
     {
-      ManageDefrostControlMode(mode, now);
+      ManageDefrostControlMode(now);
     }
 
     if (defrost_active && !defrost_active_previous_)
@@ -917,46 +810,37 @@ public:
     if (defrost_active)
     {
       TrackDefrost(now, dt_ms);
-    }
-    else
-    {
-      SampleTp(now);
-    }
-
-    if (defrost_active)
-    {
       PublishStatus(started_by_openamber_ ? "Ontdooien" : "Ontdooien (buitenunit)");
       return;
     }
+    SampleTp(now);
 
-    if (mode == (int)CUSTOM_DEFROST_MODE_OUTDOOR_UNIT)
+    if (!IsOpenAmberMode())
     {
-      SetState(CustomDefrostState::OFF);
       PublishStatus("Uit");
       return;
     }
 
-    if (state_ == CustomDefrostState::REQUESTED)
+    if (request_started_ms_ != 0)
     {
-      uint32_t timeout_ms = CUSTOM_DEFROST_CONFIRM_TIMEOUT_S * 1000UL;
-      if ((now - request_started_ms_) < timeout_ms)
+      if ((now - request_started_ms_) < CUSTOM_DEFROST_CONFIRM_TIMEOUT_S * 1000UL)
       {
         PublishStatus("Aangevraagd");
         return;
       }
 
+      request_started_ms_ = 0;
       request_attempts_++;
       ESP_LOGW("amber", "CustomDefrost: no defrost started within %u s after forced defrost request (attempt %u).", (unsigned) CUSTOM_DEFROST_CONFIRM_TIMEOUT_S, (unsigned) request_attempts_);
       // Take the 4 back, otherwise the outdoor unit would still start the defrost later.
       RestoreHeatingWorkingMode();
       if (request_attempts_ >= CUSTOM_DEFROST_MAX_REQUEST_ATTEMPTS)
       {
-        OnRequestFailed();
+        OnRequestFailed(now);
         PublishStatus("Mislukt, wacht op nieuwe poging");
         return;
       }
       // Retry on the next opportunity, the trigger timers keep running.
-      SetState(CustomDefrostState::MONITORING);
       request_pending_ = true;
       PublishStatus("Opnieuw aanvragen");
       return;
@@ -968,17 +852,14 @@ public:
       {
         ESP_LOGW("amber", "CustomDefrost: manual defrost request expired.");
         manual_request_ = false;
-        request_pending_ = false;
       }
       else if (!IsCompressorRunning())
       {
         ESP_LOGW("amber", "CustomDefrost: compressor stopped, manual defrost request cancelled.");
         manual_request_ = false;
-        request_pending_ = false;
       }
       else if (IsOutdoorUnitLocked())
       {
-        request_pending_ = false;
         PublishStatus("Handmatig: wacht op slot buitenunit");
         return;
       }
@@ -993,8 +874,6 @@ public:
     if (!IsHeatingWithCompressor(defrost_active) || id(temperature_outside_ta).state > CUSTOM_DEFROST_MAX_TA_C)
     {
       ResetTriggerTimers();
-      request_pending_ = false;
-      SetState(CustomDefrostState::MONITORING);
       PublishStatus("Bewaken");
       return;
     }
@@ -1003,9 +882,7 @@ public:
     std::string reason = EvaluateTriggers(now, &waiting);
     if (reason.empty())
     {
-      request_pending_ = false;
       return_temperature_block_since_ms_ = 0;
-      SetState(CustomDefrostState::MONITORING);
       PublishStatus(waiting.empty() ? std::string("Bewaken") : "Bewaken: " + waiting);
       return;
     }
@@ -1013,26 +890,23 @@ public:
     std::string block = EvaluateBlocks(now);
     if (!block.empty())
     {
-      request_pending_ = false;
-      SetState(CustomDefrostState::BLOCKED);
       PublishStatus("Geblokkeerd: " + block);
       return;
     }
 
-    if (!request_pending_)
+    if (last_status_ != "Defrost gewenst")
     {
       ESP_LOGI("amber", "CustomDefrost: defrost wanted (%s).", reason.c_str());
     }
     request_pending_ = true;
     pending_reason_ = reason;
-    SetState(CustomDefrostState::MONITORING);
     PublishStatus("Defrost gewenst");
   }
 
   /// @brief True when the heat/cool or DHW controller should start a forced defrost now.
   bool ShouldRequestDefrost()
   {
-    if (!request_pending_ || state_ == CustomDefrostState::REQUESTED || GetMode() != (int)CUSTOM_DEFROST_MODE_OPENAMBER)
+    if (!request_pending_ || request_started_ms_ != 0 || !IsOpenAmberMode())
     {
       return false;
     }
@@ -1045,33 +919,27 @@ public:
     uint32_t now = App.get_loop_component_start_time();
     std::string reason = manual_request_ ? std::string("Handmatig") : pending_reason_;
     ESP_LOGI("amber", "CustomDefrost: requesting forced defrost (%s).", reason.c_str());
-    PublishTrigger(now, reason);
+    id(custom_defrost_last_trigger).publish_state(reason);
     request_pending_ = false;
     manual_request_ = false;
     request_started_ms_ = NonZero(now);
-    SetState(CustomDefrostState::REQUESTED);
     PublishStatus("Aangevraagd");
     WriteWorkingMode(WORKING_MODE_FORCED_DEFROST);
   }
 
   bool IsRequestActive() const
   {
-    return state_ == CustomDefrostState::REQUESTED;
-  }
-
-  bool IsDefrostOrRequestActive()
-  {
-    return state_ == CustomDefrostState::REQUESTED || id(defrost_active_sensor).state;
+    return request_started_ms_ != 0;
   }
 
   void RequestManualDefrost()
   {
-    if (GetMode() != (int)CUSTOM_DEFROST_MODE_OPENAMBER)
+    if (!IsOpenAmberMode())
     {
       ESP_LOGW("amber", "CustomDefrost: manual defrost only possible when defrost control is set to OpenAmber.");
       return;
     }
-    if (state_ == CustomDefrostState::REQUESTED || id(defrost_active_sensor).state)
+    if (request_started_ms_ != 0 || id(defrost_active_sensor).state)
     {
       ESP_LOGW("amber", "CustomDefrost: defrost already requested or active.");
       return;
