@@ -990,6 +990,23 @@ script:
     then: []
   - id: send_analytics
     then: []
+  # Analytics is not part of the simulator; same parameters as core/analytics_scripts.yaml.
+  - id: send_defrost_event
+    parameters:
+      source: int
+      total_s: float
+      execution_s: float
+      melt_s: float
+      energy_kj: float
+      ta: float
+      tp: float
+      start_line: float
+      humidity: float
+      frost_point: float
+      runtime_min: float
+      stops: int
+      ice_load: float
+    then: []
   - id: dump_eeprom_parameters
     then: []
   - id: dump_eeprom_parameters_ui_disable

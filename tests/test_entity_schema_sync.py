@@ -171,6 +171,7 @@ def test_hardware_mocks_correspond_to_physical_modbus_or_subsystems():
         "dump_eeprom_parameters_ui_enable",
         "fetch_analytics_device_id",
         "send_analytics",
+        "send_defrost_event",
         "system_debug_device_info",
         "system_debug_reset_reason",
         "system_heap_fragmentation",
