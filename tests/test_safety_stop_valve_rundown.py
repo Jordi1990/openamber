@@ -31,9 +31,18 @@ def test_valve_waits_for_compressor_run_down_after_error_during_dhw(clean_system
     assert openamber.get_entity("state_machine_state_dhw") == "Idle"
     assert openamber.get_entity("three_way_valve_dhw_switch") is True, "The valve must wait for the run-down"
 
-    # Compressor stands still: now the valve returns to heating/cooling.
+    # Compressor stands still: now the valve returns to heating/cooling. The valve may move in the same 5 s step in
+    # which the frequency reaches 0, which FlowMonitor cannot tell apart, so check this part in 1 s steps.
     openamber.set_number(FREQUENCY_OVERRIDE, -1)
-    assert monitor.advance_until("three_way_valve_heat_cool_switch", True, 30), "The valve must move after the run-down"
+    for _ in range(30):
+        openamber.advance_time(seconds=1)
+        openamber.step(ms=20)
+        if openamber.get_entity("three_way_valve_heat_cool_switch") is True:
+            break
+        assert openamber.get_entity("three_way_valve_dhw_switch") is True
+    assert openamber.get_entity("three_way_valve_heat_cool_switch") is True, "The valve must move after the run-down"
     assert openamber.get_entity("three_way_valve_dhw_switch") is False
+    assert float(openamber.get_entity("current_compressor_frequency") or 0) == 0
+    monitor.previous = monitor.snapshot()
     monitor.advance(120)
     assert _level(openamber) == 0, "No restart while the error is active"
