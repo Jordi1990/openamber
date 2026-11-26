@@ -271,7 +271,7 @@ private:
     // Stop if pump flow stays missing for the configured delay while the compressor or the backup heater runs.
     // The backup heater counts too: in emergency mode it runs without the compressor, and an element without
     // flow overheats (the inside unit has no interlock of its own, the original controller enforced it).
-    if ((compressor_controller_->IsRunning() || IsBackupHeaterSwitchedOn()) && !pump_controller_->IsRunning() &&
+    if ((compressor_controller_->IsRunning() || IsBackupHeaterActive()) && !pump_controller_->IsRunning() &&
         state_ != DHWState::IDLE)
     {
       const uint32_t now = App.get_loop_component_start_time();
