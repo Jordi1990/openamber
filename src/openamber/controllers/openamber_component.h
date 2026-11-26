@@ -170,7 +170,7 @@ void OpenAmberComponent::update()
                                  heat_cool_controller_->CanHandOverRunningCompressor();
   const bool hot_switch_to_heat = state_ == State::DHW_HEAT && desired_state == State::HEAT_COOL &&
                                   dhw_controller_->CanHandOverRunningCompressor() &&
-                                  heat_cool_controller_->WantsRunningCompressor();
+                                  heat_cool_controller_->HasCompressorDemand();
   if ((hot_switch_to_dhw || hot_switch_to_heat) && !maintenance_requested && !controlled_stop_requested)
   {
     ESP_LOGI("amber", "Hot switch: moving the 3-way valve while the compressor keeps running.");

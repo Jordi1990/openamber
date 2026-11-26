@@ -411,34 +411,6 @@ private:
       return true;
   }
 
-  bool HasCompressorDemand()
-  {
-    bool has_active_demand = false;
-  
-    // When compressor is running only consider the active demand for the current mode.
-    if(compressor_controller_->IsRunning())
-    {
-      has_active_demand = IsWorkingMode(WORKING_MODE_COOLING) ? id(cool_demand_active_sensor).state : id(heat_demand_active_sensor).state || id(frost_protection_stage2_active).state;
-    }
-    else 
-    {
-      has_active_demand = id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state || id(frost_protection_stage2_active).state;
-    }
-
-    if (!has_active_demand)
-    {
-      return false;
-    }
-
-    if(requested_to_stop_)
-    {
-      ESP_LOGI("amber", "Compressor stop requested, ignoring compressor demand until stopped.");
-      return false;
-    }
-
-    return true;
-  }
-
 
   bool PerformSafetyChecks()
   {
@@ -547,12 +519,32 @@ public:
     SetNextState(HeatCoolState::IDLE);
   }
 
-  /// @brief True when heating wants the compressor that DHW hands over (hot switch from DHW): heat demand,
-  /// no cooling demand.
-  bool WantsRunningCompressor()
+  bool HasCompressorDemand()
   {
-    return (id(heat_demand_active_sensor).state || id(frost_protection_stage2_active).state) &&
-           !id(cool_demand_active_sensor).state && !id(emergency_mode_enabled).state;
+    bool has_active_demand = false;
+  
+    // When compressor is running only consider the active demand for the current mode.
+    if(compressor_controller_->IsRunning())
+    {
+      has_active_demand = IsWorkingMode(WORKING_MODE_COOLING) ? id(cool_demand_active_sensor).state : id(heat_demand_active_sensor).state || id(frost_protection_stage2_active).state;
+    }
+    else 
+    {
+      has_active_demand = id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state || id(frost_protection_stage2_active).state;
+    }
+
+    if (!has_active_demand)
+    {
+      return false;
+    }
+
+    if(requested_to_stop_)
+    {
+      ESP_LOGI("amber", "Compressor stop requested, ignoring compressor demand until stopped.");
+      return false;
+    }
+
+    return true;
   }
 
   /// @brief Takes over units that kept running while the ESP restarted, instead of stopping them.
