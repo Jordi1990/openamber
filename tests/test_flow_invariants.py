@@ -73,17 +73,14 @@ def test_heat_dhw_heat_cycle_keeps_hardware_rules(clean_system):
     monitor.advance(700)
     assert openamber.get_entity("dhw_pump_relay_switch") is True
 
-    # Tank at setpoint: DHW stops, the valve returns and heating resumes.
+    # Tank at setpoint with heat demand: the valve returns while the compressor keeps running (hot switch).
     openamber.set_sensor("dhw_temperature_tw_sensor", 52.0)
-    assert _advance_until_compressor(monitor, running=False, max_s=30) is not None, "DHW must stop at the setpoint"
     assert monitor.advance_until("state_machine_state_main", "Heat/Cool", 200)
     assert openamber.get_entity("three_way_valve_dhw_switch") is False
     assert openamber.get_entity("three_way_valve_heat_cool_switch") is True
     assert openamber.get_entity("dhw_pump_relay_switch") is False
-
-    assert _advance_until_compressor(monitor, running=True, max_s=1500) is not None, (
-        f"Heating did not resume after DHW (state: {openamber.get_entity('state_machine_state_heat_cool')})"
-    )
+    assert _compressor(openamber) > 0, "Heating takes over the running compressor"
+    monitor.advance(60)
     assert openamber.get_entity("working_mode_switch") == "Verwarmen"
     assert openamber.get_entity("pump_p1_relay_switch") is True
 

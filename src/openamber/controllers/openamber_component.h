@@ -303,6 +303,17 @@ void OpenAmberComponent::update()
     {
       dhw_controller_->CheckLegionellaCycle();
 
+      // Hot switch: hand the running compressor over to heating and move the valve without stopping.
+      if (desired_state == State::HEAT_COOL && !maintenance_requested && !controlled_stop_requested &&
+          dhw_controller_->CanHandOverRunningCompressor() && heat_cool_controller_->WantsRunningCompressor())
+      {
+        ESP_LOGI("amber", "Hot switch: moving the 3-way valve to heating while the compressor keeps running.");
+        dhw_controller_->HandOverRunningCompressor();
+        hot_switch_active_ = true;
+        SwitchThreeWayValveAndWait(ThreeWayValvePosition::HEATING_COOLING, State::HEAT_COOL);
+        break;
+      }
+
       if((maintenance_requested || controlled_stop_requested) && !dhw_controller_->IsRequestedToStop())
       {
         dhw_controller_->RequestToStop();
@@ -396,7 +407,7 @@ void OpenAmberComponent::update()
 
     case State::WAIT_THREE_WAY_VALVE:
     {
-      // During a hot switch an error ends the wait: the DHW controller then stops the running compressor.
+      // During a hot switch an error ends the wait: the controller that takes over then stops the compressor.
       const bool hot_switch_error = hot_switch_active_ && id(error_active).state;
       if (App.get_loop_component_start_time() - valve_switch_started_ms_ < THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL && !hot_switch_error)
       {
@@ -412,8 +423,16 @@ void OpenAmberComponent::update()
       if (hot_switch_active_)
       {
         hot_switch_active_ = false;
-        // DHW takes over the running compressor and pump; the minimum on time counts from the original start.
-        dhw_controller_->ResumeFromRunningUnits(true);
+        // The other controller takes over the running compressor and pump; the minimum on time counts from the
+        // original start.
+        if (valve_target_state_ == State::DHW_HEAT)
+        {
+          dhw_controller_->ResumeFromRunningUnits(true);
+        }
+        else
+        {
+          heat_cool_controller_->ResumeFromRunningUnits(true);
+        }
       }
       SetNextState(valve_target_state_);
       break;

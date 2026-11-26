@@ -407,6 +407,26 @@ public:
     SetNextState(DHWState::IDLE);
   }
 
+  /// @brief True when the running compressor can be handed over to heating without stopping (hot switch):
+  /// a running compressor, no backup heater, emergency mode, error, defrost or oil return cycle.
+  bool CanHandOverRunningCompressor()
+  {
+    return state_ == DHWState::COMPRESSOR_RUNNING && compressor_controller_->IsRunning() &&
+           compressor_controller_->IsCommanded() && !IsBackupHeaterActive() && !id(emergency_mode_enabled).state &&
+           !id(error_active).state && !id(defrost_active_sensor).state && !id(oil_return_cycle_active).state;
+  }
+
+  /// @brief Leaves the compressor, pump P0 and working mode as they are and goes to idle, so heating can take over.
+  void HandOverRunningCompressor()
+  {
+    StopDhwPump();
+    id(dhw_active).publish_state(false);
+    requested_to_stop_ = false;
+    pump_flow_missing_since_ms_ = 0;
+    water_delta_t_exceeded_since_ms_ = 0;
+    SetNextState(DHWState::IDLE);
+  }
+
   /// @brief Takes over units that kept running while the ESP restarted, instead of stopping them.
   /// Only called with the 3-way valve in the DHW position and pump P0 running.
   /// hand_over: the compressor comes running from heating (hot switch), its start time is known and kept.

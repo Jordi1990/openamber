@@ -51,6 +51,8 @@ private:
   float start_current_temperature_ = 0.0f;
   uint32_t pump_flow_missing_since_ms_ = 0;
   uint32_t water_delta_t_exceeded_since_ms_ = 0;
+  // Start of a hand-over from DHW (hot switch): hot DHW water is flushed out of the unit first.
+  uint32_t hand_over_started_ms_ = 0;
   MixingValveActuator* mixing_valve_zone1_ = nullptr;
   MixingValveActuator* mixing_valve_zone2_ = nullptr;
   // True between StartSecondaryPumpsIfNeeded() and StopSecondaryPumpsIfNeeded(): P1 runs and P2 follows the zone 2
@@ -480,8 +482,14 @@ private:
     const bool cooling = IsWorkingMode(WORKING_MODE_COOLING);
     const float water_delta_t = cooling ? tui - tuo : tuo - tui;
     const float max_water_delta_t = cooling ? COOLING_MAX_WATER_DELTA_T_C : HEATING_MAX_WATER_DELTA_T_C;
+    // After a hot switch from DHW the hot water in the unit gives a large delta-T until it is flushed out.
+    if (hand_over_started_ms_ != 0 &&
+        HasElapsedMs(hand_over_started_ms_, HOT_SWITCH_DELTA_T_GRACE_S * 1000UL, App.get_loop_component_start_time()))
+    {
+      hand_over_started_ms_ = 0;
+    }
     if (water_delta_t > max_water_delta_t && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) &&
-        state_ != HeatCoolState::IDLE)
+        state_ != HeatCoolState::IDLE && hand_over_started_ms_ == 0)
     {
       const uint32_t now = App.get_loop_component_start_time();
       if (water_delta_t_exceeded_since_ms_ == 0)
@@ -564,9 +572,18 @@ public:
     SetNextState(HeatCoolState::IDLE);
   }
 
+  /// @brief True when heating wants the compressor that DHW hands over (hot switch from DHW): heat demand,
+  /// no cooling demand.
+  bool WantsRunningCompressor()
+  {
+    return (id(heat_demand_active_sensor).state || id(frost_protection_stage2_active).state) &&
+           !id(cool_demand_active_sensor).state && !id(emergency_mode_enabled).state;
+  }
+
   /// @brief Takes over units that kept running while the ESP restarted, instead of stopping them.
   /// Only called with the 3-way valve in the heat/cool position and pump P0 running.
-  void ResumeFromRunningUnits()
+  /// hand_over: the compressor comes running from DHW (hot switch), its start time is known and kept.
+  void ResumeFromRunningUnits(bool hand_over = false)
   {
     const bool compressor_running = compressor_controller_->IsRunning();
     const bool compressor_commanded = compressor_controller_->IsCommanded();
@@ -589,7 +606,16 @@ public:
         OpenMixingValves();
       }
       // The run time before the restart is unknown: keep the compressor on for at least the minimum on time.
-      compressor_controller_->RecordStartTime();
+      if (!hand_over)
+      {
+        compressor_controller_->RecordStartTime();
+      }
+      else if (!id(defrost_running_sensor).state)
+      {
+        // Hot switch: go straight down from the DHW level to the heating start level.
+        hand_over_started_ms_ = App.get_loop_component_start_time() | 1;
+        compressor_controller_->ApplyCompressorMode(DetermineSoftStartMode(), true);
+      }
       if (id(defrost_running_sensor).state)
       {
         // Actual defrost: P1 is off during a defrost, DEFROSTING starts it again when the defrost ends.
@@ -725,6 +751,12 @@ public:
     // is turned off, so it reflects the commanded state immediately, while
     // IsBackupHeaterActive() for external backup heating only updates once the modbus
     // relay state comes back.
+    // Right after a hot switch from DHW the hot water in the unit passes the supply sensor: no overshoot stop.
+    if (hand_over_started_ms_ != 0)
+    {
+      return false;
+    }
+
     float stop_delta = backup_heater_start_time_ms_ != 0 ? id(backup_heater_stop_delta).state
                        : (IsWorkingMode(WORKING_MODE_COOLING) ? id(compressor_stop_delta_cooling).state : id(compressor_stop_delta_heating).state);
     float overshoot = IsWorkingMode(WORKING_MODE_COOLING) ? (target_temperature - current_temperature) : (current_temperature - target_temperature);

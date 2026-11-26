@@ -1,7 +1,8 @@
-"""Hot switch from heating to DHW.
+"""Hot switch between heating and DHW.
 
 DHW demand during a heating run moves the 3-way valve to DHW while the compressor and pump P0 keep running. The DHW
-controller takes over the running compressor; its minimum on time counts from the start during heating.
+controller takes over the running compressor; its minimum on time counts from the start during heating. When the
+DHW demand ends with heat demand, heating takes the compressor back the same way.
 """
 
 from helpers import FlowMonitor, start_space_heating
@@ -45,8 +46,24 @@ def test_hot_switch_keeps_compressor_running(clean_system):
     assert int(openamber.get_entity("compressor_control_select") or 0) > 0
     assert openamber.get_entity("three_way_valve_dhw_switch") is True
 
-    # Demand ends: the DHW run stops as usual and heating takes over again with the valve on CV.
+    # DHW demand ends with heat demand: heating takes the running compressor back (hot switch), even with the hot
+    # DHW water passing the sensors.
     openamber.set_sensor("dhw_temperature_tw_sensor", 55.0)
+    openamber.set_sensor("outlet_temperature_tuo", 52.0)
+    openamber.set_sensor("inlet_temperature_tui", 30.0)
     openamber.step(ms=50)
-    assert monitor.advance_until("state_machine_state_main", "Heat/Cool", max_s=900)
+    history_start = len(monitor.history)
+    assert monitor.advance_until("state_machine_state_main", "Heat/Cool", max_s=200)
+    assert all(s["compressor"] > 0 for s in monitor.history[history_start:]), "Compressor must keep running"
     assert openamber.get_entity("three_way_valve_heat_cool_switch") is True
+    assert openamber.get_entity("dhw_pump_relay_switch") is False
+    assert openamber.get_entity("state_machine_state_dhw") == "Idle"
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+
+    # The hot water is flushed out within the grace time; heating keeps running.
+    monitor.advance(90, step=10)
+    openamber.set_sensor("outlet_temperature_tuo", 32.0)
+    openamber.set_sensor("inlet_temperature_tui", 28.0)
+    monitor.advance(120, step=10)
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    assert openamber.get_entity("error_water_delta_t_too_high") is False
