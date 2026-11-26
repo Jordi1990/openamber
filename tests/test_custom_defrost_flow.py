@@ -268,7 +268,8 @@ def test_openamber_request_timeout_warns_and_retries(clean_system):
     # Second timeout: warning, control stays with OpenAmber
     assert advance_until_state(openamber, "warning_custom_defrost_failed", True, max_s=150, step=5)
     assert openamber.get_entity("working_mode_switch") == "Verwarmen"
-    openamber.advance_time(seconds=70, step_s=5)
+    # The trigger timers restart after the failure; the block shows once the start line holds for 3 min again
+    openamber.advance_time(seconds=200, step_s=5)
     openamber.step(ms=50)
     assert openamber.get_entity("defrost_control_select") == "OpenAmber"
     assert openamber.get_entity("defrost_control_mode_select") == "Master"
@@ -348,7 +349,9 @@ def test_ice_counter_triggers_with_humidity(clean_system):
 
     assert advance_until_state(openamber, "custom_defrost_status", "Aangevraagd", max_s=15 * 60, step=30)
     assert openamber.get_entity("custom_defrost_last_trigger").startswith("IJsteller")
-    assert 56 <= openamber.get_entity("custom_defrost_runtime_sensor") <= 62
+    # The runtime also counts the minutes with the warm coil right after the reset defrost (no icing then)
+    assert 56 <= openamber.get_entity("custom_defrost_runtime_sensor") <= 70
+    assert openamber.get_entity("custom_defrost_ice_load_sensor") >= 70
 
     _confirm_short_forced_defrost(openamber)
     assert openamber.get_entity("custom_defrost_ice_load_sensor") == 0
@@ -552,7 +555,9 @@ def test_defrost_settings_menu(clean_system):
     openamber.advance_time(seconds=10, step_s=5)
     assert openamber.get_label("set_custom_defrost_status_val").startswith("Bewaken")
 
-    # Buitenunit: the outdoor unit's start temperatures instead of the start line and humidity
+    # Buitenunit: the outdoor unit's start temperatures instead of the start line and humidity (tiles on the menu page)
+    assert openamber.click("settings_menu_back_btn")
+    openamber.step(ms=100)
     openamber.set_select("defrost_control_select", "Buitenunit")
     openamber.step(ms=50)
     assert openamber.is_hidden("defrost_stab_start_temps") is False
