@@ -59,14 +59,14 @@ def test_heat_dhw_heat_cycle_keeps_hardware_rules(clean_system):
     assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 runs with heat demand"
     assert openamber.get_entity("three_way_valve_heat_cool_switch") is True
 
-    # DHW request during heating: heating finishes its minimum on time, then the valve switches.
+    # DHW request during heating: the valve switches while the compressor keeps running (hot switch).
     openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
     assert monitor.advance_until("state_machine_state_main", "DHW", 900), (
         f"Never switched to DHW (main: {openamber.get_entity('state_machine_state_main')})"
     )
     assert openamber.get_entity("three_way_valve_dhw_switch") is True
     assert openamber.get_entity("three_way_valve_heat_cool_switch") is False
-    assert openamber.get_entity("working_mode_switch") == "Standby", "Heating left the unit in standby for the valve switch"
+    assert openamber.get_entity("working_mode_switch") == "Verwarmen", "The hot switch keeps the unit in heating mode"
 
     assert monitor.advance_until("state_machine_state_dhw", "Compressor running", 600)
     assert openamber.get_entity("working_mode_switch") == "Verwarmen"
