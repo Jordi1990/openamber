@@ -12,7 +12,9 @@ def test_hot_switch_keeps_compressor_running(clean_system):
     openamber = clean_system
     openamber.set_sensor("dhw_temperature_tw_sensor", 51.0)
     openamber.set_select("dhw_compressor_mode", "Maximaal")
+    openamber.set_switch("pump_p1_enabled", True)
     start_space_heating(openamber)
+    assert openamber.get_entity("pump_p1_relay_switch") is True
     heating_level = int(openamber.get_entity("compressor_control_select") or 0)
 
     monitor = FlowMonitor(openamber)
