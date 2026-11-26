@@ -49,8 +49,6 @@ private:
   float compressor_heat_pid_ = 0.0f;
   float compressor_cool_pid_ = 0.0f;
   float start_current_temperature_ = 0.0f;
-  uint32_t pump_flow_missing_since_ms_ = 0;
-  uint32_t water_delta_t_exceeded_since_ms_ = 0;
   // Start of a hand-over from DHW (hot switch): hot DHW water is flushed out of the unit first.
   uint32_t hand_over_started_ms_ = 0;
   MixingValveActuator* mixing_valve_zone1_ = nullptr;
@@ -531,7 +529,8 @@ private:
 public:
   HeatCoolController(PumpController* pump_controller, CompressorController* compressor_controller,
                      MixingValveActuator* mv_zone1, MixingValveActuator* mv_zone2)
-    : BaseController(pump_controller, compressor_controller, HeatCoolState::WAIT_FOR_STATE_SWITCH, HeatCoolState::UNKNOWN, HeatCoolState::IDLE) {
+    : BaseController(pump_controller, compressor_controller, HeatCoolState::WAIT_FOR_STATE_SWITCH, HeatCoolState::UNKNOWN, HeatCoolState::IDLE,
+                     HeatCoolState::COMPRESSOR_RUNNING) {
       mixing_valve_zone1_ = mv_zone1;
       mixing_valve_zone2_ = mv_zone2;
       PublishState(StateToString(state_));
@@ -545,30 +544,6 @@ public:
     CloseMixingValves();
     // Safety stop: leave heating/cooling at once, also during a defrost.
     SetWorkingMode(WORKING_MODE_STANDBY);
-    SetNextState(HeatCoolState::IDLE);
-  }
-
-  /// @brief True when the running compressor can be handed over to DHW without stopping (hot switch): heating
-  /// with a settled compressor, no backup heater, emergency mode, error, defrost or oil return cycle.
-  bool CanHandOverRunningCompressor()
-  {
-    return state_ == HeatCoolState::COMPRESSOR_RUNNING && IsWorkingMode(WORKING_MODE_HEATING) &&
-           compressor_controller_->IsRunning() && compressor_controller_->IsCommanded() &&
-           !IsBackupHeaterActive() && !id(emergency_mode_enabled).state && !id(error_active).state &&
-           !id(defrost_active_sensor).state && !id(oil_return_cycle_active).state;
-  }
-
-  /// @brief Leaves the compressor, pump P0 and working mode as they are and goes to idle, so DHW can take over.
-  /// The secondary pumps stop and the mixing valves close before the 3-way valve moves to DHW.
-  void HandOverRunningCompressor()
-  {
-    StopSecondaryPumpsIfNeeded();
-    CloseMixingValves();
-    SetPidController(climate::CLIMATE_MODE_OFF);
-    requested_to_stop_ = false;
-    start_current_temperature_ = 0.0f;
-    pump_flow_missing_since_ms_ = 0;
-    water_delta_t_exceeded_since_ms_ = 0;
     SetNextState(HeatCoolState::IDLE);
   }
 
@@ -782,6 +757,15 @@ public:
     compressor_controller_->Stop();
     CloseMixingValves();
     SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
+  }
+
+  /// @brief Hot switch to DHW: the secondary pumps stop and the mixing valves close before the valve moves.
+  void PrepareHandOver() override
+  {
+    StopSecondaryPumpsIfNeeded();
+    CloseMixingValves();
+    SetPidController(climate::CLIMATE_MODE_OFF);
+    start_current_temperature_ = 0.0f;
   }
 
   void OnStateEnter(HeatCoolState new_state) override

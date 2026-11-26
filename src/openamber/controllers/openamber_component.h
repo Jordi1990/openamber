@@ -155,6 +155,29 @@ void OpenAmberComponent::update()
   // so the heat pump returns to standby once maintenance mode is turned off.
   bool controlled_stop_requested = id(controlled_stop_active) && !maintenance_requested;
 
+  // Hot switch between heating and DHW: the controller that runs the compressor hands it over, the 3-way valve moves
+  // without a stop and the other controller takes the compressor over once the valve is in place.
+  const bool hot_switch_to_dhw = state_ == State::HEAT_COOL && desired_state == State::DHW_HEAT &&
+                                 heat_cool_controller_->CanHandOverRunningCompressor();
+  const bool hot_switch_to_heat = state_ == State::DHW_HEAT && desired_state == State::HEAT_COOL &&
+                                  dhw_controller_->CanHandOverRunningCompressor() &&
+                                  heat_cool_controller_->WantsRunningCompressor();
+  if ((hot_switch_to_dhw || hot_switch_to_heat) && !maintenance_requested && !controlled_stop_requested)
+  {
+    ESP_LOGI("amber", "Hot switch: moving the 3-way valve while the compressor keeps running.");
+    if (hot_switch_to_dhw)
+    {
+      heat_cool_controller_->HandOverRunningCompressor();
+    }
+    else
+    {
+      dhw_controller_->HandOverRunningCompressor();
+    }
+    hot_switch_active_ = true;
+    SwitchThreeWayValveAndWait(desired_valve_position, desired_state);
+    return;
+  }
+
   switch (state_)
   {
     case State::UNKNOWN:
@@ -252,17 +275,6 @@ void OpenAmberComponent::update()
     {
       dhw_controller_->CheckLegionellaCycle();
 
-      // Hot switch: hand the running compressor over to DHW and move the valve without stopping.
-      if (desired_state == State::DHW_HEAT && !maintenance_requested && !controlled_stop_requested &&
-          heat_cool_controller_->CanHandOverRunningCompressor())
-      {
-        ESP_LOGI("amber", "Hot switch: moving the 3-way valve to DHW while the compressor keeps running.");
-        heat_cool_controller_->HandOverRunningCompressor();
-        hot_switch_active_ = true;
-        SwitchThreeWayValveAndWait(ThreeWayValvePosition::DHW, State::DHW_HEAT);
-        break;
-      }
-
       if((desired_valve_position == ThreeWayValvePosition::DHW || maintenance_requested || controlled_stop_requested) && !heat_cool_controller_->IsRequestedToStop())
       {
         heat_cool_controller_->RequestToStop();
@@ -302,17 +314,6 @@ void OpenAmberComponent::update()
     case State::DHW_HEAT:
     {
       dhw_controller_->CheckLegionellaCycle();
-
-      // Hot switch: hand the running compressor over to heating and move the valve without stopping.
-      if (desired_state == State::HEAT_COOL && !maintenance_requested && !controlled_stop_requested &&
-          dhw_controller_->CanHandOverRunningCompressor() && heat_cool_controller_->WantsRunningCompressor())
-      {
-        ESP_LOGI("amber", "Hot switch: moving the 3-way valve to heating while the compressor keeps running.");
-        dhw_controller_->HandOverRunningCompressor();
-        hot_switch_active_ = true;
-        SwitchThreeWayValveAndWait(ThreeWayValvePosition::HEATING_COOLING, State::HEAT_COOL);
-        break;
-      }
 
       if((maintenance_requested || controlled_stop_requested) && !dhw_controller_->IsRequestedToStop())
       {
