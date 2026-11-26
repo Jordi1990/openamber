@@ -386,7 +386,9 @@ def test_error_during_dhw_stops_instead_of_hot_switch(clean_system):
     openamber.set_binary_sensor("error_compressor_start_timeout", True)
     openamber.set_sensor("dhw_temperature_tw_sensor", 55.0)
     assert _advance_until_compressor_off(monitor, 30), "The error must stop the compressor"
-    monitor.advance(300)
+    # 1 s steps around the run-down: the valve moves the update after the frequency reached 0 Hz.
+    monitor.advance(30, step=1)
+    monitor.advance(270)
     assert not _valve_moves_with_compressor(monitor.history[history_start - 1:])
     assert _level(openamber) == 0, "No restart and no hot switch after the error"
     assert openamber.get_entity("state_machine_state_heat_cool") != "Compressor running"
