@@ -61,6 +61,7 @@ def test_hot_switch_keeps_compressor_running(clean_system):
     assert openamber.get_entity("dhw_pump_relay_switch") is False
     assert openamber.get_entity("state_machine_state_dhw") == "Idle"
     assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    assert 0 < int(openamber.get_entity("compressor_control_select") or 0) < dhw_level, "Back to the heating start level"
     # The zone pumps wait for the valve travel time to CV.
     assert openamber.get_entity("pump_p1_relay_switch") is False
 
