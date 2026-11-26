@@ -275,8 +275,9 @@ void OpenAmberComponent::update()
           EnterStandby();
           break;
         }
-        else if(desired_valve_position != current_valve_position)
+        else if(desired_valve_position != current_valve_position && !compressor_controller_->IsRunning())
         {
+          // A safety stop goes to idle at once, so the compressor can still run down here: the valve waits for it.
           // P1 keeps running while the heat/cool controller idles with heat demand. Running it during DHW
           // pulls water through the CV side of the 3-way valve, so hot DHW water ends up in the floor.
           heat_cool_controller_->StopSecondaryPumpsIfNeeded();
@@ -315,8 +316,9 @@ void OpenAmberComponent::update()
           EnterStandby();
           break;
         }
-        else if(desired_valve_position != current_valve_position)
+        else if(desired_valve_position != current_valve_position && !compressor_controller_->IsRunning())
         {
+          // A safety stop goes to idle at once, so the compressor can still run down here: the valve waits for it.
           // Stopping the DHW pump cycle restarted the pump interval. Heating/cooling must not wait for it after
           // DHW: with demand the pump starts right away, as after initialization.
           pump_controller_->ResetInterval();
