@@ -260,8 +260,12 @@ void OpenAmberComponent::update()
       id(dhw_pump_relay_switch).turn_off();
       id(three_way_valve_dhw_switch).turn_off();
       id(three_way_valve_heat_cool_switch).turn_off();
+      // Also the backup heater switches themselves: the maintenance toggles (internal element and the CV hybrid
+      // backup relay 1108) can leave them on when maintenance mode ends, which goes through this state.
+      id(backup_heater_relay).turn_off();
       id(backup_heater_stage_1).turn_off();
       id(backup_heater_stage_2).turn_off();
+      id(external_backup_heating_relay).turn_off();
       // Close mixing valves during init.
       id(mixing_valve_zone1_output).make_call().set_value(0).perform();
       id(mixing_valve_zone2_output).make_call().set_value(0).perform();
