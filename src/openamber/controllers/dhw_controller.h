@@ -50,6 +50,7 @@ private:
   float last_measured_temperature_ = 0.0f;
   uint32_t dhw_pump_settled_time_ = 0;
   uint32_t pump_flow_missing_since_ms_ = 0;
+  uint32_t water_delta_t_exceeded_since_ms_ = 0;
   uint32_t valve_safety_condition_since_ms_ = 0;
 
   const char* StateToString(DHWState state) const override
@@ -284,7 +285,8 @@ private:
 
       if ((now - pump_flow_missing_since_ms_) >= flow_switch_delay_ms)
       {
-        ESP_LOGW("amber", "Safety check: Pump flow missing for %.0f min while compressor or backup heater is running, stopping to avoid damage.", id(flow_switch_safety_delay_minutes).state);
+        ESP_LOGE("amber", "Safety check: Pump flow missing for %.0f min while compressor or backup heater is running, stopping to avoid damage.", id(flow_switch_safety_delay_minutes).state);
+        id(error_pump_flow_missing).publish_state(true);
         return true;
       }
     }
@@ -293,11 +295,32 @@ private:
       pump_flow_missing_since_ms_ = 0;
     }
 
-    // If Tuo - Tui is above 15 degrees while compressor is running, stop compressor to avoid damage
-    if (id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state > 15.0f && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) && state_ != DHWState::IDLE)
+    // Tuo - Tui above the DHW limit for WATER_DELTA_T_SAFETY_DELAY_S while heating: stop to avoid damage.
+    const float tuo = id(outlet_temperature_tuo).state;
+    const float tui = id(inlet_temperature_tui).state;
+    const float water_delta_t = tuo - tui;
+    if (water_delta_t > DHW_MAX_WATER_DELTA_T_C && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) &&
+        state_ != DHWState::IDLE)
     {
-      ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 15 degrees while compressor is running, stopping compressor to avoid damage.");
-      return true;
+      const uint32_t now = App.get_loop_component_start_time();
+      if (water_delta_t_exceeded_since_ms_ == 0)
+      {
+        water_delta_t_exceeded_since_ms_ = now;
+        ESP_LOGW("amber", "Safety check: DHW delta-T %.2f°C above %.1f°C (Tuo %.2f°C, Tui %.2f°C), waiting %u s before shutdown.",
+                 water_delta_t, DHW_MAX_WATER_DELTA_T_C, tuo, tui, (unsigned) WATER_DELTA_T_SAFETY_DELAY_S);
+      }
+
+      if ((now - water_delta_t_exceeded_since_ms_) >= WATER_DELTA_T_SAFETY_DELAY_S * 1000UL)
+      {
+        ESP_LOGE("amber", "Safety check: DHW delta-T %.2f°C above %.1f°C for %u s (Tuo %.2f°C, Tui %.2f°C), stopping to avoid damage.",
+                 water_delta_t, DHW_MAX_WATER_DELTA_T_C, (unsigned) WATER_DELTA_T_SAFETY_DELAY_S, tuo, tui);
+        id(error_water_delta_t_too_high).publish_state(true);
+        return true;
+      }
+    }
+    else
+    {
+      water_delta_t_exceeded_since_ms_ = 0;
     }
 
     // Check if 3-way valve is in expected DHW position (CV circuit should not receive high temperature water)
@@ -395,6 +418,7 @@ public:
     const bool compressor_commanded = compressor_controller_->IsCommanded();
     requested_to_stop_ = false;
     pump_flow_missing_since_ms_ = 0;
+    water_delta_t_exceeded_since_ms_ = 0;
     rate_window_active_ = false;
     heating_rate_below_min_since_ms_ = 0;
     pump_controller_->AdoptRunningPump();
@@ -527,6 +551,11 @@ public:
           {
             break;
           }
+          // The outdoor unit does not start the compressor while it preheats it (P07, about 30 min).
+          if (compressor_controller_->IsWaitingForPreheat())
+          {
+            break;
+          }
           compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
           compressor_controller_->ArmStartWaitTimer();
           SetNextState(DHWState::WAIT_COMPRESSOR_RUNNING);
@@ -539,13 +568,17 @@ public:
           compressor_controller_->RecordStartTime();
           SetNextState(DHWState::COMPRESSOR_RUNNING);
         }
-        else 
+        else
         {
           const uint32_t timeout_ms = COMPRESSOR_START_TIMEOUT_S * 1000UL;
           if ((now - compressor_controller_->GetStartWaitStartedTime()) >= timeout_ms)
           {
-            ESP_LOGE("amber", "DHW compressor start timeout reached after %lu seconds, stopping system.", (unsigned long) COMPRESSOR_START_TIMEOUT_S);
-            id(error_compressor_start_timeout).publish_state(true);
+            if (compressor_controller_->RegisterStartTimeout())
+            {
+              ESP_LOGE("amber", "DHW compressor start timeout reached after %lu seconds, stopping system.", (unsigned long) COMPRESSOR_START_TIMEOUT_S);
+              id(error_compressor_start_timeout).publish_state(true);
+            }
+            // The DHW cycle ends; while the demand remains it starts again and retries after the minimum off time.
             compressor_controller_->Stop();
             SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
           }

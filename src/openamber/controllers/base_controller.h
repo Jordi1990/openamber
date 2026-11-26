@@ -89,7 +89,9 @@ protected:
       return id(backup_heater_active_sensor).state;
     }
 
-    return true; // Assume external backup heater is active when enabled, as we don't have a sensor for it.
+    // Report the commanded state of the external relay (holding register 1108) instead of
+    // assuming it is on, so callers see the heater as inactive once it has been turned off.
+    return id(external_backup_heating_relay).state;
   }
 
   /// @brief True while the controller has a backup heater (internal element or external relay) switched on.

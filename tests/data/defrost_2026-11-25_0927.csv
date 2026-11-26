@@ -1,0 +1,9 @@
+time_local,defrost_2118,compressor_hz,tuo,tui,tc,state_heat_cool
+09:22:30,0,43,34.36,31.37,33.91,Compressor running
+09:27:30,1,43,34.38,31.4,33.94,Compressor running
+09:28:16,1,36,34.31,31.33,33.9,Defrosting
+09:30:46,0,60,23.52,30.83,24.16,Wait for state switch
+09:32:30,0,72,30.84,27.87,24.64,Wait for state switch
+09:35:46,0,72,33.7,29.01,32.67,Compressor running
+09:37:30,0,79,34.73,29.69,34.12,Compressor running
+09:42:30,0,79,35.51,30.11,34.77,Compressor running

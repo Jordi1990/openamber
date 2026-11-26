@@ -43,6 +43,18 @@ static const uint32_t THREE_WAY_VALVE_PROTECTION_DELTA_TEMPERATURE_C = 5.0f;
 static const uint32_t THREE_WAY_VALVE_PROTECTION_HIGH_TEMPERATURE_TIME_S = 2 * 60;
 static const float THREE_WAY_VALVE_PROTECTION_TUO_TC_THRESHOLD_C = 5.0f;
 
+// Water delta-T safety check: the difference across the plate heat exchanger, in the direction the unit heats or
+// cools the water (heating and DHW: Tuo - Tui, cooling: Tui - Tuo), may not stay above this limit for
+// WATER_DELTA_T_SAFETY_DELAY_S. Then the unit stops and raises TO08.
+// The check catches missing flow (stuck pump, air, closed valves). While heating a large difference is no risk in
+// itself: at full compressor power with a moderate pump speed it reaches 8 °C in normal operation, so heating uses
+// the same limit as DHW. Cooling keeps 8 °C because of the freezing risk in the plate heat exchanger.
+static const float HEATING_MAX_WATER_DELTA_T_C = 15.0f;
+static const float COOLING_MAX_WATER_DELTA_T_C = 8.0f;
+static const float DHW_MAX_WATER_DELTA_T_C = 15.0f;
+// Tuo and Tui are read every 15 s, so this is about four readings in a row.
+static const uint32_t WATER_DELTA_T_SAFETY_DELAY_S = 60;
+
 // Controlled stop: regulation resumes by itself after this time, so a forgotten stop cannot cool the house.
 static const uint32_t CONTROLLED_STOP_AUTO_RESUME_S = 30 * 60;
 
@@ -53,6 +65,9 @@ static const uint32_t COMPRESSOR_MIN_OFF_S = 200;
 static const uint32_t COMPRESSOR_MIN_ON_S = 10 * 60;
 static const uint32_t COMPRESSOR_SOFT_START_DURATION_S = 3 * 60;
 static const uint32_t COMPRESSOR_START_TIMEOUT_S = 2 * 60;
+// A start that times out is retried after the minimum off time. Only this many failed starts in a row raise TO02,
+// which blocks all demand until it is reset, so a single refused start cannot stop heating for a whole night.
+static const uint32_t COMPRESSOR_START_MAX_ATTEMPTS = 3;
 static const uint32_t COMPRESSOR_MIN_TIME_PUMP_ON = 2 * 60;
 static const uint32_t COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 5 * 60;
 // A started compressor that reports 0 Hz this long, outside a defrost or oil return cycle, has been stopped by the

@@ -50,6 +50,7 @@ private:
   float compressor_cool_pid_ = 0.0f;
   float start_current_temperature_ = 0.0f;
   uint32_t pump_flow_missing_since_ms_ = 0;
+  uint32_t water_delta_t_exceeded_since_ms_ = 0;
   MixingValveActuator* mixing_valve_zone1_ = nullptr;
   MixingValveActuator* mixing_valve_zone2_ = nullptr;
   // True between StartSecondaryPumpsIfNeeded() and StopSecondaryPumpsIfNeeded(): P1 runs and P2 follows the zone 2
@@ -464,7 +465,8 @@ private:
 
       if ((now - pump_flow_missing_since_ms_) >= flow_switch_delay_ms)
       {
-        ESP_LOGW("amber", "Safety check: Pump flow missing for %.0f min while compressor or backup heater is running, stopping to avoid damage.", id(flow_switch_safety_delay_minutes).state);
+        ESP_LOGE("amber", "Safety check: Pump flow missing for %.0f min while compressor or backup heater is running, stopping to avoid damage.", id(flow_switch_safety_delay_minutes).state);
+        id(error_pump_flow_missing).publish_state(true);
         return true;
       }
     }
@@ -473,11 +475,38 @@ private:
       pump_flow_missing_since_ms_ = 0;
     }
 
-    // If temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stop compressor to avoid damage
-    if (fabsf(id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state) > 8.0f && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) && state_ != HeatCoolState::IDLE)
+    // Tuo-Tui difference in the direction the unit heats or cools the water. While heating, Tuo below Tui is the
+    // defrost itself (the plate heat exchanger briefly acts as evaporator), and its dip can last a few readings
+    // after the defrost ends: that is no reason to stop.
+    const float tuo = id(outlet_temperature_tuo).state;
+    const float tui = id(inlet_temperature_tui).state;
+    const bool cooling = IsWorkingMode(WORKING_MODE_COOLING);
+    const float water_delta_t = cooling ? tui - tuo : tuo - tui;
+    const float max_water_delta_t = cooling ? COOLING_MAX_WATER_DELTA_T_C : HEATING_MAX_WATER_DELTA_T_C;
+    if (water_delta_t > max_water_delta_t && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) &&
+        state_ != HeatCoolState::IDLE)
     {
-      ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stopping compressor to avoid damage.");
-      return true;
+      const uint32_t now = App.get_loop_component_start_time();
+      if (water_delta_t_exceeded_since_ms_ == 0)
+      {
+        water_delta_t_exceeded_since_ms_ = now;
+        ESP_LOGW("amber", "Safety check: %s delta-T %.2f°C above %.1f°C (Tuo %.2f°C, Tui %.2f°C), waiting %u s before shutdown.",
+                 cooling ? "Cooling" : "Heating", water_delta_t, max_water_delta_t, tuo, tui,
+                 (unsigned) WATER_DELTA_T_SAFETY_DELAY_S);
+      }
+
+      if ((now - water_delta_t_exceeded_since_ms_) >= WATER_DELTA_T_SAFETY_DELAY_S * 1000UL)
+      {
+        ESP_LOGE("amber", "Safety check: %s delta-T %.2f°C above %.1f°C for %u s (Tuo %.2f°C, Tui %.2f°C), stopping to avoid damage.",
+                 cooling ? "Cooling" : "Heating", water_delta_t, max_water_delta_t,
+                 (unsigned) WATER_DELTA_T_SAFETY_DELAY_S, tuo, tui);
+        id(error_water_delta_t_too_high).publish_state(true);
+        return true;
+      }
+    }
+    else
+    {
+      water_delta_t_exceeded_since_ms_ = 0;
     }
 
     return false;
@@ -523,6 +552,7 @@ public:
     requested_to_stop_ = false;
     start_current_temperature_ = 0.0f;
     pump_flow_missing_since_ms_ = 0;
+    water_delta_t_exceeded_since_ms_ = 0;
     pump_controller_->AdoptRunningPump();
     const bool cooling = IsWorkingMode(WORKING_MODE_COOLING);
 
@@ -671,8 +701,9 @@ public:
     // While the controller is driving the backup heater it stops on its own configured
     // stop delta, so a backup delta above the compressor delta is not capped by it.
     // backup_heater_start_time_ms_ is set when the element is turned on and cleared when it
-    // is turned off, and unlike IsBackupHeaterActive() it is reliable for external backup
-    // heating, where the relay state cannot be sensed.
+    // is turned off, so it reflects the commanded state immediately, while
+    // IsBackupHeaterActive() for external backup heating only updates once the modbus
+    // relay state comes back.
     float stop_delta = backup_heater_start_time_ms_ != 0 ? id(backup_heater_stop_delta).state
                        : (IsWorkingMode(WORKING_MODE_COOLING) ? id(compressor_stop_delta_cooling).state : id(compressor_stop_delta_heating).state);
     float overshoot = IsWorkingMode(WORKING_MODE_COOLING) ? (target_temperature - current_temperature) : (current_temperature - target_temperature);
@@ -851,6 +882,12 @@ public:
         }
         else
         {
+          // The outdoor unit does not start the compressor while it preheats it (P07, about 30 min). Keep the pump
+          // running and start once the preheat is done, instead of letting the start time out.
+          if (compressor_controller_->IsWaitingForPreheat())
+          {
+            break;
+          }
           compressor_controller_->ApplyCompressorMode(DetermineSoftStartMode());
           compressor_controller_->ArmStartWaitTimer();
           SetNextState(HeatCoolState::WAIT_COMPRESSOR_RUNNING);
@@ -867,13 +904,17 @@ public:
           compressor_controller_->RecordStartTime();
           SetNextState(HeatCoolState::COMPRESSOR_SOFTSTART);
         }
-        else 
+        else
         {
           const uint32_t timeout_ms = COMPRESSOR_START_TIMEOUT_S * 1000UL;
           if ((now - compressor_controller_->GetStartWaitStartedTime()) >= timeout_ms)
           {
-            ESP_LOGE("amber", "Heat/cool compressor start timeout reached after %lu seconds, stopping system.", (unsigned long) COMPRESSOR_START_TIMEOUT_S);
-            id(error_compressor_start_timeout).publish_state(true);
+            if (compressor_controller_->RegisterStartTimeout())
+            {
+              ESP_LOGE("amber", "Heat/cool compressor start timeout reached after %lu seconds, stopping system.", (unsigned long) COMPRESSOR_START_TIMEOUT_S);
+              id(error_compressor_start_timeout).publish_state(true);
+            }
+            // WAIT_COMPRESSOR_STOP returns to PUMP_RUNNING, which retries after the minimum off time.
             compressor_controller_->Stop();
             SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
           }

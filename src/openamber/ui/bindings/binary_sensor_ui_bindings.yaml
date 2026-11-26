@@ -365,6 +365,18 @@
       - script.execute: update_service_errors_ui
       - script.execute: update_header_alert_icons
 
+- id: !extend error_water_delta_t_too_high
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+      - script.execute: update_header_alert_icons
+
+- id: !extend error_pump_flow_missing
+  on_state:
+    then:
+      - script.execute: update_service_errors_ui
+      - script.execute: update_header_alert_icons
+
 - id: !extend error_flag_f13
   on_state:
     then:
