@@ -435,7 +435,7 @@ public:
       {
         compressor_controller_->RecordStartTime();
       }
-      else if (!id(defrost_running_sensor).state)
+      else
       {
         // Hot switch: go straight to the DHW level, as a DHW start from standstill does. The ambient and
         // discharge side limits still apply.

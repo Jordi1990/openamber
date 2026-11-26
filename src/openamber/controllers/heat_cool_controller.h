@@ -585,7 +585,7 @@ public:
       {
         compressor_controller_->RecordStartTime();
       }
-      else if (!id(defrost_running_sensor).state)
+      else
       {
         // Hot switch: go straight down from the DHW level to the heating start level.
         hand_over_started_ms_ = App.get_loop_component_start_time() | 1;

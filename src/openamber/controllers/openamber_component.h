@@ -72,10 +72,7 @@ void OpenAmberComponent::loop()
 
 void OpenAmberComponent::update()
 {
-  // A hot switch keeps the compressor and pump P0 running while the 3-way valve moves: watch them as in regulation.
-  const bool is_regulating = state_ == State::HEAT_COOL || state_ == State::DHW_HEAT ||
-                             (state_ == State::WAIT_THREE_WAY_VALVE && hot_switch_active_);
-  if (is_regulating && !id(pump_p0_relay_switch).state)
+  if ((state_ == State::HEAT_COOL || state_ == State::DHW_HEAT) && !id(pump_p0_relay_switch).state)
   {
     ota_in_progress_ = false;
     id(error_inside_unit_failsafe).publish_state(true);
@@ -87,7 +84,7 @@ void OpenAmberComponent::update()
 
   // The outdoor unit stopped a running compressor by itself (protection, power or communication loss). We do not
   // know why, so stop everything, re-initialize and wait for the user to reset the error.
-  if (is_regulating && compressor_controller_->HasStoppedUnexpectedly())
+  if ((state_ == State::HEAT_COOL || state_ == State::DHW_HEAT) && compressor_controller_->HasStoppedUnexpectedly())
   {
     ota_in_progress_ = false;
     id(error_compressor_unexpected_stop).publish_state(true);
@@ -102,7 +99,7 @@ void OpenAmberComponent::update()
   // compressor is requested, stop everything and re-initialize: regulation then starts again in emergency mode
   // (backup heater only). The request, not the frequency, is checked, so the run-down after the stop does not
   // trigger this again.
-  if (is_regulating && id(emergency_mode_enabled).state &&
+  if ((state_ == State::HEAT_COOL || state_ == State::DHW_HEAT) && id(emergency_mode_enabled).state &&
       id(compressor_control_select).active_index().value_or(0) > 0)
   {
     ota_in_progress_ = false;
@@ -155,8 +152,8 @@ void OpenAmberComponent::update()
   // so the heat pump returns to standby once maintenance mode is turned off.
   bool controlled_stop_requested = id(controlled_stop_active) && !maintenance_requested;
 
-  // Hot switch between heating and DHW: the controller that runs the compressor hands it over, the 3-way valve moves
-  // without a stop and the other controller takes the compressor over once the valve is in place.
+  // Hot switch between heating and DHW: the controller that runs the compressor hands it over and the other one takes
+  // it over at once, while the 3-way valve moves. Its safety checks stay active during the valve travel.
   const bool hot_switch_to_dhw = state_ == State::HEAT_COOL && desired_state == State::DHW_HEAT &&
                                  heat_cool_controller_->CanHandOverRunningCompressor();
   const bool hot_switch_to_heat = state_ == State::DHW_HEAT && desired_state == State::HEAT_COOL &&
@@ -165,16 +162,19 @@ void OpenAmberComponent::update()
   if ((hot_switch_to_dhw || hot_switch_to_heat) && !maintenance_requested && !controlled_stop_requested)
   {
     ESP_LOGI("amber", "Hot switch: moving the 3-way valve while the compressor keeps running.");
+    SetThreeWayValve(desired_valve_position);
+    valve_target_position_ = desired_valve_position;
     if (hot_switch_to_dhw)
     {
       heat_cool_controller_->HandOverRunningCompressor();
+      dhw_controller_->ResumeFromRunningUnits(true);
     }
     else
     {
       dhw_controller_->HandOverRunningCompressor();
+      heat_cool_controller_->ResumeFromRunningUnits(true);
     }
-    hot_switch_active_ = true;
-    SwitchThreeWayValveAndWait(desired_valve_position, desired_state);
+    SetNextState(desired_state);
     return;
   }
 
@@ -408,9 +408,7 @@ void OpenAmberComponent::update()
 
     case State::WAIT_THREE_WAY_VALVE:
     {
-      // During a hot switch an error ends the wait: the controller that takes over then stops the compressor.
-      const bool hot_switch_error = hot_switch_active_ && id(error_active).state;
-      if (App.get_loop_component_start_time() - valve_switch_started_ms_ < THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL && !hot_switch_error)
+      if (App.get_loop_component_start_time() - valve_switch_started_ms_ < THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL)
       {
         break;
       }
@@ -420,20 +418,6 @@ void OpenAmberComponent::update()
         // The active error suppresses all demand, so the next state stays idle until the error is reset.
         ESP_LOGE("amber", "3-way valve relay feedback did not confirm the requested position, stopping system.");
         id(error_three_way_valve_state_timeout).publish_state(true);
-      }
-      if (hot_switch_active_)
-      {
-        hot_switch_active_ = false;
-        // The other controller takes over the running compressor and pump; the minimum on time counts from the
-        // original start.
-        if (valve_target_state_ == State::DHW_HEAT)
-        {
-          dhw_controller_->ResumeFromRunningUnits(true);
-        }
-        else
-        {
-          heat_cool_controller_->ResumeFromRunningUnits(true);
-        }
       }
       SetNextState(valve_target_state_);
       break;
@@ -600,7 +584,6 @@ void OpenAmberComponent::simulate_restart()
   dhw_controller_ = new DHWController(pump_controller_, compressor_controller_);
   heat_cool_controller_ = new HeatCoolController(pump_controller_, compressor_controller_, mixing_valve_zone1_, mixing_valve_zone2_);
   ota_in_progress_ = false;
-  hot_switch_active_ = false;
   modbus_disconnected_since_ms_ = 0;
   modbus_disconnected_error_occurred_ = false;
   defer_state_change_started_ms_ = 0;
@@ -961,7 +944,6 @@ void OpenAmberComponent::EnterStandby()
 void OpenAmberComponent::StopControllers()
 {
   ESP_LOGE("amber", "Stopping regulation (inside unit failsafe/reboot or unexpected compressor stop).");
-  hot_switch_active_ = false;
   compressor_controller_->Stop();
   pump_controller_->Stop();
   heat_cool_controller_->StopAndSetIdleState();
