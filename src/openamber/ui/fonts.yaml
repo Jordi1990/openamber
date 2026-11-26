@@ -4,12 +4,16 @@
   id: font_header_title
   size: 32
   bpp: 4
+  glyphsets: [GF_Latin_Kernel]
+  glyphs: "ÄÖÜäöüß"  # German display texts
 
 - file: "openamber/ui/fonts/Inter_28pt-SemiBold.ttf"
   #weight: 500
   id: font_mdi_24
   size: 24
   bpp: 4
+  glyphsets: [GF_Latin_Kernel]
+  glyphs: "ÄÖÜäöüß"  # German display texts
   extras:
     - file: "openamber/ui/fonts/materialdesignicons-webfont.ttf"
       glyphs:
@@ -84,6 +88,7 @@
         - "\U000F059D"  # mdi-weather-windy (menu tile)
         - "\U000F062E"  # mdi-tune (menu tile)
         - "\U000F08D6"  # mdi-cogs (menu tile)
+        - "\U000F0379"  # mdi-monitor (menu tile Display)
         - "\U000F0ED5"  # mdi-bacteria (menu tile)
         - "\U000F0F92"  # mdi-water-boiler (menu tile)
         - "\U000F0FA7"  # mdi-chart-bell-curve-cumulative (menu tile)
@@ -101,6 +106,8 @@
   id: font_text_24
   size: 24
   bpp: 4
+  glyphsets: [GF_Latin_Kernel]
+  glyphs: "ÄÖÜäöüß"  # German display texts
   extras:
     - file: "openamber/ui/fonts/materialdesignicons-webfont.ttf"
       glyphs:
@@ -111,6 +118,8 @@
   id: font_text_20
   size: 20
   bpp: 4
+  glyphsets: [GF_Latin_Kernel]
+  glyphs: "ÄÖÜäöüß"  # German display texts
   extras:
     - file: "openamber/ui/fonts/materialdesignicons-webfont.ttf"
       glyphs:
@@ -123,6 +132,8 @@
   id: font_value_big
   size: 32
   bpp: 4
+  glyphsets: [GF_Latin_Kernel]
+  glyphs: "ÄÖÜäöüß"  # German display texts
   extras: 
     - file: "openamber/ui/fonts/materialdesignicons-webfont.ttf"
       glyphs:
@@ -133,6 +144,8 @@
   id: font_mdi_30
   size: 30
   bpp: 4
+  glyphsets: [GF_Latin_Kernel]
+  glyphs: "ÄÖÜäöüß"  # German display texts
   extras:
     - file: "openamber/ui/fonts/materialdesignicons-webfont.ttf"
       glyphs:
@@ -159,6 +172,8 @@
   id: font_mdi_36
   size: 36
   bpp: 4
+  glyphsets: [GF_Latin_Kernel]
+  glyphs: "ÄÖÜäöüß"  # German display texts
   extras:
     - file: "openamber/ui/fonts/materialdesignicons-webfont.ttf"
       glyphs:

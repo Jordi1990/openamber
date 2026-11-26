@@ -1,6 +1,6 @@
 # Menu Page: Basis & Setpoints (Thermostaat)
 # ------------------------------------------------------------
 id: panel_thermostat_page_setpoint
-title: "Algemeen"
+title: "${t_algemeen}"
 styles: setting_page_style
 widgets: !include page_settings_tab_thermostat_setpoint_content.yaml

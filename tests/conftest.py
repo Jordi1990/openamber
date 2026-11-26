@@ -116,6 +116,8 @@ def clean_system(openamber):
     openamber.set_switch("cooling_allowed_switch", True)
     openamber.set_switch("pump_p1_enabled", False)
     openamber.set_switch("pump_p1_relay_switch", False)
+    openamber.set_switch("pump_p2_enabled", False)
+    openamber.set_switch("pump_p2_relay_switch", False)
     openamber.set_switch("emergency_mode_enabled", False)
     # A test that failed in maintenance mode must not leave the next tests in Maintenance.
     openamber.set_switch("service_mode_enabled", False)
@@ -136,6 +138,10 @@ def clean_system(openamber):
     openamber.set_binary_sensor("external_cool_demand_wired", False)
     openamber.set_binary_sensor("sg_ready_block_mode_active_sensor", False)
     openamber.set_binary_sensor("defrost_active_sensor", False)
+    # Backup heater settings are per-test and must not leak between tests.
+    openamber.set_select("backup_heating_mode", "Intern verwarmingselement")
+    openamber.set_number("backup_heater_stop_delta", 2.0)
+    openamber.set_number("backup_heater_degmin_threshold", 40.0)
     openamber.set_number("mock_compressor_frequency_override", -1.0)
     openamber.set_sensor("model_identification_1", 150.0)
     openamber.set_select("defrost_control_select", "Buitenunit")
@@ -166,6 +172,8 @@ def clean_system(openamber):
     openamber.set_sensor("temperature_outside_ta", 7.0)
     openamber.set_sensor("discharge_pressure_pd", 18.0)
     openamber.set_sensor("discharge_temperature_td", 60.0)
+    openamber.set_sensor("outdoor_unit_pd_no_increase_limit", 26.0)
+    openamber.set_sensor("outdoor_unit_refrigerant", 1.0)
     openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
     openamber.set_sensor("heat_cool_temperature_tc", 28.0)
     openamber.set_sensor("outlet_temperature_tuo", 28.0)

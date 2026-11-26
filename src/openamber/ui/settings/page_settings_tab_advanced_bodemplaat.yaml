@@ -1,6 +1,6 @@
 # Menu Page: Geavanceerd - Bodemplaat
 # ------------------------------------------------------------
 id: panel_advanced_page_bodemplaat
-title: "Bodemplaatverwarming"
+title: "${t_bodemplaatverwarming}"
 styles: setting_page_style
 widgets: !include page_settings_tab_advanced_bodemplaat_content.yaml

@@ -1,7 +1,7 @@
 # Menu Page: Diagnose - Systeem
 # ------------------------------------------------------------
 id: service_sensors_system_page
-title: "Systeem"
+title: "${t_systeem}"
 styles: setting_page_style
 widgets:
   - obj:
@@ -20,7 +20,7 @@ widgets:
       scrollbar_mode: "OFF"
       scrollable: false
       widgets:
-        - label: { text: "Systeem", text_color: 0x0F172A, text_font: font_text_24, align: TOP_LEFT }
+        - label: { text: "${t_systeem}", text_color: 0x0F172A, text_font: font_text_24, align: TOP_LEFT }
         - table:
             id: service_diag_system_table
             width: 100%
@@ -44,8 +44,8 @@ widgets:
               - width: 60%
               - width: 40%
             rows:
-              - ["Ontdooiing (Defrost)", "-"]
-              - ["Bodemplaatverwarming", "-"]
-              - ["Modbus binnenunit", "-"]
-              - ["Modbus buitenunit", "-"]
-              - ["SG Ready contacten (A / B)", "-"]
+              - ["${t_ontdooiing_defrost}", "-"]
+              - ["${t_bodemplaatverwarming}", "-"]
+              - ["${t_modbus_binnenunit}", "-"]
+              - ["${t_modbus_buitenunit}", "-"]
+              - ["${t_sg_ready_contacten_a_b}", "-"]

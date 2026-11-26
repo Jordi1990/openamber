@@ -278,6 +278,32 @@ def test_starting_compressor_is_cancelled_after_restart(clean_system):
         openamber.set_number("mock_compressor_frequency_override", -1.0)
 
 
+def test_secondary_pumps_restored_when_cancelling_compressor_start(clean_system):
+    """A cancelled compressor start continues the pump cycle: P1 and P2 (zone 2 heat demand) run with it again."""
+    openamber = clean_system
+    try:
+        openamber.set_switch("pump_p1_enabled", True)
+        openamber.set_switch("pump_p2_enabled", True)
+        openamber.set_switch("mixing_valve_zone2_enabled", True)
+        openamber.set_switch("heat_demand_zone_2_switch", True)
+        start_space_heating(openamber, tc=28.0, target=35.0)
+        assert openamber.get_entity("pump_p2_relay_switch") is True
+        openamber.set_number("mock_compressor_frequency_override", 0.0)
+        # The restart switches the relays off in the inside unit as INITIALIZING would; the resume skips that.
+        openamber.set_switch("pump_p1_relay_switch", False)
+        openamber.set_switch("pump_p2_relay_switch", False)
+
+        samples = _restart_and_sample(openamber, seconds=40)
+
+        _assert_not_initialized(samples)
+        assert _resumed_sample(samples)["hc"] == "Wait compressor stop"
+        assert openamber.get_entity("state_machine_state_heat_cool") == "Pump running"
+        assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 must run with the continued pump cycle"
+        assert openamber.get_entity("pump_p2_relay_switch") is True, "P2 must run again on zone 2 heat demand"
+    finally:
+        openamber.set_number("mock_compressor_frequency_override", -1.0)
+
+
 def test_stopping_compressor_is_finished_after_restart(clean_system):
     """Level 0 but compressor still running down: wait for the stop, the pump keeps running."""
     openamber = clean_system
@@ -315,6 +341,22 @@ def test_pump_run_on_after_compressor_stop_is_resumed_after_restart(clean_system
     assert _resumed_sample(samples)["hc"] == "Pump running"
     assert all(s["level"] == 0 for s in samples), f"Compressor must not start right after the restart: {samples}"
     assert openamber.get_entity("state_machine_state_heat_cool") == "Pump running"
+
+
+def test_p1_is_restored_when_resuming_pump_run_on(clean_system):
+    """Taking over a running pump cycle (no compressor) starts P1 too, like a pump cycle started from IDLE does."""
+    openamber = clean_system
+    openamber.set_switch("pump_p1_enabled", True)
+    start_space_heating(openamber, tc=28.0, target=35.0)
+    openamber.set_select("compressor_control_select", "0")
+    openamber.set_switch("pump_p1_relay_switch", False)
+    openamber.step(ms=50)
+
+    samples = _restart_and_sample(openamber, seconds=30)
+
+    _assert_not_initialized(samples)
+    assert _resumed_sample(samples)["hc"] == "Pump running"
+    assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 must run with the taken-over pump cycle"
 
 
 def test_pump_cycle_before_compressor_start_falls_back_to_initialization(clean_system):
@@ -615,7 +657,7 @@ def test_ota_hold_times_out_without_progress(clean_system):
 
 
 def test_ota_hold_does_not_block_safety_stop(clean_system):
-    """A safety condition (Tuo-Tui difference) during the hold stops the compressor at once."""
+    """A safety condition (Tuo-Tui difference for 60 s) during the hold stops the compressor."""
     openamber = clean_system
     try:
         _heating_past_min_on_time(openamber)
@@ -623,14 +665,16 @@ def test_ota_hold_does_not_block_safety_stop(clean_system):
         openamber.advance_time(seconds=10, step_s=5)
         assert _level(openamber) > 0
 
-        openamber.set_sensor("outlet_temperature_tuo", 40.0)
+        openamber.set_sensor("outlet_temperature_tuo", 46.0)
         openamber.set_sensor("inlet_temperature_tui", 30.0)
         assert openamber.set_switch("mock_ota_progress", True)
-        openamber.advance_time(seconds=10, step_s=5)
+        openamber.advance_time(seconds=70, step_s=5)
         openamber.step(ms=50)
         assert _level(openamber) == 0, "Safety stop must not be held by the OTA update"
+        assert openamber.get_entity("error_water_delta_t_too_high") is True
     finally:
         openamber.set_switch("mock_ota_error", True)
+        openamber.set_switch("reset_start_timeout_errors_switch", True)
 
 
 def test_ota_hold_does_not_block_modbus_connection_timeout(clean_system):

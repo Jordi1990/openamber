@@ -37,6 +37,53 @@ text_sensor:
           last_state = x;
           id(schedule_send_state_snapshot).execute();
 
+# OpenAmber errors (TO01-TO09) go to analytics as one bitmask ("eto"), see send_errors_realtime.
+binary_sensor:
+- id: !extend error_pump_start_timeout
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
+
+- id: !extend error_compressor_start_timeout
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
+
+- id: !extend error_pump_stop_timeout
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
+
+- id: !extend error_three_way_valve_state_timeout
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
+
+- id: !extend error_modbus_connection_timeout
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
+
+- id: !extend error_inside_unit_failsafe
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
+
+- id: !extend error_compressor_unexpected_stop
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
+
+- id: !extend error_water_delta_t_too_high
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
+
+- id: !extend error_pump_flow_missing
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
+
 script:
 - id: fetch_analytics_device_id
   then:
@@ -513,6 +560,22 @@ script:
                 root["e2119"] = (uint16_t) id(error_register_2119_raw).state;
                 root["e2120"] = (uint16_t) id(error_register_2120_raw).state;
                 root["e2121"] = (uint16_t) id(error_register_2121_raw).state;
+                // OpenAmber's own errors, one bit per error: bit 0 = TO01 ... bit 8 = TO09. Only append bits.
+                const binary_sensor::BinarySensor *oa_errors[] = {
+                  id(error_pump_start_timeout),             // TO01
+                  id(error_compressor_start_timeout),       // TO02
+                  id(error_pump_stop_timeout),              // TO03
+                  id(error_three_way_valve_state_timeout),  // TO04
+                  id(error_modbus_connection_timeout),      // TO05
+                  id(error_inside_unit_failsafe),           // TO06
+                  id(error_compressor_unexpected_stop),     // TO07
+                  id(error_water_delta_t_too_high),         // TO08
+                  id(error_pump_flow_missing)               // TO09
+                };
+                uint16_t oa_error_bits = 0;
+                for (size_t i = 0; i < sizeof(oa_errors) / sizeof(oa_errors[0]); i++)
+                  if (oa_errors[i]->state) oa_error_bits |= 1u << i;
+                root["eto"] = oa_error_bits;
 
 # Sends a telemetry snapshot shortly after a state machine transition, so start/stop
 # moments are not only visible on the 5 minute interval. The short delay combines
@@ -573,6 +636,10 @@ script:
     - script.execute: send_telemetry_3
     - delay: 150ms
     - script.execute: send_telemetry_4
+    - delay: 150ms
+    # Resend the error registers and the "eto" bitmask with every batch, so an error change whose realtime
+    # publish was lost (no connection) is corrected on the next batch.
+    - script.execute: send_errors_realtime
     - delay: 150ms
     - script.execute: fetch_analytics_device_id
 

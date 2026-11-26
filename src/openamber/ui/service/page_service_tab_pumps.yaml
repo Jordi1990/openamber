@@ -1,7 +1,7 @@
 # Menu Page: Pompen
 # ------------------------------------------------------------
 id: service_pumps_page
-title: "Pompen"
+title: "${t_pompen}"
 styles: setting_page_style
 widgets:
   - obj:
@@ -24,12 +24,12 @@ widgets:
             styles: setting_row_style
             widgets:
               - label:
-                  text: "P0 pomp relais"
+                  text: "${t_p0_pomp_relais}"
                   text_color: 0x1F2933
                   text_font: font_text_24
                   align: TOP_LEFT
               - label:
-                  text: "Schakel P0 pomp"
+                  text: "${t_schakel_p0_pomp}"
                   width: 72%
                   text_color: 0x6B7280
                   text_font: font_text_20
@@ -66,7 +66,7 @@ widgets:
                   text_font: font_text_24
                   align: TOP_RIGHT
               - label:
-                  text: "P0 Pomp PWM waarde"
+                  text: "${t_p0_pomp_pwm_waarde}"
                   text_color: 0x6B7280
                   text_font: font_text_20
                   align: TOP_LEFT
@@ -107,12 +107,12 @@ widgets:
             styles: setting_row_style
             widgets:
               - label:
-                  text: "P1 pomp relais"
+                  text: "${t_p1_pomp_relais}"
                   text_color: 0x1F2933
                   text_font: font_text_24
                   align: TOP_LEFT
               - label:
-                  text: "Schakel P1 pomp relais"
+                  text: "${t_schakel_p1_pomp_relais}"
                   width: 72%
                   text_color: 0x6B7280
                   text_font: font_text_20
@@ -138,12 +138,12 @@ widgets:
             styles: setting_row_style
             widgets:
               - label:
-                  text: "P2 pomp relais"
+                  text: "${t_p2_pomp_relais}"
                   text_color: 0x1F2933
                   text_font: font_text_24
                   align: TOP_LEFT
               - label:
-                  text: "Schakel P2 pomp relais"
+                  text: "${t_schakel_p2_pomp_relais}"
                   width: 72%
                   text_color: 0x6B7280
                   text_font: font_text_20
@@ -169,12 +169,12 @@ widgets:
             styles: setting_row_style
             widgets:
               - label:
-                  text: "SWW pomp relais"
+                  text: "${t_sww_pomp_relais}"
                   text_color: 0x1F2933
                   text_font: font_text_24
                   align: TOP_LEFT
               - label:
-                  text: "Schakel SWW pomp relais"
+                  text: "${t_schakel_sww_pomp_relais}"
                   width: 72%
                   text_color: 0x6B7280
                   text_font: font_text_20

@@ -4,8 +4,8 @@
     id: set_silent_mode_enabled_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Stille modus inschakelen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Limiteer het maximale compressorvermogen binnen het tijdsvenster", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_stille_modus_inschakelen}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_limiteer_het_maximale_compressorvermogen}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - switch:
           id: set_silent_mode_switch_ui
           align: TOP_RIGHT
@@ -26,8 +26,8 @@
     id: set_silent_mode_start_time_row
     styles: setting_row_style
     widgets:
-      - label: { id: set_silent_mode_start_time_lbl, text: "Starttijd", text_color: 0x9CA3AF, text_font: font_text_24, align: TOP_LEFT }
-      - label: { id: set_silent_mode_start_time_sub, text: "Tijdstip waarop de stille modus start", text_color: 0x9CA3AF, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { id: set_silent_mode_start_time_lbl, text: "${t_starttijd}", text_color: 0x9CA3AF, text_font: font_text_24, align: TOP_LEFT }
+      - label: { id: set_silent_mode_start_time_sub, text: "${t_tijdstip_waarop_de_stille_modus_start}", text_color: 0x9CA3AF, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -95,8 +95,8 @@
     id: set_silent_mode_end_time_row
     styles: setting_row_style
     widgets:
-      - label: { id: set_silent_mode_end_time_lbl, text: "Eindtijd", text_color: 0x9CA3AF, text_font: font_text_24, align: TOP_LEFT }
-      - label: { id: set_silent_mode_end_time_sub, text: "Tijdstip waarop de stille modus stopt", text_color: 0x9CA3AF, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { id: set_silent_mode_end_time_lbl, text: "${t_eindtijd}", text_color: 0x9CA3AF, text_font: font_text_24, align: TOP_LEFT }
+      - label: { id: set_silent_mode_end_time_sub, text: "${t_tijdstip_waarop_de_stille_modus_stopt}", text_color: 0x9CA3AF, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -164,8 +164,8 @@
     id: set_silent_mode_power_row
     styles: setting_row_style
     widgets:
-      - label: { id: set_silent_mode_power_lbl, text: "Stille modus vermogen", text_color: 0x9CA3AF, text_font: font_text_24, align: TOP_LEFT }
-      - label: { id: set_silent_mode_power_sub, text: "Max compressorvermogen tijdens stille modus", text_color: 0x9CA3AF, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { id: set_silent_mode_power_lbl, text: "${t_stille_modus_vermogen}", text_color: 0x9CA3AF, text_font: font_text_24, align: TOP_LEFT }
+      - label: { id: set_silent_mode_power_sub, text: "${t_max_compressorvermogen_tijdens_stille_mo}", text_color: 0x9CA3AF, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - dropdown:
           id: set_silent_mode_power_dd
           symbol: "\U000F0140"
@@ -173,13 +173,13 @@
           align: TOP_RIGHT
           y: 0
           options:
-            - "Beperkt"
-            - "Zeer laag"
-            - "Laag"
-            - "Gemiddeld"
-            - "Verhoogd"
-            - "Hoog"
-            - "Maximaal"
+            - "${t_beperkt}"
+            - "${t_zeer_laag}"
+            - "${t_laag}"
+            - "${t_gemiddeld}"
+            - "${t_verhoogd}"
+            - "${t_hoog}"
+            - "${t_maximaal}"
           text_font: font_text_20
           dropdown_list:
             text_font: font_text_20

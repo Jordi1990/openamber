@@ -14,6 +14,8 @@ Open source control firmware based on ESPHome for Itho Daalderop Amber heat pump
 ### HomeAssistant dashboard example
 ![HomeAssistant example](/docs/images/openamber-hass-example.png)
 
+A community dashboard that mirrors the Waveshare display in Home Assistant (all pages, Dutch/English/German) is available at [Spirituso/openamber-display-card](https://github.com/Spirituso/openamber-display-card). It is unofficial and maintained separately.
+
 ### Supply temperature regulation with PID-based compressor Hz modulation
 ![Supply temperature regulation with PID-based compressor Hz modulation](/docs/images/openamber-pid.png)
 
@@ -67,6 +69,27 @@ This can be used to run OpenAmber however it is not an ideal replacement of the 
 
 Download release to flash through web interface(*ota.bin) or from ESP web tools(*factory.bin), or copy src files into ESPHome config directory and flash it through ESPHome builder.
 Connect to the OpenAmber access point(password openamber) to setup WiFi.
+
+**Updates and beta versions**
+
+OpenAmber checks for new firmware itself and shows it in Home Assistant and on the display (Systeem). The setting *Updatekanaal* (in Home Assistant, or on the display under Systeem) chooses which versions you are offered:
+- *Stabiel* (default): stable releases only, such as `0.10.0`.
+- *Beta*: beta versions such as `0.10.0-beta.1` as well, and the final release once it is out.
+
+On a beta you can switch back to *Stabiel*: the display then offers *Stabiel installeren* to install the latest stable release.
+
+**Display language**
+
+The display UI is available in Dutch, German and English. Every build contains all three; choose the language on the display under Settings > General > Display > Language, or with the `Display taal` select in Home Assistant. The choice is kept across reboots and applies immediately.
+
+`ui_language` (nl, de or en) in the substitutions of your device YAML sets the default language:
+
+```yaml
+substitutions:
+  ui_language: de   # nl (default), de or en
+```
+
+Translations live in `src/openamber/ui/i18n/translations.yaml`. After editing that file, run `python3 tools/i18n.py generate` and `python3 tools/i18n.py check`.
 
 **Physicial connection**
 

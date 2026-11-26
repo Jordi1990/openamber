@@ -1,7 +1,7 @@
 # Menu Page: Geavanceerd - Defrost (Categorie keuzemenu)
 # ------------------------------------------------------------
 id: panel_advanced_page_defrost
-title: "Defrost"
+title: "${t_defrost}"
 widgets:
   - obj:
       width: 100%
@@ -34,7 +34,7 @@ widgets:
                   page: panel_advanced_page_defrost_general
             widgets:
               - label: { text: "\U000F062E", styles: menu_tile_icon_style }
-              - label: { id: defrost_stab_general_lbl, text: "Algemeen", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: defrost_stab_general_lbl, text: "${t_algemeen}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: defrost_stab_startlijn

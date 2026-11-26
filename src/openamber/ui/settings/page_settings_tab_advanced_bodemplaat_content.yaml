@@ -4,7 +4,7 @@
     widgets:
       - label:
           width: 100%
-          text: "Let op: experimentele instellingen. Wijzigingen worden niet opgeslagen en na een power cycle teruggezet naar standaard."
+          text: "${t_let_op_experimentele_instellingen_wijzig}"
           text_color: 0xB45309
           text_font: font_text_20
           long_mode: WRAP
@@ -14,8 +14,8 @@
     id: set_general_bodemplaat_mode_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Bodemplaat", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Kies wanneer actief", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_bodemplaat}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_kies_wanneer_actief}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - dropdown:
           id: set_bottomplate_mode_dd
           symbol: "\U000F0140"
@@ -23,9 +23,9 @@
           align: TOP_RIGHT
           y: 0
           options:
-            - "Onbekend"
-            - "Buitentemperatuur"
-            - "Tijdens defrost"
+            - "${t_onbekend}"
+            - "${t_buitentemperatuur}"
+            - "${t_tijdens_defrost}"
           text_font: font_text_20
           dropdown_list:
             text_font: font_text_20
@@ -44,8 +44,8 @@
     id: set_general_bodemplaat_start_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Starttemperatuur bodemplaat", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Buitentemperatuur voor inschakelen bodemplaat", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_starttemperatuur_bodemplaat}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_buitentemperatuur_voor_inschakelen_bodem}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -79,8 +79,8 @@
     id: set_general_bodemplaat_hysteresis_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Stop-hysterese bodemplaat", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Hysterese voor uitschakelen bodemplaat", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_stop_hysterese_bodemplaat}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_hysterese_voor_uitschakelen_bodemplaat}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

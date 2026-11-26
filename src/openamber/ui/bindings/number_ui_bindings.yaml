@@ -568,6 +568,15 @@
             format: "%.0f°C"
             args: ['x']
 
+- id: !extend backup_heater_stop_delta
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_buh_stop_delta_val
+          text:
+            format: "%.1f °C"
+            args: ['x']
+
 # ── SmartGrid ──
 - id: !extend sg_ready_heating_boost_temperature_number
   on_value:
@@ -896,7 +905,7 @@
       - lvgl.label.update:
           id: set_custom_defrost_ice_threshold_val
           text: !lambda |-
-            if (x <= 0.0f) return std::string("Uit");
+            if (x <= 0.0f) return std::string(oa_tr("Uit"));
             char buf[24];
             snprintf(buf, sizeof(buf), "%.0f Pa·h", x);
             return std::string(buf);

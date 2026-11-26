@@ -1,15 +1,15 @@
 # Menu Page: Pomp P0 PID Limieten & Doelwaarde
 # ------------------------------------------------------------
 id: panel_pump_page_p0_pid_limieten
-title: "Regeling"
+title: "${t_regeling}"
 styles: setting_page_style
 widgets:
   - obj:
       id: pump_p0_pid_page_1_row_enable
       styles: setting_row_style
       widgets:
-        - label: { text: "Pomp P0 Dynamisch PWM (Verwarmen)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-        - label: { text: "Regel P0 automatisch op basis van delta-T tijdens verwarmen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+        - label: { text: "${t_pomp_p0_dynamisch_pwm_verwarmen}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+        - label: { text: "${t_regel_p0_automatisch_op_basis_van_delta}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
         - switch:
             id: set_pump_pid_enabled_switch_ui
             align: TOP_RIGHT
@@ -30,8 +30,8 @@ widgets:
       id: set_pump_pid_target_delta_t_row
       styles: setting_row_style
       widgets:
-        - label: { text: "Gewenste delta-T", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-        - label: { text: "Doelwaarde voor Tuo - Tui tijdens verwarmen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+        - label: { text: "${t_gewenste_delta_t}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+        - label: { text: "${t_doelwaarde_voor_tuo_tui_tijdens_verwarme}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
         - obj:
             width: SIZE_CONTENT
             height: SIZE_CONTENT
@@ -65,8 +65,8 @@ widgets:
       id: set_pump_pid_min_pwm_row
       styles: setting_row_style
       widgets:
-        - label: { text: "Minimale pomp snelheid", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-        - label: { text: "Ondergrens voor automatische P0-regeling", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+        - label: { text: "${t_minimale_pomp_snelheid}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+        - label: { text: "${t_ondergrens_voor_automatische_p0_regeling}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
         - obj:
             width: SIZE_CONTENT
             height: SIZE_CONTENT
@@ -100,8 +100,8 @@ widgets:
       id: set_pump_pid_max_pwm_row
       styles: setting_row_style
       widgets:
-        - label: { text: "Maximale pomp snelheid", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-        - label: { text: "Bovengrens voor automatische P0-regeling", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+        - label: { text: "${t_maximale_pomp_snelheid}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+        - label: { text: "${t_bovengrens_voor_automatische_p0_regeling}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
         - obj:
             width: SIZE_CONTENT
             height: SIZE_CONTENT

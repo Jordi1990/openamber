@@ -181,7 +181,7 @@ Registers 2999-3510 of the outdoor unit (Modbus address 2). Descriptions marked 
 | 3266 | 82 | Internal parameters |
 | 3267 | 30 | High pressure Pd: strong frequency reduction (bar, default 30). *(firmware v1.10)* |
 | 3268 | 28 | High pressure Pd: frequency reduction (bar, default 28). *(firmware v1.10)* |
-| 3269 | 26 | High pressure Pd: no further frequency increase (bar, default 26). *(firmware v1.10)* |
+| 3269 | 26 | High pressure Pd: no further frequency increase (bar, default 26). *(firmware v1.10)* R32 units such as the HP-S 95 store 92/89/87 in 3267-3269 instead of bar; OpenAmber then falls back to 36 bar when 3497 = 0 (R32/R410A) and 26 bar otherwise. |
 | 3270 | 0 | Internal parameters |
 | 3271 | 12 | Internal parameters |
 | 3272 | 32 | Internal parameters |

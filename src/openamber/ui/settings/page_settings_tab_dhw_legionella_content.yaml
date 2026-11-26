@@ -1,8 +1,8 @@
 - obj:
     styles: setting_row_style
     widgets:
-      - label: { text: "Legionellapreventie", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Periodieke opwarming tegen legionella", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_legionellapreventie}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_periodieke_opwarming_tegen_legionella}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - switch:
           id: set_legio_switch
           align: TOP_RIGHT
@@ -22,8 +22,8 @@
 - obj:
     styles: setting_row_style
     widgets:
-      - label: { id: set_legio_days_lbl, text: "Legionella herhaling (dgn)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { id: set_legio_days_sub, text: "Dagen tussen preventieverwarming", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { id: set_legio_days_lbl, text: "${t_legionella_herhaling_dgn}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { id: set_legio_days_sub, text: "${t_dagen_tussen_preventieverwarming}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -74,8 +74,8 @@
 - obj:
     styles: setting_row_style
     widgets:
-      - label: { id: set_legio_temp_lbl, text: "Legionella doeltemperatuur (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { id: set_legio_temp_sub, text: "Doeltemperatuur bij legionellapreventie", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { id: set_legio_temp_lbl, text: "${t_legionella_doeltemperatuur_c}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { id: set_legio_temp_sub, text: "${t_doeltemperatuur_bij_legionellapreventie}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

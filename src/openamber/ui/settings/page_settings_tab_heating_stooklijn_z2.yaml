@@ -1,6 +1,6 @@
 # Menu Page: Stooklijn Zone 2
 # ------------------------------------------------------------
 id: panel_heating_page_stooklijn_z2
-title: "Stooklijn Zone 2"
+title: "${t_stooklijn_zone_2}"
 styles: setting_page_style
 widgets: !include page_settings_tab_heating_stooklijn_z2_content.yaml

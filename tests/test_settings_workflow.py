@@ -37,7 +37,8 @@ def test_settings_overview_navigation(openamber):
 
 
 def test_general_system_and_silent_mode_pages(openamber):
-    """Verify the Systeem page holds the screen timeout and Stille modus has its own menu page."""
+    """Verify language and screen timeout have their own Display page, separate from Systeem, and Stille
+    modus has its own menu page."""
     assert openamber.click("nav_settings"), "Clicking nav_settings must succeed"
     openamber.step(ms=100)
     assert openamber.click("stab_general"), "Clicking stab_general must succeed"
@@ -47,7 +48,17 @@ def test_general_system_and_silent_mode_pages(openamber):
     openamber.step(ms=100)
     assert openamber.is_visible("panel_general_page_systeem"), "Systeem page must be visible"
     assert openamber.is_visible("set_general_system_dhw"), "Systeem rows must be visible"
-    assert openamber.is_visible("set_general_system_screen_timeout"), "Screen timeout must be on the Systeem page"
+    assert openamber.is_hidden("set_general_display_screen_timeout"), "Screen timeout must not be on the Systeem page"
+    assert openamber.is_hidden("set_general_display_language"), "Language must not be on the Systeem page"
+
+    assert openamber.click("settings_menu_back_btn"), "Clicking the menu back button must succeed"
+    openamber.step(ms=100)
+    assert openamber.click("general_stab_display"), "Clicking general_stab_display must succeed"
+    openamber.step(ms=100)
+    assert openamber.is_visible("panel_general_page_display"), "Display page must be visible"
+    assert openamber.is_visible("set_general_display_language"), "Language must be on the Display page"
+    assert openamber.is_visible("set_general_display_screen_timeout"), "Screen timeout must be on the Display page"
+    assert openamber.is_hidden("set_general_system_dhw"), "Systeem rows must be hidden on the Display page"
 
     assert openamber.click("settings_menu_back_btn"), "Clicking the menu back button must succeed"
     openamber.step(ms=100)
@@ -55,7 +66,7 @@ def test_general_system_and_silent_mode_pages(openamber):
     openamber.step(ms=100)
     assert openamber.is_visible("panel_general_page_stiltemodus"), "Stille modus page must be visible"
     assert openamber.is_visible("set_silent_mode_enabled_row"), "Silent mode switch row must be visible"
-    assert openamber.is_hidden("set_general_system_screen_timeout"), "Systeem rows must be hidden on Stille modus"
+    assert openamber.is_hidden("set_general_display_screen_timeout"), "Display rows must be hidden on Stille modus"
 
 
 def test_sensor_calibration_pager_workflow(openamber):

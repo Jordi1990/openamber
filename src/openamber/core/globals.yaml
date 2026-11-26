@@ -34,3 +34,9 @@ globals:
     type: float
     restore_value: yes
     initial_value: '0.0'
+  # Compressor starts in a row that timed out. TO02 (error_compressor_start_timeout) is raised only after
+  # COMPRESSOR_START_MAX_ATTEMPTS; a successful start or the "Reset systeem timeout fouten" switch clears it.
+  - id: compressor_start_failures
+    type: int
+    restore_value: no
+    initial_value: '0'

@@ -5,8 +5,8 @@
     id: eebus_page_1_row_enable
     styles: setting_row_style
     widgets:
-      - label: { text: "EEBUS inschakelen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Activeer EEBUS communicatie met EMS", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_eebus_inschakelen}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_activeer_eebus_communicatie_met_ems}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - switch:
           id: set_eebus_enabled_switch_ui
           align: TOP_RIGHT
@@ -27,8 +27,8 @@
     id: eebus_page_1_row_connection
     styles: setting_row_style
     widgets:
-      - label: { text: "Verbinding met EMS", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { id: eebus_connection_sub_lbl, text: "Status van de EEBUS verbinding", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 36 }
+      - label: { text: "${t_verbinding_met_ems}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { id: eebus_connection_sub_lbl, text: "${t_status_van_de_eebus_verbinding}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 36 }
       - button:
           id: eebus_disconnect_btn
           hidden: true
@@ -45,7 +45,7 @@
           on_click:
             - script.execute: eebus_disconnect
           widgets:
-            - label: { text: "Verbreek verbinding", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
+            - label: { text: "${t_verbreek_verbinding}", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -57,7 +57,7 @@
           layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
           widgets:
             - label: { id: eebus_connection_status_icon, text: "\U000F0338", text_color: 0xEF4444, text_font: font_mdi_24 }
-            - label: { id: eebus_connection_status_lbl, text: "Niet verbonden", text_color: 0xEF4444, text_font: font_text_20 }
+            - label: { id: eebus_connection_status_lbl, text: "${t_niet_verbonden}", text_color: 0xEF4444, text_font: font_text_20 }
 
 - obj:
     id: eebus_page_1_row_ski
@@ -65,7 +65,7 @@
     height: 125
     widgets:
       - label: { text: "SKI", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Subject Key Identifier voor pairing", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 34 }
+      - label: { text: "${t_subject_key_identifier_voor_pairing}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 34 }
       - label:
           id: eebus_ski_display_lbl
           text: "–"

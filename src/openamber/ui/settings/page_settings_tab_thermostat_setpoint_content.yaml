@@ -4,8 +4,8 @@
     id: thermostat_row_setpoint
     styles: setting_row_style
     widgets:
-      - label: { text: "Thermostaat bron", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Kies intern of extern thermostaatsignaal", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_thermostaat_bron}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_kies_intern_of_extern_thermostaatsignaal}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - dropdown:
           id: set_thermostat_dd
           symbol: "\U000F0140"
@@ -13,8 +13,8 @@
           align: TOP_RIGHT
           y: 0
           options:
-            - "Intern"
-            - "Extern"
+            - "${t_intern}"
+            - "${t_extern}"
           text_font: font_text_20
           dropdown_list:
             text_font: font_text_20
@@ -33,8 +33,8 @@
     id: thermostat_row_default_heat
     styles: setting_row_style
     widgets:
-      - label: { text: "Standaard setpoint verwarmen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Setpoint verwarmen na herstart", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_standaard_setpoint_verwarmen}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_setpoint_verwarmen_na_herstart}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -68,8 +68,8 @@
     id: thermostat_row_default_cool
     styles: setting_row_style
     widgets:
-      - label: { text: "Standaard setpoint koelen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Setpoint koelen na herstart", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_standaard_setpoint_koelen}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_setpoint_koelen_na_herstart}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

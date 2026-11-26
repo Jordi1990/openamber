@@ -383,6 +383,15 @@ sensor:
 
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
+  id: outdoor_unit_refrigerant
+  internal: True
+  # 0 = R32/R410A, 1 = R290
+  address: 3497
+  register_type: holding
+  value_type: S_WORD
+
+- platform: modbus_controller
+  modbus_controller_id: modbus_outside_unit
   id: discharge_temperature_td
   name: "Persgastemperatuur (Td)"
   disabled_by_default: True

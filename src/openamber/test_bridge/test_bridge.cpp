@@ -248,6 +248,22 @@ lv_obj_t *TestBridge::resolve_widget(const std::string &id) {
       return lv_menu_get_main_header_back_button(*(mit->second));
     }
   }
+  // <menu>_crumb / <menu>_title: breadcrumb and title labels in the menu header (setup_menu_header_ui
+  // puts the breadcrumb at index 1, the title is the last child).
+  for (const char *suffix : {"_crumb", "_title"}) {
+    size_t len = strlen(suffix);
+    if (id.size() <= len || id.compare(id.size() - len, len, suffix) != 0)
+      continue;
+    auto mit = this->widgets_.find(id.substr(0, id.size() - len));
+    if (mit == this->widgets_.end() || mit->second == nullptr || *(mit->second) == nullptr)
+      continue;
+    lv_obj_t *header = lv_menu_get_main_header(*(mit->second));
+    if (header == nullptr)
+      return nullptr;
+    if (suffix[1] == 't')
+      return lv_obj_get_child(header, -1);
+    return lv_obj_get_child_count(header) > 2 ? lv_obj_get_child(header, 1) : nullptr;
+  }
   return nullptr;
 }
 
@@ -333,6 +349,14 @@ void TestBridge::process_line(const std::string &line) {
         out["disabled"] = disabled;
         out["checked"] = checked;
         out["text"] = text;
+        // Screen coordinates after layout, so tests can check that a widget fits in its container.
+        lv_obj_update_layout(obj);
+        lv_area_t area;
+        lv_obj_get_coords(obj, &area);
+        out["x1"] = area.x1;
+        out["y1"] = area.y1;
+        out["x2"] = area.x2;
+        out["y2"] = area.y2;
         if (selected_index >= 0) {
           out["selected_index"] = selected_index;
         }

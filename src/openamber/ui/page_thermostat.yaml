@@ -95,7 +95,7 @@ obj:
                                       id(update_thermostat_settings_ui).execute();
                                 widgets:
                                   - label: { id: home_therm_mode_heat_icon, text: "\U000F0238", styles: menu_tile_icon_style }
-                                  - label: { id: home_therm_mode_heat_lbl, text: "Verwarmen", long_mode: WRAP, styles: menu_tile_label_style }
+                                  - label: { id: home_therm_mode_heat_lbl, text: "${t_verwarmen}", long_mode: WRAP, styles: menu_tile_label_style }
                             - obj:
                                 id: home_therm_mode_cool_btn
                                 styles: menu_tile_style
@@ -114,7 +114,7 @@ obj:
                                       id(update_thermostat_settings_ui).execute();
                                 widgets:
                                   - label: { id: home_therm_mode_cool_icon, text: "\U000F0717", styles: menu_tile_icon_style }
-                                  - label: { id: home_therm_mode_cool_lbl, text: "Koelen", long_mode: WRAP, styles: menu_tile_label_style }
+                                  - label: { id: home_therm_mode_cool_lbl, text: "${t_koelen}", long_mode: WRAP, styles: menu_tile_label_style }
                             - obj:
                                 id: home_therm_mode_off_btn
                                 styles: menu_tile_style
@@ -130,7 +130,7 @@ obj:
                                       call.perform();
                                 widgets:
                                   - label: { id: home_therm_mode_off_icon, text: "\U000F0906", styles: menu_tile_icon_style }
-                                  - label: { id: home_therm_mode_off_lbl, text: "Uit", long_mode: WRAP, styles: menu_tile_label_style }
+                                  - label: { id: home_therm_mode_off_lbl, text: "${t_uit_2}", long_mode: WRAP, styles: menu_tile_label_style }
 
                       # Room temperature and setpoint side by side.
                       - obj:
@@ -157,7 +157,7 @@ obj:
                                 widgets:
                                   - label:
                                       id: home_therm_current_temp_title
-                                      text: "Kamertemperatuur"
+                                      text: "${t_kamertemperatuur}"
                                       text_color: 0x6B7280
                                       text_font: font_text_20
                                       align: TOP_MID
@@ -199,7 +199,7 @@ obj:
                                 widgets:
                                   - label:
                                       id: home_therm_setpoint_title
-                                      text: "Ingestelde temperatuur"
+                                      text: "${t_ingestelde_temperatuur}"
                                       text_color: 0x6B7280
                                       text_font: font_text_20
                                       align: TOP_MID

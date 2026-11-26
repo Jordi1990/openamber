@@ -1,7 +1,7 @@
 # Menu Page: Pomp (Categorie keuzemenu)
 # ------------------------------------------------------------
 id: panel_pump
-title: "Pomp"
+title: "${t_pomp}"
 widgets:
   - obj:
       width: 100%
@@ -34,7 +34,7 @@ widgets:
                   page: panel_pump_page_algemeen
             widgets:
               - label: { text: "\U000F08BB", styles: menu_tile_icon_style }
-              - label: { id: pump_stab_algemeen_lbl, text: "Algemeen", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: pump_stab_algemeen_lbl, text: "${t_algemeen}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: pump_stab_pompsnelheid
@@ -50,7 +50,7 @@ widgets:
                   page: panel_pump_page_pompsnelheid
             widgets:
               - label: { text: "\U000F04C5", styles: menu_tile_icon_style }
-              - label: { id: pump_stab_pompsnelheid_lbl, text: "Pompsnelheid", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: pump_stab_pompsnelheid_lbl, text: "${t_pompsnelheid}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: pump_stab_p0_pid
@@ -66,7 +66,7 @@ widgets:
                   page: panel_pump_page_p0_pid
             widgets:
               - label: { text: "\U000F012A", styles: menu_tile_icon_style }
-              - label: { id: pump_stab_p0_pid_lbl, text: "Dynamisch PWM P0", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: pump_stab_p0_pid_lbl, text: "${t_dynamisch_pwm_p0}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: pump_stab_vorstbescherming
@@ -82,4 +82,4 @@ widgets:
                   page: panel_pump_page_vorstbescherming
             widgets:
               - label: { text: "\U000F0F29", styles: menu_tile_icon_style }
-              - label: { id: pump_stab_vorstbescherming_lbl, text: "Vorst-\nbescherming", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: pump_stab_vorstbescherming_lbl, text: "${t_vorst_bescherming}", long_mode: WRAP, styles: menu_tile_label_style }

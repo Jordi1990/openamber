@@ -201,3 +201,23 @@ select:
   entity_category: config
   web_server:
     sorting_group_id: custom_defrost
+
+# Which firmware releases this device is offered: Stabiel (default) or Beta. The beta channel also offers the
+# final release once it is out. Switching back to Stabiel on a beta offers "Stabiel installeren" on the display.
+- platform: template
+  id: firmware_update_channel
+  name: "Updatekanaal"
+  icon: mdi:source-branch
+  optimistic: true
+  options:
+    - "Stabiel"
+    - "Beta"
+  initial_option: "Stabiel"
+  restore_value: true
+  entity_category: config
+  web_server:
+    sorting_group_id: general_settings
+  on_value:
+    then:
+      - script.execute: apply_firmware_update_channel
+      - script.execute: check_firmware_update_channel

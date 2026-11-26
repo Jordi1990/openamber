@@ -1,15 +1,15 @@
 # Menu Page: Pomp P0 PID Regelparameters
 # ------------------------------------------------------------
 id: panel_pump_page_p0_pid_params
-title: "PID-parameters"
+title: "${t_pid_parameters}"
 styles: setting_page_style
 widgets:
   - obj:
       id: set_pump_pid_defrost_pwm_row
       styles: setting_row_style
       widgets:
-        - label: { text: "Pompsnelheid ontdooien", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-        - label: { text: "Pompsnelheid tijdens de ontdooicyclus", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+        - label: { text: "${t_pompsnelheid_ontdooien}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+        - label: { text: "${t_pompsnelheid_tijdens_de_ontdooicyclus}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
         - obj:
             width: SIZE_CONTENT
             height: SIZE_CONTENT
@@ -43,7 +43,7 @@ widgets:
       styles: setting_row_style
       widgets:
         - label: { text: "PID P (Kp)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-        - label: { text: "Hoger: sneller meer pompcapaciteit bij oplopende delta-T", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+        - label: { text: "${t_hoger_sneller_meer_pompcapaciteit_bij_op}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
         - obj:
             width: SIZE_CONTENT
             height: SIZE_CONTENT
@@ -77,7 +77,7 @@ widgets:
       styles: setting_row_style
       widgets:
         - label: { text: "PID I (Ki)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-        - label: { text: "Lage integrale correctie voor trage vloerverwarming zonder jagen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+        - label: { text: "${t_lage_integrale_correctie_voor_trage_vloe}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
         - obj:
             width: SIZE_CONTENT
             height: SIZE_CONTENT
@@ -111,7 +111,7 @@ widgets:
       styles: setting_row_style
       widgets:
         - label: { text: "PID D (Kd)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-        - label: { text: "Demping bij snelle schommelingen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+        - label: { text: "${t_demping_bij_snelle_schommelingen}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
         - obj:
             width: SIZE_CONTENT
             height: SIZE_CONTENT

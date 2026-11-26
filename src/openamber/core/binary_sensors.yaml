@@ -213,7 +213,15 @@ binary_sensor:
     return id(heat_demand_active_sensor_zone_1).state || id(heat_demand_active_sensor_zone_2).state;
   on_state:
     - component.update: current_setpoint
-  web_server: 
+  # A new demand starts the pump directly instead of waiting for the remaining pump interval.
+  on_press:
+    then:
+      - logger.log:
+          format: "Pump interval reset due to new heat demand."
+          level: INFO
+      - lambda: |-
+          id(amber_ctrl).reset_pump_interval();
+  web_server:
     sorting_group_id: overview
 
 - platform: template
@@ -231,7 +239,15 @@ binary_sensor:
     return id(external_cool_demand_wired_delayed).state || id(cool_demand_switch).state;
   on_state:
     - component.update : current_setpoint
-  web_server: 
+  # A new demand starts the pump directly instead of waiting for the remaining pump interval.
+  on_press:
+    then:
+      - logger.log:
+          format: "Pump interval reset due to new cool demand."
+          level: INFO
+      - lambda: |-
+          id(amber_ctrl).reset_pump_interval();
+  web_server:
     sorting_group_id: overview
 
 - platform: template
@@ -912,6 +928,22 @@ binary_sensor:
     sorting_group_id: error_codes
 
 - platform: template
+  id: error_water_delta_t_too_high
+  name: "Temperatuurverschil Tuo-Tui te groot"
+  device_class: problem
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_pump_flow_missing
+  name: "Geen flow bij draaiende compressor"
+  device_class: problem
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: error_codes
+
+- platform: template
   id: error_active
   name: "Error actief"
   device_class: problem
@@ -956,7 +988,9 @@ binary_sensor:
            id(error_pump_stop_timeout).state ||
            id(error_modbus_connection_timeout).state ||
            id(error_three_way_valve_state_timeout).state ||
-           id(error_inside_unit_failsafe).state;
+           id(error_inside_unit_failsafe).state ||
+           id(error_water_delta_t_too_high).state ||
+           id(error_pump_flow_missing).state;
 
 - platform: template
   id: defrost_running_sensor
@@ -973,13 +1007,20 @@ binary_sensor:
       running = false;
       return false;
     }
+    const float frequency = id(current_compressor_frequency).state;
+    // A stopped compressor is no defrost: the unit only runs its pre-phase and defrost while the compressor runs,
+    // and a compressor stop aborts the execution while 2118 stays set.
+    // An unknown frequency (no Modbus data) keeps the previous state.
+    if (!std::isnan(frequency) && frequency <= 0.0f) {
+      running = false;
+      return false;
+    }
     if (running) return true;
 
     const uint32_t now = millis();
     if (prephase_started_ms == 0) prephase_started_ms = now == 0 ? 1 : now;
 
     const float standby = id(defrost_standby_frequency).has_state() ? id(defrost_standby_frequency).state : 36.0f;
-    const float frequency = id(current_compressor_frequency).state;
     const bool dropped = !std::isnan(frequency) && frequency <= standby + DEFROST_STANDBY_FREQUENCY_MARGIN_HZ;
     const bool prephase_timeout = (now - prephase_started_ms) >= DEFROST_PREPHASE_MAX_S * 1000UL;
     running = dropped || prephase_timeout;

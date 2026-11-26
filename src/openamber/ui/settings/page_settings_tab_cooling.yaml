@@ -1,7 +1,7 @@
 # Menu Page: Koelen (Categorie keuzemenu)
 # ------------------------------------------------------------
 id: panel_cooling
-title: "Koelen"
+title: "${t_koelen}"
 widgets:
   - obj:
       width: 100%
@@ -34,7 +34,7 @@ widgets:
                   page: panel_cooling_page_algemeen
             widgets:
               - label: { text: "\U000F08BB", styles: menu_tile_icon_style }
-              - label: { id: cooling_stab_algemeen_lbl, text: "Algemeen", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: cooling_stab_algemeen_lbl, text: "${t_algemeen}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: cooling_stab_setpoint
@@ -50,4 +50,4 @@ widgets:
                   page: panel_cooling_page_setpoint
             widgets:
               - label: { text: "\U000F050F", styles: menu_tile_icon_style }
-              - label: { id: cooling_stab_setpoint_lbl, text: "Setpoint", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: cooling_stab_setpoint_lbl, text: "${t_setpoint}", long_mode: WRAP, styles: menu_tile_label_style }

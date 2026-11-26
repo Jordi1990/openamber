@@ -1,6 +1,6 @@
 # Menu Page: Ventilator - Koelen compressor
 # ------------------------------------------------------------
 id: panel_advanced_page_fan_cool_hz
-title: "Koelen: compressor"
+title: "${t_koelen_compressor}"
 styles: setting_page_style
 widgets: !include page_settings_tab_advanced_fan_cool_hz_content.yaml

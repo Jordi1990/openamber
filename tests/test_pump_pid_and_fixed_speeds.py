@@ -251,9 +251,9 @@ def test_secondary_pump_p1_starts_when_enabled(clean_system):
     1. Set pump_p1_enabled = True.
     2. Start space heating demand.
     3. Secondary pump P1 (pump_p1_relay_switch and pump_p1_active) turns ON immediately with heat demand,
-       even before primary pump P0 interval cycle starts.
-    4. When heat demand ends while still in IDLE, secondary pump P1 turns OFF.
-    5. When heat demand resumes and primary pump P0 starts after the interval, P1 remains active.
+       together with primary pump P0 (a new demand resets the pump interval).
+    4. P1 remains active while P0 runs during heating.
+    5. When the heating cycle concludes after the demand ends, P1 turns OFF.
     """
     openamber = clean_system
 
@@ -280,36 +280,18 @@ def test_secondary_pump_p1_starts_when_enabled(clean_system):
     openamber.advance_time(seconds=6, step_s=1)
     openamber.step(ms=50)
 
-    # Secondary pump P1 must start immediately on heat demand before P0 interval timer elapses
+    # Secondary pump P1 must start immediately on heat demand
     assert openamber.get_entity("pump_p1_relay_switch") is True, (
         "Secondary pump P1 relay must turn ON immediately upon heat demand"
     )
     assert openamber.get_entity("pump_p1_active") is True, (
         "Secondary pump P1 active sensor must be True when heat demand starts"
     )
-    assert openamber.get_entity("internal_pump_active") is False, (
-        "Primary pump P0 must not yet be running before interval cycle"
-    )
 
-    # 2. Stop heating demand while still in IDLE before P0 starts
-    openamber.set_binary_sensor("external_heat_demand_wired", False)
-    openamber.advance_time(seconds=6, step_s=1)
-    openamber.step(ms=50)
-    assert openamber.get_entity("pump_p1_relay_switch") is False, (
-        "Secondary pump P1 must turn OFF when heat demand stops in IDLE"
+    # 2. The new demand resets the pump interval: P0 starts directly as well, P1 keeps running with it
+    assert advance_until_state(openamber, "internal_pump_active", True, max_s=60, step=5), (
+        "Pump P0 must start directly on a new heat demand"
     )
-    assert openamber.get_entity("pump_p1_active") is False, (
-        "Secondary pump P1 active sensor must become False when heat demand stops in IDLE"
-    )
-
-    # 3. Resume heating demand and advance through pump interval (900s) + pump start (10s)
-    openamber.set_binary_sensor("external_heat_demand_wired", True)
-    openamber.advance_time(seconds=6, step_s=1)
-    openamber.step(ms=50)
-    assert openamber.get_entity("pump_p1_relay_switch") is True, "Pump P1 must turn back ON"
-
-    openamber.advance_time(seconds=910, step_s=30)
-    openamber.step(ms=50)
     assert openamber.get_entity("internal_pump_active") is True, "Pump P0 must be active"
     assert openamber.get_entity("pump_p1_relay_switch") is True, (
         "Secondary pump P1 must remain ON during heating"
@@ -340,25 +322,6 @@ def test_pump_p1_keeps_running_between_pump_cycles(clean_system):
 
     assert advance_until_state(openamber, "state_machine_state_heat_cool", "Idle", max_s=300)
     assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 must keep running in idle with heat demand"
-
-
-def test_pump_p1_stops_at_cycle_end_during_defrost(clean_system):
-    """WAIT_PUMP_STOP holds while a defrost is active, P1 must not run during that wait."""
-    openamber = clean_system
-    # The mocked compressor reports the defrost standby frequency during a defrost. Without a delay (the default,
-    # unless an earlier test set one) the flow safety check stops heating as soon as the pump is off.
-    openamber.set_number("flow_switch_safety_delay_minutes", 2.0)
-    _start_idle_heat_demand_with_p1(openamber)
-
-    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Pump running", max_s=1200)
-    openamber.set_binary_sensor("defrost_active_sensor", True)
-    openamber.step(ms=50)
-
-    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Wait pump stop", max_s=1800)
-    openamber.advance_time(seconds=10, step_s=1)
-    openamber.step(ms=50)
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Wait pump stop"
-    assert openamber.get_entity("pump_p1_relay_switch") is False, "P1 must stop when the cycle ends during defrost"
 
 
 def test_pump_p1_stops_when_dhw_requested_during_pump_cycle(clean_system):

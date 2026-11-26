@@ -1,7 +1,7 @@
 # Menu Page: Connectiviteit - WiFi
 # ------------------------------------------------------------
 id: panel_wifi_page_wifi
-title: "WiFi"
+title: "${t_wifi}"
 styles: setting_page_style
 widgets:
   - obj:
@@ -21,10 +21,10 @@ widgets:
         - obj:
             styles: setting_row_style
             widgets:
-              - label: { text: "WiFi verbinding", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_wifi_verbinding}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
               - label:
                   id: wifi_status_label
-                  text: "Niet verbonden"
+                  text: "${t_niet_verbonden}"
                   text_color: 0xEF4444
                   text_font: font_text_24
                   align: TOP_RIGHT
@@ -69,10 +69,10 @@ widgets:
                           - width: 44%
                           - width: 56%
                         rows:
-                          - ["Netwerk (SSID)", "-"]
-                          - ["IP adres", "-"]
-                          - ["MAC adres", "-"]
-                          - ["Signaalsterkte", "-"]
+                          - ["${t_netwerk_ssid}", "-"]
+                          - ["${t_ip_adres}", "-"]
+                          - ["${t_mac_adres}", "-"]
+                          - ["${t_signaalsterkte}", "-"]
 
               # Verbinding verbreken knop
               - obj:
@@ -88,7 +88,7 @@ widgets:
                         on_click:
                           - script.execute: wifi_disconnect
                         widgets:
-                          - label: { text: "Verbinding verbreken", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
+                          - label: { text: "${t_verbinding_verbreken}", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
 
         # -- Niet verbonden sectie --
         - obj:
@@ -117,7 +117,7 @@ widgets:
                   widgets:
                     - label:
                         width: 100%
-                        text: "Niet verbonden met WiFi. Kies een netwerk hieronder of verbind via het 'OpenAmber' netwerk (wachtwoord: openamber) op 192.168.4.1"
+                        text: "${t_niet_verbonden_met_wifi_kies_een_netwerk}"
                         text_color: 0x92400E
                         text_font: font_text_20
                         long_mode: WRAP
@@ -126,7 +126,7 @@ widgets:
               - obj:
                   styles: setting_row_style
                   widgets:
-                    - label: { text: "Netwerk", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                    - label: { text: "${t_netwerk}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
                     - obj:
                         width: SIZE_CONTENT
                         height: SIZE_CONTENT
@@ -141,7 +141,7 @@ widgets:
                               symbol: "\U000F0140"
                               width: 250
                               options:
-                                - "Kies netwerk..."
+                                - "${t_kies_netwerk}"
                               text_font: font_text_20
                               dropdown_list:
                                 text_font: font_text_20
@@ -157,7 +157,7 @@ widgets:
                               on_click:
                                 - script.execute: wifi_scan_networks
                               widgets:
-                                - label: { text: "Zoeken", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
+                                - label: { text: "${t_zoeken}", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
 
               # Verborgen netwerk
               - obj:
@@ -165,13 +165,13 @@ widgets:
                   styles: setting_row_style
                   hidden: true
                   widgets:
-                    - label: { text: "Verborgen netwerk (SSID)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                    - label: { text: "${t_verborgen_netwerk_ssid}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
                     - textarea:
                         id: wifi_hidden_ssid_ta
                         width: 100%
                         height: 44
                         one_line: true
-                        placeholder_text: "Netwerknaam"
+                        placeholder_text: "${t_netwerknaam}"
                         max_length: 32
                         text_font: font_text_20
                         y: 36
@@ -191,7 +191,7 @@ widgets:
               - obj:
                   styles: setting_row_style
                   widgets:
-                    - label: { text: "Wachtwoord", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+                    - label: { text: "${t_wachtwoord}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
                     - button:
                         id: wifi_password_toggle
                         width: 44
@@ -214,7 +214,7 @@ widgets:
                         height: 44
                         one_line: true
                         password_mode: true
-                        placeholder_text: "Voer wachtwoord in"
+                        placeholder_text: "${t_voer_wachtwoord_in}"
                         max_length: 64
                         text_font: font_text_20
                         y: 36
@@ -243,11 +243,11 @@ widgets:
                         radius: 10
                         on_click:
                           - lambda: |-
-                              lv_label_set_text(id(wifi_connect_btn_label), "Verbinden...");
+                              lv_label_set_text(id(wifi_connect_btn_label), oa_tr("Verbinden..."));
                               lv_obj_send_event(id(wifi_connect_btn_label), lvgl::lv_update_event, nullptr);
                               id(wifi_connect_selected).execute();
                         widgets:
-                          - label: { id: wifi_connect_btn_label, text: "Verbinden", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
+                          - label: { id: wifi_connect_btn_label, text: "${t_verbinden}", text_color: 0xFFFFFF, text_font: font_text_20, align: CENTER }
 
               # Keyboard
               - keyboard:

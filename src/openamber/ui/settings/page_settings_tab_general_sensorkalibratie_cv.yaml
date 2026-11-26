@@ -1,7 +1,7 @@
 # Menu Page: Sensor kalibratie - CV-Systeem
 # ------------------------------------------------------------
 id: panel_general_sensor_kalibratie_cv
-title: "CV-systeem"
+title: "${t_cv_systeem}"
 styles: setting_page_style
 widgets:
   - obj:
@@ -21,8 +21,8 @@ widgets:
             id: sensor_calibration_page_1_row_tc
             styles: setting_row_style
             widgets:
-              - label: { text: "CV-aanvoertemperatuur offset", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Correctie voor CV-aanvoertemperatuurmeting", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - label: { text: "${t_cv_aanvoertemperatuur_offset}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_correctie_voor_cv_aanvoertemperatuurmeti}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT
@@ -56,8 +56,8 @@ widgets:
             id: sensor_calibration_page_1_row_tui
             styles: setting_row_style
             widgets:
-              - label: { text: "CV-retourtemperatuur (Tui) offset", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Correctie voor CV-retourtemperatuurmeting (Tui)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - label: { text: "${t_cv_retourtemperatuur_tui_offset}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_correctie_voor_cv_retourtemperatuurmetin}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT
@@ -91,8 +91,8 @@ widgets:
             id: sensor_calibration_page_2_row_tuo
             styles: setting_row_style
             widgets:
-              - label: { text: "CV-aanvoertemperatuur (Tuo) offset", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Correctie voor CV-aanvoertemperatuurmeting (Tuo)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - label: { text: "${t_cv_aanvoertemperatuur_tuo_offset}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_correctie_voor_cv_aanvoertemperatuurmeti_2}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT

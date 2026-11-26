@@ -81,7 +81,7 @@ obj:
                           y: 2
                       - label:
                           id: water_circuit_header_text
-                          text: "Watercircuit"
+                          text: "${t_watercircuit}"
                           text_color: 0x1F2933
                           text_font: font_mdi_24
 
@@ -115,7 +115,7 @@ obj:
                           text_font: font_mdi_24
                       - label:
                           id: water_mode_text
-                          text: "Verwarmen"
+                          text: "${t_verwarmen}"
                           text_color: 0xFFFFFF
                           text_font: font_mdi_24
                       - label:
@@ -190,7 +190,7 @@ obj:
                           widgets:
                             - label:
                                 id: water_aanvoer_label
-                                text: "Aanvoer"
+                                text: "${t_aanvoer}"
                                 text_color: 0x1F2933
                                 text_font: font_text_20
                             - label:
@@ -238,7 +238,7 @@ obj:
                           widgets:
                             - label:
                                 id: water_retour_label
-                                text: "Retour"
+                                text: "${t_retour}"
                                 text_color: 0x1F2933
                                 text_font: font_text_20
                             - label:
@@ -370,7 +370,7 @@ obj:
                                 widgets:
                                   - label:
                                       id: water_tc_current_label
-                                      text: "Afgifte (Tc)"
+                                      text: "${t_afgifte_tc}"
                                       text_color: 0x1F2933
                                       text_font: font_text_20
                                   - label:
@@ -433,7 +433,7 @@ obj:
                                 widgets:
                                   - label:
                                       id: water_tc_target_label
-                                      text: "Doel"
+                                      text: "${t_doel}"
                                       text_color: 0x1F2933
                                       text_font: font_text_20
                                   - label:
@@ -496,7 +496,7 @@ obj:
                                 widgets:
                                   - label:
                                       id: water_tc_outdoor_label
-                                      text: "Buiten"
+                                      text: "${t_buiten}"
                                       text_color: 0x1F2933
                                       text_font: font_text_20
                                   - label:
@@ -530,7 +530,7 @@ obj:
                 # Title
                 - label:
                     id: dhw_tank_title
-                    text: "Tapwater"
+                    text: "${t_tapwater}"
                     text_color: 0x1F2933
                     text_font: font_mdi_24
                     align: TOP_MID
@@ -600,7 +600,7 @@ obj:
                             # "Doel" caption
                             - label:
                                 id: dhw_tank_target_caption
-                                text: "Doel"
+                                text: "${t_doel}"
                                 text_color: 0x475569
                                 text_font: font_mdi_24
                                 align: CENTER
@@ -657,12 +657,12 @@ obj:
                           text_font: font_mdi_24
                       - label:
                           id: dhw_pump_title
-                          text: "Pomp"
+                          text: "${t_pomp}"
                           text_color: 0x1F2933
                           text_font: font_text_20
                       - label:
                           id: dhw_pump_state_label
-                          text: "UIT"
+                          text: "${t_uit}"
                           text_color: 0x1F2933
                           text_font: font_text_20
 
@@ -714,7 +714,7 @@ obj:
 
                 - label:
                     id: tile_fan_title
-                    text: "Fan"
+                    text: "${t_fan}"
                     text_color: 0x1F2933
                     text_font: font_text_20
                     align: CENTER
@@ -755,7 +755,7 @@ obj:
 
                 - label:
                     id: tile_pump_title
-                    text: "Pomp"
+                    text: "${t_pomp}"
                     text_color: 0x1F2933
                     text_font: font_text_20
                     align: CENTER
@@ -763,7 +763,7 @@ obj:
 
                 - label:
                     id: tile_pump_state
-                    text: "UIT"
+                    text: "${t_uit}"
                     align: BOTTOM_MID
                     y: -2
 
@@ -796,7 +796,7 @@ obj:
 
                 - label:
                     id: tile_defrost_title
-                    text: "Defrost"
+                    text: "${t_defrost}"
                     text_color: 0x1F2933
                     text_font: font_text_20
                     align: CENTER
@@ -804,7 +804,7 @@ obj:
 
                 - label:
                     id: tile_defrost_state
-                    text: "UIT"
+                    text: "${t_uit}"
                     align: BOTTOM_MID
                     y: -4
 
@@ -837,7 +837,7 @@ obj:
 
                 - label:
                     id: tile_compressor_title
-                    text: "Compressor"
+                    text: "${t_compressor}"
                     text_color: 0x1F2933
                     text_font: font_text_20
                     align: CENTER
@@ -878,7 +878,7 @@ obj:
 
                 - label:
                     id: tile_backup_title
-                    text: "Backup heater"
+                    text: "${t_backup_heater}"
                     text_color: 0x1F2933
                     text_font: font_text_20
                     align: CENTER
@@ -886,7 +886,7 @@ obj:
 
                 - label:
                     id: tile_backup_state
-                    text: "UIT"
+                    text: "${t_uit}"
                     align: BOTTOM_MID
                     y: -4
 
@@ -919,7 +919,7 @@ obj:
 
                 - label:
                     id: tile_baseplate_title
-                    text: "Bodemplaat\nverwarming"
+                    text: "${t_bodemplaat_verwarming}"
                     text_color: 0x1F2933
                     text_font: font_text_20
                     align: CENTER
@@ -927,7 +927,7 @@ obj:
 
                 - label:
                     id: tile_baseplate_state
-                    text: "UIT"
+                    text: "${t_uit}"
                     align: BOTTOM_MID
                     y: -4
 

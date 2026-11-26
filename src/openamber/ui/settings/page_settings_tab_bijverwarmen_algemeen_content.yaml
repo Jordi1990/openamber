@@ -1,8 +1,8 @@
 - obj:
     styles: setting_row_style
     widgets:
-      - label: { text: "Backup element", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Extern is voor Hybride opstellingen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_backup_element}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_extern_is_voor_hybride_opstellingen}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - dropdown:
           id: set_backup_heating_mode_dd
           symbol: "\U000F0140"
@@ -10,8 +10,8 @@
           align: TOP_RIGHT
           y: 0
           options:
-            - "Intern verwarmingselement"
-            - "Externe backup verwarming"
+            - "${t_intern_verwarmingselement}"
+            - "${t_externe_backup_verwarming}"
           text_font: font_text_20
           dropdown_list:
             text_font: font_text_20
@@ -25,8 +25,8 @@
 - obj:
     styles: setting_row_style
     widgets:
-      - label: { text: "Boosttemperatuur bij ontdooien", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Buitentemperatuur voor backup bij ontdooien", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_boosttemperatuur_bij_ontdooien}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_buitentemperatuur_voor_backup_bij_ontdoo}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

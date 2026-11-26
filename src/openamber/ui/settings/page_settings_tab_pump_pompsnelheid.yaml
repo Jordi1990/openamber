@@ -1,6 +1,6 @@
 # Menu Page: Pompsnelheid
 # ------------------------------------------------------------
 id: panel_pump_page_pompsnelheid
-title: "Pompsnelheid"
+title: "${t_pompsnelheid}"
 styles: setting_page_style
 widgets: !include page_settings_tab_pump_pompsnelheid_content.yaml

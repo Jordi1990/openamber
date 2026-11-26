@@ -1,7 +1,7 @@
 # Menu Page: Dynamisch PWM P0 (PID) - Categoriekeuzemenu
 # ------------------------------------------------------------
 id: panel_pump_page_p0_pid
-title: "Dynamisch PWM P0"
+title: "${t_dynamisch_pwm_p0}"
 widgets:
   - obj:
       width: 100%
@@ -34,7 +34,7 @@ widgets:
                   page: panel_pump_page_p0_pid_limieten
             widgets:
               - label: { text: "\U000F062E", styles: menu_tile_icon_style }
-              - label: { id: pump_stab_p0_pid_limieten_lbl, text: "Regeling", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: pump_stab_p0_pid_limieten_lbl, text: "${t_regeling}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: pump_stab_p0_pid_params
@@ -50,4 +50,4 @@ widgets:
                   page: panel_pump_page_p0_pid_params
             widgets:
               - label: { text: "\U000F012A", styles: menu_tile_icon_style }
-              - label: { id: pump_stab_p0_pid_params_lbl, text: "PID-parameters", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: pump_stab_p0_pid_params_lbl, text: "${t_pid_parameters}", long_mode: WRAP, styles: menu_tile_label_style }

@@ -51,8 +51,12 @@ private:
   float compressor_cool_pid_ = 0.0f;
   float start_current_temperature_ = 0.0f;
   uint32_t pump_flow_missing_since_ms_ = 0;
+  uint32_t water_delta_t_exceeded_since_ms_ = 0;
   MixingValveActuator* mixing_valve_zone1_ = nullptr;
   MixingValveActuator* mixing_valve_zone2_ = nullptr;
+  // True between StartSecondaryPumpsIfNeeded() and StopSecondaryPumpsIfNeeded(): P1 runs and P2 follows the zone 2
+  // heat demand, which can change while the controller stays in the same state.
+  bool secondary_pumps_running_ = false;
 
   void ApplyMixingValvePositions()
   {
@@ -461,7 +465,8 @@ private:
 
       if ((now - pump_flow_missing_since_ms_) >= flow_switch_delay_ms)
       {
-        ESP_LOGW("amber", "Safety check: Pump flow missing for %.0f min while compressor is running, stopping compressor to avoid damage.", id(flow_switch_safety_delay_minutes).state);
+        ESP_LOGE("amber", "Safety check: Pump flow missing for %.0f min while compressor is running, stopping compressor to avoid damage.", id(flow_switch_safety_delay_minutes).state);
+        id(error_pump_flow_missing).publish_state(true);
         return true;
       }
     }
@@ -470,11 +475,38 @@ private:
       pump_flow_missing_since_ms_ = 0;
     }
 
-    // If temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stop compressor to avoid damage
-    if (fabsf(id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state) > 8.0f && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) && state_ != HeatCoolState::IDLE)
+    // Tuo-Tui difference in the direction the unit heats or cools the water. While heating, Tuo below Tui is the
+    // defrost itself (the plate heat exchanger briefly acts as evaporator), and its dip can last a few readings
+    // after the defrost ends: that is no reason to stop.
+    const float tuo = id(outlet_temperature_tuo).state;
+    const float tui = id(inlet_temperature_tui).state;
+    const bool cooling = IsWorkingMode(WORKING_MODE_COOLING);
+    const float water_delta_t = cooling ? tui - tuo : tuo - tui;
+    const float max_water_delta_t = cooling ? COOLING_MAX_WATER_DELTA_T_C : HEATING_MAX_WATER_DELTA_T_C;
+    if (water_delta_t > max_water_delta_t && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) &&
+        state_ != HeatCoolState::IDLE)
     {
-      ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 8 degrees while compressor is running, stopping compressor to avoid damage.");
-      return true;
+      const uint32_t now = App.get_loop_component_start_time();
+      if (water_delta_t_exceeded_since_ms_ == 0)
+      {
+        water_delta_t_exceeded_since_ms_ = now;
+        ESP_LOGW("amber", "Safety check: %s delta-T %.2f°C above %.1f°C (Tuo %.2f°C, Tui %.2f°C), waiting %u s before shutdown.",
+                 cooling ? "Cooling" : "Heating", water_delta_t, max_water_delta_t, tuo, tui,
+                 (unsigned) WATER_DELTA_T_SAFETY_DELAY_S);
+      }
+
+      if ((now - water_delta_t_exceeded_since_ms_) >= WATER_DELTA_T_SAFETY_DELAY_S * 1000UL)
+      {
+        ESP_LOGE("amber", "Safety check: %s delta-T %.2f°C above %.1f°C for %u s (Tuo %.2f°C, Tui %.2f°C), stopping to avoid damage.",
+                 cooling ? "Cooling" : "Heating", water_delta_t, max_water_delta_t,
+                 (unsigned) WATER_DELTA_T_SAFETY_DELAY_S, tuo, tui);
+        id(error_water_delta_t_too_high).publish_state(true);
+        return true;
+      }
+    }
+    else
+    {
+      water_delta_t_exceeded_since_ms_ = 0;
     }
 
     return false;
@@ -520,6 +552,7 @@ public:
     requested_to_stop_ = false;
     start_current_temperature_ = 0.0f;
     pump_flow_missing_since_ms_ = 0;
+    water_delta_t_exceeded_since_ms_ = 0;
     pump_controller_->AdoptRunningPump();
     const bool cooling = IsWorkingMode(WORKING_MODE_COOLING);
 
@@ -539,7 +572,7 @@ public:
       if (id(defrost_running_sensor).state)
       {
         // Actual defrost: P1 is off during a defrost, DEFROSTING starts it again when the defrost ends.
-        StopPumpP1IfNeeded();
+        StopSecondaryPumpsIfNeeded();
         SetNextState(HeatCoolState::DEFROSTING);
       }
       else
@@ -549,11 +582,19 @@ public:
         // during the restart, run it again on demand as IDLE does.
         if (id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state)
         {
-          StartPumpP1IfNeeded();
+          StartSecondaryPumpsIfNeeded();
         }
         SetNextState(HeatCoolState::COMPRESSOR_RUNNING);
       }
       return;
+    }
+
+    // The remaining cases continue the pump cycle (via WAIT_COMPRESSOR_STOP or directly). A pump cycle started from
+    // IDLE runs the secondary pumps with it, and the resume skips that start, so start them here (not during a
+    // defrost, like WAIT_PUMP_STOP).
+    if (!id(defrost_active_sensor).state)
+    {
+      StartSecondaryPumpsIfNeeded();
     }
 
     if (compressor_commanded)
@@ -567,15 +608,8 @@ public:
     }
 
     compressor_controller_->RecordStopTime();
-    if (compressor_running)
-    {
-      // Level 0 but still running: the compressor was stopping.
-      SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
-      return;
-    }
-
-    // Only the pump was running: continue the pump cycle.
-    SetNextState(HeatCoolState::PUMP_RUNNING);
+    // Level 0 but still running: the compressor was stopping. Otherwise only the pump was running.
+    SetNextState(compressor_running ? HeatCoolState::WAIT_COMPRESSOR_STOP : HeatCoolState::PUMP_RUNNING);
   }
 
   /// @brief Evaluates the safety checks without running the state machine (used while an OTA update holds it).
@@ -644,15 +678,18 @@ public:
 
   bool ShouldStopCompressor()
   {
+    // Never stop during a defrost, including the pre-phase (2118 set), or an oil return cycle, whatever the reason
+    // (no demand, overshoot, stop request). The outdoor unit only runs the pre-phase and the defrost while the
+    // compressor runs: a stop aborts the defrost and leaves 2118 set until standby, so the ice stays. Safety
+    // stops do not pass here.
+    if (id(defrost_active_sensor).state || id(oil_return_cycle_active).state)
+    {
+      ESP_LOGI("amber", "Defrost or oil return cycle active, not stopping the compressor until it has finished.");
+      return false;
+    }
+
     if(!HasCompressorDemand())
     {
-      // A stop request (switch to DHW, maintenance mode, controlled stop) lets a running oil return cycle or defrost
-      // finish first, like the normal stop on temperature overshoot does.
-      if (requested_to_stop_ && (id(oil_return_cycle_active).state || id(defrost_active_sensor).state))
-      {
-        ESP_LOGI("amber", "Stop requested: waiting for the oil return cycle or defrost to finish before stopping.");
-        return false;
-      }
       return true;
     }
 
@@ -661,7 +698,14 @@ public:
 
     // Overshoot is positive when temp has passed the setpoint in the working direction
     // Heating: too hot (Tc > target), Cooling: too cold (Tc < target)
-    float stop_delta = IsWorkingMode(WORKING_MODE_COOLING) ? id(compressor_stop_delta_cooling).state : id(compressor_stop_delta_heating).state;
+    // While the controller is driving the backup heater it stops on its own configured
+    // stop delta, so a backup delta above the compressor delta is not capped by it.
+    // backup_heater_start_time_ms_ is set when the element is turned on and cleared when it
+    // is turned off, so it reflects the commanded state immediately, while
+    // IsBackupHeaterActive() for external backup heating only updates once the modbus
+    // relay state comes back.
+    float stop_delta = backup_heater_start_time_ms_ != 0 ? id(backup_heater_stop_delta).state
+                       : (IsWorkingMode(WORKING_MODE_COOLING) ? id(compressor_stop_delta_cooling).state : id(compressor_stop_delta_heating).state);
     float overshoot = IsWorkingMode(WORKING_MODE_COOLING) ? (target_temperature - current_temperature) : (current_temperature - target_temperature);
 
     if (overshoot >= stop_delta)
@@ -724,6 +768,11 @@ public:
       return;
     }
 
+    if (secondary_pumps_running_)
+    {
+      UpdatePumpP2();
+    }
+
     switch (state_)
     {
       case HeatCoolState::UNKNOWN:
@@ -735,25 +784,25 @@ public:
 
         if(!HasPumpDemand())
         {
-          StopPumpP1IfNeeded();
+          StopSecondaryPumpsIfNeeded();
           break;
         }
 
         // P1 runs continuously on heat/cool demand; frost protection alone only runs P1 together with the P0 interval cycles.
         if (id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state)
         {
-          StartPumpP1IfNeeded();
+          StartSecondaryPumpsIfNeeded();
         }
         else
         {
-          StopPumpP1IfNeeded();
+          StopSecondaryPumpsIfNeeded();
         }
 
         // Start pump on interval, without the pump running we cannot determine if there is actual compressor demand as Tc can change.
         if (pump_controller_->ShouldStartNextPumpCycle())
         {
           pump_controller_->Start();
-          StartPumpP1IfNeeded();
+          StartSecondaryPumpsIfNeeded();
           SetNextState(HeatCoolState::WAIT_PUMP_RUNNING);
         }
         break;
@@ -826,6 +875,12 @@ public:
         }
         else
         {
+          // The outdoor unit does not start the compressor while it preheats it (P07, about 30 min). Keep the pump
+          // running and start once the preheat is done, instead of letting the start time out.
+          if (compressor_controller_->IsWaitingForPreheat())
+          {
+            break;
+          }
           compressor_controller_->ApplyCompressorMode(DetermineSoftStartMode());
           compressor_controller_->ArmStartWaitTimer();
           SetNextState(HeatCoolState::WAIT_COMPRESSOR_RUNNING);
@@ -842,13 +897,17 @@ public:
           compressor_controller_->RecordStartTime();
           SetNextState(HeatCoolState::COMPRESSOR_SOFTSTART);
         }
-        else 
+        else
         {
           const uint32_t timeout_ms = COMPRESSOR_START_TIMEOUT_S * 1000UL;
           if ((now - compressor_controller_->GetStartWaitStartedTime()) >= timeout_ms)
           {
-            ESP_LOGE("amber", "Heat/cool compressor start timeout reached after %lu seconds, stopping system.", (unsigned long) COMPRESSOR_START_TIMEOUT_S);
-            id(error_compressor_start_timeout).publish_state(true);
+            if (compressor_controller_->RegisterStartTimeout())
+            {
+              ESP_LOGE("amber", "Heat/cool compressor start timeout reached after %lu seconds, stopping system.", (unsigned long) COMPRESSOR_START_TIMEOUT_S);
+              id(error_compressor_start_timeout).publish_state(true);
+            }
+            // WAIT_COMPRESSOR_STOP returns to PUMP_RUNNING, which retries after the minimum off time.
             compressor_controller_->Stop();
             SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
           }
@@ -897,7 +956,7 @@ public:
         // Keep heating during the outdoor unit's pre-phase, react once the actual defrost starts.
         if (id(defrost_running_sensor).state)
         {
-          StopPumpP1IfNeeded();
+          StopSecondaryPumpsIfNeeded();
           SetNextState(HeatCoolState::DEFROSTING);
           break;
         }
@@ -928,7 +987,8 @@ public:
         // minimum on time, an oil return cycle or a defrost (no demand anymore or a stop request).
         if (!IsWorkingMode(WORKING_MODE_COOLING) && HasCompressorDemand())
         {
-          if (id(sg_ready_max_boost_mode_active_sensor).state)
+          if (id(sg_ready_max_boost_mode_active_sensor).state &&
+              GetControlTemperature() < GetPidController().target_temperature + id(backup_heater_stop_delta).state)
           {
             ESP_LOGI("amber", "Enabling backup heater (SG Ready max boost active)");
             TurnOnBackupHeater();
@@ -987,13 +1047,8 @@ public:
       {
         if (!pump_controller_->IsRunning())
         {
-          // Leaving heating aborts a running defrost without its recovery phase, so wait for 2118 to drop.
-          if (id(defrost_active_sensor).state)
-          {
-            ESP_LOGI("amber", "Defrost active, waiting before switching to standby.");
-            StopPumpP1IfNeeded();
-            break;
-          }
+          // No wait for 2118 here: the compressor has stopped, and the outdoor unit only runs its defrost (and
+          // pre-phase) while the compressor runs. 2118 then stays set until standby, which clears it.
           pump_controller_->ClearStopWaitTimer();
           SetWorkingMode(WORKING_MODE_STANDBY);
           SetPidController(climate::CLIMATE_MODE_OFF);
@@ -1046,9 +1101,9 @@ public:
         float current_temperature = GetControlTemperature();
         float target_temperature = id(pid_heat_temperature_control).target_temperature;
 
-        if (current_temperature >= target_temperature + id(compressor_stop_delta_heating).state)
+        if (current_temperature >= target_temperature + id(backup_heater_stop_delta).state)
         {
-          ESP_LOGI("amber", "Disabling backup heater because measured temperature %.2f°C exceeded stop temperature delta %.2f°C.", current_temperature, target_temperature + id(compressor_stop_delta_heating).state);
+          ESP_LOGI("amber", "Disabling backup heater because measured temperature %.2f°C exceeded stop temperature delta %.2f°C.", current_temperature, target_temperature + id(backup_heater_stop_delta).state);
           TurnOffBackupHeater();
           LeaveStateAndSetNextStateAfterWaitTime(id(emergency_mode_enabled).state ? HeatCoolState::PUMP_RUNNING : HeatCoolState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
           break;
@@ -1062,7 +1117,7 @@ public:
           uint32_t settle_elapsed_ms = now - backup_heater_start_time_ms_;
           uint32_t settle_time_ms = BACKUP_HEATER_PREDICTION_SETTLE_TIME_S * 1000UL;
           // Only check predicition after a minimum settle time to avoid disabling backup heater too early due to initial temperature fluctuations when turning it on.
-          if (predicted_temperature >= target_temperature + 2.0f && settle_elapsed_ms >= settle_time_ms)
+          if (predicted_temperature >= target_temperature + id(backup_heater_stop_delta).state && settle_elapsed_ms >= settle_time_ms)
           { // Margin to buffer some heat to reduce undershoot.
             ESP_LOGI("amber", "Disabling backup heater (predicted Temperature %.2f°C above target %.2f°C)", predicted_temperature, target_temperature);
             TurnOffBackupHeater();
@@ -1128,7 +1183,7 @@ public:
         pump_controller_->ResetHeatingPidState();
         GetPidController().reset_integral_term();
         ResetMixingValvesIntegralTerm();
-        StartPumpP1IfNeeded();
+        StartSecondaryPumpsIfNeeded();
 
         if (id(temperature_outside_ta_avg_1h).state <= id(defrost_backup_heater_boost_temperature_sensor).state && !requested_to_stop_)
         {
@@ -1161,24 +1216,70 @@ public:
   void StopPumps()
   {
     pump_controller_->Stop();
-    StopPumpP1IfNeeded();
+    StopSecondaryPumpsIfNeeded();
   }
 
-  void StartPumpP1IfNeeded()
+  /// Starts the secondary pumps: P1 always, P2 only when zone 2 asks for it (see IsPumpP2Wanted).
+  void StartSecondaryPumpsIfNeeded()
   {
+    secondary_pumps_running_ = true;
     if(id(pump_p1_enabled).state && !id(pump_p1_relay_switch).state)
     {
       ESP_LOGI("amber", "Starting pump P1");
       id(pump_p1_relay_switch).turn_on();
     }
+    UpdatePumpP2();
   }
 
-  void StopPumpP1IfNeeded()
-  {  
+  void StopSecondaryPumpsIfNeeded()
+  {
+    secondary_pumps_running_ = false;
     if(id(pump_p1_enabled).state && id(pump_p1_relay_switch).state)
     {
       ESP_LOGI("amber", "Stopping pump P1");
       id(pump_p1_relay_switch).turn_off();
+    }
+    if(id(pump_p2_enabled).state && id(pump_p2_relay_switch).state)
+    {
+      ESP_LOGI("amber", "Stopping pump P2");
+      id(pump_p2_relay_switch).turn_off();
+    }
+  }
+
+  /// P2 is the circulation pump of zone 2. Like the original controller (M11.9 on, M11.10 off) it runs during
+  /// space heating only: on zone 2 heat demand, or on frost protection (then only while P0 runs, so together with the
+  /// P0 interval cycles, also when zone 1 keeps the secondary pumps active in IDLE). Not during cooling, including the
+  /// run-on of a cooling compressor after the demand switched to heating (the working mode is still cooling then).
+  bool IsPumpP2Wanted()
+  {
+    if (IsCoolingDemand() || IsWorkingMode(WORKING_MODE_COOLING))
+    {
+      return false;
+    }
+    if (id(heat_demand_active_sensor_zone_2).state)
+    {
+      return true;
+    }
+    bool frost_protection = id(frost_protection_stage1_active).state || id(frost_protection_stage2_active).state;
+    return frost_protection && pump_controller_->IsRunning();
+  }
+
+  void UpdatePumpP2()
+  {
+    if (!id(pump_p2_enabled).state)
+    {
+      return;
+    }
+    bool wanted = IsPumpP2Wanted();
+    if (wanted && !id(pump_p2_relay_switch).state)
+    {
+      ESP_LOGI("amber", "Starting pump P2");
+      id(pump_p2_relay_switch).turn_on();
+    }
+    else if (!wanted && id(pump_p2_relay_switch).state)
+    {
+      ESP_LOGI("amber", "Stopping pump P2 (no zone 2 heat demand)");
+      id(pump_p2_relay_switch).turn_off();
     }
   }
 

@@ -1,7 +1,7 @@
 # Menu Page: Energiebeheer (Categorie keuzemenu)
 # ------------------------------------------------------------
 id: panel_smartgrid
-title: "Energiebeheer"
+title: "${t_energiebeheer}"
 widgets:
   - obj:
       width: 100%

@@ -6,7 +6,7 @@
     widgets:
       - label:
           width: 100%
-          text: "Let op: experimentele instellingen. Wijzigingen worden niet opgeslagen en na een power cycle teruggezet naar standaard."
+          text: "${t_let_op_experimentele_instellingen_wijzig}"
           text_color: 0xB45309
           text_font: font_text_20
           long_mode: WRAP
@@ -16,8 +16,8 @@
     id: set_fan_heat_max_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Verwarmen: koud of hoog", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Ta onder 11°C, of compressor vanaf F7", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_verwarmen_koud_of_hoog}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_ta_onder_11c_of_compressor_vanaf_f7}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -51,8 +51,8 @@
     id: set_fan_heat_mild_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Verwarmen: Ta 11-17°C", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Buitentemperatuur 11 tot 17°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_verwarmen_ta_11_17c}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_buitentemperatuur_11_tot_17c}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -86,8 +86,8 @@
     id: set_fan_heat_warm_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Verwarmen: Ta vanaf 17°C", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Buitentemperatuur vanaf 17°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_verwarmen_ta_vanaf_17c}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_buitentemperatuur_vanaf_17c}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

@@ -13,7 +13,7 @@ external_components:
   - source:
       type: local
       path: openamber
-    components: [openamber_component, native_build_flags, eebus, tiny_mqtt, modbus_frame_padding]
+    components: [openamber_component, native_build_flags, eebus, tiny_mqtt, modbus_frame_padding, psram_bss]
 
 debug:
 
@@ -40,6 +40,7 @@ esphome:
       then:
         - script.execute: apply_pid_settings
         - script.execute: apply_thermostat_settings
+        - script.execute: apply_firmware_update_channel
         - delay: 5min
         - if:
             condition:
@@ -124,7 +125,8 @@ update:
   - platform: http_request
     id: firmware_update
     name: Firmware Update
-    source: http://openamber.nl/openamber.manifest.json
+    # Stable channel by default; the Updatekanaal select (apply_firmware_update_channel) switches it at runtime.
+    source: ${firmware_manifest_stable_url}
 
 web_server:
   port: 80

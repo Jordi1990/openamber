@@ -1,0 +1,16 @@
+# Map the .bss of ESPHome's generated main.cpp (all component, entity,
+# automation and LVGL objects) to external RAM. See ../__init__.py.
+#
+# Own scheme: ESP-IDF's `extram_bss` scheme lives in esp_wifi's linker
+# fragment, which is not part of the build on targets without native WiFi
+# (the P4 uses esp_hosted).
+[scheme:openamber_extram_bss]
+entries:
+    bss -> extern_ram
+    common -> extern_ram
+
+[mapping:openamber_psram_bss]
+archive: libsrc.a
+entries:
+    if SPIRAM_ALLOW_BSS_SEG_EXTERNAL_MEMORY = y:
+        main (openamber_extram_bss)

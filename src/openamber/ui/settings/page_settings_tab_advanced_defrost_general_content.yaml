@@ -13,7 +13,7 @@
           align: TOP_RIGHT
           y: 0
           options:
-            - "Buitenunit"
+            - "${t_buitenunit}"
             - "OpenAmber"
           text_font: font_text_20
           dropdown_list:

@@ -43,7 +43,7 @@
             lv_label_set_text(id(set_analytics_id_value), str_sprintf("%s", x.c_str()).c_str());
             lv_obj_send_event(id(set_analytics_id_value), lvgl::lv_update_event, nullptr);
           } else {
-            lv_label_set_text(id(set_analytics_id_value), "Onbekend");
+            lv_label_set_text(id(set_analytics_id_value), oa_tr("Onbekend"));
             lv_obj_send_event(id(set_analytics_id_value), lvgl::lv_update_event, nullptr);
           }
 
@@ -104,9 +104,9 @@
             pos = end + 1;
           }
           if (!options.empty()) {
-            options += "\nHandmatig...";
+            options += oa_tr("\nHandmatig...");
           } else {
-            options = "Geen netwerken gevonden\nHandmatig...";
+            options = oa_tr("Geen netwerken gevonden\nHandmatig...");
           }
           const char *current_options = lv_dropdown_get_options(id(wifi_network_dd)->obj);
           if (current_options != nullptr && options == current_options) {

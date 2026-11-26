@@ -1,7 +1,7 @@
 # Menu Page: Algemeen (Categorie keuzemenu)
 # ------------------------------------------------------------
 id: panel_general
-title: "Algemeen"
+title: "${t_algemeen}"
 widgets:
   - obj:
       width: 100%
@@ -34,7 +34,23 @@ widgets:
                   page: panel_general_page_systeem
             widgets:
               - label: { text: "\U000F08D6", styles: menu_tile_icon_style }
-              - label: { id: general_stab_systeem_lbl, text: "Systeem", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: general_stab_systeem_lbl, text: "${t_systeem}", long_mode: WRAP, styles: menu_tile_label_style }
+
+        - obj:
+            id: general_stab_display
+            styles: menu_tile_style
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_general_page_display
+            widgets:
+              - label: { text: "\U000F0379", styles: menu_tile_icon_style }
+              - label: { id: general_stab_display_lbl, text: "${t_display}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: general_stab_mengventielen
@@ -50,7 +66,7 @@ widgets:
                   page: panel_general_page_mengventielen
             widgets:
               - label: { text: "\U000F1066", styles: menu_tile_icon_style }
-              - label: { id: general_stab_mengventielen_lbl, text: "Mengventielen", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: general_stab_mengventielen_lbl, text: "${t_mengventielen}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: general_stab_sensor_kalibratie
@@ -66,7 +82,7 @@ widgets:
                   page: panel_general_page_sensor_kalibratie
             widgets:
               - label: { text: "\U000F050F", styles: menu_tile_icon_style }
-              - label: { id: general_stab_sensor_kalibratie_lbl, text: "Sensor kalibratie", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: general_stab_sensor_kalibratie_lbl, text: "${t_sensor_kalibratie}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: general_stab_stiltemodus
@@ -83,7 +99,7 @@ widgets:
               - script.execute: update_silent_mode_ui
             widgets:
               - label: { text: "\U000F0581", styles: menu_tile_icon_style }
-              - label: { id: general_stab_stiltemodus_lbl, text: "Stille modus", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: general_stab_stiltemodus_lbl, text: "${t_stille_modus}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: general_stab_hardware
@@ -99,7 +115,7 @@ widgets:
                   page: panel_general_page_hardware
             widgets:
               - label: { text: "\U000F0521", styles: menu_tile_icon_style }
-              - label: { id: general_stab_hardware_lbl, text: "Opties", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: general_stab_hardware_lbl, text: "${t_opties}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: general_stab_analytics
