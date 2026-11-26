@@ -1504,6 +1504,7 @@ number:
   min_value: 3
   max_value: 15
   step: 0.5
+  mode: box
   unit_of_measurement: "K"
   icon: "mdi:thermometer-minus"
   entity_category: config
@@ -1519,6 +1520,7 @@ number:
   min_value: 2
   max_value: 12
   step: 0.5
+  mode: box
   unit_of_measurement: "K"
   icon: "mdi:thermometer-minus"
   entity_category: config
@@ -1534,6 +1536,7 @@ number:
   min_value: -10
   max_value: 0
   step: 0.5
+  mode: box
   unit_of_measurement: "°C"
   device_class: "temperature"
   entity_category: config
@@ -1549,6 +1552,7 @@ number:
   min_value: 30
   max_value: 180
   step: 5
+  mode: box
   unit_of_measurement: "min"
   icon: "mdi:timer-sand"
   entity_category: config
@@ -1564,6 +1568,7 @@ number:
   min_value: -2
   max_value: 5
   step: 0.5
+  mode: box
   unit_of_measurement: "K"
   icon: "mdi:water-thermometer-outline"
   entity_category: config
@@ -1581,6 +1586,7 @@ number:
   min_value: 0
   max_value: 300
   step: 5
+  mode: box
   unit_of_measurement: "Pa·h"
   icon: "mdi:snowflake-thermometer"
   entity_category: config
