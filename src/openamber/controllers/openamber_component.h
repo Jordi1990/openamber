@@ -152,6 +152,18 @@ void OpenAmberComponent::update()
   // so the heat pump returns to standby once maintenance mode is turned off.
   bool controlled_stop_requested = id(controlled_stop_active) && !maintenance_requested;
 
+  // After a hot switch, check the relay feedback once the valve has had its travel time, as WAIT_THREE_WAY_VALVE does.
+  if (hot_switch_valve_started_ms_ != 0 &&
+      HasElapsedMs(hot_switch_valve_started_ms_, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL, App.get_loop_component_start_time()))
+  {
+    hot_switch_valve_started_ms_ = 0;
+    if (!IsThreeWayValveFeedbackConfirmed(valve_target_position_))
+    {
+      ESP_LOGE("amber", "3-way valve relay feedback did not confirm the requested position after a hot switch, stopping system.");
+      id(error_three_way_valve_state_timeout).publish_state(true);
+    }
+  }
+
   // Hot switch between heating and DHW: the controller that runs the compressor hands it over and the other one takes
   // it over at once, while the 3-way valve moves. Its safety checks stay active during the valve travel.
   const bool hot_switch_to_dhw = state_ == State::HEAT_COOL && desired_state == State::DHW_HEAT &&
@@ -164,6 +176,7 @@ void OpenAmberComponent::update()
     ESP_LOGI("amber", "Hot switch: moving the 3-way valve while the compressor keeps running.");
     SetThreeWayValve(desired_valve_position);
     valve_target_position_ = desired_valve_position;
+    hot_switch_valve_started_ms_ = App.get_loop_component_start_time() | 1;
     if (hot_switch_to_dhw)
     {
       heat_cool_controller_->HandOverRunningCompressor();
@@ -814,6 +827,7 @@ void OpenAmberComponent::SwitchThreeWayValveAndWait(ThreeWayValvePosition positi
   valve_target_position_ = position;
   valve_target_state_ = next_state;
   valve_switch_started_ms_ = App.get_loop_component_start_time();
+  hot_switch_valve_started_ms_ = 0;
   SetNextState(State::WAIT_THREE_WAY_VALVE);
 }
 

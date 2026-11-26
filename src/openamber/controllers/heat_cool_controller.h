@@ -601,8 +601,9 @@ public:
       {
         // No defrost or still in the pre-phase: COMPRESSOR_RUNNING keeps heating and handles the switch to
         // DEFROSTING (and stops P1) once the actual defrost starts. P1 may have stayed off when a defrost ended
-        // during the restart, run it again on demand as IDLE does.
-        if (id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state)
+        // during the restart, run it again on demand as IDLE does. After a hot switch COMPRESSOR_RUNNING starts them
+        // once the 3-way valve is on CV.
+        if (!hand_over && (id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state))
         {
           StartSecondaryPumpsIfNeeded();
         }
@@ -988,6 +989,13 @@ public:
         if(start_current_temperature_ == 0.0f)
         {
           start_current_temperature_ = GetControlTemperature();
+        }
+
+        // Hot switch from DHW: start the zone pumps once the 3-way valve has had its travel time to CV.
+        if (hand_over_started_ms_ != 0 && !secondary_pumps_running_ && id(heat_demand_active_sensor).state &&
+            HasElapsedMs(hand_over_started_ms_, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL, now))
+        {
+          StartSecondaryPumpsIfNeeded();
         }
 
         // Keep heating during the outdoor unit's pre-phase, react once the actual defrost starts.

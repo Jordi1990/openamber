@@ -5,7 +5,7 @@ controller takes over the running compressor; its minimum on time counts from th
 DHW demand ends with heat demand, heating takes the compressor back the same way.
 """
 
-from helpers import FlowMonitor, start_space_heating
+from helpers import FlowMonitor, advance_until_state, start_space_heating
 
 
 def test_hot_switch_keeps_compressor_running(clean_system):
@@ -59,11 +59,30 @@ def test_hot_switch_keeps_compressor_running(clean_system):
     assert openamber.get_entity("dhw_pump_relay_switch") is False
     assert openamber.get_entity("state_machine_state_dhw") == "Idle"
     assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
+    # The zone pumps wait for the valve travel time to CV.
+    assert openamber.get_entity("pump_p1_relay_switch") is False
 
     # The hot water is flushed out within the grace time; heating keeps running.
     monitor.advance(90, step=10)
+    assert openamber.get_entity("pump_p1_relay_switch") is True
     openamber.set_sensor("outlet_temperature_tuo", 32.0)
     openamber.set_sensor("inlet_temperature_tui", 28.0)
     monitor.advance(120, step=10)
     assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
     assert openamber.get_entity("error_water_delta_t_too_high") is False
+
+
+def test_hot_switch_missing_valve_feedback_raises_error(clean_system):
+    """A hot switch checks the valve relay feedback after the valve travel time, like a regular switch."""
+    openamber = clean_system
+    openamber.set_sensor("dhw_temperature_tw_sensor", 51.0)
+    start_space_heating(openamber)
+    assert openamber.set_switch("mock_three_way_valve_feedback_missing", True)
+
+    openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
+    assert advance_until_state(openamber, "state_machine_state_main", "DHW", max_s=180)
+    assert openamber.get_entity("error_three_way_valve_state_timeout") is False
+
+    openamber.advance_time(seconds=70, step_s=5)
+    assert openamber.get_entity("error_three_way_valve_state_timeout") is True
+    assert openamber.get_entity("error_active") is True
