@@ -339,3 +339,57 @@ def test_dhw_backup_heater_stays_off_when_heating_fast_enough(clean_system):
     engaged, rate = _run_dhw_with_realistic_tw(openamber, rate_c_per_min=0.3, duration_s=350)
     assert not engaged
     assert rate == pytest.approx(0.3, abs=0.05), f"Rate sensor should report ~0.3°C/min in second cycle, got {rate}"
+
+
+def _run_dhw_with_flat_tw(openamber, tui_rate_c_per_min, tui_rise_s, duration_s):
+    """Run DHW while Tw stays flat and the return temperature (Tui) rises for `tui_rise_s` seconds.
+
+    This is a tank with a loading module: it is heated from the cold side up, so Tw does not move until the
+    heated water reaches the sensor, while Tui rises all along. Tuo follows Tui at +4°C.
+    Returns the number of seconds after which the backup heater engaged, or None.
+    """
+    openamber.set_number("dhw_setpoint_temperature", 50.0)
+    openamber.set_number("dhw_restart_dhw_delta", 5.0)
+    openamber.set_number("dhw_backup_min_avg_rate", 0.2)
+    openamber.set_number("dhw_backup_min_avg_rate_delay_minutes", 5.0)
+    tui = 38.0
+    openamber.set_sensor("dhw_temperature_tw_sensor", 40.0)
+    openamber.set_sensor("inlet_temperature_tui", tui)
+    openamber.set_sensor("outlet_temperature_tuo", tui + 4.0)
+    openamber.step(ms=50)
+    assert advance_until_state(
+        openamber, "state_machine_state_dhw", "Compressor running", max_s=600, step=5
+    ), "DHW state machine did not reach 'Compressor running' within 600 seconds"
+
+    step_c = tui_rate_c_per_min * 15.0 / 60.0
+    for i in range(duration_s // 5):
+        if i % 3 == 0 and i * 5 < tui_rise_s:
+            tui += step_c
+            openamber.set_sensor("inlet_temperature_tui", tui)
+            openamber.set_sensor("outlet_temperature_tuo", tui + 4.0)
+        openamber.advance_time(seconds=5)
+        if openamber.get_entity("backup_heater_relay") is True:
+            return (i + 1) * 5
+    return None
+
+
+def test_dhw_backup_heater_stays_off_while_return_temperature_rises(clean_system):
+    """Tw flat but Tui rising at 0.5°C/min (above the 0.2°C/min minimum): the tank takes up heat, so the backup
+    heater must stay off. Without the Tui check it engaged 17 minutes after the DHW pump started."""
+    openamber = clean_system
+    engaged_after_s = _run_dhw_with_flat_tw(openamber, tui_rate_c_per_min=0.5, tui_rise_s=1650, duration_s=1650)
+    assert engaged_after_s is None, f"Backup heater must stay off while Tui rises (engaged after {engaged_after_s}s)"
+    assert openamber.get_entity("dhw_backup_current_avg_rate_sensor") == pytest.approx(0.0, abs=0.01), (
+        "The rate sensor keeps reporting the Tw rate"
+    )
+
+
+def test_dhw_backup_heater_engages_once_return_temperature_stalls(clean_system):
+    """Tw flat and Tui rising for the first 20 minutes, then both flat: the compressor no longer keeps up and the
+    backup heater engages after the delay, not earlier."""
+    openamber = clean_system
+    engaged_after_s = _run_dhw_with_flat_tw(openamber, tui_rate_c_per_min=0.5, tui_rise_s=1200, duration_s=2400)
+    assert engaged_after_s is not None, "Backup heater should engage once neither Tw nor Tui rises"
+    assert engaged_after_s >= 1200 + 300, (
+        f"Backup heater engaged after {engaged_after_s}s, before Tui had stalled for the 5 minute delay"
+    )
