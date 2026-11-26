@@ -1402,7 +1402,8 @@ number:
   name: "Defrost Ta-Tp bij 0°C"
   optimistic: True
   restore_value: True
-  initial_value: 7
+  # Mitsubishi uses 7 K; a clean Amber coil sits only about 3 K below Ta, so 7 K was never reached (Nov 2026 data).
+  initial_value: 5
   min_value: 3
   max_value: 15
   step: 0.5
@@ -1468,6 +1469,23 @@ number:
   step: 0.5
   unit_of_measurement: "K"
   icon: "mdi:water-thermometer-outline"
+  entity_category: config
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_ice_threshold
+  name: "Defrost drempel ijsteller"
+  # Vapour pressure excess of the air over ice at Tp, summed over compressor time. 0 = off.
+  # 70 Pa·h: about 50 min on a foggy night around 0 °C, about 105 min at 80 % RV (Nov 2026 data).
+  optimistic: True
+  restore_value: True
+  initial_value: 70
+  min_value: 0
+  max_value: 300
+  step: 5
+  unit_of_measurement: "Pa·h"
+  icon: "mdi:snowflake-thermometer"
   entity_category: config
   web_server:
     sorting_group_id: custom_defrost

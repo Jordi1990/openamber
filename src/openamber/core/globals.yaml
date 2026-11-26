@@ -29,3 +29,8 @@ globals:
     type: uint32_t
     restore_value: yes
     initial_value: '0'
+  # Ice counter of the custom defrost (Pa·h since the last defrost), see custom_defrost_controller.h.
+  - id: custom_defrost_ice_load
+    type: float
+    restore_value: yes
+    initial_value: '0.0'

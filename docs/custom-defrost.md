@@ -7,7 +7,7 @@ OpenAmber kan zelf bepalen wanneer de buitenunit ontdooit. Alle defrost-instelli
 | --- | --- | --- |
 | Algemeen | Defrost controle | altijd |
 | Startlijn en interval | Verschil Ta − Tp, maximale Tp en minimaal interval | bij OpenAmber |
-| Luchtvochtigheid | Bron, marge rijppunt, actuele waarde | bij OpenAmber |
+| Luchtvochtigheid | Bron, marge rijppunt, drempel ijsteller, actuele waarde en ijsteller | bij OpenAmber |
 | Starttemperaturen unit | EEPROM-starttemperaturen van de buitenunit | bij Buitenunit |
 | Einde defrost | EEPROM exit-temperatuur en maximale ontdooitijd | bij Buitenunit |
 | Status | Status, draaitijd en laatste defrostduur | bij OpenAmber |
@@ -25,44 +25,43 @@ controle blijft bij OpenAmber; alleen jij wisselt de stand.
 
 ## Wanneer wordt er ontdooid
 
-Het algoritme volgt Mitsubishi (technische handleiding SRK20-35ZSX-W, 17-SRK-T-228, hoofdstuk 17c). Er wordt
-alleen ontdooid tijdens verwarmen met draaiende compressor en Ta tot 7 °C. Een defrost start alleen als alles
-tegelijk geldt:
+Er wordt alleen ontdooid tijdens verwarmen met draaiende compressor en Ta tot 7 °C. Er zijn zes routes. De eerste
+die geldt, start de defrost.
 
-1. De compressor heeft sinds de vorige defrost minstens het **interval** gedraaid (start op 35 min).
-2. De compressor draait minstens 5 min onafgebroken.
-3. De spoeltemperatuur Tp ligt 3 min lang op of onder de **startlijn**.
+| Route | Wanneer | Wacht op vochtigheid |
+| --- | --- | --- |
+| Startlijn | Na het minimale interval: Tp ligt 3 min op of onder de startlijn | ja |
+| IJsteller | Na het minimale interval: de ijsteller heeft de drempel bereikt (alleen met vochtigheidssensor) | nee |
+| Interval | Na het adaptieve interval: Tp ligt 3 min onder −2 °C | ja |
+| Pendelen | Na het adaptieve interval: ≥ 10 compressorstops, Ta ≤ 3 °C en Tp 3 min op of onder de maximale Tp | ja |
+| Vangnet | Na 120 min draaitijd: Tp ligt 3 min onder −2 °C | nee |
+| Diepe bevriezing | Tp ligt 3 min minstens 5 K onder de startlijn, zonder op een interval te wachten | nee |
 
-De startlijn is `Ta − benodigd verschil`, maar nooit hoger dan de **maximale Tp** (−5 °C):
+De startlijn, het pendelen en de diepe bevriezing vragen daarnaast dat de compressor minstens 5 min onafgebroken
+draait. Het slot van 30 min van de buitenunit geldt altijd.
+
+### Startlijn
+
+De startlijn volgt Mitsubishi (technische handleiding SRK20-35ZSX-W, 17-SRK-T-228, hoofdstuk 17c):
+`Ta − benodigd verschil`, maar nooit hoger dan de **maximale Tp** (−5 °C).
 
 | Ta | Benodigd verschil Ta − Tp | Startlijn Tp |
 | --- | --- | --- |
-| +5 °C | 7 K | −5 °C (maximale Tp) |
-| 0 °C | 7 K | −7 °C |
-| −5 °C | 6 K | −11 °C |
-| −10 °C | 5 K | −15 °C |
+| +5 °C | 5 K | −5 °C (maximale Tp) |
+| 0 °C | 5 K | −5 °C (maximale Tp) |
+| −5 °C | 4,7 K | −9,7 °C |
+| −10 °C | 4,3 K | −14,3 °C |
 | −15 °C en kouder | 4 K | −19 °C |
 
-Het verschil bij 0 °C (7 K), bij −15 °C (4 K) en de maximale Tp (−5 °C) zijn de waarden van Mitsubishi en
-zijn instelbaar. De Amber is een grotere monoblock met een andere verdamper, dus controleer ze in de praktijk.
-Ontdooit de regeling te vroeg (korte defrosts), verhoog dan het verschil; te laat (defrosts tot de maximale tijd),
-verlaag het.
+Mitsubishi gebruikt 7 K bij 0 °C. Bij de Amber ligt een schone spoel maar ±3 K onder Ta, en ijs maakt dat in
+48 min nauwelijks groter (±0,4 K). Met 7 K werd de startlijn in november 2026 nooit gehaald. Bij 5 K ging hij in
+die data nooit onterecht af, bij 4,5 K wel. Ontdooit de regeling te vroeg (korte defrosts), verhoog dan het
+verschil; te laat (defrosts tot de maximale tijd), verlaag het.
 
-**Pendelende compressor.** Als de compressor sinds de vorige defrost minstens 10 keer gestopt is, Ta ≤ 3 °C is en
-Tp 3 min op of onder de maximale Tp ligt, wordt er ook ontdooid. Dit is de tweede route van Mitsubishi, voor
-weer waarin de compressor niet lang genoeg aan blijft voor de startlijn.
+### Interval
 
-**Vangnet.** Na de maximale draaitijd (120 min) wordt er altijd ontdooid als Tp 3 min onder de vangnet-drempel
-(−2 °C) ligt.
-
-**Diepe bevriezing.** Ligt Tp 3 min lang minstens 5 K onder de startlijn, dan is de spoel duidelijk bevroren. Er
-wordt dan ontdooid zonder op het interval of de luchtvochtigheid te wachten. Het slot van 30 min van de buitenunit
-geldt wel.
-
-## Interval
-
-Het interval past zich aan op de duur van de vorige defrost die OpenAmber zelf startte, net als de Smart-stand
-van de buitenunit:
+Na het adaptieve interval is een spoel onder −2 °C genoeg. Het interval past zich aan op de duur van de vorige
+defrost die OpenAmber zelf startte, net als de Smart-stand van de buitenunit met 3341 = 0:
 
 | Duur laatste defrost | Volgend interval |
 | --- | --- |
@@ -71,12 +70,36 @@ van de buitenunit:
 | langer dan 5 min | −10 min |
 | tot de maximale defrosttijd (3278) | terug naar het minimale interval |
 
-Het minimale interval is instelbaar, maar nooit korter dan 30 min.
+Het interval begint op het minimale interval (35 min) en is nooit korter dan 30 min. Zo ontdooit de regeling bij
+vochtig weer vaker dan bij droog weer, ook als de startlijn niet gehaald wordt. Een defrost die de buitenunit zelf
+startte, past het interval niet aan.
+
+### IJsteller
+
+Met een vochtigheidssensor telt OpenAmber hoeveel ijs er groeit: het verschil tussen de dampdruk van de buitenlucht
+en de dampdruk boven ijs bij Tp (Pa), opgeteld over de compressortijd sinds de laatste defrost (Pa·h). Ligt de spoel
+boven het rijppunt, dan telt er niets bij. Bereikt de teller de **drempel ijsteller** (standaard 70 Pa·h), dan wordt
+er na het minimale interval ontdooid. 0 zet de ijsteller uit.
+
+Ter indicatie (november 2026, Ta −1 tot −3 °C): bij 90–95 % RV groeide de teller met 60–100 Pa per uur en lag er na
+48 min zichtbaar ijs (uitvoering ±4 min). Bij 80 % RV was dat 25–50 Pa per uur en bleef de spoel na 48 min schoon
+(uitvoering ±2 min). Met 70 Pa·h wordt het dan ±50 min bij mist en ±105 min bij 80 % RV.
+
+### Pendelen, vangnet en diepe bevriezing
+
+**Pendelende compressor.** De tweede route van Mitsubishi, voor weer waarin de compressor niet lang genoeg aan
+blijft voor de startlijn.
+
+**Vangnet.** Na 120 min draaitijd wordt er altijd ontdooid als Tp onder −2 °C ligt, ook als de vochtigheid zegt dat
+de lucht droog is.
+
+**Diepe bevriezing.** Ligt Tp ver onder de startlijn, dan is de spoel duidelijk bevroren. Er wordt dan ontdooid
+zonder op het interval of de luchtvochtigheid te wachten.
 
 ## Instellingen
 
 Alleen wat het moment van ontdooien bepaalt is instelbaar: de defrost controle, het minimale interval, het verschil
-bij 0 °C en bij −15 °C, de maximale Tp en de marge rijppunt. De overige waarden (maximale Ta, vangnet,
+bij 0 °C en bij −15 °C, de maximale Tp, de marge rijppunt en de drempel ijsteller. De overige waarden (maximale Ta, vangnet,
 retourblokkade, bevestigingstijd en maximaal uitstel droge lucht) staan vast in `controllers/constants.h`.
 
 ## Blokkades
@@ -106,10 +129,11 @@ De instellingen staan onder **Defrost → Luchtvochtigheid**:
 | --- | --- | --- |
 | Bron buitenvochtigheid | Extern | Alleen op displays met Bluetooth: een gekoppelde BLE-sensor of extern. |
 | Marge rijppunt | 0 K | Tp moet zoveel onder het rijppunt liggen voordat er ijs telt. Hoger = later ontdooien in droge lucht. |
+| Drempel ijsteller | 70 Pa·h | Ontdooien zodra er zoveel ijsaangroei geteld is (zie IJsteller). 0 = uit. |
 
 Na het interval plus 60 min telt de vochtigheid niet meer mee. Dat beschermt tegen een verkeerde of verlopen sensor.
 
-Op dezelfde pagina staan de actuele vochtigheid en het rijppunt.
+Op dezelfde pagina staan de actuele vochtigheid, het rijppunt en de ijsteller.
 
 Er is geen aparte schakelaar: de controle werkt zodra er een geldige vochtigheid is. Zonder geldige waarde (geen
 sensor, of geen meting van de BLE-sensor in de laatste 10 min) doet de vochtigheid niet mee en werkt de regeling zoals

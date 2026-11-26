@@ -188,6 +188,8 @@ static const float CUSTOM_DEFROST_MAX_TA_C = 7.0f;
 // Safety net: after this runtime a coil below the threshold always defrosts, regardless of start line and humidity.
 static const uint32_t CUSTOM_DEFROST_SAFETY_NET_RUNTIME_MIN = 120;
 static const float CUSTOM_DEFROST_SAFETY_NET_TP_C = -2.0f;
+// Interval route: after the adaptive interval a coil below this temperature defrosts (start line not needed).
+static const float CUSTOM_DEFROST_INTERVAL_TP_C = -2.0f;
 // A return temperature below the minimum postpones the defrost, but at most the maximum wait.
 static const float CUSTOM_DEFROST_MIN_RETURN_TEMPERATURE_C = 20.0f;
 static const uint32_t CUSTOM_DEFROST_MAX_RETURN_WAIT_S = 15 * 60;

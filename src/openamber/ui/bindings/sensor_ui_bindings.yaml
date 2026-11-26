@@ -270,6 +270,15 @@
             return std::string(buf);
 
 # ── Geavanceerd: Defrost, luchtvochtigheid ──
+- id: !extend custom_defrost_ice_load_sensor
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_custom_defrost_ice_load_val
+          text:
+            format: "%.0f Pa·h"
+            args: ['x']
+
 - id: !extend outdoor_humidity
   on_value:
     then:

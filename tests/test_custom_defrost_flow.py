@@ -1,7 +1,7 @@
 """Automated tests for the custom (OpenAmber controlled) defrost algorithm.
 Covers both defrost control modes (Buitenunit, OpenAmber) and switching between them, the Mitsubishi start line,
-the cycling compressor route, the safety net, the deep frost route, the interval and the outdoor unit's 30 min lock,
-the optional humidity sensor, the return temperature block, the forced defrost request (working mode 4),
+the interval route with the adaptive interval, the ice counter, the cycling compressor route, the safety net, the deep
+frost route, the interval and the outdoor unit's 30 min lock, the optional humidity sensor, the return temperature block, the forced defrost request (working mode 4),
 request timeout with retry, warning and a new attempt after 30 min, and the settings page in the UI.
 """
 
@@ -22,6 +22,7 @@ def _configure(openamber, mode):
     openamber.advance_time(seconds=5, step_s=5)
     openamber.set_number("custom_defrost_min_runtime", 35.0)
     openamber.set_number("custom_defrost_frost_point_margin", 0.0)
+    openamber.set_number("custom_defrost_ice_threshold", 70.0)
     openamber.set_binary_sensor("warning_custom_defrost_failed", False)
     openamber.set_sensor("outdoor_humidity", 0.0)
     openamber.set_sensor("temperature_outside_ta", 0.0)
@@ -100,8 +101,8 @@ def test_openamber_waits_for_interval_and_start_line(clean_system):
     openamber.step(ms=50)
     assert openamber.get_entity("custom_defrost_status").startswith("Bewaken: interval")
 
-    # Interval passed, Tp above the start line (-7 °C at Ta 0 °C): no defrost
-    openamber.set_sensor("evaporation_temperature_tp", -6.0)
+    # Interval passed, Tp above the start line (-7 °C at Ta 0 °C) and above -2 °C (interval route): no defrost
+    openamber.set_sensor("evaporation_temperature_tp", -1.5)
     _wait_for_interval(openamber)
     openamber.advance_time(seconds=5 * 60, step_s=10)
     openamber.step(ms=50)
@@ -283,6 +284,99 @@ def test_openamber_request_timeout_warns_and_retries(clean_system):
     _end_defrost_by_unit(openamber)
 
 
+def _confirm_short_forced_defrost(openamber):
+    """The outdoor unit confirms the forced defrost and finishes it in about 2 min (little ice)."""
+    openamber.set_binary_sensor("defrost_active_sensor", True)
+    openamber.advance_time(seconds=10, step_s=5)
+    openamber.step(ms=50)
+    assert openamber.get_entity("custom_defrost_status") == "Ontdooien"
+    openamber.set_sensor("evaporation_temperature_tp", 8.0)
+    openamber.advance_time(seconds=110, step_s=10)
+    _end_defrost_by_unit(openamber)
+    assert advance_until_state(openamber, "state_machine_state_heat_cool", "Compressor running", max_s=400)
+
+
+def test_interval_route_follows_adaptive_interval(clean_system):
+    """Without reaching the start line, the coil below -2 °C defrosts after the adaptive interval, which grows after
+    a short defrost (instead of a fixed 120 min safety net)."""
+    openamber = clean_system
+    _configure(openamber, "OpenAmber")
+    _heat_and_reset_runtime(openamber)
+
+    # Tp -3 °C: well above the start line (-7 °C at Ta 0 °C), below -2 °C
+    openamber.set_sensor("evaporation_temperature_tp", -3.0)
+    openamber.advance_time(seconds=20 * 60, step_s=30)
+    openamber.step(ms=50)
+    assert openamber.get_entity("custom_defrost_status").startswith("Bewaken: interval")
+
+    assert advance_until_state(openamber, "custom_defrost_status", "Aangevraagd", max_s=20 * 60, step=30)
+    assert openamber.get_entity("custom_defrost_last_trigger").startswith("Interval")
+    assert 35 <= openamber.get_entity("custom_defrost_runtime_sensor") <= 40
+
+    # Short defrost: the interval grows to 55 min, so the same coil now waits longer
+    _confirm_short_forced_defrost(openamber)
+    assert openamber.get_entity("custom_defrost_interval_sensor") == 55
+    openamber.set_sensor("evaporation_temperature_tp", -3.0)
+    openamber.advance_time(seconds=45 * 60, step_s=30)
+    openamber.step(ms=50)
+    status = openamber.get_entity("custom_defrost_status")
+    assert status.startswith("Bewaken: interval") and status.endswith("/ 55 min"), status
+    assert openamber.get_entity("working_mode_switch") == "Verwarmen"
+
+    assert advance_until_state(openamber, "custom_defrost_status", "Aangevraagd", max_s=20 * 60, step=30)
+    assert openamber.get_entity("custom_defrost_last_trigger").startswith("Interval")
+    assert openamber.get_entity("custom_defrost_runtime_sensor") >= 55
+    _confirm_short_forced_defrost(openamber)
+
+
+def test_ice_counter_triggers_with_humidity(clean_system):
+    """With a humidity value the ice counter sums the icing rate and defrosts at the threshold, even when Tp stays
+    above the start line and above -2 °C. The counter restarts after the defrost."""
+    openamber = clean_system
+    _configure(openamber, "OpenAmber")
+    openamber.set_sensor("outdoor_humidity", 100.0)
+    _heat_and_reset_runtime(openamber)
+
+    # Ta 0 °C, RV 100 %, Tp -1.5 °C: about 71 Pa excess over ice, so 70 Pa·h after about 59 min
+    openamber.set_sensor("evaporation_temperature_tp", -1.5)
+    openamber.advance_time(seconds=50 * 60, step_s=30)
+    openamber.step(ms=50)
+    ice_load = openamber.get_entity("custom_defrost_ice_load_sensor")
+    assert 55 <= ice_load <= 63, f"Ice counter after 50 min, got {ice_load}"
+    assert openamber.get_entity("custom_defrost_status") == "Bewaken"
+    assert openamber.get_label("set_custom_defrost_ice_load_val") == f"{ice_load:.0f} Pa·h"
+
+    assert advance_until_state(openamber, "custom_defrost_status", "Aangevraagd", max_s=15 * 60, step=30)
+    assert openamber.get_entity("custom_defrost_last_trigger").startswith("IJsteller")
+    assert 56 <= openamber.get_entity("custom_defrost_runtime_sensor") <= 62
+
+    _confirm_short_forced_defrost(openamber)
+    assert openamber.get_entity("custom_defrost_ice_load_sensor") == 0
+    openamber.set_sensor("outdoor_humidity", 0.0)
+
+
+def test_ice_counter_off_and_without_humidity(clean_system):
+    """Threshold 0 switches the ice counter off; without a humidity value nothing is counted."""
+    openamber = clean_system
+    _configure(openamber, "OpenAmber")
+    _heat_and_reset_runtime(openamber)
+
+    openamber.set_sensor("evaporation_temperature_tp", -1.5)
+    openamber.advance_time(seconds=40 * 60, step_s=30)
+    openamber.step(ms=50)
+    assert openamber.get_entity("custom_defrost_ice_load_sensor") == 0
+
+    openamber.set_number("custom_defrost_ice_threshold", 0.0)
+    openamber.set_sensor("outdoor_humidity", 100.0)
+    openamber.advance_time(seconds=60 * 60, step_s=30)
+    openamber.step(ms=50)
+    assert openamber.get_entity("custom_defrost_ice_load_sensor") > 70
+    assert openamber.get_entity("custom_defrost_status") == "Bewaken"
+    assert openamber.get_entity("working_mode_switch") == "Verwarmen"
+    openamber.set_sensor("outdoor_humidity", 0.0)
+    openamber.set_number("custom_defrost_ice_threshold", 70.0)
+
+
 def test_cycling_compressor_route(clean_system):
     """With 10 or more compressor stops and Ta <= 3 °C, Tp below -5 °C is enough (no start line needed)."""
     openamber = clean_system
@@ -440,6 +534,12 @@ def test_defrost_settings_menu(clean_system):
     openamber.set_sensor("outdoor_humidity", 85.0)
     openamber.step(ms=50)
     assert openamber.get_label("set_custom_defrost_humidity_value_val").startswith("85% / ")
+    assert openamber.is_hidden("set_custom_defrost_ice_threshold_row") is False
+    assert openamber.get_label("set_custom_defrost_ice_threshold_val") == "70 Pa·h"
+    openamber.set_number("custom_defrost_ice_threshold", 0.0)
+    openamber.step(ms=50)
+    assert openamber.get_label("set_custom_defrost_ice_threshold_val") == "Uit"
+    openamber.set_number("custom_defrost_ice_threshold", 70.0)
     openamber.set_sensor("outdoor_humidity", 0.0)
 
     # Status

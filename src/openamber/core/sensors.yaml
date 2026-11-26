@@ -727,6 +727,18 @@ sensor:
     sorting_group_id: custom_defrost
 
 - platform: template
+  id: custom_defrost_ice_load_sensor
+  name: "Defrost ijsteller"
+  # Vapour pressure excess of the air over ice at Tp, summed over compressor time since the last defrost.
+  update_interval: never
+  accuracy_decimals: 0
+  unit_of_measurement: "Pa·h"
+  icon: "mdi:snowflake-thermometer"
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
   id: outdoor_humidity
   name: "Luchtvochtigheid buiten"
   update_interval: never
