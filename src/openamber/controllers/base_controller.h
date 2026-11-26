@@ -177,11 +177,12 @@ public:
 
   /// @brief Hot switch between heating and DHW: true when the running compressor can be handed over to the other
   /// controller without stopping. Heating mode only (cooling needs the 4-way valve), and no backup heater,
-  /// emergency mode, error, defrost or oil return cycle.
+  /// emergency mode, error, defrost or oil return cycle, and only with pump P0 running.
   bool CanHandOverRunningCompressor()
   {
     return state_ == compressor_running_state_ && IsWorkingMode(WORKING_MODE_HEATING) &&
-           compressor_controller_->IsRunning() && compressor_controller_->IsCommanded() && !IsBackupHeaterActive() &&
+           compressor_controller_->IsRunning() && compressor_controller_->IsCommanded() &&
+           pump_controller_->IsRunning() && !IsBackupHeaterActive() &&
            !id(emergency_mode_enabled).state && !id(error_active).state && !id(defrost_active_sensor).state &&
            !id(oil_return_cycle_active).state;
   }

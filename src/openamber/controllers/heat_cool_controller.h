@@ -806,6 +806,15 @@ public:
       UpdatePumpP2();
     }
 
+    // Hot switch from DHW: start the zone pumps once the 3-way valve has had its travel time to CV, also when the
+    // run continues in a backup heater state. P1 stays off during a defrost; DEFROSTING starts it afterwards.
+    if (hand_over_started_ms_ != 0 && !secondary_pumps_running_ && state_ != HeatCoolState::DEFROSTING &&
+        (id(heat_demand_active_sensor).state || id(frost_protection_stage2_active).state) &&
+        HasElapsedMs(hand_over_started_ms_, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL, now))
+    {
+      StartSecondaryPumpsIfNeeded();
+    }
+
     switch (state_)
     {
       case HeatCoolState::UNKNOWN:
@@ -984,13 +993,6 @@ public:
         if(start_current_temperature_ == 0.0f)
         {
           start_current_temperature_ = GetControlTemperature();
-        }
-
-        // Hot switch from DHW: start the zone pumps once the 3-way valve has had its travel time to CV.
-        if (hand_over_started_ms_ != 0 && !secondary_pumps_running_ && id(heat_demand_active_sensor).state &&
-            HasElapsedMs(hand_over_started_ms_, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL, now))
-        {
-          StartSecondaryPumpsIfNeeded();
         }
 
         // Keep heating during the outdoor unit's pre-phase, react once the actual defrost starts.

@@ -201,7 +201,7 @@ class FlowMonitor:
             return now
 
         if prev["valve_dhw"] != now["valve_dhw"]:
-            hot_switch = now["working_mode"] == "Verwarmen"
+            hot_switch = prev["working_mode"] == "Verwarmen" and now["working_mode"] == "Verwarmen"
             for sample in (prev, now):
                 if (sample["compressor"] > 0 or sample["frequency"] > 0) and not hot_switch:
                     self._fail("3-way valve switched while the compressor runs", now)
