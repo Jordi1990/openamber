@@ -963,7 +963,7 @@ public:
 
         if (custom_defrost_ != nullptr && custom_defrost_->ShouldRequestDefrost() && !IsControlledStopRequested())
         {
-          StopPumpP1IfNeeded();
+          StopSecondaryPumpsIfNeeded();
           custom_defrost_->StartRequest();
           SetNextState(HeatCoolState::DEFROST_REQUESTED);
           break;
@@ -1165,7 +1165,7 @@ public:
         // Request timed out or was cancelled, continue heating.
         if (custom_defrost_ == nullptr || !custom_defrost_->IsRequestActive())
         {
-          StartPumpP1IfNeeded();
+          StartSecondaryPumpsIfNeeded();
           SetNextState(HeatCoolState::COMPRESSOR_RUNNING);
         }
         break;
