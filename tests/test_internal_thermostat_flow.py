@@ -17,7 +17,7 @@ def test_internal_thermostat_heat_demand_activation_and_overrun_shutoff(clean_sy
     Verify internal thermostat heating flow:
     1. Set thermostat mode to 'Intern'.
     2. Set climate mode to HEAT.
-    3. Allow min_idle_time (15 min = 900s) to pass.
+    3. Allow min_heating_off_time (15 min = 900s) to pass.
     4. Room temp drops to 19.5°C (< 20.5°C - 0.3°C deadband) -> heat demand starts.
     5. Room temp warms to 20.4°C -> heat demand continues.
     6. Room temp exceeds 21.0°C (> 20.5°C + 0.2°C overrun) and min_run_time passes -> heat demand stops.
@@ -30,7 +30,7 @@ def test_internal_thermostat_heat_demand_activation_and_overrun_shutoff(clean_sy
     openamber.set_sensor("room_temperature", 20.5)
     openamber.step(ms=100)
 
-    # Allow minimum idle time (min_idle_time = 15 min = 900s) to pass
+    # Allow the minimum off time (min_heating_off_time = 15 min = 900s) to pass
     openamber.advance_time(seconds=920, step_s=30)
     openamber.step(ms=100)
 
@@ -66,7 +66,7 @@ def test_internal_thermostat_cool_demand_activation_and_overrun_shutoff(clean_sy
     Verify internal thermostat cooling flow:
     1. Set thermostat mode to 'Intern'.
     2. Set climate mode to COOL.
-    3. Allow min_idle_time (15 min) to pass.
+    3. Allow min_cooling_off_time (15 min) to pass.
     4. Room temp rises above cool setpoint (24.0) + deadband (0.5) = 24.5°C -> cooling demand starts.
     5. Room temp drops below cool setpoint (24.0) - overrun (3.0) = 21.0°C and min run time passes -> cooling stops.
     """
