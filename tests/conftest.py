@@ -109,6 +109,7 @@ def openamber(openamber_proc):
 def clean_system(openamber):
     """Reset system to clean idle state with fully completed initialization."""
     openamber.set_switch("mock_three_way_valve_feedback_missing", False)
+    openamber.set_switch("mock_pump_flow_missing", False)
     openamber.set_switch("heat_demand_switch", False)
     openamber.set_switch("outdoor_unit_optimizations_enabled", True)
     openamber.set_switch("heat_demand_zone_2_switch", False)
