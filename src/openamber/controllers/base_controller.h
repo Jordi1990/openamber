@@ -197,6 +197,9 @@ public:
     requested_to_stop_ = false;
     pump_flow_missing_since_ms_ = 0;
     water_delta_t_exceeded_since_ms_ = 0;
+    // The other controller takes over: this controller's checks stop running, so its valve check starts over (full run
+    // time) when it gets the compressor back, instead of counting the time before the hand-over.
+    ResetValvePositionCheck();
     SetNextState(idle_state_);
   }
 
@@ -243,8 +246,7 @@ private:
     const uint32_t now = App.get_loop_component_start_time();
     if (!active || std::isnan(tuo) || std::isnan(circuit_temperature))
     {
-      valve_check_running_ = false;
-      valve_check_deviating_ = false;
+      ResetValvePositionCheck();
       return false;
     }
 
@@ -279,8 +281,13 @@ private:
     }
 
     // Start over after a trip: once the error is reset, the full run and hold time apply again.
+    ResetValvePositionCheck();
+    return true;
+  }
+
+  void ResetValvePositionCheck()
+  {
     valve_check_running_ = false;
     valve_check_deviating_ = false;
-    return true;
   }
 };

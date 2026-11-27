@@ -168,3 +168,41 @@ def test_dhw_without_running_dhw_pump_is_not_checked(clean_system):
     openamber.advance_time(seconds=RUN_TIME_S + HOLD_TIME_S + 120, step_s=10)
     assert openamber.get_entity("dhw_pump_relay_switch") is False
     assert openamber.get_entity("error_three_way_valve_state_timeout") is False
+
+
+def test_heating_after_hot_switch_from_dhw_starts_the_run_time_again(clean_system):
+    """Heating -> DHW -> heating without stopping the compressor: back on heating, water still hot from the tank
+    (Tuo far above Tc) must not raise TO04 within the run time. The time before the hand-over does not count."""
+    openamber = clean_system
+    start_space_heating(openamber, tc=28.0, target=35.0)
+    openamber.set_sensor("heat_cool_temperature_tc", 30.0)
+    openamber.set_sensor("outlet_temperature_tuo", 34.0)
+    openamber.set_sensor("inlet_temperature_tui", 31.0)
+    # Heating runs longer than the run time, so a stale run timer would let the check start at once after DHW.
+    openamber.advance_time(seconds=RUN_TIME_S + 60, step_s=10)
+
+    # DHW request during heating: hot switch to DHW (outlet above the tank).
+    openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
+    openamber.set_sensor("outlet_temperature_tuo", 42.0)
+    openamber.set_sensor("inlet_temperature_tui", 39.0)
+    assert advance_until_state(openamber, "state_machine_state_main", "DHW", max_s=900, step=5)
+    assert advance_until_state(openamber, "state_machine_state_dhw", "Compressor running", max_s=600, step=5)
+    openamber.advance_time(seconds=120, step_s=5)
+
+    # Tank at setpoint with heat demand: hot switch back to heating with water still hot from the tank.
+    openamber.set_sensor("dhw_temperature_tw_sensor", 52.0)
+    openamber.set_sensor("outlet_temperature_tuo", 50.0)  # (50 - 5) - 30 = 15 > 12
+    openamber.set_sensor("inlet_temperature_tui", 46.0)
+    assert advance_until_state(openamber, "state_machine_state_main", "Heat/Cool", max_s=200, step=5)
+    assert compressor_requested(openamber), "The hot switch keeps the compressor running"
+
+    # Longer than the hold time, shorter than the run time: no TO04.
+    openamber.advance_time(seconds=HOLD_TIME_S + 30, step_s=5)
+    assert openamber.get_entity("error_three_way_valve_state_timeout") is False
+
+    # The water clears: heating continues.
+    openamber.set_sensor("outlet_temperature_tuo", 34.0)
+    openamber.set_sensor("inlet_temperature_tui", 31.0)
+    openamber.advance_time(seconds=RUN_TIME_S + HOLD_TIME_S, step_s=10)
+    assert openamber.get_entity("error_three_way_valve_state_timeout") is False
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
