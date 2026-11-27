@@ -622,3 +622,27 @@ def test_humidity_from_simulated_ble_sensor(clean_system):
 
     openamber.set_switch("advanced_settings_enabled", False)
     openamber.step(ms=50)
+
+
+def test_control_mode_written_once_per_change_and_after_restart(clean_system):
+    """3274 is set once when the mode changes and once after a (simulated) restart, not rewritten periodically."""
+    openamber = clean_system
+    _configure(openamber, "OpenAmber")
+    openamber.advance_time(seconds=5, step_s=1)
+    assert openamber.get_entity("defrost_control_mode_select") == "Master"
+
+    # Something else puts 3274 back to the outdoor unit: OpenAmber does not keep rewriting it
+    openamber.set_select("defrost_control_mode_select", "Buitenunit")
+    openamber.advance_time(seconds=3 * 60, step_s=10)
+    assert openamber.get_entity("defrost_control_mode_select") == "Buitenunit"
+
+    # After a restart the mode is kept and 3274 is written once again
+    assert openamber.set_switch("mock_simulate_esp_restart", True)
+    openamber.advance_time(seconds=20, step_s=1)
+    assert openamber.get_entity("defrost_control_select") == "OpenAmber"
+    assert openamber.get_entity("defrost_control_mode_select") == "Master"
+
+    # A mode change writes it once more
+    openamber.set_select("defrost_control_select", "Buitenunit")
+    openamber.advance_time(seconds=5, step_s=1)
+    assert openamber.get_entity("defrost_control_mode_select") == "Buitenunit"

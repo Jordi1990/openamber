@@ -17,9 +17,12 @@ OpenAmber kan zelf bepalen wanneer de buitenunit ontdooit. Alle defrost-instelli
 | Buitenunit | De unit ontdooit zelf (standaard). OpenAmber houdt alleen statistiek bij. |
 | OpenAmber | 3274 staat op master. OpenAmber start de defrost door werkmodus 4 te schrijven. |
 
-De stand wordt niet onthouden: na een herstart staat hij op Buitenunit en zet OpenAmber 3274 terug naar de
-buitenunit (alleen als de teruggelezen waarde afwijkt). Een Modbus-schrijfactie op 3274 wijzigt alleen het RAM van de buitenunit,
-niet het EEPROM; na een stroomonderbreking van de buitenunit schrijft OpenAmber de waarde binnen een minuut opnieuw. Je kunt altijd wisselen, ook vanuit Home Assistant (bijvoorbeeld naar Buitenunit als je niet thuis bent). Een defrost
+De stand wordt onthouden, ook na een herstart of update. OpenAmber zet 3274 één keer goed (alleen als de teruggelezen
+waarde afwijkt): na het opstarten, na elke wissel van de stand en als de Modbus-verbinding met de buitenunit terugkomt.
+Daarna wordt 3274 niet steeds opnieuw geschreven. Een Modbus-schrijfactie op 3274 wijzigt alleen het RAM van de
+buitenunit, niet het EEPROM; na een stroomonderbreking van de buitenunit staat 3274 weer op de EEPROM-waarde tot
+OpenAmber de verbinding terugziet en hem opnieuw schrijft. Je kunt altijd wisselen, ook vanuit Home Assistant
+(bijvoorbeeld naar Buitenunit als je niet thuis bent). Een defrost
 die al loopt maakt eerst af; daarna zet OpenAmber werkmodus 4 terug naar verwarmen en schrijft 3274 opnieuw. Start een
 geforceerde defrost niet, dan stopt de regeling met fout TO10 (zie Blokkades). De controle blijft bij OpenAmber;
 alleen jij wisselt de stand.

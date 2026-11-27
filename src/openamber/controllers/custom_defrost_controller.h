@@ -85,7 +85,9 @@ inline float CustomDefrostIcingRate(float ta, float rh, float tp)
 /// Modes (defrost_control_select), switchable at any time:
 ///  - Buitenunit: the outdoor unit decides itself, only statistics are kept here.
 ///  - OpenAmber: 3274 is set to master control and a defrost is started by writing working mode 4.
-/// A running defrost always finishes; 3274 is only rewritten when no defrost is active.
+/// The mode is restored after a restart. 3274 is written once after the start, after every mode change and after the Modbus
+/// connection with the outdoor unit returns (a power cycle of the unit loses it), each time only when the readback
+/// differs and never during a running defrost.
 /// When the outdoor unit does not start a requested defrost within the confirmation time, working mode 4 is taken back and
 /// error TO10 (error_defrost_start_timeout) stops OpenAmber like the other timeout errors; no new request until it is reset.
 /// The heat/cool and DHW controllers pick up a pending request in COMPRESSOR_RUNNING via ShouldRequestDefrost().
@@ -118,11 +120,13 @@ private:
   uint32_t manual_request_ms_ = 0;
   uint32_t defrost_started_ms_ = 0;
   uint32_t forced_mode_seen_since_ms_ = 0;
-  uint32_t last_control_mode_write_ms_ = 0;
   int last_published_runtime_min_ = -1;
   int previous_mode_ = -1;
   float previous_min_interval_ = NAN;
   bool defrost_active_previous_ = false;
+  bool modbus_connected_previous_ = false;
+  // Set at the start, on a mode change and when the Modbus connection returns: 3274 is checked and written once.
+  bool control_mode_write_pending_ = true;
   bool request_pending_ = false;
   bool manual_request_ = false;
   bool started_by_openamber_ = false;
@@ -418,22 +422,22 @@ private:
     }
   }
 
-  /// @brief Keeps 3274 on the control that matches the mode. A Modbus write only changes the outdoor unit's RAM (no EEPROM
-  /// wear), and the unit loses it after a power cycle, so it is simply rewritten once a minute while the readback differs.
-  void ManageDefrostControlMode(uint32_t now)
+  /// @brief Puts 3274 on the control that matches the mode, once per request (see control_mode_write_pending_). A Modbus
+  /// write only changes the outdoor unit's RAM; the unit loses it after a power cycle.
+  void ManageDefrostControlMode()
   {
     uint32_t desired = IsOpenAmberMode() ? DEFROST_CONTROL_BY_MASTER : DEFROST_CONTROL_BY_OUTDOOR_UNIT;
     auto idx = id(defrost_control_mode_select).active_index();
-    // Only write after a valid readback, so nothing is written before 3274 was read.
-    if (!idx.has_value() || idx.value() == desired)
+    // Wait for a valid readback, so nothing is written before 3274 was read.
+    if (!idx.has_value())
     {
       return;
     }
-    if (last_control_mode_write_ms_ != 0 && (now - last_control_mode_write_ms_) < CUSTOM_DEFROST_CONTROL_MODE_WRITE_INTERVAL_S * 1000UL)
+    control_mode_write_pending_ = false;
+    if (idx.value() == desired)
     {
       return;
     }
-    last_control_mode_write_ms_ = NonZero(now);
     ESP_LOGI("amber", "CustomDefrost: writing defrost control mode (3274) = %s", desired == DEFROST_CONTROL_BY_MASTER ? "master (OpenAmber)" : "outdoor unit");
     auto call = id(defrost_control_mode_select).make_call();
     call.set_index(desired);
@@ -748,8 +752,14 @@ public:
       }
       ClearRequest();
       ResetTriggerTimers();
+      control_mode_write_pending_ = true;
       previous_mode_ = mode;
     }
+    if (modbus_connected && !modbus_connected_previous_)
+    {
+      control_mode_write_pending_ = true;
+    }
+    modbus_connected_previous_ = modbus_connected;
 
     CheckMinIntervalChanged();
 
@@ -759,9 +769,9 @@ public:
     PublishCoilValues();
 
     // Switching during a defrost: let the defrost finish first, then hand 3274 over.
-    if (modbus_connected && !defrost_active)
+    if (control_mode_write_pending_ && modbus_connected && !defrost_active)
     {
-      ManageDefrostControlMode(now);
+      ManageDefrostControlMode();
     }
 
     if (defrost_active && !defrost_active_previous_)

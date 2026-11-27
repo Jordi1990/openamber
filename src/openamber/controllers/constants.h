@@ -228,7 +228,6 @@ static const uint32_t CUSTOM_DEFROST_SHORT_DEFROST_S = 3 * 60;
 static const uint32_t CUSTOM_DEFROST_LONG_DEFROST_S = 5 * 60;
 static const uint32_t CUSTOM_DEFROST_MANUAL_REQUEST_EXPIRY_S = 40 * 60;
 
-static const uint32_t CUSTOM_DEFROST_CONTROL_MODE_WRITE_INTERVAL_S = 60;
 static const uint32_t CUSTOM_DEFROST_RESTORE_WORKING_MODE_DELAY_S = 2 * 60;
 static const uint32_t CUSTOM_DEFROST_OVERRUN_MARGIN_S = 5 * 60;
 // Defrost measurement. The outdoor unit raises 2118 about 5 min before its own defrost really starts (pre-phase) and
