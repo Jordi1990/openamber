@@ -1043,8 +1043,11 @@ script:
       ta: float
       tp: float
       start_line: float
+      humidity: float
+      frost_point: float
       runtime_min: float
       stops: int
+      ice_load: float
     then: []
   - id: dump_eeprom_parameters
     then: []

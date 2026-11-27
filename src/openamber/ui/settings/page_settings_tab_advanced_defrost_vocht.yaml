@@ -1,0 +1,6 @@
+# Menu Page: Geavanceerd - Defrost: luchtvochtigheid
+# ------------------------------------------------------------
+id: panel_advanced_page_defrost_vocht
+title: "${t_defrost_luchtvochtigheid}"
+styles: setting_page_style
+widgets: !include page_settings_tab_advanced_defrost_vocht_content.yaml

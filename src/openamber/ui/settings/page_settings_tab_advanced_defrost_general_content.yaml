@@ -31,3 +31,25 @@
                     return;
                   }
                   id(defrost_control_select).make_call().set_index(val).perform();
+
+# The source dropdown is filled by the BLE package (ble_sensor_ui.h). Without BLE, or with
+# Bluetooth off or no paired sensor, it shows "Geen sensor beschikbaar" and the rows below
+# on the Luchtvochtigheid page are disabled (update_custom_defrost_humidity_ui). Hidden in mode Buitenunit.
+- obj:
+    id: set_custom_defrost_humidity_source_row
+    styles: setting_row_style
+    scrollable: false
+    widgets:
+      - label: { text: "${t_bron_buitenvochtigheid}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_gekoppelde_bluetooth_sensor}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - dropdown:
+          id: set_custom_defrost_humidity_source_dd
+          width: 360
+          height: 40
+          align: TOP_RIGHT
+          y: -4
+          symbol: "\U000F0140"
+          options:
+            - "${t_geen_sensor_beschikbaar}"
+          text_font: font_text_20
+          dropdown_list: { text_font: font_text_20 }

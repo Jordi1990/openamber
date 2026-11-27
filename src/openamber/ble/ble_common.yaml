@@ -51,6 +51,7 @@ interval:
     then:
       - lambda: |-
           ble_sensor_update_source();
+          ble_sensor_update_outdoor_humidity();
           ble_sensor_update_ui();
 
 select:
@@ -74,6 +75,30 @@ select:
                   ble_sensor_update_ui();
               - component.update: effective_room_temperature
               - component.update: effective_room_humidity
+
+  # Outdoor humidity for the custom defrost (frost point). "BLE n" publishes the
+  # humidity of paired slot n into outdoor_humidity; "Geen" leaves it empty. Only
+  # BLE sensors are supported. The option was "Extern" before; the value is stored
+  # by index, so a stored "Extern" comes back as "Geen".
+  - platform: template
+    id: outdoor_humidity_source_select
+    name: "Luchtvochtigheid buiten bron"
+    optimistic: true
+    options: [Geen, BLE 1, BLE 2, BLE 3]
+    initial_option: Geen
+    restore_value: true
+    entity_category: config
+    web_server:
+      sorting_group_id: custom_defrost
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: return ble_sensor_boot_ready;
+            then:
+              - lambda: |-
+                  ble_sensor_update_outdoor_humidity();
+                  ble_sensor_update_ui();
 
 switch:
   - platform: template
