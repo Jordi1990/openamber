@@ -39,12 +39,15 @@ protected:
   uint32_t defer_state_change_duration_ms_ = 0;
   uint32_t backup_heater_start_time_ms_ = 0;
   bool requested_to_stop_ = false;
+  uint32_t pump_flow_missing_since_ms_ = 0;
+  uint32_t water_delta_t_exceeded_since_ms_ = 0;
   PumpController* pump_controller_;
   CompressorController* compressor_controller_;
 
   StateEnum wait_for_state_switch_state_;
   StateEnum unknown_state_;
   StateEnum idle_state_;
+  StateEnum compressor_running_state_;
 
   virtual const char* StateToString(StateEnum state) const = 0;
   virtual void PublishState(const char* state_text) = 0;
@@ -60,6 +63,9 @@ protected:
   }
 
   virtual void OnStateEnter(StateEnum new_state) {}
+
+  /// @brief Hot switch: what this controller stops before the 3-way valve moves (secondary pumps, mixing valves).
+  virtual void PrepareHandOver() = 0;
 
   void LeaveStateAndSetNextStateAfterWaitTime(StateEnum new_state, uint32_t defer_ms)
   {
@@ -91,7 +97,9 @@ protected:
       return id(backup_heater_active_sensor).state;
     }
 
-    return true; // Assume external backup heater is active when enabled, as we don't have a sensor for it.
+    // Report the commanded state of the external relay (holding register 1108) instead of
+    // assuming it is on, so callers see the heater as inactive once it has been turned off.
+    return id(external_backup_heating_relay).state;
   }
 
   void TurnOnBackupHeater()
@@ -134,13 +142,15 @@ protected:
 
 public:
   BaseController(PumpController* pump_controller, CompressorController* compressor_controller,
-                 StateEnum wait_for_state_switch, StateEnum unknown_state, StateEnum idle_state)
+                 StateEnum wait_for_state_switch, StateEnum unknown_state, StateEnum idle_state,
+                 StateEnum compressor_running_state)
     : state_(idle_state),
       pump_controller_(pump_controller),
       compressor_controller_(compressor_controller),
       wait_for_state_switch_state_(wait_for_state_switch),
       unknown_state_(unknown_state),
-      idle_state_(idle_state) {}
+      idle_state_(idle_state),
+      compressor_running_state_(compressor_running_state) {}
 
   virtual ~BaseController() = default;
 
@@ -165,6 +175,29 @@ public:
   bool IsInIdleState()
   {
     return state_ == idle_state_;
+  }
+
+  /// @brief Hot switch between heating and DHW: true when the running compressor can be handed over to the other
+  /// controller without stopping. Heating mode only (cooling needs the 4-way valve), and no backup heater,
+  /// emergency mode, error, defrost or oil return cycle, and only with pump P0 running.
+  bool CanHandOverRunningCompressor()
+  {
+    return state_ == compressor_running_state_ && IsWorkingMode(WORKING_MODE_HEATING) &&
+           compressor_controller_->IsRunning() && compressor_controller_->IsCommanded() &&
+           pump_controller_->IsRunning() && !IsBackupHeaterActive() &&
+           !id(emergency_mode_enabled).state && !id(error_active).state && !id(defrost_active_sensor).state &&
+           !id(oil_return_cycle_active).state;
+  }
+
+  /// @brief Leaves the compressor, pump P0 and working mode as they are and goes to idle, so the other controller
+  /// can take over once the 3-way valve has moved.
+  void HandOverRunningCompressor()
+  {
+    PrepareHandOver();
+    requested_to_stop_ = false;
+    pump_flow_missing_since_ms_ = 0;
+    water_delta_t_exceeded_since_ms_ = 0;
+    SetNextState(idle_state_);
   }
 
   bool IsWorkingMode(int working_mode)

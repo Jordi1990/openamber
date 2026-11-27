@@ -1,5 +1,6 @@
 esphome:
   includes:
+    - openamber/ui/lv_color_inline.h
     - openamber/ui/graph_page.h
 
 interval:

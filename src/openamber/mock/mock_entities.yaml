@@ -372,6 +372,12 @@ sensor:
       return 26.0f;
     update_interval: 5s
   - platform: template
+    id: outdoor_unit_refrigerant
+    lambda: |-
+      if (id(outdoor_unit_refrigerant).has_state()) return {};
+      return 1.0f;
+    update_interval: 5s
+  - platform: template
     id: discharge_temperature_td
     name: "Persgastemperatuur (Td)"
     lambda: |-
@@ -421,7 +427,7 @@ binary_sensor:
     id: internal_pump_active
     name: "Pomp P0 actief"
     lambda: |-
-      if (!id(pump_p0_relay_switch).state) return false;
+      if (!id(pump_p0_relay_switch).state || id(mock_pump_flow_missing).state) return false;
       return id(pump_control_pwm_number).state < 995.0f;
   - platform: template
     id: pump_p1_active
@@ -807,6 +813,14 @@ number:
     step: 1.0
     initial_value: 1000.0
 switch:
+  # Simulator only: update checks fail (the update entity keeps its last result), like an unreachable server.
+  - platform: template
+    id: mock_update_check_fails
+    optimistic: true
+    turn_on_action:
+      - lambda: 'id(firmware_update).set_mock_check_fails(true);'
+    turn_off_action:
+      - lambda: 'id(firmware_update).set_mock_check_fails(false);'
   - platform: template
     id: mock_reset_outside_temperature_average
     # Simulator only: restarts the averaged Ta, so the next Ta value becomes the new average.
@@ -907,6 +921,12 @@ switch:
       - switch.turn_off: mock_ota_error
     turn_off_action: []
   - platform: template
+    id: mock_pump_flow_missing
+    # Simulator only: the flow switch (1212) reports no flow, also while pump P0 is commanded on.
+    optimistic: true
+    turn_on_action: []
+    turn_off_action: []
+  - platform: template
     id: mock_three_way_valve_feedback_missing
     # Simulator only: keeps the relay feedback (1305/1312) off, as if the inside unit ignores the valve command.
     optimistic: true
@@ -925,6 +945,28 @@ switch:
     turn_on_action: []
     turn_off_action: []
 select:
+  # Simulator only: installed version and the versions the stable and beta manifests offer.
+  - platform: template
+    id: mock_firmware_versions
+    name: "Mock firmwareversies"
+    optimistic: true
+    options:
+      - "Geen update"
+      - "Nieuwe beta"
+      - "Beta, finale uit"
+      - "Beta, stabiel ouder"
+    initial_option: "Geen update"
+    on_value:
+      then:
+        - lambda: |-
+            static const char *const VERSIONS[][3] = {
+              {"1.0.0", "1.0.0", "1.0.0"},
+              {"1.0.0", "1.0.0", "1.1.0-beta.1"},
+              {"1.1.0-beta.1", "1.1.0", "1.1.0"},
+              {"1.1.0-beta.1", "1.0.0", "1.1.0-beta.1"},
+            };
+            size_t n = i < 4 ? i : 0;
+            id(firmware_update).set_mock_versions(VERSIONS[n][0], VERSIONS[n][1], VERSIONS[n][2]);
   - platform: template
     id: compressor_control_select
     name: "Compressor stand (Buiten)"

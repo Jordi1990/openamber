@@ -8,6 +8,19 @@ switch:
   web_server: 
     sorting_group_id: heating_settings
 
+# Pomp P2 aanwezig: circulation pump of zone 2 on the P2 contact. Runs on zone 2 heat demand (see
+# HeatCoolController::IsPumpP2Wanted). Switching it off also switches the relay off, so it cannot stay on.
+- platform: template
+  id: pump_p2_enabled
+  name: "Pomp P2 aanwezig"
+  optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
+  entity_category: config
+  on_turn_off:
+    - switch.turn_off: pump_p2_relay_switch
+  web_server: 
+    sorting_group_id: heating_settings
+
 - platform: template
   id: pump_p0_pid_enabled
   name: "Pomp P0 PID regeling"
@@ -282,6 +295,8 @@ switch:
     sorting_group_id: error_codes
   turn_on_action:
     - lambda: |-
+        id(compressor_start_failures) = 0;
+    - lambda: |-
         id(error_pump_start_timeout).publish_state(false);
         id(error_compressor_start_timeout).publish_state(false);
         id(error_compressor_unexpected_stop).publish_state(false);
@@ -289,6 +304,8 @@ switch:
         id(error_modbus_connection_timeout).publish_state(false);
         id(error_three_way_valve_state_timeout).publish_state(false);
         id(error_inside_unit_failsafe).publish_state(false);
+        id(error_water_delta_t_too_high).publish_state(false);
+        id(error_pump_flow_missing).publish_state(false);
     - switch.turn_off: reset_start_timeout_errors_switch
 
 - platform: template
@@ -305,10 +322,14 @@ switch:
         id: backup_heater_stage_2
         state: !lambda return x;
 
+# Externe warm-/koudevraag: set by Home Assistant or another external controller. They keep their
+# state across a reboot, so a running demand is not silently dropped after a restart: Home Assistant
+# shows the switch as off afterwards and does not switch it back on by itself.
 - platform: template
   id: heat_demand_switch
   name: "Externe warmtevraag"
   optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
   web_server: 
     sorting_group_id: manual_control
 
@@ -316,6 +337,7 @@ switch:
   id: heat_demand_zone_2_switch
   name: "Externe warmtevraag Zone 2"
   optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
   web_server: 
     sorting_group_id: manual_control
 
@@ -323,6 +345,7 @@ switch:
   id: cool_demand_switch
   name: "Externe koudevraag"
   optimistic: True
+  restore_mode: RESTORE_DEFAULT_OFF
   web_server: 
     sorting_group_id: manual_control
 - platform: template

@@ -22,10 +22,7 @@ obj:
         bg_color: 0xF5F8FC
         bg_opa: 100%
         radius: 18
-        pad_left: 16
-        pad_right: 16
-        pad_top: 8
-        pad_bottom: 8
+        pad_all: 18
         border_width: 0
         border_opa: 0%
         shadow_width: 10
@@ -34,27 +31,9 @@ obj:
         shadow_opa: 20%
         scrollbar_mode: "OFF"
         scrollable: false
-        layout:
-          type: GRID
-          grid_rows: [FR(1)]
-          grid_columns: [210, FR(1)]
-          pad_column: 12
-
         widgets:
-          - !include system/page_system_sidebar.yaml
-          - obj:
-              id: system_content
-              grid_cell_row_pos: 0
-              grid_cell_column_pos: 1
-              grid_cell_x_align: STRETCH
-              grid_cell_y_align: STRETCH
-              bg_opa: 0%
-              border_opa: 0%
-              scrollbar_mode: "OFF"
-              scrollable: false
-              widgets:
-                - !include system/page_system_tab_updates.yaml
-                - !include system/page_system_tab_diagnostics.yaml
+          - !include system/page_system_tab_updates.yaml
+          - !include system/page_system_tab_diagnostics.yaml
 
     - obj:
         id: service_confirm_modal
@@ -88,7 +67,7 @@ obj:
                             widgets:
                                 - label:
                                         id: service_confirm_title
-                                        text: "Actie bevestigen"
+                                        text: "${t_actie_bevestigen}"
                                         text_color: 0x1F2933
                                         text_font: font_mdi_24
                                         align: TOP_LEFT
@@ -124,7 +103,7 @@ obj:
                                         widgets:
                                             - label:
                                                     id: service_confirm_cancel_label
-                                                    text: "Annuleren"
+                                                    text: "${t_annuleren}"
                                                     text_color: 0x1F2933
                                                     text_font: font_mdi_24
                                                     align: CENTER
@@ -153,7 +132,7 @@ obj:
                                                 ESP_LOGI("amber", "Firmware update dialog: controlled stop started; update again once in standby.");
                                         widgets:
                                             - label:
-                                                    text: "Eerst stoppen"
+                                                    text: "${t_eerst_stoppen}"
                                                     text_color: 0x1F2933
                                                     text_font: font_mdi_24
                                                     align: CENTER
@@ -179,7 +158,7 @@ obj:
                                                     then:
                                                         - button.press: controlled_stop_button
                                                         - lambda: |-
-                                                            lv_label_set_text(id(service_controlled_stop_button_label), "Hervat warmtepomp");
+                                                            lv_label_set_text(id(service_controlled_stop_button_label), oa_tr("Hervat warmtepomp"));
                                                             lv_obj_send_event(id(service_controlled_stop_button_label), lvgl::lv_update_event, nullptr);
                                                             id(update_header_mode_badge).execute();
                                                             id(update_controlled_stop_button_ui).execute();
@@ -200,7 +179,7 @@ obj:
                                         widgets:
                                             - label:
                                                     id: service_confirm_button_label
-                                                    text: "Herstarten"
+                                                    text: "${t_herstarten}"
                                                     text_color: 0xFFFFFF
                                                     text_font: font_mdi_24
                                                     align: CENTER
@@ -237,7 +216,7 @@ obj:
               widgets:
                 - label:
                     id: service_update_progress_title
-                    text: "Update wordt geinstalleerd"
+                    text: "${t_update_wordt_geinstalleerd}"
                     text_color: 0x1F2933
                     text_font: font_mdi_24
                     align: CENTER

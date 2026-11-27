@@ -559,6 +559,24 @@
             format: "%.0f °C·min"
             args: ['x']
 
+- id: !extend backup_heater_outside_block_temperature
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_backup_block_temp_val
+          text:
+            format: "%.0f°C"
+            args: ['x']
+
+- id: !extend backup_heater_stop_delta
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_buh_stop_delta_val
+          text:
+            format: "%.1f °C"
+            args: ['x']
+
 # ── SmartGrid ──
 - id: !extend sg_ready_heating_boost_temperature_number
   on_value:

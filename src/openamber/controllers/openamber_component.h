@@ -152,6 +152,45 @@ void OpenAmberComponent::update()
   // so the heat pump returns to standby once maintenance mode is turned off.
   bool controlled_stop_requested = id(controlled_stop_active) && !maintenance_requested;
 
+  // After a hot switch, check the relay feedback once the valve has had its travel time, as WAIT_THREE_WAY_VALVE does.
+  if (hot_switch_valve_started_ms_ != 0 &&
+      HasElapsedMs(hot_switch_valve_started_ms_, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL, App.get_loop_component_start_time()))
+  {
+    hot_switch_valve_started_ms_ = 0;
+    if (!IsThreeWayValveFeedbackConfirmed(valve_target_position_))
+    {
+      ESP_LOGE("amber", "3-way valve relay feedback did not confirm the requested position after a hot switch, stopping system.");
+      id(error_three_way_valve_state_timeout).publish_state(true);
+    }
+  }
+
+  // Hot switch between heating and DHW: the controller that runs the compressor hands it over and the other one takes
+  // it over at once, while the 3-way valve moves. Its safety checks stay active during the valve travel.
+  const bool hot_switch_to_dhw = state_ == State::HEAT_COOL && desired_state == State::DHW_HEAT &&
+                                 heat_cool_controller_->CanHandOverRunningCompressor();
+  const bool hot_switch_to_heat = state_ == State::DHW_HEAT && desired_state == State::HEAT_COOL &&
+                                  dhw_controller_->CanHandOverRunningCompressor() &&
+                                  heat_cool_controller_->HasCompressorDemand();
+  if ((hot_switch_to_dhw || hot_switch_to_heat) && !maintenance_requested && !controlled_stop_requested)
+  {
+    ESP_LOGI("amber", "Hot switch: moving the 3-way valve while the compressor keeps running.");
+    SetThreeWayValve(desired_valve_position);
+    valve_target_position_ = desired_valve_position;
+    hot_switch_valve_started_ms_ = App.get_loop_component_start_time() | 1;
+    if (hot_switch_to_dhw)
+    {
+      heat_cool_controller_->HandOverRunningCompressor();
+      dhw_controller_->ResumeFromRunningUnits(true);
+    }
+    else
+    {
+      dhw_controller_->HandOverRunningCompressor();
+      heat_cool_controller_->ResumeFromRunningUnits(true);
+    }
+    SetNextState(desired_state);
+    return;
+  }
+
   switch (state_)
   {
     case State::UNKNOWN:
@@ -217,11 +256,16 @@ void OpenAmberComponent::update()
       }
       id(pump_p0_relay_switch).turn_on();
       id(pump_p1_relay_switch).turn_off();
+      id(pump_p2_relay_switch).turn_off();
       id(dhw_pump_relay_switch).turn_off();
       id(three_way_valve_dhw_switch).turn_off();
       id(three_way_valve_heat_cool_switch).turn_off();
+      // Also the backup heater switches themselves: the maintenance toggles (internal element and the CV hybrid
+      // backup relay 1108) can leave them on when maintenance mode ends, which goes through this state.
+      id(backup_heater_relay).turn_off();
       id(backup_heater_stage_1).turn_off();
       id(backup_heater_stage_2).turn_off();
+      id(external_backup_heating_relay).turn_off();
       // Close mixing valves during init.
       id(mixing_valve_zone1_output).make_call().set_value(0).perform();
       id(mixing_valve_zone2_output).make_call().set_value(0).perform();
@@ -261,7 +305,7 @@ void OpenAmberComponent::update()
           working_mode_call.set_index(WORKING_MODE_MAINTENANCE);
           working_mode_call.perform();
           id(pump_p0_relay_switch).turn_off();
-          heat_cool_controller_->StopPumpP1IfNeeded();
+          heat_cool_controller_->StopSecondaryPumpsIfNeeded();
           SetNextState(State::MAINTENANCE);
           break;
         }
@@ -270,11 +314,12 @@ void OpenAmberComponent::update()
           EnterStandby();
           break;
         }
-        else if(desired_valve_position != current_valve_position)
+        else if(desired_valve_position != current_valve_position && !compressor_controller_->IsRunning())
         {
+          // A safety stop goes to idle at once, so the compressor can still run down here: the valve waits for it.
           // P1 keeps running while the heat/cool controller idles with heat demand. Running it during DHW
           // pulls water through the CV side of the 3-way valve, so hot DHW water ends up in the floor.
-          heat_cool_controller_->StopPumpP1IfNeeded();
+          heat_cool_controller_->StopSecondaryPumpsIfNeeded();
           SwitchThreeWayValveAndWait(desired_valve_position, desired_state);
           break;
         }
@@ -310,8 +355,9 @@ void OpenAmberComponent::update()
           EnterStandby();
           break;
         }
-        else if(desired_valve_position != current_valve_position)
+        else if(desired_valve_position != current_valve_position && !compressor_controller_->IsRunning())
         {
+          // A safety stop goes to idle at once, so the compressor can still run down here: the valve waits for it.
           // Stopping the DHW pump cycle restarted the pump interval. Heating/cooling must not wait for it after
           // DHW: with demand the pump starts right away, as after initialization.
           pump_controller_->ResetInterval();
@@ -336,7 +382,7 @@ void OpenAmberComponent::update()
         working_mode_call.set_index(WORKING_MODE_MAINTENANCE);
         working_mode_call.perform();
         id(pump_p0_relay_switch).turn_off();
-        heat_cool_controller_->StopPumpP1IfNeeded();
+        heat_cool_controller_->StopSecondaryPumpsIfNeeded();
         SetNextState(State::MAINTENANCE);
         break;
       }
@@ -787,6 +833,7 @@ void OpenAmberComponent::SwitchThreeWayValveAndWait(ThreeWayValvePosition positi
   valve_target_position_ = position;
   valve_target_state_ = next_state;
   valve_switch_started_ms_ = App.get_loop_component_start_time();
+  hot_switch_valve_started_ms_ = 0;
   SetNextState(State::WAIT_THREE_WAY_VALVE);
 }
 
@@ -908,7 +955,7 @@ float OpenAmberComponent::get_mixing_valve_zone2_position() const
 void OpenAmberComponent::EnterStandby()
 {
   // The heat/cool controller keeps P1 running in IDLE on heat demand, and STANDBY no longer updates it.
-  heat_cool_controller_->StopPumpP1IfNeeded();
+  heat_cool_controller_->StopSecondaryPumpsIfNeeded();
   standby_started_ms_ = App.get_loop_component_start_time();
   ESP_LOGI("amber", "Controlled stop: units stopped, regulation paused.");
   SetNextState(State::STANDBY);

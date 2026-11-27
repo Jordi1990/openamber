@@ -1,0 +1,75 @@
+# Menu Page: Opties
+# ------------------------------------------------------------
+id: panel_general_page_hardware
+title: "${t_opties}"
+styles: setting_page_style
+widgets:
+  - obj:
+      width: 100%
+      height: SIZE_CONTENT
+      bg_opa: 0%
+      border_opa: 0%
+      pad_all: 0
+      layout:
+        type: FLEX
+        flex_flow: COLUMN
+        flex_align_main: START
+        flex_align_cross: CENTER
+        pad_row: 8
+      widgets:
+        - obj:
+            id: set_general_hardware_flow_sensor
+            styles: setting_row_style
+            widgets:
+              - label: { text: "${t_flow_sensor_aanwezig}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_gebruik_de_flowsensor_voor_flow_en_energ}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - switch:
+                  id: set_flow_sensor_enabled_switch_ui
+                  align: TOP_RIGHT
+                  bg_color: 0x9CA3AF
+                  indicator:
+                    bg_color: 0x16A34A
+                  knob:
+                    bg_color: 0xFFFFFF
+                  on_click:
+                    - lambda: |-
+                        if (id(flow_sensor_enabled).state) {
+                          id(flow_sensor_enabled).turn_off();
+                        } else {
+                          id(flow_sensor_enabled).turn_on();
+                        }
+
+        - obj:
+            id: set_general_hardware_flow_sensor_calibration
+            styles: setting_row_style
+            widgets:
+              - label: { text: "${t_flow_sensor_kalibratie}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_aantal_pulses_per_liter_voor_de_flowsens}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - obj:
+                  width: SIZE_CONTENT
+                  height: SIZE_CONTENT
+                  align: TOP_RIGHT
+                  bg_opa: 0%
+                  border_opa: 0%
+                  pad_all: 0
+                  layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                  widgets:
+                    - obj:
+                        styles: setting_step_btn_style
+                        pressed:
+                          styles: setting_step_btn_pressed_style
+                        scrollable: false
+                        on_click:
+                          - number.decrement: flow_sensor_calibration
+                        widgets:
+                          - label: { text: "\U000F0374", styles: setting_step_icon_style }
+                    - label: { id: set_flow_sensor_calibration_val, text: "476 p/l", text_color: 0x1F2933, text_font: font_text_24 }
+                    - obj:
+                        styles: setting_step_btn_style
+                        pressed:
+                          styles: setting_step_btn_pressed_style
+                        scrollable: false
+                        on_click:
+                          - number.increment: flow_sensor_calibration
+                        widgets:
+                          - label: { text: "\U000F0415", styles: setting_step_icon_style }

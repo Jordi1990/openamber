@@ -109,6 +109,7 @@ def openamber(openamber_proc):
 def clean_system(openamber):
     """Reset system to clean idle state with fully completed initialization."""
     openamber.set_switch("mock_three_way_valve_feedback_missing", False)
+    openamber.set_switch("mock_pump_flow_missing", False)
     openamber.set_switch("heat_demand_switch", False)
     openamber.set_switch("outdoor_unit_optimizations_enabled", True)
     openamber.set_switch("heat_demand_zone_2_switch", False)
@@ -116,6 +117,8 @@ def clean_system(openamber):
     openamber.set_switch("cooling_allowed_switch", True)
     openamber.set_switch("pump_p1_enabled", False)
     openamber.set_switch("pump_p1_relay_switch", False)
+    openamber.set_switch("pump_p2_enabled", False)
+    openamber.set_switch("pump_p2_relay_switch", False)
     openamber.set_switch("emergency_mode_enabled", False)
     # A test that failed in maintenance mode must not leave the next tests in Maintenance.
     openamber.set_switch("service_mode_enabled", False)
@@ -136,6 +139,10 @@ def clean_system(openamber):
     openamber.set_binary_sensor("external_cool_demand_wired", False)
     openamber.set_binary_sensor("sg_ready_block_mode_active_sensor", False)
     openamber.set_binary_sensor("defrost_active_sensor", False)
+    # Backup heater settings are per-test and must not leak between tests.
+    openamber.set_select("backup_heating_mode", "Intern verwarmingselement")
+    openamber.set_number("backup_heater_stop_delta", 2.0)
+    openamber.set_number("backup_heater_degmin_threshold", 40.0)
     openamber.set_number("mock_compressor_frequency_override", -1.0)
     openamber.set_sensor("model_identification_1", 150.0)
     # Reset heating curves to their numbers.yaml defaults so curve edits in one test do not
@@ -155,12 +162,15 @@ def clean_system(openamber):
         openamber.press_button("controlled_stop_resume_button")
     openamber.set_switch("pump_p0_relay_switch", True)
     openamber.set_number("backup_heater_degmin_threshold", 50.0)
+    openamber.set_number("backup_heater_outside_block_temperature", 30.0)
     openamber.set_number("dhw_setpoint_temperature", 50.0)
     openamber.set_number("dhw_restart_dhw_delta", 5.0)
     openamber.set_sensor("dhw_temperature_tw_sensor", 55.0)
     openamber.set_sensor("temperature_outside_ta", 7.0)
     openamber.set_sensor("discharge_pressure_pd", 18.0)
     openamber.set_sensor("discharge_temperature_td", 60.0)
+    openamber.set_sensor("outdoor_unit_pd_no_increase_limit", 26.0)
+    openamber.set_sensor("outdoor_unit_refrigerant", 1.0)
     openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
     openamber.set_sensor("heat_cool_temperature_tc", 28.0)
     # Outlet water a few degrees above Tc and above a DHW tank that asks for heat (Tw 38-40 in the DHW tests): the
@@ -219,6 +229,8 @@ def clean_system(openamber):
         set_outside_temperature(openamber, 7.0)
 
     assert openamber.get_entity("three_way_valve_dhw_switch") is False, "Valve should be in CV position in idle"
+    openamber.click("nav_home")
+    openamber.step(ms=50)
     # Every test starts at the same wall clock time, independent of the virtual time earlier tests used.
     openamber.set_clock()
     return openamber

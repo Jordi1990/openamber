@@ -14,7 +14,7 @@ Covers:
 
 import pytest
 
-from helpers import enter_maintenance
+from helpers import enter_maintenance, leave_maintenance
 
 
 def test_deaeration_cannot_start_outside_maintenance_mode(clean_system):
@@ -157,3 +157,49 @@ def test_exiting_maintenance_mode_aborts_active_deaeration(clean_system):
     assert openamber.get_entity("deaeration_short_switch") is False, (
         "deaeration_short_switch should be reset to False"
     )
+
+
+def _start_deaeration_with_valve(openamber, valve_on_dhw):
+    openamber.set_switch("pump_p1_enabled", True)
+    enter_maintenance(openamber)
+    openamber.set_switch("three_way_valve_heat_cool_switch", not valve_on_dhw)
+    openamber.set_switch("three_way_valve_dhw_switch", valve_on_dhw)
+    openamber.set_switch("pump_p1_relay_switch", False)
+    openamber.step(ms=50)
+    assert openamber.set_switch("deaeration_short_switch", True) is True
+    openamber.step(ms=50)
+
+
+def test_deaeration_starts_p1_after_the_valve_switched_from_dhw(clean_system):
+    """Valve on DHW at the start: P0 starts directly, P1 only once the valve has had its switch time (60 s), so
+    no DHW water is pulled into the floor while the valve travels to CV."""
+    openamber = clean_system
+    _start_deaeration_with_valve(openamber, valve_on_dhw=True)
+    try:
+        assert openamber.get_entity("three_way_valve_heat_cool_switch") is True
+        assert openamber.get_entity("pump_p0_relay_switch") is True
+        assert openamber.get_entity("pump_p1_relay_switch") is False, "P1 must wait for the valve"
+
+        openamber.advance_time(seconds=50, step_s=5)
+        openamber.step(ms=50)
+        assert openamber.get_entity("pump_p1_relay_switch") is False, "P1 must wait the full valve switch time"
+
+        openamber.advance_time(seconds=15, step_s=5)
+        openamber.step(ms=50)
+        assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 must start once the valve is on CV"
+    finally:
+        openamber.set_switch("deaeration_short_switch", False)
+        openamber.step(ms=50)
+        leave_maintenance(openamber)
+
+
+def test_deaeration_starts_p1_directly_with_the_valve_on_cv(clean_system):
+    openamber = clean_system
+    _start_deaeration_with_valve(openamber, valve_on_dhw=False)
+    try:
+        assert openamber.get_entity("pump_p0_relay_switch") is True
+        assert openamber.get_entity("pump_p1_relay_switch") is True, "P1 must start directly with the valve on CV"
+    finally:
+        openamber.set_switch("deaeration_short_switch", False)
+        openamber.step(ms=50)
+        leave_maintenance(openamber)

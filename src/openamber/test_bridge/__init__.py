@@ -29,9 +29,32 @@ CONFIG_SCHEMA = cv.Schema(
 SUPPORTED_TYPES = {
     "obj", "label", "button", "arc", "bar", "slider",
     "checkbox", "switch", "roller", "textarea",
-    "container", "spinner",
+    "container", "spinner", "menu",
 }
 DROPDOWN_TYPES = {"dropdown", "table"}
+
+
+def _collect_menu(menu_conf, result, dropdown_result, excluded_ids):
+    if not isinstance(menu_conf, dict):
+        return
+    for page in menu_conf.get("pages", []):
+        if not isinstance(page, dict):
+            continue
+        if "id" in page and page["id"]:
+            val = str(getattr(page["id"], "id", page["id"]))
+            if val not in excluded_ids:
+                result.add(val)
+        if "widgets" in page:
+            _collect_widgets(page["widgets"], result, dropdown_result, excluded_ids)
+        if "sections" in page:
+            for section in page.get("sections", []):
+                if isinstance(section, dict):
+                    if "id" in section and section["id"]:
+                        s_val = str(getattr(section["id"], "id", section["id"]))
+                        if s_val not in excluded_ids:
+                            result.add(s_val)
+                    if "widgets" in section:
+                        _collect_widgets(section["widgets"], result, dropdown_result, excluded_ids)
 
 
 def _collect_widgets(obj, result, dropdown_result, excluded_ids):
@@ -42,6 +65,8 @@ def _collect_widgets(obj, result, dropdown_result, excluded_ids):
                     val = str(getattr(v["id"], "id", v["id"]))
                     if val not in excluded_ids:
                         result.add(val)
+                if k == "menu":
+                    _collect_menu(v, result, dropdown_result, excluded_ids)
                 if "widgets" in v:
                     _collect_widgets(v["widgets"], result, dropdown_result, excluded_ids)
             elif k in DROPDOWN_TYPES and isinstance(v, dict):
@@ -53,6 +78,8 @@ def _collect_widgets(obj, result, dropdown_result, excluded_ids):
                     _collect_widgets(v["widgets"], result, dropdown_result, excluded_ids)
             elif k == "widgets" and isinstance(v, list):
                 _collect_widgets(v, result, dropdown_result, excluded_ids)
+            elif k == "pages" and isinstance(v, list):
+                _collect_menu({"pages": v}, result, dropdown_result, excluded_ids)
             elif isinstance(v, (dict, list)):
                 if k not in (
                     "on_click", "on_press", "on_release", "on_value",

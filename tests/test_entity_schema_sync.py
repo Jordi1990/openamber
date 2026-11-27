@@ -166,6 +166,8 @@ def test_hardware_mocks_correspond_to_physical_modbus_or_subsystems():
     simulator_infra = {
         "my_time",
         "firmware_update",
+        "mock_firmware_versions",
+        "mock_update_check_fails",
         "dump_eeprom_parameters",
         "dump_eeprom_parameters_ui_disable",
         "dump_eeprom_parameters_ui_enable",
@@ -191,6 +193,7 @@ def test_hardware_mocks_correspond_to_physical_modbus_or_subsystems():
         "mock_compressor_frequency_override",
         "graph_redraw_time",
         "mock_three_way_valve_feedback_missing",
+        "mock_pump_flow_missing",
         "mock_simulate_esp_restart",
         "mock_ota_begin",
         "mock_ota_progress",

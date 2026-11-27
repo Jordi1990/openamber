@@ -19,7 +19,9 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cmath>
+#include <limits>
 
 #include "esphome.h"
 #include "constants.h"
@@ -208,6 +210,17 @@ private:
     return value;
   }
 
+  /// @brief Pd fallback when 3269 holds no usable bar value: depends on the refrigerant (3497).
+  static float GetDefaultUnitPdLimit()
+  {
+    const float refrigerant = id(outdoor_unit_refrigerant).state;
+    if (!std::isnan(refrigerant) && (int)refrigerant == OUTDOOR_UNIT_REFRIGERANT_R32)
+    {
+      return DISCHARGE_LIMIT_DEFAULT_UNIT_PD_BAR_R32;
+    }
+    return DISCHARGE_LIMIT_DEFAULT_UNIT_PD_BAR;
+  }
+
   /// @brief Keeps Pd and Td below the outdoor unit's own protection: hold the level when close,
   /// step down one level per DISCHARGE_LIMIT_STEP_DOWN_INTERVAL_S when closer.
   int ApplyDischargeSideLimit(int compressor_mode, int current_compressor_mode)
@@ -232,7 +245,7 @@ private:
       return discharge_limit_active_ ? std::min(compressor_mode, current_compressor_mode) : compressor_mode;
     }
 
-    const float unit_pd = GetUnitLimit(id(outdoor_unit_pd_no_increase_limit).state, DISCHARGE_LIMIT_DEFAULT_UNIT_PD_BAR, 15.0f, 45.0f);
+    const float unit_pd = GetUnitLimit(id(outdoor_unit_pd_no_increase_limit).state, GetDefaultUnitPdLimit(), 15.0f, 45.0f);
     const float unit_td = GetUnitLimit(id(outdoor_unit_td_no_increase_limit).state, DISCHARGE_LIMIT_DEFAULT_UNIT_TD_C, 70.0f, 130.0f);
 
     const bool step_down = (pd_valid && pd >= unit_pd - DISCHARGE_LIMIT_STEP_DOWN_PD_MARGIN_BAR) || (td_valid && td >= unit_td - DISCHARGE_LIMIT_STEP_DOWN_TD_MARGIN_C);
@@ -274,21 +287,56 @@ private:
   }
 
 public:
+  /// @brief How a user-facing power select (e.g. "Beperkt" .. "Maximaal") maps onto the compressor modes 1..10.
+  enum class PowerScale
+  {
+    // Last option maps to the highest compressor mode (10); used for heating and DHW.
+    HIGH,
+    // First option maps to the lowest compressor mode (1); used for cooling and silent mode.
+    LOW,
+  };
+
   CompressorController() {}
+
+  /// @brief Converts the selected option of a power select into a compressor mode index.
+  /// @param fallback_index Option index used when the select has no state yet; -1 means the last option.
+  static int MapPowerSelectToMode(select::Select &power_select, PowerScale scale, int fallback_index = -1)
+  {
+    const int option_count = (int)power_select.size();
+    const int index = (int)power_select.active_index().value_or(fallback_index >= 0 ? fallback_index : option_count - 1);
+    const int offset = scale == PowerScale::HIGH ? (int)id(compressor_control_select).size() - option_count : 1;
+    return index + offset;
+  }
+
+  /// @brief Highest compressor mode allowed by silent mode, or INT_MAX when silent mode is not active.
+  static int GetSilentModeLimit()
+  {
+    if (!id(silent_mode_active_sensor).state)
+    {
+      return std::numeric_limits<int>::max();
+    }
+    return MapPowerSelectToMode(id(silent_mode_compressor_mode), PowerScale::LOW, SILENT_MODE_DEFAULT_OPTION_INDEX);
+  }
+
+  static int ApplySilentModeLimit(int compressor_mode)
+  {
+    return std::min(compressor_mode, GetSilentModeLimit());
+  }
 
   uint64_t GetStartTime()
   {
     return last_compressor_start_ms_;
   }
 
-  void ApplyCompressorMode(int compressor_mode)
+  /// skip_step_limit: go to the mode at once, as on a start (used when DHW takes over a running compressor).
+  void ApplyCompressorMode(int compressor_mode, bool skip_step_limit = false)
   {
     auto current_compressor_mode = id(compressor_control_select).active_index().value();
     compressor_mode = CapToAmbientFrequencyLimit(compressor_mode);
     compressor_mode = ApplyDischargeSideLimit(compressor_mode, current_compressor_mode);
 
     // On initial start, allow any mode.
-    if(current_compressor_mode != 0)
+    if(current_compressor_mode != 0 && !skip_step_limit)
     {
       // Limit to a single frequency step per update
       if (compressor_mode > current_compressor_mode + 1)
@@ -387,9 +435,35 @@ public:
 
   void RecordStartTime()
   {
+    // The compressor runs: earlier failed starts no longer count towards TO02.
+    id(compressor_start_failures) = 0;
     not_running_since_ms_ = 0;
     ClearStartWaitTimer();
     last_compressor_start_ms_ = millis_64();
+  }
+
+  /// @brief Counts a start that timed out. Returns true when this was the last allowed attempt
+  /// (COMPRESSOR_START_MAX_ATTEMPTS in a row), so the caller raises TO02; otherwise the start is retried.
+  bool RegisterStartTimeout()
+  {
+    int &failures = id(compressor_start_failures);
+    failures++;
+    if (failures >= (int) COMPRESSOR_START_MAX_ATTEMPTS)
+    {
+      ESP_LOGE("amber", "Compressor did not start within %lu seconds, %d attempts in a row failed.",
+               (unsigned long) COMPRESSOR_START_TIMEOUT_S, failures);
+      return true;
+    }
+    ESP_LOGW("amber", "Compressor did not start within %lu seconds (attempt %d of %lu), retrying after the minimum off time.",
+             (unsigned long) COMPRESSOR_START_TIMEOUT_S, failures, (unsigned long) COMPRESSOR_START_MAX_ATTEMPTS);
+    return false;
+  }
+
+  /// @brief True while the outdoor unit preheats the compressor (P07, about 30 min): it does not start the
+  /// compressor then, so a start must not be commanded. The bit clears when the preheat ends.
+  bool IsWaitingForPreheat()
+  {
+    return id(error_flag_p07).state;
   }
 
   void ArmStartWaitTimer()
@@ -413,14 +487,8 @@ public:
     // Increase compressor mode by 3 steps to speed up recovery after defrost
     int defrost_recovery_mode = current_compressor_mode + 3;
     auto compressor_set_call = id(compressor_control_select).make_call();
-    int mode_offset = id(compressor_control_select).size() - id(heat_compressor_mode).size();
-    int capped_mode_index = std::min(defrost_recovery_mode, (int)id(heat_compressor_mode).active_index().value() + mode_offset);
-    if (id(silent_mode_active_sensor).state)
-    {
-      int silent_offset = id(compressor_control_select).size() - id(silent_mode_compressor_mode).size();
-      int silent_limit = (int)id(silent_mode_compressor_mode).active_index().value_or(3) + silent_offset;
-      capped_mode_index = std::min(capped_mode_index, silent_limit);
-    }
+    int capped_mode_index = std::min(defrost_recovery_mode, MapPowerSelectToMode(id(heat_compressor_mode), PowerScale::HIGH));
+    capped_mode_index = ApplySilentModeLimit(capped_mode_index);
     capped_mode_index = CapToAmbientFrequencyLimit(capped_mode_index);
     capped_mode_index = ApplyDischargeSideLimit(capped_mode_index, current_compressor_mode);
     if (capped_mode_index == (int)current_compressor_mode)

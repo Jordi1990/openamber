@@ -11,14 +11,12 @@ def test_switch_heat_to_dhw_and_return_to_heat(clean_system):
     1. System starts in space heating mode (heat demand active, Tc = 28°C < setpoint).
     2. Pump starts on interval (900s), stabilizes (120s), and compressor runs in heating mode (working_mode = 2, valve = CV).
     3. DHW demand activates (tank temperature Tw drops to 38°C < setpoint 50°C - delta 5°C).
-    4. Heating finishes compressor min-on-time (600s), stops compressor and pump.
-    5. 3-way valve switches to DHW (three_way_valve_dhw_switch = True) and waits 60s switch time.
-    6. System enters DHW mode (state_machine_state_main == "DHW") and runs DHW compressor and pump.
-    7. DHW tank reaches setpoint (Tw = 52°C >= 50°C), DHW demand clears.
-    8. DHW compressor finishes min-on-time (600s), stops compressor and DHW pump.
-    9. 3-way valve switches back to CV (three_way_valve_dhw_switch = False) and waits 60s switch time.
-    10. System returns to Heat/Cool mode (state_machine_state_main == "Heat/Cool") and resumes space heating right away
-        (pump at once, compressor after the minimum off time), without waiting for the pump interval.
+    4. The 3-way valve switches to DHW while the compressor keeps running (hot switch); DHW takes it over.
+    5. System runs in DHW mode (state_machine_state_main == "DHW") with the DHW pump.
+    6. DHW tank reaches setpoint (Tw = 52°C >= 50°C), DHW demand clears.
+    7. With heat demand still active, the valve returns to CV while the compressor keeps running (hot switch).
+    8. System is back in Heat/Cool mode (state_machine_state_main == "Heat/Cool") and keeps heating.
+    Edge cases of the hot switch: test_hot_switch_edge_cases.py.
     """
     openamber = clean_system
     # Explicit heating target (Tc=28°C must be below target - start delta). These tests used to rely on

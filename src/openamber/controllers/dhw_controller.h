@@ -48,8 +48,11 @@ private:
   uint32_t heating_rate_below_min_since_ms_ = 0;
   float last_temperature_rate_ = 0.0f;
   float last_measured_temperature_ = 0.0f;
+  // Return temperature (Tui) at the start of the rate window and its rate over the last window. A tank with a
+  // loading module is heated from the cold side up: Tw stays flat for a long time while Tui rises all along.
+  float last_measured_return_temperature_ = 0.0f;
+  float return_temperature_rate_ = NAN;
   uint32_t dhw_pump_settled_time_ = 0;
-  uint32_t pump_flow_missing_since_ms_ = 0;
   uint32_t valve_safety_condition_since_ms_ = 0;
 
   const char* StateToString(DHWState state) const override
@@ -106,21 +109,9 @@ private:
     float temperature_ta = id(temperature_outside_ta).state;
     float ta_threshold = id(dhw_temperature_threshold_max_compressor_mode).state;
     
-    int dhw_mode_offset = id(compressor_control_select).size() - id(dhw_compressor_mode).size();
-    int dhw_mode_max_offset = id(compressor_control_select).size() - id(dhw_compressor_mode_max).size();
-    
-    int selected_dhw_compressor_mode = id(dhw_compressor_mode).active_index().value() + dhw_mode_offset;    
-    if (temperature_ta <= ta_threshold)
-    {
-      selected_dhw_compressor_mode = id(dhw_compressor_mode_max).active_index().value() + dhw_mode_max_offset;
-    }
-    if (id(silent_mode_active_sensor).state)
-    {
-      int silent_offset = id(compressor_control_select).size() - id(silent_mode_compressor_mode).size();
-      int silent_limit = (int)id(silent_mode_compressor_mode).active_index().value_or(3) + silent_offset;
-      selected_dhw_compressor_mode = std::min(selected_dhw_compressor_mode, silent_limit);
-    }
-    return selected_dhw_compressor_mode;
+    auto &dhw_mode_select = temperature_ta <= ta_threshold ? id(dhw_compressor_mode_max) : id(dhw_compressor_mode);
+    int selected_dhw_compressor_mode = CompressorController::MapPowerSelectToMode(dhw_mode_select, CompressorController::PowerScale::HIGH);
+    return CompressorController::ApplySilentModeLimit(selected_dhw_compressor_mode);
   }
 
   void StopDhwPump()
@@ -212,6 +203,9 @@ private:
     float rate = (current_temperature - last_measured_temperature_) / delta_min;
     id(dhw_backup_current_avg_rate_sensor).publish_state(rate);
     last_measured_temperature_ = current_temperature;
+    float current_return_temperature = id(inlet_temperature_tui).state;
+    return_temperature_rate_ = (current_return_temperature - last_measured_return_temperature_) / delta_min;
+    last_measured_return_temperature_ = current_return_temperature;
     last_rate_measured_time_ = now;
   }
 
@@ -254,6 +248,14 @@ private:
       return false;
     }
 
+    // A rising return temperature also counts as progress: the tank is taking up heat, Tw just does not show it yet
+    // (tank with a loading module, or a sensor above the part that is being heated). NaN compares false.
+    if (return_temperature_rate_ >= min_avg_rate)
+    {
+      heating_rate_below_min_since_ms_ = 0;
+      return false;
+    }
+
     if (heating_rate_below_min_since_ms_ == 0)
     {
       heating_rate_below_min_since_ms_ = now;
@@ -279,8 +281,11 @@ private:
       return true;
     }
 
-    // Stop compressor only if pump flow stays missing for the configured delay while compressor runs.
-    if (compressor_controller_->IsRunning() && !pump_controller_->IsRunning() && state_ != DHWState::IDLE)
+    // Stop if pump flow stays missing for the configured delay while the compressor or the backup heater runs.
+    // The backup heater counts too: in emergency mode it runs without the compressor, and an element without
+    // flow overheats (the inside unit has no interlock of its own, the original controller enforced it).
+    if ((compressor_controller_->IsRunning() || IsBackupHeaterActive()) && !pump_controller_->IsRunning() &&
+        state_ != DHWState::IDLE)
     {
       const uint32_t now = App.get_loop_component_start_time();
       const uint32_t flow_switch_delay_ms = static_cast<uint32_t>(id(flow_switch_safety_delay_minutes).state * 60000.0f);
@@ -288,12 +293,13 @@ private:
       if (pump_flow_missing_since_ms_ == 0)
       {
         pump_flow_missing_since_ms_ = now;
-        ESP_LOGW("amber", "Safety check: Pump flow missing while compressor is running, waiting %.0f min before shutdown.", id(flow_switch_safety_delay_minutes).state);
+        ESP_LOGW("amber", "Safety check: Pump flow missing while compressor or backup heater is running, waiting %.0f min before shutdown.", id(flow_switch_safety_delay_minutes).state);
       }
 
       if ((now - pump_flow_missing_since_ms_) >= flow_switch_delay_ms)
       {
-        ESP_LOGW("amber", "Safety check: Pump flow missing for %.0f min while compressor is running, stopping compressor to avoid damage.", id(flow_switch_safety_delay_minutes).state);
+        ESP_LOGE("amber", "Safety check: Pump flow missing for %.0f min while compressor or backup heater is running, stopping to avoid damage.", id(flow_switch_safety_delay_minutes).state);
+        id(error_pump_flow_missing).publish_state(true);
         return true;
       }
     }
@@ -302,11 +308,32 @@ private:
       pump_flow_missing_since_ms_ = 0;
     }
 
-    // If Tuo - Tui is above 15 degrees while compressor is running, stop compressor to avoid damage
-    if (id(outlet_temperature_tuo).state - id(inlet_temperature_tui).state > 15.0f && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) && state_ != DHWState::IDLE)
+    // Tuo - Tui above the DHW limit for WATER_DELTA_T_SAFETY_DELAY_S while heating: stop to avoid damage.
+    const float tuo = id(outlet_temperature_tuo).state;
+    const float tui = id(inlet_temperature_tui).state;
+    const float water_delta_t = tuo - tui;
+    if (water_delta_t > DHW_MAX_WATER_DELTA_T_C && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) &&
+        state_ != DHWState::IDLE)
     {
-      ESP_LOGW("amber", "Safety check: Temperature difference between Tuo and Tui is above 15 degrees while compressor is running, stopping compressor to avoid damage.");
-      return true;
+      const uint32_t now = App.get_loop_component_start_time();
+      if (water_delta_t_exceeded_since_ms_ == 0)
+      {
+        water_delta_t_exceeded_since_ms_ = now;
+        ESP_LOGW("amber", "Safety check: DHW delta-T %.2f°C above %.1f°C (Tuo %.2f°C, Tui %.2f°C), waiting %u s before shutdown.",
+                 water_delta_t, DHW_MAX_WATER_DELTA_T_C, tuo, tui, (unsigned) WATER_DELTA_T_SAFETY_DELAY_S);
+      }
+
+      if ((now - water_delta_t_exceeded_since_ms_) >= WATER_DELTA_T_SAFETY_DELAY_S * 1000UL)
+      {
+        ESP_LOGE("amber", "Safety check: DHW delta-T %.2f°C above %.1f°C for %u s (Tuo %.2f°C, Tui %.2f°C), stopping to avoid damage.",
+                 water_delta_t, DHW_MAX_WATER_DELTA_T_C, (unsigned) WATER_DELTA_T_SAFETY_DELAY_S, tuo, tui);
+        id(error_water_delta_t_too_high).publish_state(true);
+        return true;
+      }
+    }
+    else
+    {
+      water_delta_t_exceeded_since_ms_ = 0;
     }
 
     // Check if 3-way valve is in expected DHW position (CV circuit should not receive high temperature water)
@@ -376,11 +403,13 @@ private:
   /// return cycle runs. A running oil return cycle is finished first.
   bool ShouldStop()
   {
-    // Checked before the demand: a stop request still lets the oil return cycle or a defrost finish when the demand
-    // ends meanwhile.
-    if (requested_to_stop_ && (id(oil_return_cycle_active).state || id(defrost_active_sensor).state))
+    // Never stop during a defrost, including the pre-phase (2118 set), or an oil return cycle, whatever the reason
+    // (no demand, stop request). The outdoor unit only runs the pre-phase and the defrost while the compressor
+    // runs: a stop aborts the defrost and leaves 2118 set until standby, so the ice stays. Safety stops do not
+    // pass here.
+    if (id(defrost_active_sensor).state || id(oil_return_cycle_active).state)
     {
-      ESP_LOGI("amber", "DHW stop requested: waiting for the oil return cycle or defrost to finish before stopping.");
+      ESP_LOGI("amber", "Defrost or oil return cycle active, not stopping the compressor until it has finished.");
       return false;
     }
     return !HasDemand() || requested_to_stop_;
@@ -393,7 +422,8 @@ private:
   }
 public:
     DHWController(PumpController *pump_controller, CompressorController *compressor_controller)
-        : BaseController(pump_controller, compressor_controller, DHWState::WAIT_FOR_STATE_SWITCH, DHWState::UNKNOWN, DHWState::IDLE) {
+        : BaseController(pump_controller, compressor_controller, DHWState::WAIT_FOR_STATE_SWITCH, DHWState::UNKNOWN, DHWState::IDLE,
+                         DHWState::COMPRESSOR_RUNNING) {
           PublishState(StateToString(state_));
         }
 
@@ -409,14 +439,23 @@ public:
     SetNextState(DHWState::IDLE);
   }
 
+  /// @brief Hot switch to heating: the DHW pump stops before the valve moves.
+  void PrepareHandOver() override
+  {
+    StopDhwPump();
+    id(dhw_active).publish_state(false);
+  }
+
   /// @brief Takes over units that kept running while the ESP restarted, instead of stopping them.
   /// Only called with the 3-way valve in the DHW position and pump P0 running.
-  void ResumeFromRunningUnits()
+  /// hand_over: the compressor comes running from heating (hot switch), its start time is known and kept.
+  void ResumeFromRunningUnits(bool hand_over = false)
   {
     const bool compressor_running = compressor_controller_->IsRunning();
     const bool compressor_commanded = compressor_controller_->IsCommanded();
     requested_to_stop_ = false;
     pump_flow_missing_since_ms_ = 0;
+    water_delta_t_exceeded_since_ms_ = 0;
     rate_window_active_ = false;
     heating_rate_below_min_since_ms_ = 0;
     pump_controller_->AdoptRunningPump();
@@ -425,7 +464,16 @@ public:
     if (compressor_running && compressor_commanded)
     {
       // The run time before the restart is unknown: keep the compressor on for at least the minimum on time.
-      compressor_controller_->RecordStartTime();
+      if (!hand_over)
+      {
+        compressor_controller_->RecordStartTime();
+      }
+      else
+      {
+        // Hot switch: go straight to the DHW level, as a DHW start from standstill does. The ambient and
+        // discharge side limits still apply.
+        compressor_controller_->ApplyCompressorMode(DetermineCompressorMode(), true);
+      }
       // Pre-phase: keep heating in COMPRESSOR_RUNNING, which switches to DEFROSTING once the actual defrost starts.
       if (id(defrost_running_sensor).state)
       {
@@ -549,6 +597,11 @@ public:
           {
             break;
           }
+          // The outdoor unit does not start the compressor while it preheats it (P07, about 30 min).
+          if (compressor_controller_->IsWaitingForPreheat())
+          {
+            break;
+          }
           compressor_controller_->ApplyCompressorMode(DetermineCompressorMode());
           compressor_controller_->ArmStartWaitTimer();
           SetNextState(DHWState::WAIT_COMPRESSOR_RUNNING);
@@ -561,13 +614,17 @@ public:
           compressor_controller_->RecordStartTime();
           SetNextState(DHWState::COMPRESSOR_RUNNING);
         }
-        else 
+        else
         {
           const uint32_t timeout_ms = COMPRESSOR_START_TIMEOUT_S * 1000UL;
           if ((now - compressor_controller_->GetStartWaitStartedTime()) >= timeout_ms)
           {
-            ESP_LOGE("amber", "DHW compressor start timeout reached after %lu seconds, stopping system.", (unsigned long) COMPRESSOR_START_TIMEOUT_S);
-            id(error_compressor_start_timeout).publish_state(true);
+            if (compressor_controller_->RegisterStartTimeout())
+            {
+              ESP_LOGE("amber", "DHW compressor start timeout reached after %lu seconds, stopping system.", (unsigned long) COMPRESSOR_START_TIMEOUT_S);
+              id(error_compressor_start_timeout).publish_state(true);
+            }
+            // The DHW cycle ends; while the demand remains it starts again and retries after the minimum off time.
             compressor_controller_->Stop();
             SetNextState(DHWState::WAIT_COMPRESSOR_STOP);
           }
@@ -655,6 +712,8 @@ public:
 
       case DHWState::DHW_PUMP_SETTLED:
         last_measured_temperature_ = id(dhw_temperature_tw_sensor).state;
+        last_measured_return_temperature_ = id(inlet_temperature_tui).state;
+        return_temperature_rate_ = NAN;
         last_rate_measured_time_ = now;
         dhw_pump_settled_time_ = now;
         rate_window_active_ = true;
@@ -678,12 +737,8 @@ public:
       case DHWState::WAIT_PUMP_STOP:
         if (!pump_controller_->IsRunning())
         {
-          // Leaving heating aborts a running defrost without its recovery phase, so wait for 2118 to drop.
-          if (id(defrost_active_sensor).state)
-          {
-            ESP_LOGI("amber", "Defrost active, waiting before switching to standby.");
-            break;
-          }
+          // No wait for 2118 here: the compressor has stopped, and the outdoor unit only runs its defrost (and
+          // pre-phase) while the compressor runs. 2118 then stays set until standby, which clears it.
           pump_controller_->ClearStopWaitTimer();
           SetWorkingMode(WORKING_MODE_STANDBY);
           id(dhw_active).publish_state(false);

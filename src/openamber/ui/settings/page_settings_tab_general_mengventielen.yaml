@@ -1,0 +1,53 @@
+# Menu Page: Mengventielen (Keuzemenu Zone 1 / Zone 2)
+# ------------------------------------------------------------
+id: panel_general_page_mengventielen
+title: "${t_mengventielen}"
+widgets:
+  - obj:
+      width: 100%
+      height: SIZE_CONTENT
+      bg_opa: 0%
+      border_opa: 0%
+      pad_left: 12
+      pad_right: 12
+      pad_top: 4
+      pad_bottom: 16
+      layout:
+        type: FLEX
+        flex_flow: ROW_WRAP
+        flex_align_main: START
+        flex_align_cross: START
+        pad_row: 8
+        pad_column: 8
+      widgets:
+        - obj:
+            id: mengventielen_tab_z1
+            styles: menu_tile_style
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_general_mv_zone1
+            widgets:
+              - label: { text: "\U000F1066", styles: menu_tile_icon_style }
+              - label: { id: mengventielen_tab_z1_lbl, text: "${t_mengventiel_zone_1_3}", long_mode: WRAP, styles: menu_tile_label_style }
+
+        - obj:
+            id: mengventielen_tab_z2
+            styles: menu_tile_style
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_general_mv_zone2
+            widgets:
+              - label: { text: "\U000F1066", styles: menu_tile_icon_style }
+              - label: { id: mengventielen_tab_z2_lbl, text: "${t_mengventiel_zone_2_3}", long_mode: WRAP, styles: menu_tile_label_style }

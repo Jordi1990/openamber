@@ -1,0 +1,123 @@
+# Menu Page: Sensor kalibratie - CV-Systeem
+# ------------------------------------------------------------
+id: panel_general_sensor_kalibratie_cv
+title: "${t_cv_systeem}"
+styles: setting_page_style
+widgets:
+  - obj:
+      width: 100%
+      height: SIZE_CONTENT
+      bg_opa: 0%
+      border_opa: 0%
+      pad_all: 0
+      layout:
+        type: FLEX
+        flex_flow: COLUMN
+        flex_align_main: START
+        flex_align_cross: CENTER
+        pad_row: 8
+      widgets:
+        - obj:
+            id: sensor_calibration_page_1_row_tc
+            styles: setting_row_style
+            widgets:
+              - label: { text: "${t_cv_aanvoertemperatuur_offset}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_correctie_voor_cv_aanvoertemperatuurmeti}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - obj:
+                  width: SIZE_CONTENT
+                  height: SIZE_CONTENT
+                  align: TOP_RIGHT
+                  bg_opa: 0%
+                  border_opa: 0%
+                  pad_all: 0
+                  layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                  widgets:
+                    - obj:
+                        styles: setting_step_btn_style
+                        pressed:
+                          styles: setting_step_btn_pressed_style
+                        scrollable: false
+                        on_click:
+                          - number.decrement: tc_offset
+                        widgets:
+                          - label: { text: "\U000F0374", styles: setting_step_icon_style }
+                    - label: { id: set_tc_offset_val, text: "0.0°C", text_color: 0x1F2933, text_font: font_text_24 }
+                    - obj:
+                        styles: setting_step_btn_style
+                        pressed:
+                          styles: setting_step_btn_pressed_style
+                        scrollable: false
+                        on_click:
+                          - number.increment: tc_offset
+                        widgets:
+                          - label: { text: "\U000F0415", styles: setting_step_icon_style }
+
+        - obj:
+            id: sensor_calibration_page_1_row_tui
+            styles: setting_row_style
+            widgets:
+              - label: { text: "${t_cv_retourtemperatuur_tui_offset}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_correctie_voor_cv_retourtemperatuurmetin}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - obj:
+                  width: SIZE_CONTENT
+                  height: SIZE_CONTENT
+                  align: TOP_RIGHT
+                  bg_opa: 0%
+                  border_opa: 0%
+                  pad_all: 0
+                  layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                  widgets:
+                    - obj:
+                        styles: setting_step_btn_style
+                        pressed:
+                          styles: setting_step_btn_pressed_style
+                        scrollable: false
+                        on_click:
+                          - number.decrement: tui_offset
+                        widgets:
+                          - label: { text: "\U000F0374", styles: setting_step_icon_style }
+                    - label: { id: set_tui_offset_val, text: "0.0°C", text_color: 0x1F2933, text_font: font_text_24 }
+                    - obj:
+                        styles: setting_step_btn_style
+                        pressed:
+                          styles: setting_step_btn_pressed_style
+                        scrollable: false
+                        on_click:
+                          - number.increment: tui_offset
+                        widgets:
+                          - label: { text: "\U000F0415", styles: setting_step_icon_style }
+
+        - obj:
+            id: sensor_calibration_page_2_row_tuo
+            styles: setting_row_style
+            widgets:
+              - label: { text: "${t_cv_aanvoertemperatuur_tuo_offset}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_correctie_voor_cv_aanvoertemperatuurmeti_2}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - obj:
+                  width: SIZE_CONTENT
+                  height: SIZE_CONTENT
+                  align: TOP_RIGHT
+                  bg_opa: 0%
+                  border_opa: 0%
+                  pad_all: 0
+                  layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                  widgets:
+                    - obj:
+                        styles: setting_step_btn_style
+                        pressed:
+                          styles: setting_step_btn_pressed_style
+                        scrollable: false
+                        on_click:
+                          - number.decrement: tuo_offset
+                        widgets:
+                          - label: { text: "\U000F0374", styles: setting_step_icon_style }
+                    - label: { id: set_tuo_offset_val, text: "0.0°C", text_color: 0x1F2933, text_font: font_text_24 }
+                    - obj:
+                        styles: setting_step_btn_style
+                        pressed:
+                          styles: setting_step_btn_pressed_style
+                        scrollable: false
+                        on_click:
+                          - number.increment: tuo_offset
+                        widgets:
+                          - label: { text: "\U000F0415", styles: setting_step_icon_style }

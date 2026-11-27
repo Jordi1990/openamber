@@ -1,0 +1,100 @@
+# Thermostat setpoint content
+# ------------------------------------------------------------
+- obj:
+    id: thermostat_row_setpoint
+    styles: setting_row_style
+    widgets:
+      - label: { text: "${t_thermostaat_bron}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_kies_intern_of_extern_thermostaatsignaal}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - dropdown:
+          id: set_thermostat_dd
+          symbol: "\U000F0140"
+          width: 200
+          align: TOP_RIGHT
+          y: 0
+          options:
+            - "${t_intern}"
+            - "${t_extern}"
+          text_font: font_text_20
+          dropdown_list:
+            text_font: font_text_20
+          on_change:
+            then:
+              - lambda: |-
+                  auto val = lv_dropdown_get_selected(id(set_thermostat_dd)->obj);
+                  auto idx = id(thermostat_mode_select).active_index();
+                  if (idx.has_value() && idx.value() == (int) val) {
+                    return;
+                  }
+                  if (val == 0) id(thermostat_mode_select).make_call().set_option("Intern").perform();
+                  else id(thermostat_mode_select).make_call().set_option("Extern").perform();
+
+- obj:
+    id: thermostat_row_default_heat
+    styles: setting_row_style
+    widgets:
+      - label: { text: "${t_standaard_setpoint_verwarmen}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_setpoint_verwarmen_na_herstart}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
+                scrollable: false
+                on_click:
+                  - number.decrement: thermostat_default_heat_setpoint
+                widgets:
+                  - label: { text: "\U000F0374", styles: setting_step_icon_style }
+            - label: { id: set_therm_def_heat_val, text: "20.5°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
+                scrollable: false
+                on_click:
+                  - number.increment: thermostat_default_heat_setpoint
+                widgets:
+                  - label: { text: "\U000F0415", styles: setting_step_icon_style }
+
+- obj:
+    id: thermostat_row_default_cool
+    styles: setting_row_style
+    widgets:
+      - label: { text: "${t_standaard_setpoint_koelen}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_setpoint_koelen_na_herstart}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - obj:
+          width: SIZE_CONTENT
+          height: SIZE_CONTENT
+          align: TOP_RIGHT
+          bg_opa: 0%
+          border_opa: 0%
+          pad_all: 0
+          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+          widgets:
+            - obj:
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
+                scrollable: false
+                on_click:
+                  - number.decrement: thermostat_default_cool_setpoint
+                widgets:
+                  - label: { text: "\U000F0374", styles: setting_step_icon_style }
+            - label: { id: set_therm_def_cool_val, text: "24.0°C", text_color: 0x1F2933, text_font: font_text_24 }
+            - obj:
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
+                scrollable: false
+                on_click:
+                  - number.increment: thermostat_default_cool_setpoint
+                widgets:
+                  - label: { text: "\U000F0415", styles: setting_step_icon_style }

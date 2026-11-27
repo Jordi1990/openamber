@@ -1,14 +1,10 @@
 - obj:
     id: set_general_defrost_note_row
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
       - label:
           width: 100%
-          text: "Let op: experimentele instellingen. Wijzigingen worden niet opgeslagen en na een power cycle teruggezet naar standaard."
+          text: "${t_let_op_experimentele_instellingen_wijzig}"
           text_color: 0xB45309
           text_font: font_text_20
           long_mode: WRAP
@@ -16,14 +12,10 @@
 
 - obj:
     id: set_general_defrost_exit_row
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
-      - label: { text: "Exit defrost temperatuur", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Defrost stoptemperatuur", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "${t_exit_defrost_temperatuur}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_defrost_stoptemperatuur}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -34,43 +26,31 @@
           layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
           widgets:
             - obj:
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - number.decrement: exit_defrost_temperature
                 widgets:
-                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { text: "\U000F0374", styles: setting_step_icon_style }
             - label: { id: set_defrost_exit_val, text: "47°C", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - number.increment: exit_defrost_temperature
                 widgets:
-                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
 - obj:
     id: set_general_defrost_max_time_row
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
+    styles: setting_row_style
     widgets:
-      - label: { text: "Maximale ontdooitijd", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Maximum duur van een defrost-cyclus", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
+      - label: { text: "${t_maximale_ontdooitijd}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_maximum_duur_van_een_defrost_cyclus}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -81,231 +61,22 @@
           layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
           widgets:
             - obj:
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - number.decrement: max_defrost_time
                 widgets:
-                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { text: "\U000F0374", styles: setting_step_icon_style }
             - label: { id: set_defrost_max_time_val, text: "8 min", text_color: 0x1F2933, text_font: font_text_24 }
             - obj:
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
+                styles: setting_step_btn_style
+                pressed:
+                  styles: setting_step_btn_pressed_style
                 scrollable: false
                 on_click:
                   - number.increment: max_defrost_time
                 widgets:
-                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
+                  - label: { text: "\U000F0415", styles: setting_step_icon_style }
 
-# ── Pagina 2 instellingen ──
-- obj:
-    id: set_general_defrost_enter1_row
-    hidden: true
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 6
-    widgets:
-      - label: { text: "Defrost starttemperatuur 1", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Spoeltemperatuur bij buitentemp. vanaf 3°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-      - obj:
-          width: SIZE_CONTENT
-          height: SIZE_CONTENT
-          align: TOP_RIGHT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 0
-          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-          widgets:
-            - obj:
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
-                scrollable: false
-                on_click:
-                  - number.decrement: enter_defrost_temperature
-                widgets:
-                  - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-            - label: { id: set_defrost_enter1_val, text: "-3°C", text_color: 0x1F2933, text_font: font_text_24 }
-            - obj:
-                width: 40
-                height: 40
-                bg_color: 0x1F3B68
-                bg_opa: 100%
-                radius: 10
-                border_opa: 0%
-                scrollbar_mode: "OFF"
-                scrollable: false
-                on_click:
-                  - number.increment: enter_defrost_temperature
-                widgets:
-                  - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-
-- obj:
-    id: set_defrost_advanced_section
-    hidden: true
-    width: 100%
-    height: SIZE_CONTENT
-    bg_opa: 0%
-    border_opa: 0%
-    pad_all: 0
-    layout:
-      type: FLEX
-      flex_flow: COLUMN
-      flex_align_main: START
-      flex_align_cross: CENTER
-      pad_row: 6
-    widgets:
-      - obj:
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
-          widgets:
-            - label: { text: "Defrost starttemperatuur 2", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-            - label: { text: "Spoeltemperatuur bij buitentemp. -3 tot 3°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-            - obj:
-                width: SIZE_CONTENT
-                height: SIZE_CONTENT
-                align: TOP_RIGHT
-                bg_opa: 0%
-                border_opa: 0%
-                pad_all: 0
-                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-                widgets:
-                  - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
-                      scrollable: false
-                      on_click:
-                        - number.decrement: enter_defrost_temperature_2
-                      widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                  - label: { id: set_defrost_enter2_val, text: "-3°C", text_color: 0x1F2933, text_font: font_text_24 }
-                  - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
-                      scrollable: false
-                      on_click:
-                        - number.increment: enter_defrost_temperature_2
-                      widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-
-      - obj:
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
-          widgets:
-            - label: { text: "Defrost starttemperatuur 3", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-            - label: { text: "Spoeltemperatuur bij buitentemp. -10 tot -3°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-            - obj:
-                width: SIZE_CONTENT
-                height: SIZE_CONTENT
-                align: TOP_RIGHT
-                bg_opa: 0%
-                border_opa: 0%
-                pad_all: 0
-                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-                widgets:
-                  - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
-                      scrollable: false
-                      on_click:
-                        - number.decrement: enter_defrost_temperature_3
-                      widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                  - label: { id: set_defrost_enter3_val, text: "-5°C", text_color: 0x1F2933, text_font: font_text_24 }
-                  - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
-                      scrollable: false
-                      on_click:
-                        - number.increment: enter_defrost_temperature_3
-                      widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-
-      - obj:
-          width: 100%
-          height: SIZE_CONTENT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 6
-          widgets:
-            - label: { text: "Defrost starttemperatuur 4", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-            - label: { text: "Spoeltemperatuur bij buitentemp. onder -10°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 38 }
-            - obj:
-                width: SIZE_CONTENT
-                height: SIZE_CONTENT
-                align: TOP_RIGHT
-                bg_opa: 0%
-                border_opa: 0%
-                pad_all: 0
-                layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-                widgets:
-                  - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
-                      scrollable: false
-                      on_click:
-                        - number.decrement: enter_defrost_temperature_4
-                      widgets:
-                        - label: { text: "\U000F0374", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }
-                  - label: { id: set_defrost_enter4_val, text: "-12°C", text_color: 0x1F2933, text_font: font_text_24 }
-                  - obj:
-                      width: 40
-                      height: 40
-                      bg_color: 0x1F3B68
-                      bg_opa: 100%
-                      radius: 10
-                      border_opa: 0%
-                      scrollbar_mode: "OFF"
-                      scrollable: false
-                      on_click:
-                        - number.increment: enter_defrost_temperature_4
-                      widgets:
-                        - label: { text: "\U000F0415", text_color: 0xFFFFFF, text_font: font_mdi_24, align: CENTER }

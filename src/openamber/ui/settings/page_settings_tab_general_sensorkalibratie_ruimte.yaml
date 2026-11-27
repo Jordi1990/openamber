@@ -1,0 +1,88 @@
+# Menu Page: Sensor kalibratie - Ruimte & Tapwater
+# ------------------------------------------------------------
+id: panel_general_sensor_kalibratie_ruimte
+title: "${t_ruimte_en_tapwater}"
+styles: setting_page_style
+widgets:
+  - obj:
+      width: 100%
+      height: SIZE_CONTENT
+      bg_opa: 0%
+      border_opa: 0%
+      pad_all: 0
+      layout:
+        type: FLEX
+        flex_flow: COLUMN
+        flex_align_main: START
+        flex_align_cross: CENTER
+        pad_row: 8
+      widgets:
+        - obj:
+            id: sensor_calibration_page_1_row_tr
+            styles: setting_row_style
+            widgets:
+              - label: { text: "${t_ruimtetemperatuur_offset}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_correctie_voor_interne_ruimtetemperatuur}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - obj:
+                  width: SIZE_CONTENT
+                  height: SIZE_CONTENT
+                  align: TOP_RIGHT
+                  bg_opa: 0%
+                  border_opa: 0%
+                  pad_all: 0
+                  layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                  widgets:
+                    - obj:
+                        styles: setting_step_btn_style
+                        pressed:
+                          styles: setting_step_btn_pressed_style
+                        scrollable: false
+                        on_click:
+                          - number.decrement: tr_offset
+                        widgets:
+                          - label: { text: "\U000F0374", styles: setting_step_icon_style }
+                    - label: { id: set_tr_offset_val, text: "0.0°C", text_color: 0x1F2933, text_font: font_text_24 }
+                    - obj:
+                        styles: setting_step_btn_style
+                        pressed:
+                          styles: setting_step_btn_pressed_style
+                        scrollable: false
+                        on_click:
+                          - number.increment: tr_offset
+                        widgets:
+                          - label: { text: "\U000F0415", styles: setting_step_icon_style }
+
+        - obj:
+            id: sensor_calibration_page_1_row_tw
+            styles: setting_row_style
+            widgets:
+              - label: { text: "${t_tapwatertemperatuur_offset}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_correctie_voor_tapwatertemperatuurmeting}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - obj:
+                  width: SIZE_CONTENT
+                  height: SIZE_CONTENT
+                  align: TOP_RIGHT
+                  bg_opa: 0%
+                  border_opa: 0%
+                  pad_all: 0
+                  layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
+                  widgets:
+                    - obj:
+                        styles: setting_step_btn_style
+                        pressed:
+                          styles: setting_step_btn_pressed_style
+                        scrollable: false
+                        on_click:
+                          - number.decrement: tw_offset
+                        widgets:
+                          - label: { text: "\U000F0374", styles: setting_step_icon_style }
+                    - label: { id: set_tw_offset_val, text: "0.0°C", text_color: 0x1F2933, text_font: font_text_24 }
+                    - obj:
+                        styles: setting_step_btn_style
+                        pressed:
+                          styles: setting_step_btn_pressed_style
+                        scrollable: false
+                        on_click:
+                          - number.increment: tw_offset
+                        widgets:
+                          - label: { text: "\U000F0415", styles: setting_step_icon_style }

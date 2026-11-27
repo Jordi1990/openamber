@@ -278,6 +278,7 @@ number:
   name: "EEPROM defrost starttemperatuur"
   disabled_by_default: true
   entity_category: config
+  mode: box
   address: 3276
   register_type: holding
   value_type: S_WORD
@@ -295,6 +296,7 @@ number:
   name: "EEPROM defrost stoptemperatuur"
   disabled_by_default: true
   entity_category: config
+  mode: box
   address: 3277
   register_type: holding
   value_type: S_WORD
@@ -309,6 +311,7 @@ number:
   name: "EEPROM maximale ontdooitijd"
   disabled_by_default: true
   entity_category: config
+  mode: box
   address: 3278
   register_type: holding
   value_type: S_WORD
@@ -333,6 +336,7 @@ number:
   min_value: -15
   max_value: 0
   step: 1
+  mode: box
   unit_of_measurement: "°C"
   device_class: "temperature"
   name: "EEPROM defrost starttemperatuur 2"
@@ -354,6 +358,7 @@ number:
   min_value: -15
   max_value: 0
   step: 1
+  mode: box
   unit_of_measurement: "°C"
   device_class: "temperature"
   name: "EEPROM defrost starttemperatuur 3"
@@ -374,6 +379,7 @@ number:
   min_value: -15
   max_value: 0
   step: 1
+  mode: box
   unit_of_measurement: "°C"
   device_class: "temperature"
   name: "EEPROM defrost starttemperatuur 4"
@@ -401,6 +407,7 @@ number:
   min_value: 300
   max_value: 900
   step: 10
+  mode: box
   unit_of_measurement: "rpm"
   lambda: |-
     return x * 10;
@@ -419,6 +426,7 @@ number:
   min_value: 300
   max_value: 900
   step: 10
+  mode: box
   unit_of_measurement: "rpm"
   lambda: |-
     return x * 10;
@@ -437,6 +445,7 @@ number:
   min_value: 300
   max_value: 900
   step: 10
+  mode: box
   unit_of_measurement: "rpm"
   lambda: |-
     return x * 10;
@@ -455,6 +464,7 @@ number:
   min_value: 300
   max_value: 900
   step: 10
+  mode: box
   unit_of_measurement: "rpm"
   lambda: |-
     return x * 10;
@@ -473,6 +483,7 @@ number:
   min_value: 300
   max_value: 900
   step: 10
+  mode: box
   unit_of_measurement: "rpm"
   lambda: |-
     return x * 10;
@@ -491,6 +502,7 @@ number:
   min_value: 300
   max_value: 900
   step: 10
+  mode: box
   unit_of_measurement: "rpm"
   lambda: |-
     return x * 10;
@@ -509,6 +521,7 @@ number:
   min_value: 300
   max_value: 900
   step: 10
+  mode: box
   unit_of_measurement: "rpm"
   lambda: |-
     return x * 10;
@@ -527,6 +540,7 @@ number:
   min_value: 300
   max_value: 900
   step: 10
+  mode: box
   unit_of_measurement: "rpm"
   lambda: |-
     return x * 10;
@@ -545,6 +559,7 @@ number:
   min_value: 300
   max_value: 900
   step: 10
+  mode: box
   unit_of_measurement: "rpm"
   lambda: |-
     return x * 10;
@@ -563,6 +578,7 @@ number:
   min_value: 300
   max_value: 900
   step: 10
+  mode: box
   unit_of_measurement: "rpm"
   lambda: |-
     return x * 10;

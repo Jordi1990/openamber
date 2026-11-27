@@ -73,3 +73,26 @@ def test_eebus_disconnect(openamber: OpenAmberClient):
     assert openamber.get_entity("eebus_connected_sensor") is False
     assert openamber.get_entity("eebus_ems_sensor") == "–"
     assert openamber.get_entity("eebus_status_sensor") == "Disconnected"
+
+
+@pytest.mark.parametrize("model_id,expected_by_mode", [
+    # Power table entries for compressor modes 4..10 (heating power "Beperkt" .. "Maximaal").
+    (140, [696.0, 836.0, 1120.0, 1357.0, 1386.0, 1360.0, 1338.0]),     # Amber 65
+    (150, [940.0, 1166.0, 1816.0, 2100.0, 1990.0, 1895.0, 1816.0]),    # Amber 95
+    (15, [1650.0, 1744.0, 1931.0, 2086.0, 2304.0, 2490.0, 2646.0]),    # Amber 120
+])
+def test_eebus_power_estimate_follows_heating_power(openamber: OpenAmberClient, model_id, expected_by_mode):
+    """Verify the EEBUS power estimate maps each heating power option onto compressor modes 4..10."""
+    options = ["Beperkt", "Zeer laag", "Laag", "Gemiddeld", "Verhoogd", "Hoog", "Maximaal"]
+    try:
+        openamber.set_sensor("model_identification_1", float(model_id))
+        for option, expected_w in zip(options, expected_by_mode):
+            openamber.set_select("heat_compressor_mode", option)
+            openamber.step(ms=50)
+            estimate_w = openamber.eebus_power_estimate()
+            assert estimate_w == pytest.approx(expected_w), (
+                f"Model {model_id} with heating power '{option}' should estimate {expected_w} W, got {estimate_w}"
+            )
+    finally:
+        openamber.set_sensor("model_identification_1", 150.0)
+        openamber.set_select("heat_compressor_mode", "Maximaal")

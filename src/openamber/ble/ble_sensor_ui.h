@@ -1,5 +1,8 @@
 #pragma once
 
+// Display text translation, defined in ui/i18n/oa_i18n_<lang>.h (ui_language).
+static const char *oa_tr(const char *text);
+
 // All calls run in ESPHome's main loop, like the esp32_ble_tracker
 // advertisement callback.
 
@@ -105,7 +108,7 @@ static void ble_sensor_format_reading(const BleSensorReading &reading, char *tex
     if (std::isnan(reading.humidity))
         snprintf(text, size, "%.1f °C", reading.temperature);
     else
-        snprintf(text, size, "%.1f °C   |   %.0f%% luchtvochtigheid", reading.temperature, reading.humidity);
+        snprintf(text, size, oa_tr("%.1f °C   |   %.0f%% luchtvochtigheid"), reading.temperature, reading.humidity);
 }
 
 static void ble_sensor_set_label(lv_obj_t *label, const char *text)
@@ -123,6 +126,13 @@ static void ble_sensor_set_hidden(lv_obj_t *obj, bool hidden)
         else
             lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
     }
+}
+
+// True while Settings -> Connectiviteit -> Bluetooth is the open menu page.
+static bool ble_sensor_bluetooth_page_visible()
+{
+    return !lv_obj_has_flag(&id(page_settings), LV_OBJ_FLAG_HIDDEN) &&
+           lv_menu_get_cur_main_page(&id(settings_menu)) == &id(panel_wifi_page_bluetooth);
 }
 
 // max_name > 0 shortens the name for narrow widgets (ble_sensor_format_short_title).
@@ -152,7 +162,7 @@ static int ble_sensor_dropdown_slots[1 + BLE_SENSOR_SLOTS] = {-1, -1, -1, -1};
 
 static void ble_sensor_update_source_dropdown()
 {
-    std::string options = "Tr (Bedraad)";
+    std::string options = oa_tr("Tr (Bedraad)");
     unsigned count = 1, selected = 0;
     int source = ble_sensor_selected_source_slot();
     for (unsigned i = 0; i < BLE_SENSOR_SLOTS; i++)
@@ -195,11 +205,11 @@ static void ble_sensor_update_bluetooth_page()
     }
     char text[160];
     if (!enabled)
-        snprintf(text, sizeof(text), "Schakel Bluetooth in om sensoren te koppelen.");
+        snprintf(text, sizeof(text), "%s", oa_tr("Schakel Bluetooth in om sensoren te koppelen."));
     else if (ble_sensor_host_failed)
-        snprintf(text, sizeof(text), "Bluetooth kon niet starten. Herstart het display om het opnieuw te proberen.");
+        snprintf(text, sizeof(text), "%s", oa_tr("Bluetooth kon niet starten. Herstart het display om het opnieuw te proberen."));
     else if (ble_sensor_restart_required)
-        snprintf(text, sizeof(text), "Bluetooth start na een herstart: te weinig vrij geheugen om nu te starten.");
+        snprintf(text, sizeof(text), "%s", oa_tr("Bluetooth start na een herstart: te weinig vrij geheugen om nu te starten."));
     else
         text[0] = '\0';
     ble_sensor_set_label(&id(ble_hint_label), text);
@@ -223,7 +233,7 @@ static void ble_sensor_update_bluetooth_page()
         paired++;
         char title[64];
         ble_sensor_slot_title(i, title, sizeof(title));
-        const char *role = int(i) == source ? "  |  ruimtetemperatuur" : "";
+        const char *role = int(i) == source ? oa_tr("  |  ruimtetemperatuur") : "";
         const BleSensorSlot &slot = ble_sensor_slots[i];
         const char *icon = "\U000F0028";
         uint32_t color = 0xD97706;
@@ -231,7 +241,7 @@ static void ble_sensor_update_bluetooth_page()
         {
             char values[64];
             ble_sensor_format_reading(slot.reading, values, sizeof(values));
-            snprintf(text, sizeof(text), "%s%s\n%s   |   %lus geleden", title, role, values,
+            snprintf(text, sizeof(text), oa_tr("%s%s\n%s   |   %lus geleden"), title, role, values,
                      (unsigned long)(uint32_t(millis() - slot.reading.received_ms) / 1000));
             icon = "\U000F05E0";
             color = 0x16A34A;
@@ -239,13 +249,13 @@ static void ble_sensor_update_bluetooth_page()
         else
         {
             snprintf(text, sizeof(text), "%s%s\n%s", title, role,
-                     slot.reading.received_ms ? "Geen actuele meting" : "Wacht op eerste meting");
+                     slot.reading.received_ms ? oa_tr("Geen actuele meting") : oa_tr("Wacht op eerste meting"));
         }
         ble_sensor_set_label(labels[i], text);
         ble_sensor_set_label(icons[i], icon);
         lv_obj_set_style_text_color(icons[i], lv_color_hex(color), LV_PART_MAIN);
     }
-    snprintf(text, sizeof(text), paired ? "Gekoppelde sensoren (%u/%u)" : "Nog geen sensoren gekoppeld (0/%u)",
+    snprintf(text, sizeof(text), paired ? oa_tr("Gekoppelde sensoren (%u/%u)") : oa_tr("Nog geen sensoren gekoppeld (0/%u)"),
              paired ? paired : unsigned(BLE_SENSOR_SLOTS), unsigned(BLE_SENSOR_SLOTS));
     ble_sensor_set_label(&id(ble_paired_title), text);
 
@@ -286,11 +296,11 @@ static void ble_sensor_update_bluetooth_page()
         }
     }
     if (ble_sensor_is_discovering())
-        snprintf(text, sizeof(text), "Gevonden sensoren  |  zoeken: %us  |  %u gevonden", ble_sensor_discovery_seconds(),
+        snprintf(text, sizeof(text), oa_tr("Gevonden sensoren  |  zoeken: %us  |  %u gevonden"), ble_sensor_discovery_seconds(),
                  count);
     else
-        snprintf(text, sizeof(text), "Gevonden sensoren  |  %u gevonden%s", count,
-                 full ? "  |  ontkoppel eerst een sensor" : "");
+        snprintf(text, sizeof(text), oa_tr("Gevonden sensoren  |  %u gevonden%s"), count,
+                 full ? oa_tr("  |  ontkoppel eerst een sensor") : "");
     ble_sensor_set_label(&id(ble_discovery_status_label), text);
 }
 
@@ -305,22 +315,15 @@ static void ble_sensor_update_ui()
         placed = true;
     }
     ble_sensor_update_source_dropdown();
-    if (!lv_obj_has_flag(&id(panel_wifi_page_bluetooth), LV_OBJ_FLAG_HIDDEN))
+    if (ble_sensor_bluetooth_page_visible())
         ble_sensor_update_bluetooth_page();
 }
 
-// Connectiviteit sub-tab: shows the Bluetooth page and starts a search.
-static void ble_sensor_show_bluetooth_page(bool show)
+// Connectiviteit -> Bluetooth menu page was opened: start a search.
+static void ble_sensor_bluetooth_page_opened()
 {
-    ble_sensor_set_hidden(&id(panel_wifi_page_bluetooth), !show);
-    lv_obj_set_style_bg_color(&id(conn_stab_bluetooth), lv_color_hex(show ? 0x1F3B68 : 0xCBD5E1), LV_PART_MAIN);
-    lv_obj_set_style_text_color(&id(conn_stab_bluetooth_lbl), lv_color_hex(show ? 0xFFFFFF : 0x4B5563),
-                                LV_PART_MAIN);
-    if (show && ble_sensor_boot_ready && id(ble_enabled_switch).state && !ble_sensor_is_discovering())
+    if (ble_sensor_boot_ready && id(ble_enabled_switch).state && !ble_sensor_is_discovering())
         ble_sensor_begin_discovery();
-    if (show)
-    {
-        ble_sensor_update_source();
-        ble_sensor_update_ui();
-    }
+    ble_sensor_update_source();
+    ble_sensor_update_ui();
 }

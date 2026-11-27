@@ -8,6 +8,7 @@ on:
       - tests/**
       - run_tests.py
       - .github/workflows/**
+      - tools/**
 
 concurrency:
   group: build-pr-${{ github.event.pull_request.number }}
@@ -25,4 +26,5 @@ jobs:
         src/openamber-waveshare-p4.yaml
       combined-name: openamber-pr-validation
       run-tests: true
+      memory-report: true
 

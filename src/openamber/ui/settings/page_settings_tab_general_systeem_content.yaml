@@ -1,0 +1,81 @@
+# Systeem content
+# ------------------------------------------------------------
+- obj:
+    id: set_general_system_dhw
+    styles: setting_row_style
+    widgets:
+      - label: { text: "${t_tapwater_aanwezig}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_tapwatervat_is_aanwezig_in_het_systeem}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - switch:
+          id: set_dhw_enabled_switch_ui
+          align: TOP_RIGHT
+          bg_color: 0x9CA3AF
+          indicator:
+            bg_color: 0x16A34A
+          knob:
+            bg_color: 0xFFFFFF
+          on_click:
+            - lambda: |-
+                if (id(dhw_enabled_switch).state) {
+                  id(dhw_enabled_switch).turn_off();
+                  lv_obj_add_flag(id(stab_dhw), LV_OBJ_FLAG_HIDDEN);
+                } else {
+                  id(dhw_enabled_switch).turn_on();
+                  lv_obj_remove_flag(id(stab_dhw), LV_OBJ_FLAG_HIDDEN);
+                }
+
+- obj:
+    id: set_general_system_control_temp_source
+    styles: setting_row_style
+    widgets:
+      - label: { text: "${t_regeltemperatuur_bron}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_kies_de_sensor_die_de_regeling_gebruikt}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - dropdown:
+          id: set_heat_control_temp_source_dd
+          symbol: "\U000F0140"
+          width: 220
+          align: TOP_RIGHT
+          y: 0
+          options:
+            - "${t_cv_aanvoer_tc}"
+            - "${t_cv_aanvoer_zone_1_tv1}"
+          text_font: font_text_20
+          dropdown_list:
+            text_font: font_text_20
+          on_change:
+            then:
+              - lambda: |-
+                  bool mv_active = id(mixing_valve_zone1_enabled).state || id(mixing_valve_zone2_enabled).state;
+                  if (mv_active) {
+                    lv_dropdown_set_selected(id(set_heat_control_temp_source_dd)->obj, 0);
+                    return;
+                  }
+                  auto val = lv_dropdown_get_selected(id(set_heat_control_temp_source_dd)->obj);
+                  auto idx = id(heat_cool_control_temperature_source_select).active_index();
+                  if (idx.has_value() && idx.value() == (int) val) {
+                    return;
+                  }
+                  if (val == 0) id(heat_cool_control_temperature_source_select).make_call().set_option("CV-aanvoer (Tc)").perform();
+                  else id(heat_cool_control_temperature_source_select).make_call().set_option("CV-aanvoer zone 1 (Tv1)").perform();
+
+- obj:
+    id: set_general_defrost_advanced_toggle_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "${t_geavanceerde_instellingen}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_toon_geavanceerde_instellingen}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - switch:
+          id: set_advanced_settings_switch_ui
+          align: TOP_RIGHT
+          bg_color: 0x9CA3AF
+          indicator:
+            bg_color: 0x16A34A
+          knob:
+            bg_color: 0xFFFFFF
+          on_click:
+            - lambda: |-
+                if (id(advanced_settings_enabled).state) {
+                  id(advanced_settings_enabled).turn_off();
+                } else {
+                  id(advanced_settings_enabled).turn_on();
+                }

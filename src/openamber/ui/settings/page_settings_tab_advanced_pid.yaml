@@ -1,0 +1,101 @@
+# Menu Page: Geavanceerd - PID-regeling (Categorie keuzemenu)
+# ------------------------------------------------------------
+id: panel_advanced_page_pid
+title: "${t_pid_regeling}"
+widgets:
+  - obj:
+      width: 100%
+      height: SIZE_CONTENT
+      bg_opa: 0%
+      border_opa: 0%
+      pad_left: 12
+      pad_right: 12
+      pad_top: 4
+      pad_bottom: 16
+      layout:
+        type: FLEX
+        flex_flow: ROW_WRAP
+        flex_align_main: START
+        flex_align_cross: START
+        pad_row: 8
+        pad_column: 8
+      widgets:
+        - obj:
+            id: advanced_pid_stab_heat
+            styles: menu_tile_style
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_advanced_page_pid_heat
+            widgets:
+              - label: { text: "\U000F0238", styles: menu_tile_icon_style }
+              - label: { id: advanced_pid_stab_heat_lbl, text: "${t_verwarmen}", long_mode: WRAP, styles: menu_tile_label_style }
+
+        - obj:
+            id: advanced_pid_stab_cool
+            styles: menu_tile_style
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_advanced_page_pid_cool
+            widgets:
+              - label: { text: "\U000F0717", styles: menu_tile_icon_style }
+              - label: { id: advanced_pid_stab_cool_lbl, text: "${t_koelen}", long_mode: WRAP, styles: menu_tile_label_style }
+
+        - obj:
+            id: advanced_pid_stab_pump
+            styles: menu_tile_style
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_advanced_page_pid_pump
+            widgets:
+              - label: { text: "\U000F058F", styles: menu_tile_icon_style }
+              - label: { id: advanced_pid_stab_pump_lbl, text: "${t_pomp_p0}", long_mode: WRAP, styles: menu_tile_label_style }
+
+        - obj:
+            id: advanced_pid_stab_mv1
+            styles: menu_tile_style
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_advanced_page_pid_mv1
+            widgets:
+              - label: { text: "\U000F1066", styles: menu_tile_icon_style }
+              - label: { id: advanced_pid_stab_mv1_lbl, text: "${t_mengventiel_zone_1}", long_mode: WRAP, styles: menu_tile_label_style }
+
+        - obj:
+            id: advanced_pid_stab_mv2
+            styles: menu_tile_style
+            scrollable: false
+            pressed:
+              styles: menu_tile_pressed_style
+            disabled:
+              styles: menu_tile_disabled_style
+            on_click:
+              - lvgl.menu.set_page:
+                  id: settings_menu
+                  page: panel_advanced_page_pid_mv2
+            widgets:
+              - label: { text: "\U000F1066", styles: menu_tile_icon_style }
+              - label: { id: advanced_pid_stab_mv2_lbl, text: "${t_mengventiel_zone_2}", long_mode: WRAP, styles: menu_tile_label_style }

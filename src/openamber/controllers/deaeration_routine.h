@@ -44,6 +44,8 @@ private:
   bool extended_mode_ = false;
   uint32_t start_wait_started_ms_ = 0;
   uint32_t routine_start_time_ms_ = 0;
+  // Set when the routine starts with the 3-way valve not yet on CV: P1 waits until the valve has had its switch time.
+  uint32_t zone_pumps_wait_started_ms_ = 0;
 
   int GetCycles() const
   {
@@ -68,15 +70,26 @@ private:
     pump_call.perform();
   }
 
-  void StartPumps()
+  void StartMainPump()
   {
     if (!id(pump_p0_relay_switch).state)
     {
       id(pump_p0_relay_switch).turn_on();
     }
+  }
+
+  /// The zone pumps only circulate the CV circuit. Started while the 3-way valve still travels from DHW to CV they
+  /// would pull DHW water into the floor, so Start() delays them until the valve has had its switch time.
+  void StartZonePumps()
+  {
+    zone_pumps_wait_started_ms_ = 0;
     if (id(pump_p1_enabled).state && !id(pump_p1_relay_switch).state)
     {
       id(pump_p1_relay_switch).turn_on();
+    }
+    if (id(pump_p2_enabled).state && !id(pump_p2_relay_switch).state)
+    {
+      id(pump_p2_relay_switch).turn_on();
     }
   }
 
@@ -84,9 +97,37 @@ private:
   {
     SetPwmDutyCycle(0);
     id(pump_p0_relay_switch).turn_off();
+    StopZonePumps();
+  }
+
+  /// P1 and P2 only take part in the CV circuit. Running them while the valve is on DHW pulls water through the CV
+  /// side of the 3-way valve, so hot DHW water ends up in the floor (the original controller does not run them for
+  /// DHW deaeration either). Also cancels a delayed zone pump start.
+  void StopZonePumps()
+  {
+    zone_pumps_wait_started_ms_ = 0;
     if (id(pump_p1_enabled).state)
     {
       id(pump_p1_relay_switch).turn_off();
+    }
+    if (id(pump_p2_enabled).state)
+    {
+      id(pump_p2_relay_switch).turn_off();
+    }
+  }
+
+  /// Starts the zone pumps once the valve, commanded to CV at the start, has had its switch time.
+  void StartZonePumpsAfterValveSwitch()
+  {
+    if (zone_pumps_wait_started_ms_ == 0 || first_circuit_done_)
+    {
+      return;
+    }
+    uint32_t now = App.get_loop_component_start_time();
+    if (now - zone_pumps_wait_started_ms_ >= THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL)
+    {
+      ESP_LOGI("amber", "DEAERATION: 3-way valve on CV, starting the zone pumps");
+      StartZonePumps();
     }
   }
 
@@ -257,9 +298,19 @@ public:
     ESP_LOGI("amber", "DEAERATION: Starting %s mode (%d cycles per circuit)",
              extended ? "extended" : "short", cycles_remaining_);
 
-    // Start on heating/cooling circuit
+    // Start on heating/cooling circuit. P0 starts directly; the zone pumps only once the valve is on CV.
+    const bool valve_already_on_cv = id(three_way_valve_heat_cool_switch).state && !id(three_way_valve_dhw_switch).state;
     SetValveToHeatingCooling();
-    StartPumps();
+    StartMainPump();
+    if (valve_already_on_cv)
+    {
+      StartZonePumps();
+    }
+    else
+    {
+      ESP_LOGI("amber", "DEAERATION: 3-way valve switching to CV, zone pumps wait %lu s", THREE_WAY_VALVE_SWITCH_TIME_S);
+      zone_pumps_wait_started_ms_ = App.get_loop_component_start_time();
+    }
     SetPwmDutyCycle(DEAERATION_HIGH_SPEED_PWM);
 
     start_wait_started_ms_ = App.get_loop_component_start_time();
@@ -285,6 +336,8 @@ public:
 
   void UpdateStateMachine() override
   {
+    StartZonePumpsAfterValveSwitch();
+
     switch (state_)
     {
       case DeaerationState::IDLE:
@@ -377,6 +430,7 @@ public:
 
         first_circuit_done_ = true;
         cycles_remaining_ = GetCycles();
+        StopZonePumps();
         SetValveToDhw();
 
         ESP_LOGI("amber", "DEAERATION: Switching to DHW circuit, waiting %lu s for valve",
