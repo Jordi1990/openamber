@@ -53,8 +53,6 @@ private:
   float last_measured_return_temperature_ = 0.0f;
   float return_temperature_rate_ = NAN;
   uint32_t dhw_pump_settled_time_ = 0;
-  uint32_t pump_flow_missing_since_ms_ = 0;
-  uint32_t water_delta_t_exceeded_since_ms_ = 0;
   uint32_t valve_safety_condition_since_ms_ = 0;
 
   const char* StateToString(DHWState state) const override
@@ -409,7 +407,8 @@ private:
   }
 public:
     DHWController(PumpController *pump_controller, CompressorController *compressor_controller)
-        : BaseController(pump_controller, compressor_controller, DHWState::WAIT_FOR_STATE_SWITCH, DHWState::UNKNOWN, DHWState::IDLE) {
+        : BaseController(pump_controller, compressor_controller, DHWState::WAIT_FOR_STATE_SWITCH, DHWState::UNKNOWN, DHWState::IDLE,
+                         DHWState::COMPRESSOR_RUNNING) {
           PublishState(StateToString(state_));
         }
 
@@ -425,9 +424,17 @@ public:
     SetNextState(DHWState::IDLE);
   }
 
+  /// @brief Hot switch to heating: the DHW pump stops before the valve moves.
+  void PrepareHandOver() override
+  {
+    StopDhwPump();
+    id(dhw_active).publish_state(false);
+  }
+
   /// @brief Takes over units that kept running while the ESP restarted, instead of stopping them.
   /// Only called with the 3-way valve in the DHW position and pump P0 running.
-  void ResumeFromRunningUnits()
+  /// hand_over: the compressor comes running from heating (hot switch), its start time is known and kept.
+  void ResumeFromRunningUnits(bool hand_over = false)
   {
     const bool compressor_running = compressor_controller_->IsRunning();
     const bool compressor_commanded = compressor_controller_->IsCommanded();
@@ -442,7 +449,16 @@ public:
     if (compressor_running && compressor_commanded)
     {
       // The run time before the restart is unknown: keep the compressor on for at least the minimum on time.
-      compressor_controller_->RecordStartTime();
+      if (!hand_over)
+      {
+        compressor_controller_->RecordStartTime();
+      }
+      else
+      {
+        // Hot switch: go straight to the DHW level, as a DHW start from standstill does. The ambient and
+        // discharge side limits still apply.
+        compressor_controller_->ApplyCompressorMode(DetermineCompressorMode(), true);
+      }
       // Pre-phase: keep heating in COMPRESSOR_RUNNING, which switches to DEFROSTING once the actual defrost starts.
       if (id(defrost_running_sensor).state)
       {
