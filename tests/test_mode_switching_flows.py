@@ -46,6 +46,9 @@ def test_switch_heat_to_dhw_and_return_to_heat(clean_system):
 
     # Step 2: DHW Demand occurs during active heating
     openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
+    # Outlet water above the tank while DHW heats, as the 3-way valve position check (TO04) expects.
+    openamber.set_sensor("outlet_temperature_tuo", 42.0)
+    openamber.set_sensor("inlet_temperature_tui", 39.0)
     openamber.step(ms=50)
     assert openamber.get_entity("dhw_demand_active_sensor") is True
 
@@ -62,6 +65,9 @@ def test_switch_heat_to_dhw_and_return_to_heat(clean_system):
 
     # Step 4: DHW tank reaches target temperature
     openamber.set_sensor("dhw_temperature_tw_sensor", 52.0)
+    # Back to heating water.
+    openamber.set_sensor("outlet_temperature_tuo", 28.0)
+    openamber.set_sensor("inlet_temperature_tui", 26.0)
     openamber.step(ms=50)
     assert openamber.get_entity("dhw_demand_active_sensor") is False
 
@@ -131,6 +137,9 @@ def test_switch_cool_to_dhw_and_return_to_cool(clean_system):
 
     # Step 2: DHW Demand occurs during active cooling
     openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
+    # Outlet water above the tank while DHW heats, as the 3-way valve position check (TO04) expects.
+    openamber.set_sensor("outlet_temperature_tuo", 42.0)
+    openamber.set_sensor("inlet_temperature_tui", 39.0)
     openamber.step(ms=50)
     assert openamber.get_entity("dhw_demand_active_sensor") is True
 
@@ -147,6 +156,9 @@ def test_switch_cool_to_dhw_and_return_to_cool(clean_system):
 
     # Step 4: DHW tank reaches target temperature
     openamber.set_sensor("dhw_temperature_tw_sensor", 52.0)
+    # Back to cooling water.
+    openamber.set_sensor("outlet_temperature_tuo", 25.0)
+    openamber.set_sensor("inlet_temperature_tui", 25.0)
     openamber.step(ms=50)
     assert openamber.get_entity("dhw_demand_active_sensor") is False
 

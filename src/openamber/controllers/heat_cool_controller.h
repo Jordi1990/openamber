@@ -503,6 +503,24 @@ private:
       water_delta_t_exceeded_since_ms_ = 0;
     }
 
+    // Check from temperatures that the heating water goes through the CV circuit. Outlet water far above Tc comes from
+    // the DHW side: the valve did not switch back and the tank is heated instead of the house. Same check as for DHW,
+    // with Tc as the circuit temperature. Only this direction: with a stratified buffer Tc (top) can be far above the
+    // water the heat pump draws in at the start of a run, with the valve in the right position.
+    // The run time counts from the compressor start (soft start included). The check also runs while the backup heater
+    // runs with the compressor (SG Ready max boost); backup-only operation is excluded by the compressor condition. The
+    // backup heater cannot cause a trip by itself: Tuo - Tui stays within 8 °C (checked above), so Tuo far above Tc
+    // needs return water far above Tc as well. After a defrost the run time starts again.
+    const bool valve_check_active = compressor_controller_->IsRunning() && IsWorkingMode(WORKING_MODE_HEATING) &&
+                                    !id(defrost_active_sensor).state;
+    if (IsOutletFarAboveCircuit(valve_check_active, id(heat_cool_temperature_tc).state))
+    {
+      ESP_LOGE("amber", "Safety check: outlet water stays far above the CV circuit (Tuo %.2f°C, Tc %.2f°C), 3-way valve not in the heating position, stopping system.",
+               id(outlet_temperature_tuo).state, id(heat_cool_temperature_tc).state);
+      id(error_three_way_valve_state_timeout).publish_state(true);
+      return true;
+    }
+
     return false;
   }
   

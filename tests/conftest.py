@@ -173,8 +173,10 @@ def clean_system(openamber):
     openamber.set_sensor("outdoor_unit_refrigerant", 1.0)
     openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
     openamber.set_sensor("heat_cool_temperature_tc", 28.0)
-    openamber.set_sensor("outlet_temperature_tuo", 28.0)
-    openamber.set_sensor("inlet_temperature_tui", 25.0)
+    # Outlet water a few degrees above Tc and above a DHW tank that asks for heat (Tw 38-40 in the DHW tests): the
+    # 3-way valve position check (TO04) compares Tuo with Tc while heating and with Tw while heating DHW.
+    openamber.set_sensor("outlet_temperature_tuo", 35.0)
+    openamber.set_sensor("inlet_temperature_tui", 32.0)
     openamber.set_select("thermostat_mode_select", "Extern")
     openamber.set_select("heat_mode_select", "Stooklijn")
     openamber.set_select("cool_mode_select", "Intern setpoint")

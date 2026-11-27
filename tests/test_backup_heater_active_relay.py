@@ -79,7 +79,8 @@ def test_heat_cool_delta_t_safety_follows_external_relay(clean_system):
     assert openamber.get_entity("external_backup_heating_relay") is True
 
     # Relay on: a 17 K difference points to missing flow and must trigger the safety stop.
-    openamber.set_sensor("outlet_temperature_tuo", 42.0)  # Tui is 25 K from clean_system
+    openamber.set_sensor("inlet_temperature_tui", 25.0)
+    openamber.set_sensor("outlet_temperature_tuo", 42.0)  # 17 K above Tui
     assert advance_until_state(openamber, "state_machine_state_heat_cool", "Idle", max_s=120, step=5), (
         "Safety stop must trigger while the external relay reports the element on"
     )
@@ -125,7 +126,8 @@ def test_dhw_delta_t_safety_follows_external_relay(clean_system):
     assert openamber.get_entity("external_backup_heating_relay") is True
 
     # Relay on: a 16 K difference exceeds the DHW limit and must stop the unit.
-    openamber.set_sensor("outlet_temperature_tuo", 46.0)  # Tui is 25.0 from clean_system, difference 21 K
+    openamber.set_sensor("inlet_temperature_tui", 25.0)
+    openamber.set_sensor("outlet_temperature_tuo", 46.0)  # 21 K above Tui
     assert advance_until_state(openamber, "state_machine_state_dhw", "Idle", max_s=120, step=5), (
         "Safety stop must trigger while the external relay reports the element on"
     )
