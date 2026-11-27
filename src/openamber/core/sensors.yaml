@@ -80,7 +80,7 @@ sensor:
     }
 
     if (id(backup_heater_active_sensor).state)
-      p += 3000.0f;
+      p += 2600.0f;
 
     if (id(crankcase_heater_active_sensor).state)
       p += 30.0f;
