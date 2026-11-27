@@ -21,7 +21,6 @@
 
 #include "base_controller.h"
 #include "mixing_valve_actuator.h"
-#include "three_way_valve_check.h"
 
 enum class HeatCoolState
 {
@@ -51,7 +50,6 @@ private:
   float compressor_cool_pid_ = 0.0f;
   float start_current_temperature_ = 0.0f;
   uint32_t pump_flow_missing_since_ms_ = 0;
-  ThreeWayValveCheck valve_position_check_;
   MixingValveActuator* mixing_valve_zone1_ = nullptr;
   MixingValveActuator* mixing_valve_zone2_ = nullptr;
 
@@ -486,19 +484,13 @@ private:
     // the DHW side: the valve did not switch back and the tank is heated instead of the house. Same check as for DHW,
     // with Tc as the circuit temperature. Only this direction: with a stratified buffer Tc (top) can be far above the
     // water the heat pump draws in at the start of a run, with the valve in the right position.
-    // The run time counts from the soft start, so the check starts THREE_WAY_VALVE_CHECK_RUN_TIME_S after the compressor.
-    // The backup heater states count while the compressor keeps running (SG Ready max boost); backup-only operation is
-    // excluded by the compressor condition. The backup heater cannot cause a trip by itself: Tuo - Tui stays within
-    // 8 °C (checked above), so Tuo far above Tc needs return water far above Tc as well.
+    // The run time counts from the compressor start (soft start included). The check also runs while the backup heater
+    // runs with the compressor (SG Ready max boost); backup-only operation is excluded by the compressor condition. The
+    // backup heater cannot cause a trip by itself: Tuo - Tui stays within 8 °C (checked above), so Tuo far above Tc
+    // needs return water far above Tc as well. After a defrost the run time starts again.
     const bool valve_check_active = compressor_controller_->IsRunning() && IsWorkingMode(WORKING_MODE_HEATING) &&
-                                    (state_ == HeatCoolState::COMPRESSOR_SOFTSTART ||
-                                     state_ == HeatCoolState::COMPRESSOR_RUNNING ||
-                                     state_ == HeatCoolState::WAIT_BACKUP_HEATER_RUNNING ||
-                                     state_ == HeatCoolState::BACKUP_HEATER_RUNNING) &&
                                     !id(defrost_active_sensor).state;
-    if (valve_position_check_.Update(valve_check_active, id(outlet_temperature_tuo).state,
-                                     id(heat_cool_temperature_tc).state, true, false,
-                                     App.get_loop_component_start_time()))
+    if (IsOutletFarAboveCircuit(valve_check_active, id(heat_cool_temperature_tc).state))
     {
       ESP_LOGE("amber", "Safety check: outlet water stays far above the CV circuit (Tuo %.2f°C, Tc %.2f°C), 3-way valve not in the heating position, stopping system.",
                id(outlet_temperature_tuo).state, id(heat_cool_temperature_tc).state);

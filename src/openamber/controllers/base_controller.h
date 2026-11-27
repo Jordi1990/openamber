@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <cmath>
+
 #include "esphome.h"
 #include "constants.h"
 #include "timing.h"
@@ -173,5 +175,79 @@ public:
   void Init()
   {
     SetNextState(idle_state_);
+  }
+
+protected:
+  /// @brief 3-way valve position check: true when the outlet water stays far above the temperature of the circuit
+  /// the valve should serve (the water comes from a warmer circuit).
+  /// @param active Compressor running in a state where the valve position is settled (not defrosting).
+  bool IsOutletFarAboveCircuit(bool active, float circuit_temperature)
+  {
+    return UpdateValvePositionCheck(active, circuit_temperature, true);
+  }
+
+  /// @brief 3-way valve position check: true when the outlet water stays far below the temperature of the circuit
+  /// the valve should serve (the water comes from a colder circuit).
+  /// @param active Compressor running in a state where the valve position is settled (not defrosting).
+  bool IsOutletFarBelowCircuit(bool active, float circuit_temperature)
+  {
+    return UpdateValvePositionCheck(active, circuit_temperature, false);
+  }
+
+private:
+  bool valve_check_running_ = false;
+  uint32_t valve_check_running_since_ms_ = 0;
+  bool valve_check_deviating_ = false;
+  uint32_t valve_check_deviating_since_ms_ = 0;
+
+  /// @brief After the compressor has run for THREE_WAY_VALVE_CHECK_RUN_TIME_S, the outlet water (Tuo minus
+  /// THREE_WAY_VALVE_CHECK_TUO_OFFSET_C) must stay within THREE_WAY_VALVE_CHECK_DEVIATION_C of the circuit
+  /// temperature; exactly that deviation is still allowed. A larger deviation in the checked direction that lasts
+  /// THREE_WAY_VALVE_PROTECTION_HIGH_TEMPERATURE_TIME_S means the valve is stuck or in the wrong position.
+  bool UpdateValvePositionCheck(bool active, float circuit_temperature, bool check_above)
+  {
+    const float tuo = id(outlet_temperature_tuo).state;
+    const uint32_t now = App.get_loop_component_start_time();
+    if (!active || std::isnan(tuo) || std::isnan(circuit_temperature))
+    {
+      valve_check_running_ = false;
+      valve_check_deviating_ = false;
+      return false;
+    }
+
+    if (!valve_check_running_)
+    {
+      valve_check_running_ = true;
+      valve_check_running_since_ms_ = now;
+    }
+    if (!HasElapsedMs(valve_check_running_since_ms_, THREE_WAY_VALVE_CHECK_RUN_TIME_S * 1000UL, now))
+    {
+      valve_check_deviating_ = false;
+      return false;
+    }
+
+    const float deviation = (tuo - THREE_WAY_VALVE_CHECK_TUO_OFFSET_C) - circuit_temperature;
+    const bool deviating = check_above ? deviation > THREE_WAY_VALVE_CHECK_DEVIATION_C
+                                       : deviation < -THREE_WAY_VALVE_CHECK_DEVIATION_C;
+    if (!deviating)
+    {
+      valve_check_deviating_ = false;
+      return false;
+    }
+
+    if (!valve_check_deviating_)
+    {
+      valve_check_deviating_ = true;
+      valve_check_deviating_since_ms_ = now;
+    }
+    if (!HasElapsedMs(valve_check_deviating_since_ms_, THREE_WAY_VALVE_PROTECTION_HIGH_TEMPERATURE_TIME_S * 1000UL, now))
+    {
+      return false;
+    }
+
+    // Start over after a trip: once the error is reset, the full run and hold time apply again.
+    valve_check_running_ = false;
+    valve_check_deviating_ = false;
+    return true;
   }
 };

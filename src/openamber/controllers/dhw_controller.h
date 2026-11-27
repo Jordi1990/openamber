@@ -21,7 +21,6 @@
 
 #include <cmath>
 #include "base_controller.h"
-#include "three_way_valve_check.h"
 
 enum class DHWState
 {
@@ -52,7 +51,6 @@ private:
   uint32_t dhw_pump_settled_time_ = 0;
   uint32_t pump_flow_missing_since_ms_ = 0;
   uint32_t valve_safety_condition_since_ms_ = 0;
-  ThreeWayValveCheck valve_position_check_;
 
   const char* StateToString(DHWState state) const override
   {
@@ -358,9 +356,7 @@ private:
                                     id(dhw_demand_active_sensor).state &&
                                     state_ != DHWState::IDLE && state_ != DHWState::DEFROSTING &&
                                     !id(defrost_active_sensor).state;
-    if (valve_position_check_.Update(valve_check_active, id(outlet_temperature_tuo).state,
-                                     id(dhw_temperature_tw_sensor).state, false, true,
-                                     App.get_loop_component_start_time()))
+    if (IsOutletFarBelowCircuit(valve_check_active, id(dhw_temperature_tw_sensor).state))
     {
       ESP_LOGE("amber", "Safety check: outlet water stays far below the DHW tank (Tuo %.2f°C, Tw %.2f°C), 3-way valve not in the DHW position, stopping system.",
                id(outlet_temperature_tuo).state, id(dhw_temperature_tw_sensor).state);
