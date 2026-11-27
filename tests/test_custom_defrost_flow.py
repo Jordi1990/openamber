@@ -15,7 +15,6 @@ INTERVAL_S = 35 * 60
 def _configure(openamber, mode):
     openamber.set_select("defrost_control_select", mode)
     openamber.set_number("custom_defrost_delta_at_zero", 7.0)
-    openamber.set_number("custom_defrost_delta_at_cold", 4.0)
     openamber.set_number("custom_defrost_max_coil_temperature", -5.0)
     openamber.set_number("custom_defrost_min_runtime", 35.0)
     openamber.set_number("custom_defrost_frost_point_margin", 0.0)
@@ -78,9 +77,9 @@ def test_outdoor_unit_mode_does_nothing(clean_system):
     assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
 
 
-@pytest.mark.parametrize("ta, expected", [(7.0, -5.0), (5.0, -5.0), (0.0, -7.0), (-5.0, -11.0), (-10.0, -15.0), (-15.0, -19.0), (-20.0, -24.0)])
+@pytest.mark.parametrize("ta, expected", [(7.0, -5.0), (5.0, -5.0), (0.0, -7.0), (-5.0, -12.0), (-10.0, -17.0), (-15.0, -22.0)])
 def test_start_line_follows_mitsubishi(clean_system, ta, expected):
-    """Start line: Ta minus 7 K at 0 °C and warmer, 4 K at -15 °C and colder, linear in between, never above -5 °C."""
+    """Start line: Ta minus the difference (7 K here), never above the maximum Tp (-5 °C)."""
     openamber = clean_system
     _configure(openamber, "Buitenunit")
     openamber.set_sensor("temperature_outside_ta", ta)

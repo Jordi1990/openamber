@@ -207,7 +207,6 @@ static const uint32_t CUSTOM_DEFROST_MODE_OPENAMBER = 1;
 // the coil temperature must stay below the start line for 3 minutes while the compressor runs.
 static const uint32_t CUSTOM_DEFROST_CONFIRM_S = 3 * 60;
 static const uint32_t CUSTOM_DEFROST_MIN_COMPRESSOR_ON_S = 5 * 60;
-static const float CUSTOM_DEFROST_COLD_REFERENCE_TA_C = -15.0f;
 // No defrost above this outdoor temperature.
 static const float CUSTOM_DEFROST_MAX_TA_C = 7.0f;
 // Interval route: after the adaptive interval a coil below this temperature defrosts (start line not needed).

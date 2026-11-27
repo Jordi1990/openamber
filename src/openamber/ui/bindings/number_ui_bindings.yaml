@@ -863,15 +863,6 @@
             format: "%.1f K"
             args: ['x']
 
-- id: !extend custom_defrost_delta_at_cold
-  on_value:
-    then:
-      - lvgl.label.update:
-          id: set_custom_defrost_delta_cold_val
-          text:
-            format: "%.1f K"
-            args: ['x']
-
 - id: !extend custom_defrost_max_coil_temperature
   on_value:
     then:

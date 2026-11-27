@@ -388,7 +388,6 @@ script:
 
           root["zd"] = id(defrost_control_select).active_index().value_or(0);
           root["ze"] = id(custom_defrost_delta_at_zero).state;
-          root["zf"] = id(custom_defrost_delta_at_cold).state;
           root["zg"] = id(custom_defrost_max_coil_temperature).state;
           root["zi"] = !std::isnan(id(outdoor_humidity).state);
           root["zj"] = id(custom_defrost_min_runtime).state;

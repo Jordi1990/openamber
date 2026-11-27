@@ -71,9 +71,9 @@ inline float CustomDefrostIcingRate(float ta, float rh, float tp)
 /// Three start routes, each after the minimum interval (at least the outdoor unit's 30 min lock):
 ///  - Start line (Mitsubishi SRK-ZSX, technical manual 17-SRK-T-228, chapter 17c): the compressor runs continuously
 ///    for at least 5 min and the coil temperature Tp stays below the start line for 3 min. The start line is
-///    Ta - (required difference), where the required difference is 5 K at Ta >= 0 °C and 4 K at Ta = -15 °C,
-///    and never above -5 °C. All three values are settings. Mitsubishi uses 7 K at 0 °C, but on the Amber a clean
-///    coil sits only about 3 K below Ta, so 7 K was never reached (data of Nov 2026).
+///    Ta - (required difference), never above the maximum Tp (-5 °C); both are settings. Mitsubishi lowers the
+///    difference towards -15 °C; OpenAmber keeps one difference to stay simple. Mitsubishi uses 7 K at 0 °C, but on
+///    the Amber a clean coil sits only about 3 K below Ta, so 7 K was never reached (data of Nov 2026), hence 5 K.
 ///  - Ice counter (needs a humidity value): the vapour pressure excess of the air over ice at Tp, summed over the
 ///    compressor time since the last defrost (Pa·h). Defrost when it reaches the threshold.
 ///  - Interval: after the adaptive interval with Tp below -2 °C for 3 min. The interval grows after short defrosts and
@@ -225,27 +225,10 @@ private:
 
   // ── Start line (Mitsubishi) ──
 
-  /// @brief Required difference Ta - Tp: constant above 0 °C, linear down to the cold reference (-15 °C), constant below.
-  float GetRequiredDelta(float ta)
-  {
-    float delta_zero = id(custom_defrost_delta_at_zero).state;
-    float delta_cold = id(custom_defrost_delta_at_cold).state;
-    if (ta >= 0.0f)
-    {
-      return delta_zero;
-    }
-    if (ta <= CUSTOM_DEFROST_COLD_REFERENCE_TA_C)
-    {
-      return delta_cold;
-    }
-    float fraction = ta / CUSTOM_DEFROST_COLD_REFERENCE_TA_C;
-    return delta_zero + (delta_cold - delta_zero) * fraction;
-  }
-
   /// @brief Coil temperature at or below which the coil counts as iced.
   float GetStartTemperature(float ta)
   {
-    return std::min(id(custom_defrost_max_coil_temperature).state, ta - GetRequiredDelta(ta));
+    return std::min(id(custom_defrost_max_coil_temperature).state, ta - id(custom_defrost_delta_at_zero).state);
   }
 
   // ── Interval between defrosts ──
