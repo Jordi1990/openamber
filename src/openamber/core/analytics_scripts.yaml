@@ -390,10 +390,7 @@ script:
           root["ze"] = id(custom_defrost_delta_at_zero).state;
           root["zf"] = id(custom_defrost_delta_at_cold).state;
           root["zg"] = id(custom_defrost_max_coil_temperature).state;
-          root["zi"] = !std::isnan(id(outdoor_humidity).state);
           root["zj"] = id(custom_defrost_min_runtime).state;
-          root["zk"] = id(custom_defrost_frost_point_margin).state;
-          root["zl"] = id(custom_defrost_ice_threshold).state;
 
 - id: send_telemetry_1
   then:
@@ -499,8 +496,6 @@ script:
           root["yj"] = id(custom_defrost_last_duration).state;
           root["yl"] = id(custom_defrost_interval_sensor).state;
           root["ym"] = id(custom_defrost_start_temperature).state;
-          root["yn"] = id(outdoor_humidity).state;
-          root["yp"] = id(custom_defrost_ice_load_sensor).state;
 
 # One message per defrost, sent by the custom defrost controller when 2118 drops. Not retained: it is an event.
 - id: send_defrost_event
@@ -515,11 +510,8 @@ script:
     ta: float
     tp: float
     start_line: float
-    humidity: float
-    frost_point: float
     runtime_min: float
     stops: int
-    ice_load: float
   then:
     - if:
         condition:
@@ -538,11 +530,8 @@ script:
                 root["dff"] = ta;
                 root["dfg"] = tp;
                 root["dfh"] = start_line;
-                root["dfi"] = humidity;
-                root["dfj"] = frost_point;
                 root["dfk"] = runtime_min;
                 root["dfl"] = stops;
-                root["dfp"] = ice_load;
                 root["dfn"] = id(defrost_control_select).active_index().value_or(0);
                 root["dfo"] = id(outside_unit_program_version).state;
 

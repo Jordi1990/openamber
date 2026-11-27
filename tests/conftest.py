@@ -132,10 +132,9 @@ def clean_system(openamber):
     openamber.set_time("silent_mode_end_time", 7, 0, 0)
     openamber.set_switch("legio_enabled_switch", True)
     openamber.set_switch("reset_start_timeout_errors_switch", True)
-    # Simulated BLE sensors (mock/ble_mock.yaml): Bluetooth off, sources back to their defaults.
+    # Simulated BLE sensors (mock/ble_mock.yaml): Bluetooth off, room temperature source back to Tr.
     openamber.set_switch("ble_enabled_switch", False)
     openamber.set_select("room_temperature_source_select", "Tr")
-    openamber.set_select("outdoor_humidity_source_select", "Geen")
     openamber.set_number("mock_ble_1_temperature", 5.0)
     openamber.set_number("mock_ble_1_humidity", 85.0)
     openamber.set_switch("mixing_valve_zone1_enabled", False)

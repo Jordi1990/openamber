@@ -1,7 +1,7 @@
 """Automated tests for the custom (OpenAmber controlled) defrost algorithm.
 Covers both defrost control modes (Buitenunit, OpenAmber) and switching between them, the Mitsubishi start line,
-the interval route with the adaptive interval (whose 120 min maximum is the safety net), the ice counter, the
-outdoor unit's 30 min lock, the optional humidity sensor, the return temperature block, the forced defrost request (working mode 4),
+the interval route with the adaptive interval (whose 120 min maximum is the safety net), the outdoor unit's 30 min
+lock, the return temperature block, the forced defrost request (working mode 4),
 the request timeout (error TO10, no retry) and the settings page in the UI.
 """
 
@@ -21,9 +21,6 @@ def _configure(openamber, mode):
     openamber.set_number("custom_defrost_min_runtime", 40.0)
     openamber.advance_time(seconds=5, step_s=5)
     openamber.set_number("custom_defrost_min_runtime", 35.0)
-    openamber.set_number("custom_defrost_frost_point_margin", 0.0)
-    openamber.set_number("custom_defrost_ice_threshold", 90.0)
-    openamber.set_sensor("outdoor_humidity", 0.0)
     openamber.set_sensor("temperature_outside_ta", 0.0)
     openamber.set_sensor("evaporation_temperature_tp", 5.0)
     openamber.step(ms=50)
@@ -308,56 +305,6 @@ def test_interval_route_follows_adaptive_interval(clean_system):
     _confirm_short_forced_defrost(openamber)
 
 
-def test_ice_counter_triggers_with_humidity(clean_system):
-    """With a humidity value the ice counter sums the icing rate and defrosts at the threshold, even when Tp stays
-    above the start line and above -2 °C. The counter restarts after the defrost."""
-    openamber = clean_system
-    _configure(openamber, "OpenAmber")
-    openamber.set_sensor("outdoor_humidity", 100.0)
-    _heat_and_reset_runtime(openamber)
-
-    # Ta 0 °C, RV 100 %, Tp -1.5 °C: about 71 Pa excess over ice, so 90 Pa·h after about 76 min
-    openamber.set_sensor("evaporation_temperature_tp", -1.5)
-    openamber.advance_time(seconds=50 * 60, step_s=30)
-    openamber.step(ms=50)
-    ice_load = openamber.get_entity("custom_defrost_ice_load_sensor")
-    assert 55 <= ice_load <= 63, f"Ice counter after 50 min, got {ice_load}"
-    assert openamber.get_entity("custom_defrost_status") == "Bewaken"
-    assert openamber.get_label("set_custom_defrost_ice_load_val") == f"{ice_load:.0f} Pa·h"
-
-    assert advance_until_state(openamber, "custom_defrost_status", "Aangevraagd", max_s=35 * 60, step=30)
-    assert openamber.get_entity("custom_defrost_last_trigger").startswith("IJsteller")
-    # The runtime also counts the minutes with the warm coil right after the reset defrost (no icing then)
-    assert 76 <= openamber.get_entity("custom_defrost_runtime_sensor") <= 90
-    assert openamber.get_entity("custom_defrost_ice_load_sensor") >= 90
-
-    _confirm_short_forced_defrost(openamber)
-    assert openamber.get_entity("custom_defrost_ice_load_sensor") == 0
-    openamber.set_sensor("outdoor_humidity", 0.0)
-
-
-def test_ice_counter_off_and_without_humidity(clean_system):
-    """Threshold 0 switches the ice counter off; without a humidity value nothing is counted."""
-    openamber = clean_system
-    _configure(openamber, "OpenAmber")
-    _heat_and_reset_runtime(openamber)
-
-    openamber.set_sensor("evaporation_temperature_tp", -1.5)
-    openamber.advance_time(seconds=40 * 60, step_s=30)
-    openamber.step(ms=50)
-    assert openamber.get_entity("custom_defrost_ice_load_sensor") == 0
-
-    openamber.set_number("custom_defrost_ice_threshold", 0.0)
-    openamber.set_sensor("outdoor_humidity", 100.0)
-    openamber.advance_time(seconds=60 * 60, step_s=30)
-    openamber.step(ms=50)
-    assert openamber.get_entity("custom_defrost_ice_load_sensor") > 70
-    assert openamber.get_entity("custom_defrost_status") == "Bewaken"
-    assert openamber.get_entity("working_mode_switch") == "Verwarmen"
-    openamber.set_sensor("outdoor_humidity", 0.0)
-    openamber.set_number("custom_defrost_ice_threshold", 90.0)
-
-
 def test_max_interval_is_safety_net(clean_system):
     """The interval is at most 120 min, so a coil just below -2 °C always defrosts after 120 min (former safety net)."""
     openamber = clean_system
@@ -375,54 +322,6 @@ def test_max_interval_is_safety_net(clean_system):
     # The 3 min Tp hold already passed during the interval, so it defrosts right at 120 min.
     assert openamber.get_entity("custom_defrost_runtime_sensor") >= 120
     openamber.set_number("custom_defrost_min_runtime", 35.0)
-
-def test_humidity_sensor_blocks_defrost_in_dry_air(clean_system):
-    """With a humidity value, a coil above the frost point of the air does not defrost."""
-    openamber = clean_system
-    _configure(openamber, "OpenAmber")
-    openamber.set_sensor("outdoor_humidity", 40.0)
-    _heat_and_reset_runtime(openamber)
-    _wait_for_interval(openamber)
-
-    # Ta 0 °C, RV 40 %: frost point about -10.7 °C. Tp -8 °C is below the start line but above the frost point.
-    assert openamber.get_label("set_custom_defrost_humidity_value_val") == "40% / -10.7°C"
-    openamber.set_sensor("evaporation_temperature_tp", -8.0)
-    openamber.advance_time(seconds=5 * 60, step_s=10)
-    openamber.step(ms=50)
-    assert openamber.get_entity("custom_defrost_status").startswith("Bewaken: droge lucht")
-
-    openamber.set_sensor("evaporation_temperature_tp", -11.0)
-    openamber.advance_time(seconds=60, step_s=10)
-    openamber.step(ms=50)
-    assert openamber.get_entity("custom_defrost_status") == "Aangevraagd"
-
-    # Without a valid humidity value the regulation works as without sensor
-    openamber.set_sensor("outdoor_humidity", 0.0)
-    openamber.advance_time(seconds=10, step_s=5)
-    assert openamber.get_label("set_custom_defrost_humidity_value_val") == "0%"
-
-
-def test_humidity_frost_point_margin_and_max_delay(clean_system):
-    """The frost point margin moves the icing limit down; the maximum delay ends the wait for dry air."""
-    openamber = clean_system
-    _configure(openamber, "OpenAmber")
-    openamber.set_sensor("outdoor_humidity", 40.0)
-    openamber.set_number("custom_defrost_frost_point_margin", 2.0)
-    _heat_and_reset_runtime(openamber)
-    _wait_for_interval(openamber)
-
-    # Frost point about -10.7 °C, with 2 K margin the limit is about -12.7 °C: Tp -11 °C still waits.
-    openamber.set_sensor("evaporation_temperature_tp", -11.0)
-    openamber.advance_time(seconds=4 * 60, step_s=10)
-    openamber.step(ms=50)
-    assert openamber.get_entity("custom_defrost_status").startswith("Bewaken: droge lucht")
-
-    # At the maximum interval (120 min) the humidity no longer delays the defrost.
-    assert advance_until_state(openamber, "custom_defrost_status", "Aangevraagd", max_s=90 * 60, step=60)
-    assert openamber.get_entity("custom_defrost_runtime_sensor") >= 120
-
-    openamber.set_sensor("outdoor_humidity", 0.0)
-
 
 def test_low_return_temperature_blocks_until_max_wait(clean_system):
     """A low return temperature delays the defrost, but only up to the maximum wait time."""
@@ -458,9 +357,8 @@ def test_defrost_settings_menu(clean_system):
     assert openamber.click("advanced_stab_defrost")
     openamber.step(ms=100)
     assert openamber.is_hidden("panel_advanced_page_defrost") is False
-    # OpenAmber: start line and humidity, not the outdoor unit's start temperatures
+    # OpenAmber: start line, not the outdoor unit's start temperatures
     assert openamber.is_hidden("defrost_stab_startlijn") is False
-    assert openamber.is_hidden("defrost_stab_vocht") is False
     assert openamber.is_hidden("defrost_stab_start_temps") is True
     assert openamber.is_hidden("defrost_stab_end") is True
     assert openamber.is_hidden("defrost_stab_status") is False
@@ -470,7 +368,6 @@ def test_defrost_settings_menu(clean_system):
     openamber.step(ms=100)
     assert openamber.is_hidden("panel_advanced_page_defrost_general") is False
     assert openamber.is_hidden("set_custom_defrost_mode_row") is False
-    assert openamber.is_hidden("set_custom_defrost_frost_margin_row") is True
     assert openamber.is_hidden("set_custom_defrost_status_row") is True
 
     # Startlijn
@@ -482,23 +379,6 @@ def test_defrost_settings_menu(clean_system):
     assert openamber.is_hidden("set_custom_defrost_delta_zero_row") is False
     assert openamber.get_label("set_custom_defrost_delta_zero_val") == "7.0 K"
 
-    # Luchtvochtigheid
-    assert openamber.click("settings_menu_back_btn")
-    openamber.step(ms=100)
-    assert openamber.click("defrost_stab_vocht")
-    openamber.step(ms=100)
-    assert openamber.is_hidden("set_custom_defrost_frost_margin_row") is False
-    openamber.set_sensor("outdoor_humidity", 85.0)
-    openamber.step(ms=50)
-    assert openamber.get_label("set_custom_defrost_humidity_value_val").startswith("85% / ")
-    assert openamber.is_hidden("set_custom_defrost_ice_threshold_row") is False
-    assert openamber.get_label("set_custom_defrost_ice_threshold_val") == "90 Pa·h"
-    openamber.set_number("custom_defrost_ice_threshold", 0.0)
-    openamber.step(ms=50)
-    assert openamber.get_label("set_custom_defrost_ice_threshold_val") == "Uit"
-    openamber.set_number("custom_defrost_ice_threshold", 90.0)
-    openamber.set_sensor("outdoor_humidity", 0.0)
-
     # Status
     assert openamber.click("settings_menu_back_btn")
     openamber.step(ms=100)
@@ -509,117 +389,15 @@ def test_defrost_settings_menu(clean_system):
     openamber.advance_time(seconds=10, step_s=5)
     assert openamber.get_label("set_custom_defrost_status_val").startswith("Bewaken")
 
-    # Buitenunit: the outdoor unit's start temperatures instead of the start line and humidity (tiles on the menu page)
+    # Buitenunit: the outdoor unit's start temperatures instead of the start line (tiles on the menu page)
     assert openamber.click("settings_menu_back_btn")
     openamber.step(ms=100)
     openamber.set_select("defrost_control_select", "Buitenunit")
     openamber.step(ms=50)
     assert openamber.is_hidden("defrost_stab_start_temps") is False
     assert openamber.is_hidden("defrost_stab_startlijn") is True
-    assert openamber.is_hidden("defrost_stab_vocht") is True
     assert openamber.is_hidden("defrost_stab_end") is False
     assert openamber.is_hidden("defrost_stab_status") is True
-    openamber.set_switch("advanced_settings_enabled", False)
-    openamber.step(ms=50)
-
-
-def test_humidity_page_without_ble_sensor(clean_system):
-    """Without a BLE humidity sensor (the simulator has no BLE) the source on Defrost > Algemeen shows 'Geen sensor
-    beschikbaar' and is disabled, and the settings on Defrost > Luchtvochtigheid are disabled. Only BLE sensors are
-    supported, there is no external option."""
-    openamber = clean_system
-    _configure(openamber, "OpenAmber")
-
-    assert openamber.click("nav_settings")
-    openamber.step(ms=100)
-    openamber.set_switch("advanced_settings_enabled", True)
-    openamber.step(ms=100)
-    assert openamber.click("stab_advanced")
-    openamber.step(ms=50)
-    assert openamber.click("advanced_stab_defrost")
-    openamber.step(ms=100)
-
-    # Algemeen: the source dropdown, below the defrost control
-    assert openamber.click("defrost_stab_general")
-    openamber.step(ms=100)
-    assert openamber.is_hidden("set_custom_defrost_humidity_source_row") is False
-    source = openamber.get_widget("set_custom_defrost_humidity_source_dd")
-    assert source["text"] == "Geen sensor beschikbaar"
-    assert source["disabled"] is True
-    assert openamber.is_disabled("set_custom_defrost_humidity_source_row")
-
-    # Luchtvochtigheid: the settings are disabled
-    assert openamber.click("settings_menu_back_btn")
-    openamber.step(ms=100)
-    assert openamber.click("defrost_stab_vocht")
-    openamber.step(ms=100)
-    for row in ("set_custom_defrost_frost_margin_row", "set_custom_defrost_humidity_value_row",
-                "set_custom_defrost_ice_threshold_row", "set_custom_defrost_ice_load_row"):
-        assert openamber.is_hidden(row) is False, row
-        assert openamber.is_disabled(row), row
-    # The step buttons inside the rows are disabled too
-    assert openamber.is_disabled("set_custom_defrost_ice_threshold_val")
-
-    # Buitenunit: humidity does not matter, so the source is hidden
-    assert openamber.click("settings_menu_back_btn")
-    openamber.step(ms=100)
-    openamber.set_select("defrost_control_select", "Buitenunit")
-    openamber.step(ms=50)
-    assert openamber.click("defrost_stab_general")
-    openamber.step(ms=100)
-    assert openamber.is_hidden("set_custom_defrost_humidity_source_row") is True
-
-    openamber.set_switch("advanced_settings_enabled", False)
-    openamber.step(ms=50)
-
-
-def test_humidity_from_simulated_ble_sensor(clean_system):
-    """With Bluetooth on, the simulated BLE sensor 1 (paired in slot 1, 5 °C / 85 %) can be picked as outdoor humidity
-    source on Defrost > Algemeen; the humidity settings become active and show its humidity and frost point."""
-    openamber = clean_system
-    _configure(openamber, "OpenAmber")
-    openamber.set_switch("ble_enabled_switch", True)
-    openamber.advance_time(seconds=15, step_s=1)
-
-    assert openamber.click("nav_settings")
-    openamber.step(ms=100)
-    openamber.set_switch("advanced_settings_enabled", True)
-    openamber.step(ms=100)
-    assert openamber.click("stab_advanced")
-    openamber.step(ms=50)
-    assert openamber.click("advanced_stab_defrost")
-    openamber.step(ms=100)
-    assert openamber.click("defrost_stab_general")
-    openamber.step(ms=100)
-
-    # A paired sensor is available, none chosen yet: the dropdown is enabled and shows "Geen"
-    source = openamber.get_widget("set_custom_defrost_humidity_source_dd")
-    assert source["disabled"] is False
-    assert source["text"] == "Geen"
-
-    # Pick sensor 1
-    assert openamber.set_dropdown("set_custom_defrost_humidity_source_dd", 1)
-    openamber.advance_time(seconds=10, step_s=1)
-    assert openamber.get_entity("outdoor_humidity_source_select") == "BLE 1"
-    assert openamber.get_entity("outdoor_humidity") == pytest.approx(85.0, abs=0.5)
-    assert openamber.get_widget("set_custom_defrost_humidity_source_dd")["text"].startswith("BTHome")
-
-    # Luchtvochtigheid: settings enabled, humidity and frost point of the BLE sensor (Ta 0 °C, 85 % -> -2.0 °C)
-    assert openamber.click("settings_menu_back_btn")
-    openamber.step(ms=100)
-    assert openamber.click("defrost_stab_vocht")
-    openamber.step(ms=100)
-    for row in ("set_custom_defrost_frost_margin_row", "set_custom_defrost_humidity_value_row",
-                "set_custom_defrost_ice_threshold_row", "set_custom_defrost_ice_load_row"):
-        assert not openamber.is_disabled(row), row
-    assert openamber.get_label("set_custom_defrost_humidity_value_val") == "85% / -2.0°C"
-
-    # Bluetooth off: back to no source, settings disabled again
-    openamber.set_switch("ble_enabled_switch", False)
-    openamber.advance_time(seconds=5, step_s=1)
-    assert openamber.get_entity("outdoor_humidity_source_select") == "Geen"
-    assert openamber.is_disabled("set_custom_defrost_frost_margin_row")
-
     openamber.set_switch("advanced_settings_enabled", False)
     openamber.step(ms=50)
 

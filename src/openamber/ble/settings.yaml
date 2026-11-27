@@ -1,6 +1,5 @@
 # BLE UI: the room temperature source dropdown on the thermostat "Basis & Setpoints"
-# menu page and the Bluetooth page under Settings -> Connectiviteit. The outdoor humidity
-# source dropdown of the custom defrost is on that page itself and filled by ble_sensor_ui.h.
+# menu page and the Bluetooth page under Settings -> Connectiviteit.
 lvgl:
   widgets:
     - obj:

@@ -29,7 +29,6 @@ widgets:
             disabled:
               styles: menu_tile_disabled_style
             on_click:
-              - script.execute: update_custom_defrost_humidity_ui
               - lvgl.menu.set_page:
                   id: settings_menu
                   page: panel_advanced_page_defrost_general
@@ -52,23 +51,6 @@ widgets:
             widgets:
               - label: { text: "\U000F1A71", styles: menu_tile_icon_style }
               - label: { id: defrost_stab_startlijn_lbl, text: "${t_startlijn_en_interval}", long_mode: WRAP, styles: menu_tile_label_style }
-
-        - obj:
-            id: defrost_stab_vocht
-            styles: menu_tile_style
-            scrollable: false
-            pressed:
-              styles: menu_tile_pressed_style
-            disabled:
-              styles: menu_tile_disabled_style
-            on_click:
-              - script.execute: update_custom_defrost_humidity_ui
-              - lvgl.menu.set_page:
-                  id: settings_menu
-                  page: panel_advanced_page_defrost_vocht
-            widgets:
-              - label: { text: "\U000F058C", styles: menu_tile_icon_style }
-              - label: { id: defrost_stab_vocht_lbl, text: "${t_lucht_vochtigheid}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: defrost_stab_start_temps

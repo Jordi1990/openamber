@@ -2426,10 +2426,6 @@
   nl: "Display"
   de: "Anzeige"
   en: "Display"
-- key: t_bron_buitenvochtigheid
-  nl: "Bron buitenvochtigheid"
-  de: "Quelle Außenfeuchte"
-  en: "Outdoor humidity source"
 - key: t_activeren
   nl: "Activeren"
   de: "Aktivieren"
@@ -2458,10 +2454,6 @@
   nl: "Einde defrost"
   de: "Abtauende"
   en: "End of defrost"
-- key: t_lucht_vochtigheid
-  nl: "Lucht-\nvochtigheid"
-  de: "Luft-\nfeuchte"
-  en: "Humidity"
 - key: t_start_temperaturen_unit
   nl: "Start-\ntemperaturen unit"
   de: "Start-\ntemperaturen Einheit"
@@ -2546,45 +2538,6 @@
   nl: "Nog geen trigger"
   de: "Noch kein Auslöser"
   en: "No trigger yet"
-- key: t_defrost_luchtvochtigheid
-  nl: "Defrost: luchtvochtigheid"
-  de: "Abtauen: Luftfeuchte"
-  en: "Defrost: humidity"
-- key: t_buitenvochtigheid_rijppunt
-  nl: "Buitenvochtigheid / rijppunt"
-  de: "Außenfeuchte / Reifpunkt"
-  en: "Outdoor humidity / frost point"
-- key: t_huidige_meting_en_rijppunt_van_de_lucht
-  nl: "Huidige meting en rijppunt van de lucht"
-  de: "Aktueller Messwert und Reifpunkt der Luft"
-  en: "Current reading and frost point of the air"
-- key: t_marge_rijppunt
-  nl: "Marge rijppunt"
-  de: "Reifpunkt-Marge"
-  en: "Frost point margin"
-- key: t_tp_moet_zoveel_onder_het_rijppunt_liggen
-  nl: "Tp moet zoveel onder het rijppunt liggen"
-  de: "Tp muss so weit unter dem Reifpunkt liegen"
-  en: "Tp must be this far below the frost point"
-- key: t_drempel_ijsteller
-  nl: "Drempel ijsteller"
-  de: "Schwelle Eiszähler"
-  en: "Ice counter threshold"
-- key: t_ontdooien_bij_zoveel_ijsaangroei_0_uit
-  nl: "Ontdooien bij zoveel ijsaangroei (0 = uit)"
-  de: "Abtauen bei so viel Eisansatz (0 = aus)"
-  en: "Defrost at this much ice growth (0 = off)"
-- key: t_ijsteller
-  nl: "IJsteller"
-  de: "Eiszähler"
-  en: "Ice counter"
-- key: t_ijsaangroei_sinds_de_laatste_defrost
-  nl: "IJsaangroei sinds de laatste defrost"
-  de: "Eisansatz seit dem letzten Abtauen"
-  en: "Ice growth since the last defrost"
-- nl: "Geen meting"
-  de: "Kein Messwert"
-  en: "No reading"
 - use: state
   nl: "Bewaken"
   de: "Überwachen"
@@ -2633,14 +2586,6 @@
   nl: "Interval"
   de: "Intervall"
   en: "Interval"
-- key: t_gekoppelde_bluetooth_sensor
-  nl: "Gekoppelde Bluetooth-sensor"
-  de: "Gekoppelter Bluetooth-Sensor"
-  en: "Paired Bluetooth sensor"
-- key: t_geen_sensor_beschikbaar
-  nl: "Geen sensor beschikbaar"
-  de: "Kein Sensor verfügbar"
-  en: "No sensor available"
 - use: state
   nl: "Fout: defrost startte niet"
   de: "Fehler: Abtauen nicht gestartet"

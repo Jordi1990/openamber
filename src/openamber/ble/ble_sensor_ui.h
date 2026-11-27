@@ -60,58 +60,6 @@ static void ble_sensor_update_source()
     ble_sensor_update(enabled, source, macs, models);
 }
 
-// ── Outdoor humidity for the custom defrost ──
-// outdoor_humidity_source_select options; index 1..3 is paired slot 0..2. Only BLE sensors are supported.
-static const char *const BLE_OUTDOOR_HUMIDITY_OPTIONS[1 + BLE_SENSOR_SLOTS] = {"Geen", "BLE 1", "BLE 2", "BLE 3"};
-static bool ble_outdoor_humidity_published = false;
-
-// Slot chosen as outdoor humidity source (-1: none), regardless of the switch.
-static int ble_outdoor_humidity_selected_slot()
-{
-    auto idx = id(outdoor_humidity_source_select).active_index();
-    if (!idx.has_value() || idx.value() < 1 || idx.value() > BLE_SENSOR_SLOTS)
-        return -1;
-    return int(idx.value()) - 1;
-}
-
-static void ble_outdoor_humidity_set_source(int slot)
-{
-    const char *option = BLE_OUTDOOR_HUMIDITY_OPTIONS[slot >= 0 && slot < int(BLE_SENSOR_SLOTS) ? slot + 1 : 0];
-    if (id(outdoor_humidity_source_select).current_option() != option)
-        id(outdoor_humidity_source_select).make_call().set_option(option).perform();
-}
-
-// Publishes the humidity of the chosen slot into outdoor_humidity, or NAN without a fresh reading (the custom
-// defrost then works as without a sensor). Without a source outdoor_humidity stays NAN.
-static void ble_sensor_update_outdoor_humidity()
-{
-    if (!ble_sensor_boot_ready)
-        return;
-    int slot = ble_outdoor_humidity_selected_slot();
-    // Bluetooth off or an unpaired slot: no source.
-    if (slot >= 0 && (!id(ble_enabled_switch).state || ble_sensor_slot_text(slot)->state.empty()))
-    {
-        ble_outdoor_humidity_set_source(-1);
-        slot = -1;
-    }
-    esphome::sensor::Sensor *target = &id(outdoor_humidity);
-    if (slot < 0)
-    {
-        // Clear the last BLE value once, so it does not linger without a source.
-        if (ble_outdoor_humidity_published)
-        {
-            ble_outdoor_humidity_published = false;
-            target->publish_state(NAN);
-        }
-        return;
-    }
-    float value = ble_sensor_slot_fresh(slot) ? ble_sensor_slots[slot].reading.humidity : NAN;
-    ble_outdoor_humidity_published = true;
-    float current = target->state;
-    if (std::isnan(value) != std::isnan(current) || (!std::isnan(value) && fabsf(value - current) >= 0.5f))
-        target->publish_state(value);
-}
-
 static bool ble_sensor_device_fresh(const BleSensorDevice &device)
 {
     return device.model && device.reading.valid &&
@@ -144,8 +92,6 @@ static void ble_sensor_unpair(unsigned slot)
         return;
     if (ble_sensor_selected_source_slot() == int(slot))
         ble_sensor_set_source(-1);
-    if (ble_outdoor_humidity_selected_slot() == int(slot))
-        ble_outdoor_humidity_set_source(-1);
     // Move the sensor to the found list with its model and last reading, so it can
     // be paired again right away instead of waiting for a scan response.
     const BleSensorSlot &s = ble_sensor_slots[slot];
@@ -245,51 +191,6 @@ static void ble_sensor_source_dropdown_changed()
     ble_sensor_set_source(selected <= BLE_SENSOR_SLOTS ? ble_sensor_dropdown_slots[selected] : -1);
 }
 
-// ── Outdoor humidity source dropdown (custom defrost humidity page): "Geen" plus the paired sensors ──
-static int ble_outdoor_humidity_dropdown_slots[1 + BLE_SENSOR_SLOTS] = {-1, -1, -1, -1};
-
-static void ble_outdoor_humidity_update_dropdown()
-{
-    std::string options = oa_tr("Geen");
-    unsigned count = 1, selected = 0;
-    int source = ble_outdoor_humidity_selected_slot();
-    for (unsigned i = 0; i < BLE_SENSOR_SLOTS; i++)
-    {
-        if (!id(ble_enabled_switch).state || ble_sensor_slot_text(i)->state.empty())
-            continue;
-        char title[64];
-        ble_sensor_slot_title(i, title, sizeof(title), 24);
-        options += "\n";
-        options += title;
-        if (int(i) == source)
-            selected = count;
-        ble_outdoor_humidity_dropdown_slots[count++] = i;
-    }
-    // Without Bluetooth or a paired sensor there is nothing to choose (the page disables the dropdown).
-    if (count == 1)
-        options = oa_tr("Geen sensor beschikbaar");
-    lv_obj_t *dd = id(set_custom_defrost_humidity_source_dd).obj;
-    if (options != lv_dropdown_get_options(dd))
-        lv_dropdown_set_options(dd, options.c_str());
-    if (lv_dropdown_get_selected(dd) != selected)
-        lv_dropdown_set_selected(dd, selected);
-
-    int state = count == 1 ? 0 : selected == 0 ? 1 : 2;
-    if (state != id(custom_defrost_humidity_source_state))
-    {
-        id(custom_defrost_humidity_source_state) = state;
-        id(update_custom_defrost_humidity_ui).execute();
-    }
-}
-
-static void ble_outdoor_humidity_dropdown_changed()
-{
-    if (id(custom_defrost_humidity_source_state) == 0)
-        return;
-    unsigned selected = lv_dropdown_get_selected(id(set_custom_defrost_humidity_source_dd).obj);
-    ble_outdoor_humidity_set_source(selected <= BLE_SENSOR_SLOTS ? ble_outdoor_humidity_dropdown_slots[selected] : -1);
-}
-
 // ── Settings → Connectiviteit → Bluetooth ──
 static void ble_sensor_update_bluetooth_page()
 {
@@ -332,11 +233,7 @@ static void ble_sensor_update_bluetooth_page()
         paired++;
         char title[64];
         ble_sensor_slot_title(i, title, sizeof(title));
-        int outdoor = ble_outdoor_humidity_selected_slot();
-        const char *role = int(i) == source && int(i) == outdoor ? oa_tr("  |  ruimte + buiten")
-                           : int(i) == source                  ? oa_tr("  |  ruimtetemperatuur")
-                           : int(i) == outdoor                 ? oa_tr("  |  buitenvochtigheid")
-                                                               : "";
+        const char *role = int(i) == source ? oa_tr("  |  ruimtetemperatuur") : "";
         const BleSensorSlot &slot = ble_sensor_slots[i];
         const char *icon = "\U000F0028";
         uint32_t color = 0xD97706;
@@ -415,13 +312,9 @@ static void ble_sensor_update_ui()
     if (!placed)
     {
         lv_obj_move_to_index(&id(ble_source_row), 1);
-        // The humidity source dropdown is part of the custom defrost page; the BLE package handles its changes.
-        lv_obj_add_event_cb(id(set_custom_defrost_humidity_source_dd).obj,
-                            [](lv_event_t *) { ble_outdoor_humidity_dropdown_changed(); }, LV_EVENT_VALUE_CHANGED, nullptr);
         placed = true;
     }
     ble_sensor_update_source_dropdown();
-    ble_outdoor_humidity_update_dropdown();
     if (ble_sensor_bluetooth_page_visible())
         ble_sensor_update_bluetooth_page();
 }
