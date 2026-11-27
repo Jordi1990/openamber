@@ -1,6 +1,6 @@
 # BLE UI: the room temperature source dropdown on the thermostat "Basis & Setpoints"
-# menu page, the outdoor humidity source on the custom defrost humidity page and
-# the Bluetooth page under Settings -> Connectiviteit.
+# menu page and the Bluetooth page under Settings -> Connectiviteit. The outdoor humidity
+# source dropdown of the custom defrost is on that page itself and filled by ble_sensor_ui.h.
 lvgl:
   widgets:
     - obj:
@@ -32,29 +32,6 @@ lvgl:
                               dropdown_list: { text_font: font_text_20 }
                               on_change:
                                 - lambda: ble_sensor_source_dropdown_changed();
-
-                - id: !extend panel_advanced_page_defrost_vocht
-                  widgets:
-                    - obj:
-                        id: ble_outdoor_humidity_row
-                        styles: setting_row_style
-                        scrollable: false
-                        widgets:
-                          - label: { text: "${t_bron_buitenvochtigheid}", text_font: font_text_24, text_color: 0x1F2933, align: TOP_LEFT }
-                          - label: { text: "${t_extern_of_gekoppelde_bluetooth_sensor}", text_font: font_text_20, text_color: 0x6B7280, align: TOP_LEFT, y: 32 }
-                          - dropdown:
-                              id: ble_outdoor_humidity_dropdown
-                              width: 360
-                              height: 40
-                              align: TOP_RIGHT
-                              y: -4
-                              symbol: "\U000F0140"
-                              # Options are rebuilt from the paired sensors (ble_sensor_ui.h).
-                              options: ["Extern (bijv. HA)"]
-                              text_font: font_text_20
-                              dropdown_list: { text_font: font_text_20 }
-                              on_change:
-                                - lambda: ble_outdoor_humidity_dropdown_changed();
 
                 - id: !extend panel_wifi
                   widgets:

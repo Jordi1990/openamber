@@ -471,7 +471,6 @@ substitutions:
   t_circulatiepomp_p2_zone_2_draait_bij_warm: "Umwälzpumpe P2 Zone 2, läuft bei Wärmeanforderung Zone 2"
   t_display: "Anzeige"
   t_bron_buitenvochtigheid: "Quelle Außenfeuchte"
-  t_extern_of_gekoppelde_bluetooth_sensor: "Extern oder gekoppelter Bluetooth-Sensor"
   t_activeren: "Aktivieren"
   t_de_buitenunit_ontdooit_dan_niet_meer_zel: "Die Außeneinheit taut dann nicht mehr selbst ab, OpenAmber startet das Abtauen. Klappt ein Abtauen nicht, erhältst du eine Meldung und OpenAmber versucht es nach 30 min erneut. Du kannst jederzeit zurück auf Außeneinheit schalten, auch aus Home Assistant."
   t_de_buitenunit_start_direct_een_defrost_o: "Die Außeneinheit startet sofort ein Abtauen oder sobald 30 min nach dem letzten Abtauen vergangen sind. Stoppt der Kompressor vorher, verfällt die Anforderung."
@@ -510,3 +509,5 @@ substitutions:
   t_ontdooien_bij_zoveel_ijsaangroei_0_uit: "Abtauen bei so viel Eisansatz (0 = aus)"
   t_ijsteller: "Eiszähler"
   t_ijsaangroei_sinds_de_laatste_defrost: "Eisansatz seit dem letzten Abtauen"
+  t_gekoppelde_bluetooth_sensor: "Gekoppelter Bluetooth-Sensor"
+  t_geen_sensor_beschikbaar: "Kein Sensor verfügbar"

@@ -111,22 +111,25 @@ IJs groeit alleen als de spoel kouder is dan het rijppunt van de buitenlucht. Me
 OpenAmber dat rijppunt uit. Ligt Tp erboven, dan wacht de regeling, ook als de startlijn bereikt is: de lucht is
 te droog om ijs te vormen. Dat wachten stopt bij 120 min draaitijd, ook zonder of met een verkeerde sensor.
 
+Voorlopig worden alleen Bluetooth-sensoren ondersteund, dus alleen op de Waveshare-displays.
+
 De instellingen staan onder **Defrost → Luchtvochtigheid**:
 
 | Instelling | Standaard | Betekenis |
 | --- | --- | --- |
-| Bron buitenvochtigheid | Extern | Alleen op displays met Bluetooth: een gekoppelde BLE-sensor of extern. |
+| Bron buitenvochtigheid | Geen | Een gekoppelde BLE-sensor. Zonder Bluetooth of gekoppelde sensor staat hier "Geen sensor beschikbaar". |
 | Marge rijppunt | 0 K | Tp moet zoveel onder het rijppunt liggen voordat er ijs telt. Hoger = later ontdooien in droge lucht. |
 | Drempel ijsteller | 70 Pa·h | Ontdooien zodra er zoveel ijsaangroei geteld is (zie IJsteller). 0 = uit. |
 
 Vanaf 120 min draaitijd (het maximale interval) telt de vochtigheid niet meer mee. Dat beschermt tegen een
 verkeerde of verlopen sensor.
 
-Op dezelfde pagina staan de actuele vochtigheid, het rijppunt en de ijsteller.
+Op dezelfde pagina staan de actuele vochtigheid, het rijppunt en de ijsteller. Zolang er geen sensor gekozen is,
+zijn de marge, de drempel en deze waarden grijs en niet te wijzigen.
 
 Er is geen aparte schakelaar: de controle werkt zodra er een geldige vochtigheid is. Zonder geldige waarde (geen
-sensor, of geen meting van de BLE-sensor in de laatste 10 min) doet de vochtigheid niet mee en werkt de regeling zoals
-zonder sensor.
+sensor gekozen, of geen meting van de BLE-sensor in de laatste 10 min) doet de vochtigheid niet mee en werkt de
+regeling zoals zonder sensor.
 
 ### Bluetooth-sensor (Waveshare-displays)
 
@@ -135,25 +138,7 @@ zonder sensor.
 2. Kies de sensor bij **Defrost → Luchtvochtigheid → Bron buitenvochtigheid** (of in Home Assistant met de
    select "Luchtvochtigheid buiten bron").
 OpenAmber zet de vochtigheid van die sensor dan in `outdoor_humidity`. Bij het ontkoppelen of uitzetten van Bluetooth
-valt de bron terug op Extern.
-
-### Externe sensor
-
-Laat de bron op **Extern** staan en publiceer de relatieve vochtigheid (%) in de sensor `outdoor_humidity`.
-Bijvoorbeeld vanuit Home Assistant:
-
-```yaml
-sensor:
-  - platform: homeassistant
-    id: ha_outdoor_humidity
-    entity_id: sensor.buiten_luchtvochtigheid
-    on_value:
-      - sensor.template.publish:
-          id: outdoor_humidity
-          state: !lambda 'return x;'
-```
-
-Of met een lokale I²C-sensor (SHT4x, SHT3x met filterkap of BME280), op dezelfde manier via `on_value`.
+valt de bron terug op Geen.
 
 ### Plaatsing
 

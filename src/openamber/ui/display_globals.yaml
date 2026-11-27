@@ -1,6 +1,13 @@
 globals:
   - id: is_idled
     type: bool
+  # Outdoor humidity source of the custom defrost, set by the BLE package (ble_sensor_ui.h):
+  # 0 no sensor available (no BLE, Bluetooth off or nothing paired), 1 sensors paired but none
+  # chosen, 2 a sensor is chosen. The humidity settings are only enabled at 2.
+  - id: custom_defrost_humidity_source_state
+    type: int
+    restore_value: no
+    initial_value: '0'
   # Screen-off timeout in ms, driven by display_screen_timeout_select.
   # UINT32_MAX means "never" (the LVGL idle trigger then never fires).
   - id: display_screen_timeout_ms

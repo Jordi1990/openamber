@@ -93,15 +93,16 @@ select:
               - component.update: effective_room_temperature
               - component.update: effective_room_humidity
 
-  # Outdoor humidity for the custom defrost (frost point). "Extern" leaves
-  # outdoor_humidity to Home Assistant or another sensor; "BLE n" publishes the
-  # humidity of paired slot n into it.
+  # Outdoor humidity for the custom defrost (frost point). "BLE n" publishes the
+  # humidity of paired slot n into outdoor_humidity; "Geen" leaves it empty. Only
+  # BLE sensors are supported. The option was "Extern" before; the value is stored
+  # by index, so a stored "Extern" comes back as "Geen".
   - platform: template
     id: outdoor_humidity_source_select
     name: "Luchtvochtigheid buiten bron"
     optimistic: true
-    options: [Extern, BLE 1, BLE 2, BLE 3]
-    initial_option: Extern
+    options: [Geen, BLE 1, BLE 2, BLE 3]
+    initial_option: Geen
     restore_value: true
     entity_category: config
     web_server:

@@ -523,3 +523,35 @@ def test_defrost_settings_menu(clean_system):
     assert openamber.is_hidden("defrost_stab_status") is True
     openamber.set_switch("advanced_settings_enabled", False)
     openamber.step(ms=50)
+
+
+def test_humidity_page_without_ble_sensor(clean_system):
+    """Without a BLE humidity sensor (the simulator has no BLE) the source shows 'Geen sensor beschikbaar' and the
+    humidity settings are disabled. Only BLE sensors are supported, there is no external option."""
+    openamber = clean_system
+    _configure(openamber, "OpenAmber")
+
+    assert openamber.click("nav_settings")
+    openamber.step(ms=100)
+    openamber.set_switch("advanced_settings_enabled", True)
+    openamber.step(ms=100)
+    assert openamber.click("stab_advanced")
+    openamber.step(ms=50)
+    assert openamber.click("advanced_stab_defrost")
+    openamber.step(ms=100)
+    assert openamber.click("defrost_stab_vocht")
+    openamber.step(ms=100)
+
+    source = openamber.get_widget("set_custom_defrost_humidity_source_dd")
+    assert source["text"] == "Geen sensor beschikbaar"
+    assert source["disabled"] is True
+    assert openamber.is_disabled("set_custom_defrost_humidity_source_row")
+    for row in ("set_custom_defrost_frost_margin_row", "set_custom_defrost_humidity_value_row",
+                "set_custom_defrost_ice_threshold_row", "set_custom_defrost_ice_load_row"):
+        assert openamber.is_hidden(row) is False, row
+        assert openamber.is_disabled(row), row
+    # The step buttons inside the rows are disabled too
+    assert openamber.is_disabled("set_custom_defrost_ice_threshold_val")
+
+    openamber.set_switch("advanced_settings_enabled", False)
+    openamber.step(ms=50)

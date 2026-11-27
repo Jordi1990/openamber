@@ -2430,10 +2430,6 @@
   nl: "Bron buitenvochtigheid"
   de: "Quelle Außenfeuchte"
   en: "Outdoor humidity source"
-- key: t_extern_of_gekoppelde_bluetooth_sensor
-  nl: "Extern of gekoppelde Bluetooth-sensor"
-  de: "Extern oder gekoppelter Bluetooth-Sensor"
-  en: "External or paired Bluetooth sensor"
 - key: t_activeren
   nl: "Activeren"
   de: "Aktivieren"
@@ -2651,6 +2647,11 @@
   nl: "Interval"
   de: "Intervall"
   en: "Interval"
-- nl: "Extern (bijv. HA)"
-  de: "Extern (z. B. HA)"
-  en: "External (e.g. HA)"
+- key: t_gekoppelde_bluetooth_sensor
+  nl: "Gekoppelde Bluetooth-sensor"
+  de: "Gekoppelter Bluetooth-Sensor"
+  en: "Paired Bluetooth sensor"
+- key: t_geen_sensor_beschikbaar
+  nl: "Geen sensor beschikbaar"
+  de: "Kein Sensor verfügbar"
+  en: "No sensor available"

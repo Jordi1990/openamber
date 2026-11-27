@@ -471,7 +471,6 @@ substitutions:
   t_circulatiepomp_p2_zone_2_draait_bij_warm: "Circulation pump P2 zone 2, runs on heat demand zone 2"
   t_display: "Display"
   t_bron_buitenvochtigheid: "Outdoor humidity source"
-  t_extern_of_gekoppelde_bluetooth_sensor: "External or paired Bluetooth sensor"
   t_activeren: "Activate"
   t_de_buitenunit_ontdooit_dan_niet_meer_zel: "The outdoor unit then no longer defrosts by itself, OpenAmber starts the defrosts. If a defrost fails, you get a warning and OpenAmber tries again after 30 min. You can always switch back to Outdoor unit, also from Home Assistant."
   t_de_buitenunit_start_direct_een_defrost_o: "The outdoor unit starts a defrost right away, or once 30 min have passed since the previous defrost. If the compressor stops before then, the request is cancelled."
@@ -510,3 +509,5 @@ substitutions:
   t_ontdooien_bij_zoveel_ijsaangroei_0_uit: "Defrost at this much ice growth (0 = off)"
   t_ijsteller: "Ice counter"
   t_ijsaangroei_sinds_de_laatste_defrost: "Ice growth since the last defrost"
+  t_gekoppelde_bluetooth_sensor: "Paired Bluetooth sensor"
+  t_geen_sensor_beschikbaar: "No sensor available"

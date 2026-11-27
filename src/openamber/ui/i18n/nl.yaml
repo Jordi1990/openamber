@@ -471,7 +471,6 @@ substitutions:
   t_circulatiepomp_p2_zone_2_draait_bij_warm: "Circulatiepomp P2 zone 2, draait bij warmtevraag zone 2"
   t_display: "Display"
   t_bron_buitenvochtigheid: "Bron buitenvochtigheid"
-  t_extern_of_gekoppelde_bluetooth_sensor: "Extern of gekoppelde Bluetooth-sensor"
   t_activeren: "Activeren"
   t_de_buitenunit_ontdooit_dan_niet_meer_zel: "De buitenunit ontdooit dan niet meer zelf, OpenAmber start de defrosts. Lukt een defrost niet, dan krijg je een melding en probeert OpenAmber het na 30 min opnieuw. Je kunt altijd terugschakelen naar Buitenunit, ook vanuit Home Assistant."
   t_de_buitenunit_start_direct_een_defrost_o: "De buitenunit start direct een defrost, of zodra 30 min na de vorige defrost voorbij is. Stopt de compressor voor die tijd, dan vervalt de aanvraag."
@@ -510,3 +509,5 @@ substitutions:
   t_ontdooien_bij_zoveel_ijsaangroei_0_uit: "Ontdooien bij zoveel ijsaangroei (0 = uit)"
   t_ijsteller: "IJsteller"
   t_ijsaangroei_sinds_de_laatste_defrost: "IJsaangroei sinds de laatste defrost"
+  t_gekoppelde_bluetooth_sensor: "Gekoppelde Bluetooth-sensor"
+  t_geen_sensor_beschikbaar: "Geen sensor beschikbaar"

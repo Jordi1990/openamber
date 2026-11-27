@@ -61,6 +61,7 @@ widgets:
             disabled:
               styles: menu_tile_disabled_style
             on_click:
+              - script.execute: update_custom_defrost_humidity_ui
               - lvgl.menu.set_page:
                   id: settings_menu
                   page: panel_advanced_page_defrost_vocht
