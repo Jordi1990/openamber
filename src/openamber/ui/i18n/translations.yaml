@@ -2439,9 +2439,9 @@
   de: "Die Außeneinheit steuert das Abtauen dann nicht mehr selbst: OpenAmber entscheidet, wann abgetaut wird."
   en: "The outdoor unit then no longer controls the defrosts itself: OpenAmber decides when to defrost."
 - key: t_de_buitenunit_start_direct_een_defrost_o
-  nl: "De buitenunit start direct een defrost, of zodra 30 min na de vorige defrost voorbij is. Stopt de compressor voor die tijd, dan vervalt de aanvraag."
-  de: "Die Außeneinheit startet sofort ein Abtauen oder sobald 30 min nach dem letzten Abtauen vergangen sind. Stoppt der Kompressor vorher, verfällt die Anforderung."
-  en: "The outdoor unit starts a defrost right away, or once 30 min have passed since the previous defrost. If the compressor stops before then, the request is cancelled."
+  nl: "De buitenunit start direct een defrost. Binnen 30 min na de vorige defrost kan dat niet."
+  de: "Die Außeneinheit startet sofort ein Abtauen. Innerhalb von 30 min nach dem letzten Abtauen ist das nicht möglich."
+  en: "The outdoor unit starts a defrost right away. This is not possible within 30 min after the previous defrost."
 - key: t_defrost_controle_naar_openamber
   nl: "Defrost controle naar OpenAmber"
   de: "Abtausteuerung an OpenAmber"
@@ -2605,10 +2605,6 @@
   nl: "Handmatig aangevraagd"
   de: "Manuell angefordert"
   en: "Requested manually"
-- use: state
-  nl: "Handmatig: wacht op slot buitenunit"
-  de: "Manuell: warte auf Sperre der Außeneinheit"
-  en: "Manual: waiting for the outdoor unit lock"
 - use: state
   nl: "Handmatig"
   de: "Manuell"

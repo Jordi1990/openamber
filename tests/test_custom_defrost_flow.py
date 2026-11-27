@@ -17,13 +17,13 @@ def _configure(openamber, mode):
     openamber.set_number("custom_defrost_delta_at_zero", 7.0)
     openamber.set_number("custom_defrost_delta_at_cold", 4.0)
     openamber.set_number("custom_defrost_max_coil_temperature", -5.0)
-    # Changing the minimum interval also resets the adaptive interval of a previous test
-    openamber.set_number("custom_defrost_min_runtime", 40.0)
-    openamber.advance_time(seconds=5, step_s=5)
     openamber.set_number("custom_defrost_min_runtime", 35.0)
     openamber.set_number("custom_defrost_frost_point_margin", 0.0)
     openamber.set_number("custom_defrost_ice_threshold", 90.0)
     openamber.set_sensor("outdoor_humidity", 0.0)
+    # Start from the minimum interval, not from what a previous test left
+    openamber.set_switch("mock_reset_custom_defrost_interval", True)
+    openamber.advance_time(seconds=5, step_s=5)
     openamber.set_sensor("temperature_outside_ta", 0.0)
     openamber.set_sensor("evaporation_temperature_tp", 5.0)
     openamber.step(ms=50)

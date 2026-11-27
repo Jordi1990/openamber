@@ -694,17 +694,6 @@ sensor:
     sorting_group_id: custom_defrost
 
 - platform: template
-  id: custom_defrost_ta_tp
-  name: "Defrost Ta-Tp"
-  update_interval: never
-  accuracy_decimals: 1
-  unit_of_measurement: "K"
-  icon: "mdi:thermometer-minus"
-  entity_category: diagnostic
-  web_server:
-    sorting_group_id: custom_defrost
-
-- platform: template
   id: custom_defrost_start_temperature
   name: "Defrost starttemperatuur Tp"
   update_interval: never

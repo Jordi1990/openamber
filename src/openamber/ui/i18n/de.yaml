@@ -473,7 +473,7 @@ substitutions:
   t_bron_buitenvochtigheid: "Quelle Außenfeuchte"
   t_activeren: "Aktivieren"
   t_buitenunit_regelt_defrost_niet_meer_zelf: "Die Außeneinheit steuert das Abtauen dann nicht mehr selbst: OpenAmber entscheidet, wann abgetaut wird."
-  t_de_buitenunit_start_direct_een_defrost_o: "Die Außeneinheit startet sofort ein Abtauen oder sobald 30 min nach dem letzten Abtauen vergangen sind. Stoppt der Kompressor vorher, verfällt die Anforderung."
+  t_de_buitenunit_start_direct_een_defrost_o: "Die Außeneinheit startet sofort ein Abtauen. Innerhalb von 30 min nach dem letzten Abtauen ist das nicht möglich."
   t_defrost_controle_naar_openamber: "Abtausteuerung an OpenAmber"
   t_defrost_forceren: "Abtauen erzwingen"
   t_forceren: "Erzwingen"

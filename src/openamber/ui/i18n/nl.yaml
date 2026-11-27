@@ -473,7 +473,7 @@ substitutions:
   t_bron_buitenvochtigheid: "Bron buitenvochtigheid"
   t_activeren: "Activeren"
   t_buitenunit_regelt_defrost_niet_meer_zelf: "De buitenunit regelt de defrosts dan niet meer zelf: OpenAmber bepaalt wanneer er ontdooid wordt."
-  t_de_buitenunit_start_direct_een_defrost_o: "De buitenunit start direct een defrost, of zodra 30 min na de vorige defrost voorbij is. Stopt de compressor voor die tijd, dan vervalt de aanvraag."
+  t_de_buitenunit_start_direct_een_defrost_o: "De buitenunit start direct een defrost. Binnen 30 min na de vorige defrost kan dat niet."
   t_defrost_controle_naar_openamber: "Defrost controle naar OpenAmber"
   t_defrost_forceren: "Defrost forceren"
   t_forceren: "Forceren"

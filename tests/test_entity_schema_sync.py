@@ -196,6 +196,7 @@ def test_hardware_mocks_correspond_to_physical_modbus_or_subsystems():
         "mock_three_way_valve_feedback_missing",
         "mock_pump_flow_missing",
         "mock_simulate_esp_restart",
+        "mock_reset_custom_defrost_interval",
         "mock_ota_begin",
         "mock_ota_progress",
         "mock_ota_error",
