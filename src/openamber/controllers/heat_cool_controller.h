@@ -49,6 +49,9 @@ private:
   float compressor_heat_pid_ = 0.0f;
   float compressor_cool_pid_ = 0.0f;
   float start_current_temperature_ = 0.0f;
+  // Control temperature at the start of the last defrost, and whether the backup heater runs as the boost after it.
+  float defrost_start_temperature_ = NAN;
+  bool defrost_boost_active_ = false;
   // Start of a hand-over from DHW (hot switch): hot DHW water is flushed out of the unit first.
   uint32_t hand_over_started_ms_ = 0;
   MixingValveActuator* mixing_valve_zone1_ = nullptr;
@@ -809,8 +812,18 @@ public:
         ResetAccumulatedDegMin();
         break;
 
+      case HeatCoolState::DEFROSTING:
+        defrost_start_temperature_ = GetControlTemperature();
+        break;
+
       default:
         break;
+    }
+
+    // The defrost boost lasts for one backup heater cycle only.
+    if (new_state != HeatCoolState::WAIT_BACKUP_HEATER_RUNNING && new_state != HeatCoolState::BACKUP_HEATER_RUNNING)
+    {
+      defrost_boost_active_ = false;
     }
   }
 
@@ -1184,6 +1197,23 @@ public:
           break;
         }
 
+        // The boost after a defrost only recovers the defrost dip: stop once the control temperature is back at its
+        // value from the defrost start, or after the maximum boost time. When the compressor still cannot keep up,
+        // the degree/minutes switch the backup heater on again.
+        if (defrost_boost_active_ && !id(emergency_mode_enabled).state)
+        {
+          const bool recovered = !std::isnan(defrost_start_temperature_) && current_temperature >= defrost_start_temperature_;
+          const bool max_time_reached = App.get_loop_component_start_time() - backup_heater_start_time_ms_ >= DEFROST_BACKUP_HEATER_BOOST_MAX_S * 1000UL;
+          if (recovered || max_time_reached)
+          {
+            ESP_LOGI("amber", "Disabling defrost boost backup heater (%s, %.2f°C, %.2f°C at defrost start).",
+                     recovered ? "temperature recovered" : "maximum boost time reached", current_temperature, defrost_start_temperature_);
+            TurnOffBackupHeater();
+            LeaveStateAndSetNextStateAfterWaitTime(HeatCoolState::COMPRESSOR_RUNNING, BACKUP_HEATER_OFF_SETTLE_TIME_S * 1000UL);
+            break;
+          }
+        }
+
         if(!id(emergency_mode_enabled).state)
         {
           uint32_t now = App.get_loop_component_start_time();
@@ -1224,6 +1254,13 @@ public:
           }
           break;
         }
+
+        // The backup heater supplements the compressor, so the compressor runs at its maximum allowed mode meanwhile
+        // (one step per frequency change interval). The outdoor unit sets the frequency itself during a defrost.
+        if (compressor_controller_->IsCommanded() && !id(defrost_running_sensor).state)
+        {
+          compressor_controller_->ApplyCompressorMode(GetMaxAllowedCompressorMode());
+        }
         break;
       }
 
@@ -1243,9 +1280,10 @@ public:
 
         if (id(temperature_outside_ta_avg_1h).state <= id(defrost_backup_heater_boost_temperature_sensor).state && !requested_to_stop_)
         {
-          ESP_LOGI("amber", "Defrost ended, enabling backup heater as configured for outside temperature %.2f°C to boost temperature back to setpoint.", id(temperature_outside_ta_avg_1h).state);
+          ESP_LOGI("amber", "Defrost ended, enabling backup heater as configured for outside temperature %.2f°C to recover the defrost dip.", id(temperature_outside_ta_avg_1h).state);
           TurnOnBackupHeater();
           SetNextState(HeatCoolState::WAIT_BACKUP_HEATER_RUNNING);
+          defrost_boost_active_ = true;
         }
         else
         {
