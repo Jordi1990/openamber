@@ -2,8 +2,8 @@
     id: set_advanced_compressor_outdoor_unit_optimizations_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Buitenunit optimalisaties", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Frequentietabel en buitentemperatuurlimiet aanpassen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_buitenunit_optimalisaties}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_frequentietabel_en_buitentemperatuurlimi}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - switch:
           id: set_outdoor_unit_optimizations_enabled_switch_ui
           align: TOP_RIGHT
@@ -27,8 +27,8 @@
     id: set_advanced_compressor_hysteresis_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Compressor hysterese (+/-)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Zone rond setpoint waarin de compressor niet moduleert", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_compressor_hysterese}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_zone_rond_setpoint_waarin_de_compressor}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

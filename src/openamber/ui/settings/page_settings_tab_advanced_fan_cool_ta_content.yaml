@@ -4,8 +4,8 @@
     id: set_fan_cool_max_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Koelen: warm of hoog", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Ta vanaf 25°C, of compressor vanaf F7", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_koelen_warm_of_hoog}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_ta_vanaf_25c_of_compressor_vanaf_f7}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -39,8 +39,8 @@
     id: set_fan_cool_mild_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Koelen: Ta 14-25°C", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Buitentemperatuur 14 tot 25°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_koelen_ta_14_25c}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_buitentemperatuur_14_tot_25c}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -74,8 +74,8 @@
     id: set_fan_cool_low_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Koelen: Ta onder 14°C", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Buitentemperatuur onder 14°C", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_koelen_ta_onder_14c}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_buitentemperatuur_onder_14c}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

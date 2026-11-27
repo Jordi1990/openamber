@@ -144,6 +144,36 @@ void OpenAmberComponent::update()
     }
   }
 
+  // Defrost on water from the DHW tank: the heat/cool controller keeps the compressor, only the 3-way valve and the
+  // DHW pump relay (tanks with their own pump and heat exchanger) follow its request. The relay feedback is checked
+  // as after a hot switch.
+  const bool defrost_on_dhw_tank = state_ == State::HEAT_COOL && heat_cool_controller_->IsDefrostFromDhwTankActive();
+  if (defrost_on_dhw_tank != defrost_on_dhw_tank_)
+  {
+    defrost_on_dhw_tank_ = defrost_on_dhw_tank;
+    const ThreeWayValvePosition position = defrost_on_dhw_tank ? ThreeWayValvePosition::DHW : ThreeWayValvePosition::HEATING_COOLING;
+    SetThreeWayValve(position);
+    valve_target_position_ = position;
+    // Not "| 1" as the hot switch below: the feedback check runs in this same pass, and a start time 1 ms in the
+    // future would read as elapsed.
+    const uint32_t now = App.get_loop_component_start_time();
+    hot_switch_valve_started_ms_ = now == 0 ? 1 : now;
+    if (defrost_on_dhw_tank)
+    {
+      id(dhw_pump_relay_switch).turn_on();
+    }
+    else
+    {
+      id(dhw_pump_relay_switch).turn_off();
+    }
+  }
+
+  if (state_ == State::DHW_HEAT)
+  {
+    // Here and not in the DHW_HEAT case below: a hot switch returns before the state machine runs.
+    heat_cool_controller_->OnDhwRun();
+  }
+
   ThreeWayValvePosition current_valve_position = GetThreeWayValvePosition();
   ThreeWayValvePosition desired_valve_position = GetDesiredThreeWayValvePosition();
   State desired_state = modbus_disconnected_error_occurred_ ? State::WAIT_MODBUS_CONNECTION : (desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL);
@@ -151,6 +181,45 @@ void OpenAmberComponent::update()
   // Maintenance mode is only turned on from a controlled stop and wins while both are on; the stop stays active
   // so the heat pump returns to standby once maintenance mode is turned off.
   bool controlled_stop_requested = id(controlled_stop_active) && !maintenance_requested;
+
+  // After a hot switch, check the relay feedback once the valve has had its travel time, as WAIT_THREE_WAY_VALVE does.
+  if (hot_switch_valve_started_ms_ != 0 &&
+      HasElapsedMs(hot_switch_valve_started_ms_, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL, App.get_loop_component_start_time()))
+  {
+    hot_switch_valve_started_ms_ = 0;
+    if (!IsThreeWayValveFeedbackConfirmed(valve_target_position_))
+    {
+      ESP_LOGE("amber", "3-way valve relay feedback did not confirm the requested position after a hot switch, stopping system.");
+      id(error_three_way_valve_state_timeout).publish_state(true);
+    }
+  }
+
+  // Hot switch between heating and DHW: the controller that runs the compressor hands it over and the other one takes
+  // it over at once, while the 3-way valve moves. Its safety checks stay active during the valve travel.
+  const bool hot_switch_to_dhw = state_ == State::HEAT_COOL && desired_state == State::DHW_HEAT &&
+                                 heat_cool_controller_->CanHandOverRunningCompressor();
+  const bool hot_switch_to_heat = state_ == State::DHW_HEAT && desired_state == State::HEAT_COOL &&
+                                  dhw_controller_->CanHandOverRunningCompressor() &&
+                                  heat_cool_controller_->HasCompressorDemand();
+  if ((hot_switch_to_dhw || hot_switch_to_heat) && !maintenance_requested && !controlled_stop_requested)
+  {
+    ESP_LOGI("amber", "Hot switch: moving the 3-way valve while the compressor keeps running.");
+    SetThreeWayValve(desired_valve_position);
+    valve_target_position_ = desired_valve_position;
+    hot_switch_valve_started_ms_ = App.get_loop_component_start_time() | 1;
+    if (hot_switch_to_dhw)
+    {
+      heat_cool_controller_->HandOverRunningCompressor();
+      dhw_controller_->ResumeFromRunningUnits(true);
+    }
+    else
+    {
+      dhw_controller_->HandOverRunningCompressor();
+      heat_cool_controller_->ResumeFromRunningUnits(true);
+    }
+    SetNextState(desired_state);
+    return;
+  }
 
   switch (state_)
   {
@@ -221,8 +290,12 @@ void OpenAmberComponent::update()
       id(dhw_pump_relay_switch).turn_off();
       id(three_way_valve_dhw_switch).turn_off();
       id(three_way_valve_heat_cool_switch).turn_off();
+      // Also the backup heater switches themselves: the maintenance toggles (internal element and the CV hybrid
+      // backup relay 1108) can leave them on when maintenance mode ends, which goes through this state.
+      id(backup_heater_relay).turn_off();
       id(backup_heater_stage_1).turn_off();
       id(backup_heater_stage_2).turn_off();
+      id(external_backup_heating_relay).turn_off();
       // Close mixing valves during init.
       id(mixing_valve_zone1_output).make_call().set_value(0).perform();
       id(mixing_valve_zone2_output).make_call().set_value(0).perform();
@@ -271,8 +344,9 @@ void OpenAmberComponent::update()
           EnterStandby();
           break;
         }
-        else if(desired_valve_position != current_valve_position)
+        else if(desired_valve_position != current_valve_position && !compressor_controller_->IsRunning())
         {
+          // A safety stop goes to idle at once, so the compressor can still run down here: the valve waits for it.
           // P1 keeps running while the heat/cool controller idles with heat demand. Running it during DHW
           // pulls water through the CV side of the 3-way valve, so hot DHW water ends up in the floor.
           heat_cool_controller_->StopSecondaryPumpsIfNeeded();
@@ -311,8 +385,9 @@ void OpenAmberComponent::update()
           EnterStandby();
           break;
         }
-        else if(desired_valve_position != current_valve_position)
+        else if(desired_valve_position != current_valve_position && !compressor_controller_->IsRunning())
         {
+          // A safety stop goes to idle at once, so the compressor can still run down here: the valve waits for it.
           // Stopping the DHW pump cycle restarted the pump interval. Heating/cooling must not wait for it after
           // DHW: with demand the pump starts right away, as after initialization.
           pump_controller_->ResetInterval();
@@ -788,6 +863,7 @@ void OpenAmberComponent::SwitchThreeWayValveAndWait(ThreeWayValvePosition positi
   valve_target_position_ = position;
   valve_target_state_ = next_state;
   valve_switch_started_ms_ = App.get_loop_component_start_time();
+  hot_switch_valve_started_ms_ = 0;
   SetNextState(State::WAIT_THREE_WAY_VALVE);
 }
 

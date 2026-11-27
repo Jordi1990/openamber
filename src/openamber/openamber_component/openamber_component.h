@@ -71,6 +71,10 @@ private:
   ThreeWayValvePosition valve_target_position_ = ThreeWayValvePosition::HEATING_COOLING;
   State valve_target_state_ = State::UNKNOWN;
   uint32_t valve_switch_started_ms_ = 0;
+  // Start of a hot switch valve move, 0 when no relay feedback check is pending.
+  uint32_t hot_switch_valve_started_ms_ = 0;
+  // True while the 3-way valve is held on DHW for a defrost on water from the DHW tank.
+  bool defrost_on_dhw_tank_ = false;
   // Live update: hold the state machine while an OTA update is being written.
   bool ota_in_progress_ = false;
   uint32_t ota_last_activity_ms_ = 0;

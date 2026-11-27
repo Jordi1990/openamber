@@ -1,6 +1,6 @@
 # Menu Page: Geavanceerd - Defrost
 # ------------------------------------------------------------
 id: panel_advanced_page_defrost
-title: "Defrost"
+title: "${t_defrost}"
 styles: setting_page_style
 widgets: !include page_settings_tab_advanced_defrost_content.yaml

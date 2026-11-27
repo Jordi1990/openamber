@@ -1,7 +1,7 @@
 # Menu Page: Geavanceerd (Categorie keuzemenu)
 # ------------------------------------------------------------
 id: panel_advanced
-title: "Geavanceerd"
+title: "${t_geavanceerd}"
 widgets:
   - obj:
       width: 100%
@@ -34,7 +34,7 @@ widgets:
                   page: panel_advanced_page_pid
             widgets:
               - label: { text: "\U000F012A", styles: menu_tile_icon_style }
-              - label: { id: advanced_stab_pid_lbl, text: "PID-regeling", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: advanced_stab_pid_lbl, text: "${t_pid_regeling}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: advanced_stab_bodemplaat
@@ -50,7 +50,7 @@ widgets:
                   page: panel_advanced_page_bodemplaat
             widgets:
               - label: { text: "\U000F0438", styles: menu_tile_icon_style }
-              - label: { id: advanced_stab_bodemplaat_lbl, text: "Bodemplaat-\nverwarming", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: advanced_stab_bodemplaat_lbl, text: "${t_bodemplaat_verwarming_3}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: advanced_stab_defrost
@@ -66,7 +66,7 @@ widgets:
                   page: panel_advanced_page_defrost
             widgets:
               - label: { text: "\U000F12CB", styles: menu_tile_icon_style }
-              - label: { id: advanced_stab_defrost_lbl, text: "Defrost", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: advanced_stab_defrost_lbl, text: "${t_defrost}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: advanced_stab_defrost_temps
@@ -82,7 +82,7 @@ widgets:
                   page: panel_advanced_page_defrost_temps
             widgets:
               - label: { text: "\U000F1A71", styles: menu_tile_icon_style }
-              - label: { id: advanced_stab_defrost_temps_lbl, text: "Defrost start-\ntemperaturen", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: advanced_stab_defrost_temps_lbl, text: "${t_defrost_start_temperaturen}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: advanced_stab_compressor
@@ -98,7 +98,7 @@ widgets:
                   page: panel_advanced_page_compressor
             widgets:
               - label: { text: "\U000F04C5", styles: menu_tile_icon_style }
-              - label: { id: advanced_stab_compressor_lbl, text: "Compressor", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: advanced_stab_compressor_lbl, text: "${t_compressor}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: advanced_stab_fan
@@ -114,7 +114,7 @@ widgets:
                   page: panel_advanced_page_fan
             widgets:
               - label: { text: "\U000F0210", styles: menu_tile_icon_style }
-              - label: { id: advanced_stab_fan_lbl, text: "Ventilator", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: advanced_stab_fan_lbl, text: "${t_ventilator}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: advanced_stab_pump
@@ -130,4 +130,4 @@ widgets:
                   page: panel_advanced_page_pump
             widgets:
               - label: { text: "󰖏", styles: menu_tile_icon_style }
-              - label: { id: advanced_stab_pump_lbl, text: "Pomp", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: advanced_stab_pump_lbl, text: "${t_pomp}", long_mode: WRAP, styles: menu_tile_label_style }

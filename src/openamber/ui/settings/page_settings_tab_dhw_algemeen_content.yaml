@@ -1,8 +1,8 @@
 - obj:
     styles: setting_row_style
     widgets:
-      - label: { text: "Setpoint (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Gewenste tapwatertemperatuur", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_setpoint_c}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_gewenste_tapwatertemperatuur}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -35,8 +35,8 @@
 - obj:
     styles: setting_row_style
     widgets:
-      - label: { text: "Herstart delta (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Temperatuurdaling waarna verwarming herstart", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_herstart_delta_c}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_temperatuurdaling_waarna_verwarming_hers}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -69,8 +69,8 @@
 - obj:
     styles: setting_row_style
     widgets:
-      - label: { text: "Basisvermogen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Compressorvermogen in normale modus", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_basisvermogen}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_compressorvermogen_in_normale_modus}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - dropdown:
           id: set_dhw_power_dd
           symbol: "\U000F0140"
@@ -78,13 +78,13 @@
           align: TOP_RIGHT
           y: 0
           options:
-            - "Beperkt"
-            - "Zeer laag"
-            - "Laag"
-            - "Gemiddeld"
-            - "Verhoogd"
-            - "Hoog"
-            - "Maximaal"
+            - "${t_beperkt}"
+            - "${t_zeer_laag}"
+            - "${t_laag}"
+            - "${t_gemiddeld}"
+            - "${t_verhoogd}"
+            - "${t_hoog}"
+            - "${t_maximaal}"
           text_font: font_text_20
           dropdown_list:
             text_font: font_text_20
@@ -98,8 +98,8 @@
 - obj:
     styles: setting_row_style
     widgets:
-      - label: { text: "Tapwaterpomp startmodus", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Wanneer de tapwaterpomp start", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_tapwaterpomp_startmodus}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_wanneer_de_tapwaterpomp_start}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - dropdown:
           id: set_dhw_pump_dd
           symbol: "\U000F0140"
@@ -107,8 +107,8 @@
           align: TOP_RIGHT
           y: 0
           options:
-            - "Aanvoer warmer dan vat"
-            - "Samen met compressor"
+            - "${t_aanvoer_warmer_dan_vat}"
+            - "${t_samen_met_compressor}"
           text_font: font_text_20
           dropdown_list:
             text_font: font_text_20
@@ -124,8 +124,8 @@
     id: set_defrost_from_dhw_tank_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Ontdooien via tapwatervat", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Defrost tijdens verwarmen haalt warmte uit het vat", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_ontdooien_via_tapwatervat}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_alleen_als_het_cv_water_te_koud_is}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - switch:
           id: set_defrost_from_dhw_tank_switch_ui
           align: TOP_RIGHT
@@ -141,44 +141,3 @@
                 } else {
                   id(defrost_from_dhw_tank_switch).turn_on();
                 }
-
-- obj:
-    id: set_defrost_from_dhw_tank_max_row
-    styles: setting_row_style
-    widgets:
-      - label: { text: "Ontdooien via vat tot", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Een warmer vat wordt niet gebruikt (min. 30°C)", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
-      - obj:
-          width: SIZE_CONTENT
-          height: SIZE_CONTENT
-          align: TOP_RIGHT
-          bg_opa: 0%
-          border_opa: 0%
-          pad_all: 0
-          layout: { type: FLEX, flex_flow: ROW, flex_align_cross: CENTER, pad_column: 8 }
-          widgets:
-            - obj:
-                id: set_defrost_from_dhw_tank_max_dec
-                styles: setting_step_btn_style
-                pressed:
-                  styles: setting_step_btn_pressed_style
-                scrollable: false
-                on_click:
-                  - number.decrement:
-                      id: defrost_from_dhw_tank_max_temperature
-                      cycle: false
-                widgets:
-                  - label: { text: "\U000F0374", styles: setting_step_icon_style }
-            - label: { id: set_defrost_from_dhw_tank_max_val, text: "60°C", text_color: 0x1F2933, text_font: font_text_24 }
-            - obj:
-                id: set_defrost_from_dhw_tank_max_inc
-                styles: setting_step_btn_style
-                pressed:
-                  styles: setting_step_btn_pressed_style
-                scrollable: false
-                on_click:
-                  - number.increment:
-                      id: defrost_from_dhw_tank_max_temperature
-                      cycle: false
-                widgets:
-                  - label: { text: "\U000F0415", styles: setting_step_icon_style }

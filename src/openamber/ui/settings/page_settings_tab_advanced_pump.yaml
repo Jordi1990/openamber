@@ -1,6 +1,6 @@
 # Menu Page: Geavanceerd - Pomp
 # ------------------------------------------------------------
 id: panel_advanced_page_pump
-title: "Pomp"
+title: "${t_pomp}"
 styles: setting_page_style
 widgets: !include page_settings_tab_advanced_pump_content.yaml

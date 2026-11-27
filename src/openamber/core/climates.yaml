@@ -9,7 +9,7 @@ climate:
   min_cooling_run_time: 1h # Min 1h run
   min_heating_off_time: 15min
   min_heating_run_time: 1h # Min 1h run
-  min_idle_time: 15min
+  min_idle_time: 5s
   default_preset: Comfort
 
   # Hysteresis

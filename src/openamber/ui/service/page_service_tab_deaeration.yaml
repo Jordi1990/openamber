@@ -1,7 +1,7 @@
 # Menu Page: Ontluchten
 # ------------------------------------------------------------
 id: service_deaeration_page
-title: "Ontluchten"
+title: "${t_ontluchten}"
 styles: setting_page_style
 widgets:
   - obj:
@@ -24,14 +24,14 @@ widgets:
             widgets:
               - label:
                   id: service_deaeration_title
-                  text: "Ontluchten"
+                  text: "${t_ontluchten}"
                   text_color: 0x1F2933
                   text_font: font_text_24
                   align: TOP_LEFT
               - label:
                   id: service_deaeration_desc
                   width: 100%
-                  text: "Automatische ontluchtingsroutine."
+                  text: "${t_automatische_ontluchtingsroutine}"
                   text_color: 0x6B7280
                   text_font: font_text_20
                   long_mode: WRAP
@@ -42,7 +42,7 @@ widgets:
             id: service_deaeration_lock_hint
             pad_left: 18
             width: 100%
-            text: "Ontluchten is alleen beschikbaar in onderhoudsmodus."
+            text: "${t_ontluchten_is_alleen_beschikbaar_in_onde}"
             text_color: 0x9CA3AF
             text_font: font_text_20
             long_mode: WRAP
@@ -57,13 +57,13 @@ widgets:
             widgets:
               - label:
                   id: service_deaeration_status_val
-                  text: "Inactief"
+                  text: "${t_inactief}"
                   text_color: 0x6B7280
                   text_font: font_text_20
                   align: TOP_LEFT
               - label:
                   id: service_deaeration_time_val
-                  text: "Resterend: -"
+                  text: "${t_resterend}"
                   text_color: 0x6B7280
                   text_font: font_text_20
                   align: TOP_RIGHT
@@ -120,7 +120,7 @@ widgets:
                   widgets:
                     - label:
                         id: service_deaeration_short_btn_lbl
-                        text: "Kort (~10 min)"
+                        text: "${t_kort_10_min}"
                         text_color: 0x4B5563
                         text_font: font_text_20
                         align: CENTER
@@ -155,7 +155,7 @@ widgets:
                   widgets:
                     - label:
                         id: service_deaeration_extended_btn_lbl
-                        text: "Uitgebreid (~31 min)"
+                        text: "${t_uitgebreid_31_min}"
                         text_color: 0x4B5563
                         text_font: font_text_20
                         align: CENTER

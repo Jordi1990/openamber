@@ -1,7 +1,7 @@
 # Menu Page: Systeem (Algemeen)
 # ------------------------------------------------------------
 id: panel_general_page_systeem
-title: "Systeem"
+title: "${t_systeem}"
 styles: setting_page_style
 widgets:
   - obj:

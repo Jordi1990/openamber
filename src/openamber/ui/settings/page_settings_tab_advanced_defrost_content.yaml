@@ -4,7 +4,7 @@
     widgets:
       - label:
           width: 100%
-          text: "Let op: experimentele instellingen. Wijzigingen worden niet opgeslagen en na een power cycle teruggezet naar standaard."
+          text: "${t_let_op_experimentele_instellingen_wijzig}"
           text_color: 0xB45309
           text_font: font_text_20
           long_mode: WRAP
@@ -14,8 +14,8 @@
     id: set_general_defrost_exit_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Exit defrost temperatuur", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Defrost stoptemperatuur", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_exit_defrost_temperatuur}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_defrost_stoptemperatuur}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -49,8 +49,8 @@
     id: set_general_defrost_max_time_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Maximale ontdooitijd", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Maximum duur van een defrost-cyclus", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_maximale_ontdooitijd}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_maximum_duur_van_een_defrost_cyclus}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

@@ -1,8 +1,8 @@
-﻿- obj:
+- obj:
     styles: setting_row_style
     widgets:
-      - label: { text: "Pomp P1 aanwezig", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Extra circulatiepomp P1 aanwezig", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_pomp_p1_aanwezig}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_extra_circulatiepomp_p1_aanwezig}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - switch:
           id: set_pump_p1_switch
           align: TOP_RIGHT
@@ -22,8 +22,8 @@
 - obj:
     styles: setting_row_style
     widgets:
-      - label: { text: "Pomp P2 aanwezig", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Circulatiepomp P2 zone 2, draait bij warmtevraag zone 2", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_pomp_p2_aanwezig}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_circulatiepomp_p2_zone_2_draait_bij_warm}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - switch:
           id: set_pump_p2_switch
           align: TOP_RIGHT
@@ -44,8 +44,8 @@
 - obj:
     styles: setting_row_style
     widgets:
-      - label: { text: "Pompinterval (min)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Tussentijd periodiek pompen bij warmte-/koudevraag", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_pompinterval_min}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_tussentijd_periodiek_pompen_bij_warmte_k}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -79,8 +79,8 @@
 - obj:
     styles: setting_row_style
     widgets:
-      - label: { text: "Pompduur (min)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Draaitijd bij periodiek pompen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_pompduur_min}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_draaitijd_bij_periodiek_pompen}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

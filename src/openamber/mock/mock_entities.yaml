@@ -372,6 +372,12 @@ sensor:
       return 26.0f;
     update_interval: 5s
   - platform: template
+    id: outdoor_unit_refrigerant
+    lambda: |-
+      if (id(outdoor_unit_refrigerant).has_state()) return {};
+      return 1.0f;
+    update_interval: 5s
+  - platform: template
     id: discharge_temperature_td
     name: "Persgastemperatuur (Td)"
     lambda: |-
@@ -421,7 +427,7 @@ binary_sensor:
     id: internal_pump_active
     name: "Pomp P0 actief"
     lambda: |-
-      if (!id(pump_p0_relay_switch).state) return false;
+      if (!id(pump_p0_relay_switch).state || id(mock_pump_flow_missing).state) return false;
       return id(pump_control_pwm_number).state < 995.0f;
   - platform: template
     id: pump_p1_active
@@ -913,6 +919,12 @@ switch:
     turn_on_action:
       - lambda: 'id(amber_ctrl).on_ota_finished(false);'
       - switch.turn_off: mock_ota_error
+    turn_off_action: []
+  - platform: template
+    id: mock_pump_flow_missing
+    # Simulator only: the flow switch (1212) reports no flow, also while pump P0 is commanded on.
+    optimistic: true
+    turn_on_action: []
     turn_off_action: []
   - platform: template
     id: mock_three_way_valve_feedback_missing

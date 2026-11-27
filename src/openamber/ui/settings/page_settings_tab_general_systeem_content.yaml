@@ -4,8 +4,8 @@
     id: set_general_system_dhw
     styles: setting_row_style
     widgets:
-      - label: { text: "Tapwater aanwezig", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Tapwatervat is aanwezig in het systeem", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_tapwater_aanwezig}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_tapwatervat_is_aanwezig_in_het_systeem}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - switch:
           id: set_dhw_enabled_switch_ui
           align: TOP_RIGHT
@@ -28,8 +28,8 @@
     id: set_general_system_control_temp_source
     styles: setting_row_style
     widgets:
-      - label: { text: "Regeltemperatuur bron", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Kies de sensor die de regeling gebruikt", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_regeltemperatuur_bron}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_kies_de_sensor_die_de_regeling_gebruikt}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - dropdown:
           id: set_heat_control_temp_source_dd
           symbol: "\U000F0140"
@@ -37,8 +37,8 @@
           align: TOP_RIGHT
           y: 0
           options:
-            - "CV-aanvoer (Tc)"
-            - "CV-aanvoer zone 1 (Tv1)"
+            - "${t_cv_aanvoer_tc}"
+            - "${t_cv_aanvoer_zone_1_tv1}"
           text_font: font_text_20
           dropdown_list:
             text_font: font_text_20
@@ -62,8 +62,8 @@
     id: set_general_defrost_advanced_toggle_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Geavanceerde instellingen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Toon geavanceerde instellingen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_geavanceerde_instellingen}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_toon_geavanceerde_instellingen}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - switch:
           id: set_advanced_settings_switch_ui
           align: TOP_RIGHT
@@ -79,32 +79,3 @@
                 } else {
                   id(advanced_settings_enabled).turn_on();
                 }
-
-- obj:
-    id: set_general_system_screen_timeout
-    styles: setting_row_style
-    widgets:
-      - label: { text: "Scherm uit na", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - dropdown:
-          id: set_display_screen_timeout_dd
-          symbol: "\U000F0140"
-          width: 220
-          align: TOP_RIGHT
-          y: 0
-          options:
-            - "Nooit"
-            - "30 seconden"
-            - "1 minuut"
-            - "2 minuten"
-            - "5 minuten"
-          selected_index: 2
-          text_font: font_text_20
-          dropdown_list:
-            text_font: font_text_20
-          on_change:
-            then:
-              - lambda: |-
-                  auto val = lv_dropdown_get_selected(id(set_display_screen_timeout_dd)->obj);
-                  auto idx = id(display_screen_timeout_select).active_index();
-                  if (idx.has_value() && idx.value() == (size_t) val) return;
-                  id(display_screen_timeout_select).make_call().set_index(val).perform();

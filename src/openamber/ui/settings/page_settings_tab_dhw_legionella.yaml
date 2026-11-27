@@ -1,6 +1,6 @@
 # Menu Page: Tapwater Legionella
 # ------------------------------------------------------------
 id: panel_dhw_page_legionella
-title: "Legionella"
+title: "${t_legionella}"
 styles: setting_page_style
 widgets: !include page_settings_tab_dhw_legionella_content.yaml

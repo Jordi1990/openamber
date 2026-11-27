@@ -43,6 +43,20 @@ static const uint32_t THREE_WAY_VALVE_PROTECTION_DELTA_TEMPERATURE_C = 5.0f;
 static const uint32_t THREE_WAY_VALVE_PROTECTION_HIGH_TEMPERATURE_TIME_S = 2 * 60;
 static const float THREE_WAY_VALVE_PROTECTION_TUO_TC_THRESHOLD_C = 5.0f;
 
+// Water delta-T safety check: the difference across the plate heat exchanger, in the direction the unit heats or
+// cools the water (heating and DHW: Tuo - Tui, cooling: Tui - Tuo), may not stay above this limit for
+// WATER_DELTA_T_SAFETY_DELAY_S. Then the unit stops and raises TO08.
+// The check catches missing flow (stuck pump, air, closed valves). While heating a large difference is no risk in
+// itself: at full compressor power with a moderate pump speed it reaches 8 °C in normal operation, so heating uses
+// the same limit as DHW. Cooling keeps 8 °C because of the freezing risk in the plate heat exchanger.
+static const float HEATING_MAX_WATER_DELTA_T_C = 15.0f;
+static const float COOLING_MAX_WATER_DELTA_T_C = 8.0f;
+static const float DHW_MAX_WATER_DELTA_T_C = 15.0f;
+// Tuo and Tui are read every 15 s, so this is about four readings in a row.
+static const uint32_t WATER_DELTA_T_SAFETY_DELAY_S = 60;
+// After a hot switch from DHW to heating the hot water still in the unit is flushed into the heating circuit.
+static const uint32_t HOT_SWITCH_DELTA_T_GRACE_S = 2 * 60;
+
 // Controlled stop: regulation resumes by itself after this time, so a forgotten stop cannot cool the house.
 static const uint32_t CONTROLLED_STOP_AUTO_RESUME_S = 30 * 60;
 
@@ -53,23 +67,34 @@ static const uint32_t COMPRESSOR_MIN_OFF_S = 200;
 static const uint32_t COMPRESSOR_MIN_ON_S = 10 * 60;
 static const uint32_t COMPRESSOR_SOFT_START_DURATION_S = 3 * 60;
 static const uint32_t COMPRESSOR_START_TIMEOUT_S = 2 * 60;
+// A start that times out is retried after the minimum off time. Only this many failed starts in a row raise TO02,
+// which blocks all demand until it is reset, so a single refused start cannot stop heating for a whole night.
+static const uint32_t COMPRESSOR_START_MAX_ATTEMPTS = 3;
 static const uint32_t COMPRESSOR_MIN_TIME_PUMP_ON = 2 * 60;
 static const uint32_t COMPRESSOR_SETTLE_TIME_AFTER_DEFROST_S = 5 * 60;
 // A started compressor that reports 0 Hz this long, outside a defrost or oil return cycle, has been stopped by the
 // outdoor unit itself (protection, power or communication loss).
-static const uint32_t COMPRESSOR_UNEXPECTED_STOP_S = 3 * 60;
+// After a stop the outdoor unit blocks a new start for 165-180 s from the moment it reports 0 Hz, and a start then
+// takes about 18 s. A stop the outdoor unit recovers from by itself therefore shows 0 Hz for up to ~200 s; this
+// limit stays clear of that so only a compressor that does not come back raises the error.
+static const uint32_t COMPRESSOR_UNEXPECTED_STOP_S = 5 * 60;
 // The outdoor unit raises 2118 up to 300 s before the actual defrost when it decides itself (3274 = 1).
 // The actual defrost starts once the compressor runs at the defrost standby frequency (3279).
 static const uint32_t DEFROST_PREPHASE_MAX_S = 330;
 static const float DEFROST_STANDBY_FREQUENCY_MARGIN_HZ = 5.0f;
 // After 2118 drops the unit switches the 4-way valve back and restarts the fan within 30 s.
 static const uint32_t DEFROST_RECOVERY_PHASE_S = 30;
-// Defrost from the DHW tank ("Ontdooien via tapwatervat"): only with tank water above this, as the original
-// controller does. The upper limit is a setting (defrost_from_dhw_tank_max_temperature).
+// Defrost on water from the DHW tank ("Ontdooien via tapwatervat"), as the original controller: only when the
+// heating circuit is too cold to defrost on (Tuo at the start of the defrost at or below this) ...
+static const float DEFROST_DHW_TANK_MAX_START_TUO_C = 22.5f;
+// ... and the tank is warm enough to help and not hotter than this.
 static const float DEFROST_DHW_TANK_MIN_TEMPERATURE_C = 30.0f;
-// After such a defrost the 3-way valve travels back (THREE_WAY_VALVE_SWITCH_TIME_S) and the tank water still in
-// the unit is flushed out. Until then Tuo and Tui say nothing about the flow in the heating circuit.
-static const uint32_t DEFROST_DHW_TANK_SETTLE_TIME_S = 2 * 60;
+static const float DEFROST_DHW_TANK_MAX_TEMPERATURE_C = 60.0f;
+// Tw can hide a cold tank (cold water below the sensor, or a tank with a loading module that takes its water from
+// the cold side). The return temperature shows it: once the valve has had its travel time and the tank water has
+// reached the unit, Tui must be above its value at the start of the defrost. If not, the defrost goes back to the
+// heating circuit and the tank is not used again until after a DHW run.
+static const uint32_t DEFROST_DHW_TANK_CHECK_TIME_S = 90;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_DOWN_S = 10;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_UP_S = 5 * 60;
 
@@ -96,7 +121,12 @@ static const float AMBIENT_LIMIT_TA_OFFSET_C = 1.0f;
 // Discharge side limiter: stay below the outdoor unit's own Pd/Td protection instead of running
 // into it. The limits are margins below the unit's "no further frequency increase" thresholds,
 // read from 3269 (Pd) and 3262 (Td); the defaults are used until those are read (EEPROM 114).
+// When 3269 holds no usable bar value the Pd fallback follows the refrigerant in 3497
+// (0 = R32/R410A, 1 = R290): R32 runs at much higher pressures, and R32 units (e.g. HP-S 95) store
+// 92/89/87 in 3267-3269 instead of bar, which would otherwise limit them at the R290 default.
 static const float DISCHARGE_LIMIT_DEFAULT_UNIT_PD_BAR = 26.0f;
+static const float DISCHARGE_LIMIT_DEFAULT_UNIT_PD_BAR_R32 = 36.0f;
+static const int OUTDOOR_UNIT_REFRIGERANT_R32 = 0;
 static const float DISCHARGE_LIMIT_DEFAULT_UNIT_TD_C = 95.0f;
 static const float DISCHARGE_LIMIT_HOLD_PD_MARGIN_BAR = 2.0f;
 static const float DISCHARGE_LIMIT_STEP_DOWN_PD_MARGIN_BAR = 1.0f;

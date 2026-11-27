@@ -1,9 +1,9 @@
-﻿- obj:
+- obj:
     id: set_cool_mode_row
     styles: setting_row_style
     widgets:
-      - label: { text: "Koelmodus", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Kies Fixed of Extern setpoint", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_koelmodus}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_kies_fixed_of_extern_setpoint}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - dropdown:
           id: set_cool_mode_dd
           symbol: "\U000F0140"
@@ -11,8 +11,8 @@
           align: TOP_RIGHT
           y: 0
           options:
-            - "Fixed setpoint"
-            - "Extern setpoint"
+            - "${t_fixed_setpoint}"
+            - "${t_extern_setpoint}"
           text_font: font_text_20
           dropdown_list:
             text_font: font_text_20
@@ -31,8 +31,8 @@
     id: set_cool_setpoint_row
     styles: setting_row_style
     widgets:
-      - label: { id: set_cool_setpoint_lbl, text: "Setpoint (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { id: set_cool_setpoint_sub, text: "Doeltemperatuur voor koelen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { id: set_cool_setpoint_lbl, text: "${t_setpoint_c}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { id: set_cool_setpoint_sub, text: "${t_doeltemperatuur_voor_koelen}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT
@@ -85,8 +85,8 @@
     id: set_cool_manual_sp_row
     styles: setting_row_style
     widgets:
-      - label: { id: set_cool_manual_sp_lbl, text: "Extern setpoint (°C)", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { id: set_cool_manual_sp_sub, text: "Koel setpoint bij extern setpoint", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { id: set_cool_manual_sp_lbl, text: "${t_extern_setpoint_c}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { id: set_cool_manual_sp_sub, text: "${t_koel_setpoint_bij_extern_setpoint}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - obj:
           width: SIZE_CONTENT
           height: SIZE_CONTENT

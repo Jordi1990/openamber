@@ -1,7 +1,7 @@
 # Menu Page: Mengventiel Zone 1
 # ------------------------------------------------------------
 id: panel_general_mv_zone1
-title: "Mengventiel Zone 1"
+title: "${t_mengventiel_zone_1_3}"
 styles: setting_page_style
 widgets:
   - obj:
@@ -21,8 +21,8 @@ widgets:
             id: set_general_mv_z1_enabled
             styles: setting_row_style
             widgets:
-              - label: { text: "Mengventiel zone 1 aanwezig", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Mengventiel zone 1 is aanwezig in het systeem", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - label: { text: "${t_mengventiel_zone_1_aanwezig}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_mengventiel_zone_1_is_aanwezig_in_het_sy}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - switch:
                   id: set_mv_z1_enabled_switch_ui
                   align: TOP_RIGHT
@@ -43,8 +43,8 @@ widgets:
             id: set_general_mv_z1_min
             styles: setting_row_style
             widgets:
-              - label: { text: "Minimum positie", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Minimale ventielopening zone 1", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - label: { text: "${t_minimum_positie}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_minimale_ventielopening_zone_1}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT
@@ -78,8 +78,8 @@ widgets:
             id: set_general_mv_z1_max
             styles: setting_row_style
             widgets:
-              - label: { text: "Maximum positie", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Maximale ventielopening zone 1", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - label: { text: "${t_maximum_positie}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_maximale_ventielopening_zone_1}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT

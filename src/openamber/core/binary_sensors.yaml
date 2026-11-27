@@ -229,8 +229,9 @@ binary_sensor:
   id: cool_demand_active_sensor
   device_class: running
   lambda: |-
+    // Emergency mode runs on the backup heater only (compressor broken in winter): no cooling then.
     if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state || id(heat_demand_active_sensor).state ||
-        !id(cooling_allowed_switch).state) {
+        !id(cooling_allowed_switch).state || id(emergency_mode_enabled).state) {
       return false;
     }
     if (id(thermostat_mode_select).current_option() == "Intern") {
@@ -928,6 +929,22 @@ binary_sensor:
     sorting_group_id: error_codes
 
 - platform: template
+  id: error_water_delta_t_too_high
+  name: "Temperatuurverschil Tuo-Tui te groot"
+  device_class: problem
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: error_codes
+
+- platform: template
+  id: error_pump_flow_missing
+  name: "Geen flow bij draaiende compressor"
+  device_class: problem
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: error_codes
+
+- platform: template
   id: error_active
   name: "Error actief"
   device_class: problem
@@ -972,7 +989,9 @@ binary_sensor:
            id(error_pump_stop_timeout).state ||
            id(error_modbus_connection_timeout).state ||
            id(error_three_way_valve_state_timeout).state ||
-           id(error_inside_unit_failsafe).state;
+           id(error_inside_unit_failsafe).state ||
+           id(error_water_delta_t_too_high).state ||
+           id(error_pump_flow_missing).state;
 
 - platform: template
   id: defrost_running_sensor

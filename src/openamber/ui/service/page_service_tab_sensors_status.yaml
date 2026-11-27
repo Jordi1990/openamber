@@ -44,10 +44,10 @@ widgets:
               - width: 60%
               - width: 40%
             rows:
-              - ["Hoofdstatus", "-"]
-              - ["CV / Koelen", "-"]
-              - ["Tapwater", "-"]
-              - ["Gewenst CV setpoint", "-"]
-              - ["Gewenst tapwater setpoint", "-"]
-              - ["Thermisch vermogen", "-"]
-              - ["Onderhoudsmodus", "-"]
+              - ["${t_hoofdstatus}", "-"]
+              - ["${t_cv_koelen_2}", "-"]
+              - ["${t_tapwater}", "-"]
+              - ["${t_gewenst_cv_setpoint}", "-"]
+              - ["${t_gewenst_tapwater_setpoint}", "-"]
+              - ["${t_thermisch_vermogen}", "-"]
+              - ["${t_onderhoudsmodus}", "-"]

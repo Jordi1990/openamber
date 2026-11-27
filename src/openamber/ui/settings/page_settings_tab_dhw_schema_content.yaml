@@ -1,8 +1,8 @@
 - obj:
     styles: setting_row_style
     widgets:
-      - label: { text: "Tapwater schema", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-      - label: { text: "Verwarming alleen op geplande tijden", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - label: { text: "${t_tapwater_schema}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_verwarming_alleen_op_geplande_tijden}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
       - switch:
           id: set_dhw_sched_switch
           align: TOP_RIGHT
@@ -48,7 +48,7 @@
                         }
                       }
                 widgets:
-                  - label: { id: set_dhw_day_mon_lbl, text: "Ma", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+                  - label: { id: set_dhw_day_mon_lbl, text: "${t_ma}", text_color: 0x334155, text_font: font_text_20, align: CENTER }
             - obj:
                 id: set_dhw_day_tue
                 width: 44
@@ -69,7 +69,7 @@
                         }
                       }
                 widgets:
-                  - label: { id: set_dhw_day_tue_lbl, text: "Di", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+                  - label: { id: set_dhw_day_tue_lbl, text: "${t_di}", text_color: 0x334155, text_font: font_text_20, align: CENTER }
             - obj:
                 id: set_dhw_day_wed
                 width: 44
@@ -90,7 +90,7 @@
                         }
                       }
                 widgets:
-                  - label: { id: set_dhw_day_wed_lbl, text: "Wo", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+                  - label: { id: set_dhw_day_wed_lbl, text: "${t_wo}", text_color: 0x334155, text_font: font_text_20, align: CENTER }
             - obj:
                 id: set_dhw_day_thu
                 width: 44
@@ -111,7 +111,7 @@
                         }
                       }
                 widgets:
-                  - label: { id: set_dhw_day_thu_lbl, text: "Do", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+                  - label: { id: set_dhw_day_thu_lbl, text: "${t_do}", text_color: 0x334155, text_font: font_text_20, align: CENTER }
             - obj:
                 id: set_dhw_day_fri
                 width: 44
@@ -132,7 +132,7 @@
                         }
                       }
                 widgets:
-                  - label: { id: set_dhw_day_fri_lbl, text: "Vr", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+                  - label: { id: set_dhw_day_fri_lbl, text: "${t_vr}", text_color: 0x334155, text_font: font_text_20, align: CENTER }
             - obj:
                 id: set_dhw_day_sat
                 width: 44
@@ -153,7 +153,7 @@
                         }
                       }
                 widgets:
-                  - label: { id: set_dhw_day_sat_lbl, text: "Za", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+                  - label: { id: set_dhw_day_sat_lbl, text: "${t_za}", text_color: 0x334155, text_font: font_text_20, align: CENTER }
             - obj:
                 id: set_dhw_day_sun
                 width: 44
@@ -174,10 +174,10 @@
                         }
                       }
                 widgets:
-                  - label: { id: set_dhw_day_sun_lbl, text: "Zo", text_color: 0x334155, text_font: font_text_20, align: CENTER }
+                  - label: { id: set_dhw_day_sun_lbl, text: "${t_zo}", text_color: 0x334155, text_font: font_text_20, align: CENTER }
       - label:
           id: set_dhw_days_summary
-          text: "Actief op: -"
+          text: "${t_actief_op}"
           text_color: 0x6B7280
           text_font: font_text_20
           align: TOP_LEFT
@@ -191,7 +191,7 @@
           border_opa: 0%
           pad_all: 0
           widgets:
-            - label: { id: set_dhw_start_time_lbl, text: "Starttijd", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { id: set_dhw_start_time_lbl, text: "${t_starttijd}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - obj:
                 width: SIZE_CONTENT
                 height: SIZE_CONTENT
@@ -257,7 +257,7 @@
           border_opa: 0%
           pad_all: 0
           widgets:
-            - label: { id: set_dhw_end_time_lbl, text: "Eindtijd", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+            - label: { id: set_dhw_end_time_lbl, text: "${t_eindtijd}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
             - obj:
                 width: SIZE_CONTENT
                 height: SIZE_CONTENT

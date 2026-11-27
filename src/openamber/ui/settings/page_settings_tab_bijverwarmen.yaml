@@ -1,7 +1,7 @@
 # Menu Page: Bijverwarmen (Categorie keuzemenu)
 # ------------------------------------------------------------
 id: panel_bijverwarmen
-title: "Bijverwarmen"
+title: "${t_bijverwarmen}"
 widgets:
   - obj:
       width: 100%
@@ -34,7 +34,7 @@ widgets:
                   page: panel_bijverwarmen_page_algemeen
             widgets:
               - label: { text: "\U000F08BB", styles: menu_tile_icon_style }
-              - label: { id: bijverwarmen_stab_algemeen_lbl, text: "Algemeen", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: bijverwarmen_stab_algemeen_lbl, text: "${t_algemeen}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: bijverwarmen_stab_verwarmen
@@ -50,7 +50,7 @@ widgets:
                   page: panel_bijverwarmen_page_verwarmen
             widgets:
               - label: { text: "\U000F0238", styles: menu_tile_icon_style }
-              - label: { id: bijverwarmen_stab_verwarmen_lbl, text: "Verwarmen", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: bijverwarmen_stab_verwarmen_lbl, text: "${t_verwarmen}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: bijverwarmen_stab_tapwater
@@ -66,4 +66,4 @@ widgets:
                   page: panel_bijverwarmen_page_tapwater
             widgets:
               - label: { text: "\U000F0F92", styles: menu_tile_icon_style }
-              - label: { id: bijverwarmen_stab_tapwater_lbl, text: "Tapwater", long_mode: WRAP, styles: menu_tile_label_style }
+              - label: { id: bijverwarmen_stab_tapwater_lbl, text: "${t_tapwater}", long_mode: WRAP, styles: menu_tile_label_style }

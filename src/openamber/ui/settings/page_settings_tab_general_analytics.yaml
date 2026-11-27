@@ -21,8 +21,8 @@ widgets:
             id: set_general_system_analytics
             styles: setting_row_style
             widgets:
-              - label: { text: "Analytics versturen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Deel anonieme gebruiksdata voor het OpenAmber dashboard", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - label: { text: "${t_analytics_versturen}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_deel_anonieme_gebruiksdata_voor_het_open}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - switch:
                   id: set_analytics_enabled_switch_ui
                   align: TOP_RIGHT
@@ -44,11 +44,11 @@ widgets:
             styles: setting_row_style
             hidden: true
             widgets:
-              - label: { text: "Analytics ID", text_color: 0x9CA3AF, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_analytics_id}", text_color: 0x9CA3AF, text_font: font_text_24, align: TOP_LEFT }
               - label:
                   id: set_analytics_id_value
                   width: 100%
-                  text: "Onbekend"
+                  text: "${t_onbekend}"
                   text_color: 0x9CA3AF
                   text_font: font_text_20
                   long_mode: WRAP

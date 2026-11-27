@@ -1,8 +1,8 @@
 """Automated tests for the minimum compressor off time before DHW starts the compressor.
 
-The outdoor unit blocks a compressor restart for 180 s after a stop. When heating stops the compressor for a
-DHW request, DHW starts its pump but requests the compressor only after COMPRESSOR_MIN_OFF_S (200 s), like
-heating does.
+The outdoor unit blocks a compressor restart for 180 s after a stop. When DHW is requested right after heating
+stopped the compressor, DHW starts its pump but requests the compressor only after COMPRESSOR_MIN_OFF_S (200 s),
+like heating does. (A DHW request while the compressor still heats uses the hot switch and does not stop it.)
 """
 
 import pytest
@@ -17,19 +17,23 @@ def compressor_mode(openamber):
 
 
 def switch_heating_to_dhw(openamber):
-    """Start heating, then request DHW. Returns the simulator time at which heating stopped the compressor."""
+    """Start heating, end the heat demand and request DHW as soon as heating stopped the compressor.
+    Returns the simulator time at which heating stopped the compressor."""
     openamber.set_switch("dhw_enabled_switch", False)
     openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
     start_space_heating(openamber)
     assert compressor_mode(openamber) > 0
 
-    openamber.set_switch("dhw_enabled_switch", True)
+    openamber.set_switch("heat_demand_switch", False)
     for _ in range(900):
         if compressor_mode(openamber) == 0:
-            return now_s(openamber)
+            stopped_at = now_s(openamber)
+            openamber.set_switch("dhw_enabled_switch", True)
+            openamber.step(ms=20)
+            return stopped_at
         openamber.advance_time(seconds=1, step_s=1)
         openamber.step(ms=20)
-    pytest.fail("Heating never stopped the compressor for the DHW request")
+    pytest.fail("Heating never stopped the compressor after the heat demand ended")
 
 
 def test_dhw_requests_compressor_only_after_min_off_time(clean_system):

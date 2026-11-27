@@ -31,10 +31,10 @@ obj:
         scrollable: false
         widgets:
           # Left column: values readable from a distance
-          - label: { id: graph_tc_caption, text: "Tc nu", x: 20, y: 18, text_font: font_text_20, text_color: 0x5B6878 }
+          - label: { id: graph_tc_caption, text: "${t_tc_nu}", x: 20, y: 18, text_font: font_text_20, text_color: 0x5B6878 }
           - label: { id: graph_tc_value, text: "-", x: 20, y: 42, text_font: font_value_big, text_color: 0x1F2933 }
           - label: { id: graph_sp_value, text: "", x: 20, y: 84, text_font: font_text_20, text_color: 0x5B6878 }
-          - label: { text: "Compressor", x: 20, y: 126, text_font: font_text_20, text_color: 0x5B6878 }
+          - label: { text: "${t_compressor}", x: 20, y: 126, text_font: font_text_20, text_color: 0x5B6878 }
           - label: { id: graph_hz_value, text: "-", x: 20, y: 150, text_font: font_value_big, text_color: 0x1F2933 }
           - obj: { id: graph_state_chip, x: 20, y: 196, width: 14, height: 14, radius: 3, bg_opa: 100%, border_width: 0, border_opa: 0%, pad_all: 0, hidden: true, clickable: false }
           - label: { id: graph_state_value, text: "", x: 20, y: 192, text_font: font_text_20, text_color: 0x5B6878 }
@@ -54,7 +54,7 @@ obj:
               on_click:
                 - lambda: 'openamber_graph::page().toggle_pipes();'
               widgets:
-                - label: { id: graph_btn_pipes_label, text: "Tuo en Tui", align: CENTER, text_font: font_text_20, text_color: 0x1F2933 }
+                - label: { id: graph_btn_pipes_label, text: "${t_tuo_en_tui}", align: CENTER, text_font: font_text_20, text_color: 0x1F2933 }
           - obj:
               id: graph_btn_1h
               x: 20
@@ -70,7 +70,7 @@ obj:
               on_click:
                 - lambda: 'openamber_graph::page().set_hours(1);'
               widgets:
-                - label: { id: graph_btn_1h_label, text: "1 u", align: CENTER, text_font: font_text_20, text_color: 0x1F2933 }
+                - label: { id: graph_btn_1h_label, text: "${t_1_u}", align: CENTER, text_font: font_text_20, text_color: 0x1F2933 }
           - obj:
               id: graph_btn_6h
               x: 84
@@ -86,7 +86,7 @@ obj:
               on_click:
                 - lambda: 'openamber_graph::page().set_hours(6);'
               widgets:
-                - label: { id: graph_btn_6h_label, text: "6 u", align: CENTER, text_font: font_text_20, text_color: 0x1F2933 }
+                - label: { id: graph_btn_6h_label, text: "${t_6_u}", align: CENTER, text_font: font_text_20, text_color: 0x1F2933 }
           - obj:
               id: graph_btn_24h
               x: 148
@@ -102,7 +102,7 @@ obj:
               on_click:
                 - lambda: 'openamber_graph::page().set_hours(24);'
               widgets:
-                - label: { id: graph_btn_24h_label, text: "24 u", align: CENTER, text_font: font_text_20, text_color: 0x1F2933 }
+                - label: { id: graph_btn_24h_label, text: "${t_24_u}", align: CENTER, text_font: font_text_20, text_color: 0x1F2933 }
           - label: { id: graph_tuo_value, text: "", x: 20, y: 368, hidden: true, text_font: font_text_20, text_color: 0xC8480C }
           - label: { id: graph_tui_value, text: "", x: 112, y: 368, hidden: true, text_font: font_text_20, text_color: 0x0A8176 }
 
@@ -130,14 +130,14 @@ obj:
                     y: 288
                     width: 708
                     height: 64
-                - label: { id: graph_empty_label, text: "De eerste meting verschijnt binnen een minuut", align: TOP_MID, y: 120, text_font: font_text_24, text_color: 0x5B6878 }
+                - label: { id: graph_empty_label, text: "${t_de_eerste_meting_verschijnt_binnen_een_m}", align: TOP_MID, y: 120, text_font: font_text_24, text_color: 0x5B6878 }
 
           # Legend for the compressor lane
           - obj: { x: 252, y: 411, width: 14, height: 14, radius: 3, bg_color: 0x2E8B57, bg_opa: 100%, border_width: 0, border_opa: 0%, pad_all: 0, clickable: false }
-          - label: { text: "Verwarmen", x: 272, y: 406, text_font: font_text_20, text_color: 0x5B6878 }
+          - label: { text: "${t_verwarmen}", x: 272, y: 406, text_font: font_text_20, text_color: 0x5B6878 }
           - obj: { x: 426, y: 411, width: 14, height: 14, radius: 3, bg_color: 0xE09F1F, bg_opa: 100%, border_width: 0, border_opa: 0%, pad_all: 0, clickable: false }
-          - label: { text: "Softstart", x: 446, y: 406, text_font: font_text_20, text_color: 0x5B6878 }
+          - label: { text: "${t_softstart}", x: 446, y: 406, text_font: font_text_20, text_color: 0x5B6878 }
           - obj: { x: 586, y: 411, width: 14, height: 14, radius: 3, bg_color: 0xB5306A, bg_opa: 100%, border_width: 0, border_opa: 0%, pad_all: 0, clickable: false }
-          - label: { text: "Tapwater", x: 606, y: 406, text_font: font_text_20, text_color: 0x5B6878 }
+          - label: { text: "${t_tapwater}", x: 606, y: 406, text_font: font_text_20, text_color: 0x5B6878 }
           - obj: { x: 744, y: 411, width: 14, height: 14, radius: 3, bg_color: 0x2B8AD9, bg_opa: 100%, border_width: 0, border_opa: 0%, pad_all: 0, clickable: false }
-          - label: { text: "Ontdooien", x: 764, y: 406, text_font: font_text_20, text_color: 0x5B6878 }
+          - label: { text: "${t_ontdooien}", x: 764, y: 406, text_font: font_text_20, text_color: 0x5B6878 }

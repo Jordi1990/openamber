@@ -1,6 +1,6 @@
 # Menu Page: Ventilator - Verwarmen compressor
 # ------------------------------------------------------------
 id: panel_advanced_page_fan_heat_hz
-title: "Verwarmen: compressor"
+title: "${t_verwarmen_compressor}"
 styles: setting_page_style
 widgets: !include page_settings_tab_advanced_fan_heat_hz_content.yaml

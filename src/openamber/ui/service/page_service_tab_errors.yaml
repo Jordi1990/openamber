@@ -1,7 +1,7 @@
 # Menu Page: Foutmeldingen
 # ------------------------------------------------------------
 id: service_errors_page
-title: "Foutmeldingen"
+title: "${t_foutmeldingen}"
 styles: setting_page_style
 widgets:
   - obj:
@@ -34,7 +34,7 @@ widgets:
               pad_row: 8
             widgets:
               - label:
-                  text: "Foutmeldingen"
+                  text: "${t_foutmeldingen}"
                   text_color: 0x991B1B
                   text_font: font_text_24
               - obj:
@@ -53,12 +53,13 @@ widgets:
                     - switch.turn_on: reset_start_timeout_errors_switch
                   widgets:
                     - label:
-                        text: "Reset timeout-fouten"
+                        text: "${t_reset_timeout_fouten}"
                         text_color: 0xFFFFFF
                         text_font: font_text_20
                         align: CENTER
               - list:
                   id: service_errors_list
+                  text_font: font_text_20  # list items need the umlauts of the UI font (ui_language: de)
                   width: 100%
                   height: 380
                   bg_opa: 0%

@@ -1,7 +1,7 @@
 # Menu Page: Algemeen
 # ------------------------------------------------------------
 id: service_maintenance_page
-title: "Algemeen"
+title: "${t_algemeen}"
 styles: setting_page_style
 widgets:
   - obj:
@@ -24,7 +24,7 @@ widgets:
             widgets:
               - label:
                   id: service_maintenance_title
-                  text: "Onderhoudsmodus"
+                  text: "${t_onderhoudsmodus}"
                   text_color: 0x1F2933
                   text_font: font_text_24
                   align: TOP_LEFT
@@ -32,7 +32,7 @@ widgets:
                   id: service_maintenance_state
                   width: 75%
                   height: SIZE_CONTENT
-                  text: "Onderhoudsmodus niet actief"
+                  text: "${t_onderhoudsmodus_niet_actief}"
                   text_color: 0x6B7280
                   text_font: font_text_20
                   align: TOP_LEFT
@@ -59,7 +59,7 @@ widgets:
             id: service_maintenance_lock_hint
             pad_left: 18
             width: 100%
-            text: "Stop eerst de warmtepomp via Systeem > Beheer."
+            text: "${t_stop_eerst_de_warmtepomp_via_systeem_beh}"
             text_color: 0x9CA3AF
             text_font: font_text_20
             long_mode: WRAP

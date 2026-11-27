@@ -1,7 +1,7 @@
 # Menu Page: Thermostaat Verwarmen
 # ------------------------------------------------------------
 id: panel_thermostat_page_verwarmen
-title: "Verwarmen"
+title: "${t_verwarmen}"
 styles: setting_page_style
 widgets:
   - obj:
@@ -21,8 +21,8 @@ widgets:
             id: thermostat_row_heat_deadband
             styles: setting_row_style
             widgets:
-              - label: { text: "Deadband verwarmen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Temperatuurverschil onder setpoint voor verwarmen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - label: { text: "${t_deadband_verwarmen}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_temperatuurverschil_onder_setpoint_voor_2}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT
@@ -56,8 +56,8 @@ widgets:
             id: thermostat_row_heat_overrun
             styles: setting_row_style
             widgets:
-              - label: { text: "Overrun verwarmen", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
-              - label: { text: "Temperatuurverschil boven setpoint voor stoppen", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+              - label: { text: "${t_overrun_verwarmen}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+              - label: { text: "${t_temperatuurverschil_boven_setpoint_voor_2}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
               - obj:
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT

@@ -1,6 +1,6 @@
 # Menu Page: Tapwater Algemeen
 # ------------------------------------------------------------
 id: panel_dhw_page_algemeen
-title: "Algemeen"
+title: "${t_algemeen}"
 styles: setting_page_style
 widgets: !include page_settings_tab_dhw_algemeen_content.yaml
