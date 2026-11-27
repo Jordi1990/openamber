@@ -328,14 +328,15 @@ public:
     return last_compressor_start_ms_;
   }
 
-  void ApplyCompressorMode(int compressor_mode)
+  /// skip_step_limit: go to the mode at once, as on a start (used when DHW takes over a running compressor).
+  void ApplyCompressorMode(int compressor_mode, bool skip_step_limit = false)
   {
     auto current_compressor_mode = id(compressor_control_select).active_index().value();
     compressor_mode = CapToAmbientFrequencyLimit(compressor_mode);
     compressor_mode = ApplyDischargeSideLimit(compressor_mode, current_compressor_mode);
 
     // On initial start, allow any mode.
-    if(current_compressor_mode != 0)
+    if(current_compressor_mode != 0 && !skip_step_limit)
     {
       // Limit to a single frequency step per update
       if (compressor_mode > current_compressor_mode + 1)

@@ -52,7 +52,7 @@ def test_dhw_demand_while_heating_switches_to_dhw(clean_system):
     Priority Flow:
     1. Space heating is actively running (heat demand active).
     2. DHW demand occurs (tank temperature drops).
-    3. Space heating respects compressor min-on-time (600s), then stops and switches 3-way valve to DHW.
+    3. The 3-way valve switches to DHW while the compressor keeps running (hot switch), DHW takes it over.
     """
     openamber = clean_system
 
@@ -67,22 +67,15 @@ def test_dhw_demand_while_heating_switches_to_dhw(clean_system):
     openamber.step(ms=100)
     assert openamber.get_entity("dhw_demand_active_sensor") is True, "DHW demand should be active when tank drops"
 
-    # start_space_heating returns after the soft start (180s). Half way through the minimum on time (600s) the
-    # compressor still heats the house and the valve has not moved.
-    openamber.advance_time(seconds=200, step_s=20)
-    openamber.step(ms=100)
-    assert int(openamber.get_entity("compressor_control_select") or 0) > 0, "Heating must finish its minimum on time first"
-    assert openamber.get_entity("three_way_valve_dhw_switch") is False, "3-way valve must not switch while heating runs"
-    assert openamber.get_entity("state_machine_state_main") == "Heat/Cool"
-
-    # Rest of the minimum on time, the stop of compressor and pump, and the valve switch (60s)
-    assert advance_until_state(openamber, "state_machine_state_main", "DHW", max_s=600), (
+    # The valve switch (60 s) without waiting for the minimum on time of heating.
+    assert advance_until_state(openamber, "state_machine_state_main", "DHW", max_s=300), (
         f"Never switched to DHW (main: {openamber.get_entity('state_machine_state_main')}, "
         f"heat/cool: {openamber.get_entity('state_machine_state_heat_cool')})"
     )
 
     # 3-way valve must now be aligned to DHW circuit
-    assert openamber.get_entity("three_way_valve_dhw_switch") is True, "3-way valve should switch to DHW after heating min-on-time"
+    assert openamber.get_entity("three_way_valve_dhw_switch") is True, "3-way valve should switch to DHW"
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0, "The compressor keeps running for DHW"
     assert openamber.get_entity("three_way_valve_heat_cool_switch") is False, "3-way valve CV output should be off in DHW"
     assert openamber.get_entity("state_machine_state_heat_cool") == "Idle", "Heating must be idle while DHW runs"
 
