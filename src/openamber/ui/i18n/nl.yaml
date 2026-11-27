@@ -472,7 +472,7 @@ substitutions:
   t_display: "Display"
   t_bron_buitenvochtigheid: "Bron buitenvochtigheid"
   t_activeren: "Activeren"
-  t_de_buitenunit_ontdooit_dan_niet_meer_zel: "De buitenunit ontdooit dan niet meer zelf, OpenAmber start de defrosts. Lukt een defrost niet, dan krijg je een melding en probeert OpenAmber het na 30 min opnieuw. Je kunt altijd terugschakelen naar Buitenunit, ook vanuit Home Assistant."
+  t_de_buitenunit_ontdooit_dan_niet_meer_zel: "De buitenunit ontdooit dan niet meer zelf, OpenAmber start de defrosts. Start een defrost niet, dan stopt de regeling met fout TO10. Je kunt altijd terugschakelen naar Buitenunit, ook vanuit Home Assistant."
   t_de_buitenunit_start_direct_een_defrost_o: "De buitenunit start direct een defrost, of zodra 30 min na de vorige defrost voorbij is. Stopt de compressor voor die tijd, dan vervalt de aanvraag."
   t_defrost_controle_naar_openamber: "Defrost controle naar OpenAmber"
   t_defrost_forceren: "Defrost forceren"

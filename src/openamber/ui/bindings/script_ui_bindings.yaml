@@ -1244,6 +1244,7 @@
           {oa_tr("TO07 - Compressor onverwacht gestopt"), oa_tr("De buitenunit stopte de compressor zelf terwijl OpenAmber hem liet draaien. De regeling is gestopt. Controleer beveiligingen, voeding en de Modbus-verbinding met de buitenunit en reset daarna de fout."), id(error_compressor_unexpected_stop).state},
           {oa_tr("TO08 - Temperatuurverschil Tuo-Tui te groot"), oa_tr("Het temperatuurverschil over de platenwisselaar (Tuo-Tui) bleef 60 seconden boven de grens (15 °C bij verwarmen en tapwater, 8 °C bij koelen). De regeling is gestopt. Controleer de flow (pomp, filter, lucht, kranen) en reset daarna de fout."), id(error_water_delta_t_too_high).state},
           {oa_tr("TO09 - Geen flow bij draaiende compressor"), oa_tr("De flowschakelaar meldde geen flow terwijl de compressor draaide, langer dan de ingestelde vertraging. De regeling is gestopt. Controleer pomp P0, filter, lucht en de flowschakelaar en reset daarna de fout."), id(error_pump_flow_missing).state},
+          {oa_tr("TO10 - Defrost start timeout"), oa_tr("De buitenunit startte geen defrost binnen 120 seconden nadat OpenAmber erom vroeg. De regeling is gestopt. Controleer de Modbus-verbinding met de buitenunit, of zet de defrost controle op Buitenunit, en reset daarna de fout."), id(error_defrost_start_timeout).state},
           {oa_tr("F13 - Storing sensor ruimtetemperatuur"), oa_tr("Storing sensor ruimtetemperatuur."), id(error_flag_f13).state},
           {oa_tr("B01 - Geen meting BLE-ruimtesensor"), oa_tr("De gekozen BLE-ruimtesensor heeft 10 minuten geen meting gestuurd. Controleer de batterij en het bereik van de sensor."), id(error_flag_b01).state},
           {oa_tr("F14 - Storing sensor tapwatertemperatuur"), oa_tr("Storing sensor tapwatertemperatuur."), id(error_flag_f14).state},
@@ -1264,7 +1265,8 @@
             id(error_three_way_valve_state_timeout).state ||
             id(error_inside_unit_failsafe).state ||
             id(error_water_delta_t_too_high).state ||
-            id(error_pump_flow_missing).state;
+            id(error_pump_flow_missing).state ||
+            id(error_defrost_start_timeout).state;
 
         if (id(service_errors_reset_timeout_btn) != nullptr) {
           if (timeout_error_active) lv_obj_clear_flag(id(service_errors_reset_timeout_btn), LV_OBJ_FLAG_HIDDEN);
@@ -1308,8 +1310,7 @@
           {oa_tr("P13 - Storing compressor - laag drukverschil"), oa_tr("Toerental compressor wordt verlaagd. Als dezelfde storing binnen een bepaalde tijd drie keer optreedt, wordt de warmtepomp geblokkeerd en moet worden herstart."), id(error_flag_p13).state},
           {oa_tr("Communicatie-failsafe binnenunit"), oa_tr("Communicatie-failsafe binnenunit actief."), id(error_flag_inside_comm_failsafe).state},
           {oa_tr("EEPROM-fout binnenunit"), oa_tr("EEPROM- of statusfout binnenunit."), id(error_flag_inside_eeprom).state},
-          {oa_tr("Pompterugmelding P0 alarm"), oa_tr("Alarm pompterugmelding P0."), id(error_flag_pump_p0_alarm).state},
-          {oa_tr("OA01 - Defrost door OpenAmber mislukt"), oa_tr("De buitenunit startte geen defrost na twee aanvragen van OpenAmber. OpenAmber probeert het na 30 min opnieuw. De melding verdwijnt na een geslaagde defrost of als je de defrost controle wijzigt."), id(warning_custom_defrost_failed).state}
+          {oa_tr("Pompterugmelding P0 alarm"), oa_tr("Alarm pompterugmelding P0."), id(error_flag_pump_p0_alarm).state}
         };
 
         lv_obj_clean(id(service_warnings_list));

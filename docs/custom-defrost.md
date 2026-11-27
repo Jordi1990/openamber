@@ -20,9 +20,9 @@ OpenAmber kan zelf bepalen wanneer de buitenunit ontdooit. Alle defrost-instelli
 De stand wordt niet onthouden: na een herstart staat hij op Buitenunit en zet OpenAmber 3274 terug naar de
 buitenunit (alleen als de teruggelezen waarde afwijkt). Een Modbus-schrijfactie op 3274 wijzigt alleen het RAM van de buitenunit,
 niet het EEPROM; na een stroomonderbreking van de buitenunit schrijft OpenAmber de waarde binnen een minuut opnieuw. Je kunt altijd wisselen, ook vanuit Home Assistant (bijvoorbeeld naar Buitenunit als je niet thuis bent). Een defrost
-die al loopt maakt eerst af; daarna zet OpenAmber werkmodus 4 terug naar verwarmen en schrijft 3274 opnieuw. Lukt een
-geforceerde defrost twee keer niet, dan gaat waarschuwing OA01 aan en probeert OpenAmber het na 30 min opnieuw. De
-controle blijft bij OpenAmber; alleen jij wisselt de stand.
+die al loopt maakt eerst af; daarna zet OpenAmber werkmodus 4 terug naar verwarmen en schrijft 3274 opnieuw. Start een
+geforceerde defrost niet, dan stopt de regeling met fout TO10 (zie Blokkades). De controle blijft bij OpenAmber;
+alleen jij wisselt de stand.
 
 ## Wanneer wordt er ontdooid
 
@@ -99,8 +99,10 @@ interval, retourblokkade en bevestigingstijd) staan vast in `controllers/constan
   alleen tijdens verwarmen met draaiende compressor. De aanvraag wacht op het slot van 30 min en vervalt als de
   compressor stopt of na 40 min.
 - **Retourtemperatuur.** Onder 20 °C retourtemperatuur wordt gewacht, maximaal 15 min.
-- **Bevestiging.** Zet de unit 2118 niet binnen 120 s aan, dan neemt OpenAmber werkmodus 4 terug en probeert het
-  nog één keer.
+- **Bevestiging.** Zet de unit 2118 niet binnen 120 s aan, dan neemt OpenAmber werkmodus 4 terug en gaat de regeling
+  in fout **TO10 - Defrost start timeout**, zonder nieuwe poging. Net als de andere timeoutfouten stopt dat de
+  warmtepomp tot je de fout reset ("Reset systeem timeout fouten" of de resetknop bij de storingen). Er wordt geen
+  nieuwe defrost aangevraagd zolang TO10 actief is.
 
 Na de defrost zet OpenAmber werkmodus 4 direct terug naar verwarmen. Anders zou de unit 30 min later opnieuw
 ontdooien.

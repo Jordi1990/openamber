@@ -2435,9 +2435,9 @@
   de: "Aktivieren"
   en: "Activate"
 - key: t_de_buitenunit_ontdooit_dan_niet_meer_zel
-  nl: "De buitenunit ontdooit dan niet meer zelf, OpenAmber start de defrosts. Lukt een defrost niet, dan krijg je een melding en probeert OpenAmber het na 30 min opnieuw. Je kunt altijd terugschakelen naar Buitenunit, ook vanuit Home Assistant."
-  de: "Die Außeneinheit taut dann nicht mehr selbst ab, OpenAmber startet das Abtauen. Klappt ein Abtauen nicht, erhältst du eine Meldung und OpenAmber versucht es nach 30 min erneut. Du kannst jederzeit zurück auf Außeneinheit schalten, auch aus Home Assistant."
-  en: "The outdoor unit then no longer defrosts by itself, OpenAmber starts the defrosts. If a defrost fails, you get a warning and OpenAmber tries again after 30 min. You can always switch back to Outdoor unit, also from Home Assistant."
+  nl: "De buitenunit ontdooit dan niet meer zelf, OpenAmber start de defrosts. Start een defrost niet, dan stopt de regeling met fout TO10. Je kunt altijd terugschakelen naar Buitenunit, ook vanuit Home Assistant."
+  de: "Die Außeneinheit taut dann nicht mehr selbst ab, OpenAmber startet das Abtauen. Startet ein Abtauen nicht, stoppt die Regelung mit Fehler TO10. Du kannst jederzeit zurück auf Außeneinheit schalten, auch aus Home Assistant."
+  en: "The outdoor unit then no longer defrosts by itself, OpenAmber starts the defrosts. If a defrost does not start, control stops with error TO10. You can always switch back to Outdoor unit, also from Home Assistant."
 - key: t_de_buitenunit_start_direct_een_defrost_o
   nl: "De buitenunit start direct een defrost, of zodra 30 min na de vorige defrost voorbij is. Stopt de compressor voor die tijd, dan vervalt de aanvraag."
   de: "Die Außeneinheit startet sofort ein Abtauen oder sobald 30 min nach dem letzten Abtauen vergangen sind. Stoppt der Kompressor vorher, verfällt die Anforderung."
@@ -2585,12 +2585,6 @@
 - nl: "Geen meting"
   de: "Kein Messwert"
   en: "No reading"
-- nl: "OA01 - Defrost door OpenAmber mislukt"
-  de: "OA01 - Abtauen durch OpenAmber fehlgeschlagen"
-  en: "OA01 - Defrost by OpenAmber failed"
-- nl: "De buitenunit startte geen defrost na twee aanvragen van OpenAmber. OpenAmber probeert het na 30 min opnieuw. De melding verdwijnt na een geslaagde defrost of als je de defrost controle wijzigt."
-  de: "Die Außeneinheit hat nach zwei Anforderungen von OpenAmber kein Abtauen gestartet. OpenAmber versucht es nach 30 min erneut. Die Meldung verschwindet nach einem erfolgreichen Abtauen oder wenn du die Abtausteuerung änderst."
-  en: "The outdoor unit did not start a defrost after two requests from OpenAmber. OpenAmber tries again after 30 min. The warning clears after a successful defrost or when you change the defrost control."
 - use: state
   nl: "Bewaken"
   de: "Überwachen"
@@ -2607,14 +2601,6 @@
   nl: "Aangevraagd"
   de: "Angefordert"
   en: "Requested"
-- use: state
-  nl: "Opnieuw aanvragen"
-  de: "Erneut anfordern"
-  en: "Requesting again"
-- use: state
-  nl: "Mislukt, wacht op nieuwe poging"
-  de: "Fehlgeschlagen, warte auf neuen Versuch"
-  en: "Failed, waiting for a new attempt"
 - use: state
   nl: "Handmatig aangevraagd"
   de: "Manuell angefordert"
@@ -2655,3 +2641,13 @@
   nl: "Geen sensor beschikbaar"
   de: "Kein Sensor verfügbar"
   en: "No sensor available"
+- use: state
+  nl: "Fout: defrost startte niet"
+  de: "Fehler: Abtauen nicht gestartet"
+  en: "Error: defrost did not start"
+- nl: "TO10 - Defrost start timeout"
+  de: "TO10 - Zeitüberschreitung Abtaustart"
+  en: "TO10 - Defrost start timeout"
+- nl: "De buitenunit startte geen defrost binnen 120 seconden nadat OpenAmber erom vroeg. De regeling is gestopt. Controleer de Modbus-verbinding met de buitenunit, of zet de defrost controle op Buitenunit, en reset daarna de fout."
+  de: "Die Außeneinheit hat innerhalb von 120 Sekunden nach der Anforderung durch OpenAmber kein Abtauen gestartet. Die Regelung ist gestoppt. Prüfe die Modbus-Verbindung zur Außeneinheit oder stelle die Abtausteuerung auf Außeneinheit und setze danach den Fehler zurück."
+  en: "The outdoor unit did not start a defrost within 120 seconds after OpenAmber requested it. Control has stopped. Check the Modbus connection to the outdoor unit, or set the defrost control to Outdoor unit, then reset the error."

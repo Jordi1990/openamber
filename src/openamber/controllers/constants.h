@@ -213,7 +213,7 @@ static const float CUSTOM_DEFROST_INTERVAL_TP_C = -2.0f;
 // A return temperature below the minimum postpones the defrost, but at most the maximum wait.
 static const float CUSTOM_DEFROST_MIN_RETURN_TEMPERATURE_C = 20.0f;
 static const uint32_t CUSTOM_DEFROST_MAX_RETURN_WAIT_S = 15 * 60;
-// Time the outdoor unit gets to raise 2118 after working mode 4 was written.
+// Time the outdoor unit gets to raise 2118 after working mode 4 was written; without it error TO10 is raised.
 static const uint32_t CUSTOM_DEFROST_CONFIRM_TIMEOUT_S = 120;
 // After a forced defrost the outdoor unit only accepts a new one after 30 min compressor time.
 static const uint32_t CUSTOM_DEFROST_OUTDOOR_UNIT_LOCK_S = 30 * 60;
@@ -228,8 +228,6 @@ static const uint32_t CUSTOM_DEFROST_MANUAL_REQUEST_EXPIRY_S = 40 * 60;
 
 static const uint32_t CUSTOM_DEFROST_CONTROL_MODE_WRITE_INTERVAL_S = 60;
 static const uint32_t CUSTOM_DEFROST_RESTORE_WORKING_MODE_DELAY_S = 2 * 60;
-static const uint32_t CUSTOM_DEFROST_MAX_REQUEST_ATTEMPTS = 2;
-static const uint32_t CUSTOM_DEFROST_FAILED_RETRY_S = 30 * 60;
 static const uint32_t CUSTOM_DEFROST_OVERRUN_MARGIN_S = 5 * 60;
 // Defrost measurement. The outdoor unit raises 2118 about 5 min before its own defrost really starts (pre-phase) and
 // the length of that pre-phase is firmware dependent, so the execution is detected physically: hot gas on the coil

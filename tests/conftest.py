@@ -145,7 +145,6 @@ def clean_system(openamber):
     openamber.set_number("mock_compressor_frequency_override", -1.0)
     openamber.set_sensor("model_identification_1", 150.0)
     openamber.set_select("defrost_control_select", "Buitenunit")
-    openamber.set_binary_sensor("warning_custom_defrost_failed", False)
     openamber.set_sensor("evaporation_temperature_tp", 5.0)
     openamber.set_sensor("evaporating_temperature_te", 2.0)
     # Reset heating curves to their numbers.yaml defaults so curve edits in one test do not

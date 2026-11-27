@@ -84,6 +84,11 @@ binary_sensor:
     then:
       - script.execute: schedule_send_errors_realtime
 
+- id: !extend error_defrost_start_timeout
+  on_state:
+    then:
+      - script.execute: schedule_send_errors_realtime
+
 script:
 - id: fetch_analytics_device_id
   then:
@@ -560,7 +565,7 @@ script:
                 root["e2119"] = (uint16_t) id(error_register_2119_raw).state;
                 root["e2120"] = (uint16_t) id(error_register_2120_raw).state;
                 root["e2121"] = (uint16_t) id(error_register_2121_raw).state;
-                // OpenAmber's own errors, one bit per error: bit 0 = TO01 ... bit 8 = TO09. Only append bits.
+                // OpenAmber's own errors, one bit per error: bit 0 = TO01 ... bit 9 = TO10. Only append bits.
                 const binary_sensor::BinarySensor *oa_errors[] = {
                   id(error_pump_start_timeout),             // TO01
                   id(error_compressor_start_timeout),       // TO02
@@ -570,7 +575,8 @@ script:
                   id(error_inside_unit_failsafe),           // TO06
                   id(error_compressor_unexpected_stop),     // TO07
                   id(error_water_delta_t_too_high),         // TO08
-                  id(error_pump_flow_missing)               // TO09
+                  id(error_pump_flow_missing),              // TO09
+                  id(error_defrost_start_timeout)           // TO10
                 };
                 uint16_t oa_error_bits = 0;
                 for (size_t i = 0; i < sizeof(oa_errors) / sizeof(oa_errors[0]); i++)

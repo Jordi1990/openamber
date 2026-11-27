@@ -2,7 +2,7 @@
 Covers both defrost control modes (Buitenunit, OpenAmber) and switching between them, the Mitsubishi start line,
 the interval route with the adaptive interval (whose 120 min maximum is the safety net), the ice counter, the
 outdoor unit's 30 min lock, the optional humidity sensor, the return temperature block, the forced defrost request (working mode 4),
-request timeout with retry, warning and a new attempt after 30 min, and the settings page in the UI.
+the request timeout (error TO10, no retry) and the settings page in the UI.
 """
 
 import pytest
@@ -23,7 +23,6 @@ def _configure(openamber, mode):
     openamber.set_number("custom_defrost_min_runtime", 35.0)
     openamber.set_number("custom_defrost_frost_point_margin", 0.0)
     openamber.set_number("custom_defrost_ice_threshold", 70.0)
-    openamber.set_binary_sensor("warning_custom_defrost_failed", False)
     openamber.set_sensor("outdoor_humidity", 0.0)
     openamber.set_sensor("temperature_outside_ta", 0.0)
     openamber.set_sensor("evaporation_temperature_tp", 5.0)
@@ -229,8 +228,9 @@ def test_openamber_forced_defrost_flow(clean_system):
     openamber.set_number("custom_defrost_min_runtime", 35.0)
 
 
-def test_openamber_request_timeout_warns_and_retries(clean_system):
-    """Without confirmation (2118) the request is retried once; after that a warning, and a new attempt after 30 min."""
+def test_openamber_request_timeout_raises_error(clean_system):
+    """Without confirmation (2118) within 120 s the request is taken back and error TO10 stops the heat pump, without a
+    new attempt. The timeout error reset clears it."""
     openamber = clean_system
     _configure(openamber, "OpenAmber")
     _heat_and_reset_runtime(openamber)
@@ -241,28 +241,26 @@ def test_openamber_request_timeout_warns_and_retries(clean_system):
     openamber.step(ms=50)
     assert openamber.get_entity("working_mode_switch") == "Geforceerde defrost"
 
-    # First timeout: working mode restored and a second request follows
-    assert advance_until_state(openamber, "working_mode_switch", "Verwarmen", max_s=150, step=5)
-    assert advance_until_state(openamber, "working_mode_switch", "Geforceerde defrost", max_s=30, step=5), "Second attempt expected"
-
-    # Second timeout: warning, control stays with OpenAmber
-    assert advance_until_state(openamber, "warning_custom_defrost_failed", True, max_s=150, step=5)
-    assert openamber.get_entity("working_mode_switch") == "Verwarmen"
-    # The trigger timers restart after the failure; the block shows once the start line holds for 3 min again
-    openamber.advance_time(seconds=200, step_s=5)
+    # Timeout: working mode 4 taken back, TO10 latched
+    assert advance_until_state(openamber, "error_defrost_start_timeout", True, max_s=150, step=5)
     openamber.step(ms=50)
+    assert openamber.get_entity("error_active") is True
+    assert openamber.get_entity("working_mode_switch") != "Geforceerde defrost"
+
+    # No new attempt while TO10 is active, and the heat pump stops like with the other timeout errors
+    for _ in range(20):
+        openamber.advance_time(seconds=30, step_s=10)
+        assert openamber.get_entity("working_mode_switch") != "Geforceerde defrost", "No retry expected"
+    openamber.step(ms=50)
+    assert openamber.get_entity("custom_defrost_status") == "Fout: defrost startte niet"
+    assert openamber.get_entity("state_machine_state_heat_cool") != "Compressor running"
     assert openamber.get_entity("defrost_control_select") == "OpenAmber"
-    assert openamber.get_entity("defrost_control_mode_select") == "Master"
-    assert openamber.get_entity("custom_defrost_status").startswith("Geblokkeerd: mislukt")
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
 
-    # After 30 min a new request; a confirmed defrost clears the warning
-    assert advance_until_state(openamber, "working_mode_switch", "Geforceerde defrost", max_s=35 * 60, step=30)
-    openamber.set_binary_sensor("defrost_active_sensor", True)
-    openamber.advance_time(seconds=10, step_s=5)
+    # The timeout error reset clears it
+    openamber.set_switch("reset_start_timeout_errors_switch", True)
     openamber.step(ms=50)
-    assert openamber.get_entity("warning_custom_defrost_failed") is False
-    _end_defrost_by_unit(openamber)
+    assert openamber.get_entity("error_defrost_start_timeout") is False
+    assert openamber.get_entity("error_active") is False
 
 
 def _confirm_short_forced_defrost(openamber):

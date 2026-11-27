@@ -990,7 +990,8 @@ binary_sensor:
            id(error_three_way_valve_state_timeout).state ||
            id(error_inside_unit_failsafe).state ||
            id(error_water_delta_t_too_high).state ||
-           id(error_pump_flow_missing).state;
+           id(error_pump_flow_missing).state ||
+           id(error_defrost_start_timeout).state;
 
 - platform: template
   id: defrost_running_sensor
@@ -1052,12 +1053,12 @@ binary_sensor:
            id(error_flag_p13).state ||
            id(error_flag_inside_comm_failsafe).state ||
            id(error_flag_inside_eeprom).state ||
-           id(error_flag_pump_p0_alarm).state ||
-           id(warning_custom_defrost_failed).state;
+           id(error_flag_pump_p0_alarm).state;
 
+# TO10: the outdoor unit did not start a defrost that OpenAmber requested (custom defrost). Latched like TO01-TO09.
 - platform: template
-  id: warning_custom_defrost_failed
-  name: "Defrost door OpenAmber mislukt"
+  id: error_defrost_start_timeout
+  name: "Defrost start timeout"
   device_class: problem
   entity_category: diagnostic
   web_server:

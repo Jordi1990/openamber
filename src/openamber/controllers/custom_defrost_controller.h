@@ -86,6 +86,8 @@ inline float CustomDefrostIcingRate(float ta, float rh, float tp)
 ///  - Buitenunit: the outdoor unit decides itself, only statistics are kept here.
 ///  - OpenAmber: 3274 is set to master control and a defrost is started by writing working mode 4.
 /// A running defrost always finishes; 3274 is only rewritten when no defrost is active.
+/// When the outdoor unit does not start a requested defrost within the confirmation time, working mode 4 is taken back and
+/// error TO10 (error_defrost_start_timeout) stops OpenAmber like the other timeout errors; no new request until it is reset.
 /// The heat/cool and DHW controllers pick up a pending request in COMPRESSOR_RUNNING via ShouldRequestDefrost().
 class CustomDefrostController
 {
@@ -117,8 +119,6 @@ private:
   uint32_t defrost_started_ms_ = 0;
   uint32_t forced_mode_seen_since_ms_ = 0;
   uint32_t last_control_mode_write_ms_ = 0;
-  uint32_t request_attempts_ = 0;
-  uint32_t failed_since_ms_ = 0;
   int last_published_runtime_min_ = -1;
   int previous_mode_ = -1;
   float previous_min_interval_ = NAN;
@@ -214,7 +214,6 @@ private:
   {
     request_pending_ = false;
     manual_request_ = false;
-    request_attempts_ = 0;
   }
 
   void ResetTriggerTimers()
@@ -450,17 +449,6 @@ private:
     }
   }
 
-  /// @brief Control stays with OpenAmber: raise the warning and try again after the retry delay.
-  void OnRequestFailed(uint32_t now)
-  {
-    ESP_LOGE("amber", "CustomDefrost: forced defrost was not confirmed by the outdoor unit, retrying in %u min.",
-             (unsigned) (CUSTOM_DEFROST_FAILED_RETRY_S / 60));
-    id(warning_custom_defrost_failed).publish_state(true);
-    ClearRequest();
-    failed_since_ms_ = NonZero(now);
-    ResetTriggerTimers();
-  }
-
   /// @brief Keeps one Tp sample per 10 s, so the lowest Tp of the last minute is known when the hot gas arrives.
   void SampleTp(uint32_t now)
   {
@@ -545,11 +533,6 @@ private:
     event_.ice_load = id(custom_defrost_ice_load);
     event_.stops = compressor_stops_;
     event_.source = started_by_openamber_ ? 1 : 0;
-    failed_since_ms_ = 0;
-    if (started_by_openamber_)
-    {
-      id(warning_custom_defrost_failed).publish_state(false);
-    }
 
     ESP_LOGI("amber", "CustomDefrost: defrost started by %s (Tp %.1f°C, Ta %.1f°C).",
              started_by_openamber_ ? "OpenAmber" : "outdoor unit", tp, ta);
@@ -716,17 +699,6 @@ private:
   std::string EvaluateBlocks(uint32_t now)
   {
     char buffer[64];
-    if (failed_since_ms_ != 0)
-    {
-      uint32_t elapsed_s = (now - failed_since_ms_) / 1000;
-      if (elapsed_s < CUSTOM_DEFROST_FAILED_RETRY_S)
-      {
-        snprintf(buffer, sizeof(buffer), "mislukt, opnieuw over %u min", (unsigned) ((CUSTOM_DEFROST_FAILED_RETRY_S - elapsed_s + 59) / 60));
-        return buffer;
-      }
-      failed_since_ms_ = 0;
-    }
-
     if (IsOutdoorUnitLocked())
     {
       return "slot buitenunit (30 min na defrost)";
@@ -769,8 +741,6 @@ public:
     if (mode != previous_mode_)
     {
       ESP_LOGI("amber", "CustomDefrost: mode changed to %s", id(defrost_control_select).current_option().c_str());
-      id(warning_custom_defrost_failed).publish_state(false);
-      failed_since_ms_ = 0;
       if (request_started_ms_ != 0 && !defrost_active)
       {
         RestoreHeatingWorkingMode();
@@ -830,19 +800,19 @@ public:
       }
 
       request_started_ms_ = 0;
-      request_attempts_++;
-      ESP_LOGW("amber", "CustomDefrost: no defrost started within %u s after forced defrost request (attempt %u).", (unsigned) CUSTOM_DEFROST_CONFIRM_TIMEOUT_S, (unsigned) request_attempts_);
+      ESP_LOGE("amber", "CustomDefrost: no defrost started within %u s after the forced defrost request, raising TO10.", (unsigned) CUSTOM_DEFROST_CONFIRM_TIMEOUT_S);
       // Take the 4 back, otherwise the outdoor unit would still start the defrost later.
       RestoreHeatingWorkingMode();
-      if (request_attempts_ >= CUSTOM_DEFROST_MAX_REQUEST_ATTEMPTS)
-      {
-        OnRequestFailed(now);
-        PublishStatus("Mislukt, wacht op nieuwe poging");
-        return;
-      }
-      // Retry on the next opportunity, the trigger timers keep running.
-      request_pending_ = true;
-      PublishStatus("Opnieuw aanvragen");
+      ClearRequest();
+      ResetTriggerTimers();
+      id(error_defrost_start_timeout).publish_state(true);
+    }
+
+    // TO10 is latched: no new request until the error is reset.
+    if (id(error_defrost_start_timeout).state)
+    {
+      ClearRequest();
+      PublishStatus("Fout: defrost startte niet");
       return;
     }
 
@@ -906,7 +876,7 @@ public:
   /// @brief True when the heat/cool or DHW controller should start a forced defrost now.
   bool ShouldRequestDefrost()
   {
-    if (!request_pending_ || request_started_ms_ != 0 || !IsOpenAmberMode())
+    if (!request_pending_ || request_started_ms_ != 0 || !IsOpenAmberMode() || id(error_defrost_start_timeout).state)
     {
       return false;
     }
