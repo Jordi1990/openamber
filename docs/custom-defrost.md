@@ -80,12 +80,14 @@ startte, past het interval niet aan.
 
 Met een vochtigheidssensor telt OpenAmber hoeveel ijs er groeit: het verschil tussen de dampdruk van de buitenlucht
 en de dampdruk boven ijs bij Tp (Pa), opgeteld over de compressortijd sinds de laatste defrost (Pa·h). Ligt de spoel
-boven het rijppunt, dan telt er niets bij. Bereikt de teller de **drempel ijsteller** (standaard 70 Pa·h), dan wordt
+boven het rijppunt, dan telt er niets bij. Bereikt de teller de **drempel ijsteller** (standaard 90 Pa·h), dan wordt
 er na het minimale interval ontdooid. 0 zet de ijsteller uit.
 
 Ter indicatie (november 2026, Ta −1 tot −3 °C): bij 90–95 % RV groeide de teller met 60–100 Pa per uur en lag er na
 48 min zichtbaar ijs (uitvoering ±4 min). Bij 80 % RV was dat 25–50 Pa per uur en bleef de spoel na 48 min schoon
-(uitvoering ±2 min). Met 70 Pa·h wordt het dan ±50 min bij mist en ±105 min bij 80 % RV.
+(uitvoering ±2 min). Daaruit kwam eerst 70 Pa·h, maar dat ging in de praktijk te vroeg af (uitvoering 90 s, bij
+66 Pa·h nog geen rijp te zien). Met 90 Pa·h wordt het ±65–70 min bij mist; bij 80 % RV meer dan 120 min, zodat daar
+het interval eerder ontdooit.
 
 ## Instellingen
 
@@ -124,7 +126,7 @@ De bron staat onder **Defrost → Algemeen**, de andere instellingen onder **Def
 | --- | --- | --- |
 | Bron buitenvochtigheid (Algemeen) | Geen | Een gekoppelde BLE-sensor. Zonder Bluetooth of gekoppelde sensor staat hier "Geen sensor beschikbaar". |
 | Marge rijppunt | 0 K | Tp moet zoveel onder het rijppunt liggen voordat er ijs telt. Hoger = later ontdooien in droge lucht. |
-| Drempel ijsteller | 70 Pa·h | Ontdooien zodra er zoveel ijsaangroei geteld is (zie IJsteller). 0 = uit. |
+| Drempel ijsteller | 90 Pa·h | Ontdooien zodra er zoveel ijsaangroei geteld is (zie IJsteller). 0 = uit. |
 
 Vanaf 120 min draaitijd (het maximale interval) telt de vochtigheid niet meer mee. Dat beschermt tegen een
 verkeerde of verlopen sensor.

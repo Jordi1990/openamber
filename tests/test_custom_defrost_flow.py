@@ -22,7 +22,7 @@ def _configure(openamber, mode):
     openamber.advance_time(seconds=5, step_s=5)
     openamber.set_number("custom_defrost_min_runtime", 35.0)
     openamber.set_number("custom_defrost_frost_point_margin", 0.0)
-    openamber.set_number("custom_defrost_ice_threshold", 70.0)
+    openamber.set_number("custom_defrost_ice_threshold", 90.0)
     openamber.set_sensor("outdoor_humidity", 0.0)
     openamber.set_sensor("temperature_outside_ta", 0.0)
     openamber.set_sensor("evaporation_temperature_tp", 5.0)
@@ -316,7 +316,7 @@ def test_ice_counter_triggers_with_humidity(clean_system):
     openamber.set_sensor("outdoor_humidity", 100.0)
     _heat_and_reset_runtime(openamber)
 
-    # Ta 0 °C, RV 100 %, Tp -1.5 °C: about 71 Pa excess over ice, so 70 Pa·h after about 59 min
+    # Ta 0 °C, RV 100 %, Tp -1.5 °C: about 71 Pa excess over ice, so 90 Pa·h after about 76 min
     openamber.set_sensor("evaporation_temperature_tp", -1.5)
     openamber.advance_time(seconds=50 * 60, step_s=30)
     openamber.step(ms=50)
@@ -325,11 +325,11 @@ def test_ice_counter_triggers_with_humidity(clean_system):
     assert openamber.get_entity("custom_defrost_status") == "Bewaken"
     assert openamber.get_label("set_custom_defrost_ice_load_val") == f"{ice_load:.0f} Pa·h"
 
-    assert advance_until_state(openamber, "custom_defrost_status", "Aangevraagd", max_s=15 * 60, step=30)
+    assert advance_until_state(openamber, "custom_defrost_status", "Aangevraagd", max_s=35 * 60, step=30)
     assert openamber.get_entity("custom_defrost_last_trigger").startswith("IJsteller")
     # The runtime also counts the minutes with the warm coil right after the reset defrost (no icing then)
-    assert 56 <= openamber.get_entity("custom_defrost_runtime_sensor") <= 70
-    assert openamber.get_entity("custom_defrost_ice_load_sensor") >= 70
+    assert 76 <= openamber.get_entity("custom_defrost_runtime_sensor") <= 90
+    assert openamber.get_entity("custom_defrost_ice_load_sensor") >= 90
 
     _confirm_short_forced_defrost(openamber)
     assert openamber.get_entity("custom_defrost_ice_load_sensor") == 0
@@ -355,7 +355,7 @@ def test_ice_counter_off_and_without_humidity(clean_system):
     assert openamber.get_entity("custom_defrost_status") == "Bewaken"
     assert openamber.get_entity("working_mode_switch") == "Verwarmen"
     openamber.set_sensor("outdoor_humidity", 0.0)
-    openamber.set_number("custom_defrost_ice_threshold", 70.0)
+    openamber.set_number("custom_defrost_ice_threshold", 90.0)
 
 
 def test_max_interval_is_safety_net(clean_system):
@@ -492,11 +492,11 @@ def test_defrost_settings_menu(clean_system):
     openamber.step(ms=50)
     assert openamber.get_label("set_custom_defrost_humidity_value_val").startswith("85% / ")
     assert openamber.is_hidden("set_custom_defrost_ice_threshold_row") is False
-    assert openamber.get_label("set_custom_defrost_ice_threshold_val") == "70 Pa·h"
+    assert openamber.get_label("set_custom_defrost_ice_threshold_val") == "90 Pa·h"
     openamber.set_number("custom_defrost_ice_threshold", 0.0)
     openamber.step(ms=50)
     assert openamber.get_label("set_custom_defrost_ice_threshold_val") == "Uit"
-    openamber.set_number("custom_defrost_ice_threshold", 70.0)
+    openamber.set_number("custom_defrost_ice_threshold", 90.0)
     openamber.set_sensor("outdoor_humidity", 0.0)
 
     # Status
