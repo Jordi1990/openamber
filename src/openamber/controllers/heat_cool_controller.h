@@ -371,6 +371,20 @@ private:
     id(backup_heater_degmin_current_sensor).publish_state(0.0f);
   }
 
+  bool IsFrostProtectionActive()
+  {
+    return id(frost_protection_stage1_active).state || id(frost_protection_stage2_active).state;
+  }
+
+  /// @brief True while pump P0 runs a frost protection cycle on its own: the pump states, with the compressor and
+  /// the backup heater off. Frost protection keeps running such a cycle while an error is active.
+  bool IsFrostProtectionPumpCycle()
+  {
+    const bool pump_state = state_ == HeatCoolState::WAIT_PUMP_RUNNING || state_ == HeatCoolState::PUMP_RUNNING ||
+                            state_ == HeatCoolState::WAIT_PUMP_STOP;
+    return pump_state && IsFrostProtectionActive() && !compressor_controller_->IsRunning() && !IsBackupHeaterActive();
+  }
+
   bool HasPumpDemand()
   {
       return id(heat_demand_active_sensor).state ||
@@ -430,6 +444,12 @@ private:
       return false;
     }
 
+    // Frost protection stage 2 is no compressor demand while an error is active: the pump only circulates then.
+    if (id(error_active).state)
+    {
+      return false;
+    }
+
     if(requested_to_stop_)
     {
       ESP_LOGI("amber", "Compressor stop requested, ignoring compressor demand until stopped.");
@@ -442,7 +462,9 @@ private:
 
   bool PerformSafetyChecks()
   {
-    if(id(error_active).state && state_ != HeatCoolState::IDLE)
+    // An error stops everything except a frost protection pump cycle: frost protection keeps pump P0 circulating
+    // with an active error too. Only a stop (standby) or maintenance mode end frost protection.
+    if(id(error_active).state && state_ != HeatCoolState::IDLE && !IsFrostProtectionPumpCycle())
     {
       ESP_LOGI("amber", "Error active, stopping heatpump.");
       return true;
@@ -820,10 +842,21 @@ public:
           const uint32_t timeout_ms = PUMP_START_TIMEOUT_S * 1000UL;
           if ((now - pump_controller_->GetStartWaitStartedTime()) >= timeout_ms)
           {
-            ESP_LOGE("amber", "Heat/cool pump start timeout reached after %lu seconds, stopping system.", (unsigned long) PUMP_START_TIMEOUT_S);
             id(error_pump_start_timeout).publish_state(true);
-            StopPumps();
-            SetNextState(HeatCoolState::WAIT_PUMP_STOP);
+            if (IsFrostProtectionActive())
+            {
+              // The flow switch reports no flow, but the pump can still circulate: keep it on for frost protection.
+              // The error blocks the compressor and the backup heater, so the cycle stays pump only.
+              ESP_LOGE("amber", "Heat/cool pump start timeout reached after %lu seconds, keeping the pump on for frost protection.", (unsigned long) PUMP_START_TIMEOUT_S);
+              pump_controller_->ClearStartWaitTimer();
+              SetNextState(HeatCoolState::PUMP_RUNNING);
+            }
+            else
+            {
+              ESP_LOGE("amber", "Heat/cool pump start timeout reached after %lu seconds, stopping system.", (unsigned long) PUMP_START_TIMEOUT_S);
+              StopPumps();
+              SetNextState(HeatCoolState::WAIT_PUMP_STOP);
+            }
           }
         }
         break;
