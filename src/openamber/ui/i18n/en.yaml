@@ -472,7 +472,7 @@ substitutions:
   t_display: "Display"
   t_bron_buitenvochtigheid: "Outdoor humidity source"
   t_activeren: "Activate"
-  t_de_buitenunit_ontdooit_dan_niet_meer_zel: "The outdoor unit then no longer defrosts by itself, OpenAmber starts the defrosts. If a defrost does not start, control stops with error TO10. You can always switch back to Outdoor unit, also from Home Assistant."
+  t_buitenunit_regelt_defrost_niet_meer_zelf: "The outdoor unit then no longer controls the defrosts itself: OpenAmber decides when to defrost."
   t_de_buitenunit_start_direct_een_defrost_o: "The outdoor unit starts a defrost right away, or once 30 min have passed since the previous defrost. If the compressor stops before then, the request is cancelled."
   t_defrost_controle_naar_openamber: "Defrost control to OpenAmber"
   t_defrost_forceren: "Force defrost"

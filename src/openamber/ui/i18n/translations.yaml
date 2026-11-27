@@ -2434,10 +2434,10 @@
   nl: "Activeren"
   de: "Aktivieren"
   en: "Activate"
-- key: t_de_buitenunit_ontdooit_dan_niet_meer_zel
-  nl: "De buitenunit ontdooit dan niet meer zelf, OpenAmber start de defrosts. Start een defrost niet, dan stopt de regeling met fout TO10. Je kunt altijd terugschakelen naar Buitenunit, ook vanuit Home Assistant."
-  de: "Die Außeneinheit taut dann nicht mehr selbst ab, OpenAmber startet das Abtauen. Startet ein Abtauen nicht, stoppt die Regelung mit Fehler TO10. Du kannst jederzeit zurück auf Außeneinheit schalten, auch aus Home Assistant."
-  en: "The outdoor unit then no longer defrosts by itself, OpenAmber starts the defrosts. If a defrost does not start, control stops with error TO10. You can always switch back to Outdoor unit, also from Home Assistant."
+- key: t_buitenunit_regelt_defrost_niet_meer_zelf
+  nl: "De buitenunit regelt de defrosts dan niet meer zelf: OpenAmber bepaalt wanneer er ontdooid wordt."
+  de: "Die Außeneinheit steuert das Abtauen dann nicht mehr selbst: OpenAmber entscheidet, wann abgetaut wird."
+  en: "The outdoor unit then no longer controls the defrosts itself: OpenAmber decides when to defrost."
 - key: t_de_buitenunit_start_direct_een_defrost_o
   nl: "De buitenunit start direct een defrost, of zodra 30 min na de vorige defrost voorbij is. Stopt de compressor voor die tijd, dan vervalt de aanvraag."
   de: "Die Außeneinheit startet sofort ein Abtauen oder sobald 30 min nach dem letzten Abtauen vergangen sind. Stoppt der Kompressor vorher, verfällt die Anforderung."

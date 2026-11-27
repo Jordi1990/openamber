@@ -472,7 +472,7 @@ substitutions:
   t_display: "Anzeige"
   t_bron_buitenvochtigheid: "Quelle Außenfeuchte"
   t_activeren: "Aktivieren"
-  t_de_buitenunit_ontdooit_dan_niet_meer_zel: "Die Außeneinheit taut dann nicht mehr selbst ab, OpenAmber startet das Abtauen. Startet ein Abtauen nicht, stoppt die Regelung mit Fehler TO10. Du kannst jederzeit zurück auf Außeneinheit schalten, auch aus Home Assistant."
+  t_buitenunit_regelt_defrost_niet_meer_zelf: "Die Außeneinheit steuert das Abtauen dann nicht mehr selbst: OpenAmber entscheidet, wann abgetaut wird."
   t_de_buitenunit_start_direct_een_defrost_o: "Die Außeneinheit startet sofort ein Abtauen oder sobald 30 min nach dem letzten Abtauen vergangen sind. Stoppt der Kompressor vorher, verfällt die Anforderung."
   t_defrost_controle_naar_openamber: "Abtausteuerung an OpenAmber"
   t_defrost_forceren: "Abtauen erzwingen"

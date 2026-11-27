@@ -154,7 +154,7 @@ obj:
 
                 - label:
                     width: 100%
-                    text: "${t_de_buitenunit_ontdooit_dan_niet_meer_zel}"
+                    text: "${t_buitenunit_regelt_defrost_niet_meer_zelf}"
                     text_color: 0x1F2933
                     text_font: font_text_20
                     long_mode: WRAP
