@@ -184,10 +184,11 @@ def test_backup_heater_state_keeps_minimum_on_time_when_heat_demand_ends(clean_s
 
 
 def test_dhw_request_during_backup_heater_state_keeps_minimum_on_time(clean_system):
-    """A DHW request while the backup heater helps the compressor: backup heater off, minimum on time kept, then DHW."""
+    """A DHW request while the backup heater helps the compressor: backup heater off, then DHW takes over the
+    running compressor (hot switch), so it does not stop inside its minimum on time."""
     openamber = clean_system
     try:
-        started_at = _start_heating_with_sg_max_boost_backup(openamber)
+        _start_heating_with_sg_max_boost_backup(openamber)
 
         openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
         openamber.advance_time(seconds=10, step_s=5)
@@ -196,10 +197,16 @@ def test_dhw_request_during_backup_heater_state_keeps_minimum_on_time(clean_syst
         assert _compressor_mode(openamber) > 0, "The compressor must finish its minimum on time"
         assert openamber.get_entity("state_machine_state_main") == "Heat/Cool"
 
-        _run_until_compressor_stops(openamber)
-        ran = _simulator_s(openamber) - started_at
-        assert ran >= MIN_ON_S, f"Compressor stopped after {ran:.0f} s"
-        assert advance_until_state(openamber, "state_machine_state_main", "DHW", max_s=300)
+        # The backup heater stays off until the valve is on DHW; the compressor never stops.
+        waited = 0
+        while openamber.get_entity("state_machine_state_main") != "DHW" and waited < 600:
+            openamber.advance_time(seconds=5, step_s=5)
+            openamber.step(ms=20)
+            waited += 5
+            assert _compressor_mode(openamber) > 0, "The compressor keeps running for DHW"
+            if openamber.get_entity("three_way_valve_dhw_switch") is False:
+                assert openamber.get_entity("backup_heater_relay") is False, "No backup heater before the valve switch"
+        assert openamber.get_entity("state_machine_state_main") == "DHW"
         assert openamber.get_entity("three_way_valve_dhw_switch") is True
     finally:
         openamber.set_select("sg_ready_mode_select", "Normaal")

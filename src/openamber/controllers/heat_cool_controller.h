@@ -50,8 +50,8 @@ private:
   float compressor_heat_pid_ = 0.0f;
   float compressor_cool_pid_ = 0.0f;
   float start_current_temperature_ = 0.0f;
-  uint32_t pump_flow_missing_since_ms_ = 0;
-  uint32_t water_delta_t_exceeded_since_ms_ = 0;
+  // Start of a hand-over from DHW (hot switch): hot DHW water is flushed out of the unit first.
+  uint32_t hand_over_started_ms_ = 0;
   MixingValveActuator* mixing_valve_zone1_ = nullptr;
   MixingValveActuator* mixing_valve_zone2_ = nullptr;
   // True between StartSecondaryPumpsIfNeeded() and StopSecondaryPumpsIfNeeded(): P1 runs and P2 follows the zone 2
@@ -374,6 +374,20 @@ private:
     id(backup_heater_degmin_current_sensor).publish_state(0.0f);
   }
 
+  bool IsFrostProtectionActive()
+  {
+    return id(frost_protection_stage1_active).state || id(frost_protection_stage2_active).state;
+  }
+
+  /// @brief True while pump P0 runs a frost protection cycle on its own: the pump states, with the compressor and
+  /// the backup heater off. Frost protection keeps running such a cycle while an error is active.
+  bool IsFrostProtectionPumpCycle()
+  {
+    const bool pump_state = state_ == HeatCoolState::WAIT_PUMP_RUNNING || state_ == HeatCoolState::PUMP_RUNNING ||
+                            state_ == HeatCoolState::WAIT_PUMP_STOP;
+    return pump_state && IsFrostProtectionActive() && !compressor_controller_->IsRunning() && !IsBackupHeaterActive();
+  }
+
   bool HasPumpDemand()
   {
       return id(heat_demand_active_sensor).state ||
@@ -414,45 +428,22 @@ private:
       return true;
   }
 
-  bool HasCompressorDemand()
-  {
-    bool has_active_demand = false;
-  
-    // When compressor is running only consider the active demand for the current mode.
-    if(compressor_controller_->IsRunning())
-    {
-      has_active_demand = IsWorkingMode(WORKING_MODE_COOLING) ? id(cool_demand_active_sensor).state : id(heat_demand_active_sensor).state || id(frost_protection_stage2_active).state;
-    }
-    else 
-    {
-      has_active_demand = id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state || id(frost_protection_stage2_active).state;
-    }
-
-    if (!has_active_demand)
-    {
-      return false;
-    }
-
-    if(requested_to_stop_)
-    {
-      ESP_LOGI("amber", "Compressor stop requested, ignoring compressor demand until stopped.");
-      return false;
-    }
-
-    return true;
-  }
-
 
   bool PerformSafetyChecks()
   {
-    if(id(error_active).state && state_ != HeatCoolState::IDLE)
+    // An error stops everything except a frost protection pump cycle: frost protection keeps pump P0 circulating
+    // with an active error too. Only a stop (standby) or maintenance mode end frost protection.
+    if(id(error_active).state && state_ != HeatCoolState::IDLE && !IsFrostProtectionPumpCycle())
     {
       ESP_LOGI("amber", "Error active, stopping heatpump.");
       return true;
     }
 
-    // Stop compressor only if pump flow stays missing for the configured delay while compressor runs.
-    if (state_ != HeatCoolState::IDLE && compressor_controller_->IsRunning() && !pump_controller_->IsRunning())
+    // Stop if pump flow stays missing for the configured delay while the compressor or the backup heater runs.
+    // The backup heater counts too: in emergency mode it runs without the compressor, and an element without
+    // flow overheats (the inside unit has no interlock of its own, the original controller enforced it).
+    if (state_ != HeatCoolState::IDLE && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) &&
+        !pump_controller_->IsRunning())
     {
       const uint32_t now = App.get_loop_component_start_time();
       const uint32_t flow_switch_delay_ms = static_cast<uint32_t>(id(flow_switch_safety_delay_minutes).state * 60000.0f);
@@ -460,12 +451,12 @@ private:
       if (pump_flow_missing_since_ms_ == 0)
       {
         pump_flow_missing_since_ms_ = now;
-        ESP_LOGW("amber", "Safety check: Pump flow missing while compressor is running, waiting %.0f min before shutdown.", id(flow_switch_safety_delay_minutes).state);
+        ESP_LOGW("amber", "Safety check: Pump flow missing while compressor or backup heater is running, waiting %.0f min before shutdown.", id(flow_switch_safety_delay_minutes).state);
       }
 
       if ((now - pump_flow_missing_since_ms_) >= flow_switch_delay_ms)
       {
-        ESP_LOGE("amber", "Safety check: Pump flow missing for %.0f min while compressor is running, stopping compressor to avoid damage.", id(flow_switch_safety_delay_minutes).state);
+        ESP_LOGE("amber", "Safety check: Pump flow missing for %.0f min while compressor or backup heater is running, stopping to avoid damage.", id(flow_switch_safety_delay_minutes).state);
         id(error_pump_flow_missing).publish_state(true);
         return true;
       }
@@ -483,8 +474,14 @@ private:
     const bool cooling = IsWorkingMode(WORKING_MODE_COOLING);
     const float water_delta_t = cooling ? tui - tuo : tuo - tui;
     const float max_water_delta_t = cooling ? COOLING_MAX_WATER_DELTA_T_C : HEATING_MAX_WATER_DELTA_T_C;
+    // After a hot switch from DHW the hot water in the unit gives a large delta-T until it is flushed out.
+    if (hand_over_started_ms_ != 0 &&
+        HasElapsedMs(hand_over_started_ms_, HOT_SWITCH_DELTA_T_GRACE_S * 1000UL, App.get_loop_component_start_time()))
+    {
+      hand_over_started_ms_ = 0;
+    }
     if (water_delta_t > max_water_delta_t && (compressor_controller_->IsRunning() || IsBackupHeaterActive()) &&
-        state_ != HeatCoolState::IDLE)
+        state_ != HeatCoolState::IDLE && hand_over_started_ms_ == 0)
     {
       const uint32_t now = App.get_loop_component_start_time();
       if (water_delta_t_exceeded_since_ms_ == 0)
@@ -526,7 +523,8 @@ private:
 public:
   HeatCoolController(PumpController* pump_controller, CompressorController* compressor_controller,
                      MixingValveActuator* mv_zone1, MixingValveActuator* mv_zone2)
-    : BaseController(pump_controller, compressor_controller, HeatCoolState::WAIT_FOR_STATE_SWITCH, HeatCoolState::UNKNOWN, HeatCoolState::IDLE) {
+    : BaseController(pump_controller, compressor_controller, HeatCoolState::WAIT_FOR_STATE_SWITCH, HeatCoolState::UNKNOWN, HeatCoolState::IDLE,
+                     HeatCoolState::COMPRESSOR_RUNNING) {
       mixing_valve_zone1_ = mv_zone1;
       mixing_valve_zone2_ = mv_zone2;
       PublishState(StateToString(state_));
@@ -543,9 +541,44 @@ public:
     SetNextState(HeatCoolState::IDLE);
   }
 
+  bool HasCompressorDemand()
+  {
+    bool has_active_demand = false;
+  
+    // When compressor is running only consider the active demand for the current mode.
+    if(compressor_controller_->IsRunning())
+    {
+      has_active_demand = IsWorkingMode(WORKING_MODE_COOLING) ? id(cool_demand_active_sensor).state : id(heat_demand_active_sensor).state || id(frost_protection_stage2_active).state;
+    }
+    else 
+    {
+      has_active_demand = id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state || id(frost_protection_stage2_active).state;
+    }
+
+    if (!has_active_demand)
+    {
+      return false;
+    }
+
+    // Frost protection stage 2 is no compressor demand while an error is active: the pump only circulates then.
+    if (id(error_active).state)
+    {
+      return false;
+    }
+
+    if(requested_to_stop_)
+    {
+      ESP_LOGI("amber", "Compressor stop requested, ignoring compressor demand until stopped.");
+      return false;
+    }
+
+    return true;
+  }
+
   /// @brief Takes over units that kept running while the ESP restarted, instead of stopping them.
   /// Only called with the 3-way valve in the heat/cool position and pump P0 running.
-  void ResumeFromRunningUnits()
+  /// hand_over: the compressor comes running from DHW (hot switch), its start time is known and kept.
+  void ResumeFromRunningUnits(bool hand_over = false)
   {
     const bool compressor_running = compressor_controller_->IsRunning();
     const bool compressor_commanded = compressor_controller_->IsCommanded();
@@ -568,7 +601,16 @@ public:
         OpenMixingValves();
       }
       // The run time before the restart is unknown: keep the compressor on for at least the minimum on time.
-      compressor_controller_->RecordStartTime();
+      if (!hand_over)
+      {
+        compressor_controller_->RecordStartTime();
+      }
+      else
+      {
+        // Hot switch: go straight down from the DHW level to the heating start level.
+        hand_over_started_ms_ = App.get_loop_component_start_time() | 1;
+        compressor_controller_->ApplyCompressorMode(DetermineSoftStartMode(), true);
+      }
       if (id(defrost_running_sensor).state)
       {
         // Actual defrost: P1 is off during a defrost, DEFROSTING starts it again when the defrost ends.
@@ -579,8 +621,9 @@ public:
       {
         // No defrost or still in the pre-phase: COMPRESSOR_RUNNING keeps heating and handles the switch to
         // DEFROSTING (and stops P1) once the actual defrost starts. P1 may have stayed off when a defrost ended
-        // during the restart, run it again on demand as IDLE does.
-        if (id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state)
+        // during the restart, run it again on demand as IDLE does. After a hot switch COMPRESSOR_RUNNING starts them
+        // once the 3-way valve is on CV.
+        if (!hand_over && (id(heat_demand_active_sensor).state || id(cool_demand_active_sensor).state))
         {
           StartSecondaryPumpsIfNeeded();
         }
@@ -704,6 +747,12 @@ public:
     // is turned off, so it reflects the commanded state immediately, while
     // IsBackupHeaterActive() for external backup heating only updates once the modbus
     // relay state comes back.
+    // Right after a hot switch from DHW the hot water in the unit passes the supply sensor: no overshoot stop.
+    if (hand_over_started_ms_ != 0)
+    {
+      return false;
+    }
+
     float stop_delta = backup_heater_start_time_ms_ != 0 ? id(backup_heater_stop_delta).state
                        : (IsWorkingMode(WORKING_MODE_COOLING) ? id(compressor_stop_delta_cooling).state : id(compressor_stop_delta_heating).state);
     float overshoot = IsWorkingMode(WORKING_MODE_COOLING) ? (target_temperature - current_temperature) : (current_temperature - target_temperature);
@@ -729,6 +778,15 @@ public:
     compressor_controller_->Stop();
     CloseMixingValves();
     SetNextState(HeatCoolState::WAIT_COMPRESSOR_STOP);
+  }
+
+  /// @brief Hot switch to DHW: the secondary pumps stop and the mixing valves close before the valve moves.
+  void PrepareHandOver() override
+  {
+    StopSecondaryPumpsIfNeeded();
+    CloseMixingValves();
+    SetPidController(climate::CLIMATE_MODE_OFF);
+    start_current_temperature_ = 0.0f;
   }
 
   void OnStateEnter(HeatCoolState new_state) override
@@ -771,6 +829,15 @@ public:
     if (secondary_pumps_running_)
     {
       UpdatePumpP2();
+    }
+
+    // Hot switch from DHW: start the zone pumps once the 3-way valve has had its travel time to CV, also when the
+    // run continues in a backup heater state. P1 stays off during a defrost; DEFROSTING starts it afterwards.
+    if (hand_over_started_ms_ != 0 && !secondary_pumps_running_ && state_ != HeatCoolState::DEFROSTING &&
+        (id(heat_demand_active_sensor).state || id(frost_protection_stage2_active).state) &&
+        HasElapsedMs(hand_over_started_ms_, THREE_WAY_VALVE_SWITCH_TIME_S * 1000UL, now))
+    {
+      StartSecondaryPumpsIfNeeded();
     }
 
     switch (state_)
@@ -820,10 +887,21 @@ public:
           const uint32_t timeout_ms = PUMP_START_TIMEOUT_S * 1000UL;
           if ((now - pump_controller_->GetStartWaitStartedTime()) >= timeout_ms)
           {
-            ESP_LOGE("amber", "Heat/cool pump start timeout reached after %lu seconds, stopping system.", (unsigned long) PUMP_START_TIMEOUT_S);
             id(error_pump_start_timeout).publish_state(true);
-            StopPumps();
-            SetNextState(HeatCoolState::WAIT_PUMP_STOP);
+            if (IsFrostProtectionActive())
+            {
+              // The flow switch reports no flow, but the pump can still circulate: keep it on for frost protection.
+              // The error blocks the compressor and the backup heater, so the cycle stays pump only.
+              ESP_LOGE("amber", "Heat/cool pump start timeout reached after %lu seconds, keeping the pump on for frost protection.", (unsigned long) PUMP_START_TIMEOUT_S);
+              pump_controller_->ClearStartWaitTimer();
+              SetNextState(HeatCoolState::PUMP_RUNNING);
+            }
+            else
+            {
+              ESP_LOGE("amber", "Heat/cool pump start timeout reached after %lu seconds, stopping system.", (unsigned long) PUMP_START_TIMEOUT_S);
+              StopPumps();
+              SetNextState(HeatCoolState::WAIT_PUMP_STOP);
+            }
           }
         }
         break;
@@ -846,6 +924,14 @@ public:
 
         if (!compressor_wanted)
         {
+          break;
+        }
+
+        // A frost protection cycle keeps the pump on without flow (pump start timeout). The compressor and the
+        // backup heater only start with flow, also once the error has been reset during that cycle.
+        if (!pump_controller_->IsRunning())
+        {
+          ESP_LOGW("amber", "Not starting compressor or backup heater because the flow switch reports no flow.");
           break;
         }
 

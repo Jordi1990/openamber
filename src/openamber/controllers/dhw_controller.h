@@ -49,9 +49,11 @@ private:
   uint32_t heating_rate_below_min_since_ms_ = 0;
   float last_temperature_rate_ = 0.0f;
   float last_measured_temperature_ = 0.0f;
+  // Return temperature (Tui) at the start of the rate window and its rate over the last window. A tank with a
+  // loading module is heated from the cold side up: Tw stays flat for a long time while Tui rises all along.
+  float last_measured_return_temperature_ = 0.0f;
+  float return_temperature_rate_ = NAN;
   uint32_t dhw_pump_settled_time_ = 0;
-  uint32_t pump_flow_missing_since_ms_ = 0;
-  uint32_t water_delta_t_exceeded_since_ms_ = 0;
   uint32_t valve_safety_condition_since_ms_ = 0;
 
   const char* StateToString(DHWState state) const override
@@ -204,6 +206,9 @@ private:
     float rate = (current_temperature - last_measured_temperature_) / delta_min;
     id(dhw_backup_current_avg_rate_sensor).publish_state(rate);
     last_measured_temperature_ = current_temperature;
+    float current_return_temperature = id(inlet_temperature_tui).state;
+    return_temperature_rate_ = (current_return_temperature - last_measured_return_temperature_) / delta_min;
+    last_measured_return_temperature_ = current_return_temperature;
     last_rate_measured_time_ = now;
   }
 
@@ -246,6 +251,14 @@ private:
       return false;
     }
 
+    // A rising return temperature also counts as progress: the tank is taking up heat, Tw just does not show it yet
+    // (tank with a loading module, or a sensor above the part that is being heated). NaN compares false.
+    if (return_temperature_rate_ >= min_avg_rate)
+    {
+      heating_rate_below_min_since_ms_ = 0;
+      return false;
+    }
+
     if (heating_rate_below_min_since_ms_ == 0)
     {
       heating_rate_below_min_since_ms_ = now;
@@ -271,8 +284,11 @@ private:
       return true;
     }
 
-    // Stop compressor only if pump flow stays missing for the configured delay while compressor runs.
-    if (compressor_controller_->IsRunning() && !pump_controller_->IsRunning() && state_ != DHWState::IDLE)
+    // Stop if pump flow stays missing for the configured delay while the compressor or the backup heater runs.
+    // The backup heater counts too: in emergency mode it runs without the compressor, and an element without
+    // flow overheats (the inside unit has no interlock of its own, the original controller enforced it).
+    if ((compressor_controller_->IsRunning() || IsBackupHeaterActive()) && !pump_controller_->IsRunning() &&
+        state_ != DHWState::IDLE)
     {
       const uint32_t now = App.get_loop_component_start_time();
       const uint32_t flow_switch_delay_ms = static_cast<uint32_t>(id(flow_switch_safety_delay_minutes).state * 60000.0f);
@@ -280,12 +296,12 @@ private:
       if (pump_flow_missing_since_ms_ == 0)
       {
         pump_flow_missing_since_ms_ = now;
-        ESP_LOGW("amber", "Safety check: Pump flow missing while compressor is running, waiting %.0f min before shutdown.", id(flow_switch_safety_delay_minutes).state);
+        ESP_LOGW("amber", "Safety check: Pump flow missing while compressor or backup heater is running, waiting %.0f min before shutdown.", id(flow_switch_safety_delay_minutes).state);
       }
 
       if ((now - pump_flow_missing_since_ms_) >= flow_switch_delay_ms)
       {
-        ESP_LOGE("amber", "Safety check: Pump flow missing for %.0f min while compressor is running, stopping compressor to avoid damage.", id(flow_switch_safety_delay_minutes).state);
+        ESP_LOGE("amber", "Safety check: Pump flow missing for %.0f min while compressor or backup heater is running, stopping to avoid damage.", id(flow_switch_safety_delay_minutes).state);
         id(error_pump_flow_missing).publish_state(true);
         return true;
       }
@@ -394,7 +410,8 @@ private:
   }
 public:
     DHWController(PumpController *pump_controller, CompressorController *compressor_controller)
-        : BaseController(pump_controller, compressor_controller, DHWState::WAIT_FOR_STATE_SWITCH, DHWState::UNKNOWN, DHWState::IDLE) {
+        : BaseController(pump_controller, compressor_controller, DHWState::WAIT_FOR_STATE_SWITCH, DHWState::UNKNOWN, DHWState::IDLE,
+                         DHWState::COMPRESSOR_RUNNING) {
           PublishState(StateToString(state_));
         }
 
@@ -410,9 +427,17 @@ public:
     SetNextState(DHWState::IDLE);
   }
 
+  /// @brief Hot switch to heating: the DHW pump stops before the valve moves.
+  void PrepareHandOver() override
+  {
+    StopDhwPump();
+    id(dhw_active).publish_state(false);
+  }
+
   /// @brief Takes over units that kept running while the ESP restarted, instead of stopping them.
   /// Only called with the 3-way valve in the DHW position and pump P0 running.
-  void ResumeFromRunningUnits()
+  /// hand_over: the compressor comes running from heating (hot switch), its start time is known and kept.
+  void ResumeFromRunningUnits(bool hand_over = false)
   {
     const bool compressor_running = compressor_controller_->IsRunning();
     const bool compressor_commanded = compressor_controller_->IsCommanded();
@@ -427,7 +452,16 @@ public:
     if (compressor_running && compressor_commanded)
     {
       // The run time before the restart is unknown: keep the compressor on for at least the minimum on time.
-      compressor_controller_->RecordStartTime();
+      if (!hand_over)
+      {
+        compressor_controller_->RecordStartTime();
+      }
+      else
+      {
+        // Hot switch: go straight to the DHW level, as a DHW start from standstill does. The ambient and
+        // discharge side limits still apply.
+        compressor_controller_->ApplyCompressorMode(DetermineCompressorMode(), true);
+      }
       // Pre-phase: keep heating in COMPRESSOR_RUNNING, which switches to DEFROSTING once the actual defrost starts.
       if (id(defrost_running_sensor).state)
       {
@@ -689,6 +723,8 @@ public:
 
       case DHWState::DHW_PUMP_SETTLED:
         last_measured_temperature_ = id(dhw_temperature_tw_sensor).state;
+        last_measured_return_temperature_ = id(inlet_temperature_tui).state;
+        return_temperature_rate_ = NAN;
         last_rate_measured_time_ = now;
         dhw_pump_settled_time_ = now;
         rate_window_active_ = true;

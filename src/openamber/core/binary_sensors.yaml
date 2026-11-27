@@ -229,8 +229,9 @@ binary_sensor:
   id: cool_demand_active_sensor
   device_class: running
   lambda: |-
+    // Emergency mode runs on the backup heater only (compressor broken in winter): no cooling then.
     if (id(sg_ready_block_mode_active_sensor).state || id(error_active).state || id(heat_demand_active_sensor).state ||
-        !id(cooling_allowed_switch).state) {
+        !id(cooling_allowed_switch).state || id(emergency_mode_enabled).state) {
       return false;
     }
     if (id(thermostat_mode_select).current_option() == "Intern") {

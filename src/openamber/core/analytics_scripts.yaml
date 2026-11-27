@@ -412,6 +412,7 @@ script:
 
           root["ti"] = id(dhw_temperature_tw_sensor).state;
           root["tj"] = id(heat_cool_temperature_tc).state;
+          root["tm"] = id(heat_cool_temperature_tv1).state;
 
           root["tk"] = id(outlet_temperature_tuo).state;
           root["tl"] = id(inlet_temperature_tui).state;

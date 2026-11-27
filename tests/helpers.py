@@ -125,7 +125,8 @@ class FlowMonitor:
     """Advances virtual time in small steps and checks, after every step, rules that must hold in every flow.
 
     The rules describe what the hardware needs, independent of how the controller gets there:
-    - the 3-way valve only moves while the compressor, pump P0 and the backup heater are off;
+    - the 3-way valve only moves while the compressor, pump P0 and the backup heater are off, except the hot
+      switch between heating and DHW: then the compressor and pump P0 may run in heating mode, the backup heater not;
     - the compressor is only requested with flow (pump P0 running) and a heating/cooling working mode;
     - the compressor is not requested again within the minimum off time, and not stopped within the
       minimum on time (unless the flow allows a short run, see `allow_short_run`);
@@ -200,12 +201,13 @@ class FlowMonitor:
             return now
 
         if prev["valve_dhw"] != now["valve_dhw"]:
+            hot_switch = prev["working_mode"] == "Verwarmen" and now["working_mode"] == "Verwarmen"
             for sample in (prev, now):
-                if sample["compressor"] > 0 or sample["frequency"] > 0:
+                if (sample["compressor"] > 0 or sample["frequency"] > 0) and not hot_switch:
                     self._fail("3-way valve switched while the compressor runs", now)
                 if sample["backup"]:
                     self._fail("3-way valve switched while the backup heater is on", now)
-            if now["pump"]:
+            if now["pump"] and not hot_switch:
                 self._fail("3-way valve switched while pump P0 runs", now)
 
         if prev["compressor"] == 0 and now["compressor"] > 0:

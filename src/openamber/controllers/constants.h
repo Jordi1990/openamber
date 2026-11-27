@@ -54,6 +54,8 @@ static const float COOLING_MAX_WATER_DELTA_T_C = 8.0f;
 static const float DHW_MAX_WATER_DELTA_T_C = 15.0f;
 // Tuo and Tui are read every 15 s, so this is about four readings in a row.
 static const uint32_t WATER_DELTA_T_SAFETY_DELAY_S = 60;
+// After a hot switch from DHW to heating the hot water still in the unit is flushed into the heating circuit.
+static const uint32_t HOT_SWITCH_DELTA_T_GRACE_S = 2 * 60;
 
 // Controlled stop: regulation resumes by itself after this time, so a forgotten stop cannot cool the house.
 static const uint32_t CONTROLLED_STOP_AUTO_RESUME_S = 30 * 60;
