@@ -113,11 +113,11 @@ te droog om ijs te vormen. Dat wachten stopt bij 120 min draaitijd, ook zonder o
 
 Voorlopig worden alleen Bluetooth-sensoren ondersteund, dus alleen op de Waveshare-displays.
 
-De instellingen staan onder **Defrost → Luchtvochtigheid**:
+De bron staat onder **Defrost → Algemeen**, de andere instellingen onder **Defrost → Luchtvochtigheid**:
 
 | Instelling | Standaard | Betekenis |
 | --- | --- | --- |
-| Bron buitenvochtigheid | Geen | Een gekoppelde BLE-sensor. Zonder Bluetooth of gekoppelde sensor staat hier "Geen sensor beschikbaar". |
+| Bron buitenvochtigheid (Algemeen) | Geen | Een gekoppelde BLE-sensor. Zonder Bluetooth of gekoppelde sensor staat hier "Geen sensor beschikbaar". |
 | Marge rijppunt | 0 K | Tp moet zoveel onder het rijppunt liggen voordat er ijs telt. Hoger = later ontdooien in droge lucht. |
 | Drempel ijsteller | 70 Pa·h | Ontdooien zodra er zoveel ijsaangroei geteld is (zie IJsteller). 0 = uit. |
 
@@ -135,7 +135,7 @@ regeling zoals zonder sensor.
 
 1. Zet Bluetooth aan onder **Instellingen → Connectiviteit → Bluetooth** en koppel de sensor (SwitchBot, BTHome of
    Xiaomi met ATC-firmware). Er zijn drie plekken voor sensoren, samen met de ruimtesensor.
-2. Kies de sensor bij **Defrost → Luchtvochtigheid → Bron buitenvochtigheid** (of in Home Assistant met de
+2. Kies de sensor bij **Defrost → Algemeen → Bron buitenvochtigheid** (of in Home Assistant met de
    select "Luchtvochtigheid buiten bron").
 OpenAmber zet de vochtigheid van die sensor dan in `outdoor_humidity`. Bij het ontkoppelen of uitzetten van Bluetooth
 valt de bron terug op Geen.

@@ -526,8 +526,9 @@ def test_defrost_settings_menu(clean_system):
 
 
 def test_humidity_page_without_ble_sensor(clean_system):
-    """Without a BLE humidity sensor (the simulator has no BLE) the source shows 'Geen sensor beschikbaar' and the
-    humidity settings are disabled. Only BLE sensors are supported, there is no external option."""
+    """Without a BLE humidity sensor (the simulator has no BLE) the source on Defrost > Algemeen shows 'Geen sensor
+    beschikbaar' and is disabled, and the settings on Defrost > Luchtvochtigheid are disabled. Only BLE sensors are
+    supported, there is no external option."""
     openamber = clean_system
     _configure(openamber, "OpenAmber")
 
@@ -539,19 +540,36 @@ def test_humidity_page_without_ble_sensor(clean_system):
     openamber.step(ms=50)
     assert openamber.click("advanced_stab_defrost")
     openamber.step(ms=100)
-    assert openamber.click("defrost_stab_vocht")
-    openamber.step(ms=100)
 
+    # Algemeen: the source dropdown, below the defrost control
+    assert openamber.click("defrost_stab_general")
+    openamber.step(ms=100)
+    assert openamber.is_hidden("set_custom_defrost_humidity_source_row") is False
     source = openamber.get_widget("set_custom_defrost_humidity_source_dd")
     assert source["text"] == "Geen sensor beschikbaar"
     assert source["disabled"] is True
     assert openamber.is_disabled("set_custom_defrost_humidity_source_row")
+
+    # Luchtvochtigheid: the settings are disabled
+    assert openamber.click("settings_menu_back_btn")
+    openamber.step(ms=100)
+    assert openamber.click("defrost_stab_vocht")
+    openamber.step(ms=100)
     for row in ("set_custom_defrost_frost_margin_row", "set_custom_defrost_humidity_value_row",
                 "set_custom_defrost_ice_threshold_row", "set_custom_defrost_ice_load_row"):
         assert openamber.is_hidden(row) is False, row
         assert openamber.is_disabled(row), row
     # The step buttons inside the rows are disabled too
     assert openamber.is_disabled("set_custom_defrost_ice_threshold_val")
+
+    # Buitenunit: humidity does not matter, so the source is hidden
+    assert openamber.click("settings_menu_back_btn")
+    openamber.step(ms=100)
+    openamber.set_select("defrost_control_select", "Buitenunit")
+    openamber.step(ms=50)
+    assert openamber.click("defrost_stab_general")
+    openamber.step(ms=100)
+    assert openamber.is_hidden("set_custom_defrost_humidity_source_row") is True
 
     openamber.set_switch("advanced_settings_enabled", False)
     openamber.step(ms=50)

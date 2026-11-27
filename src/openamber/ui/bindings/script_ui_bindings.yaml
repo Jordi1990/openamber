@@ -2091,6 +2091,7 @@
         set_hidden(id(defrost_stab_startlijn), !openamber);
         set_hidden(id(defrost_stab_vocht), !openamber);
         set_hidden(id(defrost_stab_status), !openamber);
+        set_hidden(id(set_custom_defrost_humidity_source_row), !openamber);
 
 - id: update_custom_defrost_runtime_ui
   mode: queued
@@ -2108,7 +2109,7 @@
   max_runs: 2
   then:
     - lambda: |-
-        // Without a chosen BLE humidity sensor the source dropdown and the humidity settings are disabled.
+        // Without a chosen BLE humidity sensor the source dropdown (Algemeen) and the humidity settings are disabled.
         int source = id(custom_defrost_humidity_source_state);
         auto set_enabled = [](lv_obj_t *row, bool enabled) {
           std::function<void(lv_obj_t *)> apply = [&](lv_obj_t *obj) {
