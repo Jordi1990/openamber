@@ -571,3 +571,54 @@ def test_humidity_page_without_ble_sensor(clean_system):
 
     openamber.set_switch("advanced_settings_enabled", False)
     openamber.step(ms=50)
+
+
+def test_humidity_from_simulated_ble_sensor(clean_system):
+    """With Bluetooth on, the simulated BLE sensor 1 (paired in slot 1, 5 °C / 85 %) can be picked as outdoor humidity
+    source on Defrost > Algemeen; the humidity settings become active and show its humidity and frost point."""
+    openamber = clean_system
+    _configure(openamber, "OpenAmber")
+    openamber.set_switch("ble_enabled_switch", True)
+    openamber.advance_time(seconds=15, step_s=1)
+
+    assert openamber.click("nav_settings")
+    openamber.step(ms=100)
+    openamber.set_switch("advanced_settings_enabled", True)
+    openamber.step(ms=100)
+    assert openamber.click("stab_advanced")
+    openamber.step(ms=50)
+    assert openamber.click("advanced_stab_defrost")
+    openamber.step(ms=100)
+    assert openamber.click("defrost_stab_general")
+    openamber.step(ms=100)
+
+    # A paired sensor is available, none chosen yet: the dropdown is enabled and shows "Geen"
+    source = openamber.get_widget("set_custom_defrost_humidity_source_dd")
+    assert source["disabled"] is False
+    assert source["text"] == "Geen"
+
+    # Pick sensor 1
+    assert openamber.set_dropdown("set_custom_defrost_humidity_source_dd", 1)
+    openamber.advance_time(seconds=10, step_s=1)
+    assert openamber.get_entity("outdoor_humidity_source_select") == "BLE 1"
+    assert openamber.get_entity("outdoor_humidity") == pytest.approx(85.0, abs=0.5)
+    assert openamber.get_widget("set_custom_defrost_humidity_source_dd")["text"].startswith("BTHome")
+
+    # Luchtvochtigheid: settings enabled, humidity and frost point of the BLE sensor (Ta 0 °C, 85 % -> -2.0 °C)
+    assert openamber.click("settings_menu_back_btn")
+    openamber.step(ms=100)
+    assert openamber.click("defrost_stab_vocht")
+    openamber.step(ms=100)
+    for row in ("set_custom_defrost_frost_margin_row", "set_custom_defrost_humidity_value_row",
+                "set_custom_defrost_ice_threshold_row", "set_custom_defrost_ice_load_row"):
+        assert not openamber.is_disabled(row), row
+    assert openamber.get_label("set_custom_defrost_humidity_value_val") == "85% / -2.0°C"
+
+    # Bluetooth off: back to no source, settings disabled again
+    openamber.set_switch("ble_enabled_switch", False)
+    openamber.advance_time(seconds=5, step_s=1)
+    assert openamber.get_entity("outdoor_humidity_source_select") == "Geen"
+    assert openamber.is_disabled("set_custom_defrost_frost_margin_row")
+
+    openamber.set_switch("advanced_settings_enabled", False)
+    openamber.step(ms=50)

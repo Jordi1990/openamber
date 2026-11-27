@@ -1,0 +1,91 @@
+# Simulator only: the real BLE package without the Bluetooth stack (ble/ble_common.yaml),
+# fed by three simulated BTHome thermometers (ble_sensor_mock.h):
+#   BLE sensor 1  A4:C1:38:00:00:01  5 °C / 85 %   (paired in slot 1 by default)
+#   BLE sensor 2  A4:C1:38:00:00:02  21 °C / 45 %
+#   BLE sensor 3  A4:C1:38:00:00:03  19 °C / 60 %
+# Their values are the mock_ble_<n>_temperature / _humidity numbers; a temperature of -100
+# makes a sensor silent. Like on the device, nothing is read until the Bluetooth switch
+# (ble_enabled_switch, Settings -> Connectiviteit -> Bluetooth) is on; then the sensors show
+# up in a search and paired sensors send a reading every 5 s.
+packages:
+  ble: !include ../ble/ble_common.yaml
+
+esphome:
+  includes:
+    - openamber/mock/ble_sensor_mock.h
+
+text:
+  - id: !extend ble_device_mac
+    initial_value: "A4:C1:38:00:00:01"
+
+interval:
+  - interval: 5s
+    then:
+      - lambda: |-
+          if (!ble_sensor_boot_ready || !id(ble_enabled_switch).state) return;
+          const float values[BLE_MOCK_SENSORS][2] = {
+            {id(mock_ble_1_temperature).state, id(mock_ble_1_humidity).state},
+            {id(mock_ble_2_temperature).state, id(mock_ble_2_humidity).state},
+            {id(mock_ble_3_temperature).state, id(mock_ble_3_humidity).state},
+          };
+          for (unsigned i = 0; i < BLE_MOCK_SENSORS; i++)
+            ble_sensor_mock_advertise(i, values[i][0] <= -100.0f ? NAN : values[i][0], values[i][1]);
+
+number:
+  - platform: template
+    id: mock_ble_1_temperature
+    name: "Mock BLE 1 temperatuur"
+    # -100 = the sensor is silent (no advertisements).
+    optimistic: true
+    min_value: -100
+    max_value: 60
+    step: 0.1
+    initial_value: 5.0
+    unit_of_measurement: "°C"
+  - platform: template
+    id: mock_ble_1_humidity
+    name: "Mock BLE 1 luchtvochtigheid"
+    optimistic: true
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 85.0
+    unit_of_measurement: "%"
+  - platform: template
+    id: mock_ble_2_temperature
+    name: "Mock BLE 2 temperatuur"
+    # -100 = the sensor is silent (no advertisements).
+    optimistic: true
+    min_value: -100
+    max_value: 60
+    step: 0.1
+    initial_value: 21.0
+    unit_of_measurement: "°C"
+  - platform: template
+    id: mock_ble_2_humidity
+    name: "Mock BLE 2 luchtvochtigheid"
+    optimistic: true
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 45.0
+    unit_of_measurement: "%"
+  - platform: template
+    id: mock_ble_3_temperature
+    name: "Mock BLE 3 temperatuur"
+    # -100 = the sensor is silent (no advertisements).
+    optimistic: true
+    min_value: -100
+    max_value: 60
+    step: 0.1
+    initial_value: 19.0
+    unit_of_measurement: "°C"
+  - platform: template
+    id: mock_ble_3_humidity
+    name: "Mock BLE 3 luchtvochtigheid"
+    optimistic: true
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 60.0
+    unit_of_measurement: "%"

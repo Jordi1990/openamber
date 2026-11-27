@@ -6,12 +6,16 @@
 #include <cstring>
 #include <string>
 #include <type_traits>
+// The host simulator (USE_HOST) has no Bluetooth stack: the sensor logic below
+// runs as on the device, fed by mock/ble_sensor_mock.h instead of a scanner.
+#ifndef USE_HOST
 #include "sdkconfig.h"
 #include "esp_heap_caps.h"
 // Set when the Bluetooth controller is on a co-processor (esp32_hosted, as on
 // the ESP32-P4): this chip then has no controller to start.
 #ifndef CONFIG_BT_CONTROLLER_DISABLED
 #include "esp_bt.h"
+#endif
 #endif
 
 // BLE thermometers via ESPHome's esp32_ble / esp32_ble_tracker: pairing
@@ -255,27 +259,22 @@ static void ble_sensor_remember_device(const BleSensorAddress &address, uint8_t 
         ble_sensor_devices[slot].reading = reading;
 }
 
-// Called from esp32_ble_tracker's on_ble_advertise with x.address() (MSB first).
-template <typename Datas>
-static void ble_sensor_on_advertise(const uint8_t *mac, const Datas &manufacturers, const Datas &services)
+// Whether an advertisement from this address matters: a paired sensor, or any
+// device during a search (*discover).
+static bool ble_sensor_wanted(const BleSensorAddress &address, bool *discover)
 {
-    BleSensorAddress address;
-    memcpy(address.val, mac, 6);
     bool paired = false;
     for (const auto &slot : ble_sensor_slots)
         paired |= slot.valid && memcmp(address.val, slot.address.val, 6) == 0;
-    bool discover = ble_sensor_discovering &&
-                    uint32_t(millis() - ble_sensor_discovery_started_ms) < BLE_SENSOR_DISCOVERY_MS;
-    if (!paired && !discover)
-        return;
+    *discover = ble_sensor_discovering &&
+                uint32_t(millis() - ble_sensor_discovery_started_ms) < BLE_SENSOR_DISCOVERY_MS;
+    return paired || *discover;
+}
 
-    BleSensorReading reading;
-    uint8_t model =
-        ble_sensor_parse(mac, manufacturers, services, reading.temperature, reading.humidity, reading.valid);
-    if (reading.valid)
-        reading.received_ms = millis();
-    if (discover && !model && !reading.valid)
-        ble_sensor_log_unknown(address, services);
+// Stores a parsed advertisement in the search list and the paired slots.
+static void ble_sensor_apply(const BleSensorAddress &address, uint8_t model, const BleSensorReading &reading,
+                             bool discover)
+{
     if (discover)
         ble_sensor_remember_device(address, model, reading);
     // The same MAC may be paired in more than one slot; all of them follow it.
@@ -288,6 +287,26 @@ static void ble_sensor_on_advertise(const uint8_t *mac, const Datas &manufacture
         if (reading.valid)
             slot.reading = reading;
     }
+}
+
+// Called from esp32_ble_tracker's on_ble_advertise with x.address() (MSB first).
+template <typename Datas>
+static void ble_sensor_on_advertise(const uint8_t *mac, const Datas &manufacturers, const Datas &services)
+{
+    BleSensorAddress address;
+    memcpy(address.val, mac, 6);
+    bool discover;
+    if (!ble_sensor_wanted(address, &discover))
+        return;
+
+    BleSensorReading reading;
+    uint8_t model =
+        ble_sensor_parse(mac, manufacturers, services, reading.temperature, reading.humidity, reading.valid);
+    if (reading.valid)
+        reading.received_ms = millis();
+    if (discover && !model && !reading.valid)
+        ble_sensor_log_unknown(address, services);
+    ble_sensor_apply(address, model, reading, discover);
 }
 
 static bool ble_sensor_slot_fresh(unsigned slot)
@@ -353,9 +372,9 @@ static bool ble_sensor_restart_required = false;
 // stays failed until the next boot.
 static bool ble_sensor_host_failed = false;
 
-#ifdef CONFIG_BT_CONTROLLER_DISABLED
+#if defined(USE_HOST) || defined(CONFIG_BT_CONTROLLER_DISABLED)
 // The co-processor runs the controller; ESPHome's esp32_ble brings it up over
-// esp32_hosted when it is enabled.
+// esp32_hosted when it is enabled. The host simulator has no controller.
 static bool ble_sensor_controller_start()
 {
     return true;
@@ -405,6 +424,17 @@ static bool ble_sensor_controller_start()
 // Bluedroid is only brought up while the Bluetooth switch is on, so without
 // BLE the internal heap keeps the memory the stack would otherwise use.
 // ESPHome's esp32_ble skips controller init when it is already enabled.
+#ifdef USE_HOST
+static bool ble_sensor_stack_enable()
+{
+    return true;
+}
+static void ble_sensor_stack_disable() {}
+static bool ble_sensor_stack_failed()
+{
+    return false;
+}
+#else
 static bool ble_sensor_stack_enable()
 {
     if (esphome::esp32_ble::global_ble == nullptr || !ble_sensor_controller_start())
@@ -417,13 +447,17 @@ static void ble_sensor_stack_disable()
     if (esphome::esp32_ble::global_ble != nullptr)
         esphome::esp32_ble::global_ble->disable();
 }
+static bool ble_sensor_stack_failed()
+{
+    return esphome::esp32_ble::global_ble != nullptr && esphome::esp32_ble::global_ble->is_failed();
+}
+#endif
 
 static void ble_sensor_set_ble(bool enabled)
 {
     if (!enabled)
         ble_sensor_restart_required = false;
-    if (ble_sensor_stack_requested && !ble_sensor_host_failed && esphome::esp32_ble::global_ble != nullptr &&
-        esphome::esp32_ble::global_ble->is_failed())
+    if (ble_sensor_stack_requested && !ble_sensor_host_failed && ble_sensor_stack_failed())
     {
         ESP_LOGE(BLE_SENSOR_TAG, "BLE host failed to start; restart required");
         ble_sensor_host_failed = true;
@@ -500,6 +534,9 @@ static bool ble_sensor_slot_needs_active_scan(BleSensorSlot &slot)
 // bluetooth_proxy does: the scan restarts with the new mode once it stopped.
 static void ble_sensor_set_scan_active(bool active)
 {
+#ifdef USE_HOST
+    (void) active;
+#else
     auto *tracker = esphome::esp32_ble_tracker::global_esp32_ble_tracker;
     if (tracker == nullptr || tracker->get_scan_active() == active)
         return;
@@ -507,6 +544,7 @@ static void ble_sensor_set_scan_active(bool active)
     tracker->set_scan_active(active);
     tracker->stop_scan();
     tracker->set_scan_continuous(true);
+#endif
 }
 
 // `enabled` is the Bluetooth switch, `source` the slot used as room temperature
