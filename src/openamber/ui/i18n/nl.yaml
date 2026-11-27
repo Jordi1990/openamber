@@ -471,3 +471,5 @@ substitutions:
   t_pomp_p2_aanwezig: "Pomp P2 aanwezig"
   t_circulatiepomp_p2_zone_2_draait_bij_warm: "Circulatiepomp P2 zone 2, draait bij warmtevraag zone 2"
   t_display: "Display"
+  t_ontdooien_via_tapwatervat: "Ontdooien via tapwatervat"
+  t_alleen_als_het_cv_water_te_koud_is: "Alleen als het cv-water te koud is om op te ontdooien"

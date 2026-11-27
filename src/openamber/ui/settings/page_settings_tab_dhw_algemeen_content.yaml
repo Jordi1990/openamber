@@ -119,3 +119,25 @@
                   auto call = id(dhw_pump_start_mode_select).make_call();
                   call.set_index(val);
                   call.perform();
+
+- obj:
+    id: set_defrost_from_dhw_tank_row
+    styles: setting_row_style
+    widgets:
+      - label: { text: "${t_ontdooien_via_tapwatervat}", text_color: 0x1F2933, text_font: font_text_24, align: TOP_LEFT }
+      - label: { text: "${t_alleen_als_het_cv_water_te_koud_is}", text_color: 0x6B7280, text_font: font_text_20, align: TOP_LEFT, y: 32 }
+      - switch:
+          id: set_defrost_from_dhw_tank_switch_ui
+          align: TOP_RIGHT
+          bg_color: 0x9CA3AF
+          indicator:
+            bg_color: 0x16A34A
+          knob:
+            bg_color: 0xFFFFFF
+          on_click:
+            - lambda: |-
+                if (id(defrost_from_dhw_tank_switch).state) {
+                  id(defrost_from_dhw_tank_switch).turn_off();
+                } else {
+                  id(defrost_from_dhw_tank_switch).turn_on();
+                }

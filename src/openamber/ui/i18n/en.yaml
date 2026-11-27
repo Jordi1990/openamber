@@ -471,3 +471,5 @@ substitutions:
   t_pomp_p2_aanwezig: "Pump P2 present"
   t_circulatiepomp_p2_zone_2_draait_bij_warm: "Circulation pump P2 zone 2, runs on heat demand zone 2"
   t_display: "Display"
+  t_ontdooien_via_tapwatervat: "Defrost from DHW tank"
+  t_alleen_als_het_cv_water_te_koud_is: "Only when the heating water is too cold to defrost on"

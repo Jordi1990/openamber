@@ -144,6 +144,36 @@ void OpenAmberComponent::update()
     }
   }
 
+  // Defrost on water from the DHW tank: the heat/cool controller keeps the compressor, only the 3-way valve and the
+  // DHW pump relay (tanks with their own pump and heat exchanger) follow its request. The relay feedback is checked
+  // as after a hot switch.
+  const bool defrost_on_dhw_tank = state_ == State::HEAT_COOL && heat_cool_controller_->IsDefrostFromDhwTankActive();
+  if (defrost_on_dhw_tank != defrost_on_dhw_tank_)
+  {
+    defrost_on_dhw_tank_ = defrost_on_dhw_tank;
+    const ThreeWayValvePosition position = defrost_on_dhw_tank ? ThreeWayValvePosition::DHW : ThreeWayValvePosition::HEATING_COOLING;
+    SetThreeWayValve(position);
+    valve_target_position_ = position;
+    // Not "| 1" as the hot switch below: the feedback check runs in this same pass, and a start time 1 ms in the
+    // future would read as elapsed.
+    const uint32_t now = App.get_loop_component_start_time();
+    hot_switch_valve_started_ms_ = now == 0 ? 1 : now;
+    if (defrost_on_dhw_tank)
+    {
+      id(dhw_pump_relay_switch).turn_on();
+    }
+    else
+    {
+      id(dhw_pump_relay_switch).turn_off();
+    }
+  }
+
+  if (state_ == State::DHW_HEAT)
+  {
+    // Here and not in the DHW_HEAT case below: a hot switch returns before the state machine runs.
+    heat_cool_controller_->OnDhwRun();
+  }
+
   ThreeWayValvePosition current_valve_position = GetThreeWayValvePosition();
   ThreeWayValvePosition desired_valve_position = GetDesiredThreeWayValvePosition();
   State desired_state = modbus_disconnected_error_occurred_ ? State::WAIT_MODBUS_CONNECTION : (desired_valve_position == ThreeWayValvePosition::DHW ? State::DHW_HEAT : State::HEAT_COOL);

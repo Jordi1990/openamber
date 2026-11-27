@@ -202,6 +202,13 @@
           }
           id(update_service_deaeration_ui).execute();
 
+# ── Settings: Ontdooien via tapwatervat toggle ──
+- id: !extend defrost_from_dhw_tank_switch
+  on_state:
+    then:
+      - lambda: |-
+          lvgl::LvglComponent::lv_obj_set_state_value(id(set_defrost_from_dhw_tank_switch_ui), LV_STATE_CHECKED, (x));
+
 # ── Settings: DHW schedule toggle ──
 # ── Settings: Legionella toggle ──
 - id: !extend legio_enabled_switch

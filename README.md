@@ -34,6 +34,7 @@ A community dashboard that mirrors the Waveshare display in Home Assistant (all 
 - Backup heater
 - External backup heater (Hybrid setup)
 - Boost after defrost using backup heater.
+- Optional defrost on water from the DHW tank when the heating circuit is too cold to defrost on
 - Sensors for error codes
 - Support external thermostats (Heating/Cooling input)
 - Support SG-Ready

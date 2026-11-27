@@ -84,6 +84,17 @@ static const uint32_t DEFROST_PREPHASE_MAX_S = 330;
 static const float DEFROST_STANDBY_FREQUENCY_MARGIN_HZ = 5.0f;
 // After 2118 drops the unit switches the 4-way valve back and restarts the fan within 30 s.
 static const uint32_t DEFROST_RECOVERY_PHASE_S = 30;
+// Defrost on water from the DHW tank ("Ontdooien via tapwatervat"), as the original controller: only when the
+// heating circuit is too cold to defrost on (Tuo at the start of the defrost at or below this) ...
+static const float DEFROST_DHW_TANK_MAX_START_TUO_C = 22.5f;
+// ... and the tank is warm enough to help and not hotter than this.
+static const float DEFROST_DHW_TANK_MIN_TEMPERATURE_C = 30.0f;
+static const float DEFROST_DHW_TANK_MAX_TEMPERATURE_C = 60.0f;
+// Tw can hide a cold tank (cold water below the sensor, or a tank with a loading module that takes its water from
+// the cold side). The return temperature shows it: once the valve has had its travel time and the tank water has
+// reached the unit, Tui must be above its value at the start of the defrost. If not, the defrost goes back to the
+// heating circuit and the tank is not used again until after a DHW run.
+static const uint32_t DEFROST_DHW_TANK_CHECK_TIME_S = 90;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_DOWN_S = 10;
 static const uint32_t FREQUENCY_CHANGE_INTERVAL_UP_S = 5 * 60;
 

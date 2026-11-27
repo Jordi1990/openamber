@@ -471,3 +471,5 @@ substitutions:
   t_pomp_p2_aanwezig: "Pumpe P2 vorhanden"
   t_circulatiepomp_p2_zone_2_draait_bij_warm: "Umwälzpumpe P2 Zone 2, läuft bei Wärmeanforderung Zone 2"
   t_display: "Anzeige"
+  t_ontdooien_via_tapwatervat: "Abtauen über Warmwasserspeicher"
+  t_alleen_als_het_cv_water_te_koud_is: "Nur wenn das Heizwasser zum Abtauen zu kalt ist"

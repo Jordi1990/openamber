@@ -51,6 +51,14 @@ private:
   float start_current_temperature_ = 0.0f;
   // Start of a hand-over from DHW (hot switch): hot DHW water is flushed out of the unit first.
   uint32_t hand_over_started_ms_ = 0;
+  // Defrost on water from the DHW tank: true while the 3-way valve should be on the tank. The main component moves
+  // the valve and the DHW pump relay (IsDefrostFromDhwTankActive).
+  bool defrost_from_dhw_tank_ = false;
+  // Start of such a defrost and Tui at that moment, for the check that the tank gives heat. 0 once checked.
+  uint32_t defrost_from_dhw_tank_started_ms_ = 0;
+  float defrost_from_dhw_tank_start_tui_ = 0.0f;
+  // The tank gave no heat during a defrost: not used again until after a DHW run (OnDhwRun).
+  bool dhw_tank_cold_for_defrost_ = false;
   MixingValveActuator* mixing_valve_zone1_ = nullptr;
   MixingValveActuator* mixing_valve_zone2_ = nullptr;
   // True between StartSecondaryPumpsIfNeeded() and StopSecondaryPumpsIfNeeded(): P1 runs and P2 follows the zone 2
@@ -535,7 +543,65 @@ public:
     CloseMixingValves();
     // Safety stop: leave heating/cooling at once, also during a defrost.
     SetWorkingMode(WORKING_MODE_STANDBY);
+    defrost_from_dhw_tank_ = false;
     SetNextState(HeatCoolState::IDLE);
+  }
+
+  /// @brief True while a defrost should run on water from the DHW tank: the main component then holds the 3-way
+  /// valve on DHW and the DHW pump relay on, and puts both back when this drops.
+  bool IsDefrostFromDhwTankActive()
+  {
+    return defrost_from_dhw_tank_;
+  }
+
+  /// @brief A DHW run heats the tank, so it may be used for a defrost again.
+  void OnDhwRun()
+  {
+    dhw_tank_cold_for_defrost_ = false;
+  }
+
+  /// @brief At the start of a defrost while heating: use the DHW tank when "Ontdooien via tapwatervat" is on, the
+  /// heating circuit is too cold to defrost on and the tank is warm enough. Otherwise the defrost runs on the
+  /// heating circuit as before.
+  void StartDefrostFromDhwTankIfNeeded()
+  {
+    if (!id(defrost_from_dhw_tank_switch).state || !id(dhw_enabled_switch).state || dhw_tank_cold_for_defrost_ ||
+        !IsWorkingMode(WORKING_MODE_HEATING))
+    {
+      return;
+    }
+    const float tuo = id(outlet_temperature_tuo).state;
+    const float tank_temperature = id(dhw_temperature_tw_sensor).state;
+    // NaN compares false, so a missing reading keeps the defrost on the heating circuit.
+    if (!(tuo <= DEFROST_DHW_TANK_MAX_START_TUO_C) || !(tank_temperature > DEFROST_DHW_TANK_MIN_TEMPERATURE_C) ||
+        !(tank_temperature <= DEFROST_DHW_TANK_MAX_TEMPERATURE_C))
+    {
+      return;
+    }
+    ESP_LOGI("amber", "Defrost on water from the DHW tank (Tuo %.1f°C, Tw %.1f°C).", tuo, tank_temperature);
+    defrost_from_dhw_tank_ = true;
+    defrost_from_dhw_tank_started_ms_ = App.get_loop_component_start_time() | 1;
+    defrost_from_dhw_tank_start_tui_ = id(inlet_temperature_tui).state;
+  }
+
+  /// @brief Once the tank water has reached the unit Tui must be above its value at the start of the defrost. If
+  /// not, the tank gives no heat: back to the heating circuit, and no tank until after a DHW run.
+  void CheckDefrostFromDhwTank()
+  {
+    if (!defrost_from_dhw_tank_ || defrost_from_dhw_tank_started_ms_ == 0 ||
+        !HasElapsedMs(defrost_from_dhw_tank_started_ms_, DEFROST_DHW_TANK_CHECK_TIME_S * 1000UL, App.get_loop_component_start_time()))
+    {
+      return;
+    }
+    defrost_from_dhw_tank_started_ms_ = 0;
+    const float tui = id(inlet_temperature_tui).state;
+    if (!(tui > defrost_from_dhw_tank_start_tui_))
+    {
+      ESP_LOGW("amber", "DHW tank gives no heat for the defrost (Tui %.1f°C, %.1f°C at the start), back to the heating circuit.",
+               tui, defrost_from_dhw_tank_start_tui_);
+      dhw_tank_cold_for_defrost_ = true;
+      defrost_from_dhw_tank_ = false;
+    }
   }
 
   bool HasCompressorDemand()
@@ -1040,6 +1106,7 @@ public:
         if (id(defrost_running_sensor).state)
         {
           StopSecondaryPumpsIfNeeded();
+          StartDefrostFromDhwTankIfNeeded();
           SetNextState(HeatCoolState::DEFROSTING);
           break;
         }
@@ -1232,6 +1299,7 @@ public:
         if (id(defrost_active_sensor).state)
         {          
           pump_controller_->ApplySpeedChangeIfNeeded(false);
+          CheckDefrostFromDhwTank();
           ESP_LOGI("amber", "Defrost busy, waiting before making changes to compressor.");
           break;
         }
@@ -1239,7 +1307,17 @@ public:
         pump_controller_->ResetHeatingPidState();
         GetPidController().reset_integral_term();
         ResetMixingValvesIntegralTerm();
-        StartSecondaryPumpsIfNeeded();
+        if (defrost_from_dhw_tank_)
+        {
+          // The valve goes back to CV now. As after a hot switch from DHW: the hot tank water still in the unit is
+          // flushed into the heating circuit, and the zone pumps start once the valve has had its travel time.
+          defrost_from_dhw_tank_ = false;
+          hand_over_started_ms_ = now | 1;
+        }
+        else
+        {
+          StartSecondaryPumpsIfNeeded();
+        }
 
         if (id(temperature_outside_ta_avg_1h).state <= id(defrost_backup_heater_boost_temperature_sensor).state && !requested_to_stop_)
         {

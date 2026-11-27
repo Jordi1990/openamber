@@ -2430,3 +2430,11 @@
   nl: "Display"
   de: "Anzeige"
   en: "Display"
+- key: t_ontdooien_via_tapwatervat
+  nl: "Ontdooien via tapwatervat"
+  de: "Abtauen über Warmwasserspeicher"
+  en: "Defrost from DHW tank"
+- key: t_alleen_als_het_cv_water_te_koud_is
+  nl: "Alleen als het cv-water te koud is om op te ontdooien"
+  de: "Nur wenn das Heizwasser zum Abtauen zu kalt ist"
+  en: "Only when the heating water is too cold to defrost on"
