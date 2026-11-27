@@ -2478,22 +2478,10 @@
   nl: "Defrost: startlijn en interval"
   de: "Abtauen: Startlinie und Intervall"
   en: "Defrost: start line and interval"
-- key: t_ta_tp_bij_0c_en_warmer
-  nl: "Ta - Tp bij 0°C en warmer"
-  de: "Ta - Tp bei 0°C und wärmer"
-  en: "Ta - Tp at 0°C and warmer"
 - key: t_verschil_waarbij_de_spoel_als_bevroren_t
   nl: "Verschil waarbij de spoel als bevroren telt"
   de: "Differenz, ab der das Register als vereist gilt"
   en: "Difference at which the coil counts as iced"
-- key: t_ta_tp_bij_15c_en_kouder
-  nl: "Ta - Tp bij -15°C en kouder"
-  de: "Ta - Tp bei -15°C und kälter"
-  en: "Ta - Tp at -15°C and colder"
-- key: t_daartussen_loopt_de_lijn_recht
-  nl: "Daartussen loopt de lijn recht"
-  de: "Dazwischen verläuft die Linie gerade"
-  en: "In between, the line is straight"
 - key: t_maximale_tp
   nl: "Maximale Tp"
   de: "Maximale Tp"
@@ -2592,3 +2580,7 @@
 - nl: "De buitenunit startte geen defrost binnen 120 seconden nadat OpenAmber erom vroeg. De regeling is gestopt. Controleer de Modbus-verbinding met de buitenunit, of zet de defrost controle op Buitenunit, en reset daarna de fout."
   de: "Die Außeneinheit hat innerhalb von 120 Sekunden nach der Anforderung durch OpenAmber kein Abtauen gestartet. Die Regelung ist gestoppt. Prüfe die Modbus-Verbindung zur Außeneinheit oder stelle die Abtausteuerung auf Außeneinheit und setze danach den Fehler zurück."
   en: "The outdoor unit did not start a defrost within 120 seconds after OpenAmber requested it. Control has stopped. Check the Modbus connection to the outdoor unit, or set the defrost control to Outdoor unit, then reset the error."
+- key: t_verschil_ta_tp
+  nl: "Verschil Ta - Tp"
+  de: "Differenz Ta - Tp"
+  en: "Ta - Tp difference"

@@ -43,15 +43,16 @@ buitenunit geldt altijd. Omdat het interval nooit langer is dan 120 min, is de i
 ### Startlijn
 
 De startlijn volgt Mitsubishi (technische handleiding SRK20-35ZSX-W, 17-SRK-T-228, hoofdstuk 17c):
-`Ta − benodigd verschil`, maar nooit hoger dan de **maximale Tp** (−5 °C).
+`Ta − verschil`, maar nooit hoger dan de **maximale Tp** (−5 °C). Het **verschil Ta − Tp** is standaard 5 K.
+Mitsubishi laat het verschil richting −15 °C afnemen; OpenAmber gebruikt één verschil, voor de eenvoud.
 
-| Ta | Benodigd verschil Ta − Tp | Startlijn Tp |
-| --- | --- | --- |
-| +5 °C | 5 K | −5 °C (maximale Tp) |
-| 0 °C | 5 K | −5 °C (maximale Tp) |
-| −5 °C | 4,7 K | −9,7 °C |
-| −10 °C | 4,3 K | −14,3 °C |
-| −15 °C en kouder | 4 K | −19 °C |
+| Ta | Startlijn Tp (verschil 5 K) |
+| --- | --- |
+| +5 °C | −5 °C (maximale Tp) |
+| 0 °C | −5 °C (maximale Tp) |
+| −5 °C | −10 °C |
+| −10 °C | −15 °C |
+| −15 °C | −20 °C |
 
 Mitsubishi gebruikt 7 K bij 0 °C. Bij de Amber ligt een schone spoel maar ±3 K onder Ta, en ijs maakt dat in
 48 min nauwelijks groter (±0,4 K). Met 7 K werd de startlijn in november 2026 nooit gehaald. Bij 5 K ging hij in
@@ -77,7 +78,7 @@ startte, past het interval niet aan.
 ## Instellingen
 
 Alleen wat het moment van ontdooien bepaalt is instelbaar: de defrost controle, het minimale interval, het verschil
-bij 0 °C en bij −15 °C en de maximale Tp. De overige waarden (maximale Ta, maximaal
+Ta − Tp en de maximale Tp. De overige waarden (maximale Ta, maximaal
 interval, retourblokkade en bevestigingstijd) staan vast in `controllers/constants.h`.
 
 ## Blokkades
