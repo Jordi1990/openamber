@@ -491,7 +491,6 @@ script:
           root["ye"] = id(water_flow_rate).state;
 
           root["yf"] = id(custom_defrost_status).state;
-          root["yg"] = id(custom_defrost_ta_tp).state;
           root["yh"] = id(custom_defrost_runtime_sensor).state;
           root["yj"] = id(custom_defrost_last_duration).state;
           root["yl"] = id(custom_defrost_interval_sensor).state;
@@ -511,7 +510,6 @@ script:
     tp: float
     start_line: float
     runtime_min: float
-    stops: int
   then:
     - if:
         condition:
@@ -531,7 +529,6 @@ script:
                 root["dfg"] = tp;
                 root["dfh"] = start_line;
                 root["dfk"] = runtime_min;
-                root["dfl"] = stops;
                 root["dfn"] = id(defrost_control_select).active_index().value_or(0);
                 root["dfo"] = id(outside_unit_program_version).state;
 

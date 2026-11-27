@@ -904,6 +904,14 @@ switch:
       - lambda: 'id(amber_ctrl).simulate_restart();'
       - switch.turn_off: mock_simulate_esp_restart
     turn_off_action: []
+  - platform: template
+    id: mock_reset_custom_defrost_interval
+    # Simulator only: puts the adaptive custom defrost interval back on the minimum (tests start from there).
+    optimistic: true
+    turn_on_action:
+      - lambda: 'id(custom_defrost_interval_min) = 0;'
+      - switch.turn_off: mock_reset_custom_defrost_interval
+    turn_off_action: []
   # Simulator only: call the same controller hooks as the ota on_begin / on_progress / on_error callbacks.
   - platform: template
     id: mock_ota_begin
@@ -1044,7 +1052,6 @@ script:
       tp: float
       start_line: float
       runtime_min: float
-      stops: int
     then: []
   - id: dump_eeprom_parameters
     then: []

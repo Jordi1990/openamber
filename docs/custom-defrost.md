@@ -83,11 +83,11 @@ interval, retourblokkade en bevestigingstijd) staan vast in `controllers/constan
 ## Blokkades
 
 - **Slot van de buitenunit.** Na een geforceerde defrost voert de unit een nieuwe pas uit na 30 min
-  compressortijd. OpenAmber vraagt in die tijd niets aan (ook een handmatige aanvraag wacht). De tijd komt uit
+  compressortijd. OpenAmber vraagt in die tijd niets aan (een handmatige aanvraag wordt dan geweigerd). De tijd komt uit
   de eigen draaitijdteller, zodat dit niet van de firmware van de buitenunit afhangt.
 - **Handmatig forceren.** Onder **Defrost → Status** staat de knop "Forceren" (alleen op het display). Die werkt
-  alleen tijdens verwarmen met draaiende compressor. De aanvraag wacht op het slot van 30 min en vervalt als de
-  compressor stopt of na 40 min.
+  alleen tijdens verwarmen met draaiende compressor en buiten het slot van 30 min; anders wordt hij geweigerd (in de
+  log). De aanvraag gaat bij de volgende gelegenheid uit en vervalt als het verwarmen met de compressor stopt.
 - **Retourtemperatuur.** Onder 20 °C retourtemperatuur wordt gewacht, maximaal 15 min.
 - **Bevestiging.** Zet de unit 2118 niet binnen 120 s aan, dan neemt OpenAmber werkmodus 4 terug en gaat de regeling
   in fout **TO10 - Defrost start timeout**, zonder nieuwe poging. Net als de andere timeoutfouten stopt dat de
@@ -118,5 +118,5 @@ Alleen de defrostduur is een sensor. De andere waarden staan in het defrost-even
 Het interval past zich alleen aan op de uitvoeringsduur van een defrost die OpenAmber zelf startte.
 
 Na elke defrost stuurt OpenAmber (met analytics aan) één bericht met deze waarden (het defrost-event), plus Ta, Tp en startlijn bij
-de start, de compressortijd en het aantal stops sinds de vorige defrost, de defrost controle en de programmaversie van
-de buitenunit (sleutels `dfa` t/m `dfh`, `dfk`, `dfl`, `dfn` en `dfo`).
+de start, de compressortijd sinds de vorige defrost, de defrost controle en de programmaversie van de buitenunit
+(sleutels `dfa` t/m `dfh`, `dfk`, `dfn` en `dfo`).

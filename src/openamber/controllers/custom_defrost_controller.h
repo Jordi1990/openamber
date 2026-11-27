@@ -57,25 +57,22 @@ private:
     float tp = NAN;
     float start_line = NAN;
     float runtime_min = NAN;
-    uint32_t stops = 0;
     int source = 0;
   };
 
   uint32_t last_update_ms_ = 0;
   uint32_t runtime_remainder_ms_ = 0;
   uint32_t compressor_running_since_ms_ = 0;
-  uint32_t compressor_stops_ = 0;
   uint32_t below_start_line_since_ms_ = 0;
   uint32_t below_interval_tp_since_ms_ = 0;
   uint32_t return_temperature_block_since_ms_ = 0;
   // Non-zero while working mode 4 was written and the outdoor unit has not started the defrost yet.
   uint32_t request_started_ms_ = 0;
-  uint32_t manual_request_ms_ = 0;
   uint32_t defrost_started_ms_ = 0;
   uint32_t forced_mode_seen_since_ms_ = 0;
   int last_published_runtime_min_ = -1;
   int previous_mode_ = -1;
-  float previous_min_interval_ = NAN;
+  int last_published_interval_min_ = -1;
   bool defrost_active_previous_ = false;
   bool modbus_connected_previous_ = false;
   // Set at the start, on a mode change and when the Modbus connection returns: 3274 is checked and written once.
@@ -83,7 +80,6 @@ private:
   bool request_pending_ = false;
   bool manual_request_ = false;
   bool started_by_openamber_ = false;
-  bool overrun_warned_ = false;
   std::string pending_reason_;
 
   // Measurement of the current defrost (see OnDefrostStarted / TrackDefrost / OnDefrostEnded).
@@ -221,23 +217,15 @@ private:
     return ClampInterval(id(custom_defrost_interval_min));
   }
 
-  void SetIntervalMinutes(uint32_t interval)
+  /// @brief Publishes the interval when it changes (also when a changed minimum interval setting clamps it).
+  void PublishInterval()
   {
-    id(custom_defrost_interval_min) = ClampInterval(interval);
-    id(custom_defrost_interval_sensor).publish_state(id(custom_defrost_interval_min));
-  }
-
-  /// @brief A changed minimum interval setting restarts the adaptive interval from that value.
-  void CheckMinIntervalChanged()
-  {
-    float min_interval = id(custom_defrost_min_runtime).state;
-    if (min_interval == previous_min_interval_ || std::isnan(min_interval))
+    int minutes = (int) GetIntervalMinutes();
+    if (minutes != last_published_interval_min_)
     {
-      return;
+      last_published_interval_min_ = minutes;
+      id(custom_defrost_interval_sensor).publish_state(minutes);
     }
-    bool first = std::isnan(previous_min_interval_);
-    previous_min_interval_ = min_interval;
-    SetIntervalMinutes(first ? id(custom_defrost_interval_min) : GetMinIntervalMinutes());
   }
 
   /// @brief Short defrost = little ice, so wait longer next time. Long defrost = wait shorter. Same rule as the outdoor unit's Smart mode.
@@ -257,7 +245,8 @@ private:
     {
       interval = interval > CUSTOM_DEFROST_INTERVAL_STEP_DOWN_MIN ? interval - CUSTOM_DEFROST_INTERVAL_STEP_DOWN_MIN : 0;
     }
-    SetIntervalMinutes(interval);
+    id(custom_defrost_interval_min) = ClampInterval(interval);
+    PublishInterval();
     ESP_LOGI("amber", "CustomDefrost: defrost took %u s, interval is now %u min.", (unsigned) duration_s, (unsigned) GetIntervalMinutes());
   }
 
@@ -286,27 +275,10 @@ private:
     PublishRuntime();
   }
 
-  /// @brief Tracks how long the compressor runs and counts its stops while heating (sent with the defrost event).
-  void UpdateCompressorStops(uint32_t now)
-  {
-    if (IsCompressorRunning())
-    {
-      if (compressor_running_since_ms_ == 0)
-      {
-        compressor_running_since_ms_ = NonZero(now);
-      }
-      return;
-    }
-    if (compressor_running_since_ms_ != 0 && IsWorkingModeIndex(WORKING_MODE_HEATING))
-    {
-      compressor_stops_++;
-    }
-    compressor_running_since_ms_ = 0;
-  }
-
+  /// @brief How long the compressor runs without interruption, in seconds.
   uint32_t GetCompressorOnSeconds(uint32_t now)
   {
-    return compressor_running_since_ms_ == 0 ? 0 : (now - compressor_running_since_ms_) / 1000;
+    return HoldSeconds(IsCompressorRunning(), &compressor_running_since_ms_, now);
   }
 
   void PublishRuntime()
@@ -329,18 +301,12 @@ private:
     }
   }
 
-  void PublishCoilValues()
+  void PublishStartTemperature()
   {
     float ta = id(temperature_outside_ta).state;
-    float tp = id(evaporation_temperature_tp).state;
-    if (!IsValid(ta))
+    if (IsValid(ta))
     {
-      return;
-    }
-    PublishRounded(&id(custom_defrost_start_temperature), GetStartTemperature(ta));
-    if (IsValid(tp))
-    {
-      PublishRounded(&id(custom_defrost_ta_tp), ta - tp);
+      PublishRounded(&id(custom_defrost_start_temperature), GetStartTemperature(ta));
     }
   }
 
@@ -438,7 +404,6 @@ private:
   void OnDefrostStarted(uint32_t now)
   {
     defrost_started_ms_ = NonZero(now);
-    overrun_warned_ = false;
     started_by_openamber_ = request_started_ms_ != 0;
     request_started_ms_ = 0;
     ClearRequest();
@@ -454,7 +419,6 @@ private:
     event_.tp = tp;
     event_.start_line = IsValid(ta) ? GetStartTemperature(ta) : NAN;
     event_.runtime_min = GetRuntimeSeconds() / 60.0f;
-    event_.stops = compressor_stops_;
     event_.source = started_by_openamber_ ? 1 : 0;
 
     ESP_LOGI("amber", "CustomDefrost: defrost started by %s (Tp %.1f°C, Ta %.1f°C).",
@@ -481,7 +445,7 @@ private:
         AdaptInterval((uint32_t) execution_s);
       }
       id(send_defrost_event).execute(event_.source, total_s, execution_s, melt_s, energy_kj, event_.ta, event_.tp,
-                                     event_.start_line, event_.runtime_min, (int) event_.stops);
+                                     event_.start_line, event_.runtime_min);
     }
     // The outdoor unit returns to heating by itself but leaves 3999 on 4, which would start a new defrost after 30 min.
     RestoreHeatingWorkingMode();
@@ -489,7 +453,6 @@ private:
     started_by_openamber_ = false;
     id(custom_defrost_runtime_s) = 0;
     runtime_remainder_ms_ = 0;
-    compressor_stops_ = 0;
     PublishRuntime();
     ResetTriggerTimers();
     forced_mode_seen_since_ms_ = 0;
@@ -504,25 +467,6 @@ private:
       ESP_LOGW("amber", "CustomDefrost: outdoor unit still in forced defrost mode without active defrost.");
       RestoreHeatingWorkingMode();
       forced_mode_seen_since_ms_ = 0;
-    }
-  }
-
-  void CheckDefrostOverrun(uint32_t now, bool defrost_active)
-  {
-    if (!defrost_active || defrost_started_ms_ == 0 || overrun_warned_)
-    {
-      return;
-    }
-    float max_time_min = id(max_defrost_time).state;
-    if (std::isnan(max_time_min))
-    {
-      max_time_min = 8.0f;
-    }
-    uint32_t limit_ms = (uint32_t)(max_time_min * 60000.0f) + CUSTOM_DEFROST_OVERRUN_MARGIN_S * 1000UL;
-    if ((now - defrost_started_ms_) > limit_ms)
-    {
-      overrun_warned_ = true;
-      ESP_LOGW("amber", "CustomDefrost: defrost is taking longer than %.0f min + margin, leaving it to the outdoor unit.", max_time_min);
     }
   }
 
@@ -644,11 +588,11 @@ public:
     }
     modbus_connected_previous_ = modbus_connected;
 
-    CheckMinIntervalChanged();
+    PublishInterval();
 
-    UpdateCompressorStops(now);
+    GetCompressorOnSeconds(now);  // keeps the continuous run time up to date every update
     UpdateRuntime(dt_ms, defrost_active);
-    PublishCoilValues();
+    PublishStartTemperature();
 
     // Switching during a defrost: let the defrost finish first, then hand 3274 over.
     if (control_mode_write_pending_ && modbus_connected && !defrost_active)
@@ -667,7 +611,6 @@ public:
     defrost_active_previous_ = defrost_active;
 
     CheckForcedModeRestore(now, defrost_active);
-    CheckDefrostOverrun(now, defrost_active);
 
     if (defrost_active)
     {
@@ -708,29 +651,17 @@ public:
       return;
     }
 
+    // A manual request goes out at the next opportunity; it is dropped when heating with the compressor ends.
     if (manual_request_)
     {
-      if ((now - manual_request_ms_) >= CUSTOM_DEFROST_MANUAL_REQUEST_EXPIRY_S * 1000UL)
-      {
-        ESP_LOGW("amber", "CustomDefrost: manual defrost request expired.");
-        manual_request_ = false;
-      }
-      else if (!IsCompressorRunning())
-      {
-        ESP_LOGW("amber", "CustomDefrost: compressor stopped, manual defrost request cancelled.");
-        manual_request_ = false;
-      }
-      else if (IsOutdoorUnitLocked())
-      {
-        PublishStatus("Handmatig: wacht op slot buitenunit");
-        return;
-      }
-      else
+      if (IsHeatingWithCompressor(defrost_active))
       {
         request_pending_ = true;
         PublishStatus("Handmatig aangevraagd");
         return;
       }
+      ESP_LOGW("amber", "CustomDefrost: no longer heating with the compressor, manual defrost request cancelled.");
+      manual_request_ = false;
     }
 
     if (!IsHeatingWithCompressor(defrost_active) || id(temperature_outside_ta).state > CUSTOM_DEFROST_MAX_TA_C)
@@ -811,8 +742,14 @@ public:
       ESP_LOGW("amber", "CustomDefrost: manual defrost only possible while heating with the compressor running.");
       return;
     }
+    // The outdoor unit ignores a forced defrost within 30 min compressor time after the previous one.
+    if (IsOutdoorUnitLocked())
+    {
+      ESP_LOGW("amber", "CustomDefrost: manual defrost refused, the outdoor unit accepts a new defrost %u min after the previous one.",
+               (unsigned) (CUSTOM_DEFROST_OUTDOOR_UNIT_LOCK_S / 60));
+      return;
+    }
     ESP_LOGI("amber", "CustomDefrost: manual defrost requested.");
     manual_request_ = true;
-    manual_request_ms_ = NonZero(App.get_loop_component_start_time());
   }
 };
