@@ -158,6 +158,52 @@ def test_frost_protection_keeps_pump_on_without_flow(clean_system):
         _cleanup(openamber)
 
 
+def test_no_heat_source_without_flow_after_error_reset(clean_system):
+    """
+    Frost protection stage 2 keeps the pump on without flow after the pump start timeout. When TO01 is reset
+    during that cycle while the flow is still missing, the compressor must not start.
+    """
+    openamber = clean_system
+    openamber.set_switch("mock_pump_flow_missing", True)
+    openamber.set_binary_sensor("external_heat_demand_wired", False)
+    openamber.set_switch("heat_demand_switch", False)
+    openamber.set_number("frost_protection_stage_2_temp_ta", 4.0)
+    openamber.set_number("frost_protection_stage_2_temp_tui", 7.0)
+    openamber.set_number("pump_duration", 10.0)
+    openamber.set_sensor("temperature_outside_ta", 2.0)
+    openamber.set_sensor("inlet_temperature_tui", 5.0)
+    openamber.set_sensor("current_water_temperature_tc_sensor", 12.0)
+    openamber.set_sensor("heat_cool_temperature_tc", 12.0)
+    openamber.set_sensor("outlet_temperature_tuo", 12.0)
+    openamber.advance_time(seconds=305, step_s=5)
+    openamber.step(ms=100)
+    try:
+        assert openamber.get_entity("frost_protection_stage2_active") is True
+        assert _pump_commanded(openamber)
+
+        # Past the pump start timeout: TO01, the pump stays on.
+        openamber.advance_time(seconds=125, step_s=5)
+        openamber.step(ms=100)
+        assert openamber.get_entity("error_pump_start_timeout") is True
+        assert openamber.get_entity("state_machine_state_heat_cool") == "Pump running"
+
+        # Reset TO01 while the flow is still missing: no compressor and no backup heater without flow.
+        openamber.set_switch("reset_start_timeout_errors_switch", True)
+        openamber.step(ms=100)
+        assert openamber.get_entity("error_active") is False
+        openamber.advance_time(seconds=240, step_s=10)
+        openamber.step(ms=100)
+        assert int(openamber.get_entity("compressor_control_select") or 0) == 0, "No compressor start without flow"
+        assert openamber.get_entity("backup_heater_relay") is not True, "No backup heater without flow"
+        assert _pump_commanded(openamber), "The pump stays on for frost protection"
+    finally:
+        openamber.set_number("pump_duration", 2.0)
+        openamber.set_sensor("current_water_temperature_tc_sensor", 28.0)
+        openamber.set_sensor("heat_cool_temperature_tc", 28.0)
+        openamber.set_sensor("outlet_temperature_tuo", 28.0)
+        _cleanup(openamber)
+
+
 def test_no_frost_protection_while_stopped(clean_system):
     """A controlled stop (standby) still ends frost protection: pump P0 does not run."""
     openamber = clean_system

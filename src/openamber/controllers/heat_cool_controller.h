@@ -882,6 +882,14 @@ public:
           break;
         }
 
+        // A frost protection cycle keeps the pump on without flow (pump start timeout). The compressor and the
+        // backup heater only start with flow, also once the error has been reset during that cycle.
+        if (!pump_controller_->IsRunning())
+        {
+          ESP_LOGW("amber", "Not starting compressor or backup heater because the flow switch reports no flow.");
+          break;
+        }
+
         // The compressor is wanted: keep the pump running while the minimum off time passes. Ending the pump
         // cycle here would delay the start by a full pump interval.
         if (!compressor_controller_->HasPassedMinOffTime())
