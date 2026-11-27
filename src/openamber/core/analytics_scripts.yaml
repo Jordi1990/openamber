@@ -478,6 +478,11 @@ script:
           root["yc"] = id(system_heap_fragmentation).state;
           root["yd"] = id(system_heap_max_block).state;
           root["ye"] = id(water_flow_rate).state;
+          // Experimental diagnostic readings; unavailable values encode as null.
+          root["yf"] = id(pump_feedback_1221_raw).state;
+          root["yg"] = id(experimental_flow_high).state;
+          root["yh"] = id(experimental_flow_medium_low).state;
+          root["yi"] = id(flow_correction_3494_raw).state;
 
 - id: schedule_send_errors_realtime
   mode: restart

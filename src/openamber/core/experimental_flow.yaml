@@ -1,0 +1,58 @@
+sensor:
+  - platform: template
+    id: experimental_flow_feedback_percent
+    internal: true
+    update_interval: 5s
+    lambda: |-
+      const float feedback = id(pump_feedback_1221_raw).state;
+      const float tuo = id(outlet_temperature_tuo).state;
+      const float status = id(inside_unit_status_1225_raw).state;
+      const float correction = id(flow_correction_3494_raw).state;
+      if (!std::isfinite(feedback) || !std::isfinite(tuo) ||
+          !std::isfinite(status) || !std::isfinite(correction))
+        return NAN;
+      // 1225 bit 15: invalid pump feedback; bit 3: invalid Tuo.
+      if (status < 0 || status > 65535 ||
+          (static_cast<uint16_t>(status) & 0x8008U))
+        return NAN;
+      return std::min(feedback / 10.0f, 70.0f);
+
+  - platform: copy
+    id: experimental_flow_high
+    source_id: experimental_flow_feedback_percent
+    name: "Experimenteel geschat debiet (hoog)"
+    unit_of_measurement: "L/min"
+    device_class: volume_flow_rate
+    accuracy_decimals: 2
+    state_class: measurement
+    entity_category: diagnostic
+    filters:
+      - lambda: |-
+          if (x < 5.0f) return 0.0f;
+          float flow = 1.0666667222976685f * x +
+                       0.09f * id(outlet_temperature_tuo).state - 4.88f;
+          if (flow > 0.1f)
+            flow += id(flow_correction_3494_raw).state / 60.0f;
+          return flow;
+    web_server:
+      sorting_group_id: diagnostic
+
+  - platform: copy
+    id: experimental_flow_medium_low
+    source_id: experimental_flow_feedback_percent
+    name: "Experimenteel geschat debiet (midden/laag)"
+    unit_of_measurement: "L/min"
+    device_class: volume_flow_rate
+    accuracy_decimals: 2
+    state_class: measurement
+    entity_category: diagnostic
+    filters:
+      - lambda: |-
+          if (x < 5.0f) return 0.0f;
+          float flow = 1.0666667222976685f * x +
+                       0.05f * id(outlet_temperature_tuo).state - 1.69f;
+          if (flow > 0.1f)
+            flow += id(flow_correction_3494_raw).state / 60.0f;
+          return flow;
+    web_server:
+      sorting_group_id: diagnostic
