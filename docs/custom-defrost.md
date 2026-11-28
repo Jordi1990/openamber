@@ -14,7 +14,7 @@ OpenAmber kan zelf bepalen wanneer de buitenunit ontdooit. Alle defrost-instelli
 | Defrost controle | Wat er gebeurt |
 | --- | --- |
 | Buitenunit | De unit ontdooit zelf (standaard). OpenAmber houdt alleen statistiek bij. |
-| OpenAmber | 3274 staat op master. OpenAmber start de defrost door werkmodus 4 te schrijven. |
+| OpenAmber | 3274 staat op master. OpenAmber start de defrost door werkmodus 4 te schrijven tijdens verwarmen met draaiende compressor. |
 
 De stand wordt onthouden, ook na een herstart of update. OpenAmber zet 3274 één keer goed (alleen als de teruggelezen
 waarde afwijkt): na het opstarten, na elke wissel van de stand en als de Modbus-verbinding met de buitenunit terugkomt.
@@ -63,13 +63,14 @@ defrost die OpenAmber zelf startte, net als de Smart-stand van de buitenunit met
 
 | Duur laatste defrost | Volgend interval |
 | --- | --- |
-| tot 2 min (weinig ijs) | +20 min, maximaal 120 min |
-| 2 tot 5 min | gelijk |
+| tot 3 min (weinig ijs) | +20 min, maximaal 120 min |
+| 3 tot 5 min | gelijk |
 | langer dan 5 min | −10 min |
 | tot de maximale defrosttijd (3278) | terug naar het minimale interval |
 
-De uitvoeringsduur zegt veel over de hoeveelheid ijs: op 27/28 november 2026 duurde een defrost zonder rijp 75–90 s,
-met duidelijk witte rijp 150–195 s (camerabeelden van de spoel).
+De duur is de 2118-tijd van de geforceerde defrost. Die zegt veel over de hoeveelheid ijs: op 27/28 november 2026
+(camerabeelden van de spoel) duurde een defrost zonder rijp 2:14–2:30, met lichte rijp 2:45–3:30 en met duidelijk witte
+rijp 3:45–4:15. Langer dan 5 min betekent meer ijs dan toen bij de zwaarste rijp, dus dan was het interval te lang.
 
 Het interval begint op het minimale interval (35 min, instelbaar van 30 tot 120 min) en is nooit korter dan 30 min. Zo ontdooit de regeling bij
 vochtig weer vaker dan bij droog weer. Een defrost die de buitenunit zelf
@@ -84,18 +85,22 @@ er na het minimale interval ontdooid. 0 zet de ijsteller uit; met een vochtighei
 noodgrens van 4 uur over.
 
 Staat de compressor stil en ligt Tp 10 min boven +1 °C, dan is de rijp gesmolten en gaat de teller terug naar 0.
+
+De sensor **Defrost ijsgroei** (Pa) toont het dampdrukverschil van dit moment (0 als er niet verwarmd wordt met de
+compressor); **Defrost ijsteller** is daar de integraal van, en **Defrost draaitijd sinds defrost** de integraal van de
+tijd met draaiende compressor. Beide worden onthouden over een herstart en gaan na elke defrost naar 0.
 Zonder dat bleef de teller na een stop op een zachte dag staan, en ontdooide de regeling later een schone spoel.
 
 Ter indicatie (november 2026, Ta −1 tot −3 °C): bij 90–95 % RV groeide de teller met 60–100 Pa per uur en lag er na
 48 min zichtbaar ijs (uitvoering ±4 min). Bij 80 % RV was dat 25–50 Pa per uur en bleef de spoel na 48 min schoon
 (uitvoering ±2 min). Daaruit kwam eerst 70 Pa·h, maar dat ging in de praktijk te vroeg af (uitvoering 90 s, bij
 66 Pa·h nog geen rijp te zien). Met 90 Pa·h wordt het ±65–70 min bij mist en bij 80 % RV 2 tot 3,5 uur. In de nacht van 27/28 november 2026 (Ta −1 tot −3 °C) bereikte de teller 90 Pa·h na
-74–118 min, en lag er bij alle zeven defrosts op de ijsteller zichtbaar rijp (uitvoering 150–195 s).
+74–118 min, en lag er bij alle zeven defrosts op de ijsteller zichtbaar rijp (2118-tijd 3:15–4:15).
 
 ## Instellingen
 
 Alleen wat het moment van ontdooien bepaalt is instelbaar: de defrost controle, het minimale interval en de drempel ijsteller. De overige waarden (maximale Ta, maximaal
-interval, retourblokkade en bevestigingstijd) staan vast in `controllers/constants.h`.
+interval en bevestigingstijd) staan vast in `controllers/constants.h`.
 
 ## Blokkades
 
@@ -104,12 +109,15 @@ interval, retourblokkade en bevestigingstijd) staan vast in `controllers/constan
   de eigen draaitijdteller, zodat dit niet van de firmware van de buitenunit afhangt.
 - **Handmatig forceren.** Onder **Defrost → Status** staat de knop "Forceren" (alleen op het display). Die werkt
   alleen tijdens verwarmen met draaiende compressor en buiten het slot van 30 min; anders wordt hij geweigerd (in de
-  log). De aanvraag gaat bij de volgende gelegenheid uit en vervalt als het verwarmen met de compressor stopt.
-- **Retourtemperatuur.** Onder 20 °C retourtemperatuur wordt gewacht, maximaal 15 min.
+  log). De aanvraag gaat bij de volgende gelegenheid uit als trigger "Handmatig" en vervalt als het verwarmen met de
+  compressor stopt.
 - **Bevestiging.** Zet de unit 2118 niet binnen 120 s aan, dan neemt OpenAmber werkmodus 4 terug en gaat de regeling
   in fout **TO10 - Defrost start timeout**, zonder nieuwe poging. Net als de andere timeoutfouten stopt dat de
   warmtepomp tot je de fout reset ("Reset systeem timeout fouten" of de resetknop bij de storingen). Er wordt geen
-  nieuwe defrost aangevraagd zolang TO10 actief is.
+  nieuwe defrost aangevraagd zolang TO10 actief is. Stopt de compressor voordat de defrost begint, dan neemt OpenAmber
+  werkmodus 4 terug zonder fout.
+- **Tijdens de aanvraag** houden de verwarmings- en tapwaterregeling de compressor aan en schrijven ze geen werkmodus;
+  zodra 2118 opkomt, gaan ze verder zoals bij elke defrost.
 
 Na de defrost zet OpenAmber werkmodus 4 direct terug naar verwarmen. Anders zou de unit 30 min later opnieuw
 ontdooien.
@@ -153,24 +161,13 @@ omkasting of een muur ertussen kan dat lastig zijn.
 
 ## Meten van een defrost
 
-Register 2118 is geen goede maat voor de defrostduur. Bij een defrost op eigen initiatief zet de buitenunit 2118
-ongeveer 5 minuten vóór de echte defrost al aan (voorfase), terwijl de compressor dan nog gewoon verwarmt. Hoe lang die
-voorfase duurt hangt af van de firmware, en de interne registers (5149 en hoger) verschillen ook per firmware.
-
-OpenAmber meet daarom fysiek, op elke firmware:
-
-- **Duur incl. voorfase:** hoe lang 2118 hoog was.
-- **Defrostduur** (sensor "Laatste defrostduur"): vanaf het moment dat Tp minstens 3 K boven het laagste punt van de
-  laatste minuut komt (heet gas op de spoel) tot 2118 weer laag is. Bij een geforceerde defrost zonder gedetecteerde
-  stijging: de hele 2118-tijd.
-- **Smelttijd:** hoe lang Tp tijdens de uitvoering tussen −1 en 3 °C bleef. Zolang er ijs smelt blijft de spoel rond
-  0 °C hangen; dit is de beste maat voor de hoeveelheid ijs.
-- **Energie uit water:** warmte die de defrost uit het water haalde: debiet × (Tui − Tuo), in kJ.
-
-Alleen de defrostduur is een sensor. De andere waarden staan in het defrost-event hieronder.
-
-Het interval past zich alleen aan op de uitvoeringsduur van een defrost die OpenAmber zelf startte.
+- **Defrostduur** (sensor "Laatste defrostduur"): hoe lang 2118 hoog was. Bij een defrost op eigen initiatief zet de
+  buitenunit 2118 ongeveer 5 minuten vóór de echte defrost al aan (voorfase), dus dan zit die voorfase erin. Een
+  geforceerde defrost heeft geen voorfase; alleen die past het interval aan.
+- **Energie uit water:** warmte die de defrost uit het water haalde, in kJ: de integraal van het thermisch vermogen
+  tijdens de defrost. Het thermisch vermogen wordt eens per minuut berekend, dus dit is een grove waarde.
 
 Na elke defrost stuurt OpenAmber (met analytics aan) één bericht met deze waarden (het defrost-event), plus Ta, Tp en
 vochtigheid bij de start, de compressortijd en de ijsteller sinds de vorige defrost, de defrost controle en de
-programmaversie van de buitenunit (sleutels `dfa` t/m `dfg`, `dfi`, `dfk`, `dfn`, `dfo` en `dfp`).
+programmaversie van de buitenunit (sleutels `dfa` t/m `dfg`, `dfi`, `dfk`, `dfn`, `dfo` en `dfp`; uitvoering `dfc` en
+smelttijd `dfd` worden niet meer gemeten en zijn leeg).

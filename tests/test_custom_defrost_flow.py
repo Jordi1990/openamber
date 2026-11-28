@@ -105,8 +105,8 @@ def test_openamber_waits_for_interval_and_cold_coil(clean_system):
     assert openamber.get_entity("custom_defrost_last_trigger").startswith("Interval: ")
 
 
-def test_unit_defrost_measures_execution_without_prephase(clean_system):
-    """In mode 'Buitenunit' the defrost is still measured: the execution time excludes the unit's pre-phase."""
+def test_unit_defrost_is_measured_on_2118(clean_system):
+    """In mode 'Buitenunit' the defrost is still measured, on the 2118 time (so including the unit's pre-phase)."""
     openamber = clean_system
     _configure(openamber, "Buitenunit")
     _heat_and_reset_runtime(openamber)
@@ -130,7 +130,7 @@ def test_unit_defrost_measures_execution_without_prephase(clean_system):
     openamber.advance_time(seconds=10, step_s=5)
     openamber.step(ms=50)
     duration = openamber.get_entity("custom_defrost_last_duration")
-    assert duration is not None and 115 <= duration <= 135, f"Execution must exclude the pre-phase, got {duration}"
+    assert duration is not None and 420 <= duration <= 445, f"2118 time expected, got {duration}"
     assert openamber.get_entity("custom_defrost_runtime_sensor") == 0
     # A defrost by the outdoor unit includes its pre-phase, so the interval is not adapted
     assert openamber.get_entity("custom_defrost_interval_sensor") == 35
@@ -182,7 +182,8 @@ def test_openamber_forced_defrost_flow(clean_system):
     openamber.step(ms=50)
 
     assert openamber.get_entity("working_mode_switch") == "Geforceerde defrost"
-    assert openamber.get_entity("state_machine_state_heat_cool") == "Defrost requested"
+    # The heat/cool controller just keeps the compressor running until 2118 rises
+    assert openamber.get_entity("state_machine_state_heat_cool") == "Compressor running"
     assert openamber.get_entity("custom_defrost_status") == "Aangevraagd"
     assert openamber.get_entity("custom_defrost_last_trigger").startswith("Interval: ")
     assert int(openamber.get_entity("compressor_control_select") or 0) > 0, "Compressor must keep running"
@@ -396,12 +397,12 @@ def test_ice_counter_resets_when_frost_melts_during_stop(clean_system):
 
     openamber.set_sensor("evaporation_temperature_tp", -1.5)
     openamber.advance_time(seconds=40 * 60, step_s=30)
-    openamber.step(ms=50)
-    ice_load = openamber.get_entity("custom_defrost_ice_load_sensor")
-    assert ice_load > 30
-
     openamber.set_switch("heat_demand_switch", False)
     assert advance_until_state(openamber, "current_compressor_frequency", 0, max_s=600, step=10)
+    # The counter only grows while heating with the compressor, so read it once the compressor is off
+    openamber.advance_time(seconds=10, step_s=5)
+    ice_load = openamber.get_entity("custom_defrost_ice_load_sensor")
+    assert ice_load > 30
     # Coil only just above freezing: no melting
     openamber.set_sensor("evaporation_temperature_tp", 0.5)
     openamber.advance_time(seconds=15 * 60, step_s=30)
@@ -416,26 +417,6 @@ def test_ice_counter_resets_when_frost_melts_during_stop(clean_system):
     openamber.step(ms=50)
     assert openamber.get_entity("custom_defrost_ice_load_sensor") == 0
     openamber.set_sensor("outdoor_humidity", 0.0)
-
-
-def test_low_return_temperature_blocks_until_max_wait(clean_system):
-    """A low return temperature delays the defrost, but only up to the maximum wait time."""
-    openamber = clean_system
-    _configure(openamber, "OpenAmber")
-    _heat_and_reset_runtime(openamber)
-    _wait_for_interval(openamber)
-
-    openamber.set_sensor("outlet_temperature_tuo", 22.0)
-    openamber.set_sensor("inlet_temperature_tui", 16.0)
-    openamber.set_sensor("evaporation_temperature_tp", -8.0)
-    openamber.advance_time(seconds=190, step_s=5)
-    openamber.step(ms=50)
-    assert openamber.get_entity("custom_defrost_status").startswith("Geblokkeerd: retour")
-
-    # Maximum wait 15 min
-    openamber.advance_time(seconds=15 * 60, step_s=10)
-    openamber.step(ms=50)
-    assert openamber.get_entity("custom_defrost_status") == "Aangevraagd"
 
 
 def test_defrost_settings_menu(clean_system):
@@ -633,9 +614,9 @@ def test_control_mode_written_once_per_change_and_after_restart(clean_system):
     assert openamber.get_entity("defrost_control_mode_select") == "Buitenunit"
 
 
-def test_defrost_over_two_minutes_keeps_interval(clean_system):
-    """A defrost of about 150 s had ice (clearly white frost on the camera, 28 Nov 2026), so it is not 'short': the
-    adaptive interval stays the same instead of growing 20 min."""
+def test_defrost_over_three_minutes_keeps_interval(clean_system):
+    """A forced defrost with a 2118 time of about 3:20 had ice (light to clearly white frost on the camera, 28 Nov 2026),
+    so it is not 'short': the adaptive interval stays the same instead of growing 20 min."""
     openamber = clean_system
     _configure(openamber, "OpenAmber")
     _heat_and_reset_runtime(openamber)
@@ -645,8 +626,88 @@ def test_defrost_over_two_minutes_keeps_interval(clean_system):
     openamber.set_binary_sensor("defrost_active_sensor", True)
     openamber.advance_time(seconds=10, step_s=5)
     openamber.set_sensor("evaporation_temperature_tp", 8.0)
-    openamber.advance_time(seconds=150, step_s=10)
+    openamber.advance_time(seconds=190, step_s=10)
     _end_defrost_by_unit(openamber)
     duration = openamber.get_entity("custom_defrost_last_duration")
-    assert 140 <= duration <= 170, duration
+    assert 195 <= duration <= 220, duration
     assert openamber.get_entity("custom_defrost_interval_sensor") == 35
+
+
+def _request_by_interval(openamber):
+    """Heat past the interval with a cold coil until OpenAmber writes working mode 4."""
+    _wait_for_interval(openamber)
+    openamber.set_sensor("evaporation_temperature_tp", -8.0)
+    assert advance_until_state(openamber, "working_mode_switch", "Geforceerde defrost", max_s=5 * 60, step=5)
+
+
+def test_manual_defrost_refused_in_lock_then_requested(clean_system):
+    """'Forceren' is refused within 30 min compressor time after a defrost and otherwise goes out as trigger
+    'Handmatig' through the normal request."""
+    openamber = clean_system
+    _configure(openamber, "OpenAmber")
+    _heat_and_reset_runtime(openamber)
+
+    assert openamber.click("custom_defrost_force_modal_ok_button")
+    openamber.advance_time(seconds=10, step_s=5)
+    assert openamber.get_entity("working_mode_switch") == "Verwarmen", "Refused within the outdoor unit's lock"
+
+    openamber.advance_time(seconds=31 * 60, step_s=30)
+    assert openamber.click("custom_defrost_force_modal_ok_button")
+    openamber.advance_time(seconds=5, step_s=1)
+    assert openamber.get_entity("working_mode_switch") == "Geforceerde defrost"
+    assert openamber.get_entity("custom_defrost_last_trigger") == "Handmatig"
+    assert openamber.get_entity("custom_defrost_status") == "Aangevraagd"
+    _confirm_short_forced_defrost(openamber)
+
+
+def test_compressor_stop_during_request_cancels_without_error(clean_system):
+    """When the compressor stops before the outdoor unit starts the defrost, the request is taken back without TO10."""
+    openamber = clean_system
+    _configure(openamber, "OpenAmber")
+    _heat_and_reset_runtime(openamber)
+    _request_by_interval(openamber)
+
+    openamber.set_number("mock_compressor_frequency_override", 0.0)
+    openamber.advance_time(seconds=10, step_s=1)
+    assert openamber.get_entity("working_mode_switch") != "Geforceerde defrost"
+    assert openamber.get_entity("error_defrost_start_timeout") is False
+    openamber.set_number("mock_compressor_frequency_override", -1.0)
+
+
+def test_dhw_keeps_compressor_running_during_request(clean_system):
+    """During DHW the request works the same way: the DHW controller keeps the compressor running until 2118 rises
+    and then defrosts as usual."""
+    openamber = clean_system
+    _configure(openamber, "OpenAmber")
+    openamber.set_sensor("dhw_temperature_tw_sensor", 38.0)
+    openamber.advance_time(seconds=400, step_s=20)
+    openamber.step(ms=50)
+    assert openamber.get_entity("state_machine_state_dhw") == "Compressor running"
+    _run_dhw_unit_defrost(openamber)
+
+    # The tank warms up slowly, so DHW keeps heating with the compressor (no backup heater for a slow rise)
+    for minute in range(36):
+        openamber.set_sensor("dhw_temperature_tw_sensor", 38.0 + minute * 0.25)
+        openamber.advance_time(seconds=60, step_s=30)
+    openamber.set_sensor("evaporation_temperature_tp", -8.0)
+    assert advance_until_state(openamber, "working_mode_switch", "Geforceerde defrost", max_s=5 * 60, step=5)
+    assert openamber.get_entity("state_machine_state_dhw") == "Compressor running"
+    assert int(openamber.get_entity("compressor_control_select") or 0) > 0
+    openamber.advance_time(seconds=60, step_s=10)
+    assert openamber.get_entity("working_mode_switch") == "Geforceerde defrost", "No working mode written during the request"
+
+    openamber.set_binary_sensor("defrost_active_sensor", True)
+    openamber.advance_time(seconds=10, step_s=5)
+    assert openamber.get_entity("state_machine_state_dhw") == "Defrosting"
+    _end_defrost_by_unit(openamber)
+    openamber.set_sensor("dhw_temperature_tw_sensor", 52.0)
+
+
+def _run_dhw_unit_defrost(openamber):
+    """A defrost by the outdoor unit during DHW; this resets the runtime counter."""
+    openamber.set_binary_sensor("defrost_active_sensor", True)
+    openamber.advance_time(seconds=10, step_s=5)
+    openamber.set_binary_sensor("defrost_active_sensor", False)
+    openamber.advance_time(seconds=10, step_s=5)
+    assert openamber.get_entity("custom_defrost_runtime_sensor") == 0
+    assert advance_until_state(openamber, "state_machine_state_dhw", "Compressor running", max_s=400)

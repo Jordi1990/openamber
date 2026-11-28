@@ -869,6 +869,9 @@ binary_sensor:
   device_class: connectivity
   lambda: |-
     return id(modbus_outside_is_online);
+  on_press:
+    then:
+      - script.execute: sync_defrost_control_mode
   disabled_by_default: true
   entity_category: diagnostic
 
@@ -1064,3 +1067,20 @@ binary_sensor:
   entity_category: diagnostic
   web_server:
     sorting_group_id: error_codes
+
+# Compressor stopped and the coil above +1 °C for 10 min: the frost has melted, so the ice counter goes back to 0.
+- platform: template
+  id: custom_defrost_frost_melted
+  internal: true
+  lambda: |-
+    return id(current_compressor_frequency).state <= 0 && !id(defrost_active_sensor).state &&
+           id(evaporation_temperature_tp).state > CUSTOM_DEFROST_ICE_MELT_TP_C;
+  filters:
+    - delayed_on: 10min
+  on_press:
+    - lambda: |-
+        if (id(custom_defrost_ice_load_sensor).state > 0.0f) {
+          ESP_LOGI("amber", "CustomDefrost: coil above %.0f°C with the compressor off, ice counter %.0f -> 0 Pa·h.",
+                   CUSTOM_DEFROST_ICE_MELT_TP_C, id(custom_defrost_ice_load_sensor).state);
+          id(custom_defrost_ice_load_sensor).reset();
+        }

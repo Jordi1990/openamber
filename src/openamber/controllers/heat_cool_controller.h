@@ -35,7 +35,6 @@ enum class HeatCoolState
   BACKUP_HEATER_RUNNING,
   WAIT_COMPRESSOR_STOP,
   WAIT_PUMP_STOP,
-  DEFROST_REQUESTED,
   DEFROSTING,
   WAIT_FOR_STATE_SWITCH,
 };
@@ -185,8 +184,6 @@ private:
         return "Wait backup heater running";
       case HeatCoolState::BACKUP_HEATER_RUNNING:
         return "Backup heater running";
-      case HeatCoolState::DEFROST_REQUESTED:
-        return "Defrost requested";
       case HeatCoolState::DEFROSTING:
         return "Defrosting";
       case HeatCoolState::COMPRESSOR_SOFTSTART:
@@ -1060,11 +1057,9 @@ public:
           break;
         }
 
-        if (custom_defrost_->ShouldRequestDefrost() && !IsControlledStopRequested())
+        // Forced defrost requested (custom defrost): keep the compressor running until 2118 rises.
+        if (custom_defrost_->IsRequestActive())
         {
-          StopSecondaryPumpsIfNeeded();
-          custom_defrost_->StartRequest();
-          SetNextState(HeatCoolState::DEFROST_REQUESTED);
           break;
         }
 
@@ -1272,25 +1267,6 @@ public:
         if (compressor_controller_->IsCommanded() && !id(defrost_running_sensor).state && !id(emergency_mode_enabled).state)
         {
           compressor_controller_->ApplyCompressorMode(GetMaxAllowedCompressorMode());
-        }
-        break;
-      }
-
-      case HeatCoolState::DEFROST_REQUESTED:
-      {
-        pump_controller_->ApplySpeedChangeIfNeeded(true);
-
-        if (id(defrost_active_sensor).state)
-        {
-          SetNextState(HeatCoolState::DEFROSTING);
-          break;
-        }
-
-        // Request timed out or was cancelled, continue heating.
-        if (!custom_defrost_->IsRequestActive())
-        {
-          StartSecondaryPumpsIfNeeded();
-          SetNextState(HeatCoolState::COMPRESSOR_RUNNING);
         }
         break;
       }
