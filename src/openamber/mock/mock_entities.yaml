@@ -1050,9 +1050,7 @@ script:
       energy_kj: float
       ta: float
       tp: float
-      start_line: float
       humidity: float
-      frost_point: float
       runtime_min: float
       ice_load: float
     then: []

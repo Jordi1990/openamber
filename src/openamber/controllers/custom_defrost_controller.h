@@ -43,18 +43,6 @@ inline bool CustomDefrostValidHumidity(float rh)
   return !std::isnan(rh) && rh >= 1.0f && rh <= 100.0f;
 }
 
-/// @brief Frost point of the outdoor air, NAN without a valid humidity (1-100 %).
-inline float CustomDefrostFrostPoint(float ta, float rh)
-{
-  if (std::isnan(ta) || !CustomDefrostValidHumidity(rh))
-  {
-    return NAN;
-  }
-  // The temperature where the vapour pressure of the air saturates over ice (inverse of CustomDefrostVapourPressureIce).
-  float l = logf(rh / 100.0f * CustomDefrostVapourPressureWater(ta) / 611.2f);
-  return 272.62f * l / (22.46f - l);
-}
-
 /// @brief Vapour pressure excess of the outdoor air over ice at the coil temperature, in Pa.
 /// This drives frost growth on the coil: 0 when the coil is above the frost point, NAN without a valid humidity.
 inline float CustomDefrostIcingRate(float ta, float rh, float tp)
@@ -68,19 +56,14 @@ inline float CustomDefrostIcingRate(float ta, float rh, float tp)
 
 /// @brief Decides when the outdoor unit should defrost.
 ///
-/// Three start routes, each after the minimum interval (at least the outdoor unit's 30 min lock):
-///  - Start line (Mitsubishi SRK-ZSX, technical manual 17-SRK-T-228, chapter 17c): the compressor runs continuously
-///    for at least 5 min and the coil temperature Tp stays below the start line for 3 min. The start line is
-///    Ta - (required difference), never above the maximum Tp (-5 °C); both are settings. Mitsubishi lowers the
-///    difference towards -15 °C; OpenAmber keeps one difference to stay simple. Mitsubishi uses 7 K at 0 °C, but on
-///    the Amber a clean coil sits only about 3 K below Ta, so 7 K was never reached (data of Nov 2026), hence 5 K.
-///  - Ice counter (needs a humidity value): the vapour pressure excess of the air over ice at Tp, summed over the
-///    compressor time since the last defrost (Pa·h). Defrost when it reaches the threshold.
-///  - Interval: after the adaptive interval with Tp below -2 °C for 3 min. The interval grows after short defrosts and
-///    shrinks after long ones, like the outdoor unit's Smart mode, so wet weather defrosts more often than dry weather.
-///    It is at most 120 min, so this route is also the safety net.
-/// Optional humidity sensor: when the coil is above the frost point of the air, no ice can grow, so the start line
-/// and interval route wait. That wait ends at the maximum interval (120 min), so a wrong sensor cannot block defrosts.
+/// Without humidity there is one start route: after the adaptive interval (at least the outdoor unit's 30 min lock)
+/// with Tp below -2 °C for 3 min. The interval grows after short defrosts and shrinks after long ones, like the outdoor
+/// unit's Smart mode, so wet weather defrosts more often than dry weather. It is at most 120 min.
+/// With a valid outdoor humidity (BLE sensor) the ice counter does the work: the vapour pressure excess of the air over
+/// ice at Tp, summed over the compressor time since the last defrost (Pa·h), defrosts at its threshold after the minimum
+/// interval. The interval route then only acts at the maximum interval (120 min) as the safety net.
+/// There is no start line on Ta - Tp (Mitsubishi SRK-ZSX): on the Amber Ta - Tp stayed 2.4-3.6 K with and without frost
+/// (camera, 27/28 Nov 2026), so it does not show ice.
 ///
 /// Modes (defrost_control_select), switchable at any time:
 ///  - Buitenunit: the outdoor unit decides itself, only statistics are kept here.
@@ -99,9 +82,7 @@ private:
   {
     float ta = NAN;
     float tp = NAN;
-    float start_line = NAN;
     float humidity = NAN;
-    float frost_point = NAN;
     float runtime_min = NAN;
     float ice_load = NAN;
     int source = 0;
@@ -110,7 +91,6 @@ private:
   uint32_t last_update_ms_ = 0;
   uint32_t runtime_remainder_ms_ = 0;
   uint32_t compressor_running_since_ms_ = 0;
-  uint32_t below_start_line_since_ms_ = 0;
   uint32_t below_interval_tp_since_ms_ = 0;
   uint32_t return_temperature_block_since_ms_ = 0;
   // Non-zero while working mode 4 was written and the outdoor unit has not started the defrost yet.
@@ -127,7 +107,6 @@ private:
   bool request_pending_ = false;
   bool manual_request_ = false;
   bool started_by_openamber_ = false;
-  bool dry_air_delay_logged_ = false;
   std::string pending_reason_;
 
   // Measurement of the current defrost (see OnDefrostStarted / TrackDefrost / OnDefrostEnded).
@@ -218,17 +197,8 @@ private:
 
   void ResetTriggerTimers()
   {
-    below_start_line_since_ms_ = 0;
     below_interval_tp_since_ms_ = 0;
     return_temperature_block_since_ms_ = 0;
-  }
-
-  // ── Start line (Mitsubishi) ──
-
-  /// @brief Coil temperature at or below which the coil counts as iced.
-  float GetStartTemperature(float ta)
-  {
-    return std::min(id(custom_defrost_max_coil_temperature).state, ta - id(custom_defrost_delta_at_zero).state);
   }
 
   // ── Interval between defrosts ──
@@ -352,25 +322,6 @@ private:
     }
   }
 
-  static void PublishRounded(sensor::Sensor* target, float value)
-  {
-    float rounded = roundf(value * 10.0f) / 10.0f;
-    float current = target->state;
-    if (std::isnan(rounded) != std::isnan(current) || (!std::isnan(rounded) && fabsf(current - rounded) >= 0.1f))
-    {
-      target->publish_state(rounded);
-    }
-  }
-
-  void PublishStartTemperature()
-  {
-    float ta = id(temperature_outside_ta).state;
-    if (IsValid(ta))
-    {
-      PublishRounded(&id(custom_defrost_start_temperature), GetStartTemperature(ta));
-    }
-  }
-
   /// @brief Puts 3274 on the control that matches the mode, once per request (see control_mode_write_pending_). A Modbus
   /// write only changes the outdoor unit's RAM; the unit loses it after a power cycle.
   void ManageDefrostControlMode()
@@ -478,9 +429,7 @@ private:
     event_ = DefrostEvent{};
     event_.ta = ta;
     event_.tp = tp;
-    event_.start_line = IsValid(ta) ? GetStartTemperature(ta) : NAN;
     event_.humidity = id(outdoor_humidity).state;
-    event_.frost_point = CustomDefrostFrostPoint(ta, event_.humidity);
     event_.runtime_min = GetRuntimeSeconds() / 60.0f;
     event_.ice_load = id(custom_defrost_ice_load);
     event_.source = started_by_openamber_ ? 1 : 0;
@@ -509,8 +458,7 @@ private:
         AdaptInterval((uint32_t) execution_s);
       }
       id(send_defrost_event).execute(event_.source, total_s, execution_s, melt_s, energy_kj, event_.ta, event_.tp,
-                                     event_.start_line, event_.humidity, event_.frost_point, event_.runtime_min,
-                                     event_.ice_load);
+                                     event_.humidity, event_.runtime_min, event_.ice_load);
     }
     // The outdoor unit returns to heating by itself but leaves 3999 on 4, which would start a new defrost after 30 min.
     RestoreHeatingWorkingMode();
@@ -519,7 +467,6 @@ private:
     id(custom_defrost_runtime_s) = 0;
     id(custom_defrost_ice_load) = 0.0f;
     runtime_remainder_ms_ = 0;
-    dry_air_delay_logged_ = false;
     PublishRuntime();
     PublishIceLoad();
     ResetTriggerTimers();
@@ -538,80 +485,40 @@ private:
     }
   }
 
-  /// @brief Checks the start routes. Returns the trigger reason, or an empty string with *waiting set to why not.
+  /// @brief Checks the start route. Returns the trigger reason, or an empty string with *waiting set to why not.
   std::string EvaluateTriggers(uint32_t now, std::string* waiting)
   {
-    float ta = id(temperature_outside_ta).state;
     float tp = id(evaporation_temperature_tp).state;
-    if (!IsValid(ta) || !IsValid(tp))
+    if (!IsValid(tp))
     {
       ResetTriggerTimers();
-      *waiting = "geen Ta of Tp";
+      *waiting = "geen Tp";
       return "";
     }
 
     char buffer[96];
     uint32_t runtime_min = GetRuntimeSeconds() / 60;
-    uint32_t interval_min = GetIntervalMinutes();
-    uint32_t compressor_on_s = GetCompressorOnSeconds(now);
+    // With a humidity value the ice counter does the work and the interval is only the safety net at its maximum.
+    bool humidity = CustomDefrostValidHumidity(id(outdoor_humidity).state);
+    uint32_t interval_min = humidity ? CUSTOM_DEFROST_INTERVAL_MAX_MIN : GetIntervalMinutes();
 
-    // Start line: Tp below the start line, compressor running continuously.
-    float start_temperature = GetStartTemperature(ta);
-    bool below_start_line = compressor_on_s >= CUSTOM_DEFROST_MIN_COMPRESSOR_ON_S && tp <= start_temperature;
-    uint32_t below_start_line_s = HoldSeconds(below_start_line, &below_start_line_since_ms_, now);
-
-    // Interval route: once the adaptive interval has passed, a coil below -2 °C is enough.
-    bool interval_cold = compressor_on_s >= COMPRESSOR_SOFT_START_DURATION_S && tp < CUSTOM_DEFROST_INTERVAL_TP_C;
+    // Once the interval has passed, a coil below -2 °C for 3 min (after the compressor's soft start) defrosts.
+    bool interval_cold = GetCompressorOnSeconds(now) >= COMPRESSOR_SOFT_START_DURATION_S && tp < CUSTOM_DEFROST_INTERVAL_TP_C;
     uint32_t interval_cold_s = HoldSeconds(interval_cold, &below_interval_tp_since_ms_, now);
 
-    if (runtime_min < GetMinIntervalMinutes())
-    {
-      snprintf(buffer, sizeof(buffer), "interval %u / %u min", (unsigned) runtime_min, (unsigned) interval_min);
-      *waiting = buffer;
-      return "";
-    }
-
-    // Ice counter: enough frost has grown according to the humidity, whatever Tp does right now.
+    // Ice counter: enough frost has grown according to the humidity, after the minimum interval.
     float ice_threshold = id(custom_defrost_ice_threshold).state;
     float ice_load = id(custom_defrost_ice_load);
-    if (IsValid(ice_threshold) && ice_threshold > 0.0f && ice_load >= ice_threshold)
+    if (humidity && runtime_min >= GetMinIntervalMinutes() && IsValid(ice_threshold) && ice_threshold > 0.0f &&
+        ice_load >= ice_threshold)
     {
       snprintf(buffer, sizeof(buffer), "IJsteller: %.0f >= %.0f Pa·h (Tp %.1f°C)", ice_load, ice_threshold, tp);
-      return buffer;
-    }
-
-    // Dry air: the coil must be at least the margin below the frost point before ice can grow. The wait ends at the
-    // maximum interval, so a wrong or drifting humidity sensor cannot postpone defrosts for long.
-    bool dry_air = false;
-    float frost_point = CustomDefrostFrostPoint(ta, id(outdoor_humidity).state);
-    float margin = id(custom_defrost_frost_point_margin).state;
-    float icing_limit = frost_point - (IsValid(margin) ? margin : 0.0f);
-    if (IsValid(frost_point) && tp > icing_limit)
-    {
-      dry_air = runtime_min < CUSTOM_DEFROST_INTERVAL_MAX_MIN;
-      if (!dry_air && !dry_air_delay_logged_)
-      {
-        dry_air_delay_logged_ = true;
-        ESP_LOGW("amber", "CustomDefrost: dry air delayed the defrost to %u min runtime, ignoring the humidity now.", (unsigned) CUSTOM_DEFROST_INTERVAL_MAX_MIN);
-      }
-    }
-
-    if (!dry_air && below_start_line_s >= CUSTOM_DEFROST_CONFIRM_S)
-    {
-      snprintf(buffer, sizeof(buffer), "Startlijn: Tp %.1f <= %.1f°C (Ta %.1f°C)", tp, start_temperature, ta);
       return buffer;
     }
 
     if (runtime_min < interval_min)
     {
       snprintf(buffer, sizeof(buffer), "interval %u / %u min", (unsigned) runtime_min, (unsigned) interval_min);
-      *waiting = buffer;
-      return "";
-    }
-
-    if (dry_air)
-    {
-      snprintf(buffer, sizeof(buffer), "droge lucht, Tp boven %.1f°C (rijppunt %.1f°C)", icing_limit, frost_point);
       *waiting = buffer;
       return "";
     }
@@ -693,7 +600,6 @@ public:
     GetCompressorOnSeconds(now);  // keeps the continuous run time up to date every update
     UpdateRuntime(dt_ms, defrost_active);
     UpdateIceLoad(dt_ms, defrost_active);
-    PublishStartTemperature();
 
     // Switching during a defrost: let the defrost finish first, then hand 3274 over.
     if (control_mode_write_pending_ && modbus_connected && !defrost_active)

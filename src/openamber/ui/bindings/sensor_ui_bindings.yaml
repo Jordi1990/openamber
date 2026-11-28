@@ -250,8 +250,6 @@
   on_value:
     then:
       - script.execute: update_custom_defrost_runtime_ui
-      # The frost point follows Ta; the runtime is published every minute, so this keeps it current.
-      - script.execute: update_custom_defrost_humidity_ui
 
 - id: !extend custom_defrost_interval_sensor
   on_value:

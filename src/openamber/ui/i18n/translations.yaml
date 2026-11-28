@@ -2466,10 +2466,6 @@
   nl: "Start-\ntemperaturen unit"
   de: "Start-\ntemperaturen Einheit"
   en: "Unit start\ntemperatures"
-- key: t_startlijn_en_interval
-  nl: "Startlijn en\ninterval"
-  de: "Startlinie und\nIntervall"
-  en: "Start line and\ninterval"
 - key: t_defrost_algemeen
   nl: "Defrost: algemeen"
   de: "Abtauen: Allgemein"
@@ -2482,22 +2478,6 @@
   nl: "Wie bepaalt wanneer er ontdooid wordt"
   de: "Wer entscheidet, wann abgetaut wird"
   en: "Who decides when to defrost"
-- key: t_defrost_startlijn_en_interval
-  nl: "Defrost: startlijn en interval"
-  de: "Abtauen: Startlinie und Intervall"
-  en: "Defrost: start line and interval"
-- key: t_verschil_waarbij_de_spoel_als_bevroren_t
-  nl: "Verschil waarbij de spoel als bevroren telt"
-  de: "Differenz, ab der das Register als vereist gilt"
-  en: "Difference at which the coil counts as iced"
-- key: t_maximale_tp
-  nl: "Maximale Tp"
-  de: "Maximale Tp"
-  en: "Maximum Tp"
-- key: t_tp_moet_ook_onder_deze_waarde_liggen
-  nl: "Tp moet ook onder deze waarde liggen"
-  de: "Tp muss auch unter diesem Wert liegen"
-  en: "Tp must also be below this value"
 - key: t_minimaal_interval
   nl: "Minimaal interval"
   de: "Minimales Intervall"
@@ -2538,22 +2518,6 @@
   nl: "Defrost: luchtvochtigheid"
   de: "Abtauen: Luftfeuchte"
   en: "Defrost: humidity"
-- key: t_buitenvochtigheid_rijppunt
-  nl: "Buitenvochtigheid / rijppunt"
-  de: "Außenfeuchte / Reifpunkt"
-  en: "Outdoor humidity / frost point"
-- key: t_huidige_meting_en_rijppunt_van_de_lucht
-  nl: "Huidige meting en rijppunt van de lucht"
-  de: "Aktueller Messwert und Reifpunkt der Luft"
-  en: "Current reading and frost point of the air"
-- key: t_marge_rijppunt
-  nl: "Marge rijppunt"
-  de: "Reifpunkt-Marge"
-  en: "Frost point margin"
-- key: t_tp_moet_zoveel_onder_het_rijppunt_liggen
-  nl: "Tp moet zoveel onder het rijppunt liggen"
-  de: "Tp muss so weit unter dem Reifpunkt liegen"
-  en: "Tp must be this far below the frost point"
 - key: t_drempel_ijsteller
   nl: "Drempel ijsteller"
   de: "Schwelle Eiszähler"
@@ -2635,7 +2599,11 @@
 - nl: "De buitenunit startte geen defrost binnen 120 seconden nadat OpenAmber erom vroeg. De regeling is gestopt. Controleer de Modbus-verbinding met de buitenunit, of zet de defrost controle op Buitenunit, en reset daarna de fout."
   de: "Die Außeneinheit hat innerhalb von 120 Sekunden nach der Anforderung durch OpenAmber kein Abtauen gestartet. Die Regelung ist gestoppt. Prüfe die Modbus-Verbindung zur Außeneinheit oder stelle die Abtausteuerung auf Außeneinheit und setze danach den Fehler zurück."
   en: "The outdoor unit did not start a defrost within 120 seconds after OpenAmber requested it. Control has stopped. Check the Modbus connection to the outdoor unit, or set the defrost control to Outdoor unit, then reset the error."
-- key: t_verschil_ta_tp
-  nl: "Verschil Ta - Tp"
-  de: "Differenz Ta - Tp"
-  en: "Ta - Tp difference"
+- key: t_buitenvochtigheid
+  nl: "Buitenvochtigheid"
+  de: "Außenfeuchte"
+  en: "Outdoor humidity"
+- key: t_huidige_meting_van_de_ble_sensor
+  nl: "Huidige meting van de BLE-sensor"
+  de: "Aktueller Messwert des BLE-Sensors"
+  en: "Current reading of the BLE sensor"

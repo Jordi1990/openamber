@@ -203,13 +203,11 @@ static const uint32_t DEFROST_CONTROL_BY_OUTDOOR_UNIT = 1;
 static const uint32_t CUSTOM_DEFROST_MODE_OUTDOOR_UNIT = 0;
 static const uint32_t CUSTOM_DEFROST_MODE_OPENAMBER = 1;
 
-// Start condition after the Mitsubishi SRK-ZSX algorithm (technical manual 17-SRK-T-228, chapter 17c):
-// the coil temperature must stay below the start line for 3 minutes while the compressor runs.
+// The coil must stay below CUSTOM_DEFROST_INTERVAL_TP_C this long before a defrost is requested.
 static const uint32_t CUSTOM_DEFROST_CONFIRM_S = 3 * 60;
-static const uint32_t CUSTOM_DEFROST_MIN_COMPRESSOR_ON_S = 5 * 60;
 // No defrost above this outdoor temperature.
 static const float CUSTOM_DEFROST_MAX_TA_C = 7.0f;
-// Interval route: after the adaptive interval a coil below this temperature defrosts (start line not needed).
+// After the adaptive interval a coil below this temperature defrosts.
 static const float CUSTOM_DEFROST_INTERVAL_TP_C = -2.0f;
 // A return temperature below the minimum postpones the defrost, but at most the maximum wait.
 static const float CUSTOM_DEFROST_MIN_RETURN_TEMPERATURE_C = 20.0f;
@@ -219,11 +217,13 @@ static const uint32_t CUSTOM_DEFROST_CONFIRM_TIMEOUT_S = 120;
 // After a forced defrost the outdoor unit only accepts a new one after 30 min compressor time.
 static const uint32_t CUSTOM_DEFROST_OUTDOOR_UNIT_LOCK_S = 30 * 60;
 // Interval between defrosts adapts to the duration of the last defrost, like the outdoor unit's Smart mode.
-// The maximum is also the safety net: after it a coil below CUSTOM_DEFROST_INTERVAL_TP_C always defrosts, dry air or not.
+// The maximum is also the safety net: after it a coil below CUSTOM_DEFROST_INTERVAL_TP_C always defrosts.
 static const uint32_t CUSTOM_DEFROST_INTERVAL_MAX_MIN = 120;
 static const uint32_t CUSTOM_DEFROST_INTERVAL_STEP_UP_MIN = 20;
 static const uint32_t CUSTOM_DEFROST_INTERVAL_STEP_DOWN_MIN = 10;
-static const uint32_t CUSTOM_DEFROST_SHORT_DEFROST_S = 3 * 60;
+// Execution up to 2 min counts as short (little ice): on 27/28 Nov 2026 a coil without frost took 75-90 s and a
+// clearly white one 150-195 s.
+static const uint32_t CUSTOM_DEFROST_SHORT_DEFROST_S = 2 * 60;
 static const uint32_t CUSTOM_DEFROST_LONG_DEFROST_S = 5 * 60;
 
 static const uint32_t CUSTOM_DEFROST_RESTORE_WORKING_MODE_DELAY_S = 2 * 60;

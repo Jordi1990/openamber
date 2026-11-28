@@ -2089,7 +2089,7 @@
         };
         set_hidden(id(defrost_stab_start_temps), openamber);
         set_hidden(id(defrost_stab_end), openamber);
-        set_hidden(id(defrost_stab_startlijn), !openamber);
+        set_hidden(id(set_custom_defrost_min_runtime_row), !openamber);
         set_hidden(id(defrost_stab_vocht), !openamber);
         set_hidden(id(defrost_stab_status), !openamber);
         set_hidden(id(set_custom_defrost_humidity_source_row), !openamber);
@@ -2122,8 +2122,7 @@
           lv_obj_set_style_opa(row, enabled ? LV_OPA_COVER : LV_OPA_40, LV_PART_MAIN);
         };
         set_enabled(id(set_custom_defrost_humidity_source_row), source > 0);
-        lv_obj_t *rows[4] = {
-          id(set_custom_defrost_frost_margin_row),
+        lv_obj_t *rows[3] = {
           id(set_custom_defrost_humidity_value_row),
           id(set_custom_defrost_ice_threshold_row),
           id(set_custom_defrost_ice_load_row)
@@ -2132,11 +2131,8 @@
           set_enabled(row, source == 2);
 
         float rh = id(outdoor_humidity).state;
-        float frost_point = CustomDefrostFrostPoint(id(temperature_outside_ta).state, rh);
         if (std::isnan(rh)) {
           lv_label_set_text(id(set_custom_defrost_humidity_value_val), oa_tr("Geen meting"));
-        } else if (std::isnan(frost_point)) {
-          lv_label_set_text_fmt(id(set_custom_defrost_humidity_value_val), "%d%%", (int) roundf(rh));
         } else {
-          lv_label_set_text_fmt(id(set_custom_defrost_humidity_value_val), "%d%% / %.1f°C", (int) roundf(rh), frost_point);
+          lv_label_set_text_fmt(id(set_custom_defrost_humidity_value_val), "%d%%", (int) roundf(rh));
         }

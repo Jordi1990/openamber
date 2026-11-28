@@ -38,22 +38,6 @@ widgets:
               - label: { id: defrost_stab_general_lbl, text: "${t_algemeen}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
-            id: defrost_stab_startlijn
-            styles: menu_tile_style
-            scrollable: false
-            pressed:
-              styles: menu_tile_pressed_style
-            disabled:
-              styles: menu_tile_disabled_style
-            on_click:
-              - lvgl.menu.set_page:
-                  id: settings_menu
-                  page: panel_advanced_page_defrost_startlijn
-            widgets:
-              - label: { text: "\U000F1A71", styles: menu_tile_icon_style }
-              - label: { id: defrost_stab_startlijn_lbl, text: "${t_startlijn_en_interval}", long_mode: WRAP, styles: menu_tile_label_style }
-
-        - obj:
             id: defrost_stab_vocht
             styles: menu_tile_style
             scrollable: false

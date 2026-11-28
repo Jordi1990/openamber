@@ -854,24 +854,6 @@
             args: ['x']
 
 # ── Geavanceerd: Defrost ──
-- id: !extend custom_defrost_delta_at_zero
-  on_value:
-    then:
-      - lvgl.label.update:
-          id: set_custom_defrost_delta_zero_val
-          text:
-            format: "%.1f K"
-            args: ['x']
-
-- id: !extend custom_defrost_max_coil_temperature
-  on_value:
-    then:
-      - lvgl.label.update:
-          id: set_custom_defrost_max_coil_val
-          text:
-            format: "%.1f°C"
-            args: ['x']
-
 - id: !extend custom_defrost_min_runtime
   on_value:
     then:
@@ -879,15 +861,6 @@
           id: set_custom_defrost_min_runtime_val
           text:
             format: "%.0f min"
-            args: ['x']
-
-- id: !extend custom_defrost_frost_point_margin
-  on_value:
-    then:
-      - lvgl.label.update:
-          id: set_custom_defrost_frost_margin_val
-          text:
-            format: "%.1f K"
             args: ['x']
 
 - id: !extend custom_defrost_ice_threshold
