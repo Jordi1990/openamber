@@ -157,7 +157,7 @@ void OpenAmberComponent::update()
   // so the heat pump returns to standby once maintenance mode is turned off.
   bool controlled_stop_requested = id(controlled_stop_active) && !maintenance_requested;
 
-  custom_defrost_controller_->Update(modbus_connected);
+  custom_defrost_controller_->Update();
 
   // After a hot switch, check the relay feedback once the valve has had its travel time, as WAIT_THREE_WAY_VALVE does.
   if (hot_switch_valve_started_ms_ != 0 &&
@@ -618,6 +618,7 @@ void OpenAmberComponent::simulate_restart()
   heat_cool_controller_ = new HeatCoolController(pump_controller_, compressor_controller_, mixing_valve_zone1_, mixing_valve_zone2_);
   dhw_controller_->SetCustomDefrostController(custom_defrost_controller_);
   heat_cool_controller_->SetCustomDefrostController(custom_defrost_controller_);
+  id(sync_defrost_control_mode).execute();
   ota_in_progress_ = false;
   modbus_disconnected_since_ms_ = 0;
   modbus_disconnected_error_occurred_ = false;

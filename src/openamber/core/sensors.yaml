@@ -181,6 +181,17 @@ sensor:
     if (!id(dhw_active).state) return 0.0f;
     return id(estimated_power_usage).state;
 
+# Heat taken from the water by a defrost (kJ, negative while defrosting): reset by the custom defrost controller at
+# the start of a defrost and read at its end for the defrost event. thermal_power updates once a minute.
+- platform: integration
+  id: custom_defrost_energy
+  internal: true
+  restore: false
+  sensor: thermal_power
+  time_unit: s
+  filters:
+    - multiply: 0.001
+
 # Per-mode energy buckets (kWh). Reset by the time: component.
 - platform: integration
   id: thermal_energy_hour_heating

@@ -135,10 +135,11 @@ protected:
       return;
     }
 
-    // Writing the working mode during a forced defrost aborts it, the outdoor unit switches back by itself.
-    if(IsWorkingMode(WORKING_MODE_FORCED_DEFROST) && id(defrost_active_sensor).state)
+    // Writing the working mode during a forced defrost, or while it is requested, aborts it (the request then ends in
+    // TO10). The custom defrost controller restores heating itself, and the outdoor unit after a defrost.
+    if(IsWorkingMode(WORKING_MODE_FORCED_DEFROST) && (id(defrost_active_sensor).state || custom_defrost_->IsRequestActive()))
     {
-      ESP_LOGW("amber", "%s: not changing working mode while forced defrost is active.", LogTag());
+      ESP_LOGW("amber", "%s: not changing working mode while a forced defrost is requested or active.", LogTag());
       return;
     }
 

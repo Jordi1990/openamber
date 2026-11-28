@@ -212,30 +212,17 @@ static const uint32_t CUSTOM_DEFROST_CONFIRM_S = 3 * 60;
 static const float CUSTOM_DEFROST_MAX_TA_C = 7.0f;
 // After the adaptive interval a coil below this temperature defrosts.
 static const float CUSTOM_DEFROST_INTERVAL_TP_C = -2.0f;
-// A return temperature below the minimum postpones the defrost, but at most the maximum wait.
-static const float CUSTOM_DEFROST_MIN_RETURN_TEMPERATURE_C = 20.0f;
-static const uint32_t CUSTOM_DEFROST_MAX_RETURN_WAIT_S = 15 * 60;
 // Time the outdoor unit gets to raise 2118 after working mode 4 was written; without it error TO10 is raised.
 static const uint32_t CUSTOM_DEFROST_CONFIRM_TIMEOUT_S = 120;
 // After a forced defrost the outdoor unit only accepts a new one after 30 min compressor time.
 static const uint32_t CUSTOM_DEFROST_OUTDOOR_UNIT_LOCK_S = 30 * 60;
 // Interval between defrosts adapts to the duration of the last defrost, like the outdoor unit's Smart mode.
-// The maximum is also the safety net: after it a coil below CUSTOM_DEFROST_INTERVAL_TP_C always defrosts, dry air or not.
+// The maximum is also the safety net: after it a coil below CUSTOM_DEFROST_INTERVAL_TP_C always defrosts.
 static const uint32_t CUSTOM_DEFROST_INTERVAL_MAX_MIN = 120;
 static const uint32_t CUSTOM_DEFROST_INTERVAL_STEP_UP_MIN = 20;
 static const uint32_t CUSTOM_DEFROST_INTERVAL_STEP_DOWN_MIN = 10;
-// Execution up to 2 min counts as short (little ice): on 27/28 Nov 2026 a coil without frost took 75-90 s and a
-// clearly white one 150-195 s.
-static const uint32_t CUSTOM_DEFROST_SHORT_DEFROST_S = 2 * 60;
+// The 2118 time of a forced defrost (no pre-phase) shows the amount of ice. On 27/28 Nov 2026 (camera): no frost
+// 2:14-2:30, light frost 2:45-3:30, clearly white 3:45-4:15. Up to 3 min is short (+20 min). Over 5 min means
+// more ice than the heaviest frost seen then, so the interval was too long (-10 min).
+static const uint32_t CUSTOM_DEFROST_SHORT_DEFROST_S = 3 * 60;
 static const uint32_t CUSTOM_DEFROST_LONG_DEFROST_S = 5 * 60;
-
-static const uint32_t CUSTOM_DEFROST_RESTORE_WORKING_MODE_DELAY_S = 2 * 60;
-// Defrost measurement. The outdoor unit raises 2118 about 5 min before its own defrost really starts (pre-phase) and
-// the length of that pre-phase is firmware dependent, so the execution is detected physically: hot gas on the coil
-// makes Tp rise at least this much above its lowest value of the last minute.
-static const float CUSTOM_DEFROST_EXECUTION_TP_RISE_K = 3.0f;
-static const uint32_t CUSTOM_DEFROST_TP_SAMPLE_S = 10;
-static const int CUSTOM_DEFROST_TP_SAMPLES = 6;
-// While ice melts the coil stays around 0 °C: the time Tp spends in this band during the execution is the melt time.
-static const float CUSTOM_DEFROST_MELT_MIN_C = -1.0f;
-static const float CUSTOM_DEFROST_MELT_MAX_C = 3.0f;

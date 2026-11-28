@@ -869,6 +869,9 @@ binary_sensor:
   device_class: connectivity
   lambda: |-
     return id(modbus_outside_is_online);
+  on_press:
+    then:
+      - script.execute: sync_defrost_control_mode
   disabled_by_default: true
   entity_category: diagnostic
 

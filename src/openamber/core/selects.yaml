@@ -195,9 +195,12 @@ select:
   options:
     - "Buitenunit"
     - "OpenAmber"
-  # Restored after a restart; 3274 is then written once to match (custom_defrost_controller.h).
+  # Restored after a restart; 3274 is then written once to match (script sync_defrost_control_mode).
   initial_option: "Buitenunit"
   restore_value: True
+  on_value:
+    then:
+      - script.execute: sync_defrost_control_mode
   icon: "mdi:snowflake-melt"
   entity_category: config
   web_server:

@@ -2523,10 +2523,6 @@
   de: "Angefordert"
   en: "Requested"
 - use: state
-  nl: "Handmatig aangevraagd"
-  de: "Manuell angefordert"
-  en: "Requested manually"
-- use: state
   nl: "Handmatig"
   de: "Manuell"
   en: "Manual"
