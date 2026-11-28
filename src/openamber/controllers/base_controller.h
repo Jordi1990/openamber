@@ -24,6 +24,7 @@
 #include "timing.h"
 #include "pump_controller.h"
 #include "compressor_controller.h"
+#include "custom_defrost_controller.h"
 
 using namespace esphome;
 
@@ -41,6 +42,7 @@ protected:
   uint32_t water_delta_t_exceeded_since_ms_ = 0;
   PumpController* pump_controller_;
   CompressorController* compressor_controller_;
+  CustomDefrostController* custom_defrost_ = nullptr;
 
   StateEnum wait_for_state_switch_state_;
   StateEnum unknown_state_;
@@ -133,6 +135,14 @@ protected:
       return;
     }
 
+    // Writing the working mode during a forced defrost, or while it is requested, aborts it (the request then ends in
+    // TO10). The custom defrost controller restores heating itself, and the outdoor unit after a defrost.
+    if(IsWorkingMode(WORKING_MODE_FORCED_DEFROST) && (id(defrost_active_sensor).state || custom_defrost_->IsRequestActive()))
+    {
+      ESP_LOGW("amber", "%s: not changing working mode while a forced defrost is requested or active.", LogTag());
+      return;
+    }
+
     auto working_mode_call = id(working_mode_switch).make_call();
     working_mode_call.set_index(working_mode);
     working_mode_call.perform();
@@ -201,6 +211,11 @@ public:
   bool IsWorkingMode(int working_mode)
   {
     return id(working_mode_switch).active_index().value() == working_mode;
+  }
+
+  void SetCustomDefrostController(CustomDefrostController* custom_defrost)
+  {
+    custom_defrost_ = custom_defrost;
   }
 
   void Init()

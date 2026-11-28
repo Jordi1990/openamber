@@ -1057,6 +1057,12 @@ public:
           break;
         }
 
+        // Forced defrost requested (custom defrost): keep the compressor running until 2118 rises.
+        if (custom_defrost_->IsRequestActive())
+        {
+          break;
+        }
+
         if (compressor_controller_->HasPassedMinOnTime() || IsControlledStopRequested())
         {
           if(ShouldStopCompressor())

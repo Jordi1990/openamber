@@ -188,6 +188,23 @@ select:
 - platform: logger
   name: "Logging niveau"
 
+- platform: template
+  id: defrost_control_select
+  name: "Defrost controle"
+  optimistic: True
+  options:
+    - "Buitenunit"
+    - "OpenAmber"
+  # Restored after a restart; 3274 is then written once to match (script sync_defrost_control_mode).
+  initial_option: "Buitenunit"
+  restore_value: True
+  on_value:
+    then:
+      - script.execute: sync_defrost_control_mode
+  icon: "mdi:snowflake-melt"
+  entity_category: config
+  web_server:
+    sorting_group_id: custom_defrost
 
 # Which firmware releases this device is offered: Stabiel (default) or Beta. The beta channel also offers the
 # final release once it is out. Switching back to Stabiel on a beta offers "Stabiel installeren" on the display.

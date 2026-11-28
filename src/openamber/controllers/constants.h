@@ -158,6 +158,7 @@ static const uint32_t WORKING_MODE_STANDBY = 0;
 static const uint32_t WORKING_MODE_COOLING = 1;
 static const uint32_t WORKING_MODE_HEATING = 2;
 static const uint32_t WORKING_MODE_MAINTENANCE = 3;
+static const uint32_t WORKING_MODE_FORCED_DEFROST = 4;
 
 
 // ============================================================================
@@ -192,3 +193,36 @@ static const uint32_t DEAERATION_SHORT_LOW_SPEED_DURATION_S = 30;
 static const uint32_t DEAERATION_EXTENDED_CYCLES = 5;
 static const uint32_t DEAERATION_EXTENDED_HIGH_SPEED_DURATION_S = 2 * 60;
 static const uint32_t DEAERATION_EXTENDED_LOW_SPEED_DURATION_S = 60;
+
+// ============================================================================
+// CUSTOM DEFROST
+// ============================================================================
+
+// Defrost control mode (EEPROM 3274) select indices
+static const uint32_t DEFROST_CONTROL_BY_MASTER = 0;
+static const uint32_t DEFROST_CONTROL_BY_OUTDOOR_UNIT = 1;
+
+// Custom defrost mode select indices
+static const uint32_t CUSTOM_DEFROST_MODE_OUTDOOR_UNIT = 0;
+static const uint32_t CUSTOM_DEFROST_MODE_OPENAMBER = 1;
+
+// The coil must stay below CUSTOM_DEFROST_INTERVAL_TP_C this long before a defrost is requested.
+static const uint32_t CUSTOM_DEFROST_CONFIRM_S = 3 * 60;
+// No defrost above this outdoor temperature.
+static const float CUSTOM_DEFROST_MAX_TA_C = 7.0f;
+// After the adaptive interval a coil below this temperature defrosts.
+static const float CUSTOM_DEFROST_INTERVAL_TP_C = -2.0f;
+// Time the outdoor unit gets to raise 2118 after working mode 4 was written; without it error TO10 is raised.
+static const uint32_t CUSTOM_DEFROST_CONFIRM_TIMEOUT_S = 120;
+// After a forced defrost the outdoor unit only accepts a new one after 30 min compressor time.
+static const uint32_t CUSTOM_DEFROST_OUTDOOR_UNIT_LOCK_S = 30 * 60;
+// Interval between defrosts adapts to the duration of the last defrost, like the outdoor unit's Smart mode.
+// The maximum is also the safety net: after it a coil below CUSTOM_DEFROST_INTERVAL_TP_C always defrosts.
+static const uint32_t CUSTOM_DEFROST_INTERVAL_MAX_MIN = 120;
+static const uint32_t CUSTOM_DEFROST_INTERVAL_STEP_UP_MIN = 20;
+static const uint32_t CUSTOM_DEFROST_INTERVAL_STEP_DOWN_MIN = 10;
+// The 2118 time of a forced defrost (no pre-phase) shows the amount of ice. On 27/28 Nov 2026 (camera): no frost
+// 2:14-2:30, light frost 2:45-3:30, clearly white 3:45-4:15. Up to 3 min is short (+20 min). Over 5 min means
+// more ice than the heaviest frost seen then, so the interval was too long (-10 min).
+static const uint32_t CUSTOM_DEFROST_SHORT_DEFROST_S = 3 * 60;
+static const uint32_t CUSTOM_DEFROST_LONG_DEFROST_S = 5 * 60;

@@ -177,6 +177,20 @@ sensor:
       return 7.2f;
     update_interval: 5s
   - platform: template
+    id: evaporation_temperature_tp
+    name: "Verdampingstemperatuur (Tp)"
+    lambda: |-
+      if (id(evaporation_temperature_tp).has_state()) return id(evaporation_temperature_tp).state;
+      return 5.0f;
+    update_interval: 5s
+  - platform: template
+    id: evaporating_temperature_te
+    name: "Evaporating Temperature"
+    lambda: |-
+      if (id(evaporating_temperature_te).has_state()) return id(evaporating_temperature_te).state;
+      return 2.0f;
+    update_interval: 5s
+  - platform: template
     id: outdoor_temperature_tp_sensor
     name: "Buitencondensor (Tp)"
     lambda: |-
@@ -890,6 +904,14 @@ switch:
       - lambda: 'id(amber_ctrl).simulate_restart();'
       - switch.turn_off: mock_simulate_esp_restart
     turn_off_action: []
+  - platform: template
+    id: mock_reset_custom_defrost_interval
+    # Simulator only: puts the adaptive custom defrost interval back on the minimum (tests start from there).
+    optimistic: true
+    turn_on_action:
+      - lambda: 'id(custom_defrost_interval_min) = 0;'
+      - switch.turn_off: mock_reset_custom_defrost_interval
+    turn_off_action: []
   # Simulator only: call the same controller hooks as the ota on_begin / on_progress / on_error callbacks.
   - platform: template
     id: mock_ota_begin
@@ -993,7 +1015,16 @@ select:
       - "Koelen"
       - "Verwarmen"
       - "Onderhoud"
+      - "Geforceerde defrost"
     initial_option: "Verwarmen"
+  - platform: template
+    id: defrost_control_mode_select
+    name: "Defrost regie buitenunit"
+    optimistic: true
+    options:
+      - "Master"
+      - "Buitenunit"
+    initial_option: "Buitenunit"
   - platform: template
     id: bottomplate_heater_mode
     name: "Bodemplaat verwarmingsmodus"
@@ -1008,6 +1039,18 @@ script:
   - id: fetch_analytics_device_id
     then: []
   - id: send_analytics
+    then: []
+  # Analytics is not part of the simulator; same parameters as core/analytics_scripts.yaml.
+  - id: send_defrost_event
+    parameters:
+      source: int
+      total_s: float
+      execution_s: float
+      melt_s: float
+      energy_kj: float
+      ta: float
+      tp: float
+      runtime_min: float
     then: []
   - id: dump_eeprom_parameters
     then: []

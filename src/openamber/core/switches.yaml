@@ -306,6 +306,7 @@ switch:
         id(error_inside_unit_failsafe).publish_state(false);
         id(error_water_delta_t_too_high).publish_state(false);
         id(error_pump_flow_missing).publish_state(false);
+        id(error_defrost_start_timeout).publish_state(false);
     - switch.turn_off: reset_start_timeout_errors_switch
 
 - platform: template

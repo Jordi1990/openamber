@@ -99,7 +99,10 @@ obj:
           - !include settings/page_settings_tab_advanced_pid_mv2.yaml
           - !include settings/page_settings_tab_advanced_bodemplaat.yaml
           - !include settings/page_settings_tab_advanced_defrost.yaml
+          - !include settings/page_settings_tab_advanced_defrost_general.yaml
           - !include settings/page_settings_tab_advanced_defrost_temps.yaml
+          - !include settings/page_settings_tab_advanced_defrost_end.yaml
+          - !include settings/page_settings_tab_advanced_defrost_status.yaml
           - !include settings/page_settings_tab_advanced_compressor.yaml
           - !include settings/page_settings_tab_advanced_fan.yaml
           - !include settings/page_settings_tab_advanced_fan_heat_ta.yaml
@@ -107,6 +110,198 @@ obj:
           - !include settings/page_settings_tab_advanced_fan_cool_ta.yaml
           - !include settings/page_settings_tab_advanced_fan_cool_hz.yaml
           - !include settings/page_settings_tab_advanced_pump.yaml
+
+    - obj:
+        id: custom_defrost_confirm_modal
+        width: 100%
+        height: 100%
+        hidden: true
+        bg_color: 0x000000
+        bg_opa: 45%
+        radius: 18
+        border_width: 0
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+
+        widgets:
+          - obj:
+              id: custom_defrost_confirm_modal_card
+              width: 580
+              height: 280
+              align: CENTER
+              bg_color: 0xFFFFFF
+              bg_opa: 100%
+              radius: 18
+              border_width: 0
+              border_opa: 0%
+              pad_left: 22
+              pad_right: 22
+              pad_top: 18
+              pad_bottom: 18
+              scrollbar_mode: "OFF"
+              scrollable: false
+
+              widgets:
+                - label:
+                    text: "${t_defrost_controle_naar_openamber}"
+                    text_color: 0x1F2933
+                    text_font: font_text_24
+                    align: TOP_LEFT
+
+                - label:
+                    width: 100%
+                    text: "${t_buitenunit_regelt_defrost_niet_meer_zelf}"
+                    text_color: 0x1F2933
+                    text_font: font_text_20
+                    long_mode: WRAP
+                    align: TOP_LEFT
+                    y: 48
+
+                - obj:
+                    id: custom_defrost_confirm_modal_cancel_button
+                    width: 200
+                    height: 52
+                    align: BOTTOM_LEFT
+                    bg_color: 0xCBD5E1
+                    bg_opa: 100%
+                    radius: 14
+                    border_width: 0
+                    border_opa: 0%
+                    pad_all: 0
+                    scrollbar_mode: "OFF"
+                    scrollable: false
+                    on_click:
+                      - lvgl.widget.hide:
+                          id: custom_defrost_confirm_modal
+                    widgets:
+                      - label:
+                          text: "${t_annuleren}"
+                          text_color: 0x1F2933
+                          text_font: font_text_24
+                          align: CENTER
+
+                - obj:
+                    id: custom_defrost_confirm_modal_ok_button
+                    width: 200
+                    height: 52
+                    align: BOTTOM_RIGHT
+                    bg_color: 0x0072CE
+                    bg_opa: 100%
+                    radius: 14
+                    border_width: 0
+                    border_opa: 0%
+                    pad_all: 0
+                    scrollbar_mode: "OFF"
+                    scrollable: false
+                    on_click:
+                      - lvgl.widget.hide:
+                          id: custom_defrost_confirm_modal
+                      - select.set:
+                          id: defrost_control_select
+                          option: "OpenAmber"
+                    widgets:
+                      - label:
+                          text: "${t_activeren}"
+                          text_color: 0xFFFFFF
+                          text_font: font_text_24
+                          align: CENTER
+
+    - obj:
+        id: custom_defrost_force_modal
+        width: 100%
+        height: 100%
+        hidden: true
+        bg_color: 0x000000
+        bg_opa: 45%
+        radius: 18
+        border_width: 0
+        border_opa: 0%
+        pad_all: 0
+        scrollbar_mode: "OFF"
+        scrollable: false
+
+        widgets:
+          - obj:
+              id: custom_defrost_force_modal_card
+              width: 580
+              height: 280
+              align: CENTER
+              bg_color: 0xFFFFFF
+              bg_opa: 100%
+              radius: 18
+              border_width: 0
+              border_opa: 0%
+              pad_left: 22
+              pad_right: 22
+              pad_top: 18
+              pad_bottom: 18
+              scrollbar_mode: "OFF"
+              scrollable: false
+
+              widgets:
+                - label:
+                    text: "${t_defrost_forceren}"
+                    text_color: 0x1F2933
+                    text_font: font_text_24
+                    align: TOP_LEFT
+
+                - label:
+                    width: 100%
+                    text: "${t_de_buitenunit_start_direct_een_defrost_o}"
+                    text_color: 0x1F2933
+                    text_font: font_text_20
+                    long_mode: WRAP
+                    align: TOP_LEFT
+                    y: 48
+
+                - obj:
+                    id: custom_defrost_force_modal_cancel_button
+                    width: 200
+                    height: 52
+                    align: BOTTOM_LEFT
+                    bg_color: 0xCBD5E1
+                    bg_opa: 100%
+                    radius: 14
+                    border_width: 0
+                    border_opa: 0%
+                    pad_all: 0
+                    scrollbar_mode: "OFF"
+                    scrollable: false
+                    on_click:
+                      - lvgl.widget.hide:
+                          id: custom_defrost_force_modal
+                    widgets:
+                      - label:
+                          text: "${t_annuleren}"
+                          text_color: 0x1F2933
+                          text_font: font_text_24
+                          align: CENTER
+
+                - obj:
+                    id: custom_defrost_force_modal_ok_button
+                    width: 200
+                    height: 52
+                    align: BOTTOM_RIGHT
+                    bg_color: 0x0072CE
+                    bg_opa: 100%
+                    radius: 14
+                    border_width: 0
+                    border_opa: 0%
+                    pad_all: 0
+                    scrollbar_mode: "OFF"
+                    scrollable: false
+                    on_click:
+                      - lvgl.widget.hide:
+                          id: custom_defrost_force_modal
+                      - lambda: id(amber_ctrl).request_custom_defrost();
+                    widgets:
+                      - label:
+                          text: "${t_forceren}"
+                          text_color: 0xFFFFFF
+                          text_font: font_text_24
+                          align: CENTER
 
     - obj:
         id: outdoor_unit_optimizations_modal

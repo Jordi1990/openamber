@@ -939,10 +939,6 @@
   nl: "Bodemplaat-\nverwarming"
   de: "Bodenwannen-\nheizung"
   en: "Base plate\nheater"
-- key: t_defrost_start_temperaturen
-  nl: "Defrost start-\ntemperaturen"
-  de: "Abtau-Start-\ntemperaturen"
-  en: "Defrost start\ntemperatures"
 - key: t_ventilator
   nl: "Ventilator"
   de: "Lüfter"
@@ -2430,3 +2426,133 @@
   nl: "Display"
   de: "Anzeige"
   en: "Display"
+- key: t_activeren
+  nl: "Activeren"
+  de: "Aktivieren"
+  en: "Activate"
+- key: t_buitenunit_regelt_defrost_niet_meer_zelf
+  nl: "De buitenunit regelt de defrosts dan niet meer zelf: OpenAmber bepaalt wanneer er ontdooid wordt."
+  de: "Die Außeneinheit steuert das Abtauen dann nicht mehr selbst: OpenAmber entscheidet, wann abgetaut wird."
+  en: "The outdoor unit then no longer controls the defrosts itself: OpenAmber decides when to defrost."
+- key: t_de_buitenunit_start_direct_een_defrost_o
+  nl: "De buitenunit start direct een defrost. Binnen 30 min na de vorige defrost kan dat niet."
+  de: "Die Außeneinheit startet sofort ein Abtauen. Innerhalb von 30 min nach dem letzten Abtauen ist das nicht möglich."
+  en: "The outdoor unit starts a defrost right away. This is not possible within 30 min after the previous defrost."
+- key: t_defrost_controle_naar_openamber
+  nl: "Defrost controle naar OpenAmber"
+  de: "Abtausteuerung an OpenAmber"
+  en: "Defrost control to OpenAmber"
+- key: t_defrost_forceren
+  nl: "Defrost forceren"
+  de: "Abtauen erzwingen"
+  en: "Force defrost"
+- key: t_forceren
+  nl: "Forceren"
+  de: "Erzwingen"
+  en: "Force"
+- key: t_einde_defrost
+  nl: "Einde defrost"
+  de: "Abtauende"
+  en: "End of defrost"
+- key: t_start_temperaturen_unit
+  nl: "Start-\ntemperaturen unit"
+  de: "Start-\ntemperaturen Einheit"
+  en: "Unit start\ntemperatures"
+- key: t_defrost_algemeen
+  nl: "Defrost: algemeen"
+  de: "Abtauen: Allgemein"
+  en: "Defrost: general"
+- key: t_defrost_controle
+  nl: "Defrost controle"
+  de: "Abtausteuerung"
+  en: "Defrost control"
+- key: t_wie_bepaalt_wanneer_er_ontdooid_wordt
+  nl: "Wie bepaalt wanneer er ontdooid wordt"
+  de: "Wer entscheidet, wann abgetaut wird"
+  en: "Who decides when to defrost"
+- key: t_minimaal_interval
+  nl: "Minimaal interval"
+  de: "Minimales Intervall"
+  en: "Minimum interval"
+- key: t_draaitijd_tussen_twee_defrosts
+  nl: "Draaitijd tussen twee defrosts"
+  de: "Laufzeit zwischen zwei Abtauvorgängen"
+  en: "Run time between two defrosts"
+- key: t_defrost_status
+  nl: "Defrost: status"
+  de: "Abtauen: Status"
+  en: "Defrost: status"
+- key: t_alleen_tijdens_verwarmen_met_draaiende_c
+  nl: "Alleen tijdens verwarmen met draaiende compressor"
+  de: "Nur beim Heizen mit laufendem Kompressor"
+  en: "Only while heating with the compressor running"
+- key: t_compressor_draaitijd_sinds_defrost
+  nl: "Compressor-draaitijd sinds defrost"
+  de: "Kompressorlaufzeit seit dem Abtauen"
+  en: "Compressor run time since defrost"
+- key: t_draaitijd_interval
+  nl: "Draaitijd / interval"
+  de: "Laufzeit / Intervall"
+  en: "Run time / interval"
+- key: t_heet_gas_op_de_spoel_zonder_voorfase
+  nl: "Heet gas op de spoel, zonder voorfase"
+  de: "Heißgas auf dem Register, ohne Vorphase"
+  en: "Hot gas on the coil, without pre-phase"
+- key: t_laatste_defrostduur
+  nl: "Laatste defrostduur"
+  de: "Letzte Abtaudauer"
+  en: "Last defrost duration"
+- key: t_nog_geen_trigger
+  nl: "Nog geen trigger"
+  de: "Noch kein Auslöser"
+  en: "No trigger yet"
+- use: state
+  nl: "Bewaken"
+  de: "Überwachen"
+  en: "Monitoring"
+- use: state
+  nl: "Bewaken: geen Ta of Tp"
+  de: "Überwachen: kein Ta oder Tp"
+  en: "Monitoring: no Ta or Tp"
+- use: state
+  nl: "Defrost gewenst"
+  de: "Abtauen gewünscht"
+  en: "Defrost wanted"
+- use: state
+  nl: "Aangevraagd"
+  de: "Angefordert"
+  en: "Requested"
+- use: state
+  nl: "Handmatig"
+  de: "Manuell"
+  en: "Manual"
+- use: state
+  nl: "Geblokkeerd"
+  de: "Gesperrt"
+  en: "Blocked"
+- use: state
+  nl: "Geblokkeerd: slot buitenunit (30 min na defrost)"
+  de: "Gesperrt: Sperre Außeneinheit (30 min nach Abtauen)"
+  en: "Blocked: outdoor unit lock (30 min after defrost)"
+- use: state
+  nl: "Ontdooien (buitenunit)"
+  de: "Abtauen (Außeneinheit)"
+  en: "Defrosting (outdoor unit)"
+- use: state
+  nl: "Startlijn"
+  de: "Startlinie"
+  en: "Start line"
+- use: state
+  nl: "Interval"
+  de: "Intervall"
+  en: "Interval"
+- use: state
+  nl: "Fout: defrost startte niet"
+  de: "Fehler: Abtauen nicht gestartet"
+  en: "Error: defrost did not start"
+- nl: "TO10 - Defrost start timeout"
+  de: "TO10 - Zeitüberschreitung Abtaustart"
+  en: "TO10 - Defrost start timeout"
+- nl: "De buitenunit startte geen defrost binnen 120 seconden nadat OpenAmber erom vroeg. De regeling is gestopt. Controleer de Modbus-verbinding met de buitenunit, of zet de defrost controle op Buitenunit, en reset daarna de fout."
+  de: "Die Außeneinheit hat innerhalb von 120 Sekunden nach der Anforderung durch OpenAmber kein Abtauen gestartet. Die Regelung ist gestoppt. Prüfe die Modbus-Verbindung zur Außeneinheit oder stelle die Abtausteuerung auf Außeneinheit und setze danach den Fehler zurück."
+  en: "The outdoor unit did not start a defrost within 120 seconds after OpenAmber requested it. Control has stopped. Check the Modbus connection to the outdoor unit, or set the defrost control to Outdoor unit, then reset the error."

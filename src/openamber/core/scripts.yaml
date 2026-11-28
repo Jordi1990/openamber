@@ -98,3 +98,29 @@ script:
               id: firmware_update
         else:
           - logger.log: "Skipping firmware update check for the new channel until time is synchronized"
+
+# Puts EEPROM parameter 3274 (defrost control) on the side the "Defrost controle" select asks for: master for OpenAmber,
+# the outdoor unit otherwise. Runs once after the start, after every change of the select and when the Modbus
+# connection with the outdoor unit returns (a power cycle of the unit restores its EEPROM value). It waits until 3274
+# was read and no defrost runs, and writes only when the readback differs. A Modbus write only changes the unit's RAM.
+- id: sync_defrost_control_mode
+  mode: restart
+  then:
+    - wait_until:
+        condition:
+          lambda: |-
+            return id(modbus_outside_online).state && id(defrost_control_mode_select).active_index().has_value() &&
+                   !id(defrost_active_sensor).state;
+    - lambda: |-
+        const bool openamber = id(defrost_control_select).active_index().value_or(CUSTOM_DEFROST_MODE_OUTDOOR_UNIT) ==
+                               CUSTOM_DEFROST_MODE_OPENAMBER;
+        const uint32_t desired = openamber ? DEFROST_CONTROL_BY_MASTER : DEFROST_CONTROL_BY_OUTDOOR_UNIT;
+        if (id(defrost_control_mode_select).active_index().value() == desired) return;
+        ESP_LOGI("amber", "CustomDefrost: writing defrost control mode (3274) = %s", openamber ? "master (OpenAmber)" : "outdoor unit");
+        id(defrost_control_mode_select).make_call().set_index(desired).perform();
+
+esphome:
+  on_boot:
+    - priority: -100
+      then:
+        - script.execute: sync_defrost_control_mode

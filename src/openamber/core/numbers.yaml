@@ -1493,3 +1493,19 @@ number:
   initial_value: 10.0
   entity_category: config
 
+# ── Defrost-regeling ──
+- platform: template
+  id: custom_defrost_min_runtime
+  name: "Defrost minimaal interval"
+  optimistic: True
+  restore_value: True
+  initial_value: 35
+  min_value: 30
+  max_value: 120
+  step: 5
+  mode: box
+  unit_of_measurement: "min"
+  icon: "mdi:timer-sand"
+  entity_category: config
+  web_server:
+    sorting_group_id: custom_defrost

@@ -181,6 +181,17 @@ sensor:
     if (!id(dhw_active).state) return 0.0f;
     return id(estimated_power_usage).state;
 
+# Heat taken from the water by a defrost (kJ, negative while defrosting): reset by the custom defrost controller at
+# the start of a defrost and read at its end for the defrost event. thermal_power updates once a minute.
+- platform: integration
+  id: custom_defrost_energy
+  internal: true
+  restore: false
+  sensor: thermal_power
+  time_unit: s
+  filters:
+    - multiply: 0.001
+
 # Per-mode energy buckets (kWh). Reset by the time: component.
 - platform: integration
   id: thermal_energy_hour_heating
@@ -669,3 +680,37 @@ sensor:
     }
     return id(heat_cool_temperature_tc).state;
 
+# ── Defrost-regeling ──
+- platform: template
+  id: custom_defrost_runtime_sensor
+  name: "Defrost draaitijd sinds defrost"
+  update_interval: never
+  accuracy_decimals: 0
+  unit_of_measurement: "min"
+  icon: "mdi:timer-outline"
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_last_duration
+  name: "Defrost laatste defrostduur"
+  # Execution only (hot gas on the coil), without the outdoor unit's 5 min pre-phase, see custom_defrost_controller.h.
+  update_interval: never
+  accuracy_decimals: 0
+  unit_of_measurement: "s"
+  icon: "mdi:timer-outline"
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_interval_sensor
+  name: "Defrost interval"
+  update_interval: never
+  accuracy_decimals: 0
+  unit_of_measurement: "min"
+  icon: "mdi:timer-sync-outline"
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost

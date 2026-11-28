@@ -25,6 +25,7 @@ esphome:
     - openamber/controllers/timing.h
     - openamber/controllers/pump_controller.h
     - openamber/controllers/compressor_controller.h
+    - openamber/controllers/custom_defrost_controller.h
     - openamber/controllers/base_controller.h
     - openamber/controllers/dhw_controller.h
     - openamber/controllers/mixing_valve_actuator.h
@@ -53,6 +54,7 @@ web_server:
     - { id: cooling_settings, name: "Koelinstellingen", sorting_weight: 45 }
     - { id: temperature_sensors, name: "Temperatuursensoren", sorting_weight: 50 }
     - { id: diagnostic, name: "Diagnostiek", sorting_weight: 60 }
+    - { id: custom_defrost, name: "Defrost-regeling", sorting_weight: 65 }
     - { id: error_codes, name: "Foutcodes", sorting_weight: 70 }
     - { id: manual_control, name: "Handmatige bediening", sorting_weight: 80 }
     - { id: config, name: "Config", sorting_weight: 90 }

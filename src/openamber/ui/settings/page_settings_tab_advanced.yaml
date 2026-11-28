@@ -61,28 +61,13 @@ widgets:
             disabled:
               styles: menu_tile_disabled_style
             on_click:
+              - script.execute: update_defrost_tiles_ui
               - lvgl.menu.set_page:
                   id: settings_menu
                   page: panel_advanced_page_defrost
             widgets:
               - label: { text: "\U000F12CB", styles: menu_tile_icon_style }
               - label: { id: advanced_stab_defrost_lbl, text: "${t_defrost}", long_mode: WRAP, styles: menu_tile_label_style }
-
-        - obj:
-            id: advanced_stab_defrost_temps
-            styles: menu_tile_style
-            scrollable: false
-            pressed:
-              styles: menu_tile_pressed_style
-            disabled:
-              styles: menu_tile_disabled_style
-            on_click:
-              - lvgl.menu.set_page:
-                  id: settings_menu
-                  page: panel_advanced_page_defrost_temps
-            widgets:
-              - label: { text: "\U000F1A71", styles: menu_tile_icon_style }
-              - label: { id: advanced_stab_defrost_temps_lbl, text: "${t_defrost_start_temperaturen}", long_mode: WRAP, styles: menu_tile_label_style }
 
         - obj:
             id: advanced_stab_compressor

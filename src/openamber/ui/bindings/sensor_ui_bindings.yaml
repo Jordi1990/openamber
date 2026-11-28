@@ -94,6 +94,8 @@
           lv_label_set_text(id(tile_compressor_value), str_sprintf("%.0f Hz", x).c_str());
           lv_obj_send_event(id(tile_compressor_value), lvgl::lv_update_event, nullptr);
           id(update_service_diag_summary_ui).execute();
+          if (x > 0) lv_obj_clear_state(id(set_custom_defrost_force_btn), LV_STATE_DISABLED);
+          else lv_obj_add_state(id(set_custom_defrost_force_btn), LV_STATE_DISABLED);
 
 - id: !extend expansion_valve_position
   on_value:
@@ -243,3 +245,24 @@
     then:
       - script.execute: update_header_model_badge
 
+# ── Geavanceerd: Defrost ──
+- id: !extend custom_defrost_runtime_sensor
+  on_value:
+    then:
+      - script.execute: update_custom_defrost_runtime_ui
+
+- id: !extend custom_defrost_interval_sensor
+  on_value:
+    then:
+      - script.execute: update_custom_defrost_runtime_ui
+
+- id: !extend custom_defrost_last_duration
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_custom_defrost_last_duration_val
+          text: !lambda |-
+            if (std::isnan(x)) return std::string("-");
+            char buf[24];
+            snprintf(buf, sizeof(buf), "%d:%02d min", (int) x / 60, (int) x % 60);
+            return std::string(buf);
