@@ -1256,8 +1256,9 @@ public:
         }
 
         // The backup heater supplements the compressor, so the compressor runs at its maximum allowed mode meanwhile
-        // (one step per frequency change interval). The outdoor unit sets the frequency itself during a defrost.
-        if (compressor_controller_->IsCommanded() && !id(defrost_running_sensor).state)
+        // (one step per frequency change interval). The outdoor unit sets the frequency itself during a defrost, and
+        // emergency mode never runs the compressor.
+        if (compressor_controller_->IsCommanded() && !id(defrost_running_sensor).state && !id(emergency_mode_enabled).state)
         {
           compressor_controller_->ApplyCompressorMode(GetMaxAllowedCompressorMode());
         }
