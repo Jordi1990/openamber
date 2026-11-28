@@ -20,6 +20,18 @@ update:
     name: Firmware Update
 
 sensor:
+  - platform: template
+    id: pump_feedback_1221_raw
+    name: "Pomp P0 PWM-terugmelding (1221 raw)"
+    accuracy_decimals: 0
+    state_class: measurement
+    entity_category: diagnostic
+    lambda: |-
+      if (id(pump_feedback_1221_raw).has_state()) return id(pump_feedback_1221_raw).state;
+      return 250.0f;
+    update_interval: 15s
+    web_server:
+      sorting_group_id: diagnostic
   # Simulator only: duration of the last graph page redraw, for the redraw time test.
   - platform: template
     id: graph_redraw_time

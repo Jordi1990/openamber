@@ -21,6 +21,7 @@ packages:
   - !include switches.yaml
   - !include selects.yaml
   - !include sensors.yaml
+  - !include experimental_flow.yaml
   - !include binary_sensors.yaml
   - !include text_sensors.yaml
   - !include eebus.yaml

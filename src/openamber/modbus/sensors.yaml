@@ -215,6 +215,22 @@ sensor:
   register_type: holding
   value_type: U_WORD
 
+# Isolated reads: an unsupported diagnostic register must not invalidate a
+# control range. Read with the existing controller cadence (15 seconds).
+- platform: modbus_controller
+  modbus_controller_id: modbus_inside_unit
+  id: pump_feedback_1221_raw
+  name: "Pomp P0 PWM-terugmelding (1221 raw)"
+  address: 1221
+  register_type: holding
+  value_type: U_WORD
+  reuse_previous_range: false
+  accuracy_decimals: 0
+  state_class: measurement
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: diagnostic
+
 # Outside unit
 - platform: modbus_controller
   modbus_controller_id: modbus_outside_unit
