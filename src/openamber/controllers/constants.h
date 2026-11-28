@@ -221,7 +221,9 @@ static const uint32_t CUSTOM_DEFROST_OUTDOOR_UNIT_LOCK_S = 30 * 60;
 static const uint32_t CUSTOM_DEFROST_INTERVAL_MAX_MIN = 120;
 static const uint32_t CUSTOM_DEFROST_INTERVAL_STEP_UP_MIN = 20;
 static const uint32_t CUSTOM_DEFROST_INTERVAL_STEP_DOWN_MIN = 10;
-static const uint32_t CUSTOM_DEFROST_SHORT_DEFROST_S = 3 * 60;
+// Execution up to 2 min counts as short (little ice): on 27/28 Nov 2026 a coil without frost took 75-90 s and a
+// clearly white one 150-195 s.
+static const uint32_t CUSTOM_DEFROST_SHORT_DEFROST_S = 2 * 60;
 static const uint32_t CUSTOM_DEFROST_LONG_DEFROST_S = 5 * 60;
 
 static const uint32_t CUSTOM_DEFROST_RESTORE_WORKING_MODE_DELAY_S = 2 * 60;

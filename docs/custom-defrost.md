@@ -45,10 +45,13 @@ defrost die OpenAmber zelf startte, net als de Smart-stand van de buitenunit met
 
 | Duur laatste defrost | Volgend interval |
 | --- | --- |
-| tot 3 min (weinig ijs) | +20 min, maximaal 120 min |
-| 3 tot 5 min | gelijk |
+| tot 2 min (weinig ijs) | +20 min, maximaal 120 min |
+| 2 tot 5 min | gelijk |
 | langer dan 5 min | −10 min |
 | tot de maximale defrosttijd (3278) | terug naar het minimale interval |
+
+De uitvoeringsduur zegt veel over de hoeveelheid ijs: op 27/28 november 2026 duurde een defrost zonder rijp 75–90 s,
+met duidelijk witte rijp 150–195 s (camerabeelden van de spoel).
 
 Het interval begint op het minimale interval (35 min, instelbaar van 30 tot 120 min) en is nooit korter dan 30 min. Zo ontdooit de regeling bij
 vochtig weer vaker dan bij droog weer. Een defrost die de buitenunit zelf

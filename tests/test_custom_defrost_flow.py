@@ -193,9 +193,9 @@ def test_openamber_forced_defrost_flow(clean_system):
     assert openamber.get_entity("custom_defrost_status") == "Ontdooien"
     assert openamber.get_entity("working_mode_switch") == "Geforceerde defrost", "Working mode must not be touched during defrost"
 
-    # A short defrost (about 2 min): OpenAmber restores heating itself and waits 20 min longer next time
+    # A short defrost (about 90 s): OpenAmber restores heating itself and waits 20 min longer next time
     openamber.set_sensor("evaporation_temperature_tp", 8.0)
-    openamber.advance_time(seconds=110, step_s=10)
+    openamber.advance_time(seconds=80, step_s=10)
     openamber.set_binary_sensor("defrost_active_sensor", False)
     openamber.advance_time(seconds=10, step_s=5)
     openamber.step(ms=50)
@@ -248,13 +248,13 @@ def test_openamber_request_timeout_raises_error(clean_system):
 
 
 def _confirm_short_forced_defrost(openamber):
-    """The outdoor unit confirms the forced defrost and finishes it in about 2 min (little ice)."""
+    """The outdoor unit confirms the forced defrost and finishes it in about 90 s (little ice)."""
     openamber.set_binary_sensor("defrost_active_sensor", True)
     openamber.advance_time(seconds=10, step_s=5)
     openamber.step(ms=50)
     assert openamber.get_entity("custom_defrost_status") == "Ontdooien"
     openamber.set_sensor("evaporation_temperature_tp", 8.0)
-    openamber.advance_time(seconds=110, step_s=10)
+    openamber.advance_time(seconds=80, step_s=10)
     _end_defrost_by_unit(openamber)
     assert advance_until_state(openamber, "state_machine_state_heat_cool", "Compressor running", max_s=400)
 
@@ -403,3 +403,22 @@ def test_control_mode_written_once_per_change_and_after_restart(clean_system):
     openamber.set_select("defrost_control_select", "Buitenunit")
     openamber.advance_time(seconds=5, step_s=1)
     assert openamber.get_entity("defrost_control_mode_select") == "Buitenunit"
+
+
+def test_defrost_over_two_minutes_keeps_interval(clean_system):
+    """A defrost of about 150 s had ice (clearly white frost on the camera, 28 Nov 2026), so it is not 'short': the
+    adaptive interval stays the same instead of growing 20 min."""
+    openamber = clean_system
+    _configure(openamber, "OpenAmber")
+    _heat_and_reset_runtime(openamber)
+
+    openamber.set_sensor("evaporation_temperature_tp", -3.0)
+    assert advance_until_state(openamber, "custom_defrost_status", "Aangevraagd", max_s=45 * 60, step=30)
+    openamber.set_binary_sensor("defrost_active_sensor", True)
+    openamber.advance_time(seconds=10, step_s=5)
+    openamber.set_sensor("evaporation_temperature_tp", 8.0)
+    openamber.advance_time(seconds=150, step_s=10)
+    _end_defrost_by_unit(openamber)
+    duration = openamber.get_entity("custom_defrost_last_duration")
+    assert 140 <= duration <= 170, duration
+    assert openamber.get_entity("custom_defrost_interval_sensor") == 35
