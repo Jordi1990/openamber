@@ -681,10 +681,25 @@ sensor:
     return id(heat_cool_temperature_tc).state;
 
 # ── Defrost-regeling ──
+# 1 while heating with the compressor running outside a defrost, else 0: the time the custom defrost counts.
 - platform: template
+  id: custom_defrost_heating_with_compressor
+  internal: true
+  update_interval: 5s
+  lambda: |-
+    return id(current_compressor_frequency).state > 0 && !id(defrost_active_sensor).state &&
+           id(working_mode_switch).active_index() == WORKING_MODE_HEATING ? 1.0f : 0.0f;
+
+# Compressor time since the last defrost; reset by the custom defrost controller at the end of a defrost.
+- platform: integration
   id: custom_defrost_runtime_sensor
   name: "Defrost draaitijd sinds defrost"
-  update_interval: never
+  sensor: custom_defrost_heating_with_compressor
+  time_unit: min
+  restore: true
+  # Whole minutes, as the counter always showed; the integration itself keeps the fraction.
+  filters:
+    - round: 0
   accuracy_decimals: 0
   unit_of_measurement: "min"
   icon: "mdi:timer-outline"
@@ -712,5 +727,48 @@ sensor:
   unit_of_measurement: "min"
   icon: "mdi:timer-sync-outline"
   entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+# Vapour pressure excess of the outdoor air over ice at Tp while heating with the compressor (0 otherwise or without a
+# valid humidity): how fast frost grows on the coil.
+- platform: template
+  id: custom_defrost_icing_rate
+  name: "Defrost ijsgroei"
+  update_interval: 5s
+  accuracy_decimals: 0
+  unit_of_measurement: "Pa"
+  icon: "mdi:snowflake-thermometer"
+  entity_category: diagnostic
+  lambda: |-
+    if (id(custom_defrost_heating_with_compressor).state <= 0.0f) return 0.0f;
+    const float rate = CustomDefrostIcingRate(id(temperature_outside_ta).state, id(outdoor_humidity).state,
+                                              id(evaporation_temperature_tp).state);
+    return std::isnan(rate) ? 0.0f : rate;
+  web_server:
+    sorting_group_id: custom_defrost
+
+# Ice counter: the icing rate summed over time (Pa·h). Reset at the end of a defrost (custom defrost controller) and
+# when the frost has melted (custom_defrost_frost_melted).
+- platform: integration
+  id: custom_defrost_ice_load_sensor
+  name: "Defrost ijsteller"
+  sensor: custom_defrost_icing_rate
+  time_unit: h
+  restore: true
+  accuracy_decimals: 0
+  unit_of_measurement: "Pa·h"
+  icon: "mdi:snowflake-thermometer"
+  entity_category: diagnostic
+  web_server:
+    sorting_group_id: custom_defrost
+
+- platform: template
+  id: outdoor_humidity
+  name: "Luchtvochtigheid buiten"
+  update_interval: never
+  accuracy_decimals: 0
+  unit_of_measurement: "%"
+  device_class: humidity
   web_server:
     sorting_group_id: custom_defrost

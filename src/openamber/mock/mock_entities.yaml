@@ -1050,7 +1050,9 @@ script:
       energy_kj: float
       ta: float
       tp: float
+      humidity: float
       runtime_min: float
+      ice_load: float
     then: []
   - id: dump_eeprom_parameters
     then: []

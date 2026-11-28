@@ -5,7 +5,8 @@ OpenAmber kan zelf bepalen wanneer de buitenunit ontdooit. Alle defrost-instelli
 
 | Tegel | Inhoud | Zichtbaar |
 | --- | --- | --- |
-| Algemeen | Defrost controle; bij OpenAmber ook het minimale interval | altijd |
+| Algemeen | Defrost controle; bij OpenAmber ook het minimale interval en de bron buitenvochtigheid | altijd |
+| Luchtvochtigheid | Drempel ijsteller, actuele vochtigheid en ijsteller | bij OpenAmber |
 | Starttemperaturen unit | EEPROM-starttemperaturen van de buitenunit | bij Buitenunit |
 | Einde defrost | EEPROM exit-temperatuur en maximale ontdooitijd | bij Buitenunit |
 | Status | Status, draaitijd en laatste defrostduur | bij OpenAmber |
@@ -27,9 +28,26 @@ alleen jij wisselt de stand.
 
 ## Wanneer wordt er ontdooid
 
-Er wordt alleen ontdooid tijdens verwarmen met draaiende compressor en Ta tot 7 °C, als Tp na het adaptieve interval
-3 min onder −2 °C ligt. Het slot van 30 min van de buitenunit geldt altijd. Omdat het interval nooit langer is dan
-120 min, is dit ook het vangnet: na 120 min draaitijd wordt er altijd ontdooid als Tp onder −2 °C ligt.
+Er wordt alleen ontdooid tijdens verwarmen met draaiende compressor en Ta tot 7 °C. Er zijn twee routes:
+
+| Route | Wanneer |
+| --- | --- |
+| IJsteller | Alleen met vochtigheidssensor: na het minimale interval heeft de ijsteller de drempel bereikt |
+| Interval | Tp ligt 3 min onder −2 °C na het adaptieve interval (maximaal 120 min). Met een geldige vochtigheid pas na 4 uur (noodgrens) |
+
+Het slot van 30 min van de buitenunit geldt altijd. Zonder vochtigheidssensor is het interval nooit langer dan
+120 min, dus dan is de intervalroute ook het vangnet. Met een vochtigheidssensor bepaalt de ijsteller wanneer er
+ontdooid wordt en is de intervalroute alleen een noodgrens na 4 uur draaitijd, voor een sensor die een geldige maar
+verkeerde waarde geeft. Een vangnet van 120 min gaf op 27/28 november 2026 nog drie defrosts zonder rijp, net vóór de
+ijsteller.
+
+### Firmware 1.18, defrost-methode 4
+
+De buitenunit-firmware 1.18 kent een stand 3275 = 4. Die vraagt een defrost aan als de verdampingstemperatuur Te
+(uit de zuigdruk, register 2132) per Ta-band te ver onder Ta ligt, na een minimum-interval en met een tijdvangnet.
+Dat is dezelfde soort startlijn als hieronder, alleen met Te in plaats van Tp, en zonder vochtigheid. De parameters
+(3270, 3312, 3314, 3414–3421) staan op de Amber op 0, waardoor de unit met 3275 = 4 bijna continu zou ontdooien.
+Zet die stand dus niet aan.
 
 ### Geen startlijn
 
@@ -58,9 +76,30 @@ Het interval begint op het minimale interval (35 min, instelbaar van 30 tot 120 
 vochtig weer vaker dan bij droog weer. Een defrost die de buitenunit zelf
 startte, past het interval niet aan.
 
+### IJsteller
+
+Met een vochtigheidssensor telt OpenAmber hoeveel ijs er groeit: het verschil tussen de dampdruk van de buitenlucht
+en de dampdruk boven ijs bij Tp (Pa), opgeteld over de compressortijd sinds de laatste defrost (Pa·h). Ligt de spoel
+boven het rijppunt, dan telt er niets bij. Bereikt de teller de **drempel ijsteller** (standaard 90 Pa·h), dan wordt
+er na het minimale interval ontdooid. 0 zet de ijsteller uit; met een vochtigheidssensor blijft dan alleen de
+noodgrens van 4 uur over.
+
+Staat de compressor stil en ligt Tp 10 min boven +1 °C, dan is de rijp gesmolten en gaat de teller terug naar 0.
+
+De sensor **Defrost ijsgroei** (Pa) toont het dampdrukverschil van dit moment (0 als er niet verwarmd wordt met de
+compressor); **Defrost ijsteller** is daar de integraal van, en **Defrost draaitijd sinds defrost** de integraal van de
+tijd met draaiende compressor. Beide worden onthouden over een herstart en gaan na elke defrost naar 0.
+Zonder dat bleef de teller na een stop op een zachte dag staan, en ontdooide de regeling later een schone spoel.
+
+Ter indicatie (november 2026, Ta −1 tot −3 °C): bij 90–95 % RV groeide de teller met 60–100 Pa per uur en lag er na
+48 min zichtbaar ijs (uitvoering ±4 min). Bij 80 % RV was dat 25–50 Pa per uur en bleef de spoel na 48 min schoon
+(uitvoering ±2 min). Daaruit kwam eerst 70 Pa·h, maar dat ging in de praktijk te vroeg af (uitvoering 90 s, bij
+66 Pa·h nog geen rijp te zien). Met 90 Pa·h wordt het ±65–70 min bij mist en bij 80 % RV 2 tot 3,5 uur. In de nacht van 27/28 november 2026 (Ta −1 tot −3 °C) bereikte de teller 90 Pa·h na
+74–118 min, en lag er bij alle zeven defrosts op de ijsteller zichtbaar rijp (2118-tijd 3:15–4:15).
+
 ## Instellingen
 
-Alleen wat het moment van ontdooien bepaalt is instelbaar: de defrost controle en het minimale interval. De overige waarden (maximale Ta, maximaal
+Alleen wat het moment van ontdooien bepaalt is instelbaar: de defrost controle, het minimale interval en de drempel ijsteller. De overige waarden (maximale Ta, maximaal
 interval en bevestigingstijd) staan vast in `controllers/constants.h`.
 
 ## Blokkades
@@ -83,6 +122,43 @@ interval en bevestigingstijd) staan vast in `controllers/constants.h`.
 Na de defrost zet OpenAmber werkmodus 4 direct terug naar verwarmen. Anders zou de unit 30 min later opnieuw
 ontdooien.
 
+## Optionele vochtigheidssensor
+
+Met een geldige vochtigheid bepaalt de ijsteller wanneer er ontdooid wordt; het interval is dan alleen een noodgrens
+bij 4 uur draaitijd. Die werkt ook bij een verkeerde of verlopen sensor. Geeft de sensor geen geldige waarde, dan
+geldt weer het adaptieve interval.
+
+Voorlopig worden alleen Bluetooth-sensoren ondersteund, dus alleen op de Waveshare-displays.
+
+De bron staat onder **Defrost → Algemeen**, de andere instellingen onder **Defrost → Luchtvochtigheid**:
+
+| Instelling | Standaard | Betekenis |
+| --- | --- | --- |
+| Bron buitenvochtigheid (Algemeen) | Geen | Een gekoppelde BLE-sensor. Zonder Bluetooth of gekoppelde sensor staat hier "Geen sensor beschikbaar". |
+| Drempel ijsteller | 90 Pa·h | Ontdooien zodra er zoveel ijsaangroei geteld is (zie IJsteller). 0 = uit. |
+
+Op dezelfde pagina staan de actuele vochtigheid en de ijsteller. Zolang er geen sensor gekozen is, zijn de drempel en
+deze waarden grijs en niet te wijzigen.
+
+Er is geen aparte schakelaar: de controle werkt zodra er een geldige vochtigheid is. Zonder geldige waarde (geen
+sensor gekozen, of geen meting van de BLE-sensor in de laatste 10 min) doet de vochtigheid niet mee en werkt de
+regeling zoals zonder sensor (met het adaptieve interval).
+
+### Bluetooth-sensor (Waveshare-displays)
+
+1. Zet Bluetooth aan onder **Instellingen → Connectiviteit → Bluetooth** en koppel de sensor (SwitchBot, BTHome of
+   Xiaomi met ATC-firmware). Er zijn drie plekken voor sensoren, samen met de ruimtesensor.
+2. Kies de sensor bij **Defrost → Algemeen → Bron buitenvochtigheid** (of in Home Assistant met de
+   select "Luchtvochtigheid buiten bron").
+OpenAmber zet de vochtigheid van die sensor dan in `outdoor_humidity`. Bij het ontkoppelen of uitzetten van Bluetooth
+valt de bron terug op Geen.
+
+### Plaatsing
+
+Plaats de sensor in de aanzuiglucht van de buitenunit, beschut tegen regen en zon, en niet in de uitblaas (die lucht
+is afgekoeld en altijd bijna 100 %). Een BLE-sensor moet binnen bereik van het display blijven; met een metalen
+omkasting of een muur ertussen kan dat lastig zijn.
+
 ## Meten van een defrost
 
 - **Defrostduur** (sensor "Laatste defrostduur"): hoe lang 2118 hoog was. Bij een defrost op eigen initiatief zet de
@@ -91,7 +167,7 @@ ontdooien.
 - **Energie uit water:** warmte die de defrost uit het water haalde, in kJ: de integraal van het thermisch vermogen
   tijdens de defrost. Het thermisch vermogen wordt eens per minuut berekend, dus dit is een grove waarde.
 
-Na elke defrost stuurt OpenAmber (met analytics aan) één bericht met deze waarden (het defrost-event), plus Ta en Tp bij de
-start, de compressortijd sinds de vorige defrost, de defrost controle en de programmaversie van de buitenunit
-(sleutels `dfa` t/m `dfg`, `dfk`, `dfn` en `dfo`; uitvoering `dfc` en smelttijd `dfd` worden niet meer gemeten en zijn
-leeg).
+Na elke defrost stuurt OpenAmber (met analytics aan) één bericht met deze waarden (het defrost-event), plus Ta, Tp en
+vochtigheid bij de start, de compressortijd en de ijsteller sinds de vorige defrost, de defrost controle en de
+programmaversie van de buitenunit (sleutels `dfa` t/m `dfg`, `dfi`, `dfk`, `dfn`, `dfo` en `dfp`; uitvoering `dfc` en
+smelttijd `dfd` worden niet meer gemeten en zijn leeg).

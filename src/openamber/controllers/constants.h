@@ -219,6 +219,12 @@ static const uint32_t CUSTOM_DEFROST_OUTDOOR_UNIT_LOCK_S = 30 * 60;
 // Interval between defrosts adapts to the duration of the last defrost, like the outdoor unit's Smart mode.
 // The maximum is also the safety net: after it a coil below CUSTOM_DEFROST_INTERVAL_TP_C always defrosts.
 static const uint32_t CUSTOM_DEFROST_INTERVAL_MAX_MIN = 120;
+// With a valid humidity the ice counter decides; this long compressor time is only an emergency limit, for a sensor
+// that gives a valid but wrong value.
+static const uint32_t CUSTOM_DEFROST_HUMIDITY_EMERGENCY_MIN = 4 * 60;
+// Compressor stopped and the coil 10 min above this temperature: the frost has melted, the ice counter goes to 0
+// (binary sensor custom_defrost_frost_melted).
+static const float CUSTOM_DEFROST_ICE_MELT_TP_C = 1.0f;
 static const uint32_t CUSTOM_DEFROST_INTERVAL_STEP_UP_MIN = 20;
 static const uint32_t CUSTOM_DEFROST_INTERVAL_STEP_DOWN_MIN = 10;
 // The 2118 time of a forced defrost (no pre-phase) shows the amount of ice. On 27/28 Nov 2026 (camera): no frost

@@ -1509,3 +1509,22 @@ number:
   entity_category: config
   web_server:
     sorting_group_id: custom_defrost
+
+- platform: template
+  id: custom_defrost_ice_threshold
+  name: "Defrost drempel ijsteller"
+  # Vapour pressure excess of the air over ice at Tp, summed over compressor time. 0 = off.
+  # 90 Pa·h: about 65-70 min on a foggy night around 0 °C; at 80 % RV over 120 min, so the interval comes first. 70 (the
+  # estimate from the Nov 2026 data) defrosted too early in practice: 90 s defrosts and no visible frost at 66 Pa·h.
+  optimistic: True
+  restore_value: True
+  initial_value: 90
+  min_value: 0
+  max_value: 300
+  step: 5
+  mode: box
+  unit_of_measurement: "Pa·h"
+  icon: "mdi:snowflake-thermometer"
+  entity_category: config
+  web_server:
+    sorting_group_id: custom_defrost

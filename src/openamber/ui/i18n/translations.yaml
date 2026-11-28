@@ -2426,6 +2426,10 @@
   nl: "Display"
   de: "Anzeige"
   en: "Display"
+- key: t_bron_buitenvochtigheid
+  nl: "Bron buitenvochtigheid"
+  de: "Quelle Außenfeuchte"
+  en: "Outdoor humidity source"
 - key: t_activeren
   nl: "Activeren"
   de: "Aktivieren"
@@ -2454,6 +2458,10 @@
   nl: "Einde defrost"
   de: "Abtauende"
   en: "End of defrost"
+- key: t_lucht_vochtigheid
+  nl: "Lucht-\nvochtigheid"
+  de: "Luft-\nfeuchte"
+  en: "Humidity"
 - key: t_start_temperaturen_unit
   nl: "Start-\ntemperaturen unit"
   de: "Start-\ntemperaturen Einheit"
@@ -2506,6 +2514,29 @@
   nl: "Nog geen trigger"
   de: "Noch kein Auslöser"
   en: "No trigger yet"
+- key: t_defrost_luchtvochtigheid
+  nl: "Defrost: luchtvochtigheid"
+  de: "Abtauen: Luftfeuchte"
+  en: "Defrost: humidity"
+- key: t_drempel_ijsteller
+  nl: "Drempel ijsteller"
+  de: "Schwelle Eiszähler"
+  en: "Ice counter threshold"
+- key: t_ontdooien_bij_zoveel_ijsaangroei_0_uit
+  nl: "Ontdooien bij zoveel ijsaangroei (0 = uit)"
+  de: "Abtauen bei so viel Eisansatz (0 = aus)"
+  en: "Defrost at this much ice growth (0 = off)"
+- key: t_ijsteller
+  nl: "IJsteller"
+  de: "Eiszähler"
+  en: "Ice counter"
+- key: t_ijsaangroei_sinds_de_laatste_defrost
+  nl: "IJsaangroei sinds de laatste defrost"
+  de: "Eisansatz seit dem letzten Abtauen"
+  en: "Ice growth since the last defrost"
+- nl: "Geen meting"
+  de: "Kein Messwert"
+  en: "No reading"
 - use: state
   nl: "Bewaken"
   de: "Überwachen"
@@ -2546,6 +2577,14 @@
   nl: "Interval"
   de: "Intervall"
   en: "Interval"
+- key: t_gekoppelde_bluetooth_sensor
+  nl: "Gekoppelde Bluetooth-sensor"
+  de: "Gekoppelter Bluetooth-Sensor"
+  en: "Paired Bluetooth sensor"
+- key: t_geen_sensor_beschikbaar
+  nl: "Geen sensor beschikbaar"
+  de: "Kein Sensor verfügbar"
+  en: "No sensor available"
 - use: state
   nl: "Fout: defrost startte niet"
   de: "Fehler: Abtauen nicht gestartet"
@@ -2556,3 +2595,11 @@
 - nl: "De buitenunit startte geen defrost binnen 120 seconden nadat OpenAmber erom vroeg. De regeling is gestopt. Controleer de Modbus-verbinding met de buitenunit, of zet de defrost controle op Buitenunit, en reset daarna de fout."
   de: "Die Außeneinheit hat innerhalb von 120 Sekunden nach der Anforderung durch OpenAmber kein Abtauen gestartet. Die Regelung ist gestoppt. Prüfe die Modbus-Verbindung zur Außeneinheit oder stelle die Abtausteuerung auf Außeneinheit und setze danach den Fehler zurück."
   en: "The outdoor unit did not start a defrost within 120 seconds after OpenAmber requested it. Control has stopped. Check the Modbus connection to the outdoor unit, or set the defrost control to Outdoor unit, then reset the error."
+- key: t_buitenvochtigheid
+  nl: "Buitenvochtigheid"
+  de: "Außenfeuchte"
+  en: "Outdoor humidity"
+- key: t_huidige_meting_van_de_ble_sensor
+  nl: "Huidige meting van de BLE-sensor"
+  de: "Aktueller Messwert des BLE-Sensors"
+  en: "Current reading of the BLE sensor"

@@ -862,3 +862,14 @@
           text:
             format: "%.0f min"
             args: ['x']
+
+- id: !extend custom_defrost_ice_threshold
+  on_value:
+    then:
+      - lvgl.label.update:
+          id: set_custom_defrost_ice_threshold_val
+          text: !lambda |-
+            if (x <= 0.0f) return std::string(oa_tr("Uit"));
+            char buf[24];
+            snprintf(buf, sizeof(buf), "%.0f Pa·h", x);
+            return std::string(buf);
