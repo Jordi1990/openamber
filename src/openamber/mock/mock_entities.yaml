@@ -1050,7 +1050,6 @@ script:
       energy_kj: float
       ta: float
       tp: float
-      start_line: float
       runtime_min: float
     then: []
   - id: dump_eeprom_parameters

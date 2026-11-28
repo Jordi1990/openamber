@@ -5,8 +5,7 @@ OpenAmber kan zelf bepalen wanneer de buitenunit ontdooit. Alle defrost-instelli
 
 | Tegel | Inhoud | Zichtbaar |
 | --- | --- | --- |
-| Algemeen | Defrost controle | altijd |
-| Startlijn en interval | Verschil Ta − Tp, maximale Tp en minimaal interval | bij OpenAmber |
+| Algemeen | Defrost controle; bij OpenAmber ook het minimale interval | altijd |
 | Starttemperaturen unit | EEPROM-starttemperaturen van de buitenunit | bij Buitenunit |
 | Einde defrost | EEPROM exit-temperatuur en maximale ontdooitijd | bij Buitenunit |
 | Status | Status, draaitijd en laatste defrostduur | bij OpenAmber |
@@ -28,36 +27,16 @@ alleen jij wisselt de stand.
 
 ## Wanneer wordt er ontdooid
 
-Er wordt alleen ontdooid tijdens verwarmen met draaiende compressor en Ta tot 7 °C. Er zijn twee routes, allebei
-pas na het minimale interval. De eerste die geldt, start de defrost.
+Er wordt alleen ontdooid tijdens verwarmen met draaiende compressor en Ta tot 7 °C, als Tp na het adaptieve interval
+3 min onder −2 °C ligt. Het slot van 30 min van de buitenunit geldt altijd. Omdat het interval nooit langer is dan
+120 min, is dit ook het vangnet: na 120 min draaitijd wordt er altijd ontdooid als Tp onder −2 °C ligt.
 
-| Route | Wanneer |
-| --- | --- |
-| Startlijn | Na het minimale interval: Tp ligt 3 min op of onder de startlijn |
-| Interval | Na het adaptieve interval (maximaal 120 min): Tp ligt 3 min onder −2 °C |
+### Geen startlijn
 
-De startlijn vraagt daarnaast dat de compressor minstens 5 min onafgebroken draait. Het slot van 30 min van de
-buitenunit geldt altijd. Omdat het interval nooit langer is dan 120 min, is de intervalroute ook het vangnet: na
-120 min draaitijd wordt er altijd ontdooid als Tp onder −2 °C ligt.
-
-### Startlijn
-
-De startlijn volgt Mitsubishi (technische handleiding SRK20-35ZSX-W, 17-SRK-T-228, hoofdstuk 17c):
-`Ta − verschil`, maar nooit hoger dan de **maximale Tp** (−5 °C). Het **verschil Ta − Tp** is standaard 5 K.
-Mitsubishi laat het verschil richting −15 °C afnemen; OpenAmber gebruikt één verschil, voor de eenvoud.
-
-| Ta | Startlijn Tp (verschil 5 K) |
-| --- | --- |
-| +5 °C | −5 °C (maximale Tp) |
-| 0 °C | −5 °C (maximale Tp) |
-| −5 °C | −10 °C |
-| −10 °C | −15 °C |
-| −15 °C | −20 °C |
-
-Mitsubishi gebruikt 7 K bij 0 °C. Bij de Amber ligt een schone spoel maar ±3 K onder Ta, en ijs maakt dat in
-48 min nauwelijks groter (±0,4 K). Met 7 K werd de startlijn in november 2026 nooit gehaald. Bij 5 K ging hij in
-die data nooit onterecht af, bij 4,5 K wel. Ontdooit de regeling te vroeg (korte defrosts), verhoog dan het
-verschil; te laat (defrosts tot de maximale tijd), verlaag het.
+Mitsubishi (technische handleiding SRK20-35ZSX-W, 17-SRK-T-228, hoofdstuk 17c) start een defrost als Tp een tijd
+een vast verschil onder Ta ligt. Op de Amber werkt dat niet: met camerabeelden van de spoel (27/28 november 2026)
+bleef Ta − Tp tussen 2,4 en 3,6 K, met én zonder rijp; bij de zwaarste rijp was het verschil juist het kleinst.
+Ta − Tp zegt op de Amber dus niets over ijs, en die route is weggelaten.
 
 ### Interval
 
@@ -72,13 +51,12 @@ defrost die OpenAmber zelf startte, net als de Smart-stand van de buitenunit met
 | tot de maximale defrosttijd (3278) | terug naar het minimale interval |
 
 Het interval begint op het minimale interval (35 min, instelbaar van 30 tot 120 min) en is nooit korter dan 30 min. Zo ontdooit de regeling bij
-vochtig weer vaker dan bij droog weer, ook als de startlijn niet gehaald wordt. Een defrost die de buitenunit zelf
+vochtig weer vaker dan bij droog weer. Een defrost die de buitenunit zelf
 startte, past het interval niet aan.
 
 ## Instellingen
 
-Alleen wat het moment van ontdooien bepaalt is instelbaar: de defrost controle, het minimale interval, het verschil
-Ta − Tp en de maximale Tp. De overige waarden (maximale Ta, maximaal
+Alleen wat het moment van ontdooien bepaalt is instelbaar: de defrost controle en het minimale interval. De overige waarden (maximale Ta, maximaal
 interval, retourblokkade en bevestigingstijd) staan vast in `controllers/constants.h`.
 
 ## Blokkades
@@ -118,6 +96,6 @@ Alleen de defrostduur is een sensor. De andere waarden staan in het defrost-even
 
 Het interval past zich alleen aan op de uitvoeringsduur van een defrost die OpenAmber zelf startte.
 
-Na elke defrost stuurt OpenAmber (met analytics aan) één bericht met deze waarden (het defrost-event), plus Ta, Tp en startlijn bij
-de start, de compressortijd sinds de vorige defrost, de defrost controle en de programmaversie van de buitenunit
-(sleutels `dfa` t/m `dfh`, `dfk`, `dfn` en `dfo`).
+Na elke defrost stuurt OpenAmber (met analytics aan) één bericht met deze waarden (het defrost-event), plus Ta en Tp bij de
+start, de compressortijd sinds de vorige defrost, de defrost controle en de programmaversie van de buitenunit
+(sleutels `dfa` t/m `dfg`, `dfk`, `dfn` en `dfo`).

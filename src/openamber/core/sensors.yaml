@@ -694,17 +694,6 @@ sensor:
     sorting_group_id: custom_defrost
 
 - platform: template
-  id: custom_defrost_start_temperature
-  name: "Defrost starttemperatuur Tp"
-  update_interval: never
-  accuracy_decimals: 1
-  unit_of_measurement: "°C"
-  device_class: temperature
-  entity_category: diagnostic
-  web_server:
-    sorting_group_id: custom_defrost
-
-- platform: template
   id: custom_defrost_interval_sensor
   name: "Defrost interval"
   update_interval: never

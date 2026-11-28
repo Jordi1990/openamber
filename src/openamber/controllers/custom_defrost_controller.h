@@ -28,15 +28,11 @@ using namespace esphome;
 
 /// @brief Decides when the outdoor unit should defrost.
 ///
-/// Two start routes, each after the minimum interval (at least the outdoor unit's 30 min lock):
-///  - Start line (Mitsubishi SRK-ZSX, technical manual 17-SRK-T-228, chapter 17c): the compressor runs continuously
-///    for at least 5 min and the coil temperature Tp stays below the start line for 3 min. The start line is
-///    Ta - (required difference), never above the maximum Tp (-5 °C); both are settings. Mitsubishi lowers the
-///    difference towards -15 °C; OpenAmber keeps one difference to stay simple. Mitsubishi uses 7 K at 0 °C, but on
-///    the Amber a clean coil sits only about 3 K below Ta, so 7 K was never reached (data of Nov 2026), hence 5 K.
-///  - Interval: after the adaptive interval with Tp below -2 °C for 3 min. The interval grows after short defrosts and
-///    shrinks after long ones, like the outdoor unit's Smart mode, so wet weather defrosts more often than dry weather.
-///    It is at most 120 min, so this route is also the safety net.
+/// One start route: after the adaptive interval (at least the outdoor unit's 30 min lock) with Tp below -2 °C for 3 min.
+/// The interval grows after short defrosts and shrinks after long ones, like the outdoor unit's Smart mode, so wet
+/// weather defrosts more often than dry weather. It is at most 120 min, so this route is also the safety net.
+/// There is no start line on Ta - Tp (Mitsubishi SRK-ZSX): on the Amber Ta - Tp stayed 2.4-3.6 K with and without frost
+/// (camera, 27/28 Nov 2026), so it does not show ice.
 ///
 /// Modes (defrost_control_select), switchable at any time:
 ///  - Buitenunit: the outdoor unit decides itself, only statistics are kept here.
@@ -55,7 +51,6 @@ private:
   {
     float ta = NAN;
     float tp = NAN;
-    float start_line = NAN;
     float runtime_min = NAN;
     int source = 0;
   };
@@ -63,7 +58,6 @@ private:
   uint32_t last_update_ms_ = 0;
   uint32_t runtime_remainder_ms_ = 0;
   uint32_t compressor_running_since_ms_ = 0;
-  uint32_t below_start_line_since_ms_ = 0;
   uint32_t below_interval_tp_since_ms_ = 0;
   uint32_t return_temperature_block_since_ms_ = 0;
   // Non-zero while working mode 4 was written and the outdoor unit has not started the defrost yet.
@@ -169,17 +163,8 @@ private:
 
   void ResetTriggerTimers()
   {
-    below_start_line_since_ms_ = 0;
     below_interval_tp_since_ms_ = 0;
     return_temperature_block_since_ms_ = 0;
-  }
-
-  // ── Start line (Mitsubishi) ──
-
-  /// @brief Coil temperature at or below which the coil counts as iced.
-  float GetStartTemperature(float ta)
-  {
-    return std::min(id(custom_defrost_max_coil_temperature).state, ta - id(custom_defrost_delta_at_zero).state);
   }
 
   // ── Interval between defrosts ──
@@ -271,25 +256,6 @@ private:
     {
       last_published_runtime_min_ = minutes;
       id(custom_defrost_runtime_sensor).publish_state(minutes);
-    }
-  }
-
-  static void PublishRounded(sensor::Sensor* target, float value)
-  {
-    float rounded = roundf(value * 10.0f) / 10.0f;
-    float current = target->state;
-    if (std::isnan(rounded) != std::isnan(current) || (!std::isnan(rounded) && fabsf(current - rounded) >= 0.1f))
-    {
-      target->publish_state(rounded);
-    }
-  }
-
-  void PublishStartTemperature()
-  {
-    float ta = id(temperature_outside_ta).state;
-    if (IsValid(ta))
-    {
-      PublishRounded(&id(custom_defrost_start_temperature), GetStartTemperature(ta));
     }
   }
 
@@ -400,7 +366,6 @@ private:
     event_ = DefrostEvent{};
     event_.ta = ta;
     event_.tp = tp;
-    event_.start_line = IsValid(ta) ? GetStartTemperature(ta) : NAN;
     event_.runtime_min = GetRuntimeSeconds() / 60.0f;
     event_.source = started_by_openamber_ ? 1 : 0;
 
@@ -428,7 +393,7 @@ private:
         AdaptInterval((uint32_t) execution_s);
       }
       id(send_defrost_event).execute(event_.source, total_s, execution_s, melt_s, energy_kj, event_.ta, event_.tp,
-                                     event_.start_line, event_.runtime_min);
+                                     event_.runtime_min);
     }
     // The outdoor unit returns to heating by itself but leaves 3999 on 4, which would start a new defrost after 30 min.
     RestoreHeatingWorkingMode();
@@ -453,44 +418,24 @@ private:
     }
   }
 
-  /// @brief Checks the start routes. Returns the trigger reason, or an empty string with *waiting set to why not.
+  /// @brief Checks the start route. Returns the trigger reason, or an empty string with *waiting set to why not.
   std::string EvaluateTriggers(uint32_t now, std::string* waiting)
   {
-    float ta = id(temperature_outside_ta).state;
     float tp = id(evaporation_temperature_tp).state;
-    if (!IsValid(ta) || !IsValid(tp))
+    if (!IsValid(tp))
     {
       ResetTriggerTimers();
-      *waiting = "geen Ta of Tp";
+      *waiting = "geen Tp";
       return "";
     }
 
     char buffer[96];
     uint32_t runtime_min = GetRuntimeSeconds() / 60;
     uint32_t interval_min = GetIntervalMinutes();
-    uint32_t compressor_on_s = GetCompressorOnSeconds(now);
 
-    // Start line: Tp below the start line, compressor running continuously.
-    float start_temperature = GetStartTemperature(ta);
-    bool below_start_line = compressor_on_s >= CUSTOM_DEFROST_MIN_COMPRESSOR_ON_S && tp <= start_temperature;
-    uint32_t below_start_line_s = HoldSeconds(below_start_line, &below_start_line_since_ms_, now);
-
-    // Interval route: once the adaptive interval has passed, a coil below -2 °C is enough.
-    bool interval_cold = compressor_on_s >= COMPRESSOR_SOFT_START_DURATION_S && tp < CUSTOM_DEFROST_INTERVAL_TP_C;
+    // Once the adaptive interval has passed, a coil below -2 °C for 3 min (after the compressor's soft start) defrosts.
+    bool interval_cold = GetCompressorOnSeconds(now) >= COMPRESSOR_SOFT_START_DURATION_S && tp < CUSTOM_DEFROST_INTERVAL_TP_C;
     uint32_t interval_cold_s = HoldSeconds(interval_cold, &below_interval_tp_since_ms_, now);
-
-    if (runtime_min < GetMinIntervalMinutes())
-    {
-      snprintf(buffer, sizeof(buffer), "interval %u / %u min", (unsigned) runtime_min, (unsigned) interval_min);
-      *waiting = buffer;
-      return "";
-    }
-
-    if (below_start_line_s >= CUSTOM_DEFROST_CONFIRM_S)
-    {
-      snprintf(buffer, sizeof(buffer), "Startlijn: Tp %.1f <= %.1f°C (Ta %.1f°C)", tp, start_temperature, ta);
-      return buffer;
-    }
 
     if (runtime_min < interval_min)
     {
@@ -575,7 +520,6 @@ public:
 
     GetCompressorOnSeconds(now);  // keeps the continuous run time up to date every update
     UpdateRuntime(dt_ms, defrost_active);
-    PublishStartTemperature();
 
     // Switching during a defrost: let the defrost finish first, then hand 3274 over.
     if (control_mode_write_pending_ && modbus_connected && !defrost_active)

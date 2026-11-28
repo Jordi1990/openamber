@@ -100,7 +100,6 @@ obj:
           - !include settings/page_settings_tab_advanced_bodemplaat.yaml
           - !include settings/page_settings_tab_advanced_defrost.yaml
           - !include settings/page_settings_tab_advanced_defrost_general.yaml
-          - !include settings/page_settings_tab_advanced_defrost_startlijn.yaml
           - !include settings/page_settings_tab_advanced_defrost_temps.yaml
           - !include settings/page_settings_tab_advanced_defrost_end.yaml
           - !include settings/page_settings_tab_advanced_defrost_status.yaml

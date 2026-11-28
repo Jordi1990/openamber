@@ -2089,7 +2089,7 @@
         };
         set_hidden(id(defrost_stab_start_temps), openamber);
         set_hidden(id(defrost_stab_end), openamber);
-        set_hidden(id(defrost_stab_startlijn), !openamber);
+        set_hidden(id(set_custom_defrost_min_runtime_row), !openamber);
         set_hidden(id(defrost_stab_status), !openamber);
 
 - id: update_custom_defrost_runtime_ui
