@@ -61,7 +61,8 @@ inline float CustomDefrostIcingRate(float ta, float rh, float tp)
 /// unit's Smart mode, so wet weather defrosts more often than dry weather. It is at most 120 min.
 /// With a valid outdoor humidity (BLE sensor) the ice counter does the work: the vapour pressure excess of the air over
 /// ice at Tp, summed over the compressor time since the last defrost (Pa·h), defrosts at its threshold after the minimum
-/// interval. The interval route then only acts at the maximum interval (120 min) as the safety net.
+/// interval. With the compressor stopped and the coil above +1 °C for 10 min the frost has melted and the counter goes
+/// to 0. The interval route then only acts after 4 h compressor time, as an emergency limit for a wrong sensor value.
 /// There is no start line on Ta - Tp (Mitsubishi SRK-ZSX): on the Amber Ta - Tp stayed 2.4-3.6 K with and without frost
 /// (camera, 27/28 Nov 2026), so it does not show ice.
 ///
@@ -92,6 +93,7 @@ private:
   uint32_t runtime_remainder_ms_ = 0;
   uint32_t compressor_running_since_ms_ = 0;
   uint32_t below_interval_tp_since_ms_ = 0;
+  uint32_t ice_melt_since_ms_ = 0;
   uint32_t return_temperature_block_since_ms_ = 0;
   // Non-zero while working mode 4 was written and the outdoor unit has not started the defrost yet.
   uint32_t request_started_ms_ = 0;
@@ -279,9 +281,19 @@ private:
 
   // ── Ice counter (optional humidity sensor) ──
 
-  /// @brief Sums the icing rate over the heating compressor time since the last defrost (Pa·h).
-  void UpdateIceLoad(uint32_t dt_ms, bool defrost_active)
+  /// @brief Sums the icing rate over the heating compressor time since the last defrost (Pa·h). With the compressor
+  /// stopped and the coil above +1 °C for 10 min the frost has melted, so the counter goes back to 0.
+  void UpdateIceLoad(uint32_t dt_ms, bool defrost_active, uint32_t now)
   {
+    float tp = id(evaporation_temperature_tp).state;
+    bool melting = !IsCompressorRunning() && !defrost_active && IsValid(tp) && tp > CUSTOM_DEFROST_ICE_MELT_TP_C;
+    if (HoldSeconds(melting, &ice_melt_since_ms_, now) >= CUSTOM_DEFROST_ICE_MELT_S && id(custom_defrost_ice_load) > 0.0f)
+    {
+      ESP_LOGI("amber", "CustomDefrost: coil above %.0f°C with the compressor off, ice counter %.0f -> 0 Pa·h.",
+               CUSTOM_DEFROST_ICE_MELT_TP_C, id(custom_defrost_ice_load));
+      id(custom_defrost_ice_load) = 0.0f;
+      PublishIceLoad();
+    }
     if (dt_ms == 0 || !IsHeatingWithCompressor(defrost_active))
     {
       return;
@@ -498,9 +510,9 @@ private:
 
     char buffer[96];
     uint32_t runtime_min = GetRuntimeSeconds() / 60;
-    // With a humidity value the ice counter does the work and the interval is only the safety net at its maximum.
+    // With a humidity value the ice counter does the work; the interval route is then only an emergency limit (4 h).
     bool humidity = CustomDefrostValidHumidity(id(outdoor_humidity).state);
-    uint32_t interval_min = humidity ? CUSTOM_DEFROST_INTERVAL_MAX_MIN : GetIntervalMinutes();
+    uint32_t interval_min = humidity ? CUSTOM_DEFROST_HUMIDITY_EMERGENCY_MIN : GetIntervalMinutes();
 
     // Once the interval has passed, a coil below -2 °C for 3 min (after the compressor's soft start) defrosts.
     bool interval_cold = GetCompressorOnSeconds(now) >= COMPRESSOR_SOFT_START_DURATION_S && tp < CUSTOM_DEFROST_INTERVAL_TP_C;
@@ -599,7 +611,7 @@ public:
 
     GetCompressorOnSeconds(now);  // keeps the continuous run time up to date every update
     UpdateRuntime(dt_ms, defrost_active);
-    UpdateIceLoad(dt_ms, defrost_active);
+    UpdateIceLoad(dt_ms, defrost_active, now);
 
     // Switching during a defrost: let the defrost finish first, then hand 3274 over.
     if (control_mode_write_pending_ && modbus_connected && !defrost_active)

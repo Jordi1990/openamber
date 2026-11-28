@@ -1,7 +1,7 @@
 """Automated tests for the custom (OpenAmber controlled) defrost algorithm.
 Covers both defrost control modes (Buitenunit, OpenAmber) and switching between them,
 the interval route with the adaptive interval (whose 120 min maximum is the safety net), the ice counter with the
-interval only as safety net, the outdoor unit's 30 min lock, the return temperature block, the forced defrost request (working mode 4),
+interval only as a 4 h emergency limit and the counter reset when the frost melts during a stop, the outdoor unit's 30 min lock, the return temperature block, the forced defrost request (working mode 4),
 the request timeout (error TO10, no retry) and the settings page in the UI.
 """
 
@@ -338,7 +338,7 @@ def test_ice_counter_off_and_without_humidity(clean_system):
     openamber.advance_time(seconds=60 * 60, step_s=30)
     openamber.step(ms=50)
     assert openamber.get_entity("custom_defrost_ice_load_sensor") > 70
-    # With humidity the interval only acts at 120 min, so after 100 min nothing is requested
+    # With humidity the interval only acts after 4 h, so after 100 min nothing is requested
     assert openamber.get_entity("custom_defrost_status").startswith("Bewaken")
     assert openamber.get_entity("working_mode_switch") == "Verwarmen"
     openamber.set_sensor("outdoor_humidity", 0.0)
@@ -363,9 +363,9 @@ def test_max_interval_is_safety_net(clean_system):
     assert openamber.get_entity("custom_defrost_runtime_sensor") >= 120
     openamber.set_number("custom_defrost_min_runtime", 35.0)
 
-def test_with_humidity_interval_is_only_safety_net(clean_system):
-    """With a humidity value the ice counter does the work: the interval route waits for its maximum (120 min) even
-    with a cold coil, so it no longer defrosts a clean coil just before the ice counter (27/28 Nov 2026)."""
+def test_with_humidity_interval_is_only_emergency_limit(clean_system):
+    """With a humidity value the ice counter does the work: the interval route waits 4 h even with a cold coil, so it
+    no longer defrosts a clean coil just before the ice counter (27/28 Nov 2026)."""
     openamber = clean_system
     _configure(openamber, "OpenAmber")
     # RV 40 % at Ta 0 °C: no icing at Tp -3 °C, so the ice counter stays 0
@@ -373,16 +373,48 @@ def test_with_humidity_interval_is_only_safety_net(clean_system):
     _heat_and_reset_runtime(openamber)
 
     openamber.set_sensor("evaporation_temperature_tp", -3.0)
-    openamber.advance_time(seconds=114 * 60, step_s=60)
+    openamber.advance_time(seconds=234 * 60, step_s=60)
     openamber.step(ms=50)
     status = openamber.get_entity("custom_defrost_status")
-    assert status.startswith("Bewaken: interval") and status.endswith("/ 120 min"), status
+    assert status.startswith("Bewaken: interval") and status.endswith("/ 240 min"), status
     assert openamber.get_entity("custom_defrost_ice_load_sensor") == 0
     assert openamber.get_entity("working_mode_switch") == "Verwarmen"
 
     assert advance_until_state(openamber, "custom_defrost_status", "Aangevraagd", max_s=12 * 60, step=30)
     assert openamber.get_entity("custom_defrost_last_trigger").startswith("Interval")
-    assert openamber.get_entity("custom_defrost_runtime_sensor") >= 120
+    assert openamber.get_entity("custom_defrost_runtime_sensor") >= 240
+    openamber.set_sensor("outdoor_humidity", 0.0)
+
+
+def test_ice_counter_resets_when_frost_melts_during_stop(clean_system):
+    """With the compressor stopped and the coil above +1 °C for 10 min the frost has melted, so the ice counter goes
+    back to 0. A shorter warm stop keeps the counter."""
+    openamber = clean_system
+    _configure(openamber, "OpenAmber")
+    openamber.set_sensor("outdoor_humidity", 100.0)
+    _heat_and_reset_runtime(openamber)
+
+    openamber.set_sensor("evaporation_temperature_tp", -1.5)
+    openamber.advance_time(seconds=40 * 60, step_s=30)
+    openamber.step(ms=50)
+    ice_load = openamber.get_entity("custom_defrost_ice_load_sensor")
+    assert ice_load > 30
+
+    openamber.set_switch("heat_demand_switch", False)
+    assert advance_until_state(openamber, "current_compressor_frequency", 0, max_s=600, step=10)
+    # Coil only just above freezing: no melting
+    openamber.set_sensor("evaporation_temperature_tp", 0.5)
+    openamber.advance_time(seconds=15 * 60, step_s=30)
+    openamber.step(ms=50)
+    assert openamber.get_entity("custom_defrost_ice_load_sensor") == ice_load
+    # Coil at +3 °C: after 10 min the counter is back at 0
+    openamber.set_sensor("evaporation_temperature_tp", 3.0)
+    openamber.advance_time(seconds=9 * 60, step_s=30)
+    openamber.step(ms=50)
+    assert openamber.get_entity("custom_defrost_ice_load_sensor") == ice_load
+    openamber.advance_time(seconds=2 * 60, step_s=30)
+    openamber.step(ms=50)
+    assert openamber.get_entity("custom_defrost_ice_load_sensor") == 0
     openamber.set_sensor("outdoor_humidity", 0.0)
 
 

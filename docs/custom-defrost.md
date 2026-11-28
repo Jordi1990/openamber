@@ -33,12 +33,21 @@ Er wordt alleen ontdooid tijdens verwarmen met draaiende compressor en Ta tot 7 
 | Route | Wanneer |
 | --- | --- |
 | IJsteller | Alleen met vochtigheidssensor: na het minimale interval heeft de ijsteller de drempel bereikt |
-| Interval | Tp ligt 3 min onder −2 °C na het adaptieve interval (maximaal 120 min). Met een geldige vochtigheid pas na 120 min |
+| Interval | Tp ligt 3 min onder −2 °C na het adaptieve interval (maximaal 120 min). Met een geldige vochtigheid pas na 4 uur (noodgrens) |
 
-Het slot van 30 min van de buitenunit geldt altijd. Omdat het interval nooit langer is dan 120 min, is de intervalroute
-ook het vangnet: na 120 min draaitijd wordt er altijd ontdooid als Tp onder −2 °C ligt. Met een vochtigheidssensor doet
-de ijsteller het gewone werk en is de intervalroute alleen nog dat vangnet: op 27/28 november 2026 gaf het interval
-zonder dat nog drie defrosts zonder rijp, net vóór de ijsteller.
+Het slot van 30 min van de buitenunit geldt altijd. Zonder vochtigheidssensor is het interval nooit langer dan
+120 min, dus dan is de intervalroute ook het vangnet. Met een vochtigheidssensor bepaalt de ijsteller wanneer er
+ontdooid wordt en is de intervalroute alleen een noodgrens na 4 uur draaitijd, voor een sensor die een geldige maar
+verkeerde waarde geeft. Een vangnet van 120 min gaf op 27/28 november 2026 nog drie defrosts zonder rijp, net vóór de
+ijsteller.
+
+### Firmware 1.18, defrost-methode 4
+
+De buitenunit-firmware 1.18 kent een stand 3275 = 4. Die vraagt een defrost aan als de verdampingstemperatuur Te
+(uit de zuigdruk, register 2132) per Ta-band te ver onder Ta ligt, na een minimum-interval en met een tijdvangnet.
+Dat is dezelfde soort startlijn als hieronder, alleen met Te in plaats van Tp, en zonder vochtigheid. De parameters
+(3270, 3312, 3314, 3414–3421) staan op de Amber op 0, waardoor de unit met 3275 = 4 bijna continu zou ontdooien.
+Zet die stand dus niet aan.
 
 ### Geen startlijn
 
@@ -71,14 +80,16 @@ startte, past het interval niet aan.
 Met een vochtigheidssensor telt OpenAmber hoeveel ijs er groeit: het verschil tussen de dampdruk van de buitenlucht
 en de dampdruk boven ijs bij Tp (Pa), opgeteld over de compressortijd sinds de laatste defrost (Pa·h). Ligt de spoel
 boven het rijppunt, dan telt er niets bij. Bereikt de teller de **drempel ijsteller** (standaard 90 Pa·h), dan wordt
-er na het minimale interval ontdooid. 0 zet de ijsteller uit; met een vochtigheidssensor blijft dan alleen het vangnet
-van 120 min over.
+er na het minimale interval ontdooid. 0 zet de ijsteller uit; met een vochtigheidssensor blijft dan alleen de
+noodgrens van 4 uur over.
+
+Staat de compressor stil en ligt Tp 10 min boven +1 °C, dan is de rijp gesmolten en gaat de teller terug naar 0.
+Zonder dat bleef de teller na een stop op een zachte dag staan, en ontdooide de regeling later een schone spoel.
 
 Ter indicatie (november 2026, Ta −1 tot −3 °C): bij 90–95 % RV groeide de teller met 60–100 Pa per uur en lag er na
 48 min zichtbaar ijs (uitvoering ±4 min). Bij 80 % RV was dat 25–50 Pa per uur en bleef de spoel na 48 min schoon
 (uitvoering ±2 min). Daaruit kwam eerst 70 Pa·h, maar dat ging in de praktijk te vroeg af (uitvoering 90 s, bij
-66 Pa·h nog geen rijp te zien). Met 90 Pa·h wordt het ±65–70 min bij mist; bij 80 % RV meer dan 120 min, zodat daar
-het vangnet eerder ontdooit. In de nacht van 27/28 november 2026 (Ta −1 tot −3 °C) bereikte de teller 90 Pa·h na
+66 Pa·h nog geen rijp te zien). Met 90 Pa·h wordt het ±65–70 min bij mist en bij 80 % RV 2 tot 3,5 uur. In de nacht van 27/28 november 2026 (Ta −1 tot −3 °C) bereikte de teller 90 Pa·h na
 74–118 min, en lag er bij alle zeven defrosts op de ijsteller zichtbaar rijp (uitvoering 150–195 s).
 
 ## Instellingen
@@ -105,8 +116,9 @@ ontdooien.
 
 ## Optionele vochtigheidssensor
 
-Met een geldige vochtigheid bepaalt de ijsteller wanneer er ontdooid wordt; het interval is dan alleen het vangnet bij
-120 min draaitijd. Dat vangnet werkt ook bij een verkeerde of verlopen sensor.
+Met een geldige vochtigheid bepaalt de ijsteller wanneer er ontdooid wordt; het interval is dan alleen een noodgrens
+bij 4 uur draaitijd. Die werkt ook bij een verkeerde of verlopen sensor. Geeft de sensor geen geldige waarde, dan
+geldt weer het adaptieve interval.
 
 Voorlopig worden alleen Bluetooth-sensoren ondersteund, dus alleen op de Waveshare-displays.
 
