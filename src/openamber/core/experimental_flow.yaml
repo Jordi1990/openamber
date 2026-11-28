@@ -38,7 +38,7 @@ sensor:
   - platform: copy
     id: experimental_flow_medium_low
     source_id: experimental_flow_feedback_percent
-    name: "Experimenteel geschat debiet (midden/laag)"
+    name: "Experimenteel geschat debiet (midden-laag)"
     unit_of_measurement: "L/min"
     device_class: volume_flow_rate
     accuracy_decimals: 2
