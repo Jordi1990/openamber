@@ -32,14 +32,6 @@ sensor:
     update_interval: 15s
     web_server:
       sorting_group_id: diagnostic
-  - platform: template
-    id: flow_correction_3494_raw
-    internal: true
-    accuracy_decimals: 0
-    lambda: |-
-      if (id(flow_correction_3494_raw).has_state()) return id(flow_correction_3494_raw).state;
-      return 0.0f;
-    update_interval: 15s
   # Simulator only: duration of the last graph page redraw, for the redraw time test.
   - platform: template
     id: graph_redraw_time

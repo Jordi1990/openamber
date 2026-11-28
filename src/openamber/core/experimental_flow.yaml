@@ -7,9 +7,7 @@ sensor:
       const float feedback = id(pump_feedback_1221_raw).state;
       const float tuo = id(outlet_temperature_tuo).state;
       const float status = id(inside_unit_status_1225_raw).state;
-      const float correction = id(flow_correction_3494_raw).state;
-      if (!std::isfinite(feedback) || !std::isfinite(tuo) ||
-          !std::isfinite(status) || !std::isfinite(correction))
+      if (!std::isfinite(feedback) || !std::isfinite(tuo) || !std::isfinite(status))
         return NAN;
       // 1225 bit 15: invalid pump feedback; bit 3: invalid Tuo.
       if (status < 0 || status > 65535 ||
@@ -17,6 +15,9 @@ sensor:
         return NAN;
       return std::min(feedback / 10.0f, 70.0f);
 
+  # The original controller adds int16(outdoor register 3494) / 60 when the
+  # result is above 0.1 L/min. That register is 0 on known units; it may be
+  # a per-model offset for future models.
   - platform: copy
     id: experimental_flow_high
     source_id: experimental_flow_feedback_percent
@@ -29,11 +30,8 @@ sensor:
     filters:
       - lambda: |-
           if (x < 5.0f) return 0.0f;
-          float flow = 1.0666667222976685f * x +
-                       0.09f * id(outlet_temperature_tuo).state - 4.88f;
-          if (flow > 0.1f)
-            flow += id(flow_correction_3494_raw).state / 60.0f;
-          return flow;
+          return 1.0666667222976685f * x +
+                 0.09f * id(outlet_temperature_tuo).state - 4.88f;
     web_server:
       sorting_group_id: diagnostic
 
@@ -49,10 +47,7 @@ sensor:
     filters:
       - lambda: |-
           if (x < 5.0f) return 0.0f;
-          float flow = 1.0666667222976685f * x +
-                       0.05f * id(outlet_temperature_tuo).state - 1.69f;
-          if (flow > 0.1f)
-            flow += id(flow_correction_3494_raw).state / 60.0f;
-          return flow;
+          return 1.0666667222976685f * x +
+                 0.05f * id(outlet_temperature_tuo).state - 1.69f;
     web_server:
       sorting_group_id: diagnostic
