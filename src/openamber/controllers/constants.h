@@ -137,6 +137,9 @@ static const uint32_t PUMP_STOP_TIMEOUT_S = 2 * 60;
 static const uint32_t BACKUP_HEATER_LOOKAHEAD_S = 2 * 60;
 static const uint32_t BACKUP_HEATER_PREDICTION_SETTLE_TIME_S = 5 * 60;
 static const uint32_t BACKUP_HEATER_OFF_SETTLE_TIME_S = 2 * 60;
+// The backup heater boost after a defrost only bridges the defrost dip: it ends once the control temperature is back
+// at its value from the defrost start, and at the latest after this time.
+static const uint32_t DEFROST_BACKUP_HEATER_BOOST_MAX_S = 15 * 60;
 static const uint32_t DHW_BACKUP_HEATER_GRACE_PERIOD_S = 10 * 60;
 
 // Dhw
